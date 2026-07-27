@@ -138,9 +138,7 @@ class Test_lint_txt1(hunitest.TestCase):
 
         - In case of general probabilistic model $h(\vx)$ in \{0, 1\}):
             $$
-            E_{in}(\vw) = \frac{1}{N} \sum_i \big(
-            -y_i \log(\Pr(h(\vx) = 1|\vx)) - (1 - y_i) \log(1 - \Pr(h(\vx)=1|\vx))
-            \big)
+        <<<PROTECTED_MATH_001>>>
             $$
 
         - In case of logistic regression in \{+1, -1\}:

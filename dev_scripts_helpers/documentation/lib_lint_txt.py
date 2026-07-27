@@ -574,6 +574,19 @@ VALID_ACTIONS = {
 }
 
 
+DEFAULT_ACTIONS = [
+    action
+    for action in VALID_ACTIONS
+    if action
+    not in [
+        "frame_chapters",
+        "refresh_toc",
+        "check_links",
+        "remove_markdown_formatting",
+    ]
+]
+
+
 def _is_action_supported_for_format(action: str, extension: str) -> bool:
     """
     Check if an action is supported for a given file format.

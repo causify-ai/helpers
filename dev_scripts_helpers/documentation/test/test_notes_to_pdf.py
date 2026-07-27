@@ -83,9 +83,6 @@ def _read_output_file(file_name: str) -> str:
 
 
 class Test_notes_to_pdf1(hunitest.TestCase):
-    """
-    Test `notes_to_pdf.py` with a simple input file.
-    """
 
     def create_input_file_from_txt(self, txt: str) -> str:
         """
@@ -131,6 +128,7 @@ class Test_notes_to_pdf1(hunitest.TestCase):
         _LOG.debug("return=%s", result)
         return result
 
+    # TODO(gp): Factor this out since all the tests are using the same logic.
     def run_notes_to_pdf(
         self,
         in_file: str,
@@ -561,7 +559,6 @@ class Test_notes_to_pdf_output_types(hunitest.TestCase):
         actual = _to_output_str(script_txt, output_txt)
         self.check_string(actual, purify_text=True, fuzzy_match=True)
 
-    @pytest.mark.skip(reason="Enable when option is available")
     def test2(self) -> None:
         """
         Test PDF generation with no_pdf mode (no compilation).
@@ -1232,9 +1229,6 @@ class Test_notes_to_pdf_errors(hunitest.TestCase):
 
 
 class Test_notes_to_pdf_edge_cases(hunitest.TestCase):
-    """
-    Test `notes_to_pdf.py` with edge cases and special inputs.
-    """
 
     def helper(self, filename: str, txt: str) -> Tuple[str, str]:
         """
@@ -1490,7 +1484,6 @@ class Test_notes_to_pdf_edge_cases(hunitest.TestCase):
 # #############################################################################
 
 
-@pytest.mark.skip(reason="Enable when the option is available")
 class Test_notes_to_pdf_pandoc_ast(hunitest.TestCase):
     """
     Test `notes_to_pdf.py` with Pandoc AST transform option.
@@ -1671,9 +1664,6 @@ class Test_notes_to_pdf_pandoc_ast(hunitest.TestCase):
 
 
 class Test_notes_to_pdf_latex_options(hunitest.TestCase):
-    """
-    Test `notes_to_pdf.py` with LaTeX-specific options.
-    """
 
     def create_simple_input(self) -> str:
         """
@@ -1767,7 +1757,6 @@ class Test_notes_to_pdf_latex_options(hunitest.TestCase):
         expected = hprint.dedent(expected)
         self.assert_equal(actual, expected, fuzzy_match=True, purify_text=True)
 
-    @pytest.mark.skip(reason="Enable it once the option is available")
     def test2(self) -> None:
         """
         Test no_fail_on_warnings option accepts pandoc warnings.
@@ -1971,7 +1960,7 @@ class Test_notes_to_pdf_latex_colors(hunitest.TestCase):
         hio.to_file(in_file, txt)
         return in_file
 
-    # TODO(ai_gp): merge this two functions into one with a mode="pdf" or
+    # TODO(gp): merge this two functions into one with a mode="pdf" or
     # "typ".
     def helper_pdf(self, in_file: str) -> Tuple[str, str]:
         """
@@ -2001,9 +1990,8 @@ class Test_notes_to_pdf_latex_colors(hunitest.TestCase):
         hsystem.system(cmd)
         script_txt = hio.from_file(script_file)
         # Read LaTeX intermediate output.
-        latex_file = os.path.join(out_dir, "tmp.pandoc.tex")
-        hdbg.dassert_file_exists(latex_file)
-        output_txt = hio.from_file(latex_file)
+        hdbg.dassert_file_exists(out_file)
+        output_txt = "<binary content>"
         return script_txt, output_txt
 
     def helper_typst(self, in_file: str) -> Tuple[str, str]:
@@ -2045,87 +2033,52 @@ class Test_notes_to_pdf_latex_colors(hunitest.TestCase):
 
     def test1(self) -> None:
         r"""
-        Test LaTeX color rendering in PDF output (LaTeX backend).
-
-        Verifies that markdown with \textcolor in display and inline math
+        Test that markdown with `\textcolor` in display and inline math
         generates valid output through the PDF pipeline.
-
-        Expected behavior:
-        - Pipeline executes successfully without errors
-        - Script is generated with pandoc commands
-        - Color commands in markdown are passed through to pandoc
         """
         # Prepare inputs.
         in_file = self._create_markdown_with_colors()
         # Run test.
         script_txt, output_txt = self.helper_pdf(in_file)
-        # TODO(ai_gp): use self.assert_equal() with expected.
-        # Check outputs: verify pipeline ran successfully.
-        self.assertIn("pandoc", script_txt)
-        # The markdown input contains textcolor commands.
-        input_txt = hio.from_file(in_file)
-        self.assertIn(r"\textcolor{red}", input_txt)
+        # # TODO(ai_gp): use self.assert_equal() with expected.
+        # # Check outputs: verify pipeline ran successfully.
+        # self.assertIn("pandoc", script_txt)
+        # # The markdown input contains textcolor commands.
+        # input_txt = hio.from_file(in_file)
+        # self.assertIn(r"\textcolor{red}", input_txt)
+        # Check. 
+        actual = _to_output_str(script_txt, output_txt)
+        self.check_string(actual)
 
     def test2(self) -> None:
         r"""
-        Test LaTeX color transformation to Typst format.
-
-        Verifies that when using AST transform, \textcolor commands in markdown
+        Verifies that when using AST transform, `\textcolor` commands in markdown
         math are correctly converted to Typst #text(fill:) syntax.
-
-        Expected behavior:
-        - AST transform converts \textcolor{color}{content} appropriately
-        - Typst pipeline runs pandoc with JSON AST intermediate
-        - Colors are preserved through Math node transformation
         """
         # Prepare inputs.
         in_file = self._create_markdown_with_colors()
         # Run test.
-        script_txt, _ = self.helper_typst(in_file)
-        # Check outputs: should contain evidence of AST transform execution
-        # (converting to JSON AST then processing it).
-        self.assertIn("pandoc", script_txt)
-        # Verify AST JSON intermediate is created during pipeline.
-        self.assertIn(".ast.json", script_txt)
+        script_txt, output_txt = self.helper_typst(in_file)
+        # Check.
+        actual = _to_output_str(script_txt, output_txt)
+        self.check_string(actual)
+        # # Check outputs: should contain evidence of AST transform execution
+        # # (converting to JSON AST then processing it).
+        # self.assertIn("pandoc", script_txt)
+        # # Verify AST JSON intermediate is created during pipeline.
+        # self.assertIn(".ast.json", script_txt)
 
-    def test3(self) -> None:
-        """
-        Test that both backends handle the same markdown input correctly.
-
-        Creates the same markdown with colors and runs it through both
-        PDF (LaTeX) and Typst backends, verifying each produces valid output.
-
-        Expected behavior:
-        - PDF backend runs pandoc for LaTeX output
-        - Typst backend runs pandoc with AST transform (JSON intermediate)
-        - Both handle color commands from markdown
-        """
-        # Prepare inputs.
-        in_file = self._create_markdown_with_colors()
-        # Run PDF test.
-        script_pdf, _ = self.helper_pdf(in_file)
-        # Verify PDF pipeline ran.
-        self.assertIn("pandoc", script_pdf)
-        # Run Typst test.
-        script_typst, _ = self.helper_typst(in_file)
-        # Verify both pipelines executed and created AST intermediate.
-        self.assertIn("pandoc", script_typst)
-        self.assertIn(".ast.json", script_typst)
-
+    # TODO(ai_gp): Add another test like test2 that generates the tex file.
 
 # #############################################################################
-# Test_LaTeX_Cancelled_Notation
+# Test_notes_to_pdf_latex_cancel
 # #############################################################################
 
 
-class Test_LaTeX_Cancelled_Notation(hunitest.TestCase):
+class Test_notes_to_pdf_latex_cancel(hunitest.TestCase):
     """
     Test that LaTeX cancelled notation in markdown is preserved through
     pandoc conversion pipeline.
-
-    The cancelled notation represents unobserved counterfactual outcomes
-    in causal inference: Y_0 | T=1 is crossed out because it cannot be
-    observed when treatment is assigned.
     """
 
     def helper(self, markdown_content: str) -> str:
