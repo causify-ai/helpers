@@ -192,9 +192,9 @@ def _system(
     if isinstance(log_level, str):
         hdbg.dassert_in(log_level, ("echo", "echo_frame"))
         if log_level == "echo_frame":
-            print(hprint.frame(f"> %s", hprint.color_highlight(cmd, "green")))
+            print(hprint.frame("> %s", hprint.color_highlight(cmd, "green")))
         elif log_level == "echo":
-            print(f"> %s", hprint.color_highlight(cmd, "green"))
+            print("> %s", hprint.color_highlight(cmd, "green"))
         else:
             raise ValueError(f"Invalid log_level='{log_level}'")
         _LOG.trace("> %s", cmd)
@@ -211,8 +211,9 @@ def _system(
         stdout = subprocess.PIPE
         stderr = subprocess.STDOUT
         hdbg.dassert_in(print_command, ("ON_DEBUG_LEVEL", True, False))
-        if print_command == True:
-            _LOG.info("> %s", hprint.color_highlight(cmd, "green"))
+        if isinstance(print_command, bool):
+            if print_command is True:
+                _LOG.info("> %s", hprint.color_highlight(cmd, "green"))
         with subprocess.Popen(
             cmd,
             shell=True,
