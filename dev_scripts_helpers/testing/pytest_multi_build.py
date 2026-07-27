@@ -54,6 +54,13 @@ def _parse() -> argparse.ArgumentParser:
         help="script to run (e.g., ./pr_test.sh)",
     )
     parser.add_argument(
+        "--build_names",
+        nargs="+",
+        default=[],
+        help="build names to run (e.g., docker apple dev_container). "
+        "If not provided, runs all builds.",
+    )
+    parser.add_argument(
         "--no_delete_cache",
         action="store_true",
         help="skip manage_cache.py --action clear_all",
@@ -177,8 +184,13 @@ def _main(parser: argparse.ArgumentParser) -> None:
         )
         cmd = args.script
     _LOG.info("Command to run: %s", cmd)
-    # Run the same command across all configured build environments.
-    build_names = list(hpytest.BUILD_CONFIG.keys())
+    # Determine which builds to run.
+    if args.build_names:
+        build_names = args.build_names
+        # Validate that all provided build names are valid.
+        hdbg.dassert_is_subset(build_names, hpytest.BUILD_CONFIG.keys())
+    else:
+        build_names = list(hpytest.BUILD_CONFIG.keys())
     total_builds = len(build_names)
     for build_num, build_name in enumerate(build_names, 1):
         if not args.no_delete_cache:
