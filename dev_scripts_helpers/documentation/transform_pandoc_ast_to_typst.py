@@ -435,6 +435,9 @@ def _transform_ast_color_text(ast: PandocAst) -> PandocAst:
 # CLI.
 # #############################################################################
 
+_VALID_ACTIONS = ["divved_fence", "color_text"]
+_DEFAULT_ACTIONS = _VALID_ACTIONS[:]
+
 
 def _parse() -> argparse.ArgumentParser:
     """
@@ -460,9 +463,7 @@ def _parse() -> argparse.ArgumentParser:
         default="",
         help="Output AST JSON file (or - for stdout)",
     )
-    valid_actions = ["divved_fence", "color_text"]
-    default_actions = ["divved_fence", "color_text"]
-    hselacti.add_action_arg(parser, valid_actions, default_actions)
+    hselacti.add_action_arg(parser, _VALID_ACTIONS, _DEFAULT_ACTIONS)
     hparser.add_verbosity_arg(parser)
     return parser
 
@@ -475,11 +476,8 @@ def _main(parser: argparse.ArgumentParser) -> None:
     """
     args = parser.parse_args()
     hdbg.init_logger(verbosity=args.log_level, use_exec_path=True)
-    # TODO(ai_gp): Move them out like for the other files.
-    valid_actions = ["divved_fence", "color_text"]
-    default_actions = ["divved_fence", "color_text"]
-    actions = hselacti.select_actions(args, valid_actions, default_actions)
-    _LOG.info(hselacti.actions_to_string(actions, valid_actions, add_frame=True))
+    actions = hselacti.select_actions(args, _VALID_ACTIONS, _DEFAULT_ACTIONS)
+    _LOG.info(hselacti.actions_to_string(actions, _VALID_ACTIONS, add_frame=True))
     _LOG.info("Loading AST from '%s'", args.in_file)
     ast = _load_ast(args.in_file)
     while actions:
