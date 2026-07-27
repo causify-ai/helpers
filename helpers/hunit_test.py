@@ -461,15 +461,7 @@ def assert_equal(
         hdbg.dassert_not_in(tag, values)
         values[tag] = (actual, expected)
 
-    _LOG.debug("Before any transformation:")
-    # Save the passed values, before any transform to both current and test dir.
-    for save_dir in (".", test_dir):
-        act_file_name = f"{save_dir}/tmp.initial.actual.txt"
-        hio.to_file(act_file_name, actual)
-        exp_file_name = f"{save_dir}/tmp.initial.expected.txt"
-        hio.to_file(exp_file_name, expected)
-    #
-    tag = "original"
+    tag = "initial"
     _append(tag, actual, expected)
     # 1) Remove white spaces.
     actual = huntepur.purify_white_spaces(actual)
@@ -551,7 +543,7 @@ def assert_equal(
         exp_var = "expected = r"
         # We always return the variable exactly as this should be, even if we
         # could make it look better through indentation in case of fuzzy match.
-        actual_orig = values["original"][0]
+        actual_orig = values["initial"][0]
         if actual_orig.startswith('"'):
             sep = "'''"
         else:
@@ -584,6 +576,11 @@ def assert_equal(
             tag = f"{idx}.{key}"
             _save_diff(actual_tmp, expected_tmp, tag, test_dir)
     else:
+        # Save the first values, before any transform to both current and test dir.
+        key = "initial"
+        actual_tmp, expected_tmp = values[key]
+        _save_diff(actual_tmp, expected_tmp, tag, test_dir)
+        # Save the last values.
         key = "final"
         actual_tmp, expected_tmp = values[key]
         _save_diff(actual_tmp, expected_tmp, key, test_dir)

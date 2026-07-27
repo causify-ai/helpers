@@ -1,11 +1,24 @@
 #!/bin/bash
-clear
+
+# Parse --no_clear_screen flag
+no_clear_screen=false
+args=()
+
+for arg in "$@"; do
+  if [[ "$arg" == "--no_clear_screen" ]]; then
+    no_clear_screen=true
+  else
+    args+=("$arg")
+  fi
+done
+
+[[ "$no_clear_screen" == false ]] && clear
 
 file_name="tmp.pytest_log.txt"
 # Force Python to leave stdout unbuffered which delays `_LOG` output and tqdm
 # progress bars.
 export PYTHONUNBUFFERED=1
-cmd="pytest $* 2>&1 | tee $file_name"
+cmd="pytest ${args[@]} 2>&1 | tee $file_name"
 cmd+='; exit ${PIPESTATUS[0]}'
 echo "> $cmd"
 eval $cmd

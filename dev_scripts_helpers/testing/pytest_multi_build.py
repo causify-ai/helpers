@@ -90,7 +90,8 @@ def _build_pytest_cmd(targets: List[str]) -> str:
     """
     _LOG.debug("targets=%s", len(targets))
     targets_str = " ".join(targets)
-    cmd = f"pytest_log {targets_str}"
+    opts = "--no_clear_screen"
+    cmd = f"pytest_log {opts} {targets_str}".strip()
     _LOG.debug("return=%s", cmd)
     return cmd
 
