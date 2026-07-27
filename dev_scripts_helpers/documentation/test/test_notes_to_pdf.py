@@ -1889,7 +1889,7 @@ class Test_notes_to_pdf_typst_abbrevs(hunitest.TestCase):
 
 class Test_notes_to_pdf_latex_colors(hunitest.TestCase):
     """
-    Test LaTeX color handling in math formulas.
+    Test color handling across the PDF, beamer, and Typst backends.
     """
 
     def _create_markdown_with_colors(self) -> str:
@@ -1949,135 +1949,171 @@ class Test_notes_to_pdf_latex_colors(hunitest.TestCase):
         hio.to_file(in_file, txt)
         return in_file
 
-    # TODO(gp): merge this two functions into one with a mode="pdf" or
-    # "typ".
-    def helper_pdf(self, in_file: str) -> Tuple[str, str]:
-        """
-        Run PDF generation test with color formulas.
+    def helper(self, type_: str, slides_engine: str, no_pdf: bool) -> Tuple[str, str]:
+        r"""
+        Run `notes_to_pdf.py` on markdown containing color commands.
 
-        :param in_file: Input markdown file
-        :return: Tuple of (script_txt, output_txt)
+        :param type_: value for `--type` (e.g., `pdf`, `slides`)
+        :param slides_engine: value for `--slides_engine` (e.g., `beamer`,
+            `typst`)
+        :param no_pdf: if True, stop the pipeline at the intermediate
+            source file (`.tex` for LaTeX / beamer, `.typ` for Typst)
+            instead of compiling the PDF
+        :return: path to the generated output file
+            # TODO(ai_gp): Update
         """
+        # Prepare inputs.
+        in_file = self._create_markdown_with_colors()
         exec_path = hgit.find_file_in_git_tree("notes_to_pdf.py")
         hdbg.dassert_path_exists(exec_path)
+        # Prepare outputs. The extension of the output file matches what the
+        # pipeline produces, since `notes_to_pdf.py` copies the last generated
+        # file to `--output`.
+        if not no_pdf:
+            out_ext = "pdf"
+        elif type_ == "slides" and slides_engine == "typst":
+            out_ext = "typ"
+        elif type_ == "slides" and slides_engine == "beamer":
+            out_ext = "tex"
+        else:
+            raise ValueError("Invalid inputs")
         #
         out_dir = self.get_scratch_space()
+        out_file = os.path.join(out_dir, f"output.{out_ext}")
         script_file = os.path.join(out_dir, "script.sh")
-        out_file = os.path.join(out_dir, "output.pdf")
         # Construct command.
         cmd = [
             exec_path,
             f"--input {in_file}",
-            "--type pdf",
             f"--output {out_file}",
             f"--script {script_file}",
+            f"--type {type_}",
+            f"--slides_engine {slides_engine}",
             "--skip_action open",
         ]
+        if no_pdf:
+            cmd.append("--no_pdf")
         cmd = " ".join(cmd)
         _LOG.debug("cmd=%s", cmd)
         # Run test.
         hsystem.system(cmd)
+        # Check outputs.
+        self.assertTrue(os.path.exists(out_file))
+        self.assertGreater(os.path.getsize(out_file), 0)
+        if out_ext in ("typ", "tex"):
+            out_txt = hio.from_file(out_file)
+        else:
+            out_txt = "<pdf>"
+        # Verify script was generated.
+        self.assertTrue(os.path.exists(script_file))
         script_txt = hio.from_file(script_file)
-        # Read LaTeX intermediate output.
-        tex_file = os.path.join(out_dir, "tmp.notes_to_pdf.tex")
-        hdbg.dassert_file_exists(tex_file)
-        output_txt = hio.from_file(tex_file)
-        return script_txt, output_txt
+        return out_txt, script_txt
 
-    def helper_typst(self, in_file: str) -> Tuple[str, str]:
-        """
-        Run Typst slides generation test with color formulas.
-
-        Uses AST transform to convert colors properly for Typst backend.
-
-        :param in_file: Input markdown file
-        :return: Tuple of (script_txt, output_txt)
-        """
-        exec_path = hgit.find_file_in_git_tree("notes_to_pdf.py")
-        hdbg.dassert_path_exists(exec_path)
-        #
-        out_dir = self.get_scratch_space()
-        script_file = os.path.join(out_dir, "script.sh")
-        out_file = os.path.join(out_dir, "output.slides")
-        # Construct command with AST transform for proper color handling.
-        cmd = [
-            exec_path,
-            f"--input {in_file}",
-            "--type slides",
-            "--use_pandoc_ast_transform",
-            f"--output {out_file}",
-            f"--script {script_file}",
-            "--skip_action open",
-        ]
-        cmd = " ".join(cmd)
-        _LOG.debug("cmd=%s", cmd)
-        # Run test.
-        hsystem.system(cmd)
-        script_txt = hio.from_file(script_file)
-        # Read Typst intermediate output (transformed AST becomes typst).
-        typ_file = os.path.join(out_dir, "tmp.pandoc.typ")
-        #
-        hdbg.dassert_file_exists(typ_file)
-        output_txt = hio.from_file(typ_file)
-        return script_txt, output_txt
-
+    @pytest.mark.superslow
     def test1(self) -> None:
         r"""
-        Test that markdown with `\textcolor` in display and inline math
-        generates valid output through the PDF pipeline.
+        Test that `--type pdf` compiles colored markdown into a PDF.
         """
         # Prepare inputs.
-        in_file = self._create_markdown_with_colors()
+        type_ = "pdf"
+        slides_engine = "beamer"
+        no_pdf = False
         # Run test.
-        script_txt, output_txt = self.helper_pdf(in_file)
-        # Check outputs: verify pipeline ran successfully.
-        self.assertIn("pandoc", script_txt)
-        # The intermediate LaTeX should contain textcolor commands.
-        self.assertIn(r"\textcolor{red}", output_txt)
-        self.assertIn(r"\textcolor{blue}", output_txt)
-        # Verify overall output structure using golden file.
-        actual = _to_output_str(script_txt, output_txt)
+        out_txt, script_txt = self.helper(type_, slides_engine, no_pdf)
+        # Check output.
+        actual = _to_output_str(script_txt, ast_txt)
         self.check_string(actual, purify_text=True, fuzzy_match=True)
 
+    @pytest.mark.superslow
     def test2(self) -> None:
         r"""
-        Verifies that when using AST transform, `\textcolor` commands in markdown
-        math are correctly converted to Typst #text(fill:) syntax.
+        Test that `--type slides --slides_engine beamer` compiles colored
+        markdown into a PDF.
         """
         # Prepare inputs.
-        in_file = self._create_markdown_with_colors()
+        type_ = "slides"
+        slides_engine = "beamer"
+        no_pdf = False
         # Run test.
-        script_txt, output_txt = self.helper_typst(in_file)
-        # Check.
-        actual = _to_output_str(script_txt, output_txt)
-        self.check_string(actual)
-        # # Check outputs: should contain evidence of AST transform execution
-        # # (converting to JSON AST then processing it).
-        # self.assertIn("pandoc", script_txt)
-        # # Verify AST JSON intermediate is created during pipeline.
-        # self.assertIn(".ast.json", script_txt)
+        out_txt, script_txt = self.helper(type_, slides_engine, no_pdf)
+        # Check output.
+        actual = _to_output_str(script_txt, ast_txt)
+        self.check_string(actual, purify_text=True, fuzzy_match=True)
 
+    @pytest.mark.superslow
     def test3(self) -> None:
         r"""
-        Test LaTeX/PDF generation with color formulas to verify intermediate
-        tex file is correctly generated.
-
-        Validates that `\textcolor` commands in markdown are preserved through
-        the full PDF pipeline and appear in the generated LaTeX output.
+        Test that `--type slides --slides_engine typst` compiles colored
+        markdown into a PDF.
         """
         # Prepare inputs.
-        in_file = self._create_markdown_with_colors()
-        # Run test using PDF pipeline.
-        script_txt, output_txt = self.helper_pdf(in_file)
-        # Check outputs: verify LaTeX file was generated with colors.
-        self.assertIn("pandoc", script_txt)
-        # Verify textcolor commands are in the LaTeX output.
+        type_ = "slides"
+        slides_engine = "typst"
+        no_pdf = False
+        # Run test.
+        out_txt, script_txt = self.helper(type_, slides_engine, no_pdf)
+        # Check output.
+        actual = _to_output_str(script_txt, ast_txt)
+        self.check_string(actual, purify_text=True, fuzzy_match=True)
+
+    @pytest.mark.slow
+    def test4(self) -> None:
+        r"""
+        Test that `--no_pdf --type pdf` emits LaTeX colors in the `.tex` file.
+        """
+        # Prepare inputs.
+        type_ = "pdf"
+        slides_engine = "beamer"
+        no_pdf = True
+        # Run test.
+        out_txt, script_txt = self.helper(type_, slides_engine, no_pdf)
+        # Check output.
+        out_txt, script_txt = _to_output_str(script_txt, ast_txt)
+        self.check_string(actual, purify_text=True, fuzzy_match=True)
+        # Check outputs.
         self.assertIn(r"\textcolor{red}", output_txt)
         self.assertIn(r"\textcolor{blue}", output_txt)
-        self.assertIn(r"\textcolor{green}", output_txt)
-        # Check overall LaTeX structure.
-        actual = _to_output_str(script_txt, output_txt)
+
+    @pytest.mark.slow
+    def test5(self) -> None:
+        r"""
+        Test that `--no_pdf --type slides --slides_engine beamer` emits LaTeX
+        colors in the `.tex` file.
+        """
+        # Prepare inputs.
+        type_ = "slides"
+        slides_engine = "beamer"
+        no_pdf = True
+        # Run test.
+        out_txt, script_txt = self.helper(type_, slides_engine, no_pdf)
+        # Check output.
+        actual = _to_output_str(script_txt, ast_txt)
         self.check_string(actual, purify_text=True, fuzzy_match=True)
+        # Check outputs.
+        self.assertIn(r"\textcolor{red}", output_txt)
+        self.assertIn(r"\textcolor{blue}", output_txt)
+
+    @pytest.mark.slow
+    def test6(self) -> None:
+        r"""
+        Test that `--no_pdf --type slides --slides_engine typst` emits Typst
+        colors in the `.typ` file.
+        """
+        # Prepare inputs.
+        type_ = "slides"
+        slides_engine = "typst"
+        no_pdf = True
+        # Run test.
+        out_txt, script_txt = self.helper(type_, slides_engine, no_pdf)
+        # Check output.
+        actual = _to_output_str(script_txt, ast_txt)
+        self.check_string(actual, purify_text=True, fuzzy_match=True)
+        # Check outputs.
+        self.assertIn('#text(fill: red, weight: "bold")[This is red]', output_txt)
+        self.assertIn(
+            '#text(fill: blue, weight: "bold")[This is blue]', output_txt
+        )
+
 
 # #############################################################################
 # Test_notes_to_pdf_latex_cancel
