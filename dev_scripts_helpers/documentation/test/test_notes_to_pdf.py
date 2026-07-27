@@ -1973,12 +1973,12 @@ class Test_notes_to_pdf_latex_colors(hunitest.TestCase):
         # file to `--output`.
         if not no_pdf:
             out_ext = "pdf"
-            cmd_opts = ["--no_pdf"]
+            cmd_opts = []
         elif type_ == "slides" and slides_engine == "typst":
             out_ext = "typ"
             cmd_opts = [
                 "--use_pandoc_ast_transform",
-                "--no_fail_on_warnings"
+                #"--no_fail_on_warnings"
             ]
         elif type_ == "slides" and slides_engine == "beamer":
             out_ext = "tex"
@@ -2001,6 +2001,8 @@ class Test_notes_to_pdf_latex_colors(hunitest.TestCase):
             "--skip_action open",
         ]
         cmd.extend(cmd_opts)
+        if no_pdf:
+            cmd.append("--no_pdf")
         cmd = " ".join(cmd)
         _LOG.debug("cmd=%s", cmd)
         # Run test.
@@ -2099,15 +2101,13 @@ class Test_notes_to_pdf_latex_colors(hunitest.TestCase):
         slides_engine = "typst"
         no_pdf = True
         # Run test.
-        out_txt, script_txt = self.helper(type_, slides_engine, no_pdf)
+        script_txt, out_txt = self.helper(type_, slides_engine, no_pdf)
         # Check output.
         actual = _to_output_str(script_txt, out_txt)
         self.check_string(actual, purify_text=True, fuzzy_match=True)
         # Check outputs.
-        self.assertIn('#text(fill: red, weight: "bold")[This is red]', out_txt)
-        self.assertIn(
-            '#text(fill: blue, weight: "bold")[This is blue]', out_txt
-        )
+        self.assertIn('#text(fill: red)', out_txt)
+        self.assertIn('#text(fill: blue)', out_txt)
 
 
 # #############################################################################

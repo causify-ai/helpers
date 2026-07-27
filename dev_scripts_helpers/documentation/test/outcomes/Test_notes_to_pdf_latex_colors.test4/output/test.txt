@@ -1,0 +1,28 @@
+################################################################################
+script_txt
+################################################################################
+#!/bin/bash -xe
+# cleanup_before
+## skipping this action
+# preprocess_notes
+$GIT_ROOT/dev_scripts_helpers/documentation/preprocess_notes.py --input $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf_latex_colors.test4/tmp.scratch/colors.md --output $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf_latex_colors.test4/tmp.scratch/tmp.notes_to_pdf.preprocess_notes.txt --type slides --toc_type none --output_format typst
+# render_images
+$GIT_ROOT/dev_scripts_helpers/documentation/render_images.py --input $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf_latex_colors.test4/tmp.scratch/tmp.notes_to_pdf.preprocess_notes.txt --output $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf_latex_colors.test4/tmp.scratch/tmp.notes_to_pdf.render_image.txt --action render
+# run_pandoc
+$DOCKER_EXECUTABLE run --rm --user $(id -u):$(id -g) -e ... --workdir $GIT_ROOT --mount type=bind,source=$GIT_ROOT,target=$GIT_ROOT pandoc/core:3.7 $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf_latex_colors.test4/tmp.scratch/tmp.notes_to_pdf.render_image2.txt.with_defs.txt --output $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf_latex_colors.test4/tmp.scratch/tmp.notes_to_pdf.render_image2.txt.with_defs.txt.ast.json -t json --fail-if-warnings
+$GIT_ROOT/dev_scripts_helpers/documentation/transform_pandoc_ast_to_typst.py -i $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf_latex_colors.test4/tmp.scratch/tmp.notes_to_pdf.render_image2.txt.with_defs.txt.ast.json -o $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf_latex_colors.test4/tmp.scratch/tmp.notes_to_pdf.render_image2.txt.divved.ast.json
+$DOCKER_EXECUTABLE run --rm --user $(id -u):$(id -g) -e ... --workdir $GIT_ROOT --mount type=bind,source=$GIT_ROOT,target=$GIT_ROOT pandoc/core:3.7 $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf_latex_colors.test4/tmp.scratch/tmp.notes_to_pdf.render_image2.txt.divved.ast.json --output $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf_latex_colors.test4/tmp.scratch/tmp.notes_to_pdf.render_image2.typ --template $GIT_ROOT/dev_scripts_helpers/documentation/pandoc_touying.typ --resource-path $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf_latex_colors.test4/tmp.scratch -f json -t typst --fail-if-warnings --number-sections -s
+# typst compile
+# compress_pdf
+## skipping this action
+\cp -af $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf_latex_colors.test4/tmp.scratch/tmp.notes_to_pdf.render_image2.pdf $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf_latex_colors.test4/tmp.scratch/output.pdf
+# copy_to_gdrive
+## skipping this action
+# open
+## skipping this action
+# cleanup_after
+## skipping this action
+################################################################################
+output_txt
+################################################################################
+<pdf>
