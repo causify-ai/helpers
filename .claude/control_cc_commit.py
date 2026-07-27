@@ -124,6 +124,7 @@ def _parse() -> argparse.ArgumentParser:
     :return: Configured argument parser
     """
     parser = argparse.ArgumentParser(
+        formatter_class=argparse.RawDescriptionHelpFormatter,
         description=__doc__,
     )
     parser.add_argument(

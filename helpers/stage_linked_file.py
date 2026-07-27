@@ -58,6 +58,7 @@ def stage_links(symlinks: List[str]) -> None:
 
 def main():
     parser = argparse.ArgumentParser(
+        formatter_class=argparse.RawDescriptionHelpFormatter,
         description="Stage symbolic links for modification."
     )
     parser.add_argument(
