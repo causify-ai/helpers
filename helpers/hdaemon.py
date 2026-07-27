@@ -44,6 +44,8 @@ def add_daemon_arg(
 def run_daemon_mode(
     input_file: str,
     window_name_str: str,
+    *,
+    # TODO(ai_gp): Use str = ""
     watch_cmd_suffix: Optional[str] = None,
 ) -> None:
     """
@@ -57,6 +59,7 @@ def run_daemon_mode(
     :param watch_cmd_suffix: Suffix to append to command for watch runs
     """
     # Build command without --daemon flag for daemon_watch to execute.
+    # TODO(ai_gp): Pass cmd instead of extracting from sys.argv
     cmd_parts = [sys.argv[0]] + [
         arg for arg in sys.argv[1:] if arg != "--daemon"
     ]
@@ -87,6 +90,7 @@ def daemon_watch(
     wait_in_sec: int = 1,
     debounce_sec: int = 2,
     abort_on_error: bool = True,
+    # TODO(ai_gp): Use str = ""
     watch_cmd_suffix: Optional[str] = None,
 ) -> None:
     """
@@ -119,14 +123,14 @@ def daemon_watch(
         except Exception as e:
             _LOG.error("Daemon: command failed: %s", e)
 
-    # Run immediately on first launch, opening the output file so the user
-    # has a viewer (e.g., Skim) attached to it.
+    # Run immediately on first launch.
     _LOG.info("Initial run...")
     _run_cmd(cmd)
     _LOG.info("Initial run complete")
     # Build watch command with optional suffix.
     watch_cmd = cmd if watch_cmd_suffix is None else cmd + watch_cmd_suffix
     prev_hash = file_hash(file_path)
+    # TODO(ai_gp): Use str = ""
     stable_hash: Optional[str] = None
     time_since_last_change = 0
     while True:
