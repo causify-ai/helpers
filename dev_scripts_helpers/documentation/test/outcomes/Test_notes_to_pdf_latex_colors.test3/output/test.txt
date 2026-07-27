@@ -1,0 +1,175 @@
+################################################################################
+script_txt
+################################################################################
+#!/bin/bash -xe
+# cleanup_before
+## skipping this action
+# preprocess_notes
+$GIT_ROOT/dev_scripts_helpers/documentation/preprocess_notes.py --input $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf_latex_colors.test3/tmp.scratch/colors.md --output $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf_latex_colors.test3/tmp.scratch/tmp.notes_to_pdf.preprocess_notes.txt --type pdf --toc_type none --output_format latex
+# render_images
+$GIT_ROOT/dev_scripts_helpers/documentation/render_images.py --input $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf_latex_colors.test3/tmp.scratch/tmp.notes_to_pdf.preprocess_notes.txt --output $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf_latex_colors.test3/tmp.scratch/tmp.notes_to_pdf.render_image.txt --action render
+# run_pandoc
+$DOCKER_EXECUTABLE run --rm --user $(id -u):$(id -g) -e ... --workdir $GIT_ROOT --mount type=bind,source=$GIT_ROOT,target=$GIT_ROOT tmp.pandoc_texlive.$ARCH.$CONTAINER_ID $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf_latex_colors.test3/tmp.scratch/tmp.notes_to_pdf.render_image2.txt --output $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf_latex_colors.test3/tmp.scratch/tmp.notes_to_pdf.tex --template $GIT_ROOT/dev_scripts_helpers/documentation/pandoc.latex -V geometry:margin=1in -f markdown --number-sections --highlight-style=tango -s --fail-if-warnings -t latex
+# latex
+cp -f $GIT_ROOT/dev_scripts_helpers/documentation/latex_abbrevs.sty $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf_latex_colors.test3/tmp.scratch
+$DOCKER_EXECUTABLE run --rm --user $(id -u):$(id -g) -e ... --workdir $GIT_ROOT --mount type=bind,source=$GIT_ROOT,target=$GIT_ROOT tmp.latex.$ARCH.$CONTAINER_ID pdflatex -output-directory $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf_latex_colors.test3/tmp.scratch --interaction=nonstopmode --halt-on-error --shell-escape $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf_latex_colors.test3/tmp.scratch/tmp.notes_to_pdf.tex
+# latex again
+# compress_pdf
+## skipping this action
+\cp -af $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf_latex_colors.test3/tmp.scratch/tmp.notes_to_pdf.pdf $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf_latex_colors.test3/tmp.scratch/output.pdf
+# copy_to_gdrive
+## skipping this action
+# open
+## skipping this action
+# cleanup_after
+## skipping this action
+################################################################################
+output_txt
+################################################################################
+% See
+% - https://github.com/Wandmalfarbe/pandoc-latex-template
+% - https://github.com/Wandmalfarbe/pandoc-latex-template/blob/master/eisvogel.tex
+% for a better template?
+%
+% User contributed templates
+% https://github.com/jgm/pandoc/wiki/User-contributed-templates
+% https://github.com/adityam/pandoc-templates/blob/master/README.markdown
+
+\documentclass[10pt,]{article}
+\usepackage{lmodern}
+
+% For underline
+%\usepackage{ulem}
+\usepackage{amsfonts}
+% This creates problems.
+%\usepackage{dot2texi}
+\usepackage{xcolor}
+\usepackage{tikz}
+\usepackage[pdf]{graphviz}
+\usetikzlibrary{shapes,arrows}
+%\usepackage{musicography}
+
+\usepackage{amssymb,amsmath}
+\usepackage{ifxetex,ifluatex}
+\usepackage{fixltx2e} % provides \textsubscript
+\ifnum 0\ifxetex 1\fi\ifluatex 1\fi=0 % if pdftex
+  \usepackage[T1]{fontenc}
+  \usepackage[utf8]{inputenc}
+\else % if luatex or xelatex
+  \ifxetex
+    \usepackage{mathspec}
+  \else
+    \usepackage{fontspec}
+  \fi
+  \defaultfontfeatures{Ligatures=TeX,Scale=MatchLowercase}
+\fi
+% use upquote if available, for straight quotes in verbatim environments
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+% use microtype if available
+\IfFileExists{microtype.sty}{%
+\usepackage[]{microtype}
+\UseMicrotypeSet[protrusion]{basicmath} % disable protrusion for tt fonts
+}{}
+\PassOptionsToPackage{hyphens}{url} % url is loaded by hyperref
+\usepackage[unicode=true]{hyperref}
+\hypersetup{
+            pdfborder={0 0 0},
+            breaklinks=true}
+\urlstyle{same}  % don't use monospace font for urls
+\usepackage[margin=1in]{geometry}
+\IfFileExists{parskip.sty}{%
+\usepackage{parskip}
+}{% else
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{6pt plus 2pt minus 1pt}
+}
+\setlength{\emergencystretch}{3em}  % prevent overfull lines
+\providecommand{\tightlist}{%
+  \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+\setcounter{secnumdepth}{5}
+% Redefines (sub)paragraphs to behave more like sections
+\ifx\paragraph\undefined\else
+\let\oldparagraph\paragraph
+\renewcommand{\paragraph}[1]{\oldparagraph{#1}\mbox{}}
+\fi
+\ifx\subparagraph\undefined\else
+\let\oldsubparagraph\subparagraph
+\renewcommand{\subparagraph}[1]{\oldsubparagraph{#1}\mbox{}}
+\fi
+
+% set default figure placement to htbp
+\makeatletter
+\def\fps@figure{htbp}
+\makeatother
+
+
+\date{}
+
+% =============================================================================
+% =============================================================================
+
+\usepackage{cancel}
+
+\input{latex_abbrevs.sty}
+
+%\usepackage{bookmark}
+
+% =============================================================================
+% =============================================================================
+
+\begin{document}
+
+
+
+\let\emph\textit
+\let\uline\underline
+\let\ul\underline
+
+\section{Color Mathematics}\label{color-mathematics}
+
+\subsection{Display Math with Colored
+Formulas}\label{display-math-with-colored-formulas}
+
+A basic colored formula:
+
+\[
+\textcolor{red}{x} + y = z
+\]
+
+Multiple colors:
+
+\[
+\textcolor{red}{a} + \textcolor{blue}{b} = \textcolor{green}{c}
+\]
+
+Nested structure:
+
+\[
+f(x) = \textcolor{red}{\sin(x)} + \textcolor{blue}{\cos(x)}
+\]
+
+\subsection{Inline Math with Colors}\label{inline-math-with-colors}
+
+Some text with inline colored math: \(\textcolor{red}{hello}\) in the
+middle of a sentence, then more text with \(\textcolor{blue}{world}\) at
+the end.
+
+\subsection{Complex Color Expressions}\label{complex-color-expressions}
+
+Matrix with colors:
+
+\[
+\begin{pmatrix}
+\textcolor{red}{1} & 0 \\
+0 & \textcolor{blue}{1}
+\end{pmatrix}
+\]
+
+Integral with colored bounds:
+
+\[
+\int_{\textcolor{red}{a}}^{\textcolor{blue}{b}} f(x) \, dx
+\]
+
+\end{document}
+

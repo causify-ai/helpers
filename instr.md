@@ -1,3 +1,7 @@
+In Test_notes_to_pdf_latex_colors there should be 4 tests
+
+
+
 # Conventions
 - When writing code you must always follow the instructions in
   `.claude/skills/coding.rules.md`

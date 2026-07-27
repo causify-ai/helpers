@@ -1888,19 +1888,8 @@ class Test_notes_to_pdf_typst_abbrevs(hunitest.TestCase):
 
 
 class Test_notes_to_pdf_latex_colors(hunitest.TestCase):
-    r"""
-    Test LaTeX color handling in math formulas with both PDF (LaTeX) and Typst
-    backends.
-
-    Tests that `\textcolor{color}{content}` is correctly transformed and
-    rendered in:
-    - PDF output via LaTeX backend
-    - Typst output via pandoc typst writer
-
-    Validates that the color commands are properly escaped and preserved through:
-    1. Markdown parsing
-    2. Pandoc AST conversion
-    3. Backend-specific output (LaTeX or Typst)
+    """
+    Test LaTeX color handling in math formulas.
     """
 
     def _create_markdown_with_colors(self) -> str:
@@ -1990,8 +1979,9 @@ class Test_notes_to_pdf_latex_colors(hunitest.TestCase):
         hsystem.system(cmd)
         script_txt = hio.from_file(script_file)
         # Read LaTeX intermediate output.
-        hdbg.dassert_file_exists(out_file)
-        output_txt = "<binary content>"
+        tex_file = os.path.join(out_dir, "tmp.notes_to_pdf.tex")
+        hdbg.dassert_file_exists(tex_file)
+        output_txt = hio.from_file(tex_file)
         return script_txt, output_txt
 
     def helper_typst(self, in_file: str) -> Tuple[str, str]:
@@ -2040,15 +2030,14 @@ class Test_notes_to_pdf_latex_colors(hunitest.TestCase):
         in_file = self._create_markdown_with_colors()
         # Run test.
         script_txt, output_txt = self.helper_pdf(in_file)
-        # # TODO(ai_gp): use self.assert_equal() with expected.
-        # # Check outputs: verify pipeline ran successfully.
-        # self.assertIn("pandoc", script_txt)
-        # # The markdown input contains textcolor commands.
-        # input_txt = hio.from_file(in_file)
-        # self.assertIn(r"\textcolor{red}", input_txt)
-        # Check. 
+        # Check outputs: verify pipeline ran successfully.
+        self.assertIn("pandoc", script_txt)
+        # The intermediate LaTeX should contain textcolor commands.
+        self.assertIn(r"\textcolor{red}", output_txt)
+        self.assertIn(r"\textcolor{blue}", output_txt)
+        # Verify overall output structure using golden file.
         actual = _to_output_str(script_txt, output_txt)
-        self.check_string(actual)
+        self.check_string(actual, purify_text=True, fuzzy_match=True)
 
     def test2(self) -> None:
         r"""
@@ -2068,7 +2057,27 @@ class Test_notes_to_pdf_latex_colors(hunitest.TestCase):
         # # Verify AST JSON intermediate is created during pipeline.
         # self.assertIn(".ast.json", script_txt)
 
-    # TODO(ai_gp): Add another test like test2 that generates the tex file.
+    def test3(self) -> None:
+        r"""
+        Test LaTeX/PDF generation with color formulas to verify intermediate
+        tex file is correctly generated.
+
+        Validates that `\textcolor` commands in markdown are preserved through
+        the full PDF pipeline and appear in the generated LaTeX output.
+        """
+        # Prepare inputs.
+        in_file = self._create_markdown_with_colors()
+        # Run test using PDF pipeline.
+        script_txt, output_txt = self.helper_pdf(in_file)
+        # Check outputs: verify LaTeX file was generated with colors.
+        self.assertIn("pandoc", script_txt)
+        # Verify textcolor commands are in the LaTeX output.
+        self.assertIn(r"\textcolor{red}", output_txt)
+        self.assertIn(r"\textcolor{blue}", output_txt)
+        self.assertIn(r"\textcolor{green}", output_txt)
+        # Check overall LaTeX structure.
+        actual = _to_output_str(script_txt, output_txt)
+        self.check_string(actual, purify_text=True, fuzzy_match=True)
 
 # #############################################################################
 # Test_notes_to_pdf_latex_cancel
