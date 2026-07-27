@@ -395,12 +395,8 @@ def _main(parser: argparse.ArgumentParser) -> None:
     hdbg.init_logger(verbosity=args.log_level, use_exec_path=True)
     _LOG.info("cmd line=%s", cmd_line)
     if args.daemon:
-        # Build command without --daemon flag for daemon_watch to execute.
-        cmd_parts = [sys.argv[0]] + [
-            arg for arg in sys.argv[1:] if arg != "--daemon"
-        ]
-        cmd = " ".join(shlex.quote(part) for part in cmd_parts)
-        hdaem.daemon_watch(args.input, cmd)
+        # Skip "open" action on watch runs (viewer auto-reloads).
+        hdaem.run_daemon_mode(args.input, "notes_to_pdf", watch_cmd_suffix=" --skip_action=open")
     else:
         _run_all(args)
 

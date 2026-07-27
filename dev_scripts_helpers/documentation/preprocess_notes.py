@@ -69,9 +69,9 @@ def _colorize_backticks(
     E.g., `store` into `\textcolor{blue}{\texttt{store}}`
     E.g., `weeks_to_xmas` into `\textcolor{blue}{\texttt{weeks\_to\_xmas}}`
 
-    For Typst output, converts backticks to `#text(fill: color)[`content`]`
-    E.g., `store` into `#text(fill: blue)[`store`]`
-    E.g., `weeks_to_xmas` into `#text(fill: blue)[`weeks_to_xmas`]`
+    For Typst output, converts backticks to `#text(fill: color)[content]`
+    E.g., `store` into `#text(fill: blue)[store]`
+    E.g., `weeks_to_xmas` into `#text(fill: blue)[weeks_to_xmas]`
 
     :param in_line: input line to process
     :param color: color name
@@ -97,10 +97,10 @@ def _colorize_backticks(
             escaped_text = matched_text.replace("_", r"\_")
             txt = rf"\textcolor{{{color}}}{{\texttt{{{escaped_text}}}}}"
         else:  # typst
-            # Typst doesn't need underscore escaping in backticks.
-            # Use #text with backticks for monospace colored text.
-            txt = f"#text(fill: {color})[`{matched_text}`]"
-            txt = "`" + txt + "`{=typst}"
+            # For Typst, use #text with the content directly (no inner backticks).
+            # The content is rendered as monospace colored text via #text(fill:
+            # color)[content].
+            txt = f"#text(fill: {color})[{matched_text}]"
         return txt
 
     line = re.sub(pattern, replace_func, line)
