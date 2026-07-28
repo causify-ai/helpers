@@ -5,6 +5,9 @@ Instructions at `docs/work_tools/all.codebase_clean_up.how_to_guide.md`.
 """
 
 # TODO(ai_gp): preview -> dry_run in all scripts
+# TODO(ai_gp): Unit test this and clean up the interface to make it more
+# similar to other scripts
+# TODO(ai_gp): --ext _all_ doesn't seem to work, also we should use --all_files
 
 import argparse
 import logging

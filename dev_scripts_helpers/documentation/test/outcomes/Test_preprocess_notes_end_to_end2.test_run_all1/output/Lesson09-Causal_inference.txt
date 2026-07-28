@@ -845,18 +845,18 @@ digraph CausalDAG {
 ::::
 :::
 
-#### Front-door Paths in Causal Inference
-- A front-door path reveals causal influence through an observable mediator
+#### Frontdoor Paths in Causal Inference
+- A frontdoor path reveals causal influence through an observable mediator
   - The causal effect flows: $A \rightarrow P \rightarrow S$
 - Requirements for identifiability:
   - All confounders of $A \rightarrow P$ and $P \rightarrow S$ are observed and
     controlled
-  - There are no back-door paths from $A$ to $S$ through unobserved variables
-- Enables causal estimation when back-door adjustment is infeasible
+  - There are no backdoor paths from $A$ to $S$ through unobserved variables
+- Enables causal estimation when backdoor adjustment is infeasible
 - Example:
   - Advertising impacts sales through customer perception of price
   - $A$: Advertising, $P$: Price perception, $S$: Sales
-- Pearl's front-door criterion provides a formal method for adjustment
+- Pearl's frontdoor criterion provides a formal method for adjustment
   - Estimate $P(P|A)$, $P(S|P,A)$, and $P(A)$ from data to compute causal effect
 
 ```graphviz[width=50%]
@@ -877,7 +877,7 @@ digraph CausalDAG {
 ```
 
 
-#### Back-door paths
+#### Backdoor paths
 - A company wants to understand the causal effect of price on sales
 
   ```graphviz[width=50%]
@@ -897,14 +897,14 @@ digraph CausalDAG {
   }
   ```
 
-- `Price` $\rightarrow$ `Sales` is the front-door path
+- `Price` $\rightarrow$ `Sales` is the frontdoor path
 
 - A confounder is `Advertising spend` since it can affect both:
   - The price the company can set (e.g., the cost increases to cover
     advertisement costs and the product is perceived as more valuable)
   - The sales (directly)
 
-- The back-door path goes from `Sales` to `Price` via `Advertising spend`
+- The backdoor path goes from `Sales` to `Price` via `Advertising spend`
 
 - The company needs to control for `Advertising spend` to estimate the causal
   effect of `Price` on `Sales` by:
@@ -939,7 +939,7 @@ digraph CausalDAG {
     CS -> S;
   }
   ```
-- **Front-door path** (i.e., a direct causal relationship):
+- **Frontdoor path** (i.e., a direct causal relationship):
   $CustomerSatisfaction \rightarrow Sales$
 ::::
 :::: {.column width=45%}
@@ -1966,8 +1966,8 @@ digraph BayesianNetwork1 {
   - To evaluate $\Pr(GreenerGrass | do(Sprinkler = true))$:
     $$\Pr(g | do(S = \text{true})) = \sum_r \Pr(g | S = \text{true}, r) \Pr(r)$$
 
-- **Back-door Criterion for Valid Adjustment Sets**
-  - A set $Z$ satisfies the back-door criterion if it blocks all back-door paths
+- **Backdoor Criterion for Valid Adjustment Sets**
+  - A set $Z$ satisfies the backdoor criterion if it blocks all backdoor paths
     from $X_j$ to $X_i$
   - Formally: $X_i$ is conditionally independent of the parents of $X_j$ given
     $X_j$ and $Z$
@@ -2054,7 +2054,7 @@ digraph BayesianNetwork1 {
 - E.g., in the Sprinkler example, why does someone turn on the sprinkler? Maybe
     they check the weather, but how do they make their decision?
 
-- Besides the direct route, we needs to take in account the "back door" route
+- Besides the direct route, we needs to take in account the "backdoor" route
 
 #### Problem
 - In experimental settings, randomization ensures that $X$ is not confounded
@@ -2081,7 +2081,7 @@ digraph BayesianNetwork1 {
 - We want to estimate the effect of $Sprinkler$ on $GreenerGrass$
   - We intervene and set $Sprinkler=True$
 
-- Besides the direct route, we needs to take in account the "back door" route
+- Besides the direct route, we needs to take in account the "backdoor" route
   $Cloudy \to Rain$
 
 ```mermaid
@@ -2103,7 +2103,7 @@ flowchart TD
     linkStyle 2 stroke:red,stroke-width:2px;
     linkStyle 3 stroke:red,stroke-width:2px;
 ```
-- If we knew the value of $Rain$, this back door path would be blocked and we
+- If we knew the value of $Rain$, this backdoor path would be blocked and we
   could condition on $Rain$ instead of $Cloudy$
 
 - In formal way we need to find a set of $Z$ variables such that $X_i$ is
