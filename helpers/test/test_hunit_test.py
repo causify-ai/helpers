@@ -265,6 +265,7 @@ class TestTestCase1(hunitest.TestCase):
 # Test_AssertEqual1
 # #############################################################################
 
+
 # TODO(ai_gp): Indent the """ strings to align with the rest of the code code
 # and use dedent.
 @pytest.mark.need_dev_container
@@ -977,7 +978,6 @@ class Test_get_dir_signature1(hunitest.TestCase):
 # TODO(ai_gp2): Split in multiple classes, one per testing function,
 # Test_assert_equal_fuzzy_match, Test_assert_equal_purify_text, ...
 class Test_assert_equal_options1(hunitest.TestCase):
-
     def helper(
         self,
         actual: str,
@@ -1293,9 +1293,7 @@ class Test_assert_equal_options1(hunitest.TestCase):
         """
         actual = "output    value"
         expected = "output value"
-        self.helper(
-            actual, expected, True, purify_text=True, fuzzy_match=True
-        )
+        self.helper(actual, expected, True, purify_text=True, fuzzy_match=True)
 
     def test_combined3(self) -> None:
         """

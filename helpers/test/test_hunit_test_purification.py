@@ -8,7 +8,7 @@ import datetime
 import logging
 import os
 import unittest.mock as umock
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional
 
 import pytest
 
@@ -285,7 +285,9 @@ class Test_purify_directory_paths1(hunitest.TestCase):
         input_ = os.path.join(git_root, "src/subdir/file.py")
         expected = "$GIT_ROOT/src/subdir/file.py"
         env_vars = {"CSFY_HOST_GIT_ROOT_PATH": csfy_host_git_root}
-        self.helper_with_env_and_pwd_mocking(input_, expected, env_vars, git_root)
+        self.helper_with_env_and_pwd_mocking(
+            input_, expected, env_vars, git_root
+        )
 
     def test2(self) -> None:
         """
@@ -296,7 +298,9 @@ class Test_purify_directory_paths1(hunitest.TestCase):
         input_ = f"{csfy_host_git_root}/other/file.py"
         expected = "$CSFY_HOST_GIT_ROOT_PATH/other/file.py"
         env_vars = {"CSFY_HOST_GIT_ROOT_PATH": csfy_host_git_root}
-        self.helper_with_env_and_pwd_mocking(input_, expected, env_vars, git_root)
+        self.helper_with_env_and_pwd_mocking(
+            input_, expected, env_vars, git_root
+        )
 
     def test3(self) -> None:
         """
@@ -328,7 +332,9 @@ class Test_purify_directory_paths1(hunitest.TestCase):
         input_ = os.path.join(git_root, "file.py")
         expected = "$GIT_ROOT/file.py"
         env_vars = {"CSFY_HOST_GIT_ROOT_PATH": git_root}
-        self.helper_with_env_and_pwd_mocking(input_, expected, env_vars, git_root)
+        self.helper_with_env_and_pwd_mocking(
+            input_, expected, env_vars, git_root
+        )
 
 
 # #############################################################################
@@ -1231,6 +1237,7 @@ class Test_purify_file_names1(hunitest.TestCase):
         """
         Test basic file name purification with relative paths.
         """
+        # TODO(ai_gp): Move the umock.pack to the helper
         with umock.patch(
             "helpers.hgit.get_client_root", return_value="/home/user/gitroot"
         ):
@@ -1320,6 +1327,7 @@ class Test_purify_apple_container_output1(hunitest.TestCase):
         """
         Test removing multiple container startup lines.
         """
+        # TODO(ai_gp): Use a """
         txt = (
             "[0/6] [0s]\n"
             "[1/6] Fetching image [0s]\n"
@@ -1354,6 +1362,7 @@ class Test_purify_apple_container_output1(hunitest.TestCase):
         """
         Test with only container startup lines.
         """
+        # TODO(ai_gp): Use a """
         txt = (
             "[0/6] [0s]\n"
             "[1/6] Fetching image [0s]\n"
@@ -1367,11 +1376,13 @@ class Test_purify_apple_container_output1(hunitest.TestCase):
         Test that lines with brackets but not starting/ending with them are
         kept.
         """
+        # TODO(ai_gp): Use a """
         txt = (
             "[0/6] [0s]\n"
             "Some output with [brackets] in the middle\n"
             "dot - graphviz version 12.2.1 (20241206.2353)\n"
         )
+        # TODO(ai_gp): Use a """
         expected = (
             "Some output with [brackets] in the middle\n"
             "dot - graphviz version 12.2.1 (20241206.2353)\n"

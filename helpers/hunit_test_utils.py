@@ -19,6 +19,7 @@ import helpers.hdbg as hdbg
 import helpers.henv as henv
 import helpers.hgit as hgit
 import helpers.hio as hio
+import helpers.hprint as hprint
 import helpers.hserver as hserver
 import helpers.hstring as hstring
 import helpers.hsystem as hsystem

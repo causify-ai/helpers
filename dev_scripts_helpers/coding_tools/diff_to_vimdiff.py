@@ -127,9 +127,27 @@ def _load_file_list(from_file: str) -> set:
     return files
 
 
-def _filter_diff_output(
-    diff_file: str, from_file: Optional[str]
-) -> None:
+def _path_matches_any(path: str, file_list: set) -> bool:
+    """
+    Check if path matches any entry in file_list.
+
+    Handles both absolute and relative paths by comparing normalized versions.
+
+    :param path: File path to check
+    :param file_list: Set of file paths to match against
+    :return: True if path matches any entry in file_list
+    """
+    # Normalize path for comparison.
+    norm_path = os.path.normpath(path)
+    for file_to_keep in file_list:
+        norm_file = os.path.normpath(file_to_keep)
+        # Check if path contains or matches the file path.
+        if norm_path.endswith(norm_file) or norm_file in norm_path:
+            return True
+    return False
+
+
+def _filter_diff_output(diff_file: str, from_file: Optional[str]) -> None:
     """
     Filter diff output to only include files in from_file.
 
@@ -178,26 +196,6 @@ def _filter_diff_output(
     hio.to_file(diff_file, "\n".join(filtered_lines))
 
 
-def _path_matches_any(path: str, file_list: set) -> bool:
-    """
-    Check if path matches any entry in file_list.
-
-    Handles both absolute and relative paths by comparing normalized versions.
-
-    :param path: File path to check
-    :param file_list: Set of file paths to match against
-    :return: True if path matches any entry in file_list
-    """
-    # Normalize path for comparison.
-    norm_path = os.path.normpath(path)
-    for file_to_keep in file_list:
-        norm_file = os.path.normpath(file_to_keep)
-        # Check if path contains or matches the file path.
-        if norm_path.endswith(norm_file) or norm_file in norm_path:
-            return True
-    return False
-
-
 # #############################################################################
 
 
@@ -238,8 +236,12 @@ def _compare_file_list(
     print(cmd)
     hsystem.system(cmd, abort_on_error=True)
     # Filter out files matching ignore patterns (e.g., `.git/`, `.idea`, `tmp.`).
-    _remove_files_from_file_list("/tmp/dir1", regexes_to_ignore, do_not_skip_tmp=True)
-    _remove_files_from_file_list("/tmp/dir2", regexes_to_ignore, do_not_skip_tmp=True)
+    _remove_files_from_file_list(
+        "/tmp/dir1", regexes_to_ignore, do_not_skip_tmp=True
+    )
+    _remove_files_from_file_list(
+        "/tmp/dir2", regexes_to_ignore, do_not_skip_tmp=True
+    )
     # Display side-by-side diff of filtered file listings.
     opts = []
     opts.append("--suppress-common-lines")

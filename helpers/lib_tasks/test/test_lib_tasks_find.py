@@ -7,7 +7,7 @@ import helpers.hgit as hgit
 import helpers.hprint as hprint
 import helpers.hunit_test as hunitest
 import helpers.hunit_test_purification as huntepur
-import helpers.lib_tasks.lib_tasks_find as hlitafin
+import helpers.lib_tasks.lib_tasks_find as hltltafi
 import helpers.lib_tasks.test.test_lib_tasks as httestlib
 
 _LOG = logging.getLogger(__name__)
@@ -24,7 +24,7 @@ class Test_find_short_import1(hunitest.TestCase):
             ("file1.py", 10, "import dataflow.core.dag_runner as dtfcodarun"),
             ("file1.py", 11, "import helpers.hpandas as hpandas"),
         ]
-        results = hlitafin._find_short_import(iterator, "dtfcodarun")
+        results = hltltafi._find_short_import(iterator, "dtfcodarun")
         actual = "\n".join(map(str, results))
         # pylint: disable=line-too-long
         expected = r"""('file1.py', 10, 'import dataflow.core.dag_runner as dtfcodarun', 'dtfcodarun', 'import dataflow.core.dag_runner as dtfcodarun')"""
@@ -52,7 +52,7 @@ class Test_find_func_class_uses1(hunitest.TestCase):
             ("file1.py", 12, "dag_builder: dtfcodabui.DagRunner,"),
             ("file1.py", 13, ":param dag_builder: `DagRunner` instance"),
         ]
-        results = hlitafin._find_func_class_uses(iterator, "DagRunner")
+        results = hltltafi._find_func_class_uses(iterator, "DagRunner")
         actual = "\n".join(map(str, results))
         expected = r"""
         ('file1.py', 10, 'dag_runner = dtfamsys.RealTimeDagRunner(**dag_runner_kwargs)', 'dtfamsys', 'RealTimeDagRunner')
@@ -75,7 +75,7 @@ class TestLibTasksRunTests1(hunitest.TestCase):
         """
         Find all the test files in the current dir.
         """
-        files = hlitafin._find_test_files()
+        files = hltltafi._find_test_files()
         # For sure there are more than 1 test files: at least this one.
         self.assertGreater(len(files), 1)
 
@@ -84,7 +84,7 @@ class TestLibTasksRunTests1(hunitest.TestCase):
         Find all the test files from the top of the super module root.
         """
         git_root = hgit.get_client_root(super_module=True)
-        files = hlitafin._find_test_files(git_root)
+        files = hltltafi._find_test_files(git_root)
         # For sure there are more than 1 test files: at least this one.
         self.assertGreater(len(files), 1)
 
@@ -93,13 +93,15 @@ class TestLibTasksRunTests1(hunitest.TestCase):
         Find the current test class.
         """
         git_root = hgit.get_client_root(super_module=True)
-        file_names = hlitafin._find_test_files(git_root)
+        file_names = hltltafi._find_test_files(git_root)
         #
-        file_names = hlitafin._find_test_class(
+        file_names = hltltafi._find_test_class(
             "TestLibTasksRunTests1", file_names
         )
         actual = huntepur.purify_file_names(file_names)
-        expected = ["helpers/lib_tasks/test/test_lib_tasks_find.py::TestLibTasksRunTests1"]
+        expected = [
+            "helpers/lib_tasks/test/test_lib_tasks_find.py::TestLibTasksRunTests1"
+        ]
         self.assert_equal(str(actual), str(expected), purify_text=True)
 
     def test_find_test_class2(self) -> None:
@@ -108,11 +110,13 @@ class TestLibTasksRunTests1(hunitest.TestCase):
         """
         file_names = [__file__]
         #
-        file_names = hlitafin._find_test_class(
+        file_names = hltltafi._find_test_class(
             "TestLibTasksRunTests1", file_names
         )
         actual = huntepur.purify_file_names(file_names)
-        expected = ["helpers/lib_tasks/test/test_lib_tasks_find.py::TestLibTasksRunTests1"]
+        expected = [
+            "helpers/lib_tasks/test/test_lib_tasks_find.py::TestLibTasksRunTests1"
+        ]
         self.assert_equal(str(actual), str(expected), purify_text=True)
 
     def test_find_test_class3(self) -> None:
@@ -143,12 +147,12 @@ class TestLibTasksRunTests1(hunitest.TestCase):
         incremental = True
         hunitest.create_test_dir(dir_name, incremental, file_dict)
         #
-        file_names = hlitafin._find_test_files(dir_name)
+        file_names = hltltafi._find_test_files(dir_name)
         act_file_names = [os.path.relpath(d, scratch_space) for d in file_names]
         exp_file_names = ["test/test_that.py", "test/test_this.py"]
         self.assert_equal(str(act_file_names), str(exp_file_names))
         #
-        actual = hlitafin._find_test_class("TestHelloWorld", file_names)
+        actual = hltltafi._find_test_class("TestHelloWorld", file_names)
         actual = huntepur.purify_file_names(actual)
         expected = [
             "helpers/lib_tasks/test/outcomes/TestLibTasksRunTests1.test_find_test_class3/tmp.scratch/"
@@ -185,8 +189,8 @@ class TestLibTasksRunTests1(hunitest.TestCase):
         incremental = True
         hunitest.create_test_dir(dir_name, incremental, file_dict)
         #
-        file_names = hlitafin._find_test_files(dir_name)
-        actual = hlitafin._find_test_decorator("no_container", file_names)
+        file_names = hltltafi._find_test_files(dir_name)
+        actual = hltltafi._find_test_decorator("no_container", file_names)
         actual = huntepur.purify_file_names(actual)
         expected = [
             "helpers/lib_tasks/test/outcomes/TestLibTasksRunTests1.test_find_test_decorator1/"
@@ -202,7 +206,7 @@ class TestLibTasksRunTests1(hunitest.TestCase):
         """
         file_name = hgit.find_file_in_git_tree("hunit_test.py")
         file_names = [file_name]
-        actual = hlitafin._find_test_decorator("qa", file_names)
+        actual = hltltafi._find_test_decorator("qa", file_names)
         expected = ["$GIT_ROOT/helpers/hunit_test.py"]
         self.assert_equal(str(actual), str(expected), purify_text=True)
 
@@ -221,7 +225,7 @@ class Test_find_check_string_output1(hunitest.TestCase):
         as_python = True
         # We don't want to copy but just print.
         pbcopy = False
-        actual = hlitafin.find_check_string_output(
+        actual = hltltafi.find_check_string_output(
             ctx, class_name, method_name, as_python, fuzzy_match, pbcopy
         )
         # Check that it matches exactly.

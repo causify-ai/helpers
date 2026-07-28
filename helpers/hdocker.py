@@ -122,9 +122,7 @@ def is_docker_running() -> bool:
     """
     engine = get_docker_engine()
     if engine == "docker":
-        rc, output = hsystem.system_to_string(
-            "docker ps", abort_on_error=False
-        )
+        rc, output = hsystem.system_to_string("docker ps", abort_on_error=False)
         is_running = rc == 0 and "failed to connect" not in output
     elif engine == "apple":
         rc, output = hsystem.system_to_string(

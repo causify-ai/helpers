@@ -83,7 +83,6 @@ def _read_output_file(file_name: str) -> str:
 
 
 class Test_notes_to_pdf1(hunitest.TestCase):
-
     def create_input_file_from_txt(self, txt: str) -> str:
         """
         Create a temporary markdown input file from raw text.
@@ -1229,7 +1228,6 @@ class Test_notes_to_pdf_errors(hunitest.TestCase):
 
 
 class Test_notes_to_pdf_edge_cases(hunitest.TestCase):
-
     def helper(self, filename: str, txt: str) -> Tuple[str, str]:
         """
         Helper to run edge case test.
@@ -1605,7 +1603,7 @@ class Test_notes_to_pdf_pandoc_ast(hunitest.TestCase):
         self.assertIn("--type html", actual)
         self.assertIn("-f json -t html --fail-if-warnings", actual)
         self.assertIn("<!DOCTYPE html>", actual)
-        self.assertIn("<h1 data-number=\"1\"", actual)
+        self.assertIn('<h1 data-number="1"', actual)
         self.assertIn("This document tests AST transformation", actual)
 
     def test3(self) -> None:
@@ -1701,7 +1699,6 @@ class Test_notes_to_pdf_pandoc_ast(hunitest.TestCase):
 
 
 class Test_notes_to_pdf_latex_options(hunitest.TestCase):
-
     def create_simple_input(self) -> str:
         """
         Create a simple markdown input file.
@@ -1836,9 +1833,7 @@ class Test_notes_to_pdf_latex_options(hunitest.TestCase):
         output.pdf
         """
         expected = hprint.dedent(expected)
-        self.assert_equal(
-            actual, expected, fuzzy_match=True, purify_text=True
-        )
+        self.assert_equal(actual, expected, fuzzy_match=True, purify_text=True)
 
 
 # #############################################################################
@@ -2019,7 +2014,9 @@ class Test_notes_to_pdf_latex_colors(hunitest.TestCase):
         hio.to_file(in_file, txt)
         return in_file
 
-    def helper(self, type_: str, slides_engine: str, no_pdf: bool) -> Tuple[str, str]:
+    def helper(
+        self, type_: str, slides_engine: str, no_pdf: bool
+    ) -> Tuple[str, str]:
         r"""
         Run `notes_to_pdf.py` on markdown containing color commands.
 
@@ -2047,13 +2044,15 @@ class Test_notes_to_pdf_latex_colors(hunitest.TestCase):
             out_ext = "typ"
             cmd_opts = [
                 "--use_pandoc_ast_transform",
-                #"--no_fail_on_warnings"
+                # "--no_fail_on_warnings"
             ]
         elif type_ == "slides" and slides_engine == "beamer":
             out_ext = "tex"
             cmd_opts = []
         else:
-            raise ValueError("Invalid inputs: " + hprint.to_str("type_ slides_engine no_pdf"))
+            raise ValueError(
+                "Invalid inputs: " + hprint.to_str("type_ slides_engine no_pdf")
+            )
         #
         out_dir = self.get_scratch_space()
         out_file = os.path.join(out_dir, f"output.{out_ext}")
@@ -2175,8 +2174,8 @@ class Test_notes_to_pdf_latex_colors(hunitest.TestCase):
         actual = _to_output_str(script_txt, out_txt)
         self.check_string(actual, purify_text=True, fuzzy_match=True)
         # Check outputs.
-        self.assertIn('#text(fill: red)', out_txt)
-        self.assertIn('#text(fill: blue)', out_txt)
+        self.assertIn("#text(fill: red)", out_txt)
+        self.assertIn("#text(fill: blue)", out_txt)
 
 
 # #############################################################################
