@@ -40,7 +40,7 @@ import shutil
 import sys
 from typing import List
 
-import helpers.hdaemon as hdaem
+import helpers.hdaemon as hdaemon
 import helpers.hdbg as hdbg
 import helpers.hdocker as hdocker
 import helpers.hio as hio
@@ -206,7 +206,6 @@ def _copy_to_google_drive(out_file_path: str) -> None:
             )
 
 
-
 # #############################################################################
 # CLI
 # #############################################################################
@@ -241,7 +240,7 @@ def _parse() -> argparse.ArgumentParser:
             "2 (resolve cross-references), 3 (full build with bibliography)"
         ),
     )
-    hdaem.add_daemon_arg(parser)
+    hdaemon.add_daemon_arg(parser)
     hselacti.add_action_arg(parser, _VALID_ACTIONS, _DEFAULT_ACTIONS)
     hdocker.add_dockerized_script_arg(parser)
     hparser.add_verbosity_arg(parser)
@@ -263,7 +262,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
     if args.daemon:
         # Skip "open" action on watch runs (viewer auto-reloads).
         cmd_line = " ".join(sys.argv)
-        hdaem.run_daemon_mode(
+        hdaemon.run_daemon_mode(
             in_file_path,
             cmd_line,
             "run_latex",

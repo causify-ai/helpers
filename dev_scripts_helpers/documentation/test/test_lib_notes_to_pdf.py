@@ -122,8 +122,6 @@ class Test_render_images(hunitest.TestCase):
             self,
             sys_calls,
             expected_str,
-            #purify_text=True,
-            #purify_expected_text=True,
         )
 
 
@@ -483,20 +481,10 @@ class Test_run_pandoc_to_html(hunitest.TestCase):
         self.assert_equal(
             result, "$GIT_ROOT/tmp.html", fuzzy_match=True, purify_text=True
         )
-#        sys_calls_str = hunteuti._sys_calls_to_str(sys_calls)
-#        self.assert_equal(
-#            sys_calls_str,
-#            expected,
-#            fuzzy_match=True,
-#            dedent=True,
-#            purify_text=True,
-#        )
         hunteuti.assert_sys_calls(
             self,
             sys_calls,
             expected,
-            #purify_text=True,
-            #purify_expected_text=True,
         )
 
     def test1(self) -> None:
@@ -737,8 +725,6 @@ class Test_run_pandoc_to_slides(hunitest.TestCase):
             self,
             sys_calls,
             expected_str
-            #purify_text=True,
-            #purify_expected_text=True,
         )
 
     def test1(self) -> None:
@@ -1099,18 +1085,13 @@ class Test_copy_to_gdrive(hunitest.TestCase):
     Test `copy_to_gdrive()` function.
     """
 
-    def helper(
-        self,
-        ext: str,
-        input_: str,
-    ) -> None:
+    def test1(self) -> None:
         """
-        Test helper for copy_to_gdrive.
-
-        :param ext: File extension
-        :param input_: Input filename
+        Test copy to specified Google Drive directory.
         """
         # Prepare inputs.
+        ext = "pdf"
+        input_ = "notes.txt"
         scratch_dir = self.get_scratch_space()
         file_name = os.path.join(scratch_dir, f"output.{ext}")
         hio.to_file(file_name, "content")
@@ -1134,37 +1115,6 @@ class Test_copy_to_gdrive(hunitest.TestCase):
             },
         ]
         expected_str = hunteuti._sys_calls_to_str(expected_sys_calls)
-        hunteuti.assert_sys_calls(
-            self,
-            sys_calls,
-            expected_str,
-            purify_text=True,
-            purify_expected_text=True,
-        )
-
-    # TODO(ai_gp): Use the helper
-    def test1(self) -> None:
-        """
-        Test copy to specified Google Drive directory.
-        """
-        # Prepare inputs.
-        scratch_dir = self.get_scratch_space()
-        file_name = os.path.join(scratch_dir, "output.pdf")
-        hio.to_file(file_name, "content")
-        gdrive_dir = scratch_dir
-        ext = "pdf"
-        input_ = "notes.txt"
-        # Run test and capture system calls.
-        with hunteuti.capture_sys_calls() as sys_calls:
-            dshdlntpd.copy_to_gdrive(file_name, ext, input_, gdrive_dir)
-        # Check outputs.
-        expected_str = r"""[
-        {
-        'function': hsystem.system,
-        'args': ('\\cp -af $GIT_ROOT/helpers_root/dev_scripts_helpers/documentation/test/outcomes/Test_copy_to_gdrive.test1/tmp.scratch/output.pdf $GIT_ROOT/helpers_root/dev_scripts_helpers/documentation/test/outcomes/Test_copy_to_gdrive.test1/tmp.scratch/notes.pdf',),
-        'kwargs': {'log_level': 10, 'suppress_output': False},
-        },
-        ]"""
         hunteuti.assert_sys_calls(
             self,
             sys_calls,
@@ -1214,6 +1164,4 @@ class Test_compress_pdf(hunitest.TestCase):
             self,
             sys_calls,
             expected_str,
-            #purify_text=True,
-            #purify_expected_text=True,
         )
