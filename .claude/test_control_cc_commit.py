@@ -1,5 +1,5 @@
 import os
-from typing import Dict
+from typing import Dict, Tuple
 
 import helpers.hunit_test as hunitest
 import control_cc_commit as cc_control
@@ -134,14 +134,23 @@ class Test_enable_git_commands(hunitest.TestCase):
 
 class Test_backup_and_restore(hunitest.TestCase):
 
+    def _setup_file_paths(self) -> Tuple[str, str, str]:
+        """
+        Create scratch directory and paths for settings and backup files.
+
+        :return: Tuple of (scratch_dir, settings_path, backup_path)
+        """
+        scratch_dir = self.get_scratch_space()
+        settings_path = os.path.join(scratch_dir, "settings.json")
+        backup_path = os.path.join(scratch_dir, "settings.backup")
+        return scratch_dir, settings_path, backup_path
+
     def test1(self) -> None:
         """
         Test that --enable creates a backup file with removed denials.
         """
         # Prepare file paths.
-        scratch_dir = self.get_scratch_space()
-        settings_path = os.path.join(scratch_dir, "settings.json")
-        backup_path = os.path.join(scratch_dir, "settings.backup")
+        _, settings_path, backup_path = self._setup_file_paths()
         # Prepare settings with git denials.
         settings = {
             "permissions": {
@@ -159,18 +168,17 @@ class Test_backup_and_restore(hunitest.TestCase):
         cc_control._save_backup(backup_path, removed)
         # Verify backup was created with correct content.
         backup_content = cc_control._load_backup(backup_path)
-        self.assertEqual(len(backup_content), 2)
-        self.assertIn("Bash(*git commit*)", backup_content)
-        self.assertIn("Bash(*git push*)", backup_content)
+        self.assertEqual(
+            backup_content,
+            ["Bash(*git commit*)", "Bash(*git push*)"]
+        )
 
     def test2(self) -> None:
         """
         Test that --disable restores denials from backup.
         """
         # Prepare file paths.
-        scratch_dir = self.get_scratch_space()
-        settings_path = os.path.join(scratch_dir, "settings.json")
-        backup_path = os.path.join(scratch_dir, "settings.backup")
+        _, settings_path, backup_path = self._setup_file_paths()
         # Prepare settings without git denials.
         settings = {"permissions": {"deny": ["Bash(*rm:*)"]}}
         cc_control._save_settings(settings_path, settings)
@@ -187,9 +195,10 @@ class Test_backup_and_restore(hunitest.TestCase):
         )
         # Verify denials were restored.
         restored_deny_list = modified_settings["permissions"]["deny"]
-        self.assertIn("Bash(*rm:*)", restored_deny_list)
-        self.assertIn("Bash(*git commit*)", restored_deny_list)
-        self.assertIn("Bash(*git push*)", restored_deny_list)
+        self.assertEqual(
+            restored_deny_list,
+            ["Bash(*rm:*)", "Bash(*git commit*)", "Bash(*git push*)"]
+        )
         # Verify backup was deleted.
         self.assertFalse(os.path.exists(backup_path))
 
@@ -198,9 +207,7 @@ class Test_backup_and_restore(hunitest.TestCase):
         Test that enable followed by disable returns to original state.
         """
         # Prepare file paths.
-        scratch_dir = self.get_scratch_space()
-        settings_path = os.path.join(scratch_dir, "settings.json")
-        backup_path = os.path.join(scratch_dir, "settings.backup")
+        _, settings_path, backup_path = self._setup_file_paths()
         # Prepare original settings.
         original_settings = {
             "permissions": {
@@ -240,9 +247,7 @@ class Test_backup_and_restore(hunitest.TestCase):
         Test that --disable fails if backup file is missing.
         """
         # Prepare file paths.
-        scratch_dir = self.get_scratch_space()
-        settings_path = os.path.join(scratch_dir, "settings.json")
-        backup_path = os.path.join(scratch_dir, "settings.backup")
+        _, settings_path, backup_path = self._setup_file_paths()
         # Prepare settings.
         settings = {"permissions": {"deny": ["Bash(*rm:*)"]}}
         cc_control._save_settings(settings_path, settings)
@@ -271,7 +276,16 @@ class Test_backup_and_restore(hunitest.TestCase):
         # Enable git commands.
         removed, modified_settings = cc_control._enable_git_commands(settings)
         # Verify all git patterns were removed.
-        self.assertEqual(len(removed), 5)
+        self.assertEqual(
+            removed,
+            [
+                "Bash(*git commit*)",
+                "Bash(*git commit -m *)",
+                "Bash(*git push*)",
+                "Bash(*git push --force*)",
+                "Edit(*git commit*)",
+            ]
+        )
         # Verify only non-git denial remains.
         self.assertEqual(
             modified_settings["permissions"]["deny"], ["Bash(*rm:*)"]
