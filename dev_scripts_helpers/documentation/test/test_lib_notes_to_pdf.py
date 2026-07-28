@@ -381,11 +381,11 @@ class Test_run_pandoc_to_pdf(hunitest.TestCase):
         'kwargs': {'log_level': 10, 'suppress_output': False}, },
         {
         'function': hsystem.system_to_string,
-        'args': ('find $GIT_ROOT \\( -path \'*/.git\' -o -path \'*/.mypy_cache\' \\) -prune -o -name "dev_scripts_helpers" -print',),
+        'args': ('find $GIT_ROOT \\( -path \'*/.git\' -o -path \'*/.mypy_cache\' \\) -prune -o -name "latex_abbrevs.sty" -print',),
         'kwargs': {}, },
         {
         'function': hsystem.system,
-        'args': ('cp -f documentation/latex_abbrevs.sty $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_run_pandoc_to_pdf.test1/tmp.scratch',),
+        'args': ('cp -f  $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_run_pandoc_to_pdf.test1/tmp.scratch',),
         'kwargs': {'log_level': 10, 'suppress_output': False}, },
         {
         'function': hsystem.system,

@@ -391,7 +391,7 @@ class Test_git_create_issue_and_branch_py(hunitest.TestCase):
                     return_value=("", "Test Issue Title"),
                 ):
                     with mock.patch(
-                        "dev_scripts_helpers.git.git_create_issue_and_branch._check_no_subrepos"
+                        "helpers.hgit.has_submodules", return_value=False
                     ):
                         with mock.patch(
                             "dev_scripts_helpers.git.git_create_issue_and_branch._branch_exists",
@@ -438,7 +438,7 @@ class Test_git_create_issue_and_branch_py(hunitest.TestCase):
                     return_value=("", "Test Issue Title"),
                 ):
                     with mock.patch(
-                        "dev_scripts_helpers.git.git_create_issue_and_branch._check_no_subrepos"
+                        "helpers.hgit.has_submodules", return_value=False
                     ):
                         with mock.patch(
                             "dev_scripts_helpers.git.git_create_issue_and_branch._branch_exists",

@@ -116,20 +116,6 @@ def _create_github_issue(
     return issue_number, issue_url
 
 
-# TODO(ai_gp): Inline
-def _check_no_subrepos() -> None:
-    """
-    Assert that the repository does not have any submodules.
-
-    Raises an error if subrepos are detected.
-    """
-    has_subrepos = hgit.has_submodules()
-    hdbg.dassert(
-        not has_subrepos,
-        "Repository has submodules; worktree not supported yet",
-    )
-
-
 def _branch_exists(branch_name: str) -> bool:
     """
     Check if a git branch already exists.
@@ -293,8 +279,12 @@ def _main(parser: argparse.ArgumentParser) -> None:
     # Format branch name.
     branch_name = _format_title_for_branch(issue_title, issue_id)
     _LOG.info("Branch name: '%s'", branch_name)
-    # Assert no subrepos.
-    _check_no_subrepos()
+    # Assert that the repository does not have any submodules, since
+    # worktrees are not supported with subrepos yet.
+    hdbg.dassert(
+        not hgit.has_submodules(),
+        "Repository has submodules; worktree not supported yet",
+    )
     # Create branch.
     _create_branch(branch_name, create_pr=args.create_pr)
     # Create worktree if requested.
@@ -351,18 +341,12 @@ def _parse() -> argparse.ArgumentParser:
         default=False,
         help="Create git worktree (default: False, only create branch)",
     )
-    # TODO(ai_gp): Use only --no_create_pr
-    parser.add_argument(
-        "--create_pr",
-        action="store_true",
-        default=True,
-        help="Create a draft PR for the branch (default: True)",
-    )
     parser.add_argument(
         "--no_create_pr",
         action="store_false",
         dest="create_pr",
-        help="Skip creating a draft PR for the branch",
+        default=True,
+        help="Skip creating a draft PR for the branch (default: create a draft PR)",
     )
     hparser.add_verbosity_arg(parser)
     return parser
