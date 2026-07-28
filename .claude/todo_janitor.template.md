@@ -19,15 +19,9 @@
 
 # Step 1: [ ] Fix Issue
 
-## Issue Description
-
-The issue is:
-
-`@todo_janitor.current_issue.md`
-
 # Step 2: [ ] Run CI Regressions
 
-## [ ] Create PR and start monitoring
+## [ ] Create PR
 - Create PR in draft mode first:
   ```
   > gh pr create --draft --title "Rename invocations to sys_calls throughout codebase"
@@ -40,6 +34,10 @@ The issue is:
   > GH_PR_NUM=$(gh pr view --json number -q .number); echo $GH_PR_NUM
   1293
   ```
+
+## 
+
+- Enable commits with `.claude/control_cc_commit.py --enable`
 
 ## [ ] Run and Monitor GitHub CI
 - Start monitoring GitHub CI checks:
