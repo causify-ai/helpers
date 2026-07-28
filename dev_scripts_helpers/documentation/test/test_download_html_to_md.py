@@ -35,6 +35,30 @@ def _run_script(
     hsystem.system(cmd_str)
 
 
+def _test_html_to_md_conversion(
+    test_case: hunitest.TestCase,
+    html_content: str,
+    expected_md: str,
+    *,
+    converter: str = "auto",
+) -> None:
+    """
+    Helper to test HTML-to-Markdown conversion end-to-end.
+
+    :param test_case: Test case instance (for assertion and scratch space)
+    :param html_content: Raw HTML to convert
+    :param expected_md: Expected markdown output
+    :param converter: Converter mode ('auto', 'bs', 'readability')
+    """
+    scratch_dir = test_case.get_scratch_space()
+    html_file = os.path.join(scratch_dir, "test.html")
+    md_file = os.path.join(scratch_dir, "test.md")
+    hio.to_file(html_file, html_content)
+    _run_script(html_file, md_file, converter=converter)
+    actual = hio.from_file(md_file)
+    test_case.assert_equal(actual, expected_md, dedent=True, fuzzy_match=True)
+
+
 # #############################################################################
 # Test_remove_data_uri_images
 # #############################################################################
@@ -266,10 +290,6 @@ class Test_download_html_to_md_py_bs(hunitest.TestCase):
         """
         Test script with BeautifulSoup converter on HTML with main tag.
         """
-        # Prepare inputs.
-        scratch_dir = self.get_scratch_space()
-        html_file = os.path.join(scratch_dir, "test.html")
-        md_file = os.path.join(scratch_dir, "test.md")
         html_content = """
         <html>
         <body>
@@ -281,26 +301,17 @@ class Test_download_html_to_md_py_bs(hunitest.TestCase):
         </body>
         </html>
         """
-        hio.to_file(html_file, html_content)
-        # Run test.
-        _run_script(html_file, md_file, converter="bs")
-        # Check outputs.
-        actual = hio.from_file(md_file)
         expected = """
         # Title Here
 
         Content paragraph
         """
-        self.assert_equal(actual, expected, dedent=True, fuzzy_match=True)
+        _test_html_to_md_conversion(self, html_content, expected, converter="bs")
 
     def test2(self) -> None:
         """
         Test script with main container and nested content.
         """
-        # Prepare inputs.
-        scratch_dir = self.get_scratch_space()
-        html_file = os.path.join(scratch_dir, "test.html")
-        md_file = os.path.join(scratch_dir, "test.md")
         html_content = """
         <html>
         <body>
@@ -313,11 +324,6 @@ class Test_download_html_to_md_py_bs(hunitest.TestCase):
         </body>
         </html>
         """
-        hio.to_file(html_file, html_content)
-        # Run test.
-        _run_script(html_file, md_file, converter="bs")
-        # Check outputs.
-        actual = hio.from_file(md_file)
         expected = """
         # Article Title
 
@@ -325,16 +331,12 @@ class Test_download_html_to_md_py_bs(hunitest.TestCase):
 
         Nested content here
         """
-        self.assert_equal(actual, expected, dedent=True, fuzzy_match=True)
+        _test_html_to_md_conversion(self, html_content, expected, converter="bs")
 
     def test3(self) -> None:
         """
         Test script with role='main' selector.
         """
-        # Prepare inputs.
-        scratch_dir = self.get_scratch_space()
-        html_file = os.path.join(scratch_dir, "test.html")
-        md_file = os.path.join(scratch_dir, "test.md")
         html_content = """
         <html>
         <body>
@@ -346,17 +348,12 @@ class Test_download_html_to_md_py_bs(hunitest.TestCase):
         </body>
         </html>
         """
-        hio.to_file(html_file, html_content)
-        # Run test.
-        _run_script(html_file, md_file, converter="bs")
-        # Check outputs.
-        actual = hio.from_file(md_file)
         expected = """
         ## Documentation
 
         Content in role main
         """
-        self.assert_equal(actual, expected, dedent=True, fuzzy_match=True)
+        _test_html_to_md_conversion(self, html_content, expected, converter="bs")
 
 
 # #############################################################################
@@ -373,10 +370,6 @@ class Test_download_html_to_md_py_readability(hunitest.TestCase):
         """
         Test script with readability converter on article-like content.
         """
-        # Prepare inputs.
-        scratch_dir = self.get_scratch_space()
-        html_file = os.path.join(scratch_dir, "test.html")
-        md_file = os.path.join(scratch_dir, "test.md")
         html_content = """
         <html>
         <head><title>Article</title></head>
@@ -391,11 +384,6 @@ class Test_download_html_to_md_py_readability(hunitest.TestCase):
         </body>
         </html>
         """
-        hio.to_file(html_file, html_content)
-        # Run test.
-        _run_script(html_file, md_file, converter="readability")
-        # Check outputs.
-        actual = hio.from_file(md_file)
         expected = """
         Navigation
 
@@ -404,16 +392,12 @@ class Test_download_html_to_md_py_readability(hunitest.TestCase):
 
         More paragraph content here
         """
-        self.assert_equal(actual, expected, dedent=True, fuzzy_match=True)
+        _test_html_to_md_conversion(self, html_content, expected, converter="readability")
 
     def test2(self) -> None:
         """
         Test script with readability converter on dense text content.
         """
-        # Prepare inputs.
-        scratch_dir = self.get_scratch_space()
-        html_file = os.path.join(scratch_dir, "test.html")
-        md_file = os.path.join(scratch_dir, "test.md")
         html_content = """
         <html>
         <body>
@@ -426,18 +410,13 @@ class Test_download_html_to_md_py_readability(hunitest.TestCase):
         </body>
         </html>
         """
-        hio.to_file(html_file, html_content)
-        # Run test.
-        _run_script(html_file, md_file, converter="readability")
-        # Check outputs.
-        actual = hio.from_file(md_file)
         expected = """
         ## Documentation Section
         First paragraph of content
         Second paragraph with more information
         Third paragraph continuing the documentation
         """
-        self.assert_equal(actual, expected, dedent=True, fuzzy_match=True)
+        _test_html_to_md_conversion(self, html_content, expected, converter="readability")
 
 
 # #############################################################################
@@ -454,10 +433,6 @@ class Test_download_html_to_md_py_auto(hunitest.TestCase):
         """
         Test script with auto mode uses BeautifulSoup first when main exists.
         """
-        # Prepare inputs: HTML with main container (auto will use BS).
-        scratch_dir = self.get_scratch_space()
-        html_file = os.path.join(scratch_dir, "test.html")
-        md_file = os.path.join(scratch_dir, "test.md")
         html_content = """
         <html>
         <body>
@@ -469,26 +444,17 @@ class Test_download_html_to_md_py_auto(hunitest.TestCase):
         </body>
         </html>
         """
-        hio.to_file(html_file, html_content)
-        # Run test.
-        _run_script(html_file, md_file)
-        # Check outputs.
-        actual = hio.from_file(md_file)
         expected = """
         # Auto Mode Test
 
         Content found by BS selector
         """
-        self.assert_equal(actual, expected, dedent=True, fuzzy_match=True)
+        _test_html_to_md_conversion(self, html_content, expected)
 
     def test2(self) -> None:
         """
         Test script with auto mode falls back to readability.
         """
-        # Prepare inputs: HTML without main container (auto falls back).
-        scratch_dir = self.get_scratch_space()
-        html_file = os.path.join(scratch_dir, "test.html")
-        md_file = os.path.join(scratch_dir, "test.md")
         html_content = """
         <html>
         <body>
@@ -500,26 +466,17 @@ class Test_download_html_to_md_py_auto(hunitest.TestCase):
         </body>
         </html>
         """
-        hio.to_file(html_file, html_content)
-        # Run test.
-        _run_script(html_file, md_file)
-        # Check outputs.
-        actual = hio.from_file(md_file)
         expected = """
         ## Fallback Test Section
         This should be extracted by readability fallback
         Additional paragraph content for readability to process
         """
-        self.assert_equal(actual, expected, dedent=True, fuzzy_match=True)
+        _test_html_to_md_conversion(self, html_content, expected)
 
     def test3(self) -> None:
         """
         Test script preserves heading structure in markdown.
         """
-        # Prepare inputs.
-        scratch_dir = self.get_scratch_space()
-        html_file = os.path.join(scratch_dir, "test.html")
-        md_file = os.path.join(scratch_dir, "test.md")
         html_content = """
         <html>
         <body>
@@ -531,11 +488,6 @@ class Test_download_html_to_md_py_auto(hunitest.TestCase):
         </body>
         </html>
         """
-        hio.to_file(html_file, html_content)
-        # Run test.
-        _run_script(html_file, md_file, converter="bs")
-        # Check outputs: verify markdown structure.
-        actual = hio.from_file(md_file)
         expected = """
         # Main Heading
 
@@ -543,4 +495,4 @@ class Test_download_html_to_md_py_auto(hunitest.TestCase):
 
         Paragraph text
         """
-        self.assert_equal(actual, expected, dedent=True, fuzzy_match=True)
+        _test_html_to_md_conversion(self, html_content, expected, converter="bs")
