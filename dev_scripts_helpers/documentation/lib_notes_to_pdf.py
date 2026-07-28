@@ -389,8 +389,8 @@ def run_pandoc_to_pdf(
     # pdflatex needs to run in the same dir of latex_abbrevs.sty so we copy
     # all the needed files.
     out_dir = os.path.dirname(file_name) or "."
-    # TODO(ai_gp): Make this more robust by looking for
-    # `documentation/latex_abbrevs.sty`.
+    # Since there can be multiple copies of `latex_abbrevs.sty` we look for the
+    # including dir.
     latex_file = os.path.join(
         hgit.find_file("dev_scripts_helpers"),
         "documentation",
