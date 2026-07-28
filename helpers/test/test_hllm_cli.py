@@ -1796,7 +1796,9 @@ class Test_add_llm_prompt_arg(hunitest.TestCase):
         Test basic argument addition with is_required=True.
         """
         # Prepare inputs.
-        parser = argparse.ArgumentParser()
+        parser = argparse.ArgumentParser(
+            formatter_class=argparse.RawDescriptionHelpFormatter
+        )
         is_required = True
         default_prompt = ""
         # Run test.
@@ -1820,7 +1822,9 @@ class Test_add_llm_prompt_arg(hunitest.TestCase):
         Test with default_prompt and is_required=False.
         """
         # Prepare inputs.
-        parser = argparse.ArgumentParser()
+        parser = argparse.ArgumentParser(
+            formatter_class=argparse.RawDescriptionHelpFormatter
+        )
         default_prompt = "default test prompt"
         is_required = True
         # Run test.
@@ -1838,7 +1842,9 @@ class Test_add_llm_prompt_arg(hunitest.TestCase):
         Test all arguments are added correctly.
         """
         # Prepare inputs.
-        parser = argparse.ArgumentParser()
+        parser = argparse.ArgumentParser(
+            formatter_class=argparse.RawDescriptionHelpFormatter
+        )
         # Run test.
         hllmcli.add_llm_prompt_arg(parser)
         # Check outputs: parse without errors.
@@ -1853,7 +1859,9 @@ class Test_add_llm_prompt_arg(hunitest.TestCase):
         Test default values for optional flags.
         """
         # Prepare inputs.
-        parser = argparse.ArgumentParser()
+        parser = argparse.ArgumentParser(
+            formatter_class=argparse.RawDescriptionHelpFormatter
+        )
         # Run test.
         hllmcli.add_llm_prompt_arg(
             parser,
@@ -1882,7 +1890,9 @@ class Test_add_llm_args(hunitest.TestCase):
         Test basic LLM arguments with defaults.
         """
         # Prepare inputs.
-        parser = argparse.ArgumentParser()
+        parser = argparse.ArgumentParser(
+            formatter_class=argparse.RawDescriptionHelpFormatter
+        )
         # Run test.
         result_parser = hllmcli.add_llm_args(parser)
         # Check outputs.
@@ -1898,7 +1908,9 @@ class Test_add_llm_args(hunitest.TestCase):
         Test mutually exclusive input options.
         """
         # Prepare inputs.
-        parser = argparse.ArgumentParser()
+        parser = argparse.ArgumentParser(
+            formatter_class=argparse.RawDescriptionHelpFormatter
+        )
         hllmcli.add_llm_args(parser)
         # Parse with input_text instead of input file.
         args = parser.parse_args(["--input_text", "test content"])
@@ -1910,7 +1922,9 @@ class Test_add_llm_args(hunitest.TestCase):
         Test output file option.
         """
         # Prepare inputs.
-        parser = argparse.ArgumentParser()
+        parser = argparse.ArgumentParser(
+            formatter_class=argparse.RawDescriptionHelpFormatter
+        )
         hllmcli.add_llm_args(parser, input_required=False)
         # Parse with output option.
         args = parser.parse_args(["--output", "output.txt"])
@@ -1921,7 +1935,9 @@ class Test_add_llm_args(hunitest.TestCase):
         Test system_prompt options.
         """
         # Prepare inputs.
-        parser = argparse.ArgumentParser()
+        parser = argparse.ArgumentParser(
+            formatter_class=argparse.RawDescriptionHelpFormatter
+        )
         hllmcli.add_llm_args(parser, input_required=False)
         # Parse with system_prompt.
         args = parser.parse_args(["--system_prompt", "test prompt"])
@@ -1933,7 +1949,9 @@ class Test_add_llm_args(hunitest.TestCase):
         Test backend choices.
         """
         # Prepare inputs.
-        parser = argparse.ArgumentParser()
+        parser = argparse.ArgumentParser(
+            formatter_class=argparse.RawDescriptionHelpFormatter
+        )
         hllmcli.add_llm_args(parser, input_required=False)
         # Parse with mock backend.
         args = parser.parse_args(["--backend", "mock"])
@@ -1944,7 +1962,9 @@ class Test_add_llm_args(hunitest.TestCase):
         Test exclude model and backend options.
         """
         # Prepare inputs.
-        parser = argparse.ArgumentParser()
+        parser = argparse.ArgumentParser(
+            formatter_class=argparse.RawDescriptionHelpFormatter
+        )
         hllmcli.add_llm_args(
             parser,
             input_required=False,
@@ -1962,7 +1982,9 @@ class Test_add_llm_args(hunitest.TestCase):
         Test custom model default.
         """
         # Prepare inputs.
-        parser = argparse.ArgumentParser()
+        parser = argparse.ArgumentParser(
+            formatter_class=argparse.RawDescriptionHelpFormatter
+        )
         custom_model = "gpt-5-nano"
         hllmcli.add_llm_args(
             parser,

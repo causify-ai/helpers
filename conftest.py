@@ -6,6 +6,7 @@ from typing import Any, Generator, Optional
 import helpers.hdbg as dbg
 
 # import helpers.hllm as hllm
+import helpers.hpytest as hpytest
 import helpers.hunit_test as hut
 
 # Hack to workaround pytest not happy with multiple redundant conftest.py
@@ -38,6 +39,24 @@ if not hasattr(hut, "_CONFTEST_ALREADY_PARSED"):
     @pytest.fixture(autouse=True)
     def populate_globals(capsys: Any) -> None:
         hut._GLOBAL_CAPSYS = capsys
+
+    def pytest_sessionstart(session: Any) -> None:
+        """
+        Reset live repro script at the start of a pytest session.
+        """
+        # Reset exactly once, from the master process. Under `-n` (xdist),
+        # each worker also runs its own sessionstart; only the master lacks
+        # `workerinput`, so this avoids a worker wiping out lines a sibling
+        # worker already appended.
+        if not hasattr(session.config, "workerinput"):
+            hpytest.reset_live_repro_script()
+
+    def pytest_runtest_logreport(report: Any) -> None:
+        """
+        Append failed tests to the live repro script.
+        """
+        if report.failed:
+            hpytest.append_failed_test_to_live_repro_script(report.nodeid)
 
     # Add custom options.
     def pytest_addoption(parser: Any) -> None:

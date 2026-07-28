@@ -731,6 +731,7 @@ def _parse() -> argparse.ArgumentParser:
     export_parser = subparsers.add_parser(
         "export",
         help="Save repository and branch protection settings to a YAML file",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
     )
     hparser.add_verbosity_arg(export_parser)
     export_parser.add_argument(
@@ -760,6 +761,7 @@ def _parse() -> argparse.ArgumentParser:
     sync_parser = subparsers.add_parser(
         "sync",
         help="Sync repository and branch protection settings from a YAML file",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
     )
     hparser.add_verbosity_arg(sync_parser)
     sync_parser.add_argument(

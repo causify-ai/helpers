@@ -12,7 +12,7 @@ import unittest.mock as mock
 import helpers.hprint as hprint
 import helpers.hunit_test as hunitest
 import helpers.hunit_test_utils as hunteuti
-import dev_scripts_helpers.git.git_create_issue_and_branch as dshgcgiwo
+import dev_scripts_helpers.git.git_create_issue_and_branch as dshggciab
 
 
 # #############################################################################
@@ -39,7 +39,7 @@ class Test_format_title_for_branch(hunitest.TestCase):
         :param expected: Expected formatted branch name
         """
         # Run test.
-        actual = dshgcgiwo._format_title_for_branch(raw_title, issue_id)
+        actual = dshggciab._format_title_for_branch(raw_title, issue_id)
         # Check outputs.
         self.assertEqual(actual, expected)
 
@@ -126,7 +126,7 @@ class Test_parse_issue_number_from_url(hunitest.TestCase):
         :param expected: Expected issue number
         """
         # Run test.
-        actual = dshgcgiwo._parse_issue_number_from_url(url)
+        actual = dshggciab._parse_issue_number_from_url(url)
         # Check outputs.
         self.assertEqual(actual, expected)
 
@@ -192,7 +192,7 @@ class Test_branch_exists(hunitest.TestCase):
         # Prepare inputs.
         branch_name = "NonExistentBranch12345"
         # Run test.
-        actual = dshgcgiwo._branch_exists(branch_name)
+        actual = dshggciab._branch_exists(branch_name)
         # Check outputs.
         self.assertFalse(actual)
 
@@ -205,7 +205,7 @@ class Test_branch_exists(hunitest.TestCase):
         # Run test and mock the system call.
         # TODO(ai_gp): Use with hunteuti.capture_sys_calls() as invocations:
         with mock.patch("helpers.hsystem.system", return_value=None):
-            actual = dshgcgiwo._branch_exists(branch_name)
+            actual = dshggciab._branch_exists(branch_name)
         # Check outputs.
         self.assertTrue(actual)
 
@@ -236,14 +236,14 @@ class Test_create_branch(hunitest.TestCase):
                 with mock.patch(
                     "dev_scripts_helpers.git.git_create_issue_and_branch._commit_issue_files"
                 ):
-                    dshgcgiwo._create_branch(branch_name, create_pr=True)
+                    dshggciab._create_branch(branch_name, create_pr=True)
         # Check outputs: should call invoke git_branch_create with PR creation
         # enabled.
         expected_str = r"""[
         {
-        'function': hsystem.system
-        'args': ('invoke git_branch_create --branch-name HelpersTask1290_Test_Branch',)
-        'kwargs': {'log_level': 20}
+        'function': hsystem.system,
+        'args': ('invoke git_branch_create --branch-name HelpersTask1290_Test_Branch',),
+        'kwargs': {'log_level': 20},
         },
         ]"""
         expected_str = hprint.dedent(expected_str)
@@ -261,7 +261,7 @@ class Test_create_branch(hunitest.TestCase):
                 "dev_scripts_helpers.git.git_create_issue_and_branch._branch_exists",
                 return_value=True,
             ):
-                dshgcgiwo._create_branch(branch_name, create_pr=True)
+                dshggciab._create_branch(branch_name, create_pr=True)
         # Check outputs: no system calls should be made.
         expected_str = r"""
         [
@@ -285,13 +285,13 @@ class Test_create_branch(hunitest.TestCase):
                 with mock.patch(
                     "dev_scripts_helpers.git.git_create_issue_and_branch._commit_issue_files"
                 ):
-                    dshgcgiwo._create_branch(branch_name, create_pr=False)
+                    dshggciab._create_branch(branch_name, create_pr=False)
         # Check outputs: should call invoke git_branch_create with PR creation disabled.
         expected_str = r"""[
         {
-        'function': hsystem.system
-        'args': ('invoke git_branch_create --branch-name HelpersTask1290_Test_Branch_No_PR --no-create-pr',)
-        'kwargs': {'log_level': 20}
+        'function': hsystem.system,
+        'args': ('invoke git_branch_create --branch-name HelpersTask1290_Test_Branch_No_PR --no-create-pr',),
+        'kwargs': {'log_level': 20},
         },
         ]"""
         expected_str = hprint.dedent(expected_str)
@@ -318,13 +318,13 @@ class Test_create_worktree(hunitest.TestCase):
         # Run test and capture system calls.
         with hunteuti.capture_sys_calls() as invocations:
             with mock.patch("os.getcwd", return_value="/home/user/helpers1"):
-                worktree_path = dshgcgiwo._create_worktree(branch_name, issue_id)
+                worktree_path = dshggciab._create_worktree(branch_name, issue_id)
         # Check outputs.
         expected_str = r"""[
         {
-        'function': hsystem.system
-        'args': ('git worktree add /home/user/helpers1_worktree_1290 HelpersTask1290_Test_Branch',)
-        'kwargs': {'log_level': 20}
+        'function': hsystem.system,
+        'args': ('git worktree add /home/user/helpers1_worktree_1290 HelpersTask1290_Test_Branch',),
+        'kwargs': {'log_level': 20},
         },
         ]"""
         expected_str = hprint.dedent(expected_str)
@@ -361,10 +361,10 @@ class Test_git_create_issue_and_branch_py(hunitest.TestCase):
             "testuser",
         ]
         # Run test and check for error.
-        parser = dshgcgiwo._parse()
+        parser = dshggciab._parse()
         with mock.patch("sys.argv", argv):
             with self.assertRaises(AssertionError):
-                dshgcgiwo._main(parser)
+                dshggciab._main(parser)
 
     def test3(self) -> None:
         """
@@ -383,7 +383,7 @@ class Test_git_create_issue_and_branch_py(hunitest.TestCase):
             body_file,
         ]
         # Run test with mocked system calls.
-        parser = dshgcgiwo._parse()
+        parser = dshggciab._parse()
         with mock.patch("sys.argv", argv):
             with hunteuti.capture_sys_calls() as invocations:
                 with mock.patch(
@@ -391,7 +391,7 @@ class Test_git_create_issue_and_branch_py(hunitest.TestCase):
                     return_value=("", "Test Issue Title"),
                 ):
                     with mock.patch(
-                        "dev_scripts_helpers.git.git_create_issue_and_branch._check_no_subrepos"
+                        "helpers.hgit.has_submodules", return_value=False
                     ):
                         with mock.patch(
                             "dev_scripts_helpers.git.git_create_issue_and_branch._branch_exists",
@@ -400,13 +400,13 @@ class Test_git_create_issue_and_branch_py(hunitest.TestCase):
                             with mock.patch(
                                 "dev_scripts_helpers.git.git_create_issue_and_branch._commit_issue_files"
                             ):
-                                dshgcgiwo._main(parser)
+                                dshggciab._main(parser)
         # Check outputs: branch creation via invoke, no worktree creation.
         expected = r"""[
         {
-        'function': hsystem.system
-        'args': ('invoke git_branch_create --branch-name HelpersTask1290_Test_Issue_Title',)
-        'kwargs': {'log_level': 20}
+        'function': hsystem.system,
+        'args': ('invoke git_branch_create --branch-name HelpersTask1290_Test_Issue_Title',),
+        'kwargs': {'log_level': 20},
         },
         ]"""
         hunteuti.assert_sys_calls(self, invocations, expected)
@@ -429,8 +429,8 @@ class Test_git_create_issue_and_branch_py(hunitest.TestCase):
             "--create_worktree",
         ]
         # Run test with mocked system calls.
-        parser = dshgcgiwo._parse()
-        # TODO(ai_gp): Find a better way to mock since this is insane.
+        parser = dshggciab._parse()
+        # TODO(ai_gp2): Find a better way to mock since this is insane.
         with mock.patch("sys.argv", argv):
             with hunteuti.capture_sys_calls() as invocations:
                 with mock.patch(
@@ -438,7 +438,7 @@ class Test_git_create_issue_and_branch_py(hunitest.TestCase):
                     return_value=("", "Test Issue Title"),
                 ):
                     with mock.patch(
-                        "dev_scripts_helpers.git.git_create_issue_and_branch._check_no_subrepos"
+                        "helpers.hgit.has_submodules", return_value=False
                     ):
                         with mock.patch(
                             "dev_scripts_helpers.git.git_create_issue_and_branch._branch_exists",
@@ -453,18 +453,18 @@ class Test_git_create_issue_and_branch_py(hunitest.TestCase):
                                     with mock.patch(
                                         "builtins.print"
                                     ):  # Mock print to avoid output
-                                        dshgcgiwo._main(parser)
+                                        dshggciab._main(parser)
         # Check outputs: branch creation via invoke and worktree creation.
         expected = r"""[
         {
-        'function': hsystem.system
-        'args': ('invoke git_branch_create --branch-name HelpersTask1290_Test_Issue_Title',)
-        'kwargs': {'log_level': 20}
+        'function': hsystem.system,
+        'args': ('invoke git_branch_create --branch-name HelpersTask1290_Test_Issue_Title',),
+        'kwargs': {'log_level': 20},
         },
         {
-        'function': hsystem.system
-        'args': ('git worktree add /home/user/helpers1_worktree_1290 HelpersTask1290_Test_Issue_Title',)
-        'kwargs': {'log_level': 20}
+        'function': hsystem.system,
+        'args': ('git worktree add /home/user/helpers1_worktree_1290 HelpersTask1290_Test_Issue_Title',),
+        'kwargs': {'log_level': 20},
         },
         ]"""
         hunteuti.assert_sys_calls(self, invocations, expected)

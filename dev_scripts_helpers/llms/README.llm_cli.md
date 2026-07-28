@@ -520,7 +520,7 @@ llm_cli.py --llm_cmd "llm chat --model gpt-4"
   > llm_cli.py -i input.txt --lint  # In-place editing with linting
   ```
 
-// TODO(ai_gp): Fix this
+// TODO(ai_gp2): Fix this
 
 - Apply a single Claude rule to an entire set of slides (in place)
   ```bash
@@ -620,6 +620,6 @@ llm_cli.py --llm_cmd "llm chat --model gpt-4"
   - `openrouter/openai/gpt-oss-120b`
   - `openrouter/openai/gpt-oss-20b`
 
-// TODO(ai_gp): Improve this
+// TODO(ai_gp2): Improve this
 - Note that you can't use Claude Subscription with llm_cli.py since you don't
   have an API key for metered

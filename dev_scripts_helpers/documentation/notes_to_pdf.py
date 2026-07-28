@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-"""
+r"""
 Convert a txt file into a PDF / HTML / slides using `pandoc`.
 
 # From scratch with TOC:
@@ -25,10 +25,11 @@ import sys
 from typing import List
 
 import helpers.hdbg as hdbg
+import helpers.hdaemon as hdaemon
+import helpers.hdocker as hdocker
 import helpers.hio as hio
 import helpers.hmarkdown as hmarkdo
 import helpers.hopen as hopen
-import helpers.hdocker as hdocker
 import helpers.hparser as hparser
 import helpers.hselect_action as hselacti
 import helpers.hprint as hprint
@@ -36,7 +37,11 @@ import dev_scripts_helpers.documentation.lib_notes_to_pdf as dshdlntpd
 
 _LOG = logging.getLogger(__name__)
 
+
 # #############################################################################
+# CLI
+# #############################################################################
+
 
 _VALID_ACTIONS = [
     "cleanup_before",
@@ -61,9 +66,6 @@ _DEFAULT_ACTIONS = [
 ]
 
 
-# #############################################################################
-
-
 def _run_all(args: argparse.Namespace) -> None:
     _LOG.debug("type=%s", args.type)
     # Print actions.
@@ -74,6 +76,7 @@ def _run_all(args: argparse.Namespace) -> None:
     )
     _LOG.info("\n%s", actions_as_str)
     if args.preview_actions:
+        _LOG.warning("--preview_actions is enabled, skipping execution")
         return
     # E.g., curr_path='/app/helpers_root/dev_scripts_helpers/documentation'
     curr_path = os.path.abspath(os.path.dirname(sys.argv[0]))
@@ -92,9 +95,9 @@ def _run_all(args: argparse.Namespace) -> None:
     _LOG.debug("prefix=%s", prefix)
     # - Cleanup_before
     action = "cleanup_before"
-    to_execute, actions = dshdlntpd._mark_action(action, actions)
+    to_execute, actions = dshdlntpd.mark_action(action, actions)
     if to_execute:
-        dshdlntpd._cleanup_before(prefix)
+        dshdlntpd.cleanup_before(prefix)
     # - Filter
     hdbg.dassert_lte(
         int(args.filter_by_header is not None)
@@ -131,23 +134,24 @@ def _run_all(args: argparse.Namespace) -> None:
         hio.to_file(file_name, filtered_text_str)
     # - Preprocess_notes
     action = "preprocess_notes"
-    to_execute, actions = dshdlntpd._mark_action(action, actions)
+    to_execute, actions = dshdlntpd.mark_action(action, actions)
     if to_execute:
-        file_name = dshdlntpd._preprocess_notes(
-            file_name, prefix, args.type, args.toc_type
+        output_format = "typst" if args.slides_engine == "typst" else "latex"
+        file_name = dshdlntpd.preprocess_notes(
+            file_name, prefix, args.type, args.toc_type, output_format
         )
     # - Render_images
     action = "render_images"
-    to_execute, actions = dshdlntpd._mark_action(action, actions)
+    to_execute, actions = dshdlntpd.mark_action(action, actions)
     if to_execute:
-        file_name = dshdlntpd._render_images(file_name, prefix)
+        file_name = dshdlntpd.render_images(file_name, prefix)
     # - Run_pandoc
     action = "run_pandoc"
-    to_execute, actions = dshdlntpd._mark_action(action, actions)
+    to_execute, actions = dshdlntpd.mark_action(action, actions)
     file_out = file_name
     if to_execute:
         if args.type == "pdf":
-            file_out = dshdlntpd._run_pandoc_to_pdf(
+            file_out = dshdlntpd.run_pandoc_to_pdf(
                 curr_path,
                 file_name,
                 prefix,
@@ -156,62 +160,73 @@ def _run_all(args: argparse.Namespace) -> None:
                 args.use_host_tools,
                 args.dockerized_force_rebuild,
                 args.dockerized_use_sudo,
-                tex_only=args.tex_only,
+                no_pdf=args.no_pdf,
+                fail_on_warnings=not args.no_fail_on_warnings,
+                use_pandoc_ast_transform=args.use_pandoc_ast_transform,
             )
         elif args.type == "html":
-            file_out = dshdlntpd._run_pandoc_to_html(
+            file_out = dshdlntpd.run_pandoc_to_html(
                 file_name,
                 prefix,
                 args.toc_type,
+                args.use_host_tools,
+                args.dockerized_force_rebuild,
+                args.dockerized_use_sudo,
+                fail_on_warnings=not args.no_fail_on_warnings,
+                use_pandoc_ast_transform=args.use_pandoc_ast_transform,
             )
         elif args.type == "slides":
             if args.slides_engine == "typst":
-                file_out = dshdlntpd._run_pandoc_to_typst_slides(
+                file_out = dshdlntpd.run_pandoc_to_typst_slides(
                     curr_path,
                     file_name,
                     args.use_host_tools,
                     args.dockerized_force_rebuild,
                     args.dockerized_use_sudo,
-                    typst_only=args.tex_only,
+                    typst_only=args.no_pdf,
+                    fail_on_warnings=not args.no_fail_on_warnings,
+                    use_pandoc_ast_transform=True,
                 )
             else:
-                file_out = dshdlntpd._run_pandoc_to_slides(
+                file_out = dshdlntpd.run_pandoc_to_latex_slides(
                     file_name,
                     args.toc_type,
                     args.use_host_tools,
                     args.dockerized_force_rebuild,
                     args.dockerized_use_sudo,
                     debug=args.debug_on_error,
-                    tex_only=args.tex_only,
+                    no_pdf=args.no_pdf,
+                    fail_on_warnings=not args.no_fail_on_warnings,
+                    use_pandoc_ast_transform=args.use_pandoc_ast_transform,
                 )
         else:
             raise ValueError(f"Invalid type='{args.type}'")
     file_in = file_out
     # - Compress_pdf
     action = "compress_pdf"
-    to_execute, actions = dshdlntpd._mark_action(action, actions)
+    to_execute, actions = dshdlntpd.mark_action(action, actions)
     if to_execute:
         if args.type == "pdf":
-            file_in = dshdlntpd._compress_pdf(file_in)
+            file_in = dshdlntpd.compress_pdf(file_in)
         else:
             _LOG.warning("Compression is only supported for PDF files")
-    file_final = dshdlntpd._copy_to_output(file_in, args.output)
+    file_final = dshdlntpd.copy_to_output(file_in, args.output)
     # - Copy_to_gdrive
     action = "copy_to_gdrive"
-    to_execute, actions = dshdlntpd._mark_action(action, actions)
+    to_execute, actions = dshdlntpd.mark_action(action, actions)
     if to_execute:
         ext = args.type
-        dshdlntpd._copy_to_gdrive(file_final, ext, args.input, args.gdrive_dir)
+        dshdlntpd.copy_to_gdrive(file_final, ext, args.input, args.gdrive_dir)
     # - Open
     action = "open"
-    to_execute, actions = dshdlntpd._mark_action(action, actions)
+    to_execute, actions = dshdlntpd.mark_action(action, actions)
     if to_execute:
         hopen.open_file(file_final)
     # - Cleanup_after
     action = "cleanup_after"
-    to_execute, actions = dshdlntpd._mark_action(action, actions)
+    to_execute, actions = dshdlntpd.mark_action(action, actions)
     if to_execute:
-        dshdlntpd._cleanup_after(prefix)
+        dshdlntpd.cleanup_after(prefix)
     # Save script, if needed.
     if args.script:
         txt = "\n".join(dshdlntpd._SCRIPT)
@@ -244,6 +259,7 @@ def _parse() -> argparse.ArgumentParser:
         action="store",
         help="Type of output to generate",
     )
+    #
     parser.add_argument(
         "--filter_by_header", action="store", help="Filter by header"
     )
@@ -269,7 +285,7 @@ def _parse() -> argparse.ArgumentParser:
         default=5,
         help="Number of slides to keep when using --filter_by_name (default: 5)",
     )
-    # TODO(gp): -> out_action_script
+    # TODO(gp): -> --action_script
     parser.add_argument(
         "--script",
         action="store",
@@ -288,11 +304,11 @@ def _parse() -> argparse.ArgumentParser:
         default="none",
         choices=["none", "pandoc_native", "navigation", "remove_headers"],
         help=(
-            "Type of table of contents to generate: "
-            "'none': no TOC; "
-            "'pandoc_native': use pandoc's native --toc option (depth 2); "
-            "'navigation': add custom navigation slides for headers (levels 1-3); "
-            "'remove_headers': remove headers smaller than level 3"
+            "Type of table of contents to generate:\n"
+            "- 'none': no TOC\n"
+            "- 'pandoc_native': use pandoc's native --toc option (depth 2)\n"
+            "- 'navigation': add custom navigation slides for headers (levels 1-3);\n"
+            "- 'remove_headers': remove headers smaller than level 3"
         ),
     )
     parser.add_argument(
@@ -301,16 +317,28 @@ def _parse() -> argparse.ArgumentParser:
         default="beamer",
         choices=["beamer", "typst"],
         help=(
-            "Engine used to render slides (only for `--type slides`): "
-            "'beamer': pandoc -> LaTeX/beamer -> pdflatex (default); "
-            "'typst': pandoc -> Typst/Touying -> typst compile"
+            "Engine used to render slides (only for `--type slides`):\n"
+            "- 'beamer': pandoc -> LaTeX/beamer -> pdflatex (default)\n"
+            "- 'typst': pandoc -> Typst/Touying -> typst compile\n"
         ),
     )
     parser.add_argument(
-        "--no_run_latex_again", action="store_true", default=False
+        "--no_fail_on_warnings",
+        action="store_true",
+        default=False,
+        help="Don't fail pandoc if there are warnings",
     )
     parser.add_argument(
-        "--tex_only",
+        "--no_run_latex_again",
+        action="store_true",
+        default=False,
+        help=(
+            "Skip the second pdflatex pass. By default pdflatex runs twice to resolve "
+            "cross-references and TOC."
+        ),
+    )
+    parser.add_argument(
+        "--no_pdf",
         action="store_true",
         default=False,
         help=(
@@ -318,7 +346,24 @@ def _parse() -> argparse.ArgumentParser:
             "`.typ` for typst) without compiling to PDF"
         ),
     )
-    parser.add_argument("--debug_on_error", action="store_true", default=False)
+    parser.add_argument(
+        "--use_pandoc_ast_transform",
+        action="store_true",
+        default=False,
+        help=(
+            "Use the two-stage AST pipeline instead of single-shot pandoc "
+            "conversion"
+        ),
+    )
+    parser.add_argument(
+        "--debug_on_error",
+        action="store_true",
+        default=False,
+        help=(
+            "Keep intermediate files (.tex, .log) on pandoc/LaTeX compilation "
+            "failure and show error context for debugging"
+        ),
+    )
     parser.add_argument(
         "--gdrive_dir",
         action="store",
@@ -331,6 +376,11 @@ def _parse() -> argparse.ArgumentParser:
         default=False,
         help="Use the host tools instead of the dockerized ones",
     )
+    parser.add_argument(
+        "--daemon",
+        action="store_true",
+        help="Watch input file for changes and regenerate on change",
+    )
     hselacti.add_action_arg(parser, _VALID_ACTIONS, _DEFAULT_ACTIONS)
     hdocker.add_dockerized_script_arg(parser)
     hparser.add_verbosity_arg(parser)
@@ -342,7 +392,16 @@ def _main(parser: argparse.ArgumentParser) -> None:
     args = parser.parse_args()
     hdbg.init_logger(verbosity=args.log_level, use_exec_path=True)
     _LOG.info("cmd line=%s", cmd_line)
-    _run_all(args)
+    if args.daemon:
+        # Skip "open" action on watch runs (viewer auto-reloads).
+        hdaemon.run_daemon_mode(
+            args.input,
+            cmd_line,
+            "notes_to_pdf",
+            watch_cmd_suffix=" --skip_action=open",
+        )
+    else:
+        _run_all(args)
 
 
 if __name__ == "__main__":

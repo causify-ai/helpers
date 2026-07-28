@@ -102,7 +102,7 @@ class Test_replace_latex_py(hunitest.TestCase):
     End-to-end tests for the `replace_latex.py` executable.
     """
 
-    # TODO(ai_gp): -> helper
+    # TODO(ai_gp): Rename helper
     def _run_main(self, argv: List[str]) -> List:
         """
         Run `dshdrela._main()` with a mocked `sys.argv` and capture system
@@ -118,7 +118,8 @@ class Test_replace_latex_py(hunitest.TestCase):
                 dshdrela._main(parser)
         return sys_calls
 
-    # TODO(ai_gp): Factor out common code in the helper
+    # TODO(ai_gp): Factor out common code in the helper using
+    # /coding.factor_common_code.
     def test1(self) -> None:
         """
         Test `checkout` action runs `git checkout`.
@@ -137,9 +138,9 @@ class Test_replace_latex_py(hunitest.TestCase):
         # Prepare outputs.
         expected_str = r"""[
         {
-        'function': hsystem.system
-        'args': ('git checkout -- $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_replace_latex_py.test1/tmp.scratch/test.txt',)
-        'kwargs': {}
+        'function': hsystem.system,
+        'args': ('git checkout -- $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_replace_latex_py.test1/tmp.scratch/test.txt',),
+        'kwargs': {},
         },
         ]"""
         # Run test.
@@ -150,6 +151,8 @@ class Test_replace_latex_py(hunitest.TestCase):
             self,
             actual,
             expected_str,
+            # TODO(ai_gp): Can we remove these 3 parameters without changing
+            # the test?
             dedent=True,
             purify_text=True,
             purify_expected_text=True,
@@ -176,14 +179,14 @@ class Test_replace_latex_py(hunitest.TestCase):
         # Prepare outputs.
         expected_str = r"""[
         {
-        'function': hsystem.system
-        'args': ('notes_to_pdf.py -a pdf --no_toc --no_open_pdf --input $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_replace_latex_py.test2/tmp.scratch/test.txt',)
-        'kwargs': {}
+        'function': hsystem.system,
+        'args': ('notes_to_pdf.py -a pdf --no_toc --no_open_pdf --input $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_replace_latex_py.test2/tmp.scratch/test.txt',),
+        'kwargs': {},
         },
         {
-        'function': hsystem.system
-        'args': ('notes_to_pdf.py -a pdf --no_toc --no_open_pdf --input $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_replace_latex_py.test2/tmp.scratch/test.txt',)
-        'kwargs': {}
+        'function': hsystem.system,
+        'args': ('notes_to_pdf.py -a pdf --no_toc --no_open_pdf --input $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_replace_latex_py.test2/tmp.scratch/test.txt',),
+        'kwargs': {},
         },
         ]"""
         # Run test.
@@ -194,6 +197,8 @@ class Test_replace_latex_py(hunitest.TestCase):
             self,
             actual,
             expected_str,
+            # TODO(ai_gp): Can we remove these three parameters without
+            # changing the test?
             dedent=True,
             purify_text=True,
             purify_expected_text=True,

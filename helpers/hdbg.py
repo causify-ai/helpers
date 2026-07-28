@@ -670,8 +670,9 @@ def dassert_all_attributes_are_same(
     attribute_values = [getattr(element, attribute_name) for element in list_]
     if len(set(attribute_values)) != 1:
         txt = []
-        txt.append("Elements in the list have different values for ")
-        txt.append(f"attribute {attribute_name}:\n\t{set(attribute_values)}")
+        txt.append("Elements in the list have different values for")
+        txt.append(f"attribute {attribute_name}:")
+        txt.append(str(set(attribute_values)))
         _dfatal(txt, msg, *args, only_warning=only_warning)
 
 

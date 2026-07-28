@@ -1138,3 +1138,108 @@ class Test_find_git_root6(hunitest.TestCase):
             # For worktrees, the function should return the worktree root,
             # not the main repository root.
             self.assert_equal(git_root, self.worktree_dir)
+
+
+# #############################################################################
+# Test_git_add_file
+# #############################################################################
+
+
+class Test_git_add_file(hunitest.TestCase):
+
+    def _setup_git_repo_helper(self, repo_name: str) -> str:
+        """
+        Create and initialize a git repo.
+
+        :param repo_name: name of the repo directory
+        :return: path to the git repo
+        """
+        scratch_dir = self.get_scratch_space()
+        git_repo = os.path.join(scratch_dir, repo_name)
+        hio.create_dir(git_repo, incremental=False)
+        # Initialize git repo.
+        with hsystem.cd(git_repo):
+            hsystem.system("git init", suppress_output=True)
+            hsystem.system(
+                "git config user.email 'test@test.com'",
+                suppress_output=True
+            )
+            hsystem.system(
+                "git config user.name 'Test User'",
+                suppress_output=True
+            )
+        return git_repo
+
+    def helper(
+        self,
+        file_content: str,
+        expect_added: bool,
+        file_layout: str,
+    ) -> None:
+        """
+        Test helper for git_add_file.
+
+        :param file_content: content to write to test file
+        :param expect_added: whether file should be in added list
+        :param file_layout: file layout type - "single_file" for root level, "nested_dir" for nested directory
+        """
+        # Prepare inputs: create a temporary git repo with a file.
+        git_repo = self._setup_git_repo_helper("test_repo")
+        # File layout determines directory structure.
+        if file_layout == "single_file":
+            # Single file at root level.
+            test_file = os.path.join(git_repo, "test.txt")
+        elif file_layout == "nested_dir":
+            # File in nested directory.
+            nested_dir = os.path.join(git_repo, "subdir", "nested")
+            hio.create_dir(nested_dir, incremental=False)
+            test_file = os.path.join(nested_dir, "test.txt")
+        else:
+            raise ValueError(f"Unknown file_layout: {file_layout}")
+        # Create and add a file.
+        hio.to_file(test_file, file_content)
+        # Run test: call git_add_file.
+        with hsystem.cd(git_repo):
+            added_files = hgit.git_add_file(test_file)
+        # Check outputs.
+        if expect_added:
+            self.assertTrue(len(added_files) > 0, "Expected files to be added")
+            self.assertIn(test_file, added_files)
+        else:
+            self.assertEqual(len(added_files), 0, "Expected no files to be added")
+
+    def test1(self) -> None:
+        """
+        Test git_add_file adds a new untracked file.
+        """
+        # Prepare inputs.
+        file_content = "test content"
+        file_layout = "single_file"
+        # Prepare outputs.
+        expect_added = True
+        # Run test.
+        self.helper(file_content, expect_added, file_layout)
+
+    def test2(self) -> None:
+        """
+        Test git_add_file with empty file.
+        """
+        # Prepare inputs.
+        file_content = ""
+        file_layout = "single_file"
+        # Prepare outputs.
+        expect_added = True
+        # Run test.
+        self.helper(file_content, expect_added, file_layout)
+
+    def test3(self) -> None:
+        """
+        Test git_add_file with file in nested directory.
+        """
+        # Prepare inputs.
+        file_content = "nested content"
+        file_layout = "nested_dir"
+        # Prepare outputs.
+        expect_added = True
+        # Run test.
+        self.helper(file_content, expect_added, file_layout)

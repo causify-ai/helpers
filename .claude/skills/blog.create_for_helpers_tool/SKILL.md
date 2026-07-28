@@ -7,14 +7,16 @@ model: haiku
 - Given a tool `<TOOL>` in `helpers`, write a short blog presenting this
   tool
 
-# Step 1: Read and Follow the Rules to Write a Blog
+# Workflow
+
+## Step 1: Read and Follow the Rules to Write a Blog
 - Read context about rules from `.claude/skills/blog.rules.md`
 
 - When writing follow the rules from:
   - `.claude/skills/markdown.rules.md`
   - `.claude/skills/text.rules.md`
 
-# Step 2: Improve the Text
+## Step 2: Improve the Text
 - Find the related documentation, such as
   - the source code
     - E.g., `helpers/hcache_simple.py`
@@ -26,7 +28,7 @@ model: haiku
     - E.g., `notebooks/hcache_simple.tutorial.ipynb`
 
 
-# Step 3: Write the Blog Text
+## Step 3: Write the Blog Text
 - The format of the file should follow:
   ```
   # Introduction
@@ -65,23 +67,23 @@ model: haiku
   # References
   ```
 
-# Step 4: Reference GitHub Files
+## Step 4: Reference GitHub Files
 - When referring to files in the repo follow 
   `.claude/skills/blog.rules.md` `## References to GitHub Files`
 
-# Step 5: Add Visuals
+## Step 5: Add Visuals
 - Add visuals to a blog following `.claude/skills/blog.rules.md` `# Visuals`
   - `## Add Visuals to Blog Posts`: suggestions
   - `## Types of Visuals`: types of visuals (such as mermaid, graphviz, tikz,
     images, website screenshots)
 
-# Step 6: Write File
+## Step 6: Write File
 - The file should be called like
   `website/docs/blog/posts/draft.in_<INT>_mins.helpers_<TOOl>.md`
   where `<INT>` is how long it will take to read the blog (e.g., 5 mins, 15 mins,
   30 mins) which is a function of the complexity
 
-# Step 7: Format
+## Step 7: Format
 - At the very hand, format the text with
   ```
   > website/format_blog.sh $FILE

@@ -92,6 +92,7 @@ def ipynb_format(fname, style=None):
 
 def cli():
     parser = argparse.ArgumentParser(
+        formatter_class=argparse.RawDescriptionHelpFormatter,
         description="Format ipython notebook using yapf"
     )
     parser.add_argument("--style", action="store", help="yapf style to use")

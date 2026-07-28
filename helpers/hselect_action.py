@@ -21,7 +21,8 @@ _LOG = logging.getLogger(__name__)
 # valid_actions = ["download", "process", "upload", "cleanup"]
 # default_actions = ["download", "process"]
 # # Create parser and add action arguments.
-# parser = argparse.ArgumentParser(...
+# parser = argparse.ArgumentParser(
+formatter_class=argparse.RawDescriptionHelpFormatter,...
 # hparser.add_action_arg(parser, valid_actions, default_actions)
 # args = parser.parse_args()
 # # Select which actions to execute based on CLI arguments.
@@ -48,7 +49,7 @@ _LOG = logging.getLogger(__name__)
 def add_action_arg(
     parser: argparse.ArgumentParser,
     valid_actions: List[str],
-    default_actions: Optional[List[str]],
+    default_actions: List[str],
 ) -> argparse.ArgumentParser:
     """
     Add command line options to select actions to execute, skip, or enable.
@@ -69,7 +70,10 @@ def add_action_arg(
     actions_list = "\n".join([f"- {action}" for action in valid_actions])
     if parser.epilog:
         parser.epilog += "\n\n"
-    parser.epilog = f"Available actions:\n{actions_list}"
+    epilog = f"Available actions:\n{actions_list}"
+    default_list = "\n".join([f"- {action}" for action in default_actions])
+    epilog += f"\n\nDefault actions:\n{default_list}"
+    parser.epilog = epilog
     # Create mutually exclusive group for action selection.
     group = parser.add_mutually_exclusive_group(required=False)
     group.add_argument(
@@ -93,13 +97,12 @@ def add_action_arg(
         dest="enable_action",
         help="Enable additional actions on top of defaults (see available actions below)",
     )
-    if default_actions is not None:
-        hdbg.dassert_is_subset(default_actions, valid_actions)
-        parser.add_argument(
-            "--all",
-            action="store_true",
-            help=f"Run all the actions ({' '.join(default_actions)})",
-        )
+    hdbg.dassert_is_subset(default_actions, valid_actions)
+    parser.add_argument(
+        "--all",
+        action="store_true",
+        help=f"Run all the actions ({' '.join(default_actions)})",
+    )
     return parser
 
 
@@ -167,8 +170,6 @@ def select_actions(
         )
     # Select actions.
     if not args.action or args.all:
-        if default_actions is None:
-            default_actions = valid_actions[:]
         hdbg.dassert_is_subset(default_actions, valid_actions)
         # Convert it into list since through some code paths it can be a tuple.
         actions = list(default_actions)

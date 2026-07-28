@@ -1,6 +1,6 @@
 import os
 import unittest.mock as umock
-from typing import Dict, List, Tuple
+from typing import Callable, Dict, List, Optional, Tuple
 
 import helpers.hio as hio
 import helpers.hunit_test as hunitest
@@ -8,16 +8,81 @@ import helpers.hunit_test_utils as hunteuti
 import linters2.lint as lilint
 
 
+def _run_actions_and_check(
+    test_case: hunitest.TestCase,
+    func: Callable[..., int],
+    file_paths: List[str],
+    actions: List[str],
+    abort_on_error: bool,
+    expected_return_code: int,
+    expected_sys_calls: str,
+) -> None:
+    """
+    Run `func()` capturing system calls, then check the outcome.
+
+    :param test_case: test case to assert on
+    :param func: linting action runner to call
+    :param file_paths: files to pass to `func`
+    :param actions: actions to pass to `func`
+    :param abort_on_error: whether to abort on error
+    :param expected_return_code: expected return code from `func`
+    :param expected_sys_calls: expected captured system calls
+    """
+    with hunteuti.capture_sys_calls() as sys_calls:
+        ret = func(file_paths, actions, abort_on_error=abort_on_error)
+    test_case.assertEqual(ret, expected_return_code)
+    hunteuti.assert_sys_calls(test_case, sys_calls, expected_sys_calls)
+
+
 # #############################################################################
 # Test_filter_files_by_type
 # #############################################################################
 
 
-# TODO(ai_gp): Factor out common code in a helper.
 class Test_filter_files_by_type(hunitest.TestCase):
     """
     Test _filter_files_by_type file categorization logic.
     """
+
+    def _assert_filter_result(
+        self,
+        file_paths: List[str],
+        file_types: List[str],
+        expected_py_files: List[str],
+        expected_ipynb_files: List[str],
+        expected_md_files: List[str],
+        *,
+        exclude_paired_jupytext: Optional[bool] = None,
+        sort_py_files: bool = False,
+    ) -> None:
+        """
+        Run `_filter_files_by_type()` and check the 3 output lists.
+
+        :param file_paths: files to pass to `_filter_files_by_type`
+        :param file_types: file types to pass to `_filter_files_by_type`
+        :param expected_py_files: expected Python files
+        :param expected_ipynb_files: expected Jupyter notebook files
+        :param expected_md_files: expected Markdown files
+        :param exclude_paired_jupytext: value forwarded to
+            `_filter_files_by_type`, if specified
+        :param sort_py_files: sort the Python file lists before comparing
+            (order is not deterministic in some cases)
+        """
+        kwargs = {}
+        if exclude_paired_jupytext is not None:
+            kwargs["exclude_paired_jupytext"] = exclude_paired_jupytext
+        py_files, ipynb_files, md_files = lilint._filter_files_by_type(
+            file_paths,
+            file_types,
+            skip_dassert_exists=True,
+            **kwargs,
+        )
+        if sort_py_files:
+            py_files = sorted(py_files)
+            expected_py_files = sorted(expected_py_files)
+        self.assertEqual(py_files, expected_py_files)
+        self.assertEqual(ipynb_files, expected_ipynb_files)
+        self.assertEqual(md_files, expected_md_files)
 
     def _create_files(self, names: List[str]) -> Dict[str, str]:
         """
@@ -84,15 +149,13 @@ class Test_filter_files_by_type(hunitest.TestCase):
         expected_ipynb_files = [paths["bar.ipynb"]]
         expected_md_files = []
         # Run test.
-        py_files, ipynb_files, md_files = lilint._filter_files_by_type(
+        self._assert_filter_result(
             file_paths,
             file_types,
-            skip_dassert_exists=True,
+            expected_py_files,
+            expected_ipynb_files,
+            expected_md_files,
         )
-        # Check outputs.
-        self.assertEqual(py_files, expected_py_files)
-        self.assertEqual(ipynb_files, expected_ipynb_files)
-        self.assertEqual(md_files, expected_md_files)
 
     def test2(self) -> None:
         """
@@ -111,15 +174,13 @@ class Test_filter_files_by_type(hunitest.TestCase):
         expected_ipynb_files = []
         expected_md_files = []
         # Run test.
-        py_files, ipynb_files, md_files = lilint._filter_files_by_type(
+        self._assert_filter_result(
             file_paths,
             file_types,
-            skip_dassert_exists=True,
+            expected_py_files,
+            expected_ipynb_files,
+            expected_md_files,
         )
-        # Check outputs.
-        self.assertEqual(py_files, expected_py_files)
-        self.assertEqual(ipynb_files, expected_ipynb_files)
-        self.assertEqual(md_files, expected_md_files)
 
     def test3(self) -> None:
         """
@@ -138,15 +199,13 @@ class Test_filter_files_by_type(hunitest.TestCase):
         expected_ipynb_files = [paths["bar.ipynb"]]
         expected_md_files = []
         # Run test.
-        py_files, ipynb_files, md_files = lilint._filter_files_by_type(
+        self._assert_filter_result(
             file_paths,
             file_types,
-            skip_dassert_exists=True,
+            expected_py_files,
+            expected_ipynb_files,
+            expected_md_files,
         )
-        # Check outputs.
-        self.assertEqual(py_files, expected_py_files)
-        self.assertEqual(ipynb_files, expected_ipynb_files)
-        self.assertEqual(md_files, expected_md_files)
 
     def test4(self) -> None:
         """
@@ -165,16 +224,13 @@ class Test_filter_files_by_type(hunitest.TestCase):
         expected_ipynb_files = []
         expected_md_files = [paths["baz.md"]]
         # Run test.
-        py_files, ipynb_files, md_files = lilint._filter_files_by_type(
+        self._assert_filter_result(
             file_paths,
             file_types,
-            skip_dassert_exists=True,
+            expected_py_files,
+            expected_ipynb_files,
+            expected_md_files,
         )
-        # Check outputs.
-        # TODO(ai_gp): Move this inside the helper.
-        self.assertEqual(py_files, expected_py_files)
-        self.assertEqual(ipynb_files, expected_ipynb_files)
-        self.assertEqual(md_files, expected_md_files)
 
     def test5(self) -> None:
         """
@@ -190,16 +246,14 @@ class Test_filter_files_by_type(hunitest.TestCase):
         expected_ipynb_files = [notebook_ipynb]
         expected_md_files = []
         # Run test.
-        py_files, ipynb_files, md_files = lilint._filter_files_by_type(
+        self._assert_filter_result(
             file_paths,
             file_types,
-            skip_dassert_exists=True,
+            expected_py_files,
+            expected_ipynb_files,
+            expected_md_files,
             exclude_paired_jupytext=exclude_paired_jupytext,
         )
-        # Check outputs.
-        self.assertEqual(py_files, expected_py_files)
-        self.assertEqual(ipynb_files, expected_ipynb_files)
-        self.assertEqual(md_files, expected_md_files)
 
     def test6(self) -> None:
         """
@@ -215,16 +269,15 @@ class Test_filter_files_by_type(hunitest.TestCase):
         expected_ipynb_files = [notebook_ipynb]
         expected_md_files = []
         # Run test.
-        py_files, ipynb_files, md_files = lilint._filter_files_by_type(
+        self._assert_filter_result(
             file_paths,
             file_types,
-            skip_dassert_exists=True,
+            expected_py_files,
+            expected_ipynb_files,
+            expected_md_files,
             exclude_paired_jupytext=exclude_paired_jupytext,
+            sort_py_files=True,
         )
-        # Check outputs.
-        self.assertEqual(sorted(py_files), sorted(expected_py_files))
-        self.assertEqual(ipynb_files, expected_ipynb_files)
-        self.assertEqual(md_files, expected_md_files)
 
 
 # #############################################################################
@@ -232,7 +285,6 @@ class Test_filter_files_by_type(hunitest.TestCase):
 # #############################################################################
 
 
-# TODO(ai_gp): Factor out common code in a helper.
 class Test_run_common_linting_actions(hunitest.TestCase):
     def test1(self) -> None:
         """
@@ -246,21 +298,21 @@ class Test_run_common_linting_actions(hunitest.TestCase):
         expected_return_code = 0
         expected = r"""[
         {
-        'function': hsystem.system
-        'args': ('pre-commit run --files file1.py file2.py --color always',)
-        'kwargs': {'print_command': False, 'abort_on_error': True, 'suppress_output': False}
+        'function': hsystem.system,
+        'args': ('pre-commit run --files file1.py file2.py --color always',),
+        'kwargs': {'print_command': False, 'abort_on_error': True, 'suppress_output': False},
         },
         ]"""
         # Run test.
-        with hunteuti.capture_sys_calls() as sys_calls:
-            ret = lilint._run_common_linting_actions(
-                file_paths,
-                actions,
-                abort_on_error=abort_on_error,
-            )
-        # Check outputs.
-        self.assertEqual(ret, expected_return_code)
-        hunteuti.assert_sys_calls(self, sys_calls, expected)
+        _run_actions_and_check(
+            self,
+            lilint._run_common_linting_actions,
+            file_paths,
+            actions,
+            abort_on_error,
+            expected_return_code,
+            expected,
+        )
 
     def test2(self) -> None:
         """
@@ -273,17 +325,17 @@ class Test_run_common_linting_actions(hunitest.TestCase):
         # Prepare outputs.
         expected_return_code = 0
         expected = r"""[
-]"""
+        ]"""
         # Run test.
-        with hunteuti.capture_sys_calls() as sys_calls:
-            ret = lilint._run_common_linting_actions(
-                file_paths,
-                actions,
-                abort_on_error=abort_on_error,
-            )
-        # Check outputs.
-        self.assertEqual(ret, expected_return_code)
-        hunteuti.assert_sys_calls(self, sys_calls, expected)
+        _run_actions_and_check(
+            self,
+            lilint._run_common_linting_actions,
+            file_paths,
+            actions,
+            abort_on_error,
+            expected_return_code,
+            expected,
+        )
 
 
 # #############################################################################
@@ -291,7 +343,6 @@ class Test_run_common_linting_actions(hunitest.TestCase):
 # #############################################################################
 
 
-# TODO(ai_gp): Factor out common code in a helper.
 class Test_run_python_linting_actions(hunitest.TestCase):
     """
     Test _run_python_linting_actions action runner for Python files.
@@ -309,21 +360,21 @@ class Test_run_python_linting_actions(hunitest.TestCase):
         expected_return_code = 0
         expected = r"""[
         {
-        'function': hsystem.system
-        'args': ('linters2/normalize_import.py --no_report_command_line file1.py',)
-        'kwargs': {'print_command': False, 'abort_on_error': True, 'suppress_output': False}
+        'function': hsystem.system,
+        'args': ('linters2/normalize_import.py --no_report_command_line file1.py',),
+        'kwargs': {'print_command': False, 'abort_on_error': True, 'suppress_output': False},
         },
         ]"""
         # Run test.
-        with hunteuti.capture_sys_calls() as sys_calls:
-            ret = lilint._run_python_linting_actions(
-                file_paths,
-                actions,
-                abort_on_error=abort_on_error,
-            )
-        # Check outputs.
-        self.assertEqual(ret, expected_return_code)
-        hunteuti.assert_sys_calls(self, sys_calls, expected)
+        _run_actions_and_check(
+            self,
+            lilint._run_python_linting_actions,
+            file_paths,
+            actions,
+            abort_on_error,
+            expected_return_code,
+            expected,
+        )
 
     def test2(self) -> None:
         """
@@ -337,26 +388,26 @@ class Test_run_python_linting_actions(hunitest.TestCase):
         expected_return_code = 0
         expected = r"""[
         {
-        'function': hsystem.system
-        'args': ('linters2/normalize_import.py --no_report_command_line file1.py',)
-        'kwargs': {'print_command': False, 'abort_on_error': True, 'suppress_output': False}
+        'function': hsystem.system,
+        'args': ('linters2/normalize_import.py --no_report_command_line file1.py',),
+        'kwargs': {'print_command': False, 'abort_on_error': True, 'suppress_output': False},
         },
         {
-        'function': hsystem.system
-        'args': ('linters2/add_class_frames.py --no_report_command_line file1.py',)
-        'kwargs': {'print_command': False, 'abort_on_error': True, 'suppress_output': False}
+        'function': hsystem.system,
+        'args': ('linters2/add_class_frames.py --no_report_command_line file1.py',),
+        'kwargs': {'print_command': False, 'abort_on_error': True, 'suppress_output': False},
         },
         ]"""
         # Run test.
-        with hunteuti.capture_sys_calls() as sys_calls:
-            ret = lilint._run_python_linting_actions(
-                file_paths,
-                actions,
-                abort_on_error=abort_on_error,
-            )
-        # Check outputs.
-        self.assertEqual(ret, expected_return_code)
-        hunteuti.assert_sys_calls(self, sys_calls, expected)
+        _run_actions_and_check(
+            self,
+            lilint._run_python_linting_actions,
+            file_paths,
+            actions,
+            abort_on_error,
+            expected_return_code,
+            expected,
+        )
 
     @umock.patch("helpers.hsystem.system")
     def test3(self, mock_system: umock.MagicMock) -> None:
@@ -392,15 +443,15 @@ class Test_run_python_linting_actions(hunitest.TestCase):
         expected = r"""[
         ]"""
         # Run test.
-        with hunteuti.capture_sys_calls() as sys_calls:
-            ret = lilint._run_python_linting_actions(
-                file_paths,
-                actions,
-                abort_on_error=abort_on_error,
-            )
-        # Check outputs.
-        self.assertEqual(ret, expected_return_code)
-        hunteuti.assert_sys_calls(self, sys_calls, expected)
+        _run_actions_and_check(
+            self,
+            lilint._run_python_linting_actions,
+            file_paths,
+            actions,
+            abort_on_error,
+            expected_return_code,
+            expected,
+        )
 
 
 # #############################################################################
@@ -448,24 +499,24 @@ class Test_lint_python_files(hunitest.TestCase):
         expected_return_code = 0
         expected = r"""[
         {
-        'function': hsystem.system
-        'args': ('pre-commit run --files foo.py bar.py --color always',)
-        'kwargs': {'print_command': False, 'abort_on_error': True, 'suppress_output': False}
+        'function': hsystem.system,
+        'args': ('pre-commit run --files foo.py bar.py --color always',),
+        'kwargs': {'print_command': False, 'abort_on_error': True, 'suppress_output': False},
         },
         {
-        'function': hsystem.system
-        'args': ('linters2/normalize_import.py --no_report_command_line foo.py bar.py',)
-        'kwargs': {'print_command': False, 'abort_on_error': True, 'suppress_output': False}
+        'function': hsystem.system,
+        'args': ('linters2/normalize_import.py --no_report_command_line foo.py bar.py',),
+        'kwargs': {'print_command': False, 'abort_on_error': True, 'suppress_output': False},
         },
         {
-        'function': hsystem.system
-        'args': ('linters2/add_class_frames.py --no_report_command_line foo.py bar.py',)
-        'kwargs': {'print_command': False, 'abort_on_error': True, 'suppress_output': False}
+        'function': hsystem.system,
+        'args': ('linters2/add_class_frames.py --no_report_command_line foo.py bar.py',),
+        'kwargs': {'print_command': False, 'abort_on_error': True, 'suppress_output': False},
         },
         {
-        'function': hsystem.system
-        'args': ('linters2/fix_comments.py --no_report_command_line foo.py bar.py',)
-        'kwargs': {'print_command': False, 'abort_on_error': True, 'suppress_output': False}
+        'function': hsystem.system,
+        'args': ('linters2/fix_comments.py --no_report_command_line foo.py bar.py',),
+        'kwargs': {'print_command': False, 'abort_on_error': True, 'suppress_output': False},
         },
         ]"""
         # Run test.
@@ -491,9 +542,9 @@ class Test_lint_python_files(hunitest.TestCase):
         expected_return_code = 0
         expected = r"""[
         {
-        'function': hsystem.system
-        'args': ('linters2/normalize_import.py --no_report_command_line foo.py',)
-        'kwargs': {'print_command': False, 'abort_on_error': True, 'suppress_output': False}
+        'function': hsystem.system,
+        'args': ('linters2/normalize_import.py --no_report_command_line foo.py',),
+        'kwargs': {'print_command': False, 'abort_on_error': True, 'suppress_output': False},
         },
         ]"""
         # Run test.
@@ -553,9 +604,9 @@ class Test_lint_jupyter_files(hunitest.TestCase):
         expected_return_code = 0
         expected = r"""[
         {
-        'function': hsystem.system
-        'args': ('pre-commit run --files foo.ipynb bar.ipynb --color always',)
-        'kwargs': {'print_command': False, 'abort_on_error': True, 'suppress_output': False}
+        'function': hsystem.system,
+        'args': ('pre-commit run --files foo.ipynb bar.ipynb --color always',),
+        'kwargs': {'print_command': False, 'abort_on_error': True, 'suppress_output': False},
         },
         ]"""
         # Run test.
@@ -581,14 +632,14 @@ class Test_lint_jupyter_files(hunitest.TestCase):
         expected_return_code = 0
         expected = r"""[
         {
-        'function': hsystem.system
-        'args': ('jupytext --sync foo.ipynb',)
-        'kwargs': {'print_command': True, 'abort_on_error': True, 'suppress_output': False}
+        'function': hsystem.system,
+        'args': ('jupytext --sync foo.ipynb',),
+        'kwargs': {'print_command': True, 'abort_on_error': True, 'suppress_output': False},
         },
         {
-        'function': hsystem.system
-        'args': ('jupytext --sync bar.ipynb',)
-        'kwargs': {'print_command': True, 'abort_on_error': True, 'suppress_output': False}
+        'function': hsystem.system,
+        'args': ('jupytext --sync bar.ipynb',),
+        'kwargs': {'print_command': True, 'abort_on_error': True, 'suppress_output': False},
         },
         ]"""
         # Run test.
@@ -614,9 +665,9 @@ class Test_lint_jupyter_files(hunitest.TestCase):
         expected_return_code = 0
         expected = r"""[
         {
-        'function': hsystem.system
-        'args': ('pre-commit run --files foo.ipynb bar.ipynb --color always',)
-        'kwargs': {'print_command': False, 'abort_on_error': True, 'suppress_output': False}
+        'function': hsystem.system,
+        'args': ('pre-commit run --files foo.ipynb bar.ipynb --color always',),
+        'kwargs': {'print_command': False, 'abort_on_error': True, 'suppress_output': False},
         },
         ]"""
         # Run test.
@@ -685,9 +736,9 @@ class Test_lint_markdown_files(hunitest.TestCase):
         expected_return_code = 0
         expected = r"""[
         {
-        'function': hsystem.system
-        'args': ('/fake/lint_txt.py --input_files doc.md readme.md',)
-        'kwargs': {'print_command': True, 'abort_on_error': True, 'suppress_output': False}
+        'function': hsystem.system,
+        'args': ('/fake/lint_txt.py --input_files doc.md readme.md',),
+        'kwargs': {'print_command': True, 'abort_on_error': True, 'suppress_output': False},
         },
         ]"""
         # Run test.

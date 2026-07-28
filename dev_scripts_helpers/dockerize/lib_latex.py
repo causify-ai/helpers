@@ -170,7 +170,9 @@ def convert_latex_cmd_to_arguments(cmd: str) -> Dict[str, Any]:
     cmd_list = cmd_list[1:-1]
     _LOG.debug(hprint.to_str("cmd"))
     # Parse arguments.
-    parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser(
+        formatter_class=argparse.RawDescriptionHelpFormatter
+    )
     parser.add_argument("--output-directory", required=True)
     # Latex uses options like `-XYZ` which confuse `argparse` so we need to
     # replace `-XYZ` with `--XYZ`.

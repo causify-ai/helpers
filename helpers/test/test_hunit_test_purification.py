@@ -8,7 +8,7 @@ import datetime
 import logging
 import os
 import unittest.mock as umock
-from typing import Any, List
+from typing import Any, Dict, List, Optional
 
 import pytest
 
@@ -32,6 +32,17 @@ class Test_purify_text1(hunitest.TestCase):
         actual = huntepur.purify_txt_from_client(txt)
         self.assert_equal(actual, expected, **kwargs)
 
+    def helper_with_git_root_mocking(self, txt: str, expected: str) -> None:
+        """Helper for tests that need git root mocking.
+
+        :param txt: Input text to test
+        :param expected: Expected output
+        """
+        git_root: str = hgit.get_client_root(super_module=False)
+        pwd: str = os.path.dirname(git_root)
+        with umock.patch("os.getcwd", return_value=pwd):
+            self.helper(txt, expected)
+
     def test1(self) -> None:
         txt = "amp/helpers/test/test_system_interaction.py"
         expected = "helpers/test/test_system_interaction.py"
@@ -52,62 +63,50 @@ class Test_purify_text1(hunitest.TestCase):
         expected = "helpers.test.test_system_interaction.py"
         self.helper(txt, expected)
 
+    # TODO(ai_gp): Factor out more code in an helper function
+    # git_root = hgit.get_client_root(super_module=False)
+    # txt = os.path.join(git_root, "src/file.py")
+    # and simplify the code below
     def test5(self) -> None:
         """
-        Test that longer paths are processed before shorter ones.
+        Test that longer paths are processed before shorter ones using real paths.
         """
-        txt = "/home/user/project/src/file.py"
-        with (
-            umock.patch("helpers.hgit.get_client_root") as mock_git_root,
-            umock.patch("os.getcwd") as mock_pwd,
-        ):
-            mock_git_root.return_value = "/home/user/project"
-            mock_pwd.return_value = "/home/user"
-            expected = "$GIT_ROOT/src/file.py"
-            self.helper(txt, expected)
+        git_root = hgit.get_client_root(super_module=False)
+        txt = os.path.join(git_root, "src/file.py")
+        expected = "$GIT_ROOT/src/file.py"
+        self.helper_with_git_root_mocking(txt, expected)
 
     def test6(self) -> None:
         """
         Test that paths with multiple occurrences of the same pattern are
-        processed correctly.
+        processed correctly using real paths.
         """
-        txt = "/home/user/project/src/project/file.py"
-        with (
-            umock.patch("helpers.hgit.get_client_root") as mock_git_root,
-            umock.patch("os.getcwd") as mock_pwd,
-        ):
-            mock_git_root.return_value = "/home/user/project"
-            mock_pwd.return_value = "/home/user"
-            expected = "$GIT_ROOT/src/project/file.py"
-            self.helper(txt, expected)
+        git_root = hgit.get_client_root(super_module=False)
+        txt = os.path.join(git_root, "src/project/file.py")
+        expected = "$GIT_ROOT/src/project/file.py"
+        self.helper_with_git_root_mocking(txt, expected)
 
     def test7(self) -> None:
         """
         Test that paths with multiple patterns are processed in the correct
-        order.
+        order using real pwd.
         """
-        txt = "/home/user/project/src/project/file.py"
-        with (
-            umock.patch("helpers.hgit.get_client_root") as mock_git_root,
-            umock.patch("os.getcwd") as mock_pwd,
-        ):
-            mock_git_root.return_value = "/home/user/project"
-            mock_pwd.return_value = "/home/user/project/src"
-            expected = "$GIT_ROOT/src/project/file.py"
-            self.helper(txt, expected)
+        git_root = hgit.get_client_root(super_module=False)
+        txt = os.path.join(git_root, "src/project/file.py")
+        expected = "$GIT_ROOT/src/project/file.py"
+        self.helper_with_git_root_mocking(txt, expected)
 
     def test8(self) -> None:
         """
         Test that paths with no matching patterns are left unchanged.
         """
-        txt = "/home/user/other/file.py"
-        with (
-            umock.patch("helpers.hgit.get_client_root") as mock_git_root,
-            umock.patch("os.getcwd") as mock_pwd,
-        ):
-            mock_git_root.return_value = "/home/user/project"
-            mock_pwd.return_value = "/home/user/project/src"
-            expected = "/home/user/other/file.py"
+        other_path = "/var/tmp/other/file.py"
+        txt = other_path
+        expected = other_path
+        # Get pwd for mocking context (hgit call happens inside helper).
+        git_root = hgit.get_client_root(super_module=False)
+        pwd = os.path.dirname(git_root)
+        with umock.patch("os.getcwd", return_value=pwd):
             self.helper(txt, expected)
 
     def test9(self) -> None:
@@ -250,82 +249,92 @@ class Test_purify_directory_paths1(hunitest.TestCase):
         actual = huntepur.purify_directory_paths(input_)
         self.assert_equal(actual, expected, fuzzy_match=True)
 
+    def helper_with_env_and_pwd_mocking(
+        self,
+        input_: str,
+        expected: str,
+        env_vars: Optional[Dict[str, str]] = None,
+        git_root: Optional[str] = None,
+    ) -> None:
+        """
+        Helper for tests that need env and pwd mocking.
+
+        :param input_: Input path to test
+        :param expected: Expected output path
+        :param env_vars: Optional dict of env vars to patch
+        :param git_root: Optional git root (if None, uses actual git root)
+        """
+        if git_root is None:
+            git_root = hgit.get_client_root(super_module=False)
+        pwd: str = os.path.dirname(git_root)
+        if env_vars is None:
+            env_vars = {}
+        with (
+            umock.patch.dict("os.environ", env_vars, clear=True),
+            umock.patch("os.getcwd", return_value=pwd),
+        ):
+            self.helper(input_, expected)
+
+    # TODO(ai_gp): Factor out more code.
     def test1(self) -> None:
         """
-        Test the replacement of `GIT_ROOT`.
+        Test the replacement of `GIT_ROOT` using real git root.
         """
-        with (
-            umock.patch(
-                "helpers.hgit.get_client_root", return_value="/home/user/gitroot"
-            ),
-            umock.patch.dict(
-                "os.environ",
-                {"CSFY_HOST_GIT_ROOT_PATH": "/home/user/csfy_host_git_root"},
-                clear=True,
-            ),
-            umock.patch("os.getcwd", return_value="/home/user"),
-        ):
-            input_ = "/home/user/gitroot/src/subdir/file.py"
-            expected = "$GIT_ROOT/src/subdir/file.py"
-            self.helper(input_, expected)
+        git_root = hgit.get_client_root(super_module=False)
+        csfy_host_git_root = "/tmp/csfy_host_git_root"
+        input_ = os.path.join(git_root, "src/subdir/file.py")
+        expected = "$GIT_ROOT/src/subdir/file.py"
+        env_vars = {"CSFY_HOST_GIT_ROOT_PATH": csfy_host_git_root}
+        self.helper_with_env_and_pwd_mocking(
+            input_, expected, env_vars, git_root
+        )
 
     def test2(self) -> None:
         """
-        Test the replacement of `CSFY_HOST_GIT_ROOT_PATH`.
+        Test the replacement of `CSFY_HOST_GIT_ROOT_PATH` using real git root.
         """
-        with (
-            umock.patch(
-                "helpers.hgit.get_client_root", return_value="/home/user/gitroot"
-            ),
-            umock.patch.dict(
-                "os.environ",
-                {"CSFY_HOST_GIT_ROOT_PATH": "/home/user/csfy_host_git_root"},
-                clear=True,
-            ),
-            umock.patch("os.getcwd", return_value="/home/user"),
-        ):
-            input_ = "/home/user/csfy_host_git_root/other/file.py"
-            expected = "$CSFY_HOST_GIT_ROOT_PATH/other/file.py"
-            self.helper(input_, expected)
+        git_root = hgit.get_client_root(super_module=False)
+        csfy_host_git_root = "/tmp/csfy_host_git_root"
+        input_ = f"{csfy_host_git_root}/other/file.py"
+        expected = "$CSFY_HOST_GIT_ROOT_PATH/other/file.py"
+        env_vars = {"CSFY_HOST_GIT_ROOT_PATH": csfy_host_git_root}
+        self.helper_with_env_and_pwd_mocking(
+            input_, expected, env_vars, git_root
+        )
 
     def test3(self) -> None:
         """
-        Test the replacement of `PWD`.
+        Test the replacement of `PWD` using real git root and pwd.
         """
-        with (
-            umock.patch(
-                "helpers.hgit.get_client_root", return_value="/home/user/gitroot"
-            ),
-            umock.patch.dict(
-                "os.environ",
-                {"CSFY_HOST_GIT_ROOT_PATH": "/home/user/csfy_host_git_root"},
-                clear=True,
-            ),
-            umock.patch("os.getcwd", return_value="/home/user"),
-        ):
-            input_ = "/home/user/documents/file.py"
-            expected = "$PWD/documents/file.py"
-            self.helper(input_, expected)
+        git_root = hgit.get_client_root(super_module=False)
+        git_root = git_root.rstrip("/")
+        pwd = os.path.dirname(git_root)
+        # TODO(gp): Skip test if pwd is "/": the purification function
+        # explicitly skips replacing "/" to avoid corrupting all paths. This
+        # edge case occurs when git_root has no parent as in the CI (e.g.,
+        # git_root="/app" gives pwd="/").
+        if pwd == "/":
+            pytest.skip("Cannot test PWD replacement when parent directory is /")
+        csfy_host_git_root = "/tmp/csfy_host_git_root"
+        input_ = f"{pwd}/documents/file.py"
+        expected = "$PWD/documents/file.py"
+        env_vars = {"CSFY_HOST_GIT_ROOT_PATH": csfy_host_git_root}
+        with umock.patch("helpers.hgit.get_client_root", return_value=git_root):
+            self.helper_with_env_and_pwd_mocking(
+                input_, expected, env_vars, git_root
+            )
 
     def test4(self) -> None:
         """
-        Test the replacement when `GIT_ROOT`, `CSFY_HOST_GIT_ROOT_PATH` and
-        current working directory are the same.
+        Test when `GIT_ROOT`, `CSFY_HOST_GIT_ROOT_PATH` and pwd are the same.
         """
-        with (
-            umock.patch(
-                "helpers.hgit.get_client_root", return_value="/home/user"
-            ),
-            umock.patch.dict(
-                "os.environ",
-                {"CSFY_HOST_GIT_ROOT_PATH": "/home/user"},
-                clear=True,
-            ),
-            umock.patch("os.getcwd", return_value="/home/user"),
-        ):
-            input_ = "/home/user/file.py"
-            expected = "$GIT_ROOT/file.py"
-            self.helper(input_, expected)
+        git_root = hgit.get_client_root(super_module=False)
+        input_ = os.path.join(git_root, "file.py")
+        expected = "$GIT_ROOT/file.py"
+        env_vars = {"CSFY_HOST_GIT_ROOT_PATH": git_root}
+        self.helper_with_env_and_pwd_mocking(
+            input_, expected, env_vars, git_root
+        )
 
 
 # #############################################################################
@@ -617,6 +626,8 @@ class Test_purify_super_module_references1(hunitest.TestCase):
         """
         txt = "csfy1.helpers_root.helpers.test.test_hobject._Object1"
         expected = "helpers_root.helpers.test.test_hobject._Object1"
+        # TODO(ai_gp): Assign super_module_root and then pass it.
+        # Do the same for all the functions.
         self.helper("/Users/user/src/csfy1", txt, expected)
 
     def test2(self) -> None:
@@ -1226,6 +1237,7 @@ class Test_purify_file_names1(hunitest.TestCase):
         """
         Test basic file name purification with relative paths.
         """
+        # TODO(ai_gp): Move the umock.pack to the helper
         with umock.patch(
             "helpers.hgit.get_client_root", return_value="/home/user/gitroot"
         ):
@@ -1315,6 +1327,7 @@ class Test_purify_apple_container_output1(hunitest.TestCase):
         """
         Test removing multiple container startup lines.
         """
+        # TODO(ai_gp): Use a """
         txt = (
             "[0/6] [0s]\n"
             "[1/6] Fetching image [0s]\n"
@@ -1349,6 +1362,7 @@ class Test_purify_apple_container_output1(hunitest.TestCase):
         """
         Test with only container startup lines.
         """
+        # TODO(ai_gp): Use a """
         txt = (
             "[0/6] [0s]\n"
             "[1/6] Fetching image [0s]\n"
@@ -1362,11 +1376,13 @@ class Test_purify_apple_container_output1(hunitest.TestCase):
         Test that lines with brackets but not starting/ending with them are
         kept.
         """
+        # TODO(ai_gp): Use a """
         txt = (
             "[0/6] [0s]\n"
             "Some output with [brackets] in the middle\n"
             "dot - graphviz version 12.2.1 (20241206.2353)\n"
         )
+        # TODO(ai_gp): Use a """
         expected = (
             "Some output with [brackets] in the middle\n"
             "dot - graphviz version 12.2.1 (20241206.2353)\n"

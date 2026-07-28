@@ -292,6 +292,7 @@ def transfer_issue(
 def main() -> None:
     # Parse command-line arguments.
     ap = argparse.ArgumentParser(
+        formatter_class=argparse.RawDescriptionHelpFormatter,
         description="Bulk transfer GitHub issues (Python, GraphQL)."
     )
     ap.add_argument("--src", default="causify-ai/cmamp")

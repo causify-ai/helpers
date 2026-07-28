@@ -1,6 +1,3 @@
-Add
-gh_issue_body_file
-
 # Conventions
 - When writing code you must always follow the instructions in
   `.claude/skills/coding.rules.md`

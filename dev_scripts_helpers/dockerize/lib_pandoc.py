@@ -248,7 +248,9 @@ def _convert_pandoc_cmd_to_arguments(cmd: str) -> Dict[str, Any]:
     cmd_list = cmd_list[2:]
     _LOG.debug(hprint.to_str("cmd"))
     # Parse arguments.
-    parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser(
+        formatter_class=argparse.RawDescriptionHelpFormatter
+    )
     parser.add_argument("-o", "--output", required=True)
     parser.add_argument("--data-dir", default=None)
     parser.add_argument("--template", default=None)
