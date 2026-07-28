@@ -1,7 +1,18 @@
-The file in output.html from
-download_html_to_md.py -i https://code.claude.com/docs/en/platforms -o output.md -sa lint 
+Extend 
+.claude/control_cc_commit.py --enable
+to remove all the lines in deny including "git commit" or "git push"
+and save what's remove in a backup file
 
-has content but when running the action convert output.md is almost empty
+.claude/settings.local.json
+
+-> 
+
+.claude/settings.local.json.backup
+
+For --disable use the content in .claude/settings.local.json.backup
+and copy it to .claude/settings.local.json
+
+Add a unit test to make sure that the round trip works
 
 # Conventions
 - When writing code you must always follow the instructions in
