@@ -13,9 +13,7 @@ import argparse
 import hashlib
 import logging
 import shlex
-import sys
 import time
-from typing import Optional
 
 import helpers.hdbg as hdbg
 import helpers.hsystem as hsystem
@@ -62,8 +60,7 @@ def daemon_watch(
     wait_in_sec: int = 1,
     debounce_sec: int = 2,
     abort_on_error: bool = True,
-    # TODO(ai_gp): Use str = ""
-    watch_cmd_suffix: Optional[str] = None,
+    watch_cmd_suffix: str = "",
 ) -> None:
     """
     Watch a file for changes and re-run command with debouncing.
@@ -78,8 +75,8 @@ def daemon_watch(
     :param wait_in_sec: Poll interval in seconds (default: 1)
     :param debounce_sec: Debounce duration in seconds (default: 2)
     :param abort_on_error: Whether to abort on command failure (default: True)
-    :param watch_cmd_suffix: Suffix to append to cmd for watch runs (default: None).
-        If provided, initial run uses cmd and watch runs use cmd + suffix.
+    :param watch_cmd_suffix: Suffix to append to cmd for watch runs.
+        If provided, initial run uses cmd and watch runs use cmd + suffix
     """
     _LOG.info(
         "Daemon mode: watching '%s' for changes (poll every %ds, debounce %ds)...",
@@ -100,10 +97,9 @@ def daemon_watch(
     _run_cmd(cmd)
     _LOG.info("Initial run complete")
     # Build watch command with optional suffix.
-    watch_cmd = cmd if watch_cmd_suffix is None else cmd + watch_cmd_suffix
+    watch_cmd = cmd if not watch_cmd_suffix else cmd + watch_cmd_suffix
     prev_hash = file_hash(file_path)
-    # TODO(ai_gp): Use str = ""
-    stable_hash: Optional[str] = None
+    stable_hash: str = ""
     time_since_last_change = 0
     while True:
         time.sleep(wait_in_sec)
@@ -118,7 +114,7 @@ def daemon_watch(
             stable_hash = cur_hash
             time_since_last_change = 0
             prev_hash = cur_hash
-        elif stable_hash is not None:
+        elif stable_hash:
             # In debounce period, tracking time without changes.
             time_since_last_change += 1
             if time_since_last_change >= debounce_sec:
@@ -126,15 +122,15 @@ def daemon_watch(
                 _LOG.info("Debounce complete. Regenerating...")
                 _run_cmd(watch_cmd)
                 _LOG.info("Regeneration complete")
-                stable_hash = None
+                stable_hash = ""
 
 
 def run_daemon_mode(
     input_file: str,
+    cmd: str,
     window_name_str: str,
     *,
-    # TODO(ai_gp): Use str = ""
-    watch_cmd_suffix: Optional[str] = None,
+    watch_cmd_suffix: str = "",
 ) -> None:
     """
     Run daemon mode: watch file for changes and regenerate with debouncing.
@@ -143,14 +139,13 @@ def run_daemon_mode(
     naming, and daemon watching. Blocks until the user interrupts.
 
     :param input_file: File to watch for changes
+    :param cmd: Full command line that invoked the script (including
+        --daemon), used to rebuild the command for the watch runs
     :param window_name_str: Tmux window name to use while daemon is running
     :param watch_cmd_suffix: Suffix to append to command for watch runs
     """
     # Build command without --daemon flag for daemon_watch to execute.
-    # TODO(ai_gp): Pass cmd instead of extracting from sys.argv
-    cmd_parts = [sys.argv[0]] + [
-        arg for arg in sys.argv[1:] if arg != "--daemon"
-    ]
+    cmd_parts = [part for part in shlex.split(cmd) if part != "--daemon"]
     cmd = " ".join(shlex.quote(part) for part in cmd_parts)
     _LOG.info("Daemon mode: watching '%s' for changes", input_file)
     with htmux.window_name(window_name_str):

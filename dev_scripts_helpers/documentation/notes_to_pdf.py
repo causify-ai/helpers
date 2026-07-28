@@ -395,7 +395,10 @@ def _main(parser: argparse.ArgumentParser) -> None:
     if args.daemon:
         # Skip "open" action on watch runs (viewer auto-reloads).
         hdaemon.run_daemon_mode(
-            args.input, "notes_to_pdf", watch_cmd_suffix=" --skip_action=open"
+            args.input,
+            cmd_line,
+            "notes_to_pdf",
+            watch_cmd_suffix=" --skip_action=open",
         )
     else:
         _run_all(args)
