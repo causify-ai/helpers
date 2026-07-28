@@ -900,3 +900,163 @@ class Test_summarize_md_py3(hunitest.TestCase):
         """)
         expected_output += "\n\n\n"
         _run_summarize_md_test(self, input_md, expected_output, md_level=2)
+
+
+# #############################################################################
+# Test_count_words
+# #############################################################################
+
+
+class Test_count_words(hunitest.TestCase):
+    """
+    Test _count_words function.
+    """
+
+    def helper(self, text: str, expected_count: int) -> None:
+        """
+        Test helper for _count_words.
+
+        :param text: Input text to count
+        :param expected_count: Expected word count
+        """
+        actual = dshdsumd._count_words(text)
+        self.assertEqual(actual, expected_count)
+
+    def test1(self) -> None:
+        """
+        Test counting words in simple single-line text.
+        """
+        # Prepare inputs.
+        text = "Hello world this is a test"
+        # Prepare outputs.
+        expected = 6
+        # Run test.
+        self.helper(text, expected)
+
+    def test2(self) -> None:
+        """
+        Test counting words in empty string.
+        """
+        # Prepare inputs.
+        text = ""
+        # Prepare outputs.
+        expected = 0
+        # Run test.
+        self.helper(text, expected)
+
+    def test3(self) -> None:
+        """
+        Test counting words in multiline text.
+        """
+        # Prepare inputs.
+        text = """
+        First line with words.
+        Second line with more words.
+        Third line.
+        """
+        text = hprint.dedent(text)
+        # Prepare outputs.
+        expected = 11
+        # Run test.
+        self.helper(text, expected)
+
+    def test4(self) -> None:
+        """
+        Test counting words with various whitespace.
+        """
+        # Prepare inputs.
+        text = "word1  word2\t\tword3\n\nword4"
+        # Prepare outputs.
+        expected = 4
+        # Run test.
+        self.helper(text, expected)
+
+    def test5(self) -> None:
+        """
+        Test counting single word.
+        """
+        # Prepare inputs.
+        text = "word"
+        # Prepare outputs.
+        expected = 1
+        # Run test.
+        self.helper(text, expected)
+
+
+# #############################################################################
+# Test_estimate_read_time
+# #############################################################################
+
+
+class Test_estimate_read_time(hunitest.TestCase):
+    """
+    Test _estimate_read_time function.
+    """
+
+    def helper(
+        self, num_words: int, expected_minutes_approx: float
+    ) -> None:
+        """
+        Test helper for _estimate_read_time.
+
+        :param num_words: Number of words
+        :param expected_minutes_approx: Expected read time in minutes (approx)
+        """
+        actual = dshdsumd._estimate_read_time(num_words)
+        tolerance = 0.01
+        self.assertAlmostEqual(actual, expected_minutes_approx, delta=tolerance)
+
+    def test1(self) -> None:
+        """
+        Test estimating read time for 250 words (1 minute at default rate).
+        """
+        # Prepare inputs.
+        num_words = 250
+        # Prepare outputs (250 words / 250 wpm = 1 minute).
+        expected = 1.0
+        # Run test.
+        self.helper(num_words, expected)
+
+    def test2(self) -> None:
+        """
+        Test estimating read time for zero words.
+        """
+        # Prepare inputs.
+        num_words = 0
+        # Prepare outputs.
+        expected = 0.0
+        # Run test.
+        self.helper(num_words, expected)
+
+    def test3(self) -> None:
+        """
+        Test estimating read time for 500 words (2 minutes).
+        """
+        # Prepare inputs.
+        num_words = 500
+        # Prepare outputs (500 words / 250 wpm = 2 minutes).
+        expected = 2.0
+        # Run test.
+        self.helper(num_words, expected)
+
+    def test4(self) -> None:
+        """
+        Test estimating read time for 1000 words (4 minutes).
+        """
+        # Prepare inputs.
+        num_words = 1000
+        # Prepare outputs (1000 words / 250 wpm = 4 minutes).
+        expected = 4.0
+        # Run test.
+        self.helper(num_words, expected)
+
+    def test5(self) -> None:
+        """
+        Test estimating read time for fractional result (125 words = 0.5 min).
+        """
+        # Prepare inputs.
+        num_words = 125
+        # Prepare outputs (125 words / 250 wpm = 0.5 minutes).
+        expected = 0.5
+        # Run test.
+        self.helper(num_words, expected)

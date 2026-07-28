@@ -28,6 +28,7 @@ import os
 import re
 
 import helpers.hdbg as hdbg
+import helpers.hcache_simple as hcacsimp
 import helpers.hgit as hgit
 import helpers.hio as hio
 import helpers.hselect_action as hselacti
@@ -40,6 +41,7 @@ _LOG = logging.getLogger(__name__)
 # #############################################################################
 
 
+@hcacsimp.simple_cache(write_through=True)
 def _download_html(input_url: str, output_html_file: str) -> None:
     """
     Download HTML from URL and save to file.
@@ -326,13 +328,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
         if to_execute:
             if action == "download":
                 # If the file already exists skip downloading.
-                if os.path.exists(html_file):
-                    _LOG.info(
-                        "HTML file already exists: '%s', skipping download",
-                        html_file,
-                    )
-                else:
-                    _download_html(args.input, html_file)
+                _download_html(args.input, html_file)
             elif action == "convert":
                 _convert_html(
                     html_file,

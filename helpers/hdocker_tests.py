@@ -171,7 +171,7 @@ class DockerTestCase(hunitest.TestCase):
         cmd = f"echo '{shell_cmd}' | bash {docker_bash_script}"
         hsystem.system(cmd)
 
-    def _run_notebook(self, notebook_name: str) -> None:
+    def _helper(self, notebook_name: str) -> None:
         """
         Run a single notebook inside Docker.
 
