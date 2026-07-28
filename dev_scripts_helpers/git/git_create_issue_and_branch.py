@@ -34,6 +34,7 @@ _LOG = logging.getLogger(__name__)
 # #############################################################################
 
 
+# TODO(ai_gp): Use the already existing function, if present
 def _format_title_for_branch(raw_title: str, issue_id: int) -> str:
     """
     Format a GitHub issue title as a git branch name.
@@ -56,7 +57,7 @@ def _format_title_for_branch(raw_title: str, issue_id: int) -> str:
     for char in "- ' ` \"".split():
         title = title.replace(char, "_")
     # Add the prefix with issue number.
-    # TODO(ai_gp): Generalize this to other repos.
+    # TODO(ai_gp2): Generalize this to other repos.
     task_prefix = "HelpersTask"
     branch_name = f"{task_prefix}{issue_id}_{title}"
     return branch_name
@@ -114,20 +115,6 @@ def _create_github_issue(
     # Extract issue number from URL.
     issue_number = _parse_issue_number_from_url(issue_url)
     return issue_number, issue_url
-
-
-# TODO(ai_gp): Inline
-def _check_no_subrepos() -> None:
-    """
-    Assert that the repository does not have any submodules.
-
-    Raises an error if subrepos are detected.
-    """
-    has_subrepos = hgit.has_submodules()
-    hdbg.dassert(
-        not has_subrepos,
-        "Repository has submodules; worktree not supported yet",
-    )
 
 
 def _branch_exists(branch_name: str) -> bool:
@@ -294,8 +281,12 @@ def _main(parser: argparse.ArgumentParser) -> None:
         # Format branch name.
         branch_name = _format_title_for_branch(issue_title, issue_id)
         _LOG.info("Branch name: '%s'", branch_name)
-        # Assert no subrepos.
-        _check_no_subrepos()
+        # Assert that the repository does not have any submodules, since
+        # worktrees are not supported with subrepos yet.
+        hdbg.dassert(
+            not hgit.has_submodules(),
+            "Repository has submodules; worktree not supported yet",
+        )
         # Create branch.
         _create_branch(branch_name, original_branch, create_pr=args.create_pr)
         # Create worktree if requested.
@@ -359,18 +350,12 @@ def _parse() -> argparse.ArgumentParser:
         default=False,
         help="Create git worktree (default: False, only create branch)",
     )
-    # TODO(ai_gp): Use one
-    parser.add_argument(
-        "--create_pr",
-        action="store_true",
-        default=True,
-        help="Create a draft PR for the branch (default: True)",
-    )
     parser.add_argument(
         "--no_create_pr",
         action="store_false",
         dest="create_pr",
-        help="Skip creating a draft PR for the branch",
+        default=True,
+        help="Skip creating a draft PR for the branch (default: create a draft PR)",
     )
     hparser.add_verbosity_arg(parser)
     return parser
