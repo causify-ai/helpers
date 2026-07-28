@@ -430,7 +430,7 @@ class Test_git_create_issue_and_branch_py(hunitest.TestCase):
         ]
         # Run test with mocked system calls.
         parser = dshggciab._parse()
-        # TODO(ai_gp): Find a better way to mock since this is insane.
+        # TODO(ai_gp2): Find a better way to mock since this is insane.
         with mock.patch("sys.argv", argv):
             with hunteuti.capture_sys_calls() as invocations:
                 with mock.patch(

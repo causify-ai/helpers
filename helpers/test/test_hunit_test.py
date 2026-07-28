@@ -59,7 +59,8 @@ def _to_skip_on_update_outcomes() -> bool:
 # #############################################################################
 
 
-# TODO(ai_gp): Split in multiple classes, one per function.
+# TODO(ai_gp): Split in multiple classes, one per testing function,
+# get_input_dir, get_output_dir, get_scratch_dir
 class TestTestCase1(hunitest.TestCase):
     """
     Test free-standing functions in unit_test.py.
@@ -264,7 +265,8 @@ class TestTestCase1(hunitest.TestCase):
 # Test_AssertEqual1
 # #############################################################################
 
-# TODO(ai_gp): Indent the """ strings and use dedent.
+# TODO(ai_gp): Indent the """ strings to align with the rest of the code code
+# and use dedent.
 @pytest.mark.need_dev_container
 class Test_AssertEqual1(hunitest.TestCase):
     def test_equal1(self) -> None:
@@ -406,7 +408,8 @@ end
 # #############################################################################
 
 
-# TODO(ai_gp): Rename the methods and use /factor_common_code
+# TODO(ai_gp): Rename the methods to test1, test2, ... and use
+# /coding.factor_common_code
 class TestCheckString1(hunitest.TestCase):
     def test_check_string1(self) -> None:
         """
@@ -615,7 +618,8 @@ class TestCheckString1(hunitest.TestCase):
 # #############################################################################
 
 
-# TODO(ai_gp): Rename the methods and use /factor_common_code
+# TODO(ai_gp): Rename the methods to test1, test2, ... and use
+# /coding.factor_common_code
 class TestCheckDataFrame1(hunitest.TestCase):
     """
     Some of these tests can't pass with `--update_outcomes`, since they
@@ -970,6 +974,8 @@ class Test_get_dir_signature1(hunitest.TestCase):
 # #############################################################################
 
 
+# TODO(ai_gp2): Split in multiple classes, one per testing function,
+# Test_assert_equal_fuzzy_match, Test_assert_equal_purify_text, ...
 class Test_assert_equal_options1(hunitest.TestCase):
 
     def helper(
@@ -1058,7 +1064,7 @@ class Test_assert_equal_options1(hunitest.TestCase):
                 actual, expected, test_name, test_dir, fuzzy_match=True
             )
 
-    # TODO(ai_gp): This should pass when using ignore_line_breaks
+    # TODO(ai_gp2): This should pass when using ignore_line_breaks
     def test_fuzzy_match6(self) -> None:
         """
         Test fuzzy_match + ignore_line_breaks with inline vs multiline dicts.
@@ -1121,7 +1127,7 @@ class Test_assert_equal_options1(hunitest.TestCase):
                 ignore_line_breaks=True,
             )
 
-    # TODO(ai_gp): Use helper.
+    # TODO(ai_gp2): Use helper.
     def test_fuzzy_match7(self) -> None:
         """
         Test fuzzy_match + ignore_line_breaks with consistent formatting.

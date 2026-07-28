@@ -56,7 +56,7 @@ def _format_title_for_branch(raw_title: str, issue_id: int) -> str:
     for char in "- ' ` \"".split():
         title = title.replace(char, "_")
     # Add the prefix with issue number.
-    # TODO(ai_gp): Generalize this to other repos.
+    # TODO(ai_gp2): Generalize this to other repos.
     task_prefix = "HelpersTask"
     branch_name = f"{task_prefix}{issue_id}_{title}"
     return branch_name
@@ -290,7 +290,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
     # Create worktree if requested.
     if args.create_worktree:
         worktree_path = _create_worktree(branch_name, issue_id)
-        # TODO(ai_gp): cp the instr_file to the dir.
+        # TODO(ai_gp2): cp the instr_file to the dir.
         # Print usage instructions.
         _print_usage_instructions(worktree_path, issue_id)
 

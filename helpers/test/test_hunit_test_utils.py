@@ -703,7 +703,7 @@ class Test_get_parent_dirs(hunitest.TestCase):
 # #############################################################################
 
 
-# TODO(ai_gp): Factor out the common code.
+# TODO(ai_gp): Factor out the common code with /coding.factor_common_code
 class Test_capture_sys_calls(hunitest.TestCase):
     """
     Test system call capture functionality.

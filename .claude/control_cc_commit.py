@@ -29,7 +29,7 @@ def _load_settings(settings_path: str) -> Dict:
     :return: Parsed JSON settings dictionary
     """
     hdbg.dassert_file_exists(settings_path)
-    # TODO(ai_gp): Is there a function in json?
+    # TODO(ai_gp): Is there a function in json in the helpers we can use?
     with open(settings_path, "r") as f:
         settings = json.load(f)
     return settings
@@ -44,7 +44,7 @@ def _save_settings(settings_path: str, settings: Dict) -> None:
     :param settings_path: Path to settings.local.json
     :param settings: Settings dictionary to save
     """
-    # TODO(ai_gp): Is there a function in json?
+    # TODO(ai_gp): Is there a function in json in the helpers we can use?
     with open(settings_path, "w") as f:
         json.dump(settings, f, indent=2)
     _LOG.info("Settings saved to '%s'", settings_path)

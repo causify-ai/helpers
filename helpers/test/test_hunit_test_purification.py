@@ -63,7 +63,10 @@ class Test_purify_text1(hunitest.TestCase):
         expected = "helpers.test.test_system_interaction.py"
         self.helper(txt, expected)
 
-    # TODO(ai_gp): Factor out more code.
+    # TODO(ai_gp): Factor out more code in an helper function
+    # git_root = hgit.get_client_root(super_module=False)
+    # txt = os.path.join(git_root, "src/file.py")
+    # and simplify the code below
     def test5(self) -> None:
         """
         Test that longer paths are processed before shorter ones using real paths.
@@ -253,7 +256,8 @@ class Test_purify_directory_paths1(hunitest.TestCase):
         env_vars: Optional[Dict[str, str]] = None,
         git_root: Optional[str] = None,
     ) -> None:
-        """Helper for tests that need env and pwd mocking.
+        """
+        Helper for tests that need env and pwd mocking.
 
         :param input_: Input path to test
         :param expected: Expected output path
@@ -616,6 +620,8 @@ class Test_purify_super_module_references1(hunitest.TestCase):
         """
         txt = "csfy1.helpers_root.helpers.test.test_hobject._Object1"
         expected = "helpers_root.helpers.test.test_hobject._Object1"
+        # TODO(ai_gp): Assign super_module_root and then pass it.
+        # Do the same for all the functions.
         self.helper("/Users/user/src/csfy1", txt, expected)
 
     def test2(self) -> None:

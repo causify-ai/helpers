@@ -70,7 +70,7 @@ class TestLibTasksRunTests1(hunitest.TestCase):
     Test `_find_test_files()`, `_find_test_decorator()`.
     """
 
-    # TODO(ai_gp): -> test1
+    # TODO(ai_gp): Rename the tests to test1, test2, ...
     def test_find_test_files1(self) -> None:
         """
         Find all the test files in the current dir.

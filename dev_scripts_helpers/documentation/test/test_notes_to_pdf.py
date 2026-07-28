@@ -2030,7 +2030,7 @@ class Test_notes_to_pdf_latex_colors(hunitest.TestCase):
             source file (`.tex` for LaTeX / beamer, `.typ` for Typst)
             instead of compiling the PDF
         :return: path to the generated output file
-            # TODO(ai_gp): Update
+            # TODO(ai_gp): Add an example of the output
         """
         _LOG.debug("%s", hprint.to_str("type_ slides_engine no_pdf"))
         # Prepare inputs.

@@ -224,7 +224,7 @@ def has_color_command(text: str) -> bool:
 # `@` must not be preceded by a word character so that email addresses like
 # `foo@bar.com` are not mistaken for markers (real markers are always preceded
 # by whitespace or punctuation, e.g., `- @Definition@:`).
-# TODO(ai_gp): Use re.VERBOSE and comments
+# TODO(ai_gp): Use re.VERBOSE and comments this expression
 _COLOR_MARKER_REGEX = r"(?<!\w)@([^@\n]+)@"
 
 
