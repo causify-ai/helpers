@@ -325,7 +325,7 @@ class Test_run_common_linting_actions(hunitest.TestCase):
         # Prepare outputs.
         expected_return_code = 0
         expected = r"""[
-]"""
+        ]"""
         # Run test.
         _run_actions_and_check(
             self,
