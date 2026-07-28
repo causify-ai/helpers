@@ -9,29 +9,11 @@ model: opus
 
 # Workflow
 
-## Step 1: Propose Structural Improvements
-
 - Read the conventions in `.claude/skills/slides.rules.md`
 
-### Change Order of Slides
-- Propose how to organize the slides in a different flow, separating cohesive
-  chunks with level 1 `# ...`, 2 headers `## ...`, and slides `* ...`
-  - E.g.,
-    ```
-    # Topic 1
+## Step 1: Propose Structural Improvements
 
-    ## Topic 1.1
-
-    * Slide 1
-    * Slide 2
-    ...
-    ```
-
-### Slides to Remove
-- Remove slides whose content is redundant or unclear
-
-### Slides to Merge
-- Merge slides to remove redundant content
+- Run the flow from `.claude/skills/slides.reorganize/SKILL.md`
 
 ## Step 2: Propose Content Improvements
 - Propose how to change and improve the titles of the slides

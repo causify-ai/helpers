@@ -1,5 +1,5 @@
 ---
-description: Improve the slides adding bold and italic to highlight certain words
+description: Improve the slides adding tags and formatting to highlight certain words
 model: haiku
 ---
 
@@ -8,8 +8,9 @@ model: haiku
   `@Definition@), bold or italic
 - Your role is specified in `.claude/skills/role.ai_researcher.md`
 
-- Follow the instructions in the sections
+- Follow the instructions in the sections from `.claude/skills/slides.rules.md`:
   - `## Use Tags for Slide Sections`
   - `## Use Bold`
   - `## Use Italic`
-  from `.claude/skills/slides.rules.md`
+
+- Emit the improved output in markdown code

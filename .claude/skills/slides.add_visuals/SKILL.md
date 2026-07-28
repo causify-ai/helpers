@@ -1,13 +1,16 @@
 ---
-description: Propose visuals for the slides
+description: Propose and add visuals for the slides
 model: haiku
 ---
 
 # Goal
-- Given a markdown file with slides, propose visuals (e.g., diagrams, pictures,
-  tables)
+- Given a markdown file with slides or slides from the user, propose visuals
+  (e.g., diagrams, pictures, tables)
 
-## Read Context
+# Workflow
+
+## Read Related Rules
+- Read the file or the provided text
 - Read `.claude/skills/slides.rules.md` for the slides conventions and rules
 - Read `.claude/skills/visuals.rules.md` to understand the rules for the visuals
 
@@ -22,7 +25,7 @@ model: haiku
   - Images
   - Website screenshots
 
-## Ask User to Confirm and Decide
+## Ask User to Confirm
 - Make numbered list of proposed changes for the user
 - Once user confirms changes, perform the changes
 

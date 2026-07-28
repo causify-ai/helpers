@@ -1,5 +1,6 @@
 ---
 description: Fix the slides incrementally
+model: haiku
 ---
 
 # Goal
@@ -7,7 +8,7 @@ description: Fix the slides incrementally
   - `<FILE>` a pointer to a file storing slides
   - `<NUM_SLIDES>` a number of files to fix at the time (the default is 5)
     - The user can specify to fix all the slides in one shot
-    
+
 - You will fix the slides in `<FILE>`, `<NUM_SLIDES>` slides at the time, to
   allow the user to review and fix things up
 

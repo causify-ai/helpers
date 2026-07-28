@@ -1,6 +1,6 @@
 ---
 description: Convert markdown slides to Typst-compatible format via pandoc
-model: sonnet
+model: haiku
 ---
 
 # Goal
@@ -8,7 +8,7 @@ model: sonnet
 - Preserve structure, content, and formatting
 - Output clean, well-formatted markdown code suitable for conversion to Typst
 
-## Workflow
+# Workflow
 1. **Read input file**: markdown slides file (e.g., `lectures.md`)
 2. **Apply conversion rules**: systematically fix math, unicode, and formatting
 3. **Validate output**: verify no content loss, structure preserved
