@@ -13,31 +13,32 @@ The script:
 - for each header at a specified level (--md_level) extracts the full section
   (including all nested content)
 - uses an LLM for summarization
+- by default compresses each section to 10% of original size (--pct_words 0.1)
 
 Results are appended to the output file incrementally.
 
 The output preserves the markdown header structure with summaries or digests.
 
 Examples:
-# Summarize all level-1 chapters with LLM
+# Summarize all level-1 chapters (default: 10% compression)
 > summarize_md.py -i book.md -o book.summary.md --md_level 1
 
-# Summarize entire file in one shot
+# Summarize entire file in one shot (default: 10% compression)
 > summarize_md.py -i book.md -o out.md --md_level 0
 
-# Summarize with max words per chunk
+# Summarize with max words per chunk (disable default compression)
 > summarize_md.py -i book.md -o out.md --md_level 1 --max_words 500
 
-# Summarize to 10% of original size
-> summarize_md.py -i book.md -o out.md --md_level 1 --pct_words 0.1
+# Summarize to 5% of original size (custom compression)
+> summarize_md.py -i book.md -o out.md --md_level 1 --pct_words 0.05
 
-# Summarize level-2 sections in a range
+# Summarize level-2 sections in a range (default: 10% compression)
 > summarize_md.py -i book.md -o out.md --md_level 2 --md_start "Chapter 1" --md_end "Chapter 2"
 
-# Dry run: test with the first section only
+# Dry run: test with the first section only (default: 10% compression)
 > summarize_md.py -i book.md -o out.md --md_level 1 --dry_run
 
-# Use a different LLM model
+# Use a different LLM model (default: 10% compression)
 > summarize_md.py -i book.md -o out.md --md_level 1 --model "claude-3-opus"
 
 # Compute SHA1 digests instead of LLM summaries (for testing)
@@ -642,7 +643,7 @@ def _parse() -> argparse.ArgumentParser:
     limit_group.add_argument(
         "--pct_words",
         type=float,
-        default=0.0,
+        default=0.1,
         help="Compression factor (e.g., 0.1 = reduce to 10 percent of original)",
     )
     parser.add_argument(
@@ -718,10 +719,10 @@ def _main(parser: argparse.ArgumentParser) -> None:
             args.md_level,
         )
         print("\nHeaders to summarize:")
-        for i, header in enumerate(target_headers, 1):
+        for header in target_headers:
             level, title, _ = header
-            indent = "  " * (level - 1)
-            print(f"{indent}{i}. {title}")
+            header_mark = "#" * level
+            print(f"{header_mark} {title}")
         system_prompt = _get_system_prompt()
         total_cost, summarized_words = _process_headers_for_summarization(
             target_headers,

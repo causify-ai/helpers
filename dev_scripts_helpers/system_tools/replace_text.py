@@ -4,6 +4,8 @@
 Instructions at `docs/work_tools/all.codebase_clean_up.how_to_guide.md`.
 """
 
+# TODO(ai_gp): preview -> dry_run in all scripts
+
 import argparse
 import logging
 import os

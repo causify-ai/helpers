@@ -15,6 +15,8 @@ def _run_summarize_md_test(
     input_md: str,
     expected_output: str,
     md_level: int,
+    *,
+    pct_words: str = "0.0",
 ) -> None:
     """
     Run summarize_md.py script and verify output.
@@ -23,13 +25,14 @@ def _run_summarize_md_test(
     :param input_md: Input markdown content
     :param expected_output: Expected output from script
     :param md_level: Header level to process
+    :param pct_words: Compression factor (default 0.0 disables compression)
     """
     scratch_dir = self.get_scratch_space()
     input_file = os.path.join(scratch_dir, "input.md")
     output_file = os.path.join(scratch_dir, "output.md")
     hio.to_file(input_file, input_md)
     script_path = hgit.find_file_in_git_tree("summarize_md.py")
-    cmd = f"{script_path} -i {input_file} -o {output_file} --md_level {md_level} --test"
+    cmd = f"{script_path} -i {input_file} -o {output_file} --md_level {md_level} --test --pct_words {pct_words}"
     hsystem.system(cmd)
     actual_output = hio.from_file(output_file)
     self.assert_equal(actual_output, expected_output)
