@@ -276,13 +276,15 @@ def _parse() -> argparse.ArgumentParser:
         description=__doc__,
     )
     parser.add_argument(
-        "-i", "--input",
+        "-i",
+        "--input",
         type=str,
         required=True,
         help="Input: URL or HTML file path",
     )
     parser.add_argument(
-        "-o", "--output",
+        "-o",
+        "--output",
         type=str,
         required=True,
         help="Output markdown file path",
@@ -315,9 +317,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
             html_dir, f"tmp_{html_basename.replace('.md', '.html')}"
         )
     # Get selected actions.
-    actions = hselacti.select_actions(
-        args, _VALID_ACTIONS, _DEFAULT_ACTIONS
-    )
+    actions = hselacti.select_actions(args, _VALID_ACTIONS, _DEFAULT_ACTIONS)
     _LOG.info("Selected actions: %s", actions)
     # Execute actions.
     while actions:

@@ -319,9 +319,7 @@ class Test_colorize_backticks_typst(hunitest.TestCase):
         # Prepare inputs.
         txt_in = "Import `numpy.array` for matrix operations."
         # Prepare outputs.
-        expected = (
-            "Import `#text(fill: blue)[numpy.array]`{=typst} for matrix operations."
-        )
+        expected = "Import `#text(fill: blue)[numpy.array]`{=typst} for matrix operations."
         # Run test.
         self.helper(txt_in, expected)
 

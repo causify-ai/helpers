@@ -8,7 +8,7 @@ import helpers.hio as hio
 import helpers.hprint as hprint
 import helpers.hsystem as hsystem
 import helpers.hunit_test as hunitest
-import dev_scripts_helpers.documentation.download_html_to_md as dshdhtomd
+import dev_scripts_helpers.documentation.download_html_to_md as dshddhtmd
 
 
 def _run_script(
@@ -77,7 +77,7 @@ class Test_remove_data_uri_images(hunitest.TestCase):
         :param expected: Expected output after cleanup
         """
         # Run test.
-        actual = dshdhtomd._remove_data_uri_images(input_content)
+        actual = dshddhtmd._remove_data_uri_images(input_content)
         # Check outputs.
         self.assert_equal(actual, expected)
 
@@ -392,7 +392,9 @@ class Test_download_html_to_md_py_readability(hunitest.TestCase):
 
         More paragraph content here
         """
-        _test_html_to_md_conversion(self, html_content, expected, converter="readability")
+        _test_html_to_md_conversion(
+            self, html_content, expected, converter="readability"
+        )
 
     def test2(self) -> None:
         """
@@ -416,7 +418,9 @@ class Test_download_html_to_md_py_readability(hunitest.TestCase):
         Second paragraph with more information
         Third paragraph continuing the documentation
         """
-        _test_html_to_md_conversion(self, html_content, expected, converter="readability")
+        _test_html_to_md_conversion(
+            self, html_content, expected, converter="readability"
+        )
 
 
 # #############################################################################
