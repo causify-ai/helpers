@@ -351,7 +351,7 @@ def _parse() -> argparse.ArgumentParser:
         default=False,
         help="Create git worktree (default: False, only create branch)",
     )
-    # TODO(ai_gp): Use one
+    # TODO(ai_gp): Use only --no_create_pr
     parser.add_argument(
         "--create_pr",
         action="store_true",
