@@ -31,6 +31,7 @@ import helpers.hgit as hgit
 import helpers.hparser as hparser
 import helpers.hprint as hprint
 import helpers.hsystem as hsystem
+import helpers.lib_tasks.lib_tasks_gh as hltltagh
 
 _LOG = logging.getLogger(__name__)
 
@@ -69,7 +70,7 @@ def _commit_issue_files(branch_name: str, original_branch: str) -> None:
 
 
 def _create_branch_and_pr(
-    issue_id: int, original_branch: str, *, create_pr: bool = True
+    issue_id: int, original_branch: str, *, create_pr: bool = True, gh_issue_id_provided: bool = False
 ) -> str:
     """
     Create a git branch using invoke git_branch_create task.
@@ -77,9 +78,21 @@ def _create_branch_and_pr(
     :param issue_id: GitHub issue ID
     :param original_branch: Name of the original branch to extract files from
     :param create_pr: Whether to create a draft PR (default: True)
+    :param gh_issue_id_provided: True if issue ID was provided (not newly created)
     :return: Created branch name
     """
-    # Build invoke command.
+    # Get the branch name from GitHub issue title.
+    if gh_issue_id_provided:
+        title, _ = hltltagh._get_gh_issue_title(issue_id, "current")
+        branch_name = title
+        _LOG.info("Issue %d corresponds to branch name '%s'", issue_id, branch_name)
+        # If issue ID was provided and branch already exists, just checkout the existing branch.
+        if hgit.does_branch_exist(branch_name, mode="all"):
+            _LOG.info("Branch '%s' already exists, checking it out", branch_name)
+            cmd = f"git checkout {shlex.quote(branch_name)}"
+            hsystem.system(cmd, log_level=logging.INFO)
+            return branch_name
+    # Build invoke command to create new branch.
     cmd = f"invoke git_branch_create --issue-id {issue_id}"
     if not create_pr:
         cmd += " --create-pr=False"
@@ -191,10 +204,11 @@ def _main(parser: argparse.ArgumentParser) -> None:
             match = re.search(r"Created issue #(\d+)", output)
             match = hdbg.dassert_re_match(match, "Could not extract issue ID from output: %s",
                          output)
+            issue_id = int(match.group(1))
             _LOG.info("Created issue #%s", issue_id)
         # Create branch and PR via invoke.
         branch_name = _create_branch_and_pr(
-            issue_id, original_branch, create_pr=args.create_pr
+            issue_id, original_branch, create_pr=args.create_pr, gh_issue_id_provided=bool(args.gh_issue_id)
         )
         _LOG.info("Branch name: '%s'", branch_name)
         # Create worktree, if requested.
