@@ -150,8 +150,7 @@ class Test_load_df_from_json(hunitest.TestCase):
 
 class Test_safe_rm_file(hunitest.TestCase):
 
-    # TODO(ai_gp): Rename test1
-    def test_successful_removal_within_git_client(self) -> None:
+    def test1(self) -> None:
         """
         Test successful removal of directory within Git client.
         """
@@ -227,8 +226,9 @@ class Test_safe_rm_file(hunitest.TestCase):
             hio.safe_rm_file(outside_dir)
         self.assertIn("is not within Git client root", str(cm.exception))
 
+    # TODO(ai_gp): Use hgit.is_git_worktree
     @pytest.mark.requires_git_worktree
-    def test_safe_rm_file_in_git_worktree(self) -> None:
+    def test2(self) -> None:
         """
         Test that safe_rm_file works correctly when invoked from a git worktree.
 
@@ -238,11 +238,6 @@ class Test_safe_rm_file(hunitest.TestCase):
         2. The worktree root is correctly identified as the boundary
         3. The function works as expected in a worktree environment
         """
-        # Verify we're actually in a worktree.
-        self.assertTrue(
-            hio.is_git_worktree(),
-            "Test should only run in a git worktree environment",
-        )
         # Prepare inputs: create a test directory within the worktree.
         scratch_dir = self.get_scratch_space()
         test_dir = os.path.join(scratch_dir, "worktree_test_dir")
