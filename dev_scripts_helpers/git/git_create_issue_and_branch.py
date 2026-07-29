@@ -30,6 +30,7 @@ import helpers.hgit as hgit
 import helpers.hparser as hparser
 import helpers.hprint as hprint
 import helpers.hsystem as hsystem
+import helpers.lib_tasks.lib_tasks_gh as hltltagh
 
 _LOG = logging.getLogger(__name__)
 
