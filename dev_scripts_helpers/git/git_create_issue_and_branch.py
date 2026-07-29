@@ -4,10 +4,15 @@
 Create a GitHub issue and corresponding git worktree.
 
 Workflow:
-1. Creates a GitHub issue with the provided title and body
-2. Extracts the issue number from the created issue
-3. Creates a git branch and worktree based on the issue
+1. Creates a GitHub issue with the provided title and body (or uses existing
+   issue ID)
+2. Creates a git branch and worktree based on the issue ID
+3. Commits workflow template files to the branch
 4. Prints instructions for using the worktree
+
+Uses invoke tasks for issue and branch creation:
+- `invoke gh_issue_create` to create issues
+- `invoke git_branch_create --issue-id` to create branches
 
 Import as:
 
@@ -19,7 +24,6 @@ import logging
 import os
 import re
 import shlex
-from typing import Tuple
 
 import helpers.hdbg as hdbg
 import helpers.hgit as hgit
@@ -30,129 +34,45 @@ import helpers.hsystem as hsystem
 _LOG = logging.getLogger(__name__)
 
 # #############################################################################
-# Formatting helpers
-# #############################################################################
-
-
-def _format_title_for_branch(raw_title: str, issue_id: int) -> str:
-    """
-    Format a GitHub issue title as a git branch name.
-
-    Removes special characters, replaces spaces with underscores, and adds
-    the issue prefix.
-
-    :param raw_title: Original GitHub issue title
-    :param issue_id: GitHub issue number
-    :return: Formatted branch name (e.g., HelpersTask1290_Issue_Title)
-    """
-    title = raw_title
-    # Remove special characters.
-    for char in ": + ( ) / ` *".split():
-        title = title.replace(char, "")
-    # Replace multiple spaces with one.
-    title = re.sub(r"\s+", " ", title)
-    title = title.replace(" ", "_")
-    # Remove more special chars.
-    for char in "- ' ` \"".split():
-        title = title.replace(char, "_")
-    # Add the prefix with issue number.
-    # TODO(ai_gp2): Generalize this to other repos.
-    task_prefix = "HelpersTask"
-    branch_name = f"{task_prefix}{issue_id}_{title}"
-    return branch_name
-
-
-def _parse_issue_number_from_url(url: str) -> int:
-    """
-    Extract issue number from a GitHub issue URL.
-
-    :param url: Full GitHub issue URL (e.g., https://github.com/owner/repo/issues/1290)
-    :return: Issue number as integer
-    """
-    # Extract the last path segment which is the issue number.
-    parts = url.rstrip("/").split("/")
-    issue_id = int(parts[-1])
-    return issue_id
-
-
-# #############################################################################
 # Core workflow
 # #############################################################################
 
 
-def _create_github_issue(
-    title: str,
-    body_file: str,
-    assignee: str,
-) -> Tuple[int, str]:
+def _get_issue_body(body_text: str, body_file: str) -> str:
     """
-    Create a GitHub issue and return its number and URL.
+    Get issue body from either text or file.
 
-    :param title: Issue title
-    :param body_file: Path to file containing issue body
-    :param assignee: GitHub username to assign the issue to
-    :return: Tuple of (issue_number, issue_url)
+    :param body_text: Body text provided as string
+    :param body_file: Path to file containing body text
+    :return: Issue body content
     """
-    # Verify body file exists.
-    hdbg.dassert_file_exists(body_file, "Body file does not exist")
-    # Build and execute gh issue create command.
-    cmd = [
-        "gh",
-        "issue",
-        "create",
-        f"--title {shlex.quote(title)}",
-        f"--body-file {shlex.quote(body_file)}",
-        f"--assignee {shlex.quote(assignee)}",
-    ]
-    cmd_str = " ".join(cmd)
-    _LOG.info("Creating GitHub issue: %s", cmd_str)
-    _, output = hsystem.system_to_string(cmd_str)
-    _LOG.debug("GitHub create output:\n%s", output)
-    # Output is the URL directly
-    issue_url = output.strip()
-    _LOG.info("Created issue at: '%s'", issue_url)
-    # Extract issue number from URL.
-    issue_number = _parse_issue_number_from_url(issue_url)
-    return issue_number, issue_url
+    if body_file:
+        hdbg.dassert_file_exists(body_file, "Issue body file does not exist")
+        # TODO(ai_gp): Use hio.from_file.
+        with open(body_file, "r") as f:
+            body = f.read()
+        _LOG.info("Loaded issue body from file '%s'", body_file)
+        return body
+    return body_text
 
 
-def _branch_exists(branch_name: str) -> bool:
-    """
-    Check if a git branch already exists.
-
-    :param branch_name: Name of the branch to check
-    :return: True if branch exists, False otherwise
-    """
-    cmd = f"git show-ref --verify refs/heads/{branch_name}"
-    try:
-        hsystem.system(cmd, suppress_output=True)
-        return True
-    except Exception:
-        return False
-
-
-def _commit_issue_files(branch_name: str) -> None:
+def _commit_issue_files(branch_name: str, original_branch: str) -> None:
     """
     Copy and commit issue files to the new branch.
 
-    Copies `todo_janitor.current_issue.md` and `todo_janitor.template.md`
-    from the repository root to the current branch and commits them.
+    Extracts `todo_janitor.current_issue.md` and `todo_janitor.template.md`
+    from the original branch and commits them to the new branch.
 
     :param branch_name: Name of the branch to commit files to
+    :param original_branch: Name of the original branch to extract files from
     """
-    # Check if issue files exist in repo root.
-    repo_root = hgit.get_client_root(super_module=False)
-    # current_issue -> todo_janitor.ISSUE.md
-    # template -> todo_janitor.WORKFLOW.md
-    current_issue_file = os.path.join(repo_root, "todo_janitor.current_issue.md")
-    template_file = os.path.join(repo_root, "todo_janitor.template.md")
-    hdbg.dassert_file_exists(current_issue_file)
-    _LOG.info("Copying issue files to branch '%s'", branch_name)
-    cmd = f"cp {shlex.quote(current_issue_file)} ISSUE.md"
+    _LOG.info("Extracting issue files from branch '%s'", original_branch)
+    # Extract files from original branch using git show.
+    cmd = f"git show {shlex.quote(original_branch)}:todo_janitor.current_issue.md > ISSUE.md"
     hsystem.system(cmd)
-    hdbg.dassert_file_exists(template_file)
-    cmd = f"cp {shlex.quote(template_file)} WORKFLOW.md"
+    cmd = f"git show {shlex.quote(original_branch)}:todo_janitor.template.md > WORKFLOW.md"
     hsystem.system(cmd)
+    _LOG.info("Copying extracted files to branch '%s'", branch_name)
     # Stage and commit the files.
     cmd = "git add ISSUE.md WORKFLOW.md"
     hsystem.system(cmd)
@@ -165,32 +85,32 @@ def _commit_issue_files(branch_name: str) -> None:
     hsystem.system(cmd)
 
 
-def _create_branch(branch_name: str, create_pr: bool = True) -> None:
+def _create_branch_and_pr(
+    issue_id: int, original_branch: str, *, create_pr: bool = True
+) -> str:
     """
-    Create a git branch from master using invoke git_branch_create.
+    Create a git branch using invoke git_branch_create task.
 
-    Delegates to `invoke git_branch_create` which handles:
-    - Creating the branch from master
-    - Pushing to upstream
-    - Optionally creating a draft PR
-
-    :param branch_name: Name for the new branch
+    :param issue_id: GitHub issue ID
+    :param original_branch: Name of the original branch to extract files from
     :param create_pr: Whether to create a draft PR (default: True)
+    :return: Created branch name
     """
-    # Skip if branch already exists (invoke will also check this).
-    if _branch_exists(branch_name):
-        _LOG.warning(
-            "Branch '%s' already exists, skipping creation", branch_name
-        )
-        return
-    # Use invoke git_branch_create to create branch and optionally PR.
-    cmd = f"invoke git_branch_create --branch-name {shlex.quote(branch_name)}"
+    # Build invoke command.
+    cmd = f"invoke git_branch_create --issue-id {issue_id}"
     if not create_pr:
-        cmd += " --no-create-pr"
+        cmd += " --create-pr=False"
     _LOG.info("Creating branch via invoke: %s", cmd)
     hsystem.system(cmd, log_level=logging.INFO)
+    # Get the current branch name (invoke git_branch_create creates and checks out the branch).
+    branch_name = hgit.get_branch_name()
+    _LOG.info("Branch created: %s", branch_name)
     # Commit issue files to the new branch.
-    _commit_issue_files(branch_name)
+    if False:
+        # TODO(gp): Consider if it's useful to inject some files passed from
+        # command line to the branch (e.g., instructions).
+        _commit_issue_files(branch_name, original_branch)
+    return branch_name
 
 
 def _create_worktree(branch_name: str, issue_id: int) -> str:
@@ -242,57 +162,77 @@ def _main(parser: argparse.ArgumentParser) -> None:
     """
     args = parser.parse_args()
     hdbg.init_logger(verbosity=args.log_level)
-    _LOG.debug(
-        "gh_issue_id=%s gh_issue_title=%s gh_issue_body_file=%s gh_assignee=%s "
-        "create_worktree=%s create_pr=%s",
-        args.gh_issue_id,
-        args.gh_issue_title,
-        args.gh_issue_body_file,
-        args.gh_assignee,
-        args.create_worktree,
-        args.create_pr,
-    )
-    # Check optional instr_file parameter.
-    if args.instr_file:
-        hdbg.dassert_file_exists(
-            args.instr_file,
-            "Instruction file does not exist",
+    # Capture original branch to restore on failure.
+    original_branch = hgit.get_branch_name()
+    try:
+        # Load issue body from file or use provided text.
+        gh_issue_body = _get_issue_body(
+            args.gh_issue_body, args.gh_issue_body_file
         )
-        _LOG.info("Using instruction file: '%s'", args.instr_file)
-    # Determine issue ID.
-    if args.gh_issue_id:
-        # Skip GitHub issue creation if ID is provided.
-        issue_id = args.gh_issue_id
-        _LOG.info("Using existing GitHub issue: %s", issue_id)
-    else:
-        # Create new GitHub issue.
-        issue_id, _ = _create_github_issue(
+        _LOG.debug(
+            "gh_issue_id=%s gh_issue_title=%s gh_issue_body=%s gh_issue_body_file=%s "
+            "gh_assignee=%s create_worktree=%s create_pr=%s",
+            args.gh_issue_id,
             args.gh_issue_title,
+            gh_issue_body,
             args.gh_issue_body_file,
             args.gh_assignee,
+            args.create_worktree,
+            args.create_pr,
         )
-    # Get issue title for branch naming.
-    cmd = f"gh issue view {issue_id} --json title --jq .title"
-    _, issue_title = hsystem.system_to_string(cmd)
-    issue_title = issue_title.strip()
-    _LOG.info("Issue title: '%s'", issue_title)
-    # Format branch name.
-    branch_name = _format_title_for_branch(issue_title, issue_id)
-    _LOG.info("Branch name: '%s'", branch_name)
-    # Assert that the repository does not have any submodules, since
-    # worktrees are not supported with subrepos yet.
-    hdbg.dassert(
-        not hgit.has_submodules(),
-        "Repository has submodules; worktree not supported yet",
-    )
-    # Create branch.
-    _create_branch(branch_name, create_pr=args.create_pr)
-    # Create worktree if requested.
-    if args.create_worktree:
-        worktree_path = _create_worktree(branch_name, issue_id)
-        # TODO(ai_gp2): cp the instr_file to the dir.
-        # Print usage instructions.
-        _print_usage_instructions(worktree_path, issue_id)
+        # Assert that the repository does not have any submodules, since
+        # worktrees are not supported with subrepos yet.
+        hdbg.dassert(
+            not hgit.has_submodules(),
+            "Repository has submodules; worktree not supported yet",
+        )
+        # Determine issue ID.
+        if args.gh_issue_id:
+            # Skip GitHub issue creation if ID is provided.
+            issue_id = args.gh_issue_id
+            _LOG.info("Using existing GitHub issue: %s", issue_id)
+        else:
+            # Create new GitHub issue via invoke.
+            hdbg.dassert(
+                args.gh_issue_title,
+                "Issue title is required when creating a new issue",
+            )
+            cmd = "invoke gh_issue_create"
+            cmd += f" --title {shlex.quote(args.gh_issue_title)}"
+            if gh_issue_body:
+                cmd += f" --body {shlex.quote(gh_issue_body)}"
+            if args.gh_assignee:
+                cmd += f" --assignees {shlex.quote(args.gh_assignee)}"
+            _LOG.info("Creating GitHub issue via invoke: %s", cmd)
+            _, output = hsystem.system_to_string(cmd)
+            _LOG.debug("Invoke output:\n%s", output)
+            # Parse issue ID from output.
+            match = re.search(r"Created issue #(\d+)", output)
+            hdbg.dassert_is_not(
+                match,
+                None,
+                "Could not extract issue ID from output: %s",
+                output,
+            )
+            issue_id = int(match.group(1))  # type: ignore[union-attr]
+            _LOG.info("Created issue #%s", issue_id)
+        # Create branch and PR via invoke.
+        branch_name = _create_branch_and_pr(
+            issue_id, original_branch, create_pr=args.create_pr
+        )
+        _LOG.info("Branch name: '%s'", branch_name)
+        # Create worktree, if requested.
+        if args.create_worktree:
+            worktree_path = _create_worktree(branch_name, issue_id)
+            # Print usage instructions.
+            _print_usage_instructions(worktree_path, issue_id)
+    finally:
+        # Return to original branch if we switched away.
+        current_branch = hgit.get_branch_name()
+        if current_branch != original_branch:
+            _LOG.info("Returning to original branch: '%s'", original_branch)
+            cmd = f"git checkout {shlex.quote(original_branch)}"
+            hsystem.system(cmd)
 
 
 def _parse() -> argparse.ArgumentParser:
@@ -305,19 +245,29 @@ def _parse() -> argparse.ArgumentParser:
         description=__doc__,
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
-    parser.add_argument(
-        "--gh_issue_id",
-        type=int,
-        default=0,
-        help="Existing GitHub issue ID (skip creating new issue if provided)",
-    )
-    parser.add_argument(
+    # Issue source: mutually exclusive (create new or use existing).
+    issue_group = parser.add_mutually_exclusive_group()
+    issue_group.add_argument(
         "--gh_issue_title",
         type=str,
         default="",
         help="Title for the GitHub issue to create",
     )
-    parser.add_argument(
+    issue_group.add_argument(
+        "--gh_issue_id",
+        type=int,
+        default=0,
+        help="Existing GitHub issue ID (skip creating new issue if provided)",
+    )
+    # Body source: mutually exclusive (text or file).
+    body_group = parser.add_mutually_exclusive_group()
+    body_group.add_argument(
+        "--gh_issue_body",
+        type=str,
+        default="",
+        help="Body text for the GitHub issue (plain text, not a file path)",
+    )
+    body_group.add_argument(
         "--gh_issue_body_file",
         type=str,
         default="",
@@ -328,12 +278,6 @@ def _parse() -> argparse.ArgumentParser:
         type=str,
         default="@me",
         help="GitHub user to assign the issue to",
-    )
-    parser.add_argument(
-        "--instr_file",
-        type=str,
-        default="",
-        help="Optional path to instruction file",
     )
     parser.add_argument(
         "--create_worktree",

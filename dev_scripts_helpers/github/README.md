@@ -37,6 +37,8 @@ with Dockerized execution for dependency isolation.
   - Sync GitHub Project fields and views from template to destination
 - `to_github.py`
   - Convert local file paths to GitHub URLs with branch awareness
+- `run_local_ci.py`
+  - Run local CI regression tests on a schedule or once
 
 # Description of Executables
 
@@ -170,4 +172,47 @@ with Dockerized execution for dependency isolation.
       --src-template "TemplateProject" \
       --dst-project "TargetProject" \
       -v DEBUG
+  ```
+
+## `run_local_ci.py`
+
+### What It Does
+
+- Runs regression tests for current directory and git submodules
+- Executes `pytest_multi_build.py` and `pytest_failed_multi_build.py` for CI testing
+- Supports single run or daily scheduled execution via daemon mode
+- Validates repository is at master branch before running tests
+- Cleans working directory with `git clean -fd` before test execution
+- Logs all output to timestamped files for debugging
+
+### Examples
+
+- Run tests once immediately:
+  ```bash
+  > ./run_local_ci.py
+  ```
+
+- Run tests at specific time in daemon mode:
+  ```bash
+  > ./run_local_ci.py --start_time 2am --daemon
+  ```
+
+- Run with specific pytest target:
+  ```bash
+  > ./run_local_ci.py --pytest_target "helpers/test/"
+  ```
+
+- Run without master branch check:
+  ```bash
+  > ./run_local_ci.py --no_master_check
+  ```
+
+- Run on specific directories:
+  ```bash
+  > ./run_local_ci.py --repo_dirs . helpers --daemon --start_time 14:30
+  ```
+
+- Run with debug logging:
+  ```bash
+  > ./run_local_ci.py -v DEBUG --daemon --start_time 2am
   ```
