@@ -1,0 +1,396 @@
+#!/usr/bin/env python3
+
+"""
+Run local CI regression tests on a schedule.
+
+This script runs regression tests for the current directory and helpers
+subdirectory, either once or on a daily schedule.
+
+Usage:
+> run_local_ci.py --start_time 2am
+> run_local_ci.py --start_time 14:30 --daemon
+"""
+
+import argparse
+import datetime
+import logging
+import os
+import subprocess
+import sys
+import time
+
+import helpers.hdbg as hdbg
+import helpers.hparser as hparser
+
+_LOG = logging.getLogger(__name__)
+
+
+# #############################################################################
+# Helper functions
+# #############################################################################
+
+
+def _run_command(
+    cmd: str,
+    *,
+    # TODO(ai_gp): This is mandatory
+    cwd: str = "",
+    log_file: str = "",
+) -> int:
+    """
+    Run a shell command with optional logging to file.
+
+    :param cmd: Command to execute
+    :param cwd: Working directory for command execution
+    :param log_file: File to append output to (if provided)
+    :return: Exit code from command
+    """
+    _LOG.debug("Running command: '%s' in dir='%s'", cmd, cwd or "current")
+    # TODO(ai_gp): Pass a 
+    # Build full command with environment setup.
+    if cwd:
+        full_cmd = f"cd {cwd} && source setenv.sh && {cmd}"
+    else:
+        full_cmd = f"source setenv.sh && {cmd}"
+    # Run command and capture output.
+    try:
+        if log_file:
+            with open(log_file, "a") as f:
+                f.write(f"\n{'='*80}\n")
+                f.write(f"Command: {cmd}\n")
+                f.write(f"Time: {datetime.datetime.now().isoformat()}\n")
+                f.write(f"{'='*80}\n")
+                result = subprocess.run(
+                    full_cmd,
+                    shell=True,
+                    cwd=cwd or None,
+                    stdout=f,
+                    stderr=subprocess.STDOUT,
+                    text=True,
+                )
+        else:
+            result = subprocess.run(
+                full_cmd,
+                shell=True,
+                cwd=cwd or None,
+                capture_output=False,
+                text=True,
+            )
+        return result.returncode
+    except Exception as e:
+        _LOG.error("Error running command: %s", str(e))
+        return 1
+
+
+def _check_at_master(target_dir: str) -> None:
+    """
+    Check if repository is at master branch.
+
+    :param target_dir: Directory to check
+    :return: True if at master branch, False otherwise
+    """
+    _LOG.debug("Checking if '%s' is at master branch", target_dir)
+    # TODO(ai_gp): Use hsystem.system
+    result = subprocess.run(
+        "git rev-parse --abbrev-ref HEAD",
+        shell=True,
+        cwd=target_dir,
+        capture_output=True,
+        text=True,
+    )
+    branch = result.stdout.strip()
+    is_master = branch == "master"
+    # TODO(ai_gp): hdbg.dassert
+    if not is_master:
+        _LOG.warning("Not at master branch: current branch='%s'", branch)
+
+
+# TODO(ai_gp): There is a function in hgit
+def _check_clean_working_dir(target_dir: str) -> bool:
+    """
+    Check if git working directory is clean.
+
+    :param target_dir: Directory to check
+    :return: True if working directory is clean, False otherwise
+    """
+    _LOG.debug("Checking if '%s' has clean working directory", target_dir)
+    try:
+        result = subprocess.run(
+            "git status --porcelain",
+            shell=True,
+            cwd=target_dir,
+            capture_output=True,
+            text=True,
+        )
+        is_clean = result.stdout.strip() == ""
+        if not is_clean:
+            _LOG.warning("Working directory not clean. Status:\n%s", result.stdout)
+        return is_clean
+    except Exception as e:
+        _LOG.error("Error checking working directory: %s", str(e))
+        return False
+
+
+def _run_git_clean(target_dir: str, log_file: str) -> bool:
+    """
+    Run git clean -fd to remove untracked files.
+
+    :param target_dir: Directory to clean
+    :param log_file: File to log output to
+    :return: True if successful, False otherwise
+    """
+    _LOG.info("Running git clean -fd in '%s'", target_dir)
+    exit_code = _run_command("git clean -fd", cwd=target_dir, log_file=log_file)
+    return exit_code == 0
+
+
+def _run_git_pull(target_dir: str, log_file: str) -> bool:
+    """
+    Run git pull to sync with remote.
+
+    :param target_dir: Directory to sync
+    :param log_file: File to log output to
+    :return: True if successful, False otherwise
+    """
+    _LOG.info("Running git pull in '%s'", target_dir)
+    exit_code = _run_command("git pull", cwd=target_dir, log_file=log_file)
+    return exit_code == 0
+
+
+def _run_pytest_multi_build(target_dir: str, log_file: str) -> bool:
+    """
+    Run pytest_multi_build.py for regression testing.
+
+    :param target_dir: Directory to test
+    :param log_file: File to log output to
+    :return: True if successful, False otherwise
+    """
+    _LOG.info("Running pytest_multi_build.py in '%s'", target_dir)
+    cmd = "pytest_multi_build.py --target . --build_names apple dev_container"
+    exit_code = _run_command(cmd, cwd=target_dir, log_file=log_file)
+    return exit_code == 0
+
+
+def _run_pytest_failed_multi_build(target_dir: str, log_file: str) -> bool:
+    """
+    Run pytest_failed_multi_build.py to summarize failures.
+
+    :param target_dir: Directory to test
+    :param log_file: File to log output to
+    :return: True if successful, False otherwise
+    """
+    _LOG.info("Running pytest_failed_multi_build.py in '%s'", target_dir)
+    exit_code = _run_command(
+        "pytest_failed_multi_build.py", cwd=target_dir, log_file=log_file
+    )
+    return exit_code == 0
+
+
+def _get_log_file_path(target_dir: str, step: str) -> str:
+    """
+    Get the log file path for a given target directory and step.
+
+    :param target_dir: Target directory (. or helpers)
+    :param step: Step name (pytest_multi_build or pytest_failed_multi_build)
+    :return: Log file path
+    """
+    timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+    repo_name = os.path.basename(os.path.abspath(target_dir))
+    if repo_name == ".":
+        repo_name = "current"
+    log_filename = f"local_ci.{step}.{timestamp}.{repo_name}.txt"
+    log_path = os.path.join("..", log_filename)
+    return log_path
+
+
+# #############################################################################
+# Main CI execution
+# #############################################################################
+
+
+def _run_ci_for_target(target_dir: str) -> bool:
+    """
+    Run full CI pipeline for a target directory.
+
+    :param target_dir: Target directory to run CI for
+    :return: True if all steps succeeded, False otherwise
+    """
+    _LOG.info("Starting CI run for target='%s'", target_dir)
+    # Ensure target directory exists.
+    hdbg.dassert_dir_exists(target_dir, "Target directory must exist")
+    # Check that we're at master.
+    if not _check_at_master(target_dir):
+        _LOG.error("Target '%s' is not at master branch", target_dir)
+        return False
+    _LOG.info("Repository is at master branch")
+    # Get log file paths.
+    log_file_pytest = _get_log_file_path(target_dir, "pytest_multi_build")
+    log_file_failed = _get_log_file_path(target_dir, "pytest_failed_multi_build")
+    # Run git clean.
+    if not _run_git_clean(target_dir, log_file_pytest):
+        _LOG.error("git clean failed in '%s'", target_dir)
+        return False
+    # Check working directory is clean.
+    if not _check_clean_working_dir(target_dir):
+        _LOG.error("Working directory not clean in '%s'", target_dir)
+        return False
+    _LOG.info("Working directory is clean")
+    # Run git pull.
+    if not _run_git_pull(target_dir, log_file_pytest):
+        _LOG.error("git pull failed in '%s'", target_dir)
+        return False
+    # Run pytest_multi_build.
+    _run_pytest_multi_build(target_dir, log_file_pytest)
+    _LOG.info("Test output logged to '%s'", log_file_pytest)
+    # Run pytest_failed_multi_build.
+    _run_pytest_failed_multi_build(target_dir, log_file_failed)
+    _LOG.info("Summary logged to '%s'", log_file_failed)
+    _LOG.info("CI run completed for target='%s'", target_dir)
+    return True
+
+# Target directories for regression testing.
+TARGET_DIRS = [".", "helpers"]
+
+
+def _run_all_ci() -> bool:
+    """
+    Run CI for all target directories.
+
+    :return: True if all targets succeeded, False otherwise
+    """
+    _LOG.info("Starting full CI run for all targets")
+    all_passed = True
+    for target_dir in TARGET_DIRS:
+        success = _run_ci_for_target(target_dir)
+        if not success:
+            all_passed = False
+            _LOG.error("CI failed for target='%s'", target_dir)
+    return all_passed
+
+
+# #############################################################################
+# Scheduling
+# #############################################################################
+
+
+def _parse_start_time(start_time_str: str) -> datetime.time:
+    """
+    Parse start time string to datetime.time object.
+
+    Supports formats like "2am", "14:30", "2:00am", etc.
+
+    :param start_time_str: Start time string to parse
+    :return: datetime.time object
+    """
+    start_time_str = start_time_str.lower().strip()
+    # Try common formats.
+    formats = [
+        "%I%p",  # 2am, 3pm
+        "%I:%M%p",  # 2:00am, 3:30pm
+        "%H:%M",  # 14:30, 2:30
+        "%H",  # 14, 2
+    ]
+    for fmt in formats:
+        try:
+            dt = datetime.datetime.strptime(start_time_str, fmt)
+            return dt.time()
+        except ValueError:
+            continue
+    # If none of the formats matched, raise an error.
+    raise ValueError(
+        f"Cannot parse start time '{start_time_str}'. "
+        "Use formats like '2am', '14:30', '2:00am'"
+    )
+
+
+def _should_run_now(start_time: datetime.time) -> bool:
+    """
+    Check if current time matches the scheduled start time.
+
+    :param start_time: Target time to run at
+    :return: True if current time is within a minute of start time, False otherwise
+    """
+    now = datetime.datetime.now().time()
+    # Check if we're within 1 minute of the start time.
+    start_dt = datetime.datetime.combine(datetime.date.today(), start_time)
+    now_dt = datetime.datetime.combine(datetime.date.today(), now)
+    time_diff = abs((now_dt - start_dt).total_seconds())
+    # Run if within 60 seconds of start time.
+    return time_diff < 60
+
+
+def _run_daemon_mode(start_time: datetime.time) -> None:
+    """
+    Run CI on a daily schedule at the specified start time.
+
+    :param start_time: Time to run CI each day
+    """
+    _LOG.info(
+        "Running in daemon mode. CI will run daily at %s",
+        start_time.strftime("%H:%M"),
+    )
+    while True:
+        if _should_run_now(start_time):
+            _LOG.info("Scheduled CI run starting at '%s'", start_time)
+            _run_all_ci()
+            # Sleep for a minute to avoid running multiple times.
+            time.sleep(60)
+        else:
+            # Check every 30 seconds.
+            time.sleep(30)
+
+
+# #############################################################################
+# CLI
+# #############################################################################
+
+
+def _parse() -> argparse.ArgumentParser:
+    """
+    Create and return argument parser.
+
+    :return: Configured ArgumentParser
+    """
+    parser = argparse.ArgumentParser(
+        description=__doc__,
+    )
+    parser.add_argument(
+        "--start_time",
+        type=str,
+        default="2am",
+        help="Time to run CI (e.g., '2am', '14:30')",
+    )
+    parser.add_argument(
+        "--daemon",
+        action="store_true",
+        help="Run CI on a daily schedule (without this flag, runs once and exits)",
+    )
+    hparser.add_verbosity_arg(parser)
+    return parser
+
+
+def _main(args: argparse.Namespace) -> None:
+    """
+    Main entry point for the script.
+
+    :param args: Parsed command line arguments
+    """
+    hdbg.init_logger(verbosity=args.log_level, use_exec_path=True)
+    # Parse start time.
+    start_time = _parse_start_time(args.start_time)
+    _LOG.info("Parsed start_time as '%s'", start_time.strftime("%H:%M"))
+    # Run CI.
+    if args.daemon:
+        _run_daemon_mode(start_time)
+    else:
+        # Run once immediately.
+        _LOG.info("Running CI once (non-daemon mode)")
+        success = _run_all_ci()
+        exit_code = 0 if success else 1
+        sys.exit(exit_code)
+
+
+if __name__ == "__main__":
+    parser = _parse()
+    args = parser.parse_args()
+    _main(args)
