@@ -501,7 +501,6 @@ def git_files(  # type: ignore
         # Show "On one line" format (space-separated).
         if not only_print_files:
             print(hprint.frame("On one line", char1="="))
-        print(res)
         hsystem.to_pbcopy(res, pbcopy)
     else:
         # Show "Results" format (vertical).
