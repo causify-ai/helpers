@@ -10,7 +10,7 @@ import contextlib
 import logging
 import os
 import subprocess
-from typing import Generator, List, Optional
+from typing import Generator, List
 
 import helpers.hdbg as hdbg
 
@@ -31,12 +31,12 @@ def _in_tmux() -> bool:
     return "TMUX" in os.environ
 
 
-def _run_tmux_command(args: List[str]) -> Optional[str]:
+def _run_tmux_command(args: List[str]) -> str:
     """
     Run a tmux command and return stdout.
 
     :param args: Command arguments to pass to `tmux`
-    :return: Command output stripped of whitespace, or `None` on error
+    :return: Command output stripped of whitespace, or '' on error
     """
     result = subprocess.run(
         args,
@@ -52,11 +52,11 @@ def _run_tmux_command(args: List[str]) -> Optional[str]:
 # #############################################################################
 
 
-def get_window_name() -> Optional[str]:
+def get_window_name() -> str:
     """
     Get the current tmux window name.
 
-    :return: Window name if in tmux session, `None` otherwise
+    :return: Window name if in tmux session, '' otherwise
     """
     hdbg.dassert(_in_tmux())
     _LOG.debug("Fetching tmux window name")
@@ -93,15 +93,17 @@ def window_name(name: str) -> Generator[None, None, None]:
     Saves the current window name on entry and restores it on exit, even if an
     error occurs. Safe to use outside tmux session (no-op).
 
+    E.g.,
+        ```
+        with `window_name("build")`:
+            run_build_process()
+            # Window is restored after this block
+        ```
+
     :param name: Temporary window name
     :yield: None
-        Example:
-            with `window_name("build")`:
-                run_build_process()
-                # Window is restored after this block
     """
     hdbg.dassert_isinstance(name, str, "Window name must be a string")
-    hdbg.dassert_ne(name, "", "Window name cannot be empty")
     if not _in_tmux():
         _LOG.debug("Not in tmux: skipping")
         yield
@@ -109,9 +111,12 @@ def window_name(name: str) -> Generator[None, None, None]:
     # Save original window name and rename to new name.
     original_name = get_window_name()
     try:
-        set_window_name(name)
+        if name == "":
+            _LOG.warning("Window name is empty: skipping")
+        else:
+            set_window_name(name)
         yield
     finally:
         # Restore original window name.
-        if original_name is not None:
+        if original_name:
             set_window_name(original_name)

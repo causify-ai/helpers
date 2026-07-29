@@ -497,6 +497,36 @@ def find_git_root(path: str = ".") -> str:
     return str(git_root_dir)
 
 
+def is_git_worktree(path: str = ".") -> bool:
+    """
+    Check if a path is within a Git worktree.
+
+    Uses `git rev-parse --git-dir` to detect if the path is in a worktree
+    by checking if the git directory path contains `.git/worktrees/`.
+
+    :param path: starting file system path. Defaults to the current directory (".")
+    :return: True if in a worktree, False otherwise
+    """
+    path = os.path.abspath(path)
+    try:
+        cmd = f"cd '{path}' && git rev-parse --git-dir"
+        rc, git_dir = hsystem.system_to_string(
+            cmd,
+            print_command=False,
+            abort_on_error=False,
+            suppress_output=True,
+        )
+        # If git command failed, not in a git repo.
+        if rc != 0:
+            return False
+        # Check if git directory path contains worktrees indicator.
+        git_dir = git_dir.strip()
+        return ".git/worktrees/" in git_dir
+    except Exception:
+        # On any error, assume not in a worktree.
+        return False
+
+
 # #############################################################################
 
 
@@ -840,10 +870,20 @@ def get_submodule_paths() -> List[str]:
 
     :return: list of submodule paths, e.g., ["amp"] or []
     """
+    # Get the git repo root to find .gitmodules reliably.
+    repo_root_cmd = "git rev-parse --show-toplevel"
+    _, repo_root = hsystem.system_to_string(repo_root_cmd)
+    repo_root = repo_root.strip()
+    gitmodules_path = os.path.join(repo_root, ".gitmodules")
+    # Handle case where repo_root is a submodule (e.g., helpers_root)
+    # by checking parent directories for .gitmodules.
+    if not os.path.exists(gitmodules_path):
+        parent_root = os.path.dirname(repo_root)
+        gitmodules_path = os.path.join(parent_root, ".gitmodules")
     # Query .gitmodules to get submodule paths.
     # > git config --file .gitmodules --get-regexp path
     # submodule.amp.path amp
-    cmd = "git config --file .gitmodules --get-regexp path | awk '{ print $2 }'"
+    cmd = f"git config --file {gitmodules_path} --get-regexp path | awk '{{ print $2 }}'"
     _, txt = hsystem.system_to_string(cmd)
     _LOG.debug("txt=%s", txt)
     # Convert the output string to a list of paths.

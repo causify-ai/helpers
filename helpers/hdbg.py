@@ -10,7 +10,18 @@ import os
 import pprint
 import re
 import sys
-from typing import Any, Dict, Iterable, List, Optional, Set, Tuple, Type, Union, cast
+from typing import (
+    Any,
+    Dict,
+    Iterable,
+    List,
+    Optional,
+    Set,
+    Tuple,
+    Type,
+    Union,
+    cast,
+)
 
 # This module can depend only on:
 # - Python standard modules
@@ -28,7 +39,6 @@ import helpers.hwarnings as hwarnin  # # isort:skip  # noqa: E402,F401,F403 # py
 INFO = "\033[36mINFO\033[0m"
 WARNING = "\033[33mWARNING\033[0m"
 ERROR = "\033[31mERROR\033[0m"
-
 
 
 # Copied from hdbg/hprint.py to avoid cyclical dependencies.

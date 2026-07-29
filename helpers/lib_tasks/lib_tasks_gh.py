@@ -500,9 +500,8 @@ def gh_issue_create(  # type: ignore
         "gh issue create"
         + f" --repo {repo_full_name_with_host}"
         + f' --title "{title}"'
+        + f' --body "{body}"'
     )
-    if body:
-        cmd += f' --body "{body}"'
     if labels:
         cmd += f' --label "{labels}"'
     if assignees:
