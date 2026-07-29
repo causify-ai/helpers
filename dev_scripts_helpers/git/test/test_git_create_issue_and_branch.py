@@ -6,7 +6,6 @@ Import as:
 import dev_scripts_helpers.git.test.test_git_create_issue_and_branch as dsggtgiab
 """
 
-import os
 import unittest.mock as mock
 
 import helpers.hprint as hprint
@@ -32,12 +31,18 @@ class Test_create_worktree(hunitest.TestCase):
         # Prepare inputs.
         branch_name = "HelpersTask1290_Test_Branch"
         issue_id = 1290
+        original_branch = "master"
         # Run test and capture system calls.
         with hunteuti.capture_sys_calls() as invocations:
             with mock.patch("os.getcwd", return_value="/home/user/helpers1"):
-                worktree_path = dshggciab._create_worktree(branch_name, issue_id)
+                worktree_path = dshggciab._create_worktree(branch_name, issue_id, original_branch)
         # Check outputs.
         expected_str = r"""[
+        {
+        'function': hsystem.system,
+        'args': ('git checkout master',),
+        'kwargs': {'log_level': 20},
+        },
         {
         'function': hsystem.system,
         'args': ('git worktree add /home/user/helpers1_worktree_1290 HelpersTask1290_Test_Branch',),
@@ -106,8 +111,12 @@ class Test_git_create_issue_and_branch_py(hunitest.TestCase):
                             ):
                                 dshggciab._main(parser)
         # Check outputs.
-        # TODO(ai_gp): Fill this in.
         expected = r"""[
+        {
+        'function': hsystem.system,
+        'args': ('invoke git_branch_create --issue-id 1290',),
+        'kwargs': {'log_level': 20},
+        },
         ]"""
         hunteuti.assert_sys_calls(self, invocations, expected)
 
