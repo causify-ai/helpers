@@ -232,21 +232,40 @@ def _run_ci_for_target(
     return True
 
 
-# Target directories for regression testing.
-TARGET_DIRS = [".", "helpers"]
+def _get_target_dirs() -> list[str]:
+    """
+    Get target directories for regression testing.
+
+    Discovers git subrepos from .gitmodules and includes current dir.
+
+    :return: List of target directories
+    """
+    # Start with current directory.
+    targets = ["."]
+    # Add any git submodules.
+    submodules = hgit.get_submodule_paths()
+    _LOG.debug("Discovered submodules: %s", submodules)
+    targets.extend(submodules)
+    _LOG.info("Target directories: %s", targets)
+    return targets
 
 
-def _run_all_ci(pytest_target: str = "", no_master_check: bool = False) -> bool:
+def _run_all_ci(
+    pytest_target: str = "", no_master_check: bool = False, repo_dirs: list[str] | None = None
+) -> bool:
     """
     Run CI for all target directories.
 
     :param pytest_target: pytest target to run (e.g., '.', 'helpers/test/')
     :param no_master_check: Skip checking if repository is at master branch
+    :param repo_dirs: List of repo directories to test (if None, auto-discover)
     :return: True if all targets succeeded, False otherwise
     """
-    _LOG.info("Starting full CI run for all targets: %s", TARGET_DIRS)
+    if repo_dirs is None:
+        repo_dirs = _get_target_dirs()
+    _LOG.info("Starting full CI run for all targets: %s", repo_dirs)
     all_passed = True
-    for target_dir in TARGET_DIRS:
+    for target_dir in repo_dirs:
         if not os.path.isdir(target_dir):
             _LOG.warning("Skipping target='%s' (directory does not exist)", target_dir)
             continue
@@ -313,6 +332,7 @@ def _run_daemon_mode(
     start_time: datetime.time,
     pytest_target: str = "",
     no_master_check: bool = False,
+    repo_dirs: list[str] | None = None,
 ) -> None:
     """
     Run CI on a daily schedule at the specified start time.
@@ -320,6 +340,7 @@ def _run_daemon_mode(
     :param start_time: Time to run CI each day
     :param pytest_target: pytest target to run (e.g., '.', 'helpers/test/')
     :param no_master_check: Skip checking if repository is at master branch
+    :param repo_dirs: List of repo directories to test (if None, auto-discover)
     """
     _LOG.info(
         "Running in daemon mode. CI will run daily at %s",
@@ -328,7 +349,7 @@ def _run_daemon_mode(
     while True:
         if _should_run_now(start_time):
             _LOG.info("Scheduled CI run starting at '%s'", start_time)
-            _run_all_ci(pytest_target, no_master_check)
+            _run_all_ci(pytest_target, no_master_check, repo_dirs)
             # Sleep for a minute to avoid running multiple times.
             time.sleep(60)
         else:
@@ -372,6 +393,13 @@ def _parse() -> argparse.ArgumentParser:
         action="store_true",
         help="Skip checking if repository is at master branch",
     )
+    parser.add_argument(
+        "--repo_dirs",
+        type=str,
+        nargs="+",
+        default=None,
+        help="Directories to test (space-separated). If not provided, auto-discovers from git submodules",
+    )
     hparser.add_verbosity_arg(parser)
     return parser
 
@@ -392,13 +420,16 @@ def _main(args: argparse.Namespace) -> None:
     # Log if skipping master check.
     if args.no_master_check:
         _LOG.info("Master branch check is disabled")
+    # Log repo directories if specified.
+    if args.repo_dirs:
+        _LOG.info("Using provided repo_dirs: %s", args.repo_dirs)
     # Run CI.
     if args.daemon:
-        _run_daemon_mode(start_time, args.pytest_target, args.no_master_check)
+        _run_daemon_mode(start_time, args.pytest_target, args.no_master_check, args.repo_dirs)
     else:
         # Run once immediately.
         _LOG.info("Running CI once (non-daemon mode)")
-        success = _run_all_ci(args.pytest_target, args.no_master_check)
+        success = _run_all_ci(args.pytest_target, args.no_master_check, args.repo_dirs)
         exit_code = 0 if success else 1
         sys.exit(exit_code)
 
