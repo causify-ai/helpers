@@ -247,6 +247,9 @@ def _run_all_ci(pytest_target: str = "", no_master_check: bool = False) -> bool:
     _LOG.info("Starting full CI run for all targets: %s", TARGET_DIRS)
     all_passed = True
     for target_dir in TARGET_DIRS:
+        if not os.path.isdir(target_dir):
+            _LOG.warning("Skipping target='%s' (directory does not exist)", target_dir)
+            continue
         _LOG.info("\n%s", hprint.frame(f"target='{target_dir}'"))
         success = _run_ci_for_target(target_dir, pytest_target, no_master_check)
         if not success:
