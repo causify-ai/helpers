@@ -37,6 +37,8 @@ with Dockerized execution for dependency isolation.
   - Sync GitHub Project fields and views from template to destination
 - `to_github.py`
   - Convert local file paths to GitHub URLs with branch awareness
+- `run_local_ci.py`
+  - Run local CI regression tests on a schedule or once
 
 # Description of Executables
 
@@ -53,22 +55,22 @@ with Dockerized execution for dependency isolation.
 
 - Convert file path to GitHub URL:
   ```bash
-  > ./to_github.py --input helpers/hdbg.py
+  > to_github.py --input helpers/hdbg.py
   ```
 
 - Use master branch for URL:
   ```bash
-  > ./to_github.py --input helpers/hdbg.py --use_master
+  > to_github.py --input helpers/hdbg.py --use_master
   ```
 
 - Open URL in browser:
   ```bash
-  > ./to_github.py --input docs/readme.md --open
+  > to_github.py --input docs/readme.md --open
   ```
 
 - Copy URL to clipboard:
   ```bash
-  > ./to_github.py --input helpers/hdbg.py --copy
+  > to_github.py --input helpers/hdbg.py --copy
   ```
 
 ## `set_secrets_and_variables.py`
@@ -84,14 +86,14 @@ with Dockerized execution for dependency isolation.
 
 - Upload secrets and variables:
   ```bash
-  > ./set_secrets_and_variables.py \
+  > set_secrets_and_variables.py \
       --file vars.json \
       --repo owner/repo
   ```
 
 - Preview changes with dry run:
   ```bash
-  > ./set_secrets_and_variables.py \
+  > set_secrets_and_variables.py \
       --file vars.json \
       --repo owner/repo \
       --dry_run
@@ -99,7 +101,7 @@ with Dockerized execution for dependency isolation.
 
 - Remove secrets:
   ```bash
-  > ./set_secrets_and_variables.py \
+  > set_secrets_and_variables.py \
       --file vars.json \
       --repo owner/repo \
       --remove
@@ -118,7 +120,7 @@ with Dockerized execution for dependency isolation.
 
 - Sync labels with backup and dry run:
   ```bash
-  > ./sync_gh_issue_labels.py \
+  > sync_gh_issue_labels.py \
       --input_file labels.yml \
       --owner org \
       --repo repo \
@@ -128,7 +130,7 @@ with Dockerized execution for dependency isolation.
 
 - Apply label synchronization:
   ```bash
-  > ./sync_gh_issue_labels.py \
+  > sync_gh_issue_labels.py \
       --input_file labels.yml \
       --owner org \
       --repo repo \
@@ -148,7 +150,7 @@ with Dockerized execution for dependency isolation.
 
 - Sync project fields:
   ```bash
-  > ./sync_gh_projects.py \
+  > sync_gh_projects.py \
       --owner "org" \
       --src-template "TemplateProject" \
       --dst-project "TargetProject"
@@ -156,7 +158,7 @@ with Dockerized execution for dependency isolation.
 
 - Preview with dry run:
   ```bash
-  > ./sync_gh_projects.py \
+  > sync_gh_projects.py \
       --owner "org" \
       --src-template "TemplateProject" \
       --dst-project "TargetProject" \
@@ -165,9 +167,52 @@ with Dockerized execution for dependency isolation.
 
 - Run with debug logging:
   ```bash
-  > ./sync_gh_projects.py \
+  > sync_gh_projects.py \
       --owner "org" \
       --src-template "TemplateProject" \
       --dst-project "TargetProject" \
       -v DEBUG
+  ```
+
+## `run_local_ci.py`
+
+### What It Does
+
+- Runs regression tests for current directory and git submodules
+- Executes `pytest_multi_build.py` and `pytest_failed_multi_build.py` for CI testing
+- Supports single run or daily scheduled execution via daemon mode
+- Validates repository is at master branch before running tests
+- Cleans working directory with `git clean -fd` before test execution
+- Logs all output to timestamped files for debugging
+
+### Examples
+
+- Run tests once immediately:
+  ```bash
+  > run_local_ci.py
+  ```
+
+- Run tests at specific time in daemon mode:
+  ```bash
+  > run_local_ci.py --start_time 2am --daemon
+  ```
+
+- Run with specific pytest target:
+  ```bash
+  > run_local_ci.py --pytest_target "helpers/test/"
+  ```
+
+- Run without master branch check:
+  ```bash
+  > run_local_ci.py --no_master_check
+  ```
+
+- Run on specific directories:
+  ```bash
+  > run_local_ci.py --repo_dirs . helpers --daemon --start_time 14:30
+  ```
+
+- Run with debug logging:
+  ```bash
+  > run_local_ci.py -v DEBUG --daemon --start_time 2am
   ```
