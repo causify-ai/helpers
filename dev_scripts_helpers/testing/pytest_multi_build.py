@@ -11,10 +11,10 @@ Executes the same command or pytest target in 3 different build configurations:
 For architecture overview, see `pytest_testing_system.README.md`.
 
 Examples:
+# TODO(ai_gp): Add comments for each command
 > pytest_multi_build.py --target "helpers/test/test_hunit_test.py"
 > pytest_multi_build.py --target "." --no_delete_cache
 > pytest_multi_build.py --script ./pr_test.sh
-> pytest_multi_build.py --target "." --nice 10
 """
 
 import argparse
@@ -72,14 +72,6 @@ def _parse() -> argparse.ArgumentParser:
         default=10,
         help="timeout in seconds for hnotify.notify (default: 10)",
     )
-    parser.add_argument(
-        "--nice",
-        type=int,
-        default=10,
-        metavar="N",
-        help="run with lower priority (nice level 0-19, default: 10). "
-        "Use --nice 0 to run at normal priority.",
-    )
     hparser.add_verbosity_arg(parser)
     return parser
 
@@ -116,7 +108,6 @@ def _run_build(
     cmd: str,
     build_num: int,
     total_builds: int,
-    nice_level: int = 0,
 ) -> None:
     """
     Run a single build with specified command.
@@ -125,7 +116,6 @@ def _run_build(
     :param cmd: Command to run (e.g., 'pytest_log target1 target2' or './script.sh')
     :param build_num: Current build number (1-indexed)
     :param total_builds: Total number of builds to run
-    :param nice_level: Nice level (0-19, higher = lower priority)
     """
     _LOG.debug("build_name=%s", build_name)
     output_file = f"tmp.pytest_multi_build.{build_name}.txt"
@@ -139,9 +129,6 @@ def _run_build(
         full_cmd = f'export CSFY_DOCKER_ENGINE="docker"; invoke docker_cmd {opts} --cmd "{cmd}"'
     else:
         full_cmd = f"export CSFY_DOCKER_ENGINE='{docker_engine}'; {cmd}"
-    # Wrap with nice if requested.
-    if nice_level > 0:
-        full_cmd = f"nice -n {nice_level} {full_cmd}"
     # Run command and capture output.
     _LOG.debug("Executing: %s", full_cmd)
     exit_code = hsystem.system(
@@ -216,7 +203,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
     for build_num, build_name in enumerate(build_names, 1):
         if not args.no_delete_cache:
             _clear_cache()
-        _run_build(build_name, cmd, build_num, total_builds, args.nice)
+        _run_build(build_name, cmd, build_num, total_builds)
     _LOG.info("All builds completed")
     # Summarize results by calling pytest_failed_multi_build.py.
     _summarize_results(build_names)
