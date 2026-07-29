@@ -108,11 +108,13 @@ class Test__copy_to_google_drive(hunitest.TestCase):
         hio.create_dir(papers_dir, incremental=True)
         hio.create_dir(internal_dir, incremental=True)
         # Run test.
-        with mock.patch.object(dshdrula, "_GDRIVE_PAPERS_DIR", papers_dir):
-            with mock.patch.object(
+        with (
+            mock.patch.object(dshdrula, "_GDRIVE_PAPERS_DIR", papers_dir),
+            mock.patch.object(
                 dshdrula, "_GDRIVE_INTERNAL_DIR", internal_dir
-            ):
-                dshdrula._copy_to_google_drive(out_file_path)
+            ),
+        ):
+            dshdrula._copy_to_google_drive(out_file_path)
         # Check outputs.
         self.assertTrue(os.path.exists(os.path.join(papers_dir, "book.pdf")))
         self.assertTrue(os.path.exists(os.path.join(internal_dir, "book.pdf")))
@@ -128,11 +130,13 @@ class Test__copy_to_google_drive(hunitest.TestCase):
         hio.create_dir(papers_dir, incremental=True)
         missing_dir = os.path.join(self.get_scratch_space(), "does_not_exist")
         # Run test.
-        with mock.patch.object(dshdrula, "_GDRIVE_PAPERS_DIR", papers_dir):
-            with mock.patch.object(
+        with (
+            mock.patch.object(dshdrula, "_GDRIVE_PAPERS_DIR", papers_dir),
+            mock.patch.object(
                 dshdrula, "_GDRIVE_INTERNAL_DIR", missing_dir
-            ):
-                dshdrula._copy_to_google_drive(out_file_path)
+            ),
+        ):
+            dshdrula._copy_to_google_drive(out_file_path)
         # Check outputs.
         self.assertTrue(os.path.exists(os.path.join(papers_dir, "book.pdf")))
         self.assertFalse(os.path.exists(missing_dir))
@@ -418,9 +422,11 @@ class Test_run_latex_py(hunitest.TestCase):
             "copy_to_gdrive",
         ]
         # Run test.
-        with mock.patch.object(dshdrula.dshdlila, "run_basic_latex"):
-            with mock.patch.object(dshdrula.hopen, "open_file") as mock_open:
-                self._run_main(argv)
+        with (
+            mock.patch.object(dshdrula.dshdlila, "run_basic_latex"),
+            mock.patch.object(dshdrula.hopen, "open_file") as mock_open,
+        ):
+            self._run_main(argv)
         # Check outputs.
         mock_open.assert_called_once_with(out_file_path)
 
@@ -438,10 +444,12 @@ class Test_run_latex_py(hunitest.TestCase):
             "copy_to_gdrive",
         ]
         # Run test.
-        with mock.patch.object(dshdrula.dshdlila, "run_basic_latex"):
-            with mock.patch.object(
+        with (
+            mock.patch.object(dshdrula.dshdlila, "run_basic_latex"),
+            mock.patch.object(
                 dshdrula, "_copy_to_google_drive"
-            ) as mock_copy:
-                self._run_main(argv)
+            ) as mock_copy,
+        ):
+            self._run_main(argv)
         # Check outputs.
         self.assertEqual(mock_copy.call_count, 1)

@@ -105,15 +105,17 @@ class Test_send_invitations(hunitest.TestCase):
     def test2(self) -> None:
         usernames = ["alice", "bob"]
         # Mock Github SDK, its repo, and our internal _invite helper.
-        with mock.patch(f"{MODULE_PATH}.github.Github") as m_github:
-            with mock.patch(f"{MODULE_PATH}._invite") as m_invite:
-                dummy_repo = mock.Mock()
-                dummy_repo.has_in_collaborators.return_value = False
-                m_github.return_value.get_repo.return_value = dummy_repo
-                # Import after patches so they take effect.
-                mod = __import__(MODULE_PATH, fromlist=["send_invitations"])
-                send_invitations = mod.send_invitations
-                send_invitations(usernames, "fake_token", "myrepo", "myorg")
+        with (
+            mock.patch(f"{MODULE_PATH}.github.Github") as m_github,
+            mock.patch(f"{MODULE_PATH}._invite") as m_invite,
+        ):
+            dummy_repo = mock.Mock()
+            dummy_repo.has_in_collaborators.return_value = False
+            m_github.return_value.get_repo.return_value = dummy_repo
+            # Import after patches so they take effect.
+            mod = __import__(MODULE_PATH, fromlist=["send_invitations"])
+            send_invitations = mod.send_invitations
+            send_invitations(usernames, "fake_token", "myrepo", "myorg")
         # Assert one invite call per username.
         calls = [mock.call(dummy_repo, u) for u in usernames]
         m_invite.assert_has_calls(calls, any_order=False)

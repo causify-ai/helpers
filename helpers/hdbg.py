@@ -891,6 +891,32 @@ def dassert_dir_exists(
         _dfatal(txt, msg, *args, only_warning=only_warning)
 
 
+def dassert_valid_path(file_path: str, is_input: bool) -> None:
+    """
+    Assert that a file path is valid, based on it being input or output.
+
+    For input files, it ensures that the file or directory exists. For
+    output files, it ensures that the enclosing directory exists.
+
+    :param file_path: The file path to check.
+    :param is_input: Whether the file path is an input file.
+    """
+    if is_input:
+        # If it's an input file, then `file_path` must exist as a file or a dir.
+        dassert_path_exists(file_path)
+    else:
+        # If it's an output, we might be writing a file that doesn't exist yet,
+        # but we assume that the including directory is already present.
+        dir_name = os.path.normpath(os.path.dirname(file_path))
+        os.makedirs(dir_name, exist_ok=True)
+        dassert(
+            os.path.exists(file_path) or os.path.exists(dir_name),
+            "Invalid path: '%s' and '%s' don't exist",
+            file_path,
+            dir_name,
+        )
+
+
 def dassert_file_extension(
     file_name: str,
     extensions: Union[str, List[str]],
@@ -974,6 +1000,25 @@ def dassert_related_params(
                 _dfatal(txt, msg, *args, only_warning=only_warning)
     else:
         raise ValueError(f"Invalid mode='{mode}'")
+
+
+def _dassert_is_path_included(file_path: str, including_path: str) -> None:
+    """
+    Assert that a file path is included within another path.
+
+    This function checks if the given file path starts with the
+    specified including path. If not, it raises an assertion error.
+
+    :param file_path: The file path to check.
+    :param including_path: The path that should include the file path.
+    """
+    # TODO(gp): Maybe we need to normalize the paths.
+    dassert(
+        file_path.startswith(including_path),
+        "'%s' needs to be underneath '%s'",
+        file_path,
+        including_path,
+    )
 
 
 # #############################################################################

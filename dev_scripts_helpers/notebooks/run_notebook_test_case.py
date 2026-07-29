@@ -1,7 +1,7 @@
 """
 Import as:
 
-import dev_scripts_helpers.notebooks.run_notebook_test_case as dsnrnteca
+import dev_scripts_helpers.notebooks.run_notebook_test_case as dshnrntca
 """
 
 import logging
@@ -11,6 +11,11 @@ import helpers.hsystem as hsystem
 import helpers.hunit_test as hunitest
 
 _LOG = logging.getLogger(__name__)
+
+
+# #############################################################################
+# Test_Run_Notebook_TestCase
+# #############################################################################
 
 
 class Test_Run_Notebook_TestCase(hunitest.TestCase):
@@ -38,7 +43,7 @@ class Test_Run_Notebook_TestCase(hunitest.TestCase):
         _LOG.debug("cmd=%s", cmd)
         # Execute.
         rc = hsystem.system(
-            cmd, abort_on_error=True, suppress_output=False, log_level="echo"
+            cmd, abort_on_error=True, suppress_output=False, log_level="PRINT"
         )
         _LOG.debug("rc=%s", rc)
         # Make sure that the run finishes successfully.

@@ -33,11 +33,13 @@ class Test_create_worktree(hunitest.TestCase):
         issue_id = 1290
         original_branch = "master"
         # Run test and capture system calls.
-        with hunteuti.capture_sys_calls() as invocations:
-            with mock.patch("os.getcwd", return_value="/home/user/helpers1"):
-                worktree_path = dshggciab._create_worktree(
-                    branch_name, issue_id, original_branch
-                )
+        with (
+            hunteuti.capture_sys_calls() as invocations,
+            mock.patch("os.getcwd", return_value="/home/user/helpers1"),
+        ):
+            worktree_path = dshggciab._create_worktree(
+                branch_name, issue_id, original_branch
+            )
         # Check outputs.
         expected_str = r"""[
         {
@@ -96,23 +98,23 @@ class Test_git_create_issue_and_branch_py(hunitest.TestCase):
         ]
         # Run test with mocked system calls.
         parser = dshggciab._parse()
-        with mock.patch("sys.argv", argv):
-            with hunteuti.capture_sys_calls() as invocations:
-                with mock.patch(
-                    "helpers.hsystem.system_to_string",
-                    return_value=("", "Created issue #1290"),
-                ):
-                    with mock.patch(
-                        "helpers.hgit.get_branch_name",
-                        return_value="HelpersTask1290_Test",
-                    ):
-                        with mock.patch(
-                            "helpers.hgit.has_submodules", return_value=False
-                        ):
-                            with mock.patch(
-                                "dev_scripts_helpers.git.git_create_issue_and_branch._commit_issue_files"
-                            ):
-                                dshggciab._main(parser)
+        with (
+            mock.patch("sys.argv", argv),
+            hunteuti.capture_sys_calls() as invocations,
+            mock.patch(
+                "helpers.hsystem.system_to_string",
+                return_value=("", "Created issue #1290"),
+            ),
+            mock.patch(
+                "helpers.hgit.get_branch_name",
+                return_value="HelpersTask1290_Test",
+            ),
+            mock.patch("helpers.hgit.has_submodules", return_value=False),
+            mock.patch(
+                "dev_scripts_helpers.git.git_create_issue_and_branch._commit_issue_files"
+            ),
+        ):
+            dshggciab._main(parser)
         # Check outputs.
         expected = r"""[
         {
@@ -135,30 +137,27 @@ class Test_git_create_issue_and_branch_py(hunitest.TestCase):
         ]
         # Run test with mocked system calls.
         parser = dshggciab._parse()
-        with mock.patch("sys.argv", argv):
-            with hunteuti.capture_sys_calls() as invocations:
-                with mock.patch(
-                    "helpers.hgit.get_branch_name",
-                    return_value="HelpersTask1290_Test",
-                ):
-                    with mock.patch(
-                        "helpers.hgit.has_submodules", return_value=False
-                    ):
-                        with mock.patch(
-                            "helpers.lib_tasks.lib_tasks_gh._get_gh_issue_title",
-                            return_value=(
-                                "HelpersTask1290_Test",
-                                "http://example.com/1290",
-                            ),
-                        ):
-                            with mock.patch(
-                                "helpers.hgit.does_branch_exist",
-                                return_value=False,
-                            ):
-                                with mock.patch(
-                                    "dev_scripts_helpers.git.git_create_issue_and_branch._commit_issue_files"
-                                ):
-                                    dshggciab._main(parser)
+        with (
+            mock.patch("sys.argv", argv),
+            hunteuti.capture_sys_calls() as invocations,
+            mock.patch(
+                "helpers.hgit.get_branch_name",
+                return_value="HelpersTask1290_Test",
+            ),
+            mock.patch("helpers.hgit.has_submodules", return_value=False),
+            mock.patch(
+                "helpers.lib_tasks.lib_tasks_gh._get_gh_issue_title",
+                return_value=(
+                    "HelpersTask1290_Test",
+                    "http://example.com/1290",
+                ),
+            ),
+            mock.patch("helpers.hgit.does_branch_exist", return_value=False),
+            mock.patch(
+                "dev_scripts_helpers.git.git_create_issue_and_branch._commit_issue_files"
+            ),
+        ):
+            dshggciab._main(parser)
         # Check outputs.
         expected = r"""[
         {
@@ -188,45 +187,35 @@ class Test_git_create_issue_and_branch_py(hunitest.TestCase):
         ]
         # Run test with mocked system calls.
         parser = dshggciab._parse()
-        with mock.patch("sys.argv", argv):
-            with hunteuti.capture_sys_calls() as invocations:
-                with mock.patch(
-                    "helpers.hgit.is_client_clean", return_value=True
-                ):
-                    with mock.patch(
-                        "helpers.hgit.get_branch_name",
-                        side_effect=[
-                            "master",
-                            "HelpersTask1290_Test",
-                            "HelpersTask1290_Test",
-                        ],
-                    ):
-                        with mock.patch(
-                            "helpers.hgit.has_submodules", return_value=False
-                        ):
-                            with mock.patch(
-                                "helpers.lib_tasks.lib_tasks_gh._get_gh_issue_title",
-                                return_value=(
-                                    "HelpersTask1290_Test",
-                                    "http://example.com/1290",
-                                ),
-                            ):
-                                with mock.patch(
-                                    "helpers.hgit.does_branch_exist",
-                                    return_value=False,
-                                ):
-                                    with mock.patch(
-                                        "os.getcwd",
-                                        return_value="/home/user/helpers1",
-                                    ):
-                                        with mock.patch(
-                                            "dev_scripts_helpers.git.git_create_issue_and_branch._commit_issue_files"
-                                        ):
-                                            with mock.patch("shutil.copy"):
-                                                with mock.patch(
-                                                    "builtins.print"
-                                                ):
-                                                    dshggciab._main(parser)
+        with (
+            mock.patch("sys.argv", argv),
+            hunteuti.capture_sys_calls() as invocations,
+            mock.patch("helpers.hgit.is_client_clean", return_value=True),
+            mock.patch(
+                "helpers.hgit.get_branch_name",
+                side_effect=[
+                    "master",
+                    "HelpersTask1290_Test",
+                    "HelpersTask1290_Test",
+                ],
+            ),
+            mock.patch("helpers.hgit.has_submodules", return_value=False),
+            mock.patch(
+                "helpers.lib_tasks.lib_tasks_gh._get_gh_issue_title",
+                return_value=(
+                    "HelpersTask1290_Test",
+                    "http://example.com/1290",
+                ),
+            ),
+            mock.patch("helpers.hgit.does_branch_exist", return_value=False),
+            mock.patch("os.getcwd", return_value="/home/user/helpers1"),
+            mock.patch(
+                "dev_scripts_helpers.git.git_create_issue_and_branch._commit_issue_files"
+            ),
+            mock.patch("shutil.copy"),
+            mock.patch("builtins.print"),
+        ):
+            dshggciab._main(parser)
         # Check outputs.
         expected = r"""[
         {
