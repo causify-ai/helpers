@@ -185,6 +185,7 @@ def _run_ci_for_target(
     pytest_target: str = "",
     no_master_check: bool = False,
     nice_level: int = 10,
+    no_clean_check: bool = False,
 ) -> bool:
     """
     Run full CI pipeline for a target directory.
@@ -193,6 +194,7 @@ def _run_ci_for_target(
     :param pytest_target: pytest target to run (e.g., '.', 'helpers/test/')
     :param no_master_check: Skip checking if repository is at master branch
     :param nice_level: Nice level for process priority (default: 10)
+    :param no_clean_check: Skip checking if working directory is clean
     :return: True if all steps succeeded, False otherwise
     """
     _LOG.info("Starting CI run for target='%s'", target_dir)
@@ -220,11 +222,14 @@ def _run_ci_for_target(
         _LOG.error("git clean failed in '%s'", target_dir)
         return False
     # Check working directory is clean.
-    _LOG.debug("Checking if '%s' has clean working directory", target_dir)
-    if not hgit.is_client_clean(target_dir):
-        _LOG.error("Working directory not clean in '%s'", target_dir)
-        return False
-    _LOG.info("Working directory is clean")
+    if not no_clean_check:
+        _LOG.debug("Checking if '%s' has clean working directory", target_dir)
+        if not hgit.is_client_clean(target_dir):
+            _LOG.error("Working directory not clean in '%s'", target_dir)
+            return False
+        _LOG.info("Working directory is clean")
+    else:
+        _LOG.warning("Skipping clean working directory check")
     # Run git pull.
     if not _run_git_pull(target_dir, log_file_pytest):
         _LOG.error("git pull failed in '%s'", target_dir)
@@ -262,6 +267,7 @@ def _run_all_ci(
     no_master_check: bool = False,
     repo_dirs: list[str] | None = None,
     nice_level: int = 10,
+    no_clean_check: bool = False,
 ) -> bool:
     """
     Run CI for all target directories.
@@ -270,6 +276,7 @@ def _run_all_ci(
     :param no_master_check: Skip checking if repository is at master branch
     :param repo_dirs: List of repo directories to test (if None, auto-discover)
     :param nice_level: Nice level for process priority (default: 10)
+    :param no_clean_check: Skip checking if working directory is clean
     :return: True if all targets succeeded, False otherwise
     """
     if repo_dirs is None:
@@ -281,7 +288,9 @@ def _run_all_ci(
             _LOG.warning("Skipping target='%s' (directory does not exist)", target_dir)
             continue
         _LOG.info("\n%s", hprint.frame(f"target='{target_dir}'"))
-        success = _run_ci_for_target(target_dir, pytest_target, no_master_check, nice_level)
+        success = _run_ci_for_target(
+            target_dir, pytest_target, no_master_check, nice_level, no_clean_check
+        )
         if not success:
             all_passed = False
             _LOG.error("CI failed for target='%s'", target_dir)
@@ -345,6 +354,7 @@ def _run_daemon_mode(
     no_master_check: bool = False,
     repo_dirs: list[str] | None = None,
     nice_level: int = 10,
+    no_clean_check: bool = False,
 ) -> None:
     """
     Run CI on a daily schedule at the specified start time.
@@ -354,6 +364,7 @@ def _run_daemon_mode(
     :param no_master_check: Skip checking if repository is at master branch
     :param repo_dirs: List of repo directories to test (if None, auto-discover)
     :param nice_level: Nice level for process priority (default: 10)
+    :param no_clean_check: Skip checking if working directory is clean
     """
     _LOG.info(
         "Running in daemon mode. CI will run daily at %s",
@@ -362,7 +373,7 @@ def _run_daemon_mode(
     while True:
         if _should_run_now(start_time):
             _LOG.info("Scheduled CI run starting at '%s'", start_time)
-            _run_all_ci(pytest_target, no_master_check, repo_dirs, nice_level)
+            _run_all_ci(pytest_target, no_master_check, repo_dirs, nice_level, no_clean_check)
             # Sleep for a minute to avoid running multiple times.
             time.sleep(60)
         else:
@@ -407,6 +418,11 @@ def _parse() -> argparse.ArgumentParser:
         help="Skip checking if repository is at master branch",
     )
     parser.add_argument(
+        "--no_clean_check",
+        action="store_true",
+        help="Skip checking if working directory is clean",
+    )
+    parser.add_argument(
         "--repo_dirs",
         type=str,
         nargs="+",
@@ -439,6 +455,9 @@ def _main(args: argparse.Namespace) -> None:
     # Log if skipping master check.
     if args.no_master_check:
         _LOG.info("Master branch check is disabled")
+    # Log if skipping clean check.
+    if args.no_clean_check:
+        _LOG.info("Clean directory check is disabled")
     # Log repo directories if specified.
     if args.repo_dirs:
         _LOG.info("Using provided repo_dirs: %s", args.repo_dirs)
@@ -447,12 +466,19 @@ def _main(args: argparse.Namespace) -> None:
     # Run CI.
     if args.daemon:
         _run_daemon_mode(
-            start_time, args.pytest_target, args.no_master_check, args.repo_dirs, args.nice
+            start_time,
+            args.pytest_target,
+            args.no_master_check,
+            args.repo_dirs,
+            args.nice,
+            args.no_clean_check,
         )
     else:
         # Run once immediately.
         _LOG.info("Running CI once (non-daemon mode)")
-        success = _run_all_ci(args.pytest_target, args.no_master_check, args.repo_dirs, args.nice)
+        success = _run_all_ci(
+            args.pytest_target, args.no_master_check, args.repo_dirs, args.nice, args.no_clean_check
+        )
         exit_code = 0 if success else 1
         sys.exit(exit_code)
 
