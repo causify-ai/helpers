@@ -24,20 +24,36 @@ import logging
 import os
 import re
 import shlex
-import shutil
 
 import helpers.hdbg as hdbg
 import helpers.hgit as hgit
 import helpers.hparser as hparser
 import helpers.hprint as hprint
 import helpers.hsystem as hsystem
-import helpers.lib_tasks.lib_tasks_gh as hltltagh
 
 _LOG = logging.getLogger(__name__)
 
 # #############################################################################
 # Core workflow
 # #############################################################################
+
+
+def _get_issue_body(body_text: str, body_file: str) -> str:
+    """
+    Get issue body from either text or file.
+
+    :param body_text: Body text provided as string
+    :param body_file: Path to file containing body text
+    :return: Issue body content
+    """
+    if body_file:
+        hdbg.dassert_file_exists(body_file, "Issue body file does not exist")
+        # TODO(ai_gp): Use hio.from_file.
+        with open(body_file, "r") as f:
+            body = f.read()
+        _LOG.info("Loaded issue body from file '%s'", body_file)
+        return body
+    return body_text
 
 
 def _commit_issue_files(branch_name: str, original_branch: str) -> None:
@@ -164,12 +180,15 @@ def _main(parser: argparse.ArgumentParser) -> None:
     original_branch = hgit.get_branch_name()
     try:
         # TODO(ai_gp): Move this out in a different function.
+        # Load issue body from file or use provided text.
+        gh_issue_body = _get_issue_body(args.gh_issue_body, args.gh_issue_body_file)
         _LOG.debug(
-            "gh_issue_id=%s gh_issue_title=%s gh_issue_body=%s gh_assignee=%s "
-            "create_worktree=%s create_pr=%s",
+            "gh_issue_id=%s gh_issue_title=%s gh_issue_body=%s gh_issue_body_file=%s "
+            "gh_assignee=%s create_worktree=%s create_pr=%s",
             args.gh_issue_id,
             args.gh_issue_title,
-            args.gh_issue_body,
+            gh_issue_body,
+            args.gh_issue_body_file,
             args.gh_assignee,
             args.create_worktree,
             args.create_pr,
@@ -193,8 +212,8 @@ def _main(parser: argparse.ArgumentParser) -> None:
             )
             cmd = "invoke gh_issue_create"
             cmd += f" --title {shlex.quote(args.gh_issue_title)}"
-            if args.gh_issue_body:
-                cmd += f" --body {shlex.quote(args.gh_issue_body)}"
+            if gh_issue_body:
+                cmd += f" --body {shlex.quote(gh_issue_body)}"
             if args.gh_assignee:
                 cmd += f" --assignees {shlex.quote(args.gh_assignee)}"
             _LOG.info("Creating GitHub issue via invoke: %s", cmd)
@@ -235,27 +254,29 @@ def _parse() -> argparse.ArgumentParser:
         description=__doc__,
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
-    # TODO(ai_gp): The following two are mutually exclusive.
-    parser.add_argument(
+    # Issue source: mutually exclusive (create new or use existing).
+    issue_group = parser.add_mutually_exclusive_group()
+    issue_group.add_argument(
         "--gh_issue_title",
         type=str,
         default="",
         help="Title for the GitHub issue to create",
     )
-    parser.add_argument(
+    issue_group.add_argument(
         "--gh_issue_id",
         type=int,
         default=0,
         help="Existing GitHub issue ID (skip creating new issue if provided)",
     )
-    # TODO(ai_gp): The following two are mutually exclusive.
-    parser.add_argument(
+    # Body source: mutually exclusive (text or file).
+    body_group = parser.add_mutually_exclusive_group()
+    body_group.add_argument(
         "--gh_issue_body",
         type=str,
         default="",
         help="Body text for the GitHub issue (plain text, not a file path)",
     )
-    parser.add_argument(
+    body_group.add_argument(
         "--gh_issue_body_file",
         type=str,
         default="",
