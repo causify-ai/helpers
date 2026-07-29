@@ -229,6 +229,11 @@ class Test_git_create_issue_and_branch_py(hunitest.TestCase):
         'args': ('git worktree add /home/user/helpers1_worktree_1290 HelpersTask1290_Test',),
         'kwargs': {'log_level': 20},
         },
+        {
+        'function': hsystem.system,
+        'args': ('git checkout master',),
+        'kwargs': {},
+        },
         ]"""
         expected = hprint.dedent(expected)
         hunteuti.assert_sys_calls(self, invocations, expected)
