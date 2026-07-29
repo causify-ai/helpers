@@ -115,7 +115,7 @@ def _run_git_pull(target_dir: str, log_file: str) -> bool:
 
 
 def _run_pytest_multi_build(
-    target_dir: str, log_file: str, pytest_target: str = ""
+    target_dir: str, log_file: str, pytest_target: str = "", nice_level: int = 10
 ) -> bool:
     """
     Run pytest_multi_build.py for regression testing.
@@ -123,6 +123,7 @@ def _run_pytest_multi_build(
     :param target_dir: Directory to test
     :param log_file: File to log output to
     :param pytest_target: pytest target to run (e.g., '.', 'helpers/test/')
+    :param nice_level: Nice level for process priority (default: 10)
     :return: True if successful, False otherwise
     """
     _LOG.info(
@@ -134,6 +135,8 @@ def _run_pytest_multi_build(
         pytest_target = "."
     # --timeout 0 so that it doesn't wait.
     cmd = f"pytest_multi_build.py --target {pytest_target} --build_names apple dev_container --timeout 0"
+    if nice_level is not None:
+        cmd = f"nice -n {nice_level} {cmd}"
     exit_code = _run_command(cmd, target_dir, log_file=log_file)
     return exit_code == 0
 
@@ -180,7 +183,10 @@ def _get_log_file_path(target_dir: str, step: str) -> str:
 
 
 def _run_ci_for_target(
-    target_dir: str, pytest_target: str = "", no_master_check: bool = False
+    target_dir: str,
+    pytest_target: str = "",
+    no_master_check: bool = False,
+    nice_level: int = 10,
 ) -> bool:
     """
     Run full CI pipeline for a target directory.
@@ -188,6 +194,7 @@ def _run_ci_for_target(
     :param target_dir: Target directory to run CI for
     :param pytest_target: pytest target to run (e.g., '.', 'helpers/test/')
     :param no_master_check: Skip checking if repository is at master branch
+    :param nice_level: Nice level for process priority (default: 10)
     :return: True if all steps succeeded, False otherwise
     """
     _LOG.info("Starting CI run for target='%s'", target_dir)
@@ -225,7 +232,7 @@ def _run_ci_for_target(
         _LOG.error("git pull failed in '%s'", target_dir)
         return False
     # Run pytest_multi_build.
-    _run_pytest_multi_build(target_dir, log_file_pytest, pytest_target)
+    _run_pytest_multi_build(target_dir, log_file_pytest, pytest_target, nice_level)
     _LOG.info("Test output logged to '%s'", log_file_pytest)
     # Run pytest_failed_multi_build.
     _run_pytest_failed_multi_build(target_dir, log_file_failed)
@@ -253,7 +260,10 @@ def _get_target_dirs() -> list[str]:
 
 
 def _run_all_ci(
-    pytest_target: str = "", no_master_check: bool = False, repo_dirs: list[str] | None = None
+    pytest_target: str = "",
+    no_master_check: bool = False,
+    repo_dirs: list[str] | None = None,
+    nice_level: int = 10,
 ) -> bool:
     """
     Run CI for all target directories.
@@ -261,6 +271,7 @@ def _run_all_ci(
     :param pytest_target: pytest target to run (e.g., '.', 'helpers/test/')
     :param no_master_check: Skip checking if repository is at master branch
     :param repo_dirs: List of repo directories to test (if None, auto-discover)
+    :param nice_level: Nice level for process priority (default: 10)
     :return: True if all targets succeeded, False otherwise
     """
     if repo_dirs is None:
@@ -272,7 +283,7 @@ def _run_all_ci(
             _LOG.warning("Skipping target='%s' (directory does not exist)", target_dir)
             continue
         _LOG.info("\n%s", hprint.frame(f"target='{target_dir}'"))
-        success = _run_ci_for_target(target_dir, pytest_target, no_master_check)
+        success = _run_ci_for_target(target_dir, pytest_target, no_master_check, nice_level)
         if not success:
             all_passed = False
             _LOG.error("CI failed for target='%s'", target_dir)
@@ -335,6 +346,7 @@ def _run_daemon_mode(
     pytest_target: str = "",
     no_master_check: bool = False,
     repo_dirs: list[str] | None = None,
+    nice_level: int = 10,
 ) -> None:
     """
     Run CI on a daily schedule at the specified start time.
@@ -343,6 +355,7 @@ def _run_daemon_mode(
     :param pytest_target: pytest target to run (e.g., '.', 'helpers/test/')
     :param no_master_check: Skip checking if repository is at master branch
     :param repo_dirs: List of repo directories to test (if None, auto-discover)
+    :param nice_level: Nice level for process priority (default: 10)
     """
     _LOG.info(
         "Running in daemon mode. CI will run daily at %s",
@@ -351,7 +364,7 @@ def _run_daemon_mode(
     while True:
         if _should_run_now(start_time):
             _LOG.info("Scheduled CI run starting at '%s'", start_time)
-            _run_all_ci(pytest_target, no_master_check, repo_dirs)
+            _run_all_ci(pytest_target, no_master_check, repo_dirs, nice_level)
             # Sleep for a minute to avoid running multiple times.
             time.sleep(60)
         else:
@@ -402,6 +415,12 @@ def _parse() -> argparse.ArgumentParser:
         default=None,
         help="Directories to test (space-separated). If not provided, auto-discovers from git submodules",
     )
+    parser.add_argument(
+        "--nice",
+        type=int,
+        default=10,
+        help="Nice level for pytest_multi_build process priority (default: 10, range: -20 to 19)",
+    )
     hparser.add_verbosity_arg(parser)
     return parser
 
@@ -425,13 +444,17 @@ def _main(args: argparse.Namespace) -> None:
     # Log repo directories if specified.
     if args.repo_dirs:
         _LOG.info("Using provided repo_dirs: %s", args.repo_dirs)
+    # Log nice level.
+    _LOG.info("Nice level: %d", args.nice)
     # Run CI.
     if args.daemon:
-        _run_daemon_mode(start_time, args.pytest_target, args.no_master_check, args.repo_dirs)
+        _run_daemon_mode(
+            start_time, args.pytest_target, args.no_master_check, args.repo_dirs, args.nice
+        )
     else:
         # Run once immediately.
         _LOG.info("Running CI once (non-daemon mode)")
-        success = _run_all_ci(args.pytest_target, args.no_master_check, args.repo_dirs)
+        success = _run_all_ci(args.pytest_target, args.no_master_check, args.repo_dirs, args.nice)
         exit_code = 0 if success else 1
         sys.exit(exit_code)
 
