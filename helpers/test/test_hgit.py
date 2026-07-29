@@ -1141,6 +1141,35 @@ class Test_find_git_root6(hunitest.TestCase):
 
 
 # #############################################################################
+# Test_find_git_root_in_active_worktree
+# #############################################################################
+
+
+@pytest.mark.skipif(
+    not hgit.is_git_worktree(),
+    reason="Not in a Git worktree"
+)
+class Test_find_git_root_in_active_worktree(hunitest.TestCase):
+    """
+    Tests for find_git_root() behavior in an active Git worktree.
+
+    These tests only run when the code is in a Git worktree.
+    """
+
+    def test1(self) -> None:
+        """
+        Test that find_git_root() returns worktree root, not parent repo root.
+        """
+        git_root = hgit.find_git_root()
+        # Verify it's the worktree root, not a parent directory
+        git_file = os.path.join(git_root, ".git")
+        self.assertTrue(os.path.isfile(git_file))
+        # Read the .git file and verify it's a worktree
+        git_content = hio.from_file(git_file)
+        self.assertIn(".git/worktrees/", git_content)
+
+
+# #############################################################################
 # Test_git_add_file
 # #############################################################################
 
