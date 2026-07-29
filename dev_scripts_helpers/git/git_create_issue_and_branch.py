@@ -87,7 +87,11 @@ def _commit_issue_files(branch_name: str, original_branch: str) -> None:
 
 
 def _create_branch_and_pr(
-    issue_id: int, original_branch: str, *, create_pr: bool = True, gh_issue_id_provided: bool = False
+    issue_id: int,
+    original_branch: str,
+    *,
+    create_pr: bool = True,
+    gh_issue_id_provided: bool = False,
 ) -> str:
     """
     Create a git branch using invoke git_branch_create task.
@@ -102,7 +106,9 @@ def _create_branch_and_pr(
     if gh_issue_id_provided:
         title, _ = hltltagh._get_gh_issue_title(issue_id, "current")
         branch_name = title
-        _LOG.info("Issue %d corresponds to branch name '%s'", issue_id, branch_name)
+        _LOG.info(
+            "Issue %d corresponds to branch name '%s'", issue_id, branch_name
+        )
         # If issue ID was provided and branch already exists, just checkout the existing branch.
         if hgit.does_branch_exist(branch_name, mode="all"):
             _LOG.info("Branch '%s' already exists, checking it out", branch_name)
@@ -126,7 +132,9 @@ def _create_branch_and_pr(
     return branch_name
 
 
-def _create_worktree(branch_name: str, issue_id: int, original_branch: str) -> str:
+def _create_worktree(
+    branch_name: str, issue_id: int, original_branch: str
+) -> str:
     """
     Create a git worktree for the given branch.
 
@@ -136,7 +144,10 @@ def _create_worktree(branch_name: str, issue_id: int, original_branch: str) -> s
     :return: Path to the created worktree
     """
     # Checkout original branch first to free up the new branch.
-    _LOG.info("Checking out original branch '%s' before creating worktree", original_branch)
+    _LOG.info(
+        "Checking out original branch '%s' before creating worktree",
+        original_branch,
+    )
     cmd = f"git checkout {shlex.quote(original_branch)}"
     hsystem.system(cmd, log_level=logging.INFO)
     # Determine worktree path (parent directory of current repo).
@@ -162,7 +173,11 @@ def _print_usage_instructions(worktree_path: str, issue_id: int) -> None:
     worktree_dir = os.path.basename(worktree_path)
     # TODO(ai_gp): We should get the basename of the repo from the config.
     # Strip "helpers" prefix from repo name to get suffix.
-    worktree_suffix = worktree_dir.replace("helpers", "", 1) if worktree_dir.startswith("helpers") else worktree_dir
+    worktree_suffix = (
+        worktree_dir.replace("helpers", "", 1)
+        if worktree_dir.startswith("helpers")
+        else worktree_dir
+    )
     msg = f"""
     Worktree created successfully!
 
@@ -192,7 +207,9 @@ def _main(parser: argparse.ArgumentParser) -> None:
     try:
         # TODO(ai_gp): Move this out in a different function.
         # Load issue body from file or use provided text.
-        gh_issue_body = _get_issue_body(args.gh_issue_body, args.gh_issue_body_file)
+        gh_issue_body = _get_issue_body(
+            args.gh_issue_body, args.gh_issue_body_file
+        )
         _LOG.debug(
             "gh_issue_id=%s gh_issue_title=%s gh_issue_body=%s gh_issue_body_file=%s "
             "gh_assignee=%s create_worktree=%s create_pr=%s",
@@ -232,18 +249,24 @@ def _main(parser: argparse.ArgumentParser) -> None:
             _LOG.debug("Invoke output:\n%s", output)
             # Parse issue ID from output.
             match = re.search(r"Created issue #(\d+)", output)
-            match = hdbg.dassert_re_match(match, "Could not extract issue ID from output: %s",
-                         output)
+            match = hdbg.dassert_re_match(
+                match, "Could not extract issue ID from output: %s", output
+            )
             issue_id = int(match.group(1))
             _LOG.info("Created issue #%s", issue_id)
         # Create branch and PR via invoke.
         branch_name = _create_branch_and_pr(
-            issue_id, original_branch, create_pr=args.create_pr, gh_issue_id_provided=bool(args.gh_issue_id)
+            issue_id,
+            original_branch,
+            create_pr=args.create_pr,
+            gh_issue_id_provided=bool(args.gh_issue_id),
         )
         _LOG.info("Branch name: '%s'", branch_name)
         # Create worktree, if requested.
         if args.create_worktree:
-            worktree_path = _create_worktree(branch_name, issue_id, original_branch)
+            worktree_path = _create_worktree(
+                branch_name, issue_id, original_branch
+            )
             # Print usage instructions.
             _print_usage_instructions(worktree_path, issue_id)
     finally:
