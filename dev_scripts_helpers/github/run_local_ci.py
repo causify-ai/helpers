@@ -54,6 +54,8 @@ def _run_command(
     _LOG.debug("Running command: '%s' in dir='%s'", cmd, cwd)
     # Build full command with environment setup.
     full_cmd = f"cd {cwd} && source setenv.sh && {cmd}"
+    # Print command with green highlighting.
+    print(f"> {hprint.color_highlight(full_cmd, 'green')}")
     # Run command and capture output.
     try:
         if log_file:
