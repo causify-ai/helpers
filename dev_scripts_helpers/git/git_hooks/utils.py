@@ -17,6 +17,7 @@ from typing import Any, List, Optional, Tuple
 import helpers.hdbg as hdbg
 import helpers.hdocker as hdocker
 import helpers.hgit as hgit
+import helpers.hprint as hprint
 
 _LOG = logging.getLogger(__name__)
 
@@ -608,26 +609,45 @@ def check_gitleaks(abort_on_error: bool = True) -> None:
     Check that the code does not contain any leaked secrets.
     """
     func_name = _report()
-    git_root_dir = hgit.find_git_root()
-    hdbg.dassert_isinstance(git_root_dir, str)
-    helpers_root_dir = hgit.find_helpers_root()
-    hdbg.dassert_isinstance(helpers_root_dir, str)
-    # Compute relative path from root of the outer most repo to the helpers root.
-    rel_path = os.path.relpath(helpers_root_dir, git_root_dir)
-    # Find the gitleaks config file.
-    config_path = os.path.join(
-        "/app", rel_path, "dev_scripts_helpers/git/gitleaks"
-    )
-    config_path = os.path.normpath(config_path)
+    # Get absolute paths for worktree handling.
+    cmd = "git rev-parse --path-format=absolute --show-toplevel"
+    rc, repo_path = _system_to_string(cmd, abort_on_error=True, verbose=False)
+    repo_path = repo_path.strip()
+    cmd = "git rev-parse --path-format=absolute --git-common-dir"
+    rc, common_path = _system_to_string(cmd, abort_on_error=True, verbose=False)
+    common_path = common_path.strip()
+    # Check if we're in a worktree.
+    in_worktree = repo_path != common_path
     docker_cmd = hdocker.get_docker_command()
-    cmd = f"""
-    {docker_cmd} run -v {git_root_dir}:/app zricethezav/gitleaks:latest -c {config_path}/gitleaks-rules.toml git /app --pre-commit --staged --verbose
-    """
+    config_path = f"{repo_path}/dev_scripts_helpers/git/gitleaks/gitleaks-rules.toml"
+    if in_worktree:
+        # Worktree-compatible command with common directory mounting.
+        cmd = f"""
+        {docker_cmd} run --rm \
+          -v {repo_path}:{repo_path} \
+          -v {common_path}:{common_path} \
+          -w {repo_path} \
+          -e GIT_CONFIG_COUNT=1 \
+          -e GIT_CONFIG_KEY_0=safe.directory \
+          -e GIT_CONFIG_VALUE_0='*' \
+          zricethezav/gitleaks:latest \
+          -c {config_path} \
+          git {repo_path} --pre-commit --staged --verbose
+        """
+    else:
+        # Standard (non-worktree) command.
+        cmd = fr"""
+        {docker_cmd} run --rm \
+          -v {repo_path}:{repo_path} \
+          -w {repo_path} \
+          zricethezav/gitleaks:latest \
+          -c {config_path} \
+          git {repo_path} --pre-commit --staged --verbose
+        """
+    cmd = hprint.dedent(cmd)
     _LOG.debug("cmd='%s'", cmd)
     rc = _system(cmd, abort_on_error=False)
-    error = False
-    if rc != 0:
-        error = True
+    error = rc != 0
+    if error:
         _LOG.error("Gitleaks check failed with rc=%s", rc)
-    # Handle error.
     _handle_error(func_name, error, abort_on_error)

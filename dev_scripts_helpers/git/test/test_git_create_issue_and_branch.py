@@ -31,12 +31,20 @@ class Test_create_worktree(hunitest.TestCase):
         # Prepare inputs.
         branch_name = "HelpersTask1290_Test_Branch"
         issue_id = 1290
+        original_branch = "master"
         # Run test and capture system calls.
         with hunteuti.capture_sys_calls() as invocations:
             with mock.patch("os.getcwd", return_value="/home/user/helpers1"):
-                worktree_path = dshggciab._create_worktree(branch_name, issue_id)
+                worktree_path = dshggciab._create_worktree(
+                    branch_name, issue_id, original_branch
+                )
         # Check outputs.
         expected_str = r"""[
+        {
+        'function': hsystem.system,
+        'args': ('git checkout master',),
+        'kwargs': {'log_level': 20},
+        },
         {
         'function': hsystem.system,
         'args': ('git worktree add /home/user/helpers1_worktree_1290 HelpersTask1290_Test_Branch',),
@@ -106,8 +114,12 @@ class Test_git_create_issue_and_branch_py(hunitest.TestCase):
                             ):
                                 dshggciab._main(parser)
         # Check outputs.
-        # TODO(ai_gp): Fill this in.
         expected = r"""[
+        {
+        'function': hsystem.system,
+        'args': ('invoke git_branch_create --issue-id 1290',),
+        'kwargs': {'log_level': 20},
+        },
         ]"""
         hunteuti.assert_sys_calls(self, invocations, expected)
 
@@ -133,13 +145,34 @@ class Test_git_create_issue_and_branch_py(hunitest.TestCase):
                         "helpers.hgit.has_submodules", return_value=False
                     ):
                         with mock.patch(
-                            "dev_scripts_helpers.git.git_create_issue_and_branch._commit_issue_files"
+                            "helpers.lib_tasks.lib_tasks_gh._get_gh_issue_title",
+                            return_value=(
+                                "HelpersTask1290_Test",
+                                "http://example.com/1290",
+                            ),
                         ):
-                            dshggciab._main(parser)
+                            with mock.patch(
+                                "helpers.hgit.does_branch_exist",
+                                return_value=False,
+                            ):
+                                with mock.patch(
+                                    "dev_scripts_helpers.git.git_create_issue_and_branch._commit_issue_files"
+                                ):
+                                    dshggciab._main(parser)
         # Check outputs.
-        # TODO(ai_gp): Fill this in.
         expected = r"""[
+        {
+        'function': hsystem.system_to_string,
+        'args': ('cd . && (git diff --cached --name-only; git ls-files -m) | sort | uniq',),
+        'kwargs': {},
+        },
+        {
+        'function': hsystem.system,
+        'args': ('invoke git_branch_create --issue-id 1290',),
+        'kwargs': {'log_level': 20},
+        },
         ]"""
+        expected = hprint.dedent(expected)
         hunteuti.assert_sys_calls(self, invocations, expected)
 
     def test4(self) -> None:
@@ -158,23 +191,64 @@ class Test_git_create_issue_and_branch_py(hunitest.TestCase):
         with mock.patch("sys.argv", argv):
             with hunteuti.capture_sys_calls() as invocations:
                 with mock.patch(
-                    "helpers.hgit.get_branch_name",
-                    return_value="HelpersTask1290_Test",
+                    "helpers.hgit.is_client_clean", return_value=True
                 ):
                     with mock.patch(
-                        "helpers.hgit.has_submodules", return_value=False
+                        "helpers.hgit.get_branch_name",
+                        side_effect=[
+                            "master",
+                            "HelpersTask1290_Test",
+                            "HelpersTask1290_Test",
+                        ],
                     ):
                         with mock.patch(
-                            "os.getcwd", return_value="/home/user/helpers1"
+                            "helpers.hgit.has_submodules", return_value=False
                         ):
                             with mock.patch(
-                                "dev_scripts_helpers.git.git_create_issue_and_branch._commit_issue_files"
+                                "helpers.lib_tasks.lib_tasks_gh._get_gh_issue_title",
+                                return_value=(
+                                    "HelpersTask1290_Test",
+                                    "http://example.com/1290",
+                                ),
                             ):
-                                with mock.patch("shutil.copy"):
-                                    with mock.patch("builtins.print"):
-                                        dshggciab._main(parser)
+                                with mock.patch(
+                                    "helpers.hgit.does_branch_exist",
+                                    return_value=False,
+                                ):
+                                    with mock.patch(
+                                        "os.getcwd",
+                                        return_value="/home/user/helpers1",
+                                    ):
+                                        with mock.patch(
+                                            "dev_scripts_helpers.git.git_create_issue_and_branch._commit_issue_files"
+                                        ):
+                                            with mock.patch("shutil.copy"):
+                                                with mock.patch(
+                                                    "builtins.print"
+                                                ):
+                                                    dshggciab._main(parser)
         # Check outputs.
-        # TODO(ai_gp): Fill this in.
         expected = r"""[
+        {
+        'function': hsystem.system,
+        'args': ('invoke git_branch_create --issue-id 1290',),
+        'kwargs': {'log_level': 20},
+        },
+        {
+        'function': hsystem.system,
+        'args': ('git checkout master',),
+        'kwargs': {'log_level': 20},
+        },
+        {
+        'function': hsystem.system,
+        'args': ('git worktree add /home/user/helpers1_worktree_1290 HelpersTask1290_Test',),
+        'kwargs': {'log_level': 20},
+        },
+        {
+        'function': hsystem.system,
+        'args': ('git checkout master',),
+        'kwargs': {},
+        },
         ]"""
+        expected = hprint.dedent(expected)
         hunteuti.assert_sys_calls(self, invocations, expected)

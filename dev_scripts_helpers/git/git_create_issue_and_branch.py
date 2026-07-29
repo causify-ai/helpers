@@ -30,6 +30,7 @@ import helpers.hgit as hgit
 import helpers.hparser as hparser
 import helpers.hprint as hprint
 import helpers.hsystem as hsystem
+import helpers.lib_tasks.lib_tasks_gh as hltltagh
 
 _LOG = logging.getLogger(__name__)
 
@@ -131,14 +132,24 @@ def _create_branch_and_pr(
     return branch_name
 
 
-def _create_worktree(branch_name: str, issue_id: int) -> str:
+def _create_worktree(
+    branch_name: str, issue_id: int, original_branch: str
+) -> str:
     """
     Create a git worktree for the given branch.
 
     :param branch_name: Name of the branch to create worktree for
     :param issue_id: GitHub issue number (for path naming)
+    :param original_branch: Original branch to checkout before creating worktree
     :return: Path to the created worktree
     """
+    # Checkout original branch first to free up the new branch.
+    _LOG.info(
+        "Checking out original branch '%s' before creating worktree",
+        original_branch,
+    )
+    cmd = f"git checkout {shlex.quote(original_branch)}"
+    hsystem.system(cmd, log_level=logging.INFO)
     # Determine worktree path (parent directory of current repo).
     current_dir = os.getcwd()
     parent_dir = os.path.dirname(current_dir)
@@ -158,11 +169,20 @@ def _print_usage_instructions(worktree_path: str, issue_id: int) -> None:
     :param worktree_path: Path to the created worktree
     :param issue_id: GitHub issue number
     """
+    # Extract worktree suffix (e.g., "1_worktree_1325" from "helpers1_worktree_1325").
+    worktree_dir = os.path.basename(worktree_path)
+    # TODO(ai_gp): We should get the basename of the repo from the config.
+    # Strip "helpers" prefix from repo name to get suffix.
+    worktree_suffix = (
+        worktree_dir.replace("helpers", "", 1)
+        if worktree_dir.startswith("helpers")
+        else worktree_dir
+    )
     msg = f"""
     Worktree created successfully!
 
     To open tmux session:
-    > cd {worktree_path}; dev_scripts_helpers/thin_client/tmux.py --index {issue_id}
+    > cd {worktree_path}; dev_scripts_helpers/thin_client/tmux.py --index {worktree_suffix}
     """
     msg = hprint.dedent(msg)
     msg = hprint.color_highlight(msg, "green")
@@ -244,7 +264,9 @@ def _main(parser: argparse.ArgumentParser) -> None:
         _LOG.info("Branch name: '%s'", branch_name)
         # Create worktree, if requested.
         if args.create_worktree:
-            worktree_path = _create_worktree(branch_name, issue_id)
+            worktree_path = _create_worktree(
+                branch_name, issue_id, original_branch
+            )
             # Print usage instructions.
             _print_usage_instructions(worktree_path, issue_id)
     finally:
