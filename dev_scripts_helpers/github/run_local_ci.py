@@ -95,8 +95,8 @@ def _run_git_clean(target_dir: str, log_file: str) -> bool:
     :param log_file: File to log output to
     :return: True if successful, False otherwise
     """
-    _LOG.info("Running git clean -fd in '%s'", target_dir)
-    exit_code = _run_command("git clean -fd", cwd=target_dir, log_file=log_file)
+    _LOG.info("Running 'git clean -fd' in '%s'", target_dir)
+    exit_code = _run_command("git clean -fd", target_dir, log_file=log_file)
     return exit_code == 0
 
 
@@ -108,8 +108,8 @@ def _run_git_pull(target_dir: str, log_file: str) -> bool:
     :param log_file: File to log output to
     :return: True if successful, False otherwise
     """
-    _LOG.info("Running git pull in '%s'", target_dir)
-    exit_code = _run_command("git pull", cwd=target_dir, log_file=log_file)
+    _LOG.info("Running 'git pull' in '%s' (log_file=%s)", target_dir, log_file)
+    exit_code = _run_command("git pull", target_dir, log_file=log_file)
     return exit_code == 0
 
 
@@ -124,11 +124,11 @@ def _run_pytest_multi_build(
     :param pytest_target: pytest target to run (e.g., '.', 'helpers/test/')
     :return: True if successful, False otherwise
     """
-    _LOG.info("Running pytest_multi_build.py in '%s'", target_dir)
+    _LOG.info("Running 'pytest_multi_build.py' in '%s' (log_file=%s)", target_dir, log_file)
     if not pytest_target:
         pytest_target = "."
     cmd = f"pytest_multi_build.py --target {pytest_target} --build_names apple dev_container"
-    exit_code = _run_command(cmd, cwd=target_dir, log_file=log_file)
+    exit_code = _run_command(cmd, target_dir, log_file=log_file)
     return exit_code == 0
 
 
@@ -140,9 +140,9 @@ def _run_pytest_failed_multi_build(target_dir: str, log_file: str) -> bool:
     :param log_file: File to log output to
     :return: True if successful, False otherwise
     """
-    _LOG.info("Running pytest_failed_multi_build.py in '%s'", target_dir)
+    _LOG.info("Running 'pytest_failed_multi_build.py' in '%s' (log='%s')", target_dir, log_file)
     exit_code = _run_command(
-        "pytest_failed_multi_build.py", cwd=target_dir, log_file=log_file
+        "pytest_failed_multi_build.py", target_dir, log_file=log_file
     )
     return exit_code == 0
 
