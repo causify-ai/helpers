@@ -149,7 +149,6 @@ class Test_load_df_from_json(hunitest.TestCase):
 
 
 class Test_safe_rm_file(hunitest.TestCase):
-
     def test1(self) -> None:
         """
         Test successful removal of directory within Git client.
@@ -232,10 +231,7 @@ class Test_safe_rm_file(hunitest.TestCase):
 # #############################################################################
 
 
-@pytest.mark.skipif(
-    not hgit.is_git_worktree(),
-    reason="Not in a Git worktree"
-)
+@pytest.mark.skipif(not hgit.is_git_worktree(), reason="Not in a Git worktree")
 class Test_git_worktree_handling(hunitest.TestCase):
     """
     Tests for Git worktree-specific functionality.

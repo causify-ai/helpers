@@ -35,7 +35,9 @@ class Test_create_worktree(hunitest.TestCase):
         # Run test and capture system calls.
         with hunteuti.capture_sys_calls() as invocations:
             with mock.patch("os.getcwd", return_value="/home/user/helpers1"):
-                worktree_path = dshggciab._create_worktree(branch_name, issue_id, original_branch)
+                worktree_path = dshggciab._create_worktree(
+                    branch_name, issue_id, original_branch
+                )
         # Check outputs.
         expected_str = r"""[
         {
@@ -101,7 +103,8 @@ class Test_git_create_issue_and_branch_py(hunitest.TestCase):
                     return_value=("", "Created issue #1290"),
                 ):
                     with mock.patch(
-                        "helpers.hgit.get_branch_name", return_value="HelpersTask1290_Test"
+                        "helpers.hgit.get_branch_name",
+                        return_value="HelpersTask1290_Test",
                     ):
                         with mock.patch(
                             "helpers.hgit.has_submodules", return_value=False
@@ -135,17 +138,22 @@ class Test_git_create_issue_and_branch_py(hunitest.TestCase):
         with mock.patch("sys.argv", argv):
             with hunteuti.capture_sys_calls() as invocations:
                 with mock.patch(
-                    "helpers.hgit.get_branch_name", return_value="HelpersTask1290_Test"
+                    "helpers.hgit.get_branch_name",
+                    return_value="HelpersTask1290_Test",
                 ):
                     with mock.patch(
                         "helpers.hgit.has_submodules", return_value=False
                     ):
                         with mock.patch(
                             "helpers.lib_tasks.lib_tasks_gh._get_gh_issue_title",
-                            return_value=("HelpersTask1290_Test", "http://example.com/1290")
+                            return_value=(
+                                "HelpersTask1290_Test",
+                                "http://example.com/1290",
+                            ),
                         ):
                             with mock.patch(
-                                "helpers.hgit.does_branch_exist", return_value=False
+                                "helpers.hgit.does_branch_exist",
+                                return_value=False,
                             ):
                                 with mock.patch(
                                     "dev_scripts_helpers.git.git_create_issue_and_branch._commit_issue_files"
@@ -187,27 +195,34 @@ class Test_git_create_issue_and_branch_py(hunitest.TestCase):
                 ):
                     with mock.patch(
                         "helpers.hgit.get_branch_name",
-                        side_effect=["master", "HelpersTask1290_Test", "HelpersTask1290_Test"]
+                        side_effect=[
+                            "master",
+                            "HelpersTask1290_Test",
+                            "HelpersTask1290_Test",
+                        ],
                     ):
                         with mock.patch(
                             "helpers.hgit.has_submodules", return_value=False
                         ):
                             with mock.patch(
                                 "helpers.lib_tasks.lib_tasks_gh._get_gh_issue_title",
-                                return_value=("HelpersTask1290_Test", "http://example.com/1290")
+                                return_value=(
+                                    "HelpersTask1290_Test",
+                                    "http://example.com/1290",
+                                ),
                             ):
                                 with mock.patch(
-                                    "helpers.hgit.does_branch_exist", return_value=False
+                                    "helpers.hgit.does_branch_exist",
+                                    return_value=False,
                                 ):
                                     with mock.patch(
-                                        "os.getcwd", return_value="/home/user/helpers1"
+                                        "os.getcwd",
+                                        return_value="/home/user/helpers1",
                                     ):
                                         with mock.patch(
                                             "dev_scripts_helpers.git.git_create_issue_and_branch._commit_issue_files"
                                         ):
-                                            with mock.patch(
-                                                "shutil.copy"
-                                            ):
+                                            with mock.patch("shutil.copy"):
                                                 with mock.patch(
                                                     "builtins.print"
                                                 ):
