@@ -67,7 +67,6 @@ def _run_command(
                 result = subprocess.run(
                     full_cmd,
                     shell=True,
-                    cwd=cwd,
                     stdout=f,
                     stderr=subprocess.STDOUT,
                     text=True,
@@ -77,7 +76,6 @@ def _run_command(
             result = subprocess.run(
                 full_cmd,
                 shell=True,
-                cwd=cwd,
                 capture_output=False,
                 text=True,
                 timeout=3600,
