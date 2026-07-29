@@ -16,8 +16,8 @@ from typing import Any, List, Optional, Tuple
 
 import helpers.hdbg as hdbg
 import helpers.hdocker as hdocker
-import helpers.hgit as hgit
 import helpers.hprint as hprint
+import helpers.hsystem as hsystem
 
 _LOG = logging.getLogger(__name__)
 
@@ -619,7 +619,13 @@ def check_gitleaks(abort_on_error: bool = True) -> None:
     # Check if we're in a worktree.
     in_worktree = repo_path != common_path
     docker_cmd = hdocker.get_docker_command()
-    config_path = f"{repo_path}/dev_scripts_helpers/git/gitleaks/gitleaks-rules.toml"
+    # Find gitleaks config relative to dev_scripts_helpers (handles subrepo case).
+    dev_scripts_helpers_dir = hsystem.find_file_in_repo(
+        "dev_scripts_helpers", root_dir=None
+    )
+    config_path = os.path.join(
+        dev_scripts_helpers_dir, "git", "gitleaks", "gitleaks-rules.toml"
+    )
     if in_worktree:
         # Worktree-compatible command with common directory mounting.
         cmd = f"""
