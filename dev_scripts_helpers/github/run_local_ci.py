@@ -20,7 +20,10 @@ import sys
 import time
 
 import helpers.hdbg as hdbg
+import helpers.hgit as hgit
 import helpers.hparser as hparser
+import helpers.hprint as hprint
+import helpers.hsystem as hsystem
 
 _LOG = logging.getLogger(__name__)
 
@@ -32,9 +35,8 @@ _LOG = logging.getLogger(__name__)
 
 def _run_command(
     cmd: str,
+    cwd: str,
     *,
-    # TODO(ai_gp): This is mandatory
-    cwd: str = "",
     log_file: str = "",
 ) -> int:
     """
@@ -45,13 +47,9 @@ def _run_command(
     :param log_file: File to append output to (if provided)
     :return: Exit code from command
     """
-    _LOG.debug("Running command: '%s' in dir='%s'", cmd, cwd or "current")
-    # TODO(ai_gp): Pass a 
+    _LOG.debug("Running command: '%s' in dir='%s'", cmd, cwd)
     # Build full command with environment setup.
-    if cwd:
-        full_cmd = f"cd {cwd} && source setenv.sh && {cmd}"
-    else:
-        full_cmd = f"source setenv.sh && {cmd}"
+    full_cmd = f"cd {cwd} && source setenv.sh && {cmd}"
     # Run command and capture output.
     try:
         if log_file:
@@ -63,18 +61,20 @@ def _run_command(
                 result = subprocess.run(
                     full_cmd,
                     shell=True,
-                    cwd=cwd or None,
+                    cwd=cwd,
                     stdout=f,
                     stderr=subprocess.STDOUT,
                     text=True,
+                    timeout=3600,
                 )
         else:
             result = subprocess.run(
                 full_cmd,
                 shell=True,
-                cwd=cwd or None,
+                cwd=cwd,
                 capture_output=False,
                 text=True,
+                timeout=3600,
             )
         return result.returncode
     except Exception as e:
@@ -82,7 +82,8 @@ def _run_command(
         return 1
 
 
-def _check_at_master(target_dir: str) -> None:
+# TODO(ai_gp): Inline this.
+def _check_at_master(target_dir: str) -> bool:
     """
     Check if repository is at master branch.
 
@@ -90,22 +91,11 @@ def _check_at_master(target_dir: str) -> None:
     :return: True if at master branch, False otherwise
     """
     _LOG.debug("Checking if '%s' is at master branch", target_dir)
-    # TODO(ai_gp): Use hsystem.system
-    result = subprocess.run(
-        "git rev-parse --abbrev-ref HEAD",
-        shell=True,
-        cwd=target_dir,
-        capture_output=True,
-        text=True,
-    )
-    branch = result.stdout.strip()
-    is_master = branch == "master"
-    # TODO(ai_gp): hdbg.dassert
-    if not is_master:
-        _LOG.warning("Not at master branch: current branch='%s'", branch)
+    branch = hgit.get_branch_name(target_dir)
+    hdbg.dassert_eq(branch, "master")
 
 
-# TODO(ai_gp): There is a function in hgit
+# TODO(ai_gp): Inline this.
 def _check_clean_working_dir(target_dir: str) -> bool:
     """
     Check if git working directory is clean.
@@ -114,21 +104,7 @@ def _check_clean_working_dir(target_dir: str) -> bool:
     :return: True if working directory is clean, False otherwise
     """
     _LOG.debug("Checking if '%s' has clean working directory", target_dir)
-    try:
-        result = subprocess.run(
-            "git status --porcelain",
-            shell=True,
-            cwd=target_dir,
-            capture_output=True,
-            text=True,
-        )
-        is_clean = result.stdout.strip() == ""
-        if not is_clean:
-            _LOG.warning("Working directory not clean. Status:\n%s", result.stdout)
-        return is_clean
-    except Exception as e:
-        _LOG.error("Error checking working directory: %s", str(e))
-        return False
+    hbg.dassert(hgit.is_client_clean(target_dir))
 
 
 def _run_git_clean(target_dir: str, log_file: str) -> bool:
@@ -258,9 +234,10 @@ def _run_all_ci() -> bool:
 
     :return: True if all targets succeeded, False otherwise
     """
-    _LOG.info("Starting full CI run for all targets")
+    _LOG.info("Starting full CI run for all targets: %s", TARGET_DIRS)
     all_passed = True
     for target_dir in TARGET_DIRS:
+        _LOG.info("%s", hprint.frame(f"target='{target_dir}'"))
         success = _run_ci_for_target(target_dir)
         if not success:
             all_passed = False
