@@ -764,17 +764,19 @@ class Test_ColorTransformer(hunitest.TestCase):
 # #############################################################################
 
 
+# TODO(ai_gp): -> Test_colorized_math
 class Test_ChainRuleTheorem(hunitest.TestCase):
     """
     Test the AST transformation with real-world mathematical content:
     Chain Rule for Joint Distributions theorem with LaTeX colors.
     """
 
+    # TODO(ai_gp): -> test1
     @pytest.mark.skipif(
         shutil.which("pandoc") is None, reason="pandoc is not installed"
     )
     def test_theorem_with_colored_math(self) -> None:
-        """
+        r"""
         Test AST transformation of Chain Rule theorem with colored LaTeX.
 
         Input: Markdown with theorem statement, proof, and colored math
@@ -831,17 +833,14 @@ class Test_ChainRuleTheorem(hunitest.TestCase):
         scratch_dir = self.get_scratch_space()
         outcome = {}
         outcome["1. markdown_input"] = markdown_input
-
         # Convert markdown to AST.
         ast, _, _ = dshdtpatt.convert_markdown_to_pandoc_ast(
             markdown_input, scratch_dir
         )
         outcome["2. ast_generated"] = "AST generated successfully"
-
         # Transform AST: apply color transformation.
         transformed_ast = dshdtpatt._transform_ast_color_text(ast)
         outcome["3. color_transform_applied"] = "Color transformation applied"
-
         # Convert transformed AST to typst.
         transformed_ast_file = os.path.join(scratch_dir, "transformed_ast.json")
         ast_str = dshdtpatt.ast_to_str(transformed_ast)
@@ -851,12 +850,12 @@ class Test_ChainRuleTheorem(hunitest.TestCase):
         )
         outcome["4. typst_output_length"] = f"{len(typst_output)} characters"
         outcome["5. typst_output_preview"] = typst_output[:500] + "..."
-
         actual_outcome = outcome_to_str(outcome)
         self.check_string(actual_outcome)
 
+    # TODO(ai_gp): -> test2
     def test_colored_math_in_display_equation(self) -> None:
-        """
+        r"""
         Test color transformation in display math environment.
 
         Verifies that \textcolor commands in $$ ... $$ equations are
@@ -874,6 +873,7 @@ class Test_ChainRuleTheorem(hunitest.TestCase):
         self.assertIn("red", result)
         self.assertNotIn(r"\textcolor", result)
         self.assertIn("#text(fill:", result)
+        # TODO(ai_gp): Add an expected and assert_equal
 
     def test_multiple_colors_in_formula(self) -> None:
         """
@@ -895,28 +895,15 @@ class Test_ChainRuleTheorem(hunitest.TestCase):
             self.assertIn(color, result)
         # Verify all \textcolor removed.
         self.assertNotIn(r"\textcolor", result)
+        # TODO(ai_gp): Add an expected and assert_equal
 
+    # TODO(ai_gp): Move this to test_notes_to_pdf.py end-to-end tests.
     @pytest.mark.skipif(
         shutil.which("pandoc") is None, reason="pandoc is not installed"
     )
     def test_no_pandoc_warnings_for_matrix_and_integral(self) -> None:
         r"""
         Regression test for the reported bug.
-
-        Previously the color-transformed `\textcolor{...}{...}` -> `#text(fill:
-        ...)[...]` substitution was injected into the Math node's string
-        while the node stayed tagged `Math`. `pandoc -f json -t typst`
-        re-parses `Math` node content as LaTeX (via texmath), so it choked
-        on the injected `#`:
-          "Could not convert TeX math ...: unexpected '#'"
-        and (with `fail_on_warnings`) failed the whole conversion.
-
-        Colored matrix cells and colored integral bounds (nested
-        `\begin{pmatrix}`/`\int_{}^{}` braces) are exactly the constructs
-        from the original bug report. This exercises the real `pandoc`
-        binary (not just the AST-transform in isolation) to confirm no
-        warnings are emitted and the color styling survives into the
-        output.
         """
         markdown_input = hprint.dedent(
             r"""
@@ -930,6 +917,7 @@ class Test_ChainRuleTheorem(hunitest.TestCase):
             Integral: $\int_{\textcolor{red}{a}}^{\textcolor{blue}{b}} f(x) \, dx$
             """
         )
+        # TODO(ai_gp): Use system
         proc = subprocess.run(
             ["pandoc", "-f", "markdown", "-t", "json"],
             input=markdown_input,
@@ -950,3 +938,166 @@ class Test_ChainRuleTheorem(hunitest.TestCase):
         self.assertNotIn("Could not convert TeX math", proc2.stdout)
         self.assertIn("#text(fill: red)", proc2.stdout)
         self.assertIn("#text(fill: blue)", proc2.stdout)
+        # TODO(ai_gp): Add a check_string
+
+
+# TODO(ai_gp): Move this to test_notes_to_pdf.py end-to-end tests.
+class Test_tilde_in_inline_code(hunitest.TestCase):
+    """
+    Test that tilde (~) character is preserved in inline code blocks
+    when rendering with typst engine.
+
+    This is a regression test for a bug where tildes in inline code
+    (`default ~ credit_limit + credit_score + account_age`) were not
+    showing up in the final typst output.
+    """
+
+    @pytest.mark.skipif(
+        shutil.which("pandoc") is None, reason="pandoc is not installed"
+    )
+    def test1(self) -> None:
+        """
+        Test that tilde is preserved in inline code through AST pipeline.
+        """
+        # Prepare inputs.
+        markdown_input = hprint.dedent(
+            """
+            # Test Tilde
+
+            - _Example_: `default ~ credit_limit + credit_score + account_age`
+            """
+        )
+        # Prepare outputs.
+        expected_typst = "`default ~ credit_limit + credit_score + account_age`"
+        # Run test: Step 1 - markdown to JSON AST.
+        proc1 = subprocess.run(
+            ["pandoc", "-f", "markdown", "-t", "json"],
+            input=markdown_input,
+            capture_output=True,
+            text=True,
+            check=True,
+        )
+        ast = json.loads(proc1.stdout)
+        # Run test: Step 2 - transform AST (divved fence transformation).
+        transformed_ast = dshdtpatt._transform_ast_divved_fence(ast)
+        # Run test: Step 3 - JSON AST to typst.
+        proc2 = subprocess.run(
+            ["pandoc", "-f", "json", "-t", "typst"],
+            input=json.dumps(transformed_ast),
+            capture_output=True,
+            text=True,
+            check=True,
+        )
+        # Check outputs.
+        typst_output = proc2.stdout
+        self.assertIn(expected_typst, typst_output)
+
+    @pytest.mark.skipif(
+        shutil.which("pandoc") is None, reason="pandoc is not installed"
+    )
+    def test2(self) -> None:
+        """
+        Test that tilde is preserved with color transformation applied.
+        """
+        # Prepare inputs.
+        markdown_input = hprint.dedent(
+            """
+            Code with tilde: `a ~ b ~ c`
+            """
+        )
+        # Prepare outputs.
+        expected_typst = "`a ~ b ~ c`"
+        # Run test: Step 1 - markdown to JSON AST.
+        proc1 = subprocess.run(
+            ["pandoc", "-f", "markdown", "-t", "json"],
+            input=markdown_input,
+            capture_output=True,
+            text=True,
+            check=True,
+        )
+        ast = json.loads(proc1.stdout)
+        # Run test: Step 2 - apply both transformations.
+        ast = dshdtpatt._transform_ast_divved_fence(ast)
+        ast = dshdtpatt._transform_ast_color_text(ast)
+        # Run test: Step 3 - JSON AST to typst.
+        proc2 = subprocess.run(
+            ["pandoc", "-f", "json", "-t", "typst"],
+            input=json.dumps(ast),
+            capture_output=True,
+            text=True,
+            check=True,
+        )
+        # Check outputs.
+        typst_output = proc2.stdout
+        self.assertIn(expected_typst, typst_output)
+
+    @pytest.mark.skipif(
+        shutil.which("pandoc") is None or shutil.which("typst") is None,
+        reason="pandoc or typst is not installed",
+    )
+    def test3(self) -> None:
+        """
+        End-to-end test: tilde in inline code compiles successfully with typst.
+
+        Verifies the full pipeline: markdown -> AST -> typst -> PDF with tilde
+        preserved (without template to avoid path resolution issues).
+        """
+        # Prepare inputs.
+        markdown_input = hprint.dedent(
+            """
+            # Slide
+
+            Model: `y ~ x1 + x2 + x3`
+            """
+        )
+        # Prepare inputs: get scratch directory.
+        scratch_dir = self.get_scratch_space()
+        # Prepare outputs.
+        typst_file = os.path.join(scratch_dir, "test.typ")
+        pdf_file = os.path.join(scratch_dir, "test.pdf")
+        # Run test: Step 1 - markdown to JSON AST.
+        proc1 = subprocess.run(
+            ["pandoc", "-f", "markdown", "-t", "json"],
+            input=markdown_input,
+            capture_output=True,
+            text=True,
+            check=True,
+        )
+        ast = json.loads(proc1.stdout)
+        # Run test: Step 2 - apply transformations.
+        ast = dshdtpatt._transform_ast_divved_fence(ast)
+        ast = dshdtpatt._transform_ast_color_text(ast)
+        # Run test: Step 3 - JSON AST to typst (without template).
+        proc2 = subprocess.run(
+            ["pandoc", "-f", "json", "-t", "typst"],
+            input=json.dumps(ast),
+            capture_output=True,
+            text=True,
+        )
+        # Check that pandoc succeeded.
+        self.assertEqual(
+            proc2.returncode,
+            0,
+            f"pandoc failed: {proc2.stderr}",
+        )
+        typst_content = proc2.stdout
+        # Run test: Step 4 - verify tilde is in typst content.
+        self.assertIn("`y ~ x1 + x2 + x3`", typst_content)
+        # Run test: Step 5 - compile typst to PDF.
+        hio.to_file(typst_file, typst_content)
+        proc3 = subprocess.run(
+            ["typst", "compile", typst_file, pdf_file],
+            capture_output=True,
+            text=True,
+        )
+        # Check that typst compilation succeeded.
+        self.assertEqual(
+            proc3.returncode,
+            0,
+            f"typst compile failed: {proc3.stderr}",
+        )
+        # Check outputs: verify PDF was created.
+        self.assertTrue(
+            os.path.exists(pdf_file),
+            f"PDF file not created: {pdf_file}",
+        )
