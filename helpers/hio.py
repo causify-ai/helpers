@@ -883,7 +883,7 @@ def load_df_from_json(path_to_json: str) -> "pd.DataFrame":  # noqa: F821  # typ
 
 def _find_git_root(path: str = ".") -> str:
     """
-    Find recursively the dir of the outermost super module.
+    Find recursively the dir of the current Git working directory.
 
     This function traverses the directory hierarchy upward from a specified
     starting path to find the root directory of a Git repository.
@@ -891,11 +891,15 @@ def _find_git_root(path: str = ".") -> str:
     - standard git repository: where a `.git` directory exists at the root
     - submodule: where repository is nested inside another, and the `.git` file contains
       a `gitdir:` reference to the submodule's actual Git directory
+    - git worktree: where the `.git` file points to the main repo's worktree directory
     - linked repositories: where the `.git` file points to a custom Git directory
-      location, such as in Git worktrees or relocated `.git` directories
+      location, such as relocated `.git` directories
+
+    For worktrees, returns the worktree root (where the `.git` file is located),
+    not the main repository root.
 
     :param path: starting file system path. Defaults to the current directory (".")
-    :return: absolute path to the top-level Git repository directory
+    :return: absolute path to the Git working directory root
     """
     path = os.path.abspath(path)
     git_root_dir = None
@@ -907,7 +911,7 @@ def _find_git_root(path: str = ".") -> str:
             # Found the Git root directory.
             git_root_dir = path
             break
-        # Check if `.git` is a file which indicates submodules or linked setups.
+        # Check if `.git` is a file which indicates submodules, worktrees, or linked setups.
         if os.path.isfile(git_dir):
             # Using the `open()` to avoid import cycles with the `hio` module.
             with open(git_dir, "r") as f:
@@ -915,7 +919,8 @@ def _find_git_root(path: str = ".") -> str:
             lines = txt.split("\n")
             for line in lines:
                 # Look for a `gitdir:` line that specifies the linked directory.
-                # Example: `gitdir: ../.git/modules/helpers_root`.
+                # Example: `gitdir: ../.git/modules/helpers_root` (submodule)
+                # Example: `gitdir: /path/to/repo/.git/worktrees/branch_name` (worktree)
                 if line.startswith("gitdir:"):
                     git_dir_path = line.split(":", 1)[1].strip()
                     _LOG.debug("git_dir_path=%s", git_dir_path)
@@ -923,23 +928,33 @@ def _find_git_root(path: str = ".") -> str:
                     abs_git_dir = os.path.abspath(
                         os.path.join(path, git_dir_path)
                     )
-                    # Traverse up to find the top-level `.git` directory.
-                    while True:
-                        # Check if the current directory is a `.git` directory.
-                        if os.path.basename(abs_git_dir) == ".git":
-                            git_root_dir = os.path.dirname(abs_git_dir)
-                            # Found the root.
-                            break
-                        # Move one level up in the directory structure.
-                        parent = os.path.dirname(abs_git_dir)
-                        # Reached the filesystem root without finding the `.git` directory.
-                        hdbg.dassert_ne(
-                            parent,
-                            abs_git_dir,
-                            "Top-level .git directory not found.",
-                        )
-                        # Continue traversing up.
-                        abs_git_dir = parent
+                    _LOG.debug("abs_git_dir=%s", abs_git_dir)
+
+                    # Check if this is a worktree by looking for "worktrees" in the path.
+                    is_worktree = "worktrees" in abs_git_dir
+                    _LOG.debug("is_worktree=%s", is_worktree)
+
+                    if is_worktree:
+                        # For worktrees, return the worktree root (where .git file is).
+                        git_root_dir = path
+                    else:
+                        # For submodules or linked repos, traverse up to find the root.
+                        while True:
+                            # Check if the current directory is a `.git` directory.
+                            if os.path.basename(abs_git_dir) == ".git":
+                                git_root_dir = os.path.dirname(abs_git_dir)
+                                # Found the root.
+                                break
+                            # Move one level up in the directory structure.
+                            parent = os.path.dirname(abs_git_dir)
+                            # Reached the filesystem root without finding the `.git` directory.
+                            hdbg.dassert_ne(
+                                parent,
+                                abs_git_dir,
+                                "Top-level .git directory not found.",
+                            )
+                            # Continue traversing up.
+                            abs_git_dir = parent
                     break
         # Exit the loop if the Git root directory is found.
         if git_root_dir is not None:
@@ -958,6 +973,50 @@ def _find_git_root(path: str = ".") -> str:
 
 
 # End copy.
+
+
+def is_git_worktree(path: str = ".") -> bool:
+    """
+    Check if the given path is within a git worktree.
+
+    :param path: starting file system path. Defaults to the current directory (".")
+    :return: True if path is within a git worktree, False otherwise
+    """
+    path = os.path.abspath(path)
+    git_dir = os.path.join(path, ".git")
+
+    # If .git is a file (not directory), check if it's a worktree
+    if os.path.isfile(git_dir):
+        try:
+            with open(git_dir, "r") as f:
+                txt = f.read()
+            return "worktrees" in txt
+        except OSError:
+            return False
+
+    # If .git is a directory, traverse up to find the root
+    current = path
+    while True:
+        git_dir = os.path.join(current, ".git")
+        if os.path.isfile(git_dir):
+            try:
+                with open(git_dir, "r") as f:
+                    txt = f.read()
+                if "worktrees" in txt:
+                    return True
+            except OSError:
+                pass
+        elif os.path.isdir(git_dir):
+            # Reached a standard repo root (directory .git), not a worktree
+            return False
+
+        parent = os.path.dirname(current)
+        if parent == current:
+            # Reached filesystem root
+            break
+        current = parent
+
+    return False
 
 
 def safe_rm_file(dir_path: str) -> None:

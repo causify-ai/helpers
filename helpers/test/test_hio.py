@@ -3,6 +3,7 @@ import os
 
 import numpy as np
 import pandas as pd
+import pytest
 
 import helpers.hgit as hgit
 import helpers.hio as hio
@@ -148,6 +149,8 @@ class Test_load_df_from_json(hunitest.TestCase):
 
 
 class Test_safe_rm_file(hunitest.TestCase):
+
+    # TODO(ai_gp): Rename test1
     def test_successful_removal_within_git_client(self) -> None:
         """
         Test successful removal of directory within Git client.
@@ -223,3 +226,33 @@ class Test_safe_rm_file(hunitest.TestCase):
         with self.assertRaises(AssertionError) as cm:
             hio.safe_rm_file(outside_dir)
         self.assertIn("is not within Git client root", str(cm.exception))
+
+    @pytest.mark.requires_git_worktree
+    def test_safe_rm_file_in_git_worktree(self) -> None:
+        """
+        Test that safe_rm_file works correctly when invoked from a git worktree.
+
+        This test only runs when executed from within a git worktree.
+        It verifies that:
+        1. Directories within the worktree can be safely removed
+        2. The worktree root is correctly identified as the boundary
+        3. The function works as expected in a worktree environment
+        """
+        # Verify we're actually in a worktree.
+        self.assertTrue(
+            hio.is_git_worktree(),
+            "Test should only run in a git worktree environment",
+        )
+        # Prepare inputs: create a test directory within the worktree.
+        scratch_dir = self.get_scratch_space()
+        test_dir = os.path.join(scratch_dir, "worktree_test_dir")
+        os.makedirs(test_dir)
+        # Create a test file in the directory.
+        test_file = os.path.join(test_dir, "test_file.txt")
+        hio.to_file(test_file, "test content from worktree")
+        # Verify directory exists before removal.
+        self.assertTrue(os.path.exists(test_dir))
+        # Run test: delete the directory.
+        hio.safe_rm_file(test_dir)
+        # Check output: directory should be deleted.
+        self.assertFalse(os.path.exists(test_dir))
