@@ -99,8 +99,8 @@ def create_parser(docstring: str) -> argparse.ArgumentParser:
     )
     parser.add_argument(
         "--index",
-        type=int,
-        help="Index of the client (e.g., 1, 2, 3)",
+        type=str,
+        help="Index or identifier of the client (e.g., 1, 2, 3, or worktree_1325)",
         required=False,
     )
     parser.add_argument(
@@ -269,8 +269,7 @@ def create_tmux_session(
         sys.exit(0)
     #
     hdbg.dassert_is_not(args.index, None, "Need to specify --index")
-    idx = int(args.index)
-    tmux_name = f"{dir_suffix}{idx}"
+    tmux_name = f"{dir_suffix}{args.index}"
     _LOG.info("tmux_name=%s", tmux_name)
     #
     _LOG.debug("Checking if the tmux session '%s' already exists", tmux_name)

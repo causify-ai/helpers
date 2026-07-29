@@ -158,11 +158,16 @@ def _print_usage_instructions(worktree_path: str, issue_id: int) -> None:
     :param worktree_path: Path to the created worktree
     :param issue_id: GitHub issue number
     """
+    # Extract worktree suffix (e.g., "1_worktree_1325" from "helpers1_worktree_1325").
+    worktree_dir = os.path.basename(worktree_path)
+    # TODO(ai_gp): We should get the basename of the repo from the config.
+    # Strip "helpers" prefix from repo name to get suffix.
+    worktree_suffix = worktree_dir.replace("helpers", "", 1) if worktree_dir.startswith("helpers") else worktree_dir
     msg = f"""
     Worktree created successfully!
 
     To open tmux session:
-    > cd {worktree_path}; dev_scripts_helpers/thin_client/tmux.py --index {issue_id}
+    > cd {worktree_path}; dev_scripts_helpers/thin_client/tmux.py --index {worktree_suffix}
     """
     msg = hprint.dedent(msg)
     msg = hprint.color_highlight(msg, "green")
