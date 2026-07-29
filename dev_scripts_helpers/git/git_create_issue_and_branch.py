@@ -48,6 +48,7 @@ def _get_issue_body(body_text: str, body_file: str) -> str:
     """
     if body_file:
         hdbg.dassert_file_exists(body_file, "Issue body file does not exist")
+        # TODO(ai_gp): Use hio.from_file.
         with open(body_file, "r") as f:
             body = f.read()
         _LOG.info("Loaded issue body from file '%s'", body_file)
