@@ -8,8 +8,20 @@ import functools
 import logging
 import os
 import pprint
+import re
 import sys
-from typing import Any, Dict, Iterable, List, Optional, Set, Tuple, Type, Union
+from typing import (
+    Any,
+    Dict,
+    Iterable,
+    List,
+    Optional,
+    Set,
+    Tuple,
+    Type,
+    Union,
+    cast,
+)
 
 # This module can depend only on:
 # - Python standard modules
@@ -29,11 +41,7 @@ WARNING = "\033[33mWARNING\033[0m"
 ERROR = "\033[31mERROR\033[0m"
 
 
-# #############################################################################
-# dfatal.
-# #############################################################################
-
-# Copied from printing.py to avoid cyclical dependencies.
+# Copied from hdbg/hprint.py to avoid cyclical dependencies.
 
 
 def _line(chars: str = "#", num_cols: int = 80) -> str:
@@ -57,6 +65,11 @@ def _frame(x: str, chars: str = "#", num_cols: int = 80) -> str:
 
 
 # End of copy.
+
+
+# #############################################################################
+# dfatal.
+# #############################################################################
 
 
 def dfatal(message: str, assertion_type: Optional[Any] = None) -> None:
@@ -337,6 +350,33 @@ def dassert_is_not(
     if not cond:
         txt = f"'{val1}' is not '{val2}'"
         _dfatal(txt, msg, *args, only_warning=only_warning)
+
+
+def dassert_re_match(
+    val: Optional[re.Match[str]],
+    msg: Optional[str] = None,
+    *args: Any,
+    only_warning: bool = False,
+) -> re.Match:
+    r"""
+    Check that a regex is a match and cast to the proper type to avoid a
+    linting error.
+
+    - E.g.,
+      ```
+      import re
+      match = re.match(r"Created issue #(\d+)", output)
+      match = hdbg.dassert_re_match(match,
+          "Could not extract issue ID from output: %s", output")
+      issue_id = int(match.group(1))
+      ```
+    """
+    cond = val is not None
+    if not cond:
+        txt = f"'{val}' is not re.Match"
+        _dfatal(txt, msg, *args, only_warning=only_warning)
+    ret = cast(re.Match, val)
+    return ret
 
 
 def dassert_type_is(
@@ -813,7 +853,7 @@ def dassert_file_exists(
     Assert unless `file_name` exists and it's a file and not a directory.
     """
     dassert_isinstance(file_name, str)
-    dassert_ne(file_name, "")
+    dassert_ne(file_name, "", "Empty file_name='%s'", file_name)
     file_name = os.path.abspath(file_name)
     # `file_name` exists.
     exists = os.path.exists(file_name)
@@ -981,10 +1021,10 @@ def get_command_line() -> str:
 # #############################################################################
 
 
-# TODO(gp): Move this to helpers/hlogging.py and change all the callers.
+# TODO(ai_gp): Move this to helpers/hlogging.py and change all the callers.
 
 
-# TODO(gp): maybe replace "force_verbose_format" and "force_print_format" with
+# TODO(ai_gp): maybe replace "force_verbose_format" and "force_print_format" with
 #  a "mode" in ("auto", "verbose", "print")
 def init_logger(
     verbosity: Union[int, str] = logging.INFO,
