@@ -274,7 +274,7 @@ class Test_colorize_backticks_typst(hunitest.TestCase):
         # Prepare inputs.
         txt_in = "The `store` variable is used."
         # Prepare outputs.
-        # Wrapped in backticks with {=typst} so pandoc treats as raw typst code
+        # Wrapped in backticks with {=typst} so pandoc treats as raw typst code.
         expected = "The `#text(fill: blue)[store]`{=typst} variable is used."
         # Run test.
         self.helper(txt_in, expected)
@@ -491,9 +491,6 @@ class Test_colorize_backticks_integration(hunitest.TestCase):
 
 
 class Test_colorize_backticks_typst_integration(hunitest.TestCase):
-    """
-    Test backtick colorization with Typst format in the full preprocessing pipeline.
-    """
 
     def helper(self, txt_in_str: str, type_: str, expected_str: str) -> None:
         """
