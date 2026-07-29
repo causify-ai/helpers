@@ -10,7 +10,7 @@ import os
 import pprint
 import re
 import sys
-from typing import Any, Dict, Iterable, List, Optional, Set, Tuple, Type, Union
+from typing import Any, Dict, Iterable, List, Optional, Set, Tuple, Type, Union, cast
 
 # This module can depend only on:
 # - Python standard modules
