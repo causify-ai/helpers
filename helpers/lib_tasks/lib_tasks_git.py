@@ -695,7 +695,7 @@ def git_branch_create(  # type: ignore
             _LOG.warning("Failed to create PR: %s", e)
 
 
-# TODO(gp): @all Move to hgit.
+# TODO(ai_gp): @all Move to hgit.
 def _delete_branches(ctx: Any, tag: str, confirm_delete: bool) -> None:
     """
     Delete branches that have been merged into master.
