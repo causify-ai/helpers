@@ -102,8 +102,7 @@ class Test_replace_latex_py(hunitest.TestCase):
     End-to-end tests for the `replace_latex.py` executable.
     """
 
-    # TODO(ai_gp): Rename helper
-    def _run_main(self, argv: List[str]) -> List:
+    def _run_replace_latex_main(self, argv: List[str]) -> List:
         """
         Run `dshdrela._main()` with a mocked `sys.argv` and capture system
         calls.
@@ -118,8 +117,20 @@ class Test_replace_latex_py(hunitest.TestCase):
                 dshdrela._main(parser)
         return sys_calls
 
-    # TODO(ai_gp): Factor out common code in the helper using
-    # /coding.factor_common_code.
+    # TODO(ai_gp): Rename helper
+    def _assert_sys_calls_match(
+        self, argv: List[str], expected_str: str
+    ) -> None:
+        """
+        Helper to run replace_latex with given argv and assert system calls.
+
+        :param argv: command-line argument list
+        :param expected_str: expected string representation of system calls
+        """
+        actual = self._run_replace_latex_main(argv)
+        expected_str = hprint.dedent(expected_str)
+        hunteuti.assert_sys_calls(self, actual, expected_str)
+
     def test1(self) -> None:
         """
         Test `checkout` action runs `git checkout`.
@@ -143,20 +154,8 @@ class Test_replace_latex_py(hunitest.TestCase):
         'kwargs': {},
         },
         ]"""
-        # Run test.
-        actual = self._run_main(argv)
-        # Check outputs.
-        expected_str = hprint.dedent(expected_str)
-        hunteuti.assert_sys_calls(
-            self,
-            actual,
-            expected_str,
-            # TODO(ai_gp): Can we remove these 3 parameters without changing
-            # the test?
-            dedent=True,
-            purify_text=True,
-            purify_expected_text=True,
-        )
+        # Run test and check outputs.
+        self._assert_sys_calls_match(argv, expected_str)
 
     def test2(self) -> None:
         """
@@ -189,20 +188,8 @@ class Test_replace_latex_py(hunitest.TestCase):
         'kwargs': {},
         },
         ]"""
-        # Run test.
-        actual = self._run_main(argv)
-        # Check outputs.
-        expected_str = hprint.dedent(expected_str)
-        hunteuti.assert_sys_calls(
-            self,
-            actual,
-            expected_str,
-            # TODO(ai_gp): Can we remove these three parameters without
-            # changing the test?
-            dedent=True,
-            purify_text=True,
-            purify_expected_text=True,
-        )
+        # Run test and check outputs.
+        self._assert_sys_calls_match(argv, expected_str)
 
     def test3(self) -> None:
         """
@@ -222,7 +209,7 @@ class Test_replace_latex_py(hunitest.TestCase):
         # Prepare outputs.
         expected = "you know that Gaussian variables"
         # Run test.
-        self._run_main(argv)
+        self._run_replace_latex_main(argv)
         # Check outputs.
         actual = hio.from_file(file_path)
         self.assert_equal(actual, expected)

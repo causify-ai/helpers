@@ -1166,8 +1166,21 @@ def write_repro_script(
 # Live repro script
 # #############################################################################
 
-# TODO(ai_gp): Add explanation of who calls the following functions, when,
-# and why.
+# Live repro script functions for recording and replaying failed tests.
+#
+# These functions are called by pytest hooks (defined in `conftest.py`) to build
+# a bash script that records all failed tests during a pytest run. This allows
+# developers to quickly replay failures locally without re-running the entire
+# test suite.
+#
+# Called by:
+# - `reset_live_repro_script()`: `pytest_sessionstart` hook (`conftest.py`)
+#   - When: At the beginning of every pytest session (even with pytest-xdist)
+#   - Why: To create a fresh script ready to collect failed test commands
+#
+# - `append_failed_test_to_live_repro_script()`: `pytest_runtest_logreport` hook
+#   - When: After each test that fails
+#   - Why: To accumulate commands that can reproduce each failure for debugging
 
 # Name of the script incrementally built during a pytest run.
 LIVE_REPRO_SCRIPT_FILE_NAME = "tmp.pytest_repro.sh"

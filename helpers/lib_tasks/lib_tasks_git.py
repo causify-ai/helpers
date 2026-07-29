@@ -16,6 +16,7 @@ import tqdm
 from invoke.tasks import task
 
 import helpers.hdbg as hdbg
+import helpers.hstring as hstring
 import helpers.hsystem as hsystem
 
 # We want to minimize the dependencies from non-standard Python packages since
@@ -719,9 +720,9 @@ def _delete_branches(ctx: Any, tag: str, confirm_delete: bool) -> None:
         delete_cmd = "git push origin --delete"
     else:
         raise ValueError(f"Invalid tag='{tag}'")
-    # TODO(gp): Use system_to_lines
+    # TODO(ai_gp): Use system_to_lines
     _, txt = hsystem.system_to_string(find_cmd, abort_on_error=False)
-    branches = hsystem.text_to_list(txt)
+    branches = hstring.text_to_list(txt)
     # Print info.
     _LOG.info(
         "There are %d %s branches to delete:\n%s",

@@ -148,7 +148,7 @@ def _system(
 
     To print the command and see the output call this as:
     ```
-    _system(cmd, suppress_output=False, log_level="echo")
+    _system(cmd, suppress_output=False, log_level="PRINT")
     ```
 
     See `system()` for options.
@@ -188,12 +188,11 @@ def _system(
     if wrapper:
         cmd = wrapper + " && " + cmd
     # Handle `log_level`.
-    # TODO(ai_gp): Rename "echo" -> "PRINT" and "echo_frame" -> "PRINT_FRAME"
     if isinstance(log_level, str):
-        hdbg.dassert_in(log_level, ("echo", "echo_frame"))
-        if log_level == "echo_frame":
+        hdbg.dassert_in(log_level, ("PRINT", "PRINT_FRAME"))
+        if log_level == "PRINT_FRAME":
             print(hprint.frame("> %s", hprint.color_highlight(cmd, "green")))
-        elif log_level == "echo":
+        elif log_level == "PRINT":
             print("> %s", hprint.color_highlight(cmd, "green"))
         else:
             raise ValueError(f"Invalid log_level='{log_level}'")
@@ -415,16 +414,6 @@ def get_first_line(output: str) -> str:
     output = output_as_arr[0]
     output = output.rstrip().lstrip()
     return output
-
-
-# TODO(ai_gp): Move it to `helpers/printing.py`
-def text_to_list(txt: str) -> List[str]:
-    """
-    Convert a string (e.g., from system_to_string) into a list of lines.
-    """
-    res = [line.rstrip().lstrip() for line in txt.split("\n")]
-    res = [line for line in res if line != ""]
-    return res
 
 
 def system_to_one_line(cmd: str, *args: Any, **kwargs: Any) -> Tuple[int, str]:
@@ -916,105 +905,6 @@ def du(path: str, human_format: bool = False) -> Union[int, str]:
     return size
 
 
-def _compute_file_signature(file_name: str, dir_depth: int) -> Optional[List]:
-    """
-    Compute a signature for files using basename and `dir_depth` enclosing
-    dirs.
-
-    :return: tuple of extracted enclosing dirs
-        - E.g., `("core", "dataflow_model", "utils.py")`
-    """
-    # Split a file like:
-    # /app/amp/core/test/TestCheckSameConfigs.test_check_same_configs_error/output/test.txt
-    # into
-    # ['', 'app', 'amp', 'core', 'test',
-    #   'TestCheckSameConfigs.test_check_same_configs_error', 'output', 'test.txt']
-    path = os.path.normpath(file_name)
-    paths = path.split(os.sep)
-    hdbg.dassert_lte(1, dir_depth)
-    if dir_depth > len(paths):
-        _LOG.warning(
-            "Can't compute signature of file_name='%s' with"
-            " dir_depth=%s, len(paths)=%s",
-            file_name,
-            dir_depth,
-            len(paths),
-        )
-        signature = None
-    else:
-        signature = paths[-(dir_depth + 1) :]
-    return signature
-
-
-# TODO(ai_gp): Move to hio.py
-def find_file_with_dir(
-    file_name: str,
-    *,
-    root_dir: str = ".",
-    dir_depth: int = -1,
-    mode: str = "return_all_results",
-    candidate_files: Optional[List[str]] = None,
-) -> List[str]:
-    """
-    Find a file matching basename and several enclosing dir name starting from
-    `root_dir`.
-
-    E.g., find a file matching `amp/core/dataflow_model/utils.py` with `dir_depth=1`
-    means looking for a file with basename 'utils.py' under a dir 'dataflow_model'.
-
-    :param dir_depth: how many enclosing dirs in order to declare a match.
-        - `-1` to use as many enclosing dirs as possible. E.g.,
-          `/app/amp/core/dataflow/utils.py` will use 3 levels, since `/app` is
-          removed
-    :param mode: control the returned list of files, like in
-        `select_result_file_from_list()`
-    :param candidate_files: list of results from the `find` command for unit test
-        mocking
-    :return: list of files found
-    """
-    _LOG.trace(hprint.func_signature_to_str())
-    # Find all the files in the dir with the same basename.
-    if candidate_files is None:
-        base_name = os.path.basename(file_name)
-        cmd = rf"find . -name '{base_name}' -not -path '*/\.git/*'"
-        # > find . -name "utils.py"
-        # ./amp/core/dataflow/utils.py
-        # ./amp/core/dataflow_model/utils.py
-        # ./amp/im/common/test/utils.py
-        mode_ = "return_all_results"
-        candidate_files = system_to_files(cmd, dir_name=root_dir, mode=mode_)
-    _LOG.trace("candidate files=\n%s", "\n".join(candidate_files))
-    #
-    if dir_depth == -1:
-        # Remove "/app" if present.
-        prefix = "/app/"
-        if file_name.startswith(prefix):
-            file_name = file_name[len(prefix) :]
-        # Remove "amp" if present.
-        prefix = "amp/"
-        if file_name.startswith(prefix):
-            file_name = file_name[len(prefix) :]
-        # Count how many dirs levels there are.
-        dir_depth = len(os.path.normpath(file_name).split("/")) - 1
-        _LOG.trace(
-            "inferred dir_depth=%s for file_name=%s", dir_depth, file_name
-        )
-    # Check the matching files.
-    matching_files = []
-    for candidate_file_name in sorted(candidate_files):
-        signature1 = _compute_file_signature(candidate_file_name, dir_depth)
-        signature2 = _compute_file_signature(file_name, dir_depth)
-        is_equal = signature1 == signature2
-        _LOG.trace("found_file=%s -> is_equal=%s", candidate_file_name, is_equal)
-        if is_equal:
-            matching_files.append(candidate_file_name)
-    _LOG.trace(
-        "Found %d files:\n%s", len(matching_files), "\n".join(matching_files)
-    )
-    # Select the result based on mode.
-    res = select_result_file_from_list(matching_files, mode, file_name)
-    _LOG.trace("-> res=%s", str(res))
-    return res
 
 
 # https://stackoverflow.com/questions/169070

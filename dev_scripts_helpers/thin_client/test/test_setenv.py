@@ -39,7 +39,7 @@ class _SetenvTestCase(hunitest.TestCase):
         # `helpers/henv.py`.
         # Get the path to the `setenv.sh` script.
         helpers_root = hgit.find_helpers_root()
-        setenv_files = hsystem.find_file_with_dir(
+        setenv_files = hio.find_file_with_dir(
             "thin_client/setenv.sh",
             root_dir=helpers_root,
             dir_depth=1,
@@ -49,7 +49,7 @@ class _SetenvTestCase(hunitest.TestCase):
         _LOG.debug("setenv_path=%s", self.setenv_path)
         # Get the path to the `thin_client_utils.sh` and `repo_config.yaml`
         # files that are used by `setenv.sh`.
-        utils_files = hsystem.find_file_with_dir(
+        utils_files = hio.find_file_with_dir(
             "thin_client/thin_client_utils.sh",
             root_dir=helpers_root,
             dir_depth=1,

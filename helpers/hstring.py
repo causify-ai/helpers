@@ -82,7 +82,7 @@ def diff_strings(
     return txt
 
 
-# TODO(gp): GFI. Move to hpython_code.py
+# TODO(ai_gp): Move to hpython_code.py
 def get_docstring_line_indices(lines: List[str]) -> List[int]:
     """
     Get indices of lines of code that are inside (doc)strings.
@@ -110,6 +110,7 @@ def get_docstring_line_indices(lines: List[str]) -> List[int]:
     return docstring_line_indices
 
 
+# TODO(ai_gp): GFI. Move to hpython_code.py
 def get_docstrings(lines: List[str]) -> List[List[int]]:
     """
     Get line indices grouped together by the docstring they belong to.
@@ -133,7 +134,7 @@ def get_docstrings(lines: List[str]) -> List[List[int]]:
     return docstrings
 
 
-# TODO(gp): GFI. Move to hpython_code.py
+# TODO(ai_gp): GFI. Move to hpython_code.py
 def get_code_block_line_indices(lines: List[str]) -> List[int]:
     """
     Get indices of lines that are inside code blocks.
@@ -188,3 +189,12 @@ def extract_version_from_file_name(file_name: str) -> Tuple[int, int]:
     version = m.groups(1)[0].split(".")  # type: ignore[arg-type, union-attr]
     major, minor = int(version[0]), 0 if len(version) == 1 else int(version[1])
     return major, minor
+
+
+def text_to_list(txt: str) -> List[str]:
+    """
+    Convert a string (e.g., from system_to_string) into a list of lines.
+    """
+    res = [line.rstrip().lstrip() for line in txt.split("\n")]
+    res = [line for line in res if line != ""]
+    return res

@@ -438,7 +438,7 @@ class TestRunNotebook3(hunitest.TestCase):
             cmd_txt,
             abort_on_error=False,
             suppress_output=False,
-            log_level="echo",
+            log_level="PRINT",
         )
         _LOG.debug("rc=%s", rc)
         # Check if notebook is published.

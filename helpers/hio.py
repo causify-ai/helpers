@@ -1044,3 +1044,108 @@ def write_file_back(
     # Write file back, if needed.
     if txt_as_str != txt_new_as_str:
         to_file(file_name, txt_new_as_str)
+
+
+# #############################################################################
+# File finding utilities.
+# #############################################################################
+
+
+def _compute_file_signature(file_name: str, dir_depth: int) -> Optional[List]:
+    """
+    Compute a signature for files using basename and `dir_depth` enclosing
+    dirs.
+
+    :return: tuple of extracted enclosing dirs
+        - E.g., `("core", "dataflow_model", "utils.py")`
+    """
+    # Split a file like:
+    # /app/amp/core/test/TestCheckSameConfigs.test_check_same_configs_error/output/test.txt
+    # into
+    # ['', 'app', 'amp', 'core', 'test',
+    #   'TestCheckSameConfigs.test_check_same_configs_error', 'output', 'test.txt']
+    path = os.path.normpath(file_name)
+    paths = path.split(os.sep)
+    hdbg.dassert_lte(1, dir_depth)
+    if dir_depth > len(paths):
+        _LOG.warning(
+            "Can't compute signature of file_name='%s' with"
+            " dir_depth=%s, len(paths)=%s",
+            file_name,
+            dir_depth,
+            len(paths),
+        )
+        signature = None
+    else:
+        signature = paths[-(dir_depth + 1) :]
+    return signature
+
+
+def find_file_with_dir(
+    file_name: str,
+    *,
+    root_dir: str = ".",
+    dir_depth: int = -1,
+    mode: str = "return_all_results",
+    candidate_files: Optional[List[str]] = None,
+) -> List[str]:
+    """
+    Find a file matching basename and several enclosing dir name starting from
+    `root_dir`.
+
+    E.g., find a file matching `amp/core/dataflow_model/utils.py` with `dir_depth=1`
+    means looking for a file with basename 'utils.py' under a dir 'dataflow_model'.
+
+    :param dir_depth: how many enclosing dirs in order to declare a match.
+        - `-1` to use as many enclosing dirs as possible. E.g.,
+          `/app/amp/core/dataflow/utils.py` will use 3 levels, since `/app` is
+          removed
+    :param mode: control the returned list of files, like in
+        `select_result_file_from_list()`
+    :param candidate_files: list of results from the `find` command for unit test
+        mocking
+    :return: list of files found
+    """
+    _LOG.trace(hprint.func_signature_to_str())
+    # Find all the files in the dir with the same basename.
+    if candidate_files is None:
+        base_name = os.path.basename(file_name)
+        cmd = rf"find . -name '{base_name}' -not -path '*/\.git/*'"
+        # > find . -name "utils.py"
+        # ./amp/core/dataflow/utils.py
+        # ./amp/core/dataflow_model/utils.py
+        # ./amp/im/common/test/utils.py
+        mode_ = "return_all_results"
+        candidate_files = hsystem.system_to_files(cmd, dir_name=root_dir, mode=mode_)
+    _LOG.trace("candidate files=\n%s", "\n".join(candidate_files))
+    #
+    if dir_depth == -1:
+        # Remove "/app" if present.
+        prefix = "/app/"
+        if file_name.startswith(prefix):
+            file_name = file_name[len(prefix) :]
+        # Remove "amp" if present.
+        prefix = "amp/"
+        if file_name.startswith(prefix):
+            file_name = file_name[len(prefix) :]
+        # Count how many dirs levels there are.
+        dir_depth = len(os.path.normpath(file_name).split("/")) - 1
+        _LOG.trace(
+            "inferred dir_depth=%s for file_name=%s", dir_depth, file_name
+        )
+    # Check the matching files.
+    matching_files = []
+    for candidate_file_name in sorted(candidate_files):
+        signature1 = _compute_file_signature(candidate_file_name, dir_depth)
+        signature2 = _compute_file_signature(file_name, dir_depth)
+        is_equal = signature1 == signature2
+        _LOG.trace("found_file=%s -> is_equal=%s", candidate_file_name, is_equal)
+        if is_equal:
+            matching_files.append(candidate_file_name)
+    _LOG.trace(
+        "Found %d files:\n%s", len(matching_files), "\n".join(matching_files)
+    )
+    # Select the result based on mode.
+    res = hsystem.select_result_file_from_list(matching_files, mode, file_name)
+    _LOG.trace("-> res=%s", str(res))
+    return res

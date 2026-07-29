@@ -38,7 +38,7 @@ class Test_Run_Notebook_TestCase(hunitest.TestCase):
         _LOG.debug("cmd=%s", cmd)
         # Execute.
         rc = hsystem.system(
-            cmd, abort_on_error=True, suppress_output=False, log_level="echo"
+            cmd, abort_on_error=True, suppress_output=False, log_level="PRINT"
         )
         _LOG.debug("rc=%s", rc)
         # Make sure that the run finishes successfully.

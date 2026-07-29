@@ -486,7 +486,7 @@ def replace_shared_root_path(
 # about the Dockerized flow.
 
 
-def get_docker_base_cmd(use_sudo: bool) -> List[str]:
+def get_docker_base_cmd(use_sudo: bool, use_root_user: bool = False) -> List[str]:
     """
     Get the base command for running a Docker container.
 
@@ -499,6 +499,8 @@ def get_docker_base_cmd(use_sudo: bool) -> List[str]:
     ```
 
     :param use_sudo: Whether to use sudo for Docker commands.
+    :param use_root_user: If True, run container as root (0:0) instead of current user.
+        Useful for nested containers that are temporary build tools.
     :return: The base command for running a Docker container.
     """
     docker_executable = get_docker_executable(use_sudo)
@@ -507,10 +509,11 @@ def get_docker_base_cmd(use_sudo: bool) -> List[str]:
     vars_to_pass = sorted(vars_to_pass)
     vars_to_pass_as_str = " ".join(f"-e {v}" for v in vars_to_pass)
     # Build the command as a list.
+    user_flag = "--user 0:0" if use_root_user else "--user $(id -u):$(id -g)"
     docker_cmd = [
         docker_executable,
         "run --rm",
-        "--user $(id -u):$(id -g)",
+        user_flag,
         vars_to_pass_as_str,
     ]
     # Handle coverage.
@@ -769,14 +772,7 @@ def build_and_run_docker_cmd(
     :param use_root_user: If True, run container as root (0:0) instead of current user.
         Useful for nested containers that are temporary build tools.
     """
-    # TODO(ai_gp): Pass use_root_user to get_docker_base_cmd instead of
-    # patching docker_cmd[2].
-    docker_cmd = get_docker_base_cmd(use_sudo)
-    # Override user flag for nested containers that need root access.
-    if use_root_user:
-        # TODO(ai_gp2): Check that docker_cmd[2] starts with --user or use a
-        # more robust approach.
-        docker_cmd[2] = "--user 0:0"
+    docker_cmd = get_docker_base_cmd(use_sudo, use_root_user=use_root_user)
     if override_entrypoint:
         # Use `/bin/bash` as the entrypoint instead of clearing it with `''`.
         # Docker supports `--entrypoint ''` to clear the entrypoint, but the
@@ -814,33 +810,6 @@ def build_and_run_docker_cmd(
 
 
 # TODO(ai_gp): Move to helpers.hdbg.
-def _dassert_valid_path(file_path: str, is_input: bool) -> None:
-    """
-    Assert that a file path is valid, based on it being input or output.
-
-    For input files, it ensures that the file or directory exists. For
-    output files, it ensures that the enclosing directory exists.
-
-    :param file_path: The file path to check.
-    :param is_input: Whether the file path is an input file.
-    """
-    if is_input:
-        # If it's an input file, then `file_path` must exist as a file or a dir.
-        hdbg.dassert_path_exists(file_path)
-    else:
-        # If it's an output, we might be writing a file that doesn't exist yet,
-        # but we assume that the including directory is already present.
-        dir_name = os.path.normpath(os.path.dirname(file_path))
-        hio.create_dir(dir_name, incremental=True)
-        hdbg.dassert(
-            os.path.exists(file_path) or os.path.exists(dir_name),
-            "Invalid path: '%s' and '%s' don't exist",
-            file_path,
-            dir_name,
-        )
-
-
-# TODO(gp): Move to helpers.hdbg.
 def _dassert_is_path_included(file_path: str, including_path: str) -> None:
     """
     Assert that a file path is included within another path.
@@ -891,7 +860,7 @@ def convert_caller_to_callee_docker_path(
     hdbg.dassert_ne(caller_mount_path, "")
     hdbg.dassert_ne(callee_mount_path, "")
     if check_if_exists:
-        _dassert_valid_path(caller_file_path, is_input)
+        hdbg.dassert_valid_path(caller_file_path, is_input)
     # Make the path absolute with respect to the (current) caller filesystem.
     abs_caller_file_path = os.path.abspath(caller_file_path)
     if is_caller_host:
