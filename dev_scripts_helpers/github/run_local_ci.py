@@ -28,7 +28,6 @@ import helpers.hdbg as hdbg
 import helpers.hgit as hgit
 import helpers.hparser as hparser
 import helpers.hprint as hprint
-import helpers.hsystem as hsystem
 
 _LOG = logging.getLogger(__name__)
 
@@ -59,10 +58,10 @@ def _run_command(
     try:
         if log_file:
             with open(log_file, "a") as f:
-                f.write(f"\n{'='*80}\n")
+                f.write(f"\n{'=' * 80}\n")
                 f.write(f"Command: {cmd}\n")
                 f.write(f"Time: {datetime.datetime.now().isoformat()}\n")
-                f.write(f"{'='*80}\n")
+                f.write(f"{'=' * 80}\n")
                 result = subprocess.run(
                     full_cmd,
                     shell=True,
@@ -124,10 +123,15 @@ def _run_pytest_multi_build(
     :param pytest_target: pytest target to run (e.g., '.', 'helpers/test/')
     :return: True if successful, False otherwise
     """
-    _LOG.info("Running 'pytest_multi_build.py' in '%s' (log_file=%s)", target_dir, log_file)
+    _LOG.info(
+        "Running 'pytest_multi_build.py' in '%s' (log_file=%s)",
+        target_dir,
+        log_file,
+    )
     if not pytest_target:
         pytest_target = "."
-    cmd = f"pytest_multi_build.py --target {pytest_target} --build_names apple dev_container"
+    # --timeout 0 so that it doesn't wait.
+    cmd = f"pytest_multi_build.py --target {pytest_target} --build_names apple dev_container --timeout 0"
     exit_code = _run_command(cmd, target_dir, log_file=log_file)
     return exit_code == 0
 
@@ -140,7 +144,11 @@ def _run_pytest_failed_multi_build(target_dir: str, log_file: str) -> bool:
     :param log_file: File to log output to
     :return: True if successful, False otherwise
     """
-    _LOG.info("Running 'pytest_failed_multi_build.py' in '%s' (log='%s')", target_dir, log_file)
+    _LOG.info(
+        "Running 'pytest_failed_multi_build.py' in '%s' (log='%s')",
+        target_dir,
+        log_file,
+    )
     exit_code = _run_command(
         "pytest_failed_multi_build.py", target_dir, log_file=log_file
     )
@@ -188,7 +196,11 @@ def _run_ci_for_target(
         _LOG.debug("Checking if '%s' is at master branch", target_dir)
         branch = hgit.get_branch_name(target_dir)
         if branch != "master":
-            _LOG.error("Target '%s' is not at master branch (current: %s)", target_dir, branch)
+            _LOG.error(
+                "Target '%s' is not at master branch (current: %s)",
+                target_dir,
+                branch,
+            )
             return False
         _LOG.info("Repository is at master branch")
     else:
@@ -218,6 +230,7 @@ def _run_ci_for_target(
     _LOG.info("Summary logged to '%s'", log_file_failed)
     _LOG.info("CI run completed for target='%s'", target_dir)
     return True
+
 
 # Target directories for regression testing.
 TARGET_DIRS = [".", "helpers"]
@@ -294,7 +307,9 @@ def _should_run_now(start_time: datetime.time) -> bool:
 
 
 def _run_daemon_mode(
-    start_time: datetime.time, pytest_target: str = "", no_master_check: bool = False
+    start_time: datetime.time,
+    pytest_target: str = "",
+    no_master_check: bool = False,
 ) -> None:
     """
     Run CI on a daily schedule at the specified start time.

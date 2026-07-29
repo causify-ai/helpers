@@ -10,7 +10,7 @@ import contextlib
 import logging
 import os
 import subprocess
-from typing import Generator, List, Optional
+from typing import Generator, List
 
 import helpers.hdbg as hdbg
 

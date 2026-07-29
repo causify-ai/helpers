@@ -65,6 +65,12 @@ def _parse() -> argparse.ArgumentParser:
         action="store_true",
         help="skip manage_cache.py --action clear_all",
     )
+    parser.add_argument(
+        "--timeout",
+        type=int,
+        default=10,
+        help="timeout in seconds for hnotify.notify (default: 10)",
+    )
     hparser.add_verbosity_arg(parser)
     return parser
 
@@ -204,5 +210,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
 
 if __name__ == "__main__":
     with htmux.window_name("pytest_multi_build"):
-        with hnotify.notify(title="pytest_multi_build"):
-            _main(_parse())
+        parser = _parse()
+        args = parser.parse_args()
+        with hnotify.notify(title="pytest_multi_build", timeout=args.timeout):
+            _main(parser)

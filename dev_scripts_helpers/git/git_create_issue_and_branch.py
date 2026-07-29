@@ -166,7 +166,9 @@ def _main(parser: argparse.ArgumentParser) -> None:
     original_branch = hgit.get_branch_name()
     try:
         # Load issue body from file or use provided text.
-        gh_issue_body = _get_issue_body(args.gh_issue_body, args.gh_issue_body_file)
+        gh_issue_body = _get_issue_body(
+            args.gh_issue_body, args.gh_issue_body_file
+        )
         _LOG.debug(
             "gh_issue_id=%s gh_issue_title=%s gh_issue_body=%s gh_issue_body_file=%s "
             "gh_assignee=%s create_worktree=%s create_pr=%s",

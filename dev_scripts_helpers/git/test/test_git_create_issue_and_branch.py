@@ -95,7 +95,8 @@ class Test_git_create_issue_and_branch_py(hunitest.TestCase):
                     return_value=("", "Created issue #1290"),
                 ):
                     with mock.patch(
-                        "helpers.hgit.get_branch_name", return_value="HelpersTask1290_Test"
+                        "helpers.hgit.get_branch_name",
+                        return_value="HelpersTask1290_Test",
                     ):
                         with mock.patch(
                             "helpers.hgit.has_submodules", return_value=False
@@ -129,7 +130,8 @@ class Test_git_create_issue_and_branch_py(hunitest.TestCase):
         with mock.patch("sys.argv", argv):
             with hunteuti.capture_sys_calls() as invocations:
                 with mock.patch(
-                    "helpers.hgit.get_branch_name", return_value="HelpersTask1290_Test"
+                    "helpers.hgit.get_branch_name",
+                    return_value="HelpersTask1290_Test",
                 ):
                     with mock.patch(
                         "helpers.hgit.has_submodules", return_value=False
@@ -164,7 +166,8 @@ class Test_git_create_issue_and_branch_py(hunitest.TestCase):
         with mock.patch("sys.argv", argv):
             with hunteuti.capture_sys_calls() as invocations:
                 with mock.patch(
-                    "helpers.hgit.get_branch_name", return_value="HelpersTask1290_Test"
+                    "helpers.hgit.get_branch_name",
+                    return_value="HelpersTask1290_Test",
                 ):
                     with mock.patch(
                         "helpers.hgit.has_submodules", return_value=False
@@ -175,9 +178,7 @@ class Test_git_create_issue_and_branch_py(hunitest.TestCase):
                             with mock.patch(
                                 "dev_scripts_helpers.git.git_create_issue_and_branch._commit_issue_files"
                             ):
-                                with mock.patch(
-                                    "builtins.print"
-                                ):
+                                with mock.patch("builtins.print"):
                                     dshggciab._main(parser)
         # Check outputs: git_branch_create and git worktree add calls.
         expected = r"""[
@@ -210,9 +211,7 @@ class Test_git_create_issue_and_branch_py(hunitest.TestCase):
         parser = dshggciab._parse()
         with mock.patch("sys.argv", argv):
             with hunteuti.capture_sys_calls() as invocations:
-                with mock.patch(
-                    "helpers.hdbg.dassert_file_exists"
-                ):
+                with mock.patch("helpers.hdbg.dassert_file_exists"):
                     with mock.patch(
                         "builtins.open",
                         mock.mock_open(read_data="Body content from file"),
@@ -222,10 +221,12 @@ class Test_git_create_issue_and_branch_py(hunitest.TestCase):
                             return_value=("", "Created issue #1291"),
                         ):
                             with mock.patch(
-                                "helpers.hgit.get_branch_name", return_value="HelpersTask1291_Test"
+                                "helpers.hgit.get_branch_name",
+                                return_value="HelpersTask1291_Test",
                             ):
                                 with mock.patch(
-                                    "helpers.hgit.has_submodules", return_value=False
+                                    "helpers.hgit.has_submodules",
+                                    return_value=False,
                                 ):
                                     with mock.patch(
                                         "dev_scripts_helpers.git.git_create_issue_and_branch._commit_issue_files"
