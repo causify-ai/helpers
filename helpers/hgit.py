@@ -497,6 +497,36 @@ def find_git_root(path: str = ".") -> str:
     return str(git_root_dir)
 
 
+def is_git_worktree(path: str = ".") -> bool:
+    """
+    Check if a path is within a Git worktree.
+
+    Uses `git rev-parse --git-dir` to detect if the path is in a worktree
+    by checking if the git directory path contains `.git/worktrees/`.
+
+    :param path: starting file system path. Defaults to the current directory (".")
+    :return: True if in a worktree, False otherwise
+    """
+    path = os.path.abspath(path)
+    try:
+        cmd = f"cd '{path}' && git rev-parse --git-dir"
+        rc, git_dir = hsystem.system_to_string(
+            cmd,
+            print_command=False,
+            abort_on_error=False,
+            suppress_output=True,
+        )
+        # If git command failed, not in a git repo.
+        if rc != 0:
+            return False
+        # Check if git directory path contains worktrees indicator.
+        git_dir = git_dir.strip()
+        return ".git/worktrees/" in git_dir
+    except Exception:
+        # On any error, assume not in a worktree.
+        return False
+
+
 # #############################################################################
 
 

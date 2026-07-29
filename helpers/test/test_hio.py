@@ -3,6 +3,7 @@ import os
 
 import numpy as np
 import pandas as pd
+import pytest
 
 import helpers.hgit as hgit
 import helpers.hio as hio
@@ -223,3 +224,54 @@ class Test_safe_rm_file(hunitest.TestCase):
         with self.assertRaises(AssertionError) as cm:
             hio.safe_rm_file(outside_dir)
         self.assertIn("is not within Git client root", str(cm.exception))
+
+
+# #############################################################################
+# Test_git_worktree_handling
+# #############################################################################
+
+
+@pytest.mark.skipif(
+    not hgit.is_git_worktree(),
+    reason="Not in a Git worktree"
+)
+class Test_git_worktree_handling(hunitest.TestCase):
+    """
+    Tests for Git worktree-specific functionality.
+
+    These tests only run when the code is in a Git worktree.
+    """
+
+    def test_is_git_worktree_returns_true(self) -> None:
+        """
+        Test that is_git_worktree() returns True when in a worktree.
+        """
+        result = hgit.is_git_worktree()
+        self.assertTrue(result)
+
+    def test_find_git_root_returns_worktree_root(self) -> None:
+        """
+        Test that find_git_root() returns worktree root, not parent repo root.
+        """
+        git_root = hgit.find_git_root()
+        # Verify it's the worktree root, not a parent directory
+        git_file = os.path.join(git_root, ".git")
+        self.assertTrue(os.path.isfile(git_file))
+        # Read the .git file and verify it's a worktree
+        git_content = hio.from_file(git_file)
+        self.assertIn(".git/worktrees/", git_content)
+
+    def test_safe_rm_file_works_in_worktree(self) -> None:
+        """
+        Test that safe_rm_file() works correctly for directories in worktree.
+        """
+        scratch_dir = self.get_scratch_space()
+        test_dir = os.path.join(scratch_dir, "test_worktree_removal")
+        os.makedirs(test_dir)
+        # Create a file in the directory
+        test_file = os.path.join(test_dir, "test.txt")
+        hio.to_file(test_file, "test")
+        # Verify directory exists and can be deleted
+        self.assertTrue(os.path.exists(test_dir))
+        hio.safe_rm_file(test_dir)
+        self.assertFalse(os.path.exists(test_dir))

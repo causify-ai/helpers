@@ -1243,3 +1243,40 @@ class Test_git_add_file(hunitest.TestCase):
         expect_added = True
         # Run test.
         self.helper(file_content, expect_added, file_layout)
+
+
+# #############################################################################
+# Test_is_git_worktree
+# #############################################################################
+
+
+class Test_is_git_worktree(hunitest.TestCase):
+    """
+    Tests for is_git_worktree() function.
+
+    Tests work in both worktree and non-worktree environments.
+    """
+
+    def test_is_git_worktree_returns_bool(self) -> None:
+        """
+        Test that is_git_worktree() returns a boolean.
+        """
+        result = hgit.is_git_worktree()
+        self.assertIsInstance(result, bool)
+
+    def test_is_git_worktree_consistency(self) -> None:
+        """
+        Test that is_git_worktree() returns consistent value.
+        """
+        result1 = hgit.is_git_worktree()
+        result2 = hgit.is_git_worktree()
+        self.assertEqual(result1, result2)
+
+    def test_is_git_worktree_with_subdirectory(self) -> None:
+        """
+        Test that is_git_worktree() returns same value for subdirectories.
+        """
+        scratch_dir = self.get_scratch_space()
+        root_result = hgit.is_git_worktree()
+        subdir_result = hgit.is_git_worktree(scratch_dir)
+        self.assertEqual(root_result, subdir_result)
