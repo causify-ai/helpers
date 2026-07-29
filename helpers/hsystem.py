@@ -826,8 +826,6 @@ def du(path: str, human_format: bool = False) -> Union[int, str]:
     return size
 
 
-
-
 # https://stackoverflow.com/questions/169070
 @contextlib.contextmanager
 def cd(dir_name: str) -> Generator[None, None, None]:

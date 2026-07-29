@@ -117,7 +117,7 @@ class Test_replace_latex_py(hunitest.TestCase):
                 dshdrela._main(parser)
         return sys_calls
 
-    # TODO(ai_gp): Rename helper
+    # TODO(ai_gp): Rename to helper.
     def _assert_sys_calls_match(
         self, argv: List[str], expected_str: str
     ) -> None:

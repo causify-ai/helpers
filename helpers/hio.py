@@ -1037,7 +1037,9 @@ def find_file_with_dir(
         # ./amp/core/dataflow_model/utils.py
         # ./amp/im/common/test/utils.py
         mode_ = "return_all_results"
-        candidate_files = hsystem.system_to_files(cmd, dir_name=root_dir, mode=mode_)
+        candidate_files = hsystem.system_to_files(
+            cmd, dir_name=root_dir, mode=mode_
+        )
     _LOG.trace("candidate files=\n%s", "\n".join(candidate_files))
     #
     if dir_depth == -1:

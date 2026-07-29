@@ -110,7 +110,7 @@ def get_docstring_line_indices(lines: List[str]) -> List[int]:
     return docstring_line_indices
 
 
-# TODO(ai_gp): GFI. Move to hpython_code.py
+# TODO(ai_gp): Move to hpython_code.py
 def get_docstrings(lines: List[str]) -> List[List[int]]:
     """
     Get line indices grouped together by the docstring they belong to.
@@ -134,7 +134,7 @@ def get_docstrings(lines: List[str]) -> List[List[int]]:
     return docstrings
 
 
-# TODO(ai_gp): GFI. Move to hpython_code.py
+# TODO(ai_gp): Move to hpython_code.py
 def get_code_block_line_indices(lines: List[str]) -> List[int]:
     """
     Get indices of lines that are inside code blocks.
