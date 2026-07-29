@@ -6,7 +6,6 @@ Import as:
 import dev_scripts_helpers.git.test.test_git_create_issue_and_branch as dsggtgiab
 """
 
-import os
 import unittest.mock as mock
 
 import helpers.hprint as hprint
@@ -96,7 +95,8 @@ class Test_git_create_issue_and_branch_py(hunitest.TestCase):
                     return_value=("", "Created issue #1290"),
                 ):
                     with mock.patch(
-                        "helpers.hgit.get_branch_name", return_value="HelpersTask1290_Test"
+                        "helpers.hgit.get_branch_name",
+                        return_value="HelpersTask1290_Test",
                     ):
                         with mock.patch(
                             "helpers.hgit.has_submodules", return_value=False
@@ -126,7 +126,8 @@ class Test_git_create_issue_and_branch_py(hunitest.TestCase):
         with mock.patch("sys.argv", argv):
             with hunteuti.capture_sys_calls() as invocations:
                 with mock.patch(
-                    "helpers.hgit.get_branch_name", return_value="HelpersTask1290_Test"
+                    "helpers.hgit.get_branch_name",
+                    return_value="HelpersTask1290_Test",
                 ):
                     with mock.patch(
                         "helpers.hgit.has_submodules", return_value=False
@@ -157,7 +158,8 @@ class Test_git_create_issue_and_branch_py(hunitest.TestCase):
         with mock.patch("sys.argv", argv):
             with hunteuti.capture_sys_calls() as invocations:
                 with mock.patch(
-                    "helpers.hgit.get_branch_name", return_value="HelpersTask1290_Test"
+                    "helpers.hgit.get_branch_name",
+                    return_value="HelpersTask1290_Test",
                 ):
                     with mock.patch(
                         "helpers.hgit.has_submodules", return_value=False
@@ -168,12 +170,8 @@ class Test_git_create_issue_and_branch_py(hunitest.TestCase):
                             with mock.patch(
                                 "dev_scripts_helpers.git.git_create_issue_and_branch._commit_issue_files"
                             ):
-                                with mock.patch(
-                                    "shutil.copy"
-                                ):
-                                    with mock.patch(
-                                        "builtins.print"
-                                    ):
+                                with mock.patch("shutil.copy"):
+                                    with mock.patch("builtins.print"):
                                         dshggciab._main(parser)
         # Check outputs.
         # TODO(ai_gp): Fill this in.

@@ -86,7 +86,11 @@ def _commit_issue_files(branch_name: str, original_branch: str) -> None:
 
 
 def _create_branch_and_pr(
-    issue_id: int, original_branch: str, *, create_pr: bool = True, gh_issue_id_provided: bool = False
+    issue_id: int,
+    original_branch: str,
+    *,
+    create_pr: bool = True,
+    gh_issue_id_provided: bool = False,
 ) -> str:
     """
     Create a git branch using invoke git_branch_create task.
@@ -101,7 +105,9 @@ def _create_branch_and_pr(
     if gh_issue_id_provided:
         title, _ = hltltagh._get_gh_issue_title(issue_id, "current")
         branch_name = title
-        _LOG.info("Issue %d corresponds to branch name '%s'", issue_id, branch_name)
+        _LOG.info(
+            "Issue %d corresponds to branch name '%s'", issue_id, branch_name
+        )
         # If issue ID was provided and branch already exists, just checkout the existing branch.
         if hgit.does_branch_exist(branch_name, mode="all"):
             _LOG.info("Branch '%s' already exists, checking it out", branch_name)
@@ -181,7 +187,9 @@ def _main(parser: argparse.ArgumentParser) -> None:
     try:
         # TODO(ai_gp): Move this out in a different function.
         # Load issue body from file or use provided text.
-        gh_issue_body = _get_issue_body(args.gh_issue_body, args.gh_issue_body_file)
+        gh_issue_body = _get_issue_body(
+            args.gh_issue_body, args.gh_issue_body_file
+        )
         _LOG.debug(
             "gh_issue_id=%s gh_issue_title=%s gh_issue_body=%s gh_issue_body_file=%s "
             "gh_assignee=%s create_worktree=%s create_pr=%s",
@@ -221,13 +229,17 @@ def _main(parser: argparse.ArgumentParser) -> None:
             _LOG.debug("Invoke output:\n%s", output)
             # Parse issue ID from output.
             match = re.search(r"Created issue #(\d+)", output)
-            match = hdbg.dassert_re_match(match, "Could not extract issue ID from output: %s",
-                         output)
+            match = hdbg.dassert_re_match(
+                match, "Could not extract issue ID from output: %s", output
+            )
             issue_id = int(match.group(1))
             _LOG.info("Created issue #%s", issue_id)
         # Create branch and PR via invoke.
         branch_name = _create_branch_and_pr(
-            issue_id, original_branch, create_pr=args.create_pr, gh_issue_id_provided=bool(args.gh_issue_id)
+            issue_id,
+            original_branch,
+            create_pr=args.create_pr,
+            gh_issue_id_provided=bool(args.gh_issue_id),
         )
         _LOG.info("Branch name: '%s'", branch_name)
         # Create worktree, if requested.
