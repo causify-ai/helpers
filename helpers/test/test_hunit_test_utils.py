@@ -703,7 +703,7 @@ class Test_get_parent_dirs(hunitest.TestCase):
 # #############################################################################
 
 
-# TODO(ai_gp): Factor out the common code.
+# TODO(ai_gp): Factor out the common code with /coding.factor_common_code
 class Test_capture_sys_calls(hunitest.TestCase):
     """
     Test system call capture functionality.
@@ -862,7 +862,6 @@ class Test_capture_sys_calls(hunitest.TestCase):
 
 
 class Test_sys_calls_to_str(hunitest.TestCase):
-
     def test1(self) -> None:
         """
         Convert single system call to string representation.
@@ -952,7 +951,6 @@ class Test_sys_calls_to_str(hunitest.TestCase):
 
 
 class Test_assert_sys_calls(hunitest.TestCase):
-
     def test1(self) -> None:
         """
         Test that assert_sys_calls passes with single system call.

@@ -8,11 +8,11 @@ secrets in the git repository. It uses the gitleaks configuration from
 dev_scripts_helpers/git/gitleaks/gitleaks-rules.toml.
 
 Examples:
-    # Run gitleaks check on staged files
-    > python dev_scripts_helpers/git/git_hooks/gitleaks.py
+# Run gitleaks check on staged files
+> dev_scripts_helpers/git/git_hooks/gitleaks.py
 
-    # Run gitleaks check without aborting on error
-    > python dev_scripts_helpers/git/git_hooks/gitleaks.py --no-abort-on-error
+# Run gitleaks check without aborting on error
+> dev_scripts_helpers/git/git_hooks/gitleaks.py --no-abort-on-error
 
 Import as:
 
@@ -37,6 +37,7 @@ def _parse() -> argparse.ArgumentParser:
         description=__doc__,
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
+    # TODO(ai_gp): Use only one.
     parser.add_argument(
         "--abort-on-error",
         action="store_true",

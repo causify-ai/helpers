@@ -21,7 +21,8 @@ _LOG = logging.getLogger(__name__)
 # valid_actions = ["download", "process", "upload", "cleanup"]
 # default_actions = ["download", "process"]
 # # Create parser and add action arguments.
-# parser = argparse.ArgumentParser(...
+# parser = argparse.ArgumentParser(
+formatter_class=argparse.RawDescriptionHelpFormatter,...
 # hparser.add_action_arg(parser, valid_actions, default_actions)
 # args = parser.parse_args()
 # # Select which actions to execute based on CLI arguments.

@@ -1166,7 +1166,8 @@ def write_repro_script(
 # Live repro script
 # #############################################################################
 
-# TODO(ai_gp): Add explanation of who calls it and when.
+# TODO(ai_gp): Add explanation of who calls the following functions, when,
+# and why.
 
 # Name of the script incrementally built during a pytest run.
 LIVE_REPRO_SCRIPT_FILE_NAME = "tmp.pytest_repro.sh"

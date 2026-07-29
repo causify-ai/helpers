@@ -203,6 +203,7 @@ def _parse() -> argparse.Namespace:
     :return: parsed arguments
     """
     parser = argparse.ArgumentParser(
+        formatter_class=argparse.RawDescriptionHelpFormatter,
         description=__doc__,
     )
     hparser.add_verbosity_arg(parser)

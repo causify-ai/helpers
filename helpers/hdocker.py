@@ -122,9 +122,7 @@ def is_docker_running() -> bool:
     """
     engine = get_docker_engine()
     if engine == "docker":
-        rc, output = hsystem.system_to_string(
-            "docker ps", abort_on_error=False
-        )
+        rc, output = hsystem.system_to_string("docker ps", abort_on_error=False)
         is_running = rc == 0 and "failed to connect" not in output
     elif engine == "apple":
         rc, output = hsystem.system_to_string(
@@ -771,12 +769,12 @@ def build_and_run_docker_cmd(
     :param use_root_user: If True, run container as root (0:0) instead of current user.
         Useful for nested containers that are temporary build tools.
     """
-    # TODO(gp): Pass use_root_user to get_docker_base_cmd instead of patching
-    # docker_cmd[2].
+    # TODO(ai_gp): Pass use_root_user to get_docker_base_cmd instead of
+    # patching docker_cmd[2].
     docker_cmd = get_docker_base_cmd(use_sudo)
     # Override user flag for nested containers that need root access.
     if use_root_user:
-        # TODO(ai_gp): Check that docker_cmd[2] starts with --user or use a
+        # TODO(ai_gp2): Check that docker_cmd[2] starts with --user or use a
         # more robust approach.
         docker_cmd[2] = "--user 0:0"
     if override_entrypoint:
@@ -791,7 +789,7 @@ def build_and_run_docker_cmd(
     # Check that the container image exists and try to pull it if it's missing.
     if not image_exists(container_image, use_sudo)[0]:
         pull_image(container_image, use_sudo)
-        # TODO(ai_gp): If it was pulled then skip building it.
+        # TODO(gp): If it was pulled then skip building it.
     hdbg.dassert(
         image_exists(container_image, use_sudo)[0],
         "Container image '%s' does not exist",
@@ -815,7 +813,7 @@ def build_and_run_docker_cmd(
     return process_docker_cmd(docker_cmd_str, container_image, dockerfile, mode)
 
 
-# TODO(gp): Move to helpers.hdbg.
+# TODO(ai_gp): Move to helpers.hdbg.
 def _dassert_valid_path(file_path: str, is_input: bool) -> None:
     """
     Assert that a file path is valid, based on it being input or output.

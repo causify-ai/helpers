@@ -410,6 +410,7 @@ def _parse() -> argparse.ArgumentParser:
     """
     _DEFAULT_OUTPUT_DIR = os.path.expanduser(os.getenv("PAPERS_DIR", "."))
     parser = argparse.ArgumentParser(
+        formatter_class=argparse.RawDescriptionHelpFormatter,
         description=__doc__,
     )
     parser.add_argument(

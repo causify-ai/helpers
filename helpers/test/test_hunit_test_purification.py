@@ -8,7 +8,7 @@ import datetime
 import logging
 import os
 import unittest.mock as umock
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional
 
 import pytest
 
@@ -63,7 +63,10 @@ class Test_purify_text1(hunitest.TestCase):
         expected = "helpers.test.test_system_interaction.py"
         self.helper(txt, expected)
 
-    # TODO(ai_gp): Factor out more code.
+    # TODO(ai_gp): Factor out more code in an helper function
+    # git_root = hgit.get_client_root(super_module=False)
+    # txt = os.path.join(git_root, "src/file.py")
+    # and simplify the code below
     def test5(self) -> None:
         """
         Test that longer paths are processed before shorter ones using real paths.
@@ -253,7 +256,8 @@ class Test_purify_directory_paths1(hunitest.TestCase):
         env_vars: Optional[Dict[str, str]] = None,
         git_root: Optional[str] = None,
     ) -> None:
-        """Helper for tests that need env and pwd mocking.
+        """
+        Helper for tests that need env and pwd mocking.
 
         :param input_: Input path to test
         :param expected: Expected output path
@@ -281,7 +285,9 @@ class Test_purify_directory_paths1(hunitest.TestCase):
         input_ = os.path.join(git_root, "src/subdir/file.py")
         expected = "$GIT_ROOT/src/subdir/file.py"
         env_vars = {"CSFY_HOST_GIT_ROOT_PATH": csfy_host_git_root}
-        self.helper_with_env_and_pwd_mocking(input_, expected, env_vars, git_root)
+        self.helper_with_env_and_pwd_mocking(
+            input_, expected, env_vars, git_root
+        )
 
     def test2(self) -> None:
         """
@@ -292,7 +298,9 @@ class Test_purify_directory_paths1(hunitest.TestCase):
         input_ = f"{csfy_host_git_root}/other/file.py"
         expected = "$CSFY_HOST_GIT_ROOT_PATH/other/file.py"
         env_vars = {"CSFY_HOST_GIT_ROOT_PATH": csfy_host_git_root}
-        self.helper_with_env_and_pwd_mocking(input_, expected, env_vars, git_root)
+        self.helper_with_env_and_pwd_mocking(
+            input_, expected, env_vars, git_root
+        )
 
     def test3(self) -> None:
         """
@@ -324,7 +332,9 @@ class Test_purify_directory_paths1(hunitest.TestCase):
         input_ = os.path.join(git_root, "file.py")
         expected = "$GIT_ROOT/file.py"
         env_vars = {"CSFY_HOST_GIT_ROOT_PATH": git_root}
-        self.helper_with_env_and_pwd_mocking(input_, expected, env_vars, git_root)
+        self.helper_with_env_and_pwd_mocking(
+            input_, expected, env_vars, git_root
+        )
 
 
 # #############################################################################
@@ -616,6 +626,8 @@ class Test_purify_super_module_references1(hunitest.TestCase):
         """
         txt = "csfy1.helpers_root.helpers.test.test_hobject._Object1"
         expected = "helpers_root.helpers.test.test_hobject._Object1"
+        # TODO(ai_gp): Assign super_module_root and then pass it.
+        # Do the same for all the functions.
         self.helper("/Users/user/src/csfy1", txt, expected)
 
     def test2(self) -> None:
@@ -1225,6 +1237,7 @@ class Test_purify_file_names1(hunitest.TestCase):
         """
         Test basic file name purification with relative paths.
         """
+        # TODO(ai_gp): Move the umock.pack to the helper
         with umock.patch(
             "helpers.hgit.get_client_root", return_value="/home/user/gitroot"
         ):
@@ -1314,6 +1327,7 @@ class Test_purify_apple_container_output1(hunitest.TestCase):
         """
         Test removing multiple container startup lines.
         """
+        # TODO(ai_gp): Use a """
         txt = (
             "[0/6] [0s]\n"
             "[1/6] Fetching image [0s]\n"
@@ -1348,6 +1362,7 @@ class Test_purify_apple_container_output1(hunitest.TestCase):
         """
         Test with only container startup lines.
         """
+        # TODO(ai_gp): Use a """
         txt = (
             "[0/6] [0s]\n"
             "[1/6] Fetching image [0s]\n"
@@ -1361,11 +1376,13 @@ class Test_purify_apple_container_output1(hunitest.TestCase):
         Test that lines with brackets but not starting/ending with them are
         kept.
         """
+        # TODO(ai_gp): Use a """
         txt = (
             "[0/6] [0s]\n"
             "Some output with [brackets] in the middle\n"
             "dot - graphviz version 12.2.1 (20241206.2353)\n"
         )
+        # TODO(ai_gp): Use a """
         expected = (
             "Some output with [brackets] in the middle\n"
             "dot - graphviz version 12.2.1 (20241206.2353)\n"

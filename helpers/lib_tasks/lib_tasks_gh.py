@@ -406,8 +406,8 @@ def _get_gh_issue_title(issue_id: int, repo_short_name: str) -> Tuple[str, str]:
     # Replace multiple spaces with one.
     title = re.sub(r"\s+", " ", title)
     title = title.replace(" ", "_")
-    # Remove some annoying chars.
-    for char in "- ' ` \"".split():
+    # Replace problematic branch name chars with underscore.
+    for char in ". - ' ` \" ; < > !".split():
         title = title.replace(char, "_")
     # Add the prefix `AmpTaskXYZ_...`
     task_prefix = hrecouti.get_repo_config().get_issue_prefix()
@@ -500,9 +500,8 @@ def gh_issue_create(  # type: ignore
         "gh issue create"
         + f" --repo {repo_full_name_with_host}"
         + f' --title "{title}"'
+        + f' --body "{body}"'
     )
-    if body:
-        cmd += f' --body "{body}"'
     if labels:
         cmd += f' --label "{labels}"'
     if assignees:

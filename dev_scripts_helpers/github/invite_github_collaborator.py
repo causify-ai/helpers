@@ -143,7 +143,9 @@ def _invite_collaborator(
 
 
 def _parse() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser(
+        formatter_class=argparse.RawDescriptionHelpFormatter
+    )
     parser.add_argument(
         "--github_username",
         type=str,

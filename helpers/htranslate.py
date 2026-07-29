@@ -26,7 +26,7 @@ _LOG = logging.getLogger(__name__)
 
 def _parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
-        formatter_class=argparse.ArgumentDefaultsHelpFormatter
+        formatter_class=argparse.RawDescriptionHelpFormatter
     )
     parser.add_argument(
         "lang",

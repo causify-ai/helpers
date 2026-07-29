@@ -61,7 +61,7 @@ class Test_install_module_if_not_present(hunitest.TestCase):
         def mock_has_module(module: str) -> bool:
             return module in expected_installed
 
-        # TODO(ai_gp): Use capture_sys_calls and assert_sys_calls
+        # TODO(ai_gp2): Use capture_sys_calls and assert_sys_calls
         # from ./helpers/hunit_test_utils.py instead of reimplementing
         # this functionality.
         system_calls: List[str] = []

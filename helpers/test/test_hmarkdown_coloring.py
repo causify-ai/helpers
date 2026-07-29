@@ -602,7 +602,8 @@ class Test_colorize_bullet_points_in_slide2(hunitest.TestCase):
 # #############################################################################
 
 
-# TODO(ai_gp): Factor out a helper. Use expected string.
+# TODO(ai_gp): Factor out a helper. Use expected string and assert_equal
+# everywhere.
 class Test_bold_text_colorization_e2e(hunitest.TestCase):
     """
     End-to-end tests for bold text colorization in slides with Typst output.
