@@ -145,6 +145,8 @@ def _main(parser: argparse.ArgumentParser) -> None:
     """
     args = parser.parse_args()
     hdbg.init_logger(verbosity=args.log_level)
+    # Assert that the client is clean (no uncommitted changes).
+    hgit.is_client_clean(abort_if_not_clean=True)
     # Capture original branch to restore on failure.
     original_branch = hgit.get_branch_name()
     try:
