@@ -23,7 +23,7 @@ import helpers.hsystem as hsystem
 
 _LOG = logging.getLogger(__name__)
 
-_LOG_LEVEL = "echo"
+_LOG_LEVEL = "PRINT"
 
 # #############################################################################
 

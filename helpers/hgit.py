@@ -18,6 +18,7 @@ import helpers.hdbg as hdbg
 import helpers.hio as hio
 import helpers.hprint as hprint
 import helpers.hserver as hserver
+import helpers.hstring as hstring
 import helpers.hsystem as hsystem
 
 # This module can depend only on:
@@ -887,7 +888,7 @@ def get_submodule_paths() -> List[str]:
     _, txt = hsystem.system_to_string(cmd)
     _LOG.debug("txt=%s", txt)
     # Convert the output string to a list of paths.
-    files: List[str] = hsystem.text_to_list(txt)
+    files: List[str] = hstring.text_to_list(txt)
     _LOG.debug("files=%s", files)
     return files
 
@@ -1321,7 +1322,7 @@ def find_docker_file(
     file_name = os.path.normpath(file_name)
     _LOG.debug("file_name=%s", file_name)
     # Find the file in the dir.
-    file_names = hsystem.find_file_with_dir(
+    file_names = hio.find_file_with_dir(
         file_name,
         root_dir=root_dir,
         dir_depth=dir_depth,
@@ -2104,6 +2105,6 @@ def delete_branches(
         hsystem.system(
             cmd,
             suppress_output=False,
-            log_level="echo",
+            log_level="PRINT",
             abort_on_error=abort_on_error,
         )

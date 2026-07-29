@@ -961,28 +961,30 @@ class Test_run_pandoc_to_typst_slides(hunitest.TestCase):
         hio.to_file(typ_file, image_content)
         real_dev_scripts_helpers_dir = hgit.find_file("dev_scripts_helpers")
         # Run test and capture system calls.
-        with hunteuti.capture_sys_calls() as sys_calls:
-            with mock.patch(
+        with (
+            hunteuti.capture_sys_calls() as sys_calls,
+            mock.patch(
                 "dev_scripts_helpers.documentation.lib_notes_to_pdf.hdbg"
-            ):
-                with mock.patch.object(
-                    dshdlntpd.hgit,
-                    "find_file",
-                    side_effect=self._find_file_side_effect(
-                        real_dev_scripts_helpers_dir
-                    ),
-                ):
-                    with mock.patch(
-                        "dev_scripts_helpers.documentation.lib_notes_to_pdf.dshdlity"
-                    ):
-                        result = dshdlntpd.run_pandoc_to_typst_slides(
-                            curr_path,
-                            file_name,
-                            use_host_tools,
-                            dockerized_force_rebuild,
-                            dockerized_use_sudo,
-                            typst_only=typst_only,
-                        )
+            ),
+            mock.patch.object(
+                dshdlntpd.hgit,
+                "find_file",
+                side_effect=self._find_file_side_effect(
+                    real_dev_scripts_helpers_dir
+                ),
+            ),
+            mock.patch(
+                "dev_scripts_helpers.documentation.lib_notes_to_pdf.dshdlity"
+            ),
+        ):
+            result = dshdlntpd.run_pandoc_to_typst_slides(
+                curr_path,
+                file_name,
+                use_host_tools,
+                dockerized_force_rebuild,
+                dockerized_use_sudo,
+                typst_only=typst_only,
+            )
         # Check outputs.
         expected_result = file_name.replace(".txt", ".pdf")
         self.assert_equal(result, expected_result)

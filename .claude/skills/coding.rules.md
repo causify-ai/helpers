@@ -1069,7 +1069,7 @@
         )
         return parser
     ```
-  - **Good**: Use module docstring for parser description
+  - **Good**: Use module docstring for parser description with proper formatter
     ```python
     """
     Script to process data files.
@@ -1078,6 +1078,7 @@
     def _parse() -> argparse.ArgumentParser:
         parser = argparse.ArgumentParser(
             description=__doc__,
+            formatter_class=argparse.RawDescriptionHelpFormatter,
         )
         return parser
     ```
