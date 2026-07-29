@@ -1,9 +1,17 @@
-Extend `invoke gh_issue_create` to accept a --gh_issue_body_file 
+Implement the following TODOs
 
-Extend `invoke git_branch_create` to accept a --pr-ready to make
-the created PR ready for review
-
-Extend dev_scripts_helpers/git/git_create_issue_and_branch.py to accept 
+./helpers/hpytest.py:1169:# TODO(ai_gp): Add explanation of who calls the following functions, when,
+./dev_scripts_helpers/documentation/test/test_replace_latex.py:105:    # TODO(ai_gp): Rename helper
+./dev_scripts_helpers/documentation/test/test_replace_latex.py:121:    # TODO(ai_gp): Factor out common code in the helper using
+./dev_scripts_helpers/documentation/test/test_replace_latex.py:154:            # TODO(ai_gp): Can we remove these 3 parameters without changing
+./dev_scripts_helpers/documentation/test/test_replace_latex.py:200:            # TODO(ai_gp): Can we remove these three parameters without
+./helpers/hdbg.py:988:# TODO(ai_gp): Move this to helpers/hlogging.py and change all the callers.
+./helpers/hdbg.py:991:# TODO(ai_gp): maybe replace "force_verbose_format" and "force_print_format" with
+./helpers/hdocker.py:772:    # TODO(ai_gp): Pass use_root_user to get_docker_base_cmd instead of
+./helpers/hdocker.py:816:# TODO(ai_gp): Move to helpers.hdbg.
+./helpers/hsystem.py:191:    # TODO(ai_gp): Rename "echo" -> "PRINT" and "echo_frame" -> "PRINT_FRAME"
+./helpers/hsystem.py:420:# TODO(ai_gp): Move it to `helpers/hprint.py`
+./helpers/hsystem.py:949:# TODO(ai_gp): Move to hio.py
 
 # Conventions
 - When writing code you must always follow the instructions in
