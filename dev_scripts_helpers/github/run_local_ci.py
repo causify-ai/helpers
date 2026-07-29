@@ -7,8 +7,13 @@ This script runs regression tests for the current directory and helpers
 subdirectory, either once or on a daily schedule.
 
 Usage:
+# TODO(ai_gp): Add a comment for each command line
 > run_local_ci.py --start_time 2am
 > run_local_ci.py --start_time 14:30 --daemon
+> run_local_ci.py --pytest_target "helpers/test/"
+> run_local_ci.py --pytest_target "." --daemon
+> run_local_ci.py --no_master_check
+> run_local_ci.py --pytest_target "helpers/test/" --no_master_check
 """
 
 import argparse
@@ -79,32 +84,7 @@ def _run_command(
         return result.returncode
     except Exception as e:
         _LOG.error("Error running command: %s", str(e))
-        return 1
-
-
-# TODO(ai_gp): Inline this.
-def _check_at_master(target_dir: str) -> bool:
-    """
-    Check if repository is at master branch.
-
-    :param target_dir: Directory to check
-    :return: True if at master branch, False otherwise
-    """
-    _LOG.debug("Checking if '%s' is at master branch", target_dir)
-    branch = hgit.get_branch_name(target_dir)
-    hdbg.dassert_eq(branch, "master")
-
-
-# TODO(ai_gp): Inline this.
-def _check_clean_working_dir(target_dir: str) -> bool:
-    """
-    Check if git working directory is clean.
-
-    :param target_dir: Directory to check
-    :return: True if working directory is clean, False otherwise
-    """
-    _LOG.debug("Checking if '%s' has clean working directory", target_dir)
-    hbg.dassert(hgit.is_client_clean(target_dir))
+        return -1
 
 
 def _run_git_clean(target_dir: str, log_file: str) -> bool:
@@ -133,16 +113,21 @@ def _run_git_pull(target_dir: str, log_file: str) -> bool:
     return exit_code == 0
 
 
-def _run_pytest_multi_build(target_dir: str, log_file: str) -> bool:
+def _run_pytest_multi_build(
+    target_dir: str, log_file: str, pytest_target: str = ""
+) -> bool:
     """
     Run pytest_multi_build.py for regression testing.
 
     :param target_dir: Directory to test
     :param log_file: File to log output to
+    :param pytest_target: pytest target to run (e.g., '.', 'helpers/test/')
     :return: True if successful, False otherwise
     """
     _LOG.info("Running pytest_multi_build.py in '%s'", target_dir)
-    cmd = "pytest_multi_build.py --target . --build_names apple dev_container"
+    if not pytest_target:
+        pytest_target = "."
+    cmd = f"pytest_multi_build.py --target {pytest_target} --build_names apple dev_container"
     exit_code = _run_command(cmd, cwd=target_dir, log_file=log_file)
     return exit_code == 0
 
@@ -184,21 +169,30 @@ def _get_log_file_path(target_dir: str, step: str) -> str:
 # #############################################################################
 
 
-def _run_ci_for_target(target_dir: str) -> bool:
+def _run_ci_for_target(
+    target_dir: str, pytest_target: str = "", no_master_check: bool = False
+) -> bool:
     """
     Run full CI pipeline for a target directory.
 
     :param target_dir: Target directory to run CI for
+    :param pytest_target: pytest target to run (e.g., '.', 'helpers/test/')
+    :param no_master_check: Skip checking if repository is at master branch
     :return: True if all steps succeeded, False otherwise
     """
     _LOG.info("Starting CI run for target='%s'", target_dir)
     # Ensure target directory exists.
     hdbg.dassert_dir_exists(target_dir, "Target directory must exist")
     # Check that we're at master.
-    if not _check_at_master(target_dir):
-        _LOG.error("Target '%s' is not at master branch", target_dir)
-        return False
-    _LOG.info("Repository is at master branch")
+    if not no_master_check:
+        _LOG.debug("Checking if '%s' is at master branch", target_dir)
+        branch = hgit.get_branch_name(target_dir)
+        if branch != "master":
+            _LOG.error("Target '%s' is not at master branch (current: %s)", target_dir, branch)
+            return False
+        _LOG.info("Repository is at master branch")
+    else:
+        _LOG.warning("Skipping master branch check")
     # Get log file paths.
     log_file_pytest = _get_log_file_path(target_dir, "pytest_multi_build")
     log_file_failed = _get_log_file_path(target_dir, "pytest_failed_multi_build")
@@ -207,7 +201,8 @@ def _run_ci_for_target(target_dir: str) -> bool:
         _LOG.error("git clean failed in '%s'", target_dir)
         return False
     # Check working directory is clean.
-    if not _check_clean_working_dir(target_dir):
+    _LOG.debug("Checking if '%s' has clean working directory", target_dir)
+    if not hgit.is_client_clean(target_dir):
         _LOG.error("Working directory not clean in '%s'", target_dir)
         return False
     _LOG.info("Working directory is clean")
@@ -216,7 +211,7 @@ def _run_ci_for_target(target_dir: str) -> bool:
         _LOG.error("git pull failed in '%s'", target_dir)
         return False
     # Run pytest_multi_build.
-    _run_pytest_multi_build(target_dir, log_file_pytest)
+    _run_pytest_multi_build(target_dir, log_file_pytest, pytest_target)
     _LOG.info("Test output logged to '%s'", log_file_pytest)
     # Run pytest_failed_multi_build.
     _run_pytest_failed_multi_build(target_dir, log_file_failed)
@@ -228,17 +223,19 @@ def _run_ci_for_target(target_dir: str) -> bool:
 TARGET_DIRS = [".", "helpers"]
 
 
-def _run_all_ci() -> bool:
+def _run_all_ci(pytest_target: str = "", no_master_check: bool = False) -> bool:
     """
     Run CI for all target directories.
 
+    :param pytest_target: pytest target to run (e.g., '.', 'helpers/test/')
+    :param no_master_check: Skip checking if repository is at master branch
     :return: True if all targets succeeded, False otherwise
     """
     _LOG.info("Starting full CI run for all targets: %s", TARGET_DIRS)
     all_passed = True
     for target_dir in TARGET_DIRS:
-        _LOG.info("%s", hprint.frame(f"target='{target_dir}'"))
-        success = _run_ci_for_target(target_dir)
+        _LOG.info("\n%s", hprint.frame(f"target='{target_dir}'"))
+        success = _run_ci_for_target(target_dir, pytest_target, no_master_check)
         if not success:
             all_passed = False
             _LOG.error("CI failed for target='%s'", target_dir)
@@ -296,11 +293,15 @@ def _should_run_now(start_time: datetime.time) -> bool:
     return time_diff < 60
 
 
-def _run_daemon_mode(start_time: datetime.time) -> None:
+def _run_daemon_mode(
+    start_time: datetime.time, pytest_target: str = "", no_master_check: bool = False
+) -> None:
     """
     Run CI on a daily schedule at the specified start time.
 
     :param start_time: Time to run CI each day
+    :param pytest_target: pytest target to run (e.g., '.', 'helpers/test/')
+    :param no_master_check: Skip checking if repository is at master branch
     """
     _LOG.info(
         "Running in daemon mode. CI will run daily at %s",
@@ -309,7 +310,7 @@ def _run_daemon_mode(start_time: datetime.time) -> None:
     while True:
         if _should_run_now(start_time):
             _LOG.info("Scheduled CI run starting at '%s'", start_time)
-            _run_all_ci()
+            _run_all_ci(pytest_target, no_master_check)
             # Sleep for a minute to avoid running multiple times.
             time.sleep(60)
         else:
@@ -342,6 +343,17 @@ def _parse() -> argparse.ArgumentParser:
         action="store_true",
         help="Run CI on a daily schedule (without this flag, runs once and exits)",
     )
+    parser.add_argument(
+        "--pytest_target",
+        type=str,
+        default="",
+        help="pytest target to run (e.g., '.', 'helpers/test/'). If not provided, defaults to '.'",
+    )
+    parser.add_argument(
+        "--no_master_check",
+        action="store_true",
+        help="Skip checking if repository is at master branch",
+    )
     hparser.add_verbosity_arg(parser)
     return parser
 
@@ -356,13 +368,19 @@ def _main(args: argparse.Namespace) -> None:
     # Parse start time.
     start_time = _parse_start_time(args.start_time)
     _LOG.info("Parsed start_time as '%s'", start_time.strftime("%H:%M"))
+    # Log pytest target if specified.
+    if args.pytest_target:
+        _LOG.info("pytest_target: '%s'", args.pytest_target)
+    # Log if skipping master check.
+    if args.no_master_check:
+        _LOG.info("Master branch check is disabled")
     # Run CI.
     if args.daemon:
-        _run_daemon_mode(start_time)
+        _run_daemon_mode(start_time, args.pytest_target, args.no_master_check)
     else:
         # Run once immediately.
         _LOG.info("Running CI once (non-daemon mode)")
-        success = _run_all_ci()
+        success = _run_all_ci(args.pytest_target, args.no_master_check)
         exit_code = 0 if success else 1
         sys.exit(exit_code)
 
