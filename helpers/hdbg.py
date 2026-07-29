@@ -1002,6 +1002,25 @@ def dassert_related_params(
         raise ValueError(f"Invalid mode='{mode}'")
 
 
+def _dassert_is_path_included(file_path: str, including_path: str) -> None:
+    """
+    Assert that a file path is included within another path.
+
+    This function checks if the given file path starts with the
+    specified including path. If not, it raises an assertion error.
+
+    :param file_path: The file path to check.
+    :param including_path: The path that should include the file path.
+    """
+    # TODO(gp): Maybe we need to normalize the paths.
+    dassert(
+        file_path.startswith(including_path),
+        "'%s' needs to be underneath '%s'",
+        file_path,
+        including_path,
+    )
+
+
 # #############################################################################
 # Command line.
 # #############################################################################

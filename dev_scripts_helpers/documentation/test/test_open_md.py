@@ -155,11 +155,13 @@ class Test_find_git_root_for_file(hunitest.TestCase):
         file_path = "/some/path/without/git/test.md"
         expected_root = "/main/repo"
         # Run test.
-        with mock.patch("os.path.exists", return_value=False):
-            with mock.patch(
+        with (
+            mock.patch("os.path.exists", return_value=False),
+            mock.patch(
                 "helpers.hgit.get_client_root", return_value=expected_root
-            ):
-                result = dshdopmd._find_git_root_for_file(file_path)
+            ),
+        ):
+            result = dshdopmd._find_git_root_for_file(file_path)
         # Check outputs.
         self.assert_equal(result, expected_root)
 
@@ -181,9 +183,11 @@ class Test_open_file(hunitest.TestCase):
         # Prepare inputs.
         file_path = "/tmp/test.html"
         # Run test.
-        with mock.patch("platform.system", return_value="Darwin"):
-            with hunteuti.capture_sys_calls() as sys_calls:
-                dshdopmd._open_file(file_path)
+        with (
+            mock.patch("platform.system", return_value="Darwin"),
+            hunteuti.capture_sys_calls() as sys_calls,
+        ):
+            dshdopmd._open_file(file_path)
         # Check outputs.
         expected_str = r"""[
         {
@@ -202,9 +206,11 @@ class Test_open_file(hunitest.TestCase):
         # Prepare inputs.
         file_path = "/tmp/test.html"
         # Run test.
-        with mock.patch("platform.system", return_value="Linux"):
-            with hunteuti.capture_sys_calls() as sys_calls:
-                dshdopmd._open_file(file_path)
+        with (
+            mock.patch("platform.system", return_value="Linux"),
+            hunteuti.capture_sys_calls() as sys_calls,
+        ):
+            dshdopmd._open_file(file_path)
         # Check outputs.
         expected_str = r"""[
         {
@@ -223,9 +229,11 @@ class Test_open_file(hunitest.TestCase):
         # Prepare inputs.
         file_path = "/tmp/test.html"
         # Run test.
-        with mock.patch("platform.system", return_value="Windows"):
-            with hunteuti.capture_sys_calls() as sys_calls:
-                dshdopmd._open_file(file_path)
+        with (
+            mock.patch("platform.system", return_value="Windows"),
+            hunteuti.capture_sys_calls() as sys_calls,
+        ):
+            dshdopmd._open_file(file_path)
         # Check outputs.
         self.assertEqual(sys_calls, [])
 
@@ -614,9 +622,11 @@ class Test_open_md_py_main(hunitest.TestCase):
         argv = ["open_md.py", "--input", input_file, "--mode", mode]
         parser = dshdopmd._parse()
         # Run test.
-        with mock.patch.object(dshdopmd, "_open_on_github") as mock_fn:
-            with mock.patch("sys.argv", argv):
-                dshdopmd._main(parser)
+        with (
+            mock.patch.object(dshdopmd, "_open_on_github") as mock_fn,
+            mock.patch("sys.argv", argv),
+        ):
+            dshdopmd._main(parser)
         # Check outputs.
         mock_fn.assert_called_once_with(input_file)
 
@@ -640,9 +650,11 @@ class Test_open_md_py_main(hunitest.TestCase):
         ]
         parser = dshdopmd._parse()
         # Run test.
-        with mock.patch.object(dshdopmd, "_render_with_grip_daemon") as mock_fn:
-            with mock.patch("sys.argv", argv):
-                dshdopmd._main(parser)
+        with (
+            mock.patch.object(dshdopmd, "_render_with_grip_daemon") as mock_fn,
+            mock.patch("sys.argv", argv),
+        ):
+            dshdopmd._main(parser)
         # Check outputs.
         mock_fn.assert_called_once_with(input_file, backend=backend)
 
@@ -661,9 +673,11 @@ class Test_open_md_py_main(hunitest.TestCase):
         expected_force_rebuild = False
         expected_use_sudo = False
         # Run test.
-        with mock.patch.object(dshdopmd, "_render_with_pandoc") as mock_fn:
-            with mock.patch("sys.argv", argv):
-                dshdopmd._main(parser)
+        with (
+            mock.patch.object(dshdopmd, "_render_with_pandoc") as mock_fn,
+            mock.patch("sys.argv", argv),
+        ):
+            dshdopmd._main(parser)
         # Check outputs.
         mock_fn.assert_called_once_with(
             input_file,
@@ -683,8 +697,10 @@ class Test_open_md_py_main(hunitest.TestCase):
         argv = ["open_md.py", "--input", input_file, "--mode", mode]
         parser = dshdopmd._parse()
         # Run test.
-        with mock.patch.object(dshdopmd, "_render_with_grip") as mock_fn:
-            with mock.patch("sys.argv", argv):
-                dshdopmd._main(parser)
+        with (
+            mock.patch.object(dshdopmd, "_render_with_grip") as mock_fn,
+            mock.patch("sys.argv", argv),
+        ):
+            dshdopmd._main(parser)
         # Check outputs.
         mock_fn.assert_called_once_with(input_file, backend=backend)

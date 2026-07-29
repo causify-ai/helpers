@@ -71,24 +71,26 @@ class Test_install_module_if_not_present(hunitest.TestCase):
             return (0, "")
 
         # Run test.
-        with mock.patch.object(
-            hmodule, "has_module", side_effect=mock_has_module
-        ):
+        with (
+            mock.patch.object(
+                hmodule, "has_module", side_effect=mock_has_module
+            ),
             # TODO(gp): use the capture_sys_calls from ./helpers/hunit_test_utils.py.
-            with mock.patch.object(
+            mock.patch.object(
                 hmodule,
                 "_system_to_string",
                 side_effect=mock_system_to_string,
-            ):
-                with mock.patch.object(hdbg, "dassert_file_exists"):
-                    #
-                    hmodule.install_module_if_not_present(
-                        import_name,
-                        package_name=package_name,
-                        quiet=True,
-                        use_sudo=False,
-                        use_activate=False,
-                    )
+            ),
+            mock.patch.object(hdbg, "dassert_file_exists"),
+        ):
+            #
+            hmodule.install_module_if_not_present(
+                import_name,
+                package_name=package_name,
+                quiet=True,
+                use_sudo=False,
+                use_activate=False,
+            )
         # Check outputs.
         self.assertEqual(system_calls, expected_calls)
 

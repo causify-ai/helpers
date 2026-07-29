@@ -655,15 +655,17 @@ def capture_sys_calls(
         _handle_side_effect()
         return (0, "")
 
-    with mock.patch("subprocess.run", side_effect=mock_subprocess_run):
-        with mock.patch(
+    with (
+        mock.patch("subprocess.run", side_effect=mock_subprocess_run),
+        mock.patch(
             "helpers.hsystem.system", side_effect=mock_hsystem_system
-        ):
-            with mock.patch(
-                "helpers.hsystem.system_to_string",
-                side_effect=mock_hsystem_system_to_string,
-            ):
-                yield sys_calls
+        ),
+        mock.patch(
+            "helpers.hsystem.system_to_string",
+            side_effect=mock_hsystem_system_to_string,
+        ),
+    ):
+        yield sys_calls
 
 
 def _sys_calls_to_str(sys_calls: List[Dict[str, Any]]) -> str:

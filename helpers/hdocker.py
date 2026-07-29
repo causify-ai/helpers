@@ -811,26 +811,6 @@ def build_and_run_docker_cmd(
     return process_docker_cmd(docker_cmd_str, container_image, dockerfile, mode)
 
 
-# TODO(ai_gp): Move to helpers.hdbg.
-def _dassert_is_path_included(file_path: str, including_path: str) -> None:
-    """
-    Assert that a file path is included within another path.
-
-    This function checks if the given file path starts with the
-    specified including path. If not, it raises an assertion error.
-
-    :param file_path: The file path to check.
-    :param including_path: The path that should include the file path.
-    """
-    # TODO(gp): Maybe we need to normalize the paths.
-    hdbg.dassert(
-        file_path.startswith(including_path),
-        "'%s' needs to be underneath '%s'",
-        file_path,
-        including_path,
-    )
-
-
 def convert_caller_to_callee_docker_path(
     caller_file_path: str,
     caller_mount_path: str,
@@ -875,7 +855,7 @@ def convert_caller_to_callee_docker_path(
     _ = use_sibling_container_for_callee
     # This is not always possible, e.g., '/var/log/app.log' needs to be
     # underneath '/app'
-    _dassert_is_path_included(abs_caller_file_path, caller_mount_point)
+    hdbg._dassert_is_path_included(abs_caller_file_path, caller_mount_point)
     # Make the path relative to the caller mount point.
     _LOG.debug(hprint.to_str("caller_file_path caller_mount_point"))
     rel_path = os.path.relpath(caller_file_path, caller_mount_point)

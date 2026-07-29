@@ -112,13 +112,14 @@ class Test_replace_latex_py(hunitest.TestCase):
         :return: list of captured system calls
         """
         parser = dshdrela._parse()
-        with hunteuti.capture_sys_calls() as sys_calls:
-            with mock.patch("sys.argv", argv):
-                dshdrela._main(parser)
+        with (
+            hunteuti.capture_sys_calls() as sys_calls,
+            mock.patch("sys.argv", argv),
+        ):
+            dshdrela._main(parser)
         return sys_calls
 
-    # TODO(ai_gp): Rename to helper.
-    def _assert_sys_calls_match(
+    def _helper_assert_sys_calls_match(
         self, argv: List[str], expected_str: str
     ) -> None:
         """
@@ -155,7 +156,7 @@ class Test_replace_latex_py(hunitest.TestCase):
         },
         ]"""
         # Run test and check outputs.
-        self._assert_sys_calls_match(argv, expected_str)
+        self._helper_assert_sys_calls_match(argv, expected_str)
 
     def test2(self) -> None:
         """
@@ -189,7 +190,7 @@ class Test_replace_latex_py(hunitest.TestCase):
         },
         ]"""
         # Run test and check outputs.
-        self._assert_sys_calls_match(argv, expected_str)
+        self._helper_assert_sys_calls_match(argv, expected_str)
 
     def test3(self) -> None:
         """

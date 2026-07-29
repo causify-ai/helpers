@@ -256,3 +256,156 @@ class Test_git_worktree_handling(hunitest.TestCase):
         self.assertTrue(os.path.exists(test_dir))
         hio.safe_rm_file(test_dir)
         self.assertFalse(os.path.exists(test_dir))
+
+
+# #############################################################################
+# Test_compute_file_signature1
+# #############################################################################
+
+
+class Test_compute_file_signature1(hunitest.TestCase):
+    def test1(self) -> None:
+        """
+        Compute the signature of a file using 1 enclosing dir.
+        """
+        file_name = (
+            "/app/amp/core/test/TestCheckSameConfigs."
+            + "test_check_same_configs_error/output/test.txt"
+        )
+        dir_depth = 1
+        actual = hio._compute_file_signature(file_name, dir_depth=dir_depth)
+        expected = ["output", "test.txt"]
+        self.assert_equal(str(actual), str(expected))
+
+    def test2(self) -> None:
+        """
+        Compute the signature of a file using 2 enclosing dirs.
+        """
+        file_name = (
+            "/app/amp/core/test/TestCheckSameConfigs."
+            + "test_check_same_configs_error/output/test.txt"
+        )
+        dir_depth = 2
+        actual = hio._compute_file_signature(file_name, dir_depth=dir_depth)
+        expected = [
+            "TestCheckSameConfigs.test_check_same_configs_error",
+            "output",
+            "test.txt",
+        ]
+        self.assert_equal(str(actual), str(expected))
+
+    def test3(self) -> None:
+        """
+        Compute the signature of a file using 4 enclosing dirs.
+        """
+        file_name = "/app/amp/core/test/TestApplyAdfTest.test1/output/test.txt"
+        dir_depth = 4
+        actual = hio._compute_file_signature(file_name, dir_depth=dir_depth)
+        expected = [
+            "core",
+            "test",
+            "TestApplyAdfTest.test1",
+            "output",
+            "test.txt",
+        ]
+        self.assert_equal(str(actual), str(expected))
+
+
+# #############################################################################
+
+
+# #############################################################################
+# Test_find_file_with_dir1
+# #############################################################################
+
+
+class Test_find_file_with_dir1(hunitest.TestCase):
+    def test1(self) -> None:
+        """
+        Check whether we can find this file using one enclosing dir.
+        """
+        # Use this file.
+        file_name = "helpers/test/test_hio.py"
+        dir_depth = 1
+        actual = hio.find_file_with_dir(file_name, dir_depth=dir_depth)
+        expected = r"""['helpers/test/test_hio.py']"""
+        self.assert_equal(str(actual), str(expected), purify_text=True)
+
+    def _helper(self, dir_depth: int, mode: str) -> list:
+        """
+        Test helper for find_file_with_dir.
+
+        :param dir_depth: Number of directory levels to use for matching
+        :param mode: Search mode for matching
+        :return: List of matching files
+        """
+        # Create a fake golden outcome to be used in this test.
+        golden_content = "hello world"
+        self.check_string(golden_content)
+        # E.g., helpers/test/test_hio.py::Test_find_file_with_dir1::test2/test.txt
+        file_name = os.path.join(self.get_output_dir(), "test.txt")
+        _LOG.debug("file_name=%s", file_name)
+        actual = hio.find_file_with_dir(
+            file_name, dir_depth=dir_depth, mode=mode
+        )
+        _LOG.debug("Found %d matching files", len(actual))
+        return actual
+
+    def test2(self) -> None:
+        """
+        Check whether we can find a test golden output using different number
+        of enclosing dirs.
+
+        With only 1 enclosing dir, we can't find it.
+        """
+        # Use only one dir which is not enough to identify the file.
+        # E.g., .../test/TestSqlWriterBackend1.test_insert_tick_data1/output/test.txt
+        dir_depth = 1
+        mode = "return_all_results"
+        actual = self._helper(dir_depth, mode)
+        # For sure there are more than 100 tests.
+        self.assertGreater(len(actual), 100)
+
+    def test3(self) -> None:
+        """
+        Like `test2`, but using 2 levels for sure we are going to identify the
+        file.
+        """
+        dir_depth = 2
+        mode = "return_all_results"
+        actual = self._helper(dir_depth, mode)
+        _LOG.debug("Found %d matching files", len(actual))
+        # There should be a single match.
+        expected = r"""['helpers/test/outcomes/Test_find_file_with_dir1.test3/output/test.txt']"""
+        self.assert_equal(str(actual), str(expected), purify_text=True)
+        self.assertEqual(len(actual), 1)
+
+    def test4(self) -> None:
+        """
+        Like `test2`, but using 2 levels for sure we are going to identify the
+        file and asserting in case we don't find a single result.
+        """
+        dir_depth = 2
+        mode = "assert_unless_one_result"
+        actual = self._helper(dir_depth, mode)
+        _LOG.debug("Found %d matching files", len(actual))
+        # There should be a single match.
+        expected = r"""['helpers/test/outcomes/Test_find_file_with_dir1.test4/output/test.txt']"""
+        self.assert_equal(str(actual), str(expected), purify_text=True)
+        self.assertEqual(len(actual), 1)
+
+    def test5(self) -> None:
+        """
+        Like `test2`, using more level than 2, again, we should have a single
+        result.
+        """
+        dir_depth = 3
+        mode = "assert_unless_one_result"
+        actual = self._helper(dir_depth, mode)
+        _LOG.debug("Found %d matching files", len(actual))
+        expected = r"""['helpers/test/outcomes/Test_find_file_with_dir1.test5/output/test.txt']"""
+        self.assert_equal(str(actual), str(expected), purify_text=True)
+        self.assertEqual(len(actual), 1)
+
+
+# #############################################################################
