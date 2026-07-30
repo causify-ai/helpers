@@ -15,7 +15,6 @@ from typing import Any, Dict, List, Optional, Union
 # this code needs to run with minimal dependencies and without Docker.
 import helpers.hdbg as hdbg
 import helpers.hprint as hprint
-import helpers.hserver as hserver
 import helpers.hsystem as hsystem
 import helpers.hversion as hversio
 

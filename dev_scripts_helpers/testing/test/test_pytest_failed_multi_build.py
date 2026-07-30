@@ -701,7 +701,12 @@ class Test_build_stats_to_str_colorization(hunitest.TestCase):
     """
 
     def _check_colorized_output(
-        self, build_stats: list, expected_status: str, *, expected: Optional[str] = None
+        self,
+        build_stats: list,
+        expected_status: str,
+        *,
+        expected: Optional[str] = None,
+        dedent: bool = False,
     ) -> None:
         """
         Helper to check that status appears in colorized output.
@@ -709,6 +714,7 @@ class Test_build_stats_to_str_colorization(hunitest.TestCase):
         :param build_stats: Build statistics list
         :param expected_status: Expected status string (e.g., "PASS", "FAIL")
         :param expected: Expected full output (if provided, uses assert_equal)
+        :param dedent: Whether to dedent and strip the expected string
         """
         actual = dshtpfmbu._build_stats_to_str(build_stats)
         # Verify colorization is present (ANSI escape codes).
@@ -716,6 +722,8 @@ class Test_build_stats_to_str_colorization(hunitest.TestCase):
         clean_actual = hprint.remove_non_printable_chars(actual)
         # Check that expected status appears in output or compare full output.
         if expected is not None:
+            if dedent:
+                expected = hprint.dedent(expected).strip()
             self.assert_equal(clean_actual, expected)
         else:
             self.assertIn(expected_status, clean_actual)
@@ -796,7 +804,9 @@ class Test_build_stats_to_str_colorization(hunitest.TestCase):
         ------------- | ------------------- | ------ | ------- | ------ | ----- | -------- |
         dev_container | NOT STARTED | 0      | 0       | 0      | 0     | N/A      |"""
         # Run test.
-        self._check_colorized_output(build_stats, "NOT STARTED", expected, dedent=True)
+        self._check_colorized_output(
+            build_stats, "NOT STARTED", expected, dedent=True
+        )
 
     def test_in_progress_status_colorization(self) -> None:
         """
@@ -822,7 +832,9 @@ class Test_build_stats_to_str_colorization(hunitest.TestCase):
         ----- | -------------------- | ------ | ------- | ------ | ----- | -------- |
         apple | IN PROGRESS | 150    | 5       | 0      | 155   | N/A      |"""
         # Run test.
-        self._check_colorized_output(build_stats, "IN PROGRESS", expected, dedent=True)
+        self._check_colorized_output(
+            build_stats, "IN PROGRESS", expected, dedent=True
+        )
 
     def test_in_progress_no_tests_yet(self) -> None:
         """
@@ -1027,7 +1039,6 @@ class Test_build_stats_to_str_new_status_conditions(hunitest.TestCase):
 
 
 class Test_create_consolidated_repro_with_missing_files(hunitest.TestCase):
-
     def test1(self) -> None:
         """
         Test that missing repro scripts are skipped without crashing.

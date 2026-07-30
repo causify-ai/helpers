@@ -193,9 +193,7 @@ def _print_usage_instructions(worktree_path: str, issue_id: int) -> None:
 # #############################################################################
 
 
-def _main_workflow(
-    args: argparse.Namespace, original_branch: str
-) -> None:
+def _main_workflow(args: argparse.Namespace, original_branch: str) -> None:
     """
     Main workflow implementation.
 
@@ -203,9 +201,7 @@ def _main_workflow(
     :param original_branch: Original git branch name for restoration
     """
     # Load issue body from file or use provided text.
-    gh_issue_body = _get_issue_body(
-        args.gh_issue_body, args.gh_issue_body_file
-    )
+    gh_issue_body = _get_issue_body(args.gh_issue_body, args.gh_issue_body_file)
     _LOG.debug(
         "gh_issue_id=%s gh_issue_title=%s gh_issue_body=%s gh_issue_body_file=%s "
         "gh_assignee=%s create_worktree=%s create_pr=%s",
@@ -260,9 +256,7 @@ def _main_workflow(
     _LOG.info("Branch name: '%s'", branch_name)
     # Create worktree, if requested.
     if args.create_worktree:
-        worktree_path = _create_worktree(
-            branch_name, issue_id, original_branch
-        )
+        worktree_path = _create_worktree(branch_name, issue_id, original_branch)
         # Print usage instructions.
         _print_usage_instructions(worktree_path, issue_id)
 

@@ -29,7 +29,7 @@ import os
 import subprocess
 import sys
 
-import helpers.hclipboard as hclipb
+import helpers.hclipboard as hclipbo
 import helpers.hio as hio
 import helpers.hselect_input_output as hseinout
 import helpers.hparser as hparser
@@ -84,7 +84,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
     # Handle --from_pb option.
     if args.from_pb:
         _LOG.info("Reading traceback from clipboard")
-        txt_list = [hclipb.get_clipboard_content()]
+        txt_list = [hclipbo.get_clipboard_content()]
         out_file_name = "cfile"
     else:
         # Parse files.

@@ -30,11 +30,10 @@ from typing import (
     cast,
 )
 
-import helpers.hclipboard as hclipb
+import helpers.hclipboard as hclipbo
 import helpers.hdbg as hdbg
 import helpers.hintrospection as hintros
 import helpers.hprint as hprint
-import helpers.hserver as hserver
 
 # This module can depend only on:
 # - Python standard modules
@@ -63,7 +62,7 @@ def get_timestamp() -> str:
 def is_running_in_ipynb() -> bool:
     # From https://stackoverflow.com/questions/15411967
     try:
-        _ = get_ipython().config  # type: ignore
+        _ = get_ipython().config  # type: ignore  # noqa: F821
         res = True
     except NameError:
         res = False
@@ -716,7 +715,7 @@ def to_pbcopy(txt: str, pbcopy: bool) -> None:
 
     Uses cross-platform clipboard support via hclipboard module.
     """
-    hclipb.to_clipboard_or_print(txt, pbcopy)
+    hclipbo.to_clipboard_or_print(txt, pbcopy)
 
 
 # #############################################################################

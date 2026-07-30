@@ -3,7 +3,7 @@ Clipboard utilities for reading and writing system clipboard content.
 
 Import as:
 
-import helpers.hclipboard as hclipb
+import helpers.hclipboard as hclipbo
 """
 
 import logging
@@ -108,7 +108,9 @@ def set_clipboard_content(content: str) -> None:
             return
     except FileNotFoundError:
         pass
-    raise RuntimeError("Could not write to clipboard - no suitable command found")
+    raise RuntimeError(
+        "Could not write to clipboard - no suitable command found"
+    )
 
 
 def to_clipboard_or_print(content: str, use_clipboard: bool) -> None:

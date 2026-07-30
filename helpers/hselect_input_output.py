@@ -12,7 +12,7 @@ import os
 import sys
 from typing import Any, List, Optional, Tuple, Union
 
-import helpers.hclipboard as hclipb
+import helpers.hclipboard as hclipbo
 import helpers.hdbg as hdbg
 import helpers.hio as hio
 import helpers.hprint as hprint
@@ -288,7 +288,7 @@ def from_file(file_name: str) -> List[str]:
             txt.append(line.rstrip("\n"))
     elif file_name == "pb":
         _LOG.info("Reading from clipboard")
-        txt_str = hclipb.get_clipboard_content()
+        txt_str = hclipbo.get_clipboard_content()
         txt = txt_str.split("\n")
     else:
         txt = hio.from_file(file_name)
@@ -310,7 +310,7 @@ def to_file(txt: Union[str, List[str]], file_name: str) -> None:
     elif file_name == "pb":
         _LOG.info("Writing to clipboard")
         txt_str = "\n".join(txt)
-        hclipb.set_clipboard_content(txt_str)
+        hclipbo.set_clipboard_content(txt_str)
         _LOG.info("Written to clipboard")
     else:
         _LOG.debug("Saving to file")
