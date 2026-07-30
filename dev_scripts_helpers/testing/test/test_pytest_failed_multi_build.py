@@ -782,6 +782,7 @@ class Test_build_stats_to_str_colorization(hunitest.TestCase):
         # Run test.
         self._check_colorized_output(build_stats, "NOT RUN")
 
+
 # #############################################################################
 # Test_create_consolidated_repro_with_missing_files
 # #############################################################################
@@ -832,7 +833,9 @@ class Test_create_consolidated_repro_with_missing_files(hunitest.TestCase):
         scratch_dir = self.get_scratch_space()
         # Create repro files for docker and apple.
         for build_name in ["docker", "apple"]:
-            build_dir = os.path.join(scratch_dir, f"tmp.pytest_failed.{build_name}")
+            build_dir = os.path.join(
+                scratch_dir, f"tmp.pytest_failed.{build_name}"
+            )
             hio.create_dir(build_dir, incremental=True)
             repro_file = os.path.join(build_dir, "repro.sh")
             content = f"#!/bin/bash\npytest_log test_{build_name}.py $*"

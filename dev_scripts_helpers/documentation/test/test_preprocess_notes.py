@@ -491,7 +491,6 @@ class Test_colorize_backticks_integration(hunitest.TestCase):
 
 
 class Test_colorize_backticks_typst_integration(hunitest.TestCase):
-
     def helper(self, txt_in_str: str, type_: str, expected_str: str) -> None:
         """
         Test helper for _transform_lines with Typst backtick colorization.

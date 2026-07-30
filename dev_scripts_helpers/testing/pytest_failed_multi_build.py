@@ -68,7 +68,11 @@ def _extract_build_stats(build_name: str) -> Dict[str, Any]:
     num_failed = info.get("log_num_failed", 0) or 0
     num_skipped = info.get("log_num_skipped", 0) or 0
     num_total = num_passed + num_failed + num_skipped
-    duration = f"{info['pytest_duration_in_secs']}s" if 'pytest_duration_in_secs' in info else "N/A"
+    duration = (
+        f"{info['pytest_duration_in_secs']}s"
+        if "pytest_duration_in_secs" in info
+        else "N/A"
+    )
     # Assemble result.
     res = {
         "build": build_name,
@@ -106,7 +110,9 @@ def _generate_build_files(
         input_file = f"tmp.{in_build_tag}.{build_name}.txt"
         # Check if input file exists; skip pytest_failed.py if missing.
         if not os.path.exists(input_file):
-            _LOG.warning("Input file not found for %s: %s", build_name, input_file)
+            _LOG.warning(
+                "Input file not found for %s: %s", build_name, input_file
+            )
             # Extract build statistics (will return incomplete status).
             stats = _extract_build_stats(build_name)
             build_stats.append(stats)
@@ -148,7 +154,9 @@ def _read_failed_tests(build_name: str) -> List[str]:
         "failed_tests.txt", build_name=build_name
     )
     if not os.path.exists(failed_file):
-        _LOG.warning("Failed tests file not found for %s: %s", build_name, failed_file)
+        _LOG.warning(
+            "Failed tests file not found for %s: %s", build_name, failed_file
+        )
         return []
     txt = hio.from_file(failed_file)
     # Parse file content into list of non-empty test names.

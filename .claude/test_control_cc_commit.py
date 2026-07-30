@@ -1,3 +1,9 @@
+"""
+Import as:
+
+import .claude.test_control_cc_commit as ctcoccco
+"""
+
 import os
 from typing import Dict, Tuple
 
@@ -128,12 +134,11 @@ class Test_enable_git_commands(hunitest.TestCase):
 
 
 # #############################################################################
-# Test_Backup_and_Restore
+# Test_backup_and_restore
 # #############################################################################
 
 
 class Test_backup_and_restore(hunitest.TestCase):
-
     def _setup_file_paths(self) -> Tuple[str, str, str]:
         """
         Create scratch directory and paths for settings and backup files.
@@ -169,8 +174,7 @@ class Test_backup_and_restore(hunitest.TestCase):
         # Verify backup was created with correct content.
         backup_content = cc_control._load_backup(backup_path)
         self.assertEqual(
-            backup_content,
-            ["Bash(*git commit*)", "Bash(*git push*)"]
+            backup_content, ["Bash(*git commit*)", "Bash(*git push*)"]
         )
 
     def test2(self) -> None:
@@ -197,7 +201,7 @@ class Test_backup_and_restore(hunitest.TestCase):
         restored_deny_list = modified_settings["permissions"]["deny"]
         self.assertEqual(
             restored_deny_list,
-            ["Bash(*rm:*)", "Bash(*git commit*)", "Bash(*git push*)"]
+            ["Bash(*rm:*)", "Bash(*git commit*)", "Bash(*git push*)"],
         )
         # Verify backup was deleted.
         self.assertFalse(os.path.exists(backup_path))
@@ -228,7 +232,9 @@ class Test_backup_and_restore(hunitest.TestCase):
         cc_control._save_settings(settings_path, modified_settings_1)
         # Verify only non-git denial remains.
         enabled_settings = cc_control._load_settings(settings_path)
-        self.assertEqual(enabled_settings["permissions"]["deny"], ["Bash(*rm:*)"])
+        self.assertEqual(
+            enabled_settings["permissions"]["deny"], ["Bash(*rm:*)"]
+        )
         # Step 2: Disable (restore from backup).
         settings_after_disable = cc_control._load_settings(settings_path)
         _, modified_settings_2 = cc_control._restore_from_backup(
@@ -284,7 +290,7 @@ class Test_backup_and_restore(hunitest.TestCase):
                 "Bash(*git push*)",
                 "Bash(*git push --force*)",
                 "Edit(*git commit*)",
-            ]
+            ],
         )
         # Verify only non-git denial remains.
         self.assertEqual(

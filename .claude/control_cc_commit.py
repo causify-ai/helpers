@@ -4,10 +4,10 @@ Control git commit and git push permissions in .claude/settings.local.json.
 
 Usage:
 # Remove git commit/push from deny list:
-> control_cc_commit.py --enable   
+> control_cc_commit.py --enable
 
 # Restore git commit/push to deny list:
-> control_cc_commit.py --disable  
+> control_cc_commit.py --disable
 """
 
 import argparse
@@ -102,17 +102,13 @@ def _enable_git_commands(settings: Dict) -> Tuple[List[str], Dict]:
         d for d in deny_list if "git commit" not in d and "git push" not in d
     ]
     if removed_denials:
-        _LOG.info(
-            "Removed %d git commit/push denials", len(removed_denials)
-        )
+        _LOG.info("Removed %d git commit/push denials", len(removed_denials))
     else:
         _LOG.info("No git commit/push denials to remove")
     return removed_denials, settings
 
 
-def _restore_from_backup(
-    settings: Dict, backup_path: str
-) -> Tuple[bool, Dict]:
+def _restore_from_backup(settings: Dict, backup_path: str) -> Tuple[bool, Dict]:
     """
     Restore git commit/push denials from backup file.
 

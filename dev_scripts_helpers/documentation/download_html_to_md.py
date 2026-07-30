@@ -44,18 +44,24 @@ _LOG = logging.getLogger(__name__)
 @hcacsimp.simple_cache(write_through=True)
 def _download_html(input_url: str, output_html_file: str) -> None:
     """
-    Download HTML from URL and save to file.
+    Download HTML from URL or read from local file and save to file.
 
-    :param input_url: URL to download from
+    :param input_url: URL to download from or local file path
     :param output_html_file: Path to save the HTML file
     """
     # Lazy imports to run unit tests.
     import requests
 
     _LOG.info("Downloading HTML from '%s'...", input_url)
-    response = requests.get(input_url)
-    response.raise_for_status()
-    hio.to_file(output_html_file, response.text)
+    # Check if input is a local file path.
+    if os.path.isfile(input_url):
+        html_content = hio.from_file(input_url)
+        _LOG.info("Read local HTML file from '%s'", input_url)
+    else:
+        response = requests.get(input_url)
+        response.raise_for_status()
+        html_content = response.text
+    hio.to_file(output_html_file, html_content)
     _LOG.info("Saved HTML to '%s'", output_html_file)
 
 

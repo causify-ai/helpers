@@ -241,7 +241,9 @@ def _run_ci_for_target(
         _LOG.error("git pull failed in '%s'", target_dir)
         return False
     # Run pytest_multi_build.
-    _run_pytest_multi_build(target_dir, log_file_pytest, pytest_target, nice_level)
+    _run_pytest_multi_build(
+        target_dir, log_file_pytest, pytest_target, nice_level
+    )
     _LOG.info("Test output logged to '%s'", log_file_pytest)
     # Run pytest_failed_multi_build.
     _run_pytest_failed_multi_build(target_dir, log_file_failed)
@@ -291,11 +293,17 @@ def _run_all_ci(
     all_passed = True
     for target_dir in repo_dirs:
         if not os.path.isdir(target_dir):
-            _LOG.warning("Skipping target='%s' (directory does not exist)", target_dir)
+            _LOG.warning(
+                "Skipping target='%s' (directory does not exist)", target_dir
+            )
             continue
         _LOG.info("\n%s", hprint.frame(f"target='{target_dir}'"))
         success = _run_ci_for_target(
-            target_dir, pytest_target, no_master_check, nice_level, no_clean_check
+            target_dir,
+            pytest_target,
+            no_master_check,
+            nice_level,
+            no_clean_check,
         )
         if not success:
             all_passed = False
@@ -379,7 +387,13 @@ def _run_daemon_mode(
     while True:
         if _should_run_now(start_time):
             _LOG.info("Scheduled CI run starting at '%s'", start_time)
-            _run_all_ci(pytest_target, no_master_check, repo_dirs, nice_level, no_clean_check)
+            _run_all_ci(
+                pytest_target,
+                no_master_check,
+                repo_dirs,
+                nice_level,
+                no_clean_check,
+            )
             # Sleep for a minute to avoid running multiple times.
             time.sleep(60)
         else:
@@ -483,7 +497,11 @@ def _main(args: argparse.Namespace) -> None:
         # Run once immediately.
         _LOG.info("Running CI once (non-daemon mode)")
         success = _run_all_ci(
-            args.pytest_target, args.no_master_check, args.repo_dirs, args.nice, args.no_clean_check
+            args.pytest_target,
+            args.no_master_check,
+            args.repo_dirs,
+            args.nice,
+            args.no_clean_check,
         )
         exit_code = 0 if success else 1
         sys.exit(exit_code)

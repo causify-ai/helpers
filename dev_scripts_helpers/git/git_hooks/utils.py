@@ -14,7 +14,6 @@ import subprocess
 import sys
 from typing import Any, List, Optional, Tuple
 
-import helpers.hdbg as hdbg
 import helpers.hdocker as hdocker
 import helpers.hprint as hprint
 import helpers.hsystem as hsystem
@@ -642,7 +641,7 @@ def check_gitleaks(abort_on_error: bool = True) -> None:
         """
     else:
         # Standard (non-worktree) command.
-        cmd = fr"""
+        cmd = rf"""
         {docker_cmd} run --rm \
           -v {repo_path}:{repo_path} \
           -w {repo_path} \

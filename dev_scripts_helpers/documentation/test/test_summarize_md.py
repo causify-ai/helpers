@@ -996,9 +996,7 @@ class Test_estimate_read_time(hunitest.TestCase):
     Test _estimate_read_time function.
     """
 
-    def helper(
-        self, num_words: int, expected_minutes_approx: float
-    ) -> None:
+    def helper(self, num_words: int, expected_minutes_approx: float) -> None:
         """
         Test helper for _estimate_read_time.
 
