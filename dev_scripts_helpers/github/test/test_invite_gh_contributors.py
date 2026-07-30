@@ -60,20 +60,6 @@ class Test_extract_usernames_from_csv(hunitest.TestCase):
     Verify that GitHub usernames are correctly extracted from a CSV file.
     """
 
-    def test_basic(self) -> None:
-        # Prepare inputs.
-        base_dir: pathlib.Path = pathlib.Path(self.get_scratch_space())
-        csv_path: pathlib.Path = self._create_file(
-            base_dir,
-            "users.csv",
-            "GitHub user\nalice\nbob\n\n",
-        )
-        # Run.
-        actual: List[str] = dshgdigco.extract_usernames_from_csv(str(csv_path))
-        expected: List[str] = ["alice", "bob"]
-        # Check.
-        self.assertEqual(actual, expected)
-
     def _create_file(
         self, dir_path: pathlib.Path, file_name: str, content: str
     ) -> pathlib.Path:
@@ -89,6 +75,20 @@ class Test_extract_usernames_from_csv(hunitest.TestCase):
         file_path: pathlib.Path = dir_path / file_name
         hio.to_file(file_name=str(file_path), txt=content)
         return file_path
+
+    def test_basic(self) -> None:
+        # Prepare inputs.
+        base_dir: pathlib.Path = pathlib.Path(self.get_scratch_space())
+        csv_path: pathlib.Path = self._create_file(
+            base_dir,
+            "users.csv",
+            "GitHub user\nalice\nbob\n\n",
+        )
+        # Run.
+        actual: List[str] = dshgdigco.extract_usernames_from_csv(str(csv_path))
+        expected: List[str] = ["alice", "bob"]
+        # Check.
+        self.assertEqual(actual, expected)
 
 
 # #############################################################################
