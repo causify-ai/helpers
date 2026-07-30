@@ -32,14 +32,18 @@ import re
 import tempfile
 from typing import Any, Dict, List, Tuple
 
-import dev_scripts_helpers.dockerize.lib_pandoc as dshdlipa
+import dev_scripts_helpers.dockerize.dockerized_pandoc as dshddpa
 import helpers.hdbg as hdbg
 import helpers.hio as hio
 import helpers.hparser as hparser
 import helpers.hselect_action as hselacti
-import helpers.hsystem as hsystem
 
 _LOG = logging.getLogger(__name__)
+
+# Default backend for running `pandoc`: see
+# `dev_scripts_helpers/dockerize/dockerized_pandoc.py` for the semantics of
+# `auto` / `dockerized` / `host`.
+_DEFAULT_PANDOC_BACKEND = "auto"
 
 
 # #############################################################################
@@ -86,13 +90,17 @@ def _save_ast(ast: PandocAst, filepath: str) -> None:
 
 
 def convert_markdown_to_pandoc_ast(
-    md_input: str, scratch_dir: str
+    md_input: str,
+    scratch_dir: str,
+    *,
+    pandoc_backend: str = _DEFAULT_PANDOC_BACKEND,
 ) -> Tuple[PandocAst, str, str]:
     """
-    Convert markdown text to a pandoc AST via dockerized pandoc.
+    Convert markdown text to a pandoc AST via pandoc.
 
     :param md_input: markdown text to convert
     :param scratch_dir: dir to store the input markdown and AST files
+    :param pandoc_backend: how to run pandoc (`auto`, `dockerized`, `host`)
     :return: tuple of (AST dict, input markdown file path, AST JSON file
         path)
     """
@@ -104,27 +112,31 @@ def convert_markdown_to_pandoc_ast(
     # Run conversion.
     cmd = f"pandoc {in_file} -f markdown -t json -o {ast_file}"
     pandoc_docker_image = "pandoc_only"
-    dshdlipa.run_dockerized_pandoc(cmd, pandoc_docker_image)
+    dshddpa.run_pandoc(cmd, pandoc_docker_image, pandoc_backend)
     # Load result.
     ast = _load_ast(ast_file)
     return ast, in_file, ast_file
 
 
 def convert_pandoc_ast_to_typst(
-    ast_input_file: str, scratch_dir: str
+    ast_input_file: str,
+    scratch_dir: str,
+    *,
+    pandoc_backend: str = _DEFAULT_PANDOC_BACKEND,
 ) -> Tuple[str, str]:
     """
-    Convert a pandoc AST JSON file to typst text via dockerized pandoc.
+    Convert a pandoc AST JSON file to typst text via pandoc.
 
     :param ast_input_file: path to the AST JSON file
     :param scratch_dir: dir to store the output typst file
+    :param pandoc_backend: how to run pandoc (`auto`, `dockerized`, `host`)
     :return: tuple of (typst text, typst output file path)
     """
     typst_file = os.path.join(scratch_dir, "output.typ")
     # Run conversion.
     cmd = f"pandoc {ast_input_file} -f json -t typst -o {typst_file}"
     pandoc_docker_image = "pandoc_only"
-    dshdlipa.run_dockerized_pandoc(cmd, pandoc_docker_image)
+    dshddpa.run_pandoc(cmd, pandoc_docker_image, pandoc_backend)
     # Load result.
     typst_txt = hio.from_file(typst_file)
     return typst_txt, typst_file
@@ -200,16 +212,20 @@ def _extract_columns(
 
 
 def _render_blocks_to_typst(
-    blocks: List[Dict[str, Any]], api_version: List[int]
+    blocks: List[Dict[str, Any]],
+    api_version: List[int],
+    pandoc_backend: str,
 ) -> str:
     """
     Render list of AST blocks to typst string via pandoc.
 
-    Builds a mini AST with the given blocks, pipes to `pandoc -f json -t typst`,
-    and returns the typst output (stripped of trailing whitespace).
+    Builds a mini AST with the given blocks, converts it via `pandoc -f
+    json -t typst`, and returns the typst output (stripped of trailing
+    whitespace).
 
     :param blocks: List of AST block elements
     :param api_version: Pandoc API version tuple (e.g., [1, 23, 1])
+    :param pandoc_backend: how to run pandoc (`auto`, `dockerized`, `host`)
     :return: Typst code string
     """
     mini_ast = {
@@ -218,16 +234,17 @@ def _render_blocks_to_typst(
         "blocks": blocks,
     }
     ast_json = json.dumps(mini_ast)
-    with tempfile.NamedTemporaryFile(
-        mode="w", suffix=".json", delete=True
-    ) as tmp_in:
-        tmp_in.write(ast_json)
-        tmp_in.flush()
-        tmp_in_path = tmp_in.name
-        cmd = f"pandoc -f json -t typst < {tmp_in_path}"
-        rc, result = hsystem.system_to_string(cmd)
-    hdbg.dassert_eq(rc, 0, "pandoc command failed")
-    typst_code = result.strip()
+    # TODO(gp): Consider using a tmp.render_block_typst dir
+    # Use file-based (not stdin/stdout) invocation, and a scratch dir
+    # underneath the current dir, so the dockerized backend can bind-mount
+    # the files (mounts are rooted at the Git root).
+    with tempfile.TemporaryDirectory(dir=".") as tmp_dir:
+        in_file = os.path.join(tmp_dir, "in.json")
+        out_file = os.path.join(tmp_dir, "out.typ")
+        hio.to_file(in_file, ast_json)
+        cmd = f"pandoc {in_file} -f json -t typst -o {out_file}"
+        dshddpa.run_pandoc(cmd, "pandoc_only", pandoc_backend)
+        typst_code = hio.from_file(out_file).strip()
     return typst_code
 
 
@@ -265,7 +282,9 @@ def _format_grid_code(widths: List[str], column_contents: List[str]) -> str:
 # #############################################################################
 
 
-def _transform_elem(elem: PandocAst, api_version: List[int]) -> PandocAst:
+def _transform_elem(
+    elem: PandocAst, api_version: List[int], pandoc_backend: str
+) -> PandocAst:
     """
     Transform a single element recursively.
 
@@ -274,13 +293,15 @@ def _transform_elem(elem: PandocAst, api_version: List[int]) -> PandocAst:
 
     :param elem: AST element (block)
     :param api_version: Pandoc API version
+    :param pandoc_backend: how to run pandoc (`auto`, `dockerized`, `host`)
     :return: Transformed element (may be same elem or replacement)
     """
     if _is_columns_container(elem):
         columns = _extract_columns(elem)
         widths = [width for width, _ in columns]
         column_typst_codes = [
-            _render_blocks_to_typst(blocks, api_version) for _, blocks in columns
+            _render_blocks_to_typst(blocks, api_version, pandoc_backend)
+            for _, blocks in columns
         ]
         grid_code = _format_grid_code(widths, column_typst_codes)
         raw_block = {"t": "RawBlock", "c": ["typst", grid_code]}
@@ -288,7 +309,8 @@ def _transform_elem(elem: PandocAst, api_version: List[int]) -> PandocAst:
     if elem.get("t") == "Div" and elem.get("c"):
         children = elem["c"][1]
         transformed_children = [
-            _transform_elem(child, api_version) for child in children
+            _transform_elem(child, api_version, pandoc_backend)
+            for child in children
         ]
         elem["c"][1] = transformed_children
     elif elem.get("t") in ("BulletList", "OrderedList") and elem.get("c"):
@@ -296,21 +318,26 @@ def _transform_elem(elem: PandocAst, api_version: List[int]) -> PandocAst:
         for item in list_items:
             for block_idx, block in enumerate(item):
                 if isinstance(block, dict):
-                    item[block_idx] = _transform_elem(block, api_version)
+                    item[block_idx] = _transform_elem(
+                        block, api_version, pandoc_backend
+                    )
     return elem
 
 
-def _transform_ast_divved_fence(ast: PandocAst) -> PandocAst:
+def _transform_ast_divved_fence(
+    ast: PandocAst, *, pandoc_backend: str = _DEFAULT_PANDOC_BACKEND
+) -> PandocAst:
     """
     Transform entire AST: replace all Div[columns] with RawBlock[typst #grid()].
 
     :param ast: Full pandoc AST dict
+    :param pandoc_backend: how to run pandoc (`auto`, `dockerized`, `host`)
     :return: Transformed AST
     """
     api_version = ast.get("pandoc-api-version", [1, 23, 1])
     blocks = ast.get("blocks", [])
     transformed_blocks = [
-        _transform_elem(block, api_version) for block in blocks
+        _transform_elem(block, api_version, pandoc_backend) for block in blocks
     ]
     ast["blocks"] = transformed_blocks
     return ast
@@ -398,7 +425,8 @@ class ColorTransformer:
     # `\text{X}` to `upright("X")` in Typst, which is what we grep for below.
     _PLACEHOLDER_TEMPLATE = "XCOLORPLACEHOLDER{idx}"
 
-    def __init__(self):
+    def __init__(self, pandoc_backend: str = _DEFAULT_PANDOC_BACKEND):
+        self.pandoc_backend = pandoc_backend
         self.stats = {
             "textcolor_count": 0,
             "color_count": 0,
@@ -461,14 +489,13 @@ class ColorTransformer:
         result = self.color_to_typst(result)
         return result
 
-    @staticmethod
-    def _latex_math_to_typst(latex_str: str) -> str:
+    def _latex_math_to_typst(self, latex_str: str) -> str:
         """
         Convert a LaTeX math snippet to a Typst math snippet via pandoc.
 
         `latex_str` must be a well-formed (balanced) LaTeX math expression
         on its own: it is wrapped as an `InlineMath` node in a throwaway AST
-        and piped through `pandoc -f json -t typst`.
+        and converted via `pandoc -f json -t typst`.
 
         :param latex_str: LaTeX math source (no surrounding `$`)
         :return: equivalent Typst math source (no surrounding `$`)
@@ -484,17 +511,16 @@ class ColorTransformer:
             ],
         }
         ast_json = json.dumps(mini_ast)
-        with tempfile.NamedTemporaryFile(
-            mode="w", suffix=".json", delete=True
-        ) as tmp_in:
-            tmp_in.write(ast_json)
-            tmp_in.flush()
-            cmd = f"pandoc -f json -t typst < {tmp_in.name}"
-            rc, result = hsystem.system_to_string(cmd)
-        hdbg.dassert_eq(
-            rc, 0, "pandoc failed converting formula to typst: %s", latex_str
-        )
-        typst_text = result.strip()
+        # Use file-based (not stdin/stdout) invocation, and a scratch dir
+        # underneath the current dir, so the dockerized backend can
+        # bind-mount the files (mounts are rooted at the Git root).
+        with tempfile.TemporaryDirectory(dir=".") as tmp_dir:
+            in_file = os.path.join(tmp_dir, "in.json")
+            out_file = os.path.join(tmp_dir, "out.typ")
+            hio.to_file(in_file, ast_json)
+            cmd = f"pandoc {in_file} -f json -t typst -o {out_file}"
+            dshddpa.run_pandoc(cmd, "pandoc_only", self.pandoc_backend)
+            typst_text = hio.from_file(out_file).strip()
         hdbg.dassert(
             typst_text.startswith("$") and typst_text.endswith("$"),
             "Unexpected pandoc typst output for formula '%s': %s",
@@ -599,14 +625,17 @@ class ColorTransformer:
         return self.stats
 
 
-def _transform_ast_color_text(ast: PandocAst) -> PandocAst:
+def _transform_ast_color_text(
+    ast: PandocAst, pandoc_backend: str = _DEFAULT_PANDOC_BACKEND
+) -> PandocAst:
     """
     Transform AST: replace LaTeX color commands with Typst equivalents.
 
     :param ast: Full pandoc AST dict
+    :param pandoc_backend: how to run pandoc (`auto`, `dockerized`, `host`)
     :return: Transformed AST
     """
-    transformer = ColorTransformer()
+    transformer = ColorTransformer(pandoc_backend)
     return transformer.walk(ast)
 
 
@@ -642,6 +671,15 @@ def _parse() -> argparse.ArgumentParser:
         default="",
         help="Output AST JSON file (or - for stdout)",
     )
+    parser.add_argument(
+        "--pandoc_backend",
+        type=str,
+        choices=dshddpa.VALID_PANDOC_BACKENDS,
+        default=_DEFAULT_PANDOC_BACKEND,
+        help="How to run `pandoc`: `auto` uses the host binary if it's on "
+        "PATH and falls back to Docker otherwise, `dockerized` always runs "
+        "pandoc in Docker, `host` always runs the host binary",
+    )
     hselacti.add_action_arg(parser, _VALID_ACTIONS, _DEFAULT_ACTIONS)
     hparser.add_verbosity_arg(parser)
     return parser
@@ -667,10 +705,10 @@ def _main(parser: argparse.ArgumentParser) -> None:
                 _LOG.info(
                     "Transforming AST: Div[columns] -> RawBlock[typst #grid()]"
                 )
-                ast = _transform_ast_divved_fence(ast)
+                ast = _transform_ast_divved_fence(ast, args.pandoc_backend)
             elif action == "color_text":
                 _LOG.info("Transforming AST: LaTeX colors -> Typst colors")
-                ast = _transform_ast_color_text(ast)
+                ast = _transform_ast_color_text(ast, args.pandoc_backend)
     _LOG.info("Saving transformed AST to '%s'", args.out_file)
     _save_ast(ast, args.out_file)
     _LOG.info("Done")
