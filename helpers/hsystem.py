@@ -19,6 +19,7 @@ import subprocess
 import sys
 import time
 from typing import (
+    TYPE_CHECKING,
     Any,
     Callable,
     Generator,
@@ -40,11 +41,19 @@ import helpers.hprint as hprint
 # - a few helpers as described in `helpers/dependencies.txt`
 
 
-_LOG = logging.getLogger(__name__)
+if TYPE_CHECKING:
 
-# _LOG.trace is used only for debugging this module.
-# _LOG.trace = _LOG.debug
-_LOG.trace = lambda *args, **kwargs: None
+    class _LoggerWithTrace(logging.Logger):
+        def trace(self, msg: object, *args: object, **kwargs: object) -> None: ...
+
+    _LOG: _LoggerWithTrace
+else:
+    _LOG = logging.getLogger(__name__)
+
+if not TYPE_CHECKING:
+    # _LOG.trace is used only for debugging this module.
+    # _LOG.trace = _LOG.debug
+    _LOG.trace = lambda *args, **kwargs: None
 
 # Set logging level of this file higher to avoid too much chatter.
 # _LOG.setLevel(logging.INFO)
@@ -74,7 +83,8 @@ def is_running_in_ipynb() -> bool:
 _USER_NAME = None
 
 
-def set_user_name(user_name: str) -> None:
+# TODO(ai_gp): Use "" instead of None.
+def set_user_name(user_name: Optional[str]) -> None:
     """
     To impersonate a user.
 
@@ -191,9 +201,9 @@ def _system(
     if isinstance(log_level, str):
         hdbg.dassert_in(log_level, ("PRINT", "PRINT_FRAME"))
         if log_level == "PRINT_FRAME":
-            print(hprint.frame("> %s", hprint.color_highlight(cmd, "green")))
+            print(hprint.frame("> %s" % hprint.color_highlight(cmd, "green")))
         elif log_level == "PRINT":
-            print("> %s", hprint.color_highlight(cmd, "green"))
+            print("> %s" % hprint.color_highlight(cmd, "green"))
         else:
             raise ValueError(f"Invalid log_level='{log_level}'")
         _LOG.trace("> %s", cmd)

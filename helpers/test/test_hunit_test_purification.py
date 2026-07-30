@@ -1229,9 +1229,9 @@ class Test_purify_line_number1(hunitest.TestCase):
 class Test_purify_file_names1(hunitest.TestCase):
     def helper(self, file_names: List[str], expected: List[str]) -> None:
         actual = huntepur.purify_file_names(file_names)
-        actual = "\n".join(str(path) for path in actual)
-        expected = "\n".join(str(path) for path in expected)
-        self.assert_equal(actual, expected)
+        actual_str = "\n".join(str(path) for path in actual)
+        expected_str = "\n".join(str(path) for path in expected)
+        self.assert_equal(actual_str, expected_str)
 
     def test1(self) -> None:
         """

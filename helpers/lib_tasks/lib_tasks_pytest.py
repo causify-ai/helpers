@@ -11,7 +11,7 @@ import re
 import sys
 from typing import Any, List, Optional, Tuple
 
-from invoke import task
+from invoke.tasks import task
 
 # We want to minimize the dependencies from non-standard Python packages since
 # this code needs to run with minimal dependencies and without Docker.
@@ -806,7 +806,7 @@ def _publish_html_coverage_report_on_s3(aws_profile: str) -> None:
     else:
         # Use `s3fs` to copy data to AWS S3.
         s3fs_ = hs3.get_s3fs(aws_profile)
-        s3fs_.put(local_coverage_path, s3_html_coverage_path, recursive=True)
+        s3fs_.put(local_coverage_path, s3_html_coverage_path, recursive=True)  # type: ignore[attr-defined]
     _LOG.info(
         "HTML coverage report is published on S3: path=`%s`",
         s3_html_coverage_path,
