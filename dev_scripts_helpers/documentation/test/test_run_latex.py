@@ -110,9 +110,7 @@ class Test__copy_to_google_drive(hunitest.TestCase):
         # Run test.
         with (
             mock.patch.object(dshdrula, "_GDRIVE_PAPERS_DIR", papers_dir),
-            mock.patch.object(
-                dshdrula, "_GDRIVE_INTERNAL_DIR", internal_dir
-            ),
+            mock.patch.object(dshdrula, "_GDRIVE_INTERNAL_DIR", internal_dir),
         ):
             dshdrula._copy_to_google_drive(out_file_path)
         # Check outputs.
@@ -132,9 +130,7 @@ class Test__copy_to_google_drive(hunitest.TestCase):
         # Run test.
         with (
             mock.patch.object(dshdrula, "_GDRIVE_PAPERS_DIR", papers_dir),
-            mock.patch.object(
-                dshdrula, "_GDRIVE_INTERNAL_DIR", missing_dir
-            ),
+            mock.patch.object(dshdrula, "_GDRIVE_INTERNAL_DIR", missing_dir),
         ):
             dshdrula._copy_to_google_drive(out_file_path)
         # Check outputs.
@@ -446,9 +442,7 @@ class Test_run_latex_py(hunitest.TestCase):
         # Run test.
         with (
             mock.patch.object(dshdrula.dshdlila, "run_basic_latex"),
-            mock.patch.object(
-                dshdrula, "_copy_to_google_drive"
-            ) as mock_copy,
+            mock.patch.object(dshdrula, "_copy_to_google_drive") as mock_copy,
         ):
             self._run_main(argv)
         # Check outputs.
