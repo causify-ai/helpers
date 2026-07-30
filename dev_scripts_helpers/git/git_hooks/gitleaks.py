@@ -37,17 +37,11 @@ def _parse() -> argparse.ArgumentParser:
         description=__doc__,
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
-    # TODO(ai_gp): Use only one.
-    parser.add_argument(
-        "--abort-on-error",
-        action="store_true",
-        default=True,
-        help="Abort execution if gitleaks check fails (default: True)",
-    )
     parser.add_argument(
         "--no-abort-on-error",
         action="store_false",
         dest="abort_on_error",
+        default=True,
         help="Do not abort execution if gitleaks check fails",
     )
     hparser.add_verbosity_arg(parser)

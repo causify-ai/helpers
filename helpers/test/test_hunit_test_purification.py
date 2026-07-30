@@ -626,8 +626,8 @@ class Test_purify_super_module_references1(hunitest.TestCase):
         """
         txt = "csfy1.helpers_root.helpers.test.test_hobject._Object1"
         expected = "helpers_root.helpers.test.test_hobject._Object1"
-        # TODO(ai_gp): Assign super_module_root and then pass it.
-        # Do the same for all the functions.
+        # TODO(ai_gp): Assign super_module_root and then pass it. Do the same
+        # for all the functions.
         self.helper("/Users/user/src/csfy1", txt, expected)
 
     def test2(self) -> None:
@@ -1229,15 +1229,16 @@ class Test_purify_line_number1(hunitest.TestCase):
 class Test_purify_file_names1(hunitest.TestCase):
     def helper(self, file_names: List[str], expected: List[str]) -> None:
         actual = huntepur.purify_file_names(file_names)
-        actual = "\n".join(str(path) for path in actual)
-        expected = "\n".join(str(path) for path in expected)
-        self.assert_equal(actual, expected)
+        actual_str = "\n".join(str(path) for path in actual)
+        expected_str = "\n".join(str(path) for path in expected)
+        self.assert_equal(actual_str, expected_str)
 
     def test1(self) -> None:
         """
         Test basic file name purification with relative paths.
         """
-        # TODO(ai_gp): Move the umock.pack to the helper
+        # TODO(ai_gp): Move the umock.patch to the helper function to simplify
+        # the code.
         with umock.patch(
             "helpers.hgit.get_client_root", return_value="/home/user/gitroot"
         ):
@@ -1327,18 +1328,17 @@ class Test_purify_apple_container_output1(hunitest.TestCase):
         """
         Test removing multiple container startup lines.
         """
-        # TODO(ai_gp): Use a """
-        txt = (
-            "[0/6] [0s]\n"
-            "[1/6] Fetching image [0s]\n"
-            "[2/6] Unpacking image [0s]\n"
-            "[3/6] Fetching kernel [0s]\n"
-            "[4/6] Fetching init image [0s]\n"
-            "[5/6] Unpacking init image [0s]\n"
-            "[6/6] Starting container [0s]\n"
-            "[6/6] Starting container [1s]\n"
-            "dot - graphviz version 12.2.1 (20241206.2353)\n"
-        )
+        txt = hprint.dedent(r"""
+        [0/6] [0s]
+        [1/6] Fetching image [0s]
+        [2/6] Unpacking image [0s]
+        [3/6] Fetching kernel [0s]
+        [4/6] Fetching init image [0s]
+        [5/6] Unpacking init image [0s]
+        [6/6] Starting container [0s]
+        [6/6] Starting container [1s]
+        dot - graphviz version 12.2.1 (20241206.2353)
+        """)
         expected = "dot - graphviz version 12.2.1 (20241206.2353)\n\n"
         self.helper(txt, expected)
 
@@ -1362,12 +1362,11 @@ class Test_purify_apple_container_output1(hunitest.TestCase):
         """
         Test with only container startup lines.
         """
-        # TODO(ai_gp): Use a """
-        txt = (
-            "[0/6] [0s]\n"
-            "[1/6] Fetching image [0s]\n"
-            "[2/6] Unpacking image [0s]\n"
-        )
+        txt = hprint.dedent(r"""
+        [0/6] [0s]
+        [1/6] Fetching image [0s]
+        [2/6] Unpacking image [0s]
+        """)
         expected = "\n\n"
         self.helper(txt, expected)
 
@@ -1376,15 +1375,13 @@ class Test_purify_apple_container_output1(hunitest.TestCase):
         Test that lines with brackets but not starting/ending with them are
         kept.
         """
-        # TODO(ai_gp): Use a """
-        txt = (
-            "[0/6] [0s]\n"
-            "Some output with [brackets] in the middle\n"
-            "dot - graphviz version 12.2.1 (20241206.2353)\n"
-        )
-        # TODO(ai_gp): Use a """
-        expected = (
-            "Some output with [brackets] in the middle\n"
-            "dot - graphviz version 12.2.1 (20241206.2353)\n"
-        )
+        txt = hprint.dedent(r"""
+        [0/6] [0s]
+        Some output with [brackets] in the middle
+        dot - graphviz version 12.2.1 (20241206.2353)
+        """)
+        expected = hprint.dedent(r"""
+        Some output with [brackets] in the middle
+        dot - graphviz version 12.2.1 (20241206.2353)
+        """)
         self.helper(txt, expected)

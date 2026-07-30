@@ -32,7 +32,7 @@ import re
 import tempfile
 from typing import Any, Dict, List, Tuple
 
-import dev_scripts_helpers.dockerize.dockerized_pandoc as dshddopa
+import dev_scripts_helpers.dockerize.lib_pandoc as dshdlipa
 import helpers.hdbg as hdbg
 import helpers.hio as hio
 import helpers.hparser as hparser
@@ -41,7 +41,7 @@ import helpers.hselect_action as hselacti
 _LOG = logging.getLogger(__name__)
 
 # Default backend for running `pandoc`: see
-# `dev_scripts_helpers/dockerize/dockerized_pandoc.py` for the semantics of
+# `dev_scripts_helpers/dockerize/lib_pandoc.py` for the semantics of
 # `auto` / `dockerized` / `host`.
 _DEFAULT_PANDOC_BACKEND = "auto"
 
@@ -112,7 +112,7 @@ def convert_markdown_to_pandoc_ast(
     # Run conversion.
     cmd = f"pandoc {in_file} -f markdown -t json -o {ast_file}"
     pandoc_docker_image = "pandoc_only"
-    dshddopa.run_pandoc(cmd, pandoc_docker_image, pandoc_backend)
+    dshdlipa.run_pandoc(cmd, pandoc_docker_image, pandoc_backend)
     # Load result.
     ast = _load_ast(ast_file)
     return ast, in_file, ast_file
@@ -136,7 +136,7 @@ def convert_pandoc_ast_to_typst(
     # Run conversion.
     cmd = f"pandoc {ast_input_file} -f json -t typst -o {typst_file}"
     pandoc_docker_image = "pandoc_only"
-    dshddopa.run_pandoc(cmd, pandoc_docker_image, pandoc_backend)
+    dshdlipa.run_pandoc(cmd, pandoc_docker_image, pandoc_backend)
     # Load result.
     typst_txt = hio.from_file(typst_file)
     return typst_txt, typst_file
@@ -243,7 +243,7 @@ def _render_blocks_to_typst(
         out_file = os.path.join(tmp_dir, "out.typ")
         hio.to_file(in_file, ast_json)
         cmd = f"pandoc {in_file} -f json -t typst -o {out_file}"
-        dshddopa.run_pandoc(cmd, "pandoc_only", pandoc_backend)
+        dshdlipa.run_pandoc(cmd, "pandoc_only", pandoc_backend)
         typst_code = hio.from_file(out_file).strip()
     return typst_code
 
@@ -519,7 +519,7 @@ class ColorTransformer:
             out_file = os.path.join(tmp_dir, "out.typ")
             hio.to_file(in_file, ast_json)
             cmd = f"pandoc {in_file} -f json -t typst -o {out_file}"
-            dshddopa.run_pandoc(cmd, "pandoc_only", self.pandoc_backend)
+            dshdlipa.run_pandoc(cmd, "pandoc_only", self.pandoc_backend)
             typst_text = hio.from_file(out_file).strip()
         hdbg.dassert(
             typst_text.startswith("$") and typst_text.endswith("$"),
@@ -670,13 +670,14 @@ def _parse() -> argparse.ArgumentParser:
         default="",
         help="Output AST JSON file (or - for stdout)",
     )
+    # TODO(ai_gp): Factor out this as a parser option in the library.
     parser.add_argument(
         "--pandoc_backend",
         type=str,
-        choices=dshddopa.VALID_PANDOC_BACKENDS,
+        choices=dshdlipa.VALID_PANDOC_BACKENDS,
         default=_DEFAULT_PANDOC_BACKEND,
-        help="How to run `pandoc`: `auto` uses the host binary if it's on "
-        "PATH and falls back to Docker otherwise, `dockerized` always runs "
+        help="How to run `pandoc`: `auto` uses the host binary "
+        "and falls back to Docker otherwise, `dockerized` always runs "
         "pandoc in Docker, `host` always runs the host binary",
     )
     hselacti.add_action_arg(parser, _VALID_ACTIONS, _DEFAULT_ACTIONS)

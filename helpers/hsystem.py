@@ -19,6 +19,7 @@ import subprocess
 import sys
 import time
 from typing import (
+    TYPE_CHECKING,
     Any,
     Callable,
     Generator,
@@ -30,21 +31,26 @@ from typing import (
     cast,
 )
 
+import helpers.hclipboard as hclipbo
 import helpers.hdbg as hdbg
 import helpers.hintrospection as hintros
 import helpers.hprint as hprint
-import helpers.hserver as hserver
 
 # This module can depend only on:
 # - Python standard modules
 # - a few helpers as described in `helpers/dependencies.txt`
 
 
-_LOG = logging.getLogger(__name__)
+if TYPE_CHECKING:
+
+    class _LoggerWithTrace(logging.Logger):
+        def trace(self, _msg: object, *_args: object, **_kwargs: object) -> None: ...
+
+_LOG = cast("_LoggerWithTrace", logging.getLogger(__name__))
 
 # _LOG.trace is used only for debugging this module.
 # _LOG.trace = _LOG.debug
-_LOG.trace = lambda *args, **kwargs: None
+_LOG.trace = lambda *_args, **_kwargs: None
 
 # Set logging level of this file higher to avoid too much chatter.
 # _LOG.setLevel(logging.INFO)
@@ -62,7 +68,7 @@ def get_timestamp() -> str:
 def is_running_in_ipynb() -> bool:
     # From https://stackoverflow.com/questions/15411967
     try:
-        _ = get_ipython().config  # type: ignore
+        _ = get_ipython().config  # type: ignore  # noqa: F821
         res = True
     except NameError:
         res = False
@@ -74,7 +80,8 @@ def is_running_in_ipynb() -> bool:
 _USER_NAME = None
 
 
-def set_user_name(user_name: str) -> None:
+# TODO(ai_gp): Use "" instead of None.
+def set_user_name(user_name: Optional[str]) -> None:
     """
     To impersonate a user.
 
@@ -191,9 +198,9 @@ def _system(
     if isinstance(log_level, str):
         hdbg.dassert_in(log_level, ("PRINT", "PRINT_FRAME"))
         if log_level == "PRINT_FRAME":
-            print(hprint.frame("> %s", hprint.color_highlight(cmd, "green")))
+            print(hprint.frame("> %s" % hprint.color_highlight(cmd, "green")))
         elif log_level == "PRINT":
-            print("> %s", hprint.color_highlight(cmd, "green"))
+            print("> %s" % hprint.color_highlight(cmd, "green"))
         else:
             raise ValueError(f"Invalid log_level='{log_level}'")
         _LOG.trace("> %s", cmd)
@@ -711,23 +718,11 @@ def check_exec(tool: str) -> bool:
 
 def to_pbcopy(txt: str, pbcopy: bool) -> None:
     """
-    Save the content of txt in the system clipboard.
+    Save the content of txt in the system clipboard or print to stdout.
+
+    Uses cross-platform clipboard support via hclipboard module.
     """
-    txt = txt.rstrip("\n")
-    if not pbcopy:
-        print(txt)
-        return
-    if not txt:
-        print("Nothing to copy")
-        return
-    if hserver.is_host_mac():
-        # -n = no new line
-        cmd = f"echo -n '{txt}' | pbcopy"
-        system(cmd)
-        _LOG.warning("\n# Copied to system clipboard:\n%s", txt)
-    else:
-        _LOG.warning("pbcopy works only on macOS")
-        print(txt)
+    hclipbo.to_clipboard_or_print(txt, pbcopy)
 
 
 # #############################################################################

@@ -180,9 +180,7 @@ def process_color_commands(in_line: str, output_format: str) -> str:
             elif output_format == "typst":
                 # Escape tildes (~) since they have special meaning in typst.
                 escaped_content = content.replace("~", r"\~")
-                typst_code = (
-                    f'#text(fill: {output_color}, weight: "bold")[{escaped_content}]'
-                )
+                typst_code = f'#text(fill: {output_color}, weight: "bold")[{escaped_content}]'
                 ret = f"`{typst_code}`{{=typst}}"
             else:
                 raise ValueError("Invalid output_format='%s'" % output_format)
