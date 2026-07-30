@@ -723,7 +723,7 @@ class Test_build_stats_to_str_colorization(hunitest.TestCase):
         # Check that expected status appears in output or compare full output.
         if expected is not None:
             if dedent:
-                expected_str = hprint.dedent(expected_str).strip()
+                expected_str = hprint.dedent(expected).strip()
             else:
                 expected_str = expected
             self.assert_equal(clean_actual, expected_str)

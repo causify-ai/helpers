@@ -44,16 +44,13 @@ import helpers.hprint as hprint
 if TYPE_CHECKING:
 
     class _LoggerWithTrace(logging.Logger):
-        def trace(self, msg: object, *args: object, **kwargs: object) -> None: ...
+        def trace(self, _msg: object, *_args: object, **_kwargs: object) -> None: ...
 
-    _LOG: _LoggerWithTrace
-else:
-    _LOG = logging.getLogger(__name__)
+_LOG = cast("_LoggerWithTrace", logging.getLogger(__name__))
 
-if not TYPE_CHECKING:
-    # _LOG.trace is used only for debugging this module.
-    # _LOG.trace = _LOG.debug
-    _LOG.trace = lambda *args, **kwargs: None
+# _LOG.trace is used only for debugging this module.
+# _LOG.trace = _LOG.debug
+_LOG.trace = lambda *_args, **_kwargs: None
 
 # Set logging level of this file higher to avoid too much chatter.
 # _LOG.setLevel(logging.INFO)
