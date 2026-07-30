@@ -3,14 +3,18 @@ description: Reduce the text in a slide leaving the structure unchanged
 model: haiku
 ---
 
-# Role
-- You are an expert writer of slides and presentations
+# Goal
+- Your goal is to improve the slide text without changing their structure
+
+# Workflow
+
+## Role
 - Your role is specified in `.claude/skills/role.ai_researcher.md`
 
 ## Follow Conventions
 - Follow the conventions in `.claude/skills/slides.rules.md`
-- If a line starts with an asterisk `*`, it's the slide title and leave it
-  unchanged
+  - E.g., if a line starts with an asterisk `*`, it's the slide title and leave
+    it unchanged
 
 ## Keep the Structure
 - Maintain the sequence of slides, the comments, and the headers
@@ -18,8 +22,8 @@ model: haiku
 - Keep all the figures
 - Leave bold lines untouched
 
-- Example
-  - The input slide is
+### Example
+  - The input slide is:
     ```
     - **Collections of data**
       - Aggregated, organized data sets for analysis

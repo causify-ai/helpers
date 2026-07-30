@@ -149,7 +149,7 @@ class Test_load_df_from_json(hunitest.TestCase):
 
 
 class Test_safe_rm_file(hunitest.TestCase):
-    def test_successful_removal_within_git_client(self) -> None:
+    def test1(self) -> None:
         """
         Test successful removal of directory within Git client.
         """

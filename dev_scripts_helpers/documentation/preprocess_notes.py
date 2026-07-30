@@ -100,7 +100,8 @@ def _colorize_backticks(
             # For Typst, use #text with the content directly (no inner backticks).
             # The content is rendered as monospace colored text via #text(fill:
             # color)[content].
-            txt = f"#text(fill: {color})[{matched_text}]"
+            # Wrap in backticks with {=typst} so pandoc treats it as raw typst code.
+            txt = f"`#text(fill: {color})[{matched_text}]`{{=typst}}"
         return txt
 
     line = re.sub(pattern, replace_func, line)

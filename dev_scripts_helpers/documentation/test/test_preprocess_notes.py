@@ -269,23 +269,24 @@ class Test_colorize_backticks_typst(hunitest.TestCase):
 
     def test1(self) -> None:
         """
-        Test single backtick-wrapped word in Typst format.
+        Test single backtick-wrapped word in Typst format with {=typst} wrapper.
         """
         # Prepare inputs.
         txt_in = "The `store` variable is used."
         # Prepare outputs.
-        expected = "The #text(fill: blue)[store] variable is used."
+        # Wrapped in backticks with {=typst} so pandoc treats as raw typst code.
+        expected = "The `#text(fill: blue)[store]`{=typst} variable is used."
         # Run test.
         self.helper(txt_in, expected)
 
     def test2(self) -> None:
         """
-        Test multiple backtick-wrapped words in Typst format.
+        Test multiple backtick-wrapped words in Typst format with {=typst} wrapper.
         """
         # Prepare inputs.
         txt_in = "Use `function1` and `function2` to process data."
         # Prepare outputs.
-        expected = "Use #text(fill: blue)[function1] and #text(fill: blue)[function2] to process data."
+        expected = "Use `#text(fill: blue)[function1]`{=typst} and `#text(fill: blue)[function2]`{=typst} to process data."
         # Run test.
         self.helper(txt_in, expected)
 
@@ -296,7 +297,7 @@ class Test_colorize_backticks_typst(hunitest.TestCase):
         # Prepare inputs.
         txt_in = "Use the `_private_func` naming."
         # Prepare outputs.
-        expected = "Use the #text(fill: blue)[_private_func] naming."
+        expected = "Use the `#text(fill: blue)[_private_func]`{=typst} naming."
         # Run test.
         self.helper(txt_in, expected)
 
@@ -307,7 +308,7 @@ class Test_colorize_backticks_typst(hunitest.TestCase):
         # Prepare inputs.
         txt_in = "The `main function` is important."
         # Prepare outputs.
-        expected = "The #text(fill: blue)[main function] is important."
+        expected = "The `#text(fill: blue)[main function]`{=typst} is important."
         # Run test.
         self.helper(txt_in, expected)
 
@@ -318,7 +319,7 @@ class Test_colorize_backticks_typst(hunitest.TestCase):
         # Prepare inputs.
         txt_in = "Import `numpy.array` for matrix operations."
         # Prepare outputs.
-        expected = "Import #text(fill: blue)[numpy.array] for matrix operations."
+        expected = "Import `#text(fill: blue)[numpy.array]`{=typst} for matrix operations."
         # Run test.
         self.helper(txt_in, expected)
 
@@ -340,7 +341,7 @@ class Test_colorize_backticks_typst(hunitest.TestCase):
         # Prepare inputs.
         txt_in = "The `simple` var and `styled`{.highlight} are different."
         # Prepare outputs.
-        expected = "The #text(fill: blue)[simple] var and `styled`{.highlight} are different."
+        expected = "The `#text(fill: blue)[simple]`{=typst} var and `styled`{.highlight} are different."
         # Run test.
         self.helper(txt_in, expected)
 
@@ -479,6 +480,77 @@ class Test_colorize_backticks_integration(hunitest.TestCase):
         variable = `store`
         ```
         The \textcolor{blue}{\texttt{variable}} name is important.
+        """
+        # Run test.
+        self.helper(txt_in, type_, expected)
+
+
+# #############################################################################
+# Test_colorize_backticks_typst_integration
+# #############################################################################
+
+
+class Test_colorize_backticks_typst_integration(hunitest.TestCase):
+    def helper(self, txt_in_str: str, type_: str, expected_str: str) -> None:
+        """
+        Test helper for _transform_lines with Typst backtick colorization.
+
+        :param txt_in_str: input text with dedent applied
+        :param type_: output type ("pdf" or "slides")
+        :param expected_str: expected output text with dedent applied
+        """
+        # Prepare inputs.
+        txt_in_lines = txt_in_str.split("\n")
+        txt_in_lines = hprint.dedent(
+            txt_in_lines, remove_lead_trail_empty_lines_=True
+        )
+        # Run test.
+        is_qa = False
+        output_format = "typst"
+        actual = dshdprno._transform_lines(
+            txt_in_lines, type_, is_qa, output_format
+        )
+        actual = "\n".join(actual)
+        # Check outputs.
+        expected = hprint.dedent(
+            expected_str, remove_lead_trail_empty_lines_=True
+        )
+        self.assert_equal(actual, expected)
+
+    def test1(self) -> None:
+        """
+        Test backtick colorization with Typst format includes {=typst} wrapper.
+        """
+        # Prepare inputs.
+        txt_in = r"""
+        # Chapter 1
+        The `variable` is used here.
+        And `function_name` is called next.
+        """
+        type_ = "slides"
+        # Prepare outputs.
+        expected = r"""
+        # Chapter 1
+        The `#text(fill: blue)[variable]`{=typst} is used here.
+        And `#text(fill: blue)[function_name]`{=typst} is called next.
+        """
+        # Run test.
+        self.helper(txt_in, type_, expected)
+
+    def test2(self) -> None:
+        """
+        Test multiple backticks in Typst format with {=typst} wrapper.
+        """
+        # Prepare inputs.
+        txt_in = r"""
+        # A/B Testing
+        Use `no_email` as control and `long` as treatment.
+        """
+        type_ = "slides"
+        # Prepare outputs.
+        expected = r"""
+        # A/B Testing
+        Use `#text(fill: blue)[no_email]`{=typst} as control and `#text(fill: blue)[long]`{=typst} as treatment.
         """
         # Run test.
         self.helper(txt_in, type_, expected)

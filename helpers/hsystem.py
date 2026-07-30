@@ -78,7 +78,7 @@ def set_user_name(user_name: str) -> None:
     """
     To impersonate a user.
 
-    To use only in rare cases for testing or back-door.
+    To use only in rare cases for testing or backdoor.
     """
     _LOG.warning("Setting user to '%s'", user_name)
     global _USER_NAME

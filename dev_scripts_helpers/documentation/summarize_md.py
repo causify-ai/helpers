@@ -9,25 +9,36 @@ Summarize markdown text using an LLM.
 
 The script:
 - reads a markdown file
+- prints file statistics (word count, read time, header levels)
 - for each header at a specified level (--md_level) extracts the full section
   (including all nested content)
 - uses an LLM for summarization
+- by default compresses each section to 10% of original size (--pct_words 0.1)
 
 Results are appended to the output file incrementally.
 
 The output preserves the markdown header structure with summaries or digests.
 
 Examples:
-# Summarize all level-1 chapters with LLM
+# Summarize all level-1 chapters (default: 10% compression)
 > summarize_md.py -i book.md -o book.summary.md --md_level 1
 
-# Summarize level-2 sections in a range
+# Summarize entire file in one shot (default: 10% compression)
+> summarize_md.py -i book.md -o out.md --md_level 0
+
+# Summarize with max words per chunk (disable default compression)
+> summarize_md.py -i book.md -o out.md --md_level 1 --max_words 500
+
+# Summarize to 5% of original size (custom compression)
+> summarize_md.py -i book.md -o out.md --md_level 1 --pct_words 0.05
+
+# Summarize level-2 sections in a range (default: 10% compression)
 > summarize_md.py -i book.md -o out.md --md_level 2 --md_start "Chapter 1" --md_end "Chapter 2"
 
-# Dry run: test with the first section only
+# Dry run: test with the first section only (default: 10% compression)
 > summarize_md.py -i book.md -o out.md --md_level 1 --dry_run
 
-# Use a different LLM model
+# Use a different LLM model (default: 10% compression)
 > summarize_md.py -i book.md -o out.md --md_level 1 --model "claude-3-opus"
 
 # Compute SHA1 digests instead of LLM summaries (for testing)
@@ -59,6 +70,57 @@ _LOG = logging.getLogger(__name__)
 
 _VALID_ACTIONS = ["summarize", "lint"]
 _DEFAULT_ACTIONS = ["summarize", "lint"]
+_AVG_WORDS_PER_MINUTE = 250
+
+
+# #############################################################################
+# Statistics
+# #############################################################################
+
+
+def _count_words(text: str) -> int:
+    """
+    Count words in text.
+
+    :param text: Input text to count
+    :return: Number of words
+    """
+    words = text.split()
+    return len(words)
+
+
+def _estimate_read_time(num_words: int) -> float:
+    """
+    Estimate read time in minutes.
+
+    Assumes ~250 words per minute for average reader.
+
+    :param num_words: Number of words in text
+    :return: Estimated read time in minutes
+    """
+    read_time = num_words / _AVG_WORDS_PER_MINUTE
+    return read_time
+
+
+def _calculate_compression_rate(
+    original_words: int, summarized_words: int
+) -> float:
+    """
+    Calculate compression rate as percentage reduction.
+
+    :param original_words: Number of words in original text
+    :param summarized_words: Number of words in summarized text
+    :return: Compression rate as percentage (e.g., 0.5 = 50% reduction)
+    """
+    if original_words == 0:
+        return 0.0
+    compression = (original_words - summarized_words) / original_words
+    return compression
+
+
+# #############################################################################
+# System Prompt and Hashing
+# #############################################################################
 
 
 def _get_system_prompt() -> str:
@@ -91,13 +153,19 @@ def _compute_sha1_digest(text: str) -> str:
     return sha1.hexdigest()
 
 
+# #############################################################################
+# Markdown Parsing and Header Extraction
+# #############################################################################
+
+
 def _extract_headers_from_ast(
     tokens: List,
 ) -> List[Tuple[int, str, int]]:
     """
     Extract headers from markdown-it-py AST tokens.
 
-    Scans tokens for heading_open blocks and extracts level, title, and line number.
+    Scans tokens for heading_open blocks and extracts level, title, and line
+    number.
 
     :param tokens: List of tokens from MarkdownIt parser
     :return: List of (level, title, line_number) tuples
@@ -125,6 +193,11 @@ def _extract_headers_from_ast(
     return headers
 
 
+# #############################################################################
+# Header Selection and Section Extraction
+# #############################################################################
+
+
 def _get_target_headers(
     all_headers: List[Tuple[int, str, int]],
     *,
@@ -138,12 +211,16 @@ def _get_target_headers(
     Selects headers at the specified level, optionally restricting the range
     to start from and end at specific headers (matched by prefix).
 
+    When md_level is 0 or -1, treats entire file as one section (synthetic header).
+
     :param all_headers: List of (level, title, line_number) tuples
-    :param md_level: Header level to select (1=H1, 2=H2, etc.)
-    :param md_start: Optional header prefix to start from; None means start from beginning
-    :param md_end: Optional header prefix to end at; None means continue to end
+    :param md_level: Header level to select (1=H1, 2=H2, etc.; 0/-1=entire file)
+    :param md_start: Optional header prefix to start from; ignored for entire file
+    :param md_end: Optional header prefix to end at; ignored for entire file
     :return: Filtered list of headers at the specified level within the range
     """
+    if md_level <= 0:
+        return [(0, "Entire Document", 0)]
     target_headers = [h for h in all_headers if h[0] == md_level]
     hdbg.dassert(
         target_headers,
@@ -260,37 +337,80 @@ def _extract_section(
     Locates the line range for the given header and includes all nested content
     until the next header at the same or higher level.
 
+    For md_level=0/-1 (entire document), returns all lines.
+
     :param header: The (level, title, line_number) tuple for the header
     :param all_headers: List of all (level, title, line_number) tuples
     :param lines: All markdown lines (0-indexed)
-    :param md_level: The target header level (used to find end boundary)
+    :param md_level: The target header level (used to find end boundary; 0/-1 = all)
     :return: Section content as a string (trailing empty lines removed)
     """
-    start_idx = header[2]
-    # Find position of this header in the full header list for boundary detection.
-    header_pos = -1
-    for i, h in enumerate(all_headers):
-        if h[2] == header[2]:
-            header_pos = i
-            break
-    hdbg.dassert_ne(header_pos, -1, "Header position not found")
-    # Find the next header at the same or higher level to determine section end.
-    next_header_line = None
-    for i in range(header_pos + 1, len(all_headers)):
-        if all_headers[i][0] <= md_level:
-            next_header_line = all_headers[i][2]
-            break
-    # Use the next header line or end of file as the section boundary.
-    if next_header_line is None:
-        end_idx = len(lines)
+    if md_level <= 0:
+        section_lines = lines[:]
     else:
-        end_idx = next_header_line
-    section_lines = lines[start_idx:end_idx]
-    # Remove trailing empty lines to clean up the section.
+        start_idx = header[2]
+        header_pos = -1
+        for i, h in enumerate(all_headers):
+            if h[2] == header[2]:
+                header_pos = i
+                break
+        hdbg.dassert_ne(header_pos, -1, "Header position not found")
+        next_header_line = None
+        for i in range(header_pos + 1, len(all_headers)):
+            if all_headers[i][0] <= md_level:
+                next_header_line = all_headers[i][2]
+                break
+        if next_header_line is None:
+            end_idx = len(lines)
+        else:
+            end_idx = next_header_line
+        section_lines = lines[start_idx:end_idx]
     while section_lines and section_lines[-1].strip() == "":
         section_lines.pop()
     section_text = "\n".join(section_lines)
     return section_text
+
+
+# #############################################################################
+# Text Truncation
+# #############################################################################
+
+
+def _truncate_text_by_words(text: str, max_words: int) -> str:
+    """
+    Truncate text to maximum word count.
+
+    :param text: Text to truncate
+    :param max_words: Maximum number of words to keep
+    :return: Truncated text (or original if smaller than max_words)
+    """
+    if max_words <= 0:
+        return text
+    words = text.split()
+    if len(words) <= max_words:
+        return text
+    truncated_words = words[:max_words]
+    return " ".join(truncated_words)
+
+
+def _truncate_text_by_factor(text: str, pct_words: float) -> str:
+    """
+    Truncate text to a percentage of original size.
+
+    :param text: Text to truncate
+    :param pct_words: Target size as fraction (e.g., 0.1 = 10% of original)
+    :return: Truncated text
+    """
+    if pct_words <= 0:
+        return text
+    words = text.split()
+    max_words = max(1, int(len(words) * pct_words))
+    return _truncate_text_by_words(text, max_words)
+
+
+# #############################################################################
+# Summarization and Output Preparation
+# #############################################################################
 
 
 def _summarize_text(
@@ -299,26 +419,38 @@ def _summarize_text(
     model: str,
     *,
     test_mode: bool,
+    max_words: int = 0,
+    pct_words: float = 0.0,
 ) -> Tuple[str, float]:
     """
     Compute summary via LLM or SHA1 digest.
+
+    Optionally truncates text to max_words or pct_words before summarization.
 
     :param text: Text to summarize
     :param system_prompt: System prompt for LLM
     :param model: LLM model name
     :param test_mode: If True, compute SHA1 digest; otherwise use LLM
+    :param max_words: Maximum words to include in summary (0 = no limit)
+    :param pct_words: Compression factor (e.g., 0.1 = 10% of original; 0.0 = no limit)
     :return: Tuple of (summary_text, cost) where cost is 0 in test mode
     """
+    truncated_text = text
+    if max_words > 0:
+        truncated_text = _truncate_text_by_words(text, max_words)
+    elif pct_words > 0.0:
+        truncated_text = _truncate_text_by_factor(text, pct_words)
     if test_mode:
-        digest = _compute_sha1_digest(text)
+        digest = _compute_sha1_digest(truncated_text)
         summary, cost = f"SHA1: {digest}\n", 0.0
     else:
-        summary, cost = hllmcli.apply_llm(
-            input_str=text,
+        summary, cost_stats = hllmcli.apply_llm(
+            input_str=truncated_text,
             system_prompt=system_prompt,
             model=model,
             backend="library",
         )
+        cost = cost_stats.to_float()
         _LOG.debug("LLM cost: $%.6f", cost)
     return summary, cost
 
@@ -355,6 +487,11 @@ def _prepare_output_file(
     return out_file_name
 
 
+# #############################################################################
+# File Processing and Summarization Execution
+# #############################################################################
+
+
 def _read_and_parse_markdown(
     in_file_name: str,
 ) -> Tuple[List[str], List[Tuple[int, str, int]]]:
@@ -385,7 +522,9 @@ def _process_headers_for_summarization(
     md_level: int,
     test_mode: bool,
     dry_run: bool,
-) -> float:
+    max_words: int = 0,
+    pct_words: float = 0.0,
+) -> Tuple[float, int]:
     """
     Process and summarize target headers, writing results to output file.
 
@@ -401,11 +540,14 @@ def _process_headers_for_summarization(
     :param md_level: Target header level
     :param test_mode: If True, compute SHA1 digest; otherwise use LLM
     :param dry_run: If True, summarize only first section
-    :return: Total cost of LLM calls
+    :param max_words: Maximum words per summarization chunk (0 = no limit)
+    :param pct_words: Compression factor (e.g., 0.1; 0.0 = no limit)
+    :return: Tuple of (total_cost, summarized_words)
     """
     with open(out_file_name, "w") as f:
         pass
     total_cost = 0.0
+    summarized_words = 0
     written_headers: Dict[Tuple[int, str], bool] = {}
     pbar = tqdm(target_headers, desc="Summarizing sections")
     for header in pbar:
@@ -426,8 +568,11 @@ def _process_headers_for_summarization(
                             system_prompt,
                             model,
                             test_mode=test_mode,
+                            max_words=max_words,
+                            pct_words=pct_words,
                         )
                         total_cost += intro_cost
+                        summarized_words += _count_words(intro_summary)
                         pbar.set_postfix_str(f"Cost: ${total_cost:.4f}")
                         f.write(intro_summary)
                         f.write("\n\n")
@@ -447,8 +592,11 @@ def _process_headers_for_summarization(
             system_prompt,
             model,
             test_mode=test_mode,
+            max_words=max_words,
+            pct_words=pct_words,
         )
         total_cost += cost
+        summarized_words += _count_words(summary)
         pbar.set_postfix_str(f"Cost: ${total_cost:.4f}")
         with open(out_file_name, "a") as f:
             f.write(summary)
@@ -457,7 +605,12 @@ def _process_headers_for_summarization(
             _LOG.info("Dry run: summarized first section only")
             print(summary)
             break
-    return total_cost
+    return total_cost, summarized_words
+
+
+# #############################################################################
+# CLI and Entry Points
+# #############################################################################
 
 
 def _parse() -> argparse.ArgumentParser:
@@ -471,14 +624,27 @@ def _parse() -> argparse.ArgumentParser:
         "--md_level",
         type=int,
         default=1,
-        help="Header level to summarize (1=H1, 2=H2, etc.; default: 1)",
+        help="Header level to summarize (1=H1, 2=H2, etc.; 0=entire file)",
     )
     hmarsele.add_select_arg(parser, required=False)
     parser.add_argument(
         "--model",
         type=str,
         default="gpt-4o-mini",
-        help="LLM model to use (default: gpt-4o-mini)",
+        help="LLM model to use",
+    )
+    limit_group = parser.add_mutually_exclusive_group()
+    limit_group.add_argument(
+        "--max_words",
+        type=int,
+        default=0,
+        help="Maximum words per summarization chunk",
+    )
+    limit_group.add_argument(
+        "--pct_words",
+        type=float,
+        default=0.1,
+        help="Compression factor (e.g., 0.1 = reduce to 10 percent of original)",
     )
     parser.add_argument(
         "--dry_run",
@@ -519,11 +685,23 @@ def _main(parser: argparse.ArgumentParser) -> None:
     # Handle summarize action.
     to_summarize, actions = hselacti.mark_action("summarize", actions)
     if to_summarize:
-        hdbg.dassert(args.md_level >= 1, "--md_level must be >= 1")
+        # TODO(ai_gp): Use dassert_lte
+        hdbg.dassert(args.md_level >= -1, "--md_level must be >= -1")
         out_file_name = _prepare_output_file(
             in_file_name, out_file_name, args.overwrite
         )
         lines, all_headers = _read_and_parse_markdown(in_file_name)
+        content = hio.from_file(in_file_name)
+        input_word_count = _count_words(content)
+        read_time = _estimate_read_time(input_word_count)
+        print("\n=== Input File Statistics ===")
+        print(f"Word count: {input_word_count}")
+        print(f"Estimated read time: {read_time:.1f} minutes")
+        print(f"Header level: {args.md_level}")
+        if args.max_words > 0:
+            print(f"Max words per chunk: {args.max_words}")
+        elif args.pct_words > 0.0:
+            print(f"Compression factor: {args.pct_words:.1%}")
         md_start = ""
         md_end = ""
         if args.select:
@@ -540,12 +718,12 @@ def _main(parser: argparse.ArgumentParser) -> None:
             args.md_level,
         )
         print("\nHeaders to summarize:")
-        for i, header in enumerate(target_headers, 1):
+        for header in target_headers:
             level, title, _ = header
-            indent = "  " * (level - 1)
-            print(f"{indent}{i}. {title}")
+            header_mark = "#" * level
+            print(f"{header_mark} {title}")
         system_prompt = _get_system_prompt()
-        total_cost = _process_headers_for_summarization(
+        total_cost, summarized_words = _process_headers_for_summarization(
             target_headers,
             all_headers,
             lines,
@@ -555,11 +733,20 @@ def _main(parser: argparse.ArgumentParser) -> None:
             md_level=args.md_level,
             test_mode=args.test,
             dry_run=args.dry_run,
+            max_words=args.max_words,
+            pct_words=args.pct_words,
         )
         if not args.test:
             _LOG.info("Total LLM cost: $%.6f", total_cost)
+        compression_rate = _calculate_compression_rate(
+            input_word_count, summarized_words
+        )
+        output_read_time = _estimate_read_time(summarized_words)
+        print("\n=== Output Summary Statistics ===")
+        print(f"Summarized word count: {summarized_words}")
+        print(f"Estimated read time: {output_read_time:.1f} minutes")
+        print(f"Compression rate: {compression_rate * 100:.1f}%")
         _LOG.info("Summaries written to: %s", out_file_name)
-    # Handle lint action after summarization and process the output file.
     to_lint, actions = hselacti.mark_action("lint", actions)
     if to_lint and not args.test:
         hlint.lint_file(out_file_name)

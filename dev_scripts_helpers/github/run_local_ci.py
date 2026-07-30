@@ -7,12 +7,18 @@ This script runs regression tests for the current directory and helpers
 subdirectory, either once or on a daily schedule.
 
 Usage:
-# TODO(ai_gp): Add a comment for each command line
+# Run once immediately, starting at 2am (the default).
 > run_local_ci.py --start_time 2am
+# Run as a daemon, triggering a run daily at 14:30.
 > run_local_ci.py --start_time 14:30 --daemon
+# Run once immediately, restricting pytest to the `helpers/test/` dir.
 > run_local_ci.py --pytest_target "helpers/test/"
+# Run as a daemon over the entire repo, starting at the default time.
 > run_local_ci.py --pytest_target "." --daemon
+# Run once immediately, skipping the check that the repo is at master.
 > run_local_ci.py --no_master_check
+# Run once immediately, restricting pytest to `helpers/test/` and skipping
+# the master branch check.
 > run_local_ci.py --pytest_target "helpers/test/" --no_master_check
 """
 

@@ -1121,6 +1121,39 @@ line3
 - Declare `umock.patch.object(...)` as a class attribute; `start()` / `stop()`
   in `set_up_test()` / `tear_down_test()` so the same patch is reused per test
 
+## Use Context Manager Syntax for Multiple Mocks
+- For multiple mocks in a test, use `with (...)` syntax to combine context
+  managers on a single line instead of nested `with` statements or stacked
+  decorators
+- This keeps test code flat, readable, and avoids decorator ordering issues
+
+- **Bad** (nested with statements)
+  ```python
+  with mock.patch("module.function1", return_value="val1"):
+      with mock.patch("module.function2", return_value="val2"):
+          with mock.patch("module.function3", return_value="val3"):
+              function_under_test()
+  ```
+
+- **Bad** (stacked decorators: hard to follow reverse order)
+  ```python
+  @mock.patch("module.function3", return_value="val3")
+  @mock.patch("module.function2", return_value="val2")
+  @mock.patch("module.function1", return_value="val1")
+  def test_main(self, *mocks):
+      function_under_test()
+  ```
+
+- **Good** (combined context managers)
+  ```python
+  with (
+      mock.patch("module.function1", return_value="val1"),
+      mock.patch("module.function2", return_value="val2"),
+      mock.patch("module.function3", return_value="val3"),
+  ):
+      function_under_test()
+  ```
+
 ## Mock AWS / S3 via `S3Mock_TestCase`
 - Inherit from `hmoto.S3Mock_TestCase` for in-process S3 mocking via `moto`
 - `moto` must be imported before `boto3`; `hmoto.py` enforces this
