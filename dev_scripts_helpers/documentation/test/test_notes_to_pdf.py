@@ -43,7 +43,8 @@ def _get_arch_tag() -> str:
     return tag
 
 
-# TODO(gp): Generalize and centralize this in a helper.
+# TODO(ai_gp): Generalize all the skip_if and centralize them in a helper
+# hpytest_skip_if.
 def _skip_if_no_pandoc_in_docker(test_func):
     """
     Decorator to skip test if running in Docker without pandoc.
@@ -2014,6 +2015,8 @@ class Test_notes_to_pdf_latex_colors(hunitest.TestCase):
         hio.to_file(in_file, txt)
         return in_file
 
+    # TODO(ai_gp): Factor out the logic to run notes_to_pdf.py in a general
+    # free-standing function used by all the unit tests.
     def helper(
         self, type_: str, slides_engine: str, no_pdf: bool
     ) -> Tuple[str, str]:
@@ -2026,8 +2029,26 @@ class Test_notes_to_pdf_latex_colors(hunitest.TestCase):
         :param no_pdf: if True, stop the pipeline at the intermediate
             source file (`.tex` for LaTeX / beamer, `.typ` for Typst)
             instead of compiling the PDF
-        :return: path to the generated output file
-            # TODO(ai_gp): Add an example of the output
+        :return: contents of the generated shell script and of the output
+            file (e.g., for `no_pdf=True`), e.g.,
+            ```
+            #!/bin/bash -xe
+            # cleanup_before
+            ## skipping this action
+            # preprocess_notes
+            .../preprocess_notes.py --input .../colors.md --output ...
+            ...
+            ```
+            and
+            ```
+            % Options for packages loaded elsewhere
+            \PassOptionsToPackage{unicode}{hyperref}
+            \documentclass[
+              10pt,
+              ignorenonframetext,
+            ]{beamer}
+            ...
+            ```
         """
         _LOG.debug("%s", hprint.to_str("type_ slides_engine no_pdf"))
         # Prepare inputs.
@@ -2087,6 +2108,7 @@ class Test_notes_to_pdf_latex_colors(hunitest.TestCase):
         script_txt = hio.from_file(script_file)
         return script_txt, out_txt
 
+    # TODO(ai_gp): Move more boilerplate code to helper.
     def test1(self) -> None:
         r"""
         Test `--type pdf --slides_engine beamer`.
@@ -2159,6 +2181,8 @@ class Test_notes_to_pdf_latex_colors(hunitest.TestCase):
         # Check outputs.
         self.assertIn(r"\textcolor{red}", out_txt)
         self.assertIn(r"\textcolor{blue}", out_txt)
+        # TODO(ai_gp): Also freeze output checking the presence of strings
+        # with self.assert_equal
 
     def test6(self) -> None:
         r"""
@@ -2176,6 +2200,84 @@ class Test_notes_to_pdf_latex_colors(hunitest.TestCase):
         # Check outputs.
         self.assertIn("#text(fill: red)", out_txt)
         self.assertIn("#text(fill: blue)", out_txt)
+        # TODO(ai_gp): Also freeze output checking the presence of strings
+        # with self.assert_equal
+
+
+# #############################################################################
+# Test_notes_to_pdf_tilde_in_code
+# #############################################################################
+
+
+@pytest.mark.slow
+class Test_notes_to_pdf_tilde_in_code(hunitest.TestCase):
+    r"""
+    Test that tildes (`~`) inside inline code survive the Typst slides
+    pipeline end-to-end.
+
+    E.g. `default ~ credit_limit + credit_score + account_age`
+    """
+
+    def _create_markdown_with_tilde(self) -> str:
+        """
+        Create markdown with tildes inside inline code spans.
+
+        :return: path to the created markdown file
+        """
+        txt = r"""
+        # Test Tilde
+
+        - _Example_: `default ~ credit_limit + credit_score + account_age`
+
+        Multiple tildes: `a ~ b ~ c`
+        """
+        txt = hprint.dedent(txt, remove_lead_trail_empty_lines_=True)
+        in_file = os.path.join(self.get_scratch_space(), "tilde.md")
+        hio.to_file(in_file, txt)
+        return in_file
+
+    def test1(self) -> None:
+        r"""
+        Run `notes_to_pdf.py --type slides --slides_engine typst --no_pdf`
+        and check that the tildes in the inline code spans are preserved in
+        the generated Typst source.
+        """
+        # Prepare inputs.
+        in_file = self._create_markdown_with_tilde()
+        exec_path = hgit.find_file_in_git_tree("notes_to_pdf.py")
+        hdbg.dassert_path_exists(exec_path)
+        # Prepare outputs. Stop at the intermediate `.typ` file since the
+        # regression is about the generated Typst source, not the PDF.
+        out_dir = self.get_scratch_space()
+        out_file = os.path.join(out_dir, "output.typ")
+        script_file = os.path.join(out_dir, "script.sh")
+        cmd = [
+            exec_path,
+            f"--input {in_file}",
+            f"--output {out_file}",
+            f"--script {script_file}",
+            "--use_pandoc_ast_transform",
+            "--type slides",
+            "--slides_engine typst",
+            "--skip_action open",
+            "--no_pdf",
+        ]
+        cmd = " ".join(cmd)
+        _LOG.debug("cmd=%s", cmd)
+        # Run test.
+        hsystem.system(cmd)
+        # Check outputs.
+        self.assertTrue(os.path.exists(out_file))
+        self.assertGreater(os.path.getsize(out_file), 0)
+        out_txt = hio.from_file(out_file)
+        script_txt = hio.from_file(script_file)
+        actual = _to_output_str(script_txt, out_txt)
+        self.check_string(actual, purify_text=True, fuzzy_match=True)
+        # Check outputs: tildes must survive, not be dropped or mangled.
+        self.assertIn(
+            "default ~ credit_limit + credit_score + account_age", out_txt
+        )
+        self.assertIn("a ~ b ~ c", out_txt)
 
 
 # #############################################################################
@@ -2191,10 +2293,10 @@ class Test_notes_to_pdf_latex_cancel(hunitest.TestCase):
 
     def helper(self, markdown_content: str) -> str:
         """
-        Helper to create markdown file and run notes_to_pdf.py.
-
-        Creates temporary markdown file, runs notes_to_pdf.py to convert
-        to PDF via LaTeX, and returns the intermediate LaTeX output.
+        Helper to:
+        - Create temporary markdown file
+        - Run `notes_to_pdf.py` to convert to PDF via LaTeX
+        - Return the intermediate LaTeX output.
 
         :param markdown_content: Raw markdown text with LaTeX notation
         :return: Intermediate LaTeX generated by pandoc
@@ -2248,11 +2350,12 @@ class Test_notes_to_pdf_latex_cancel(hunitest.TestCase):
         # Run test.
         output_txt = self.helper(markdown_content)
         # Check outputs.
-        # TODO(gp): Freeze output instead of checking the presence of strings?
         # Verify cancelled notation is preserved in LaTeX output.
         self.assertIn(r"\cancel{", output_txt)
         self.assertIn("Y_1", output_txt)
         self.assertIn("Y_0", output_txt)
+        # TODO(ai_gp): Also freeze output checking the presence of strings
+        # with self.assert_equal
 
     def test2(self) -> None:
         """
@@ -2277,6 +2380,8 @@ class Test_notes_to_pdf_latex_cancel(hunitest.TestCase):
         # Verify conditional expectation notation is preserved in LaTeX
         self.assertIn(r"\cancel{", output_txt)
         self.assertIn("E[Y", output_txt)
+        # TODO(ai_gp): Also freeze output checking the presence of strings
+        # with self.assert_equal
 
     def test3(self) -> None:
         """
@@ -2306,6 +2411,8 @@ class Test_notes_to_pdf_latex_cancel(hunitest.TestCase):
         # Verify multiple cancelled terms are preserved in LaTeX.
         self.assertIn(r"\cancel{", output_txt)
         self.assertIn(r"\tau_i", output_txt)
+        # TODO(ai_gp): Also freeze output checking the presence of strings
+        # with self.assert_equal
 
     def test4(self) -> None:
         """
@@ -2334,3 +2441,5 @@ class Test_notes_to_pdf_latex_cancel(hunitest.TestCase):
         # Verify complex notation with cancelled terms is preserved in LaTeX.
         self.assertIn(r"\cancel{", output_txt)
         self.assertIn(r"\underbrace{", output_txt)
+        # TODO(ai_gp): Also freeze output checking the presence of strings
+        # with self.assert_equal

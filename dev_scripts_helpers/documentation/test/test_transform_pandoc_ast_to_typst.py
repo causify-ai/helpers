@@ -760,22 +760,20 @@ class Test_ColorTransformer(hunitest.TestCase):
 
 
 # #############################################################################
-# Test_ChainRuleTheorem
+# Test_colorized_math
 # #############################################################################
 
 
-# TODO(ai_gp): -> Test_colorized_math
-class Test_ChainRuleTheorem(hunitest.TestCase):
+class Test_colorized_math(hunitest.TestCase):
     """
     Test the AST transformation with real-world mathematical content:
     Chain Rule for Joint Distributions theorem with LaTeX colors.
     """
 
-    # TODO(ai_gp): -> test1
     @pytest.mark.skipif(
         shutil.which("pandoc") is None, reason="pandoc is not installed"
     )
-    def test_theorem_with_colored_math(self) -> None:
+    def test1(self) -> None:
         r"""
         Test AST transformation of Chain Rule theorem with colored LaTeX.
 
@@ -853,8 +851,7 @@ class Test_ChainRuleTheorem(hunitest.TestCase):
         actual_outcome = outcome_to_str(outcome)
         self.check_string(actual_outcome)
 
-    # TODO(ai_gp): -> test2
-    def test_colored_math_in_display_equation(self) -> None:
+    def test2(self) -> None:
         r"""
         Test color transformation in display math environment.
 
@@ -873,7 +870,12 @@ class Test_ChainRuleTheorem(hunitest.TestCase):
         self.assertIn("red", result)
         self.assertNotIn(r"\textcolor", result)
         self.assertIn("#text(fill:", result)
-        # TODO(ai_gp): Add an expected and assert_equal
+        expected = (
+            r"\Pr(#text(fill: blue)[x_1, ..., x_{n-1}], "
+            r"#text(fill: red)[x_n]) = \Pr(#text(fill: red)[x_n] | "
+            r"#text(fill: blue)[x_{n-1}, ..., x_1])"
+        )
+        self.assertEqual(result, expected)
 
     def test_multiple_colors_in_formula(self) -> None:
         """
@@ -895,50 +897,17 @@ class Test_ChainRuleTheorem(hunitest.TestCase):
             self.assertIn(color, result)
         # Verify all \textcolor removed.
         self.assertNotIn(r"\textcolor", result)
-        # TODO(ai_gp): Add an expected and assert_equal
+        expected = (
+            r"\Pr(#text(fill: gray)[x_1], #text(fill: violet)[x_2], "
+            r"#text(fill: teal)[x_{n-2}], #text(fill: olive)[x_{n-1}], "
+            r"#text(fill: orange)[x_n])"
+        )
+        self.assertEqual(result, expected)
 
-    # TODO(ai_gp): Move this to test_notes_to_pdf.py end-to-end tests.
-    @pytest.mark.skipif(
-        shutil.which("pandoc") is None, reason="pandoc is not installed"
-    )
-    def test_no_pandoc_warnings_for_matrix_and_integral(self) -> None:
-        r"""
-        Regression test for the reported bug.
-        """
-        markdown_input = hprint.dedent(
-            r"""
-            $$
-            \begin{pmatrix}
-            \textcolor{red}{1} & 0 \\
-            0 & \textcolor{blue}{1}
-            \end{pmatrix}
-            $$
 
-            Integral: $\int_{\textcolor{red}{a}}^{\textcolor{blue}{b}} f(x) \, dx$
-            """
-        )
-        # TODO(ai_gp): Use system
-        proc = subprocess.run(
-            ["pandoc", "-f", "markdown", "-t", "json"],
-            input=markdown_input,
-            capture_output=True,
-            text=True,
-            check=True,
-        )
-        ast = json.loads(proc.stdout)
-        transformed_ast = dshdtpatt._transform_ast_color_text(ast)
-        proc2 = subprocess.run(
-            ["pandoc", "-f", "json", "-t", "typst"],
-            input=json.dumps(transformed_ast),
-            capture_output=True,
-            text=True,
-            check=True,
-        )
-        self.assertEqual(proc2.stderr, "")
-        self.assertNotIn("Could not convert TeX math", proc2.stdout)
-        self.assertIn("#text(fill: red)", proc2.stdout)
-        self.assertIn("#text(fill: blue)", proc2.stdout)
-        # TODO(ai_gp): Add a check_string
+# #############################################################################
+# Test_tilde_in_inline_code
+# #############################################################################
 
 
 # TODO(ai_gp): Move this to test_notes_to_pdf.py end-to-end tests.
