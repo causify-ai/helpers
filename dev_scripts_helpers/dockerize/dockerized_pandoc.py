@@ -31,7 +31,8 @@ _LOG = logging.getLogger(__name__)
 # Backend selection
 # #############################################################################
 
-# TODO(ai_gp): Move all this to dev_scripts_helpers.dockerize.lib_pandoc.py
+# TODO(ai_gp): Move all the non-CLI functions to
+# dev_scripts_helpers.dockerize.lib_pandoc.py
 
 # - `host`: run the host `pandoc` binary directly (fails if missing)
 # - `dockerized`: always run pandoc inside a Docker container

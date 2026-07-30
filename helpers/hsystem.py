@@ -30,6 +30,7 @@ from typing import (
     cast,
 )
 
+import helpers.hclipboard as hclipb
 import helpers.hdbg as hdbg
 import helpers.hintrospection as hintros
 import helpers.hprint as hprint
@@ -711,23 +712,11 @@ def check_exec(tool: str) -> bool:
 
 def to_pbcopy(txt: str, pbcopy: bool) -> None:
     """
-    Save the content of txt in the system clipboard.
+    Save the content of txt in the system clipboard or print to stdout.
+
+    Uses cross-platform clipboard support via hclipboard module.
     """
-    txt = txt.rstrip("\n")
-    if not pbcopy:
-        print(txt)
-        return
-    if not txt:
-        print("Nothing to copy")
-        return
-    if hserver.is_host_mac():
-        # -n = no new line
-        cmd = f"echo -n '{txt}' | pbcopy"
-        system(cmd)
-        _LOG.warning("\n# Copied to system clipboard:\n%s", txt)
-    else:
-        _LOG.warning("pbcopy works only on macOS")
-        print(txt)
+    hclipb.to_clipboard_or_print(txt, pbcopy)
 
 
 # #############################################################################

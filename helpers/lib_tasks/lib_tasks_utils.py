@@ -239,28 +239,6 @@ def run(
     return res
 
 
-# TODO(ai_gp): Use the one in ./helpers/hsystem.py
-def _to_pbcopy(txt: str, pbcopy: bool) -> None:
-    """
-    Save the content of txt in the system clipboard.
-    """
-    txt = txt.rstrip("\n")
-    if not pbcopy:
-        print(txt)
-        return
-    if not txt:
-        print("Nothing to copy")
-        return
-    if hserver.is_host_mac():
-        # -n = no new line
-        cmd = f"echo -n '{txt}' | pbcopy"
-        hsystem.system(cmd)
-        print(f"\n# Copied to system clipboard:\n{txt}")
-    else:
-        _LOG.warning("pbcopy works only on macOS")
-        print(txt)
-
-
 # Copied from helpers.datetime_ to avoid dependency from pandas.
 
 

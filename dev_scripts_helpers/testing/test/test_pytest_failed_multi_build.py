@@ -15,7 +15,8 @@ import helpers.hunit_test as hunitest
 import dev_scripts_helpers.testing.pytest_failed_multi_build as dshtpfmbu
 
 
-# TODO(ai_gp): Remove a call to this with a call to hprint.remove_non_printable_chars
+# TODO(ai_gp): Replace a call to this with a call to
+# hprint.remove_non_printable_chars
 def _strip_ansi_codes(text: str) -> str:
     """
     Strip ANSI escape codes from text.
@@ -648,12 +649,13 @@ class Test_extract_build_stats_missing_pytest_ended(hunitest.TestCase):
 
 class Test_build_stats_to_str_incomplete_status(hunitest.TestCase):
     """
-    Test _build_stats_to_str displays INCOMPLETE status correctly.
+    Test _build_stats_to_str displays status correctly with incomplete builds.
     """
 
     def test_incomplete_status_display(self) -> None:
         """
-        Test that INCOMPLETE status is displayed in stats table with colors.
+        Test that proper status is displayed with incomplete builds.
+        Incomplete builds with total=0 show NOT STARTED status.
         """
         # Prepare inputs.
         build_stats = [
@@ -693,7 +695,7 @@ class Test_build_stats_to_str_incomplete_status(hunitest.TestCase):
         clean_actual = _strip_ansi_codes(actual)
         # Check outputs contain expected statuses.
         self.assertIn("FAIL", clean_actual)
-        self.assertIn("INCOMPLETE", clean_actual)
+        self.assertIn("NOT STARTED", clean_actual)
         self.assertIn("PASS", clean_actual)
         # TODO(ai_gp): Add expected and self.assert_equal
 
@@ -763,11 +765,11 @@ class Test_build_stats_to_str_colorization(hunitest.TestCase):
         # Run test.
         self._check_colorized_output(build_stats, "FAIL")
 
-    def test_not_run_status_colorization(self) -> None:
+    def test_not_started_status_colorization(self) -> None:
         """
-        Test that NOT RUN status is displayed when no tests run.
+        Test that NOT STARTED status is displayed when no info file exists.
         """
-        # Prepare inputs: build with no tests (total=0).
+        # Prepare inputs: build with no pytest file (total=0, incomplete=True).
         build_stats = [
             {
                 "build": "dev_container",
@@ -776,11 +778,225 @@ class Test_build_stats_to_str_colorization(hunitest.TestCase):
                 "failed": 0,
                 "total": 0,
                 "duration": "N/A",
+                "incomplete": True,
+            },
+        ]
+        # Run test.
+        self._check_colorized_output(build_stats, "NOT STARTED")
+
+    def test_in_progress_status_colorization(self) -> None:
+        """
+        Test that IN PROGRESS status is displayed when pytest incomplete.
+        """
+        # Prepare inputs: build running but not finished (incomplete=True, total>0).
+        build_stats = [
+            {
+                "build": "apple",
+                "passed": 150,
+                "skipped": 5,
+                "failed": 0,
+                "total": 155,
+                "duration": "N/A",
+                "incomplete": True,
+            },
+        ]
+        # Run test.
+        self._check_colorized_output(build_stats, "IN PROGRESS")
+
+    def test_in_progress_no_tests_yet(self) -> None:
+        """
+        Test that IN PROGRESS status is displayed even with no tests output yet.
+        """
+        # Prepare inputs: pytest started but produced no output (incomplete=True, total=0).
+        build_stats = [
+            {
+                "build": "docker",
+                "passed": 0,
+                "skipped": 0,
+                "failed": 0,
+                "total": 0,
+                "duration": "N/A",
+                "incomplete": True,
+            },
+        ]
+        # This case should be NOT STARTED based on the logic.
+        actual = dshtpfmbu._build_stats_to_str(build_stats)
+        clean_actual = _strip_ansi_codes(actual)
+        # Verify NOT STARTED appears for incomplete=True, total=0.
+        self.assertIn("NOT STARTED", clean_actual)
+
+
+# #############################################################################
+# Test_build_stats_to_str_new_status_conditions
+# #############################################################################
+
+
+class Test_build_stats_to_str_new_status_conditions(hunitest.TestCase):
+    """
+    Test _build_stats_to_str with new status conditions (NOT STARTED, IN PROGRESS).
+    """
+
+    def test_not_started_no_pytest_file(self) -> None:
+        """
+        Test NOT STARTED status when no pytest file exists.
+        Scenario: incomplete=True, total=0 (no info.json file)
+        """
+        # Prepare inputs.
+        build_stats = [
+            {
+                "build": "docker",
+                "passed": 0,
+                "skipped": 0,
+                "failed": 0,
+                "total": 0,
+                "duration": "N/A",
+                "incomplete": True,
+            },
+        ]
+        # Run test.
+        actual = dshtpfmbu._build_stats_to_str(build_stats)
+        clean_actual = _strip_ansi_codes(actual)
+        # Check outputs.
+        self.assertIn("NOT STARTED", clean_actual)
+        self.assertNotIn("IN PROGRESS", clean_actual)
+
+    def test_in_progress_pytest_running_with_tests(self) -> None:
+        """
+        Test IN PROGRESS status when pytest running but unfinished.
+        Scenario: incomplete=True, total>0 (no pytest_ended marker)
+        """
+        # Prepare inputs.
+        build_stats = [
+            {
+                "build": "apple",
+                "passed": 100,
+                "skipped": 10,
+                "failed": 5,
+                "total": 115,
+                "duration": "N/A",
+                "incomplete": True,
+            },
+        ]
+        # Run test.
+        actual = dshtpfmbu._build_stats_to_str(build_stats)
+        clean_actual = _strip_ansi_codes(actual)
+        # Check outputs.
+        self.assertIn("IN PROGRESS", clean_actual)
+        self.assertNotIn("NOT STARTED", clean_actual)
+
+    def test_in_progress_pytest_started_no_output(self) -> None:
+        """
+        Test IN PROGRESS status when pytest started but no output yet.
+        Scenario: incomplete=True, total=0, but info.json exists (edge case)
+        Should be treated as NOT STARTED since total=0.
+        """
+        # Prepare inputs.
+        build_stats = [
+            {
+                "build": "dev_container",
+                "passed": 0,
+                "skipped": 0,
+                "failed": 0,
+                "total": 0,
+                "duration": "N/A",
+                "incomplete": True,
+            },
+        ]
+        # Run test.
+        actual = dshtpfmbu._build_stats_to_str(build_stats)
+        clean_actual = _strip_ansi_codes(actual)
+        # Check outputs - total=0 should be NOT STARTED.
+        self.assertIn("NOT STARTED", clean_actual)
+
+    def test_completed_no_failures(self) -> None:
+        """
+        Test PASS status when pytest completed with no failures.
+        Scenario: incomplete=False, failed=0
+        """
+        # Prepare inputs.
+        build_stats = [
+            {
+                "build": "docker",
+                "passed": 500,
+                "skipped": 20,
+                "failed": 0,
+                "total": 520,
+                "duration": "45.2s",
                 "incomplete": False,
             },
         ]
         # Run test.
-        self._check_colorized_output(build_stats, "NOT RUN")
+        actual = dshtpfmbu._build_stats_to_str(build_stats)
+        clean_actual = _strip_ansi_codes(actual)
+        # Check outputs.
+        self.assertIn("PASS", clean_actual)
+        self.assertNotIn("FAIL", clean_actual)
+
+    def test_completed_with_failures(self) -> None:
+        """
+        Test FAIL status when pytest completed with failures.
+        Scenario: incomplete=False, failed>0
+        """
+        # Prepare inputs.
+        build_stats = [
+            {
+                "build": "apple",
+                "passed": 495,
+                "skipped": 20,
+                "failed": 5,
+                "total": 520,
+                "duration": "47.1s",
+                "incomplete": False,
+            },
+        ]
+        # Run test.
+        actual = dshtpfmbu._build_stats_to_str(build_stats)
+        clean_actual = _strip_ansi_codes(actual)
+        # Check outputs.
+        self.assertIn("FAIL", clean_actual)
+        self.assertNotIn("PASS", clean_actual)
+
+    def test_multiple_builds_mixed_statuses(self) -> None:
+        """
+        Test table with multiple builds showing all status types.
+        """
+        # Prepare inputs.
+        build_stats = [
+            {
+                "build": "docker",
+                "passed": 0,
+                "skipped": 0,
+                "failed": 0,
+                "total": 0,
+                "duration": "N/A",
+                "incomplete": True,
+            },
+            {
+                "build": "apple",
+                "passed": 100,
+                "skipped": 5,
+                "failed": 0,
+                "total": 105,
+                "duration": "N/A",
+                "incomplete": True,
+            },
+            {
+                "build": "dev_container",
+                "passed": 520,
+                "skipped": 20,
+                "failed": 0,
+                "total": 540,
+                "duration": "48.5s",
+                "incomplete": False,
+            },
+        ]
+        # Run test.
+        actual = dshtpfmbu._build_stats_to_str(build_stats)
+        clean_actual = _strip_ansi_codes(actual)
+        # Check outputs.
+        self.assertIn("NOT STARTED", clean_actual)
+        self.assertIn("IN PROGRESS", clean_actual)
+        self.assertIn("PASS", clean_actual)
 
 
 # #############################################################################

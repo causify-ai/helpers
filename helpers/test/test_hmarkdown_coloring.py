@@ -612,6 +612,7 @@ class Test_bold_text_colorization_e2e(hunitest.TestCase):
     valid Typst syntax with colors and weight applied.
     """
 
+    # TODO(ai_gp): Rename test1, ...
     def test_bold_text_colorization_typst_abbreviated(self) -> None:
         """
         Test abbreviated syntax produces valid Typst with color and weight.

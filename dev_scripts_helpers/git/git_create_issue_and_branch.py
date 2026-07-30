@@ -171,7 +171,7 @@ def _print_usage_instructions(worktree_path: str, issue_id: int) -> None:
     """
     # Extract worktree suffix (e.g., "1_worktree_1325" from "helpers1_worktree_1325").
     worktree_dir = os.path.basename(worktree_path)
-    # TODO(ai_gp): We should get the basename of the repo from the config.
+    # TODO(ai_gp2): We should get the basename of the repo from the config.
     # Strip "helpers" prefix from repo name to get suffix.
     worktree_suffix = (
         worktree_dir.replace("helpers", "", 1)
@@ -205,7 +205,8 @@ def _main(parser: argparse.ArgumentParser) -> None:
     # Capture original branch to restore on failure.
     original_branch = hgit.get_branch_name()
     try:
-        # TODO(ai_gp): Move this out in a different function.
+        # TODO(ai_gp): Move the body of this try-except in a different function
+        # to increase readability.
         # Load issue body from file or use provided text.
         gh_issue_body = _get_issue_body(
             args.gh_issue_body, args.gh_issue_body_file
