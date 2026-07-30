@@ -706,7 +706,9 @@ def _main(parser: argparse.ArgumentParser) -> None:
                 _LOG.info(
                     "Transforming AST: Div[columns] -> RawBlock[typst #grid()]"
                 )
-                ast = _transform_ast_divved_fence(ast, args.pandoc_backend)
+                ast = _transform_ast_divved_fence(
+                    ast, pandoc_backend=args.pandoc_backend
+                )
             elif action == "color_text":
                 _LOG.info("Transforming AST: LaTeX colors -> Typst colors")
                 ast = _transform_ast_color_text(ast, args.pandoc_backend)

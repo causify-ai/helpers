@@ -879,37 +879,30 @@ class Test_run_pandoc_to_typst_slides(hunitest.TestCase):
         # through a system call that we are about to mock out.
         real_dev_scripts_helpers_dir = hgit.find_file("dev_scripts_helpers")
         # Run test and capture system calls.
-        # TODO(ai_gp): Fix the concatenated mocks.
-        with hunteuti.capture_sys_calls() as sys_calls:
-            # Mock hdbg: prevents dassert_* from failing when output files don't
-            # exist (Typst/PDF generation not actually run).
-            with mock.patch(
+        with (
+            hunteuti.capture_sys_calls() as sys_calls,
+            mock.patch(
                 "dev_scripts_helpers.documentation.lib_notes_to_pdf.hdbg"
-            ):
-                # Mock hgit.find_file() only (not the whole module): it needs
-                # to keep returning the real `dev_scripts_helpers` dir so
-                # `_extract_latex_math_defs()` can read the real
-                # `latex_abbrevs.sty`.
-                with mock.patch.object(
-                    dshdlntpd.hgit,
-                    "find_file",
-                    side_effect=self._find_file_side_effect(
-                        real_dev_scripts_helpers_dir
-                    ),
-                ):
-                    # Mock dshdlity: skips Typst infrastructure/pipeline operations
-                    # that require external tools and project-specific configuration.
-                    with mock.patch(
-                        "dev_scripts_helpers.documentation.lib_notes_to_pdf.dshdlity"
-                    ):
-                        result = dshdlntpd.run_pandoc_to_typst_slides(
-                            curr_path,
-                            file_name,
-                            use_host_tools,
-                            dockerized_force_rebuild,
-                            dockerized_use_sudo,
-                            typst_only=typst_only,
-                        )
+            ),
+            mock.patch.object(
+                dshdlntpd.hgit,
+                "find_file",
+                side_effect=self._find_file_side_effect(
+                    real_dev_scripts_helpers_dir
+                ),
+            ),
+            mock.patch(
+                "dev_scripts_helpers.documentation.lib_notes_to_pdf.dshdlity"
+            ),
+        ):
+            result = dshdlntpd.run_pandoc_to_typst_slides(
+                curr_path,
+                file_name,
+                use_host_tools,
+                dockerized_force_rebuild,
+                dockerized_use_sudo,
+                typst_only=typst_only,
+            )
         # Check outputs.
         self.assert_equal(result, file_name.replace(".txt", expected_ext))
         expected_sys_calls = self._build_expected_sys_calls(

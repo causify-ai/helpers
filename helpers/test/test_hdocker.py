@@ -698,9 +698,11 @@ class Test_get_docker_command1(hunitest.TestCase):
         # Prepare inputs.
         env = {}
         # Run test.
-        with umock.patch.object(platform, "system", return_value="Linux"):
-            with umock.patch.dict(os.environ, env, clear=True):
-                actual = hdocker.get_docker_command()
+        with (
+            umock.patch.object(platform, "system", return_value="Linux"),
+            umock.patch.dict(os.environ, env, clear=True),
+        ):
+            actual = hdocker.get_docker_command()
         # Check outputs.
         expected = "docker"
         self.assertEqual(actual, expected)
@@ -764,9 +766,11 @@ class Test_get_docker_command1(hunitest.TestCase):
         # Prepare inputs.
         env = {}
         # Run test.
-        with umock.patch.object(platform, "system", return_value="Darwin"):
-            with umock.patch.dict(os.environ, env, clear=True):
-                actual = hdocker.get_docker_command()
+        with (
+            umock.patch.object(platform, "system", return_value="Darwin"),
+            umock.patch.dict(os.environ, env, clear=True),
+        ):
+            actual = hdocker.get_docker_command()
         # Check outputs.
         expected = "container"
         self.assertEqual(actual, expected)
@@ -813,11 +817,13 @@ class Test_is_docker_running1(hunitest.TestCase):
         env = {"CSFY_DOCKER_ENGINE": "docker"}
         mocked_output = "Client:\n Version:           29.2.0\n"
         # Run test.
-        with umock.patch.dict(os.environ, env, clear=False):
-            with umock.patch.object(
+        with (
+            umock.patch.dict(os.environ, env, clear=False),
+            umock.patch.object(
                 hsystem, "system_to_string", return_value=(0, mocked_output)
-            ):
-                actual = hdocker.is_docker_running()
+            ),
+        ):
+            actual = hdocker.is_docker_running()
         # Check outputs.
         self.assertTrue(actual)
 
@@ -831,11 +837,13 @@ class Test_is_docker_running1(hunitest.TestCase):
             "failed to connect to the docker API at unix:///.../docker.sock"
         )
         # Run test.
-        with umock.patch.dict(os.environ, env, clear=False):
-            with umock.patch.object(
+        with (
+            umock.patch.dict(os.environ, env, clear=False),
+            umock.patch.object(
                 hsystem, "system_to_string", return_value=(1, mocked_output)
-            ):
-                actual = hdocker.is_docker_running()
+            ),
+        ):
+            actual = hdocker.is_docker_running()
         # Check outputs.
         self.assertFalse(actual)
 
@@ -847,11 +855,13 @@ class Test_is_docker_running1(hunitest.TestCase):
         env = {"CSFY_DOCKER_ENGINE": "apple"}
         mocked_output = "CONTAINER ID   IMAGE     COMMAND   CREATED   STATUS\n"
         # Run test.
-        with umock.patch.dict(os.environ, env, clear=False):
-            with umock.patch.object(
+        with (
+            umock.patch.dict(os.environ, env, clear=False),
+            umock.patch.object(
                 hsystem, "system_to_string", return_value=(0, mocked_output)
-            ):
-                actual = hdocker.is_docker_running()
+            ),
+        ):
+            actual = hdocker.is_docker_running()
         # Check outputs.
         self.assertTrue(actual)
 
@@ -866,10 +876,12 @@ class Test_is_docker_running1(hunitest.TestCase):
             "(cause: \"interrupted: 'XPC connection error: Connection invalid'\")"
         )
         # Run test.
-        with umock.patch.dict(os.environ, env, clear=False):
-            with umock.patch.object(
+        with (
+            umock.patch.dict(os.environ, env, clear=False),
+            umock.patch.object(
                 hsystem, "system_to_string", return_value=(1, mocked_output)
-            ):
-                actual = hdocker.is_docker_running()
+            ),
+        ):
+            actual = hdocker.is_docker_running()
         # Check outputs.
         self.assertFalse(actual)
