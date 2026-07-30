@@ -292,23 +292,28 @@ def _build_stats_to_str(build_stats: List[Dict[str, Any]]) -> str:
     :param build_stats: List of build statistics dicts
     :return: Formatted table string, e.g.,
         ```
-        Build          Status   Passed   Skipped   Failed   Total   Duration
+        Build          Status              Passed   Skipped   Failed   Total   Duration
         -----------------------------------------------------------------------
-        docker         PASS      1234        0       10      1244       45.2s
-        apple          NOT RUN     0        0        0        0          N/A
-        dev_container  FAIL      1232        1       11      1244       48.5s
+        docker         PASS                 1234        0       10      1244       45.2s
+        apple          NOT STARTED             0        0        0        0          N/A
+        dev_container  IN PROGRESS          1232        1       11      1244       48.5s
         ```
     """
     _LOG.debug("build_stats=%s items", len(build_stats))
     lines = [hprint.frame("Build Statistics")]
-    # Convert each build stat dict to table row with pass/fail/not run/incomplete
-    # status.
+    # Status mapping based on build completion state:
+    # - NOT STARTED (white): no info file exists (incomplete=True, total=0)
+    # - IN PROGRESS (blue): pytest running but not finished (incomplete=True,
+    #   total>=0, no pytest_ended marker)
+    # - PASS (green): pytest finished with no failures (incomplete=False, failed=0)
+    # - FAIL (red): pytest finished with failures (incomplete=False, failed>0)
     table_data = []
     for stats in build_stats:
         if stats.get("incomplete", False):
-            status = hprint.color_highlight("INCOMPLETE", "yellow")
-        elif stats["total"] == 0:
-            status = hprint.color_highlight("NOT RUN", "yellow")
+            if stats["total"] == 0:
+                status = hprint.color_highlight("NOT STARTED", "white")
+            else:
+                status = hprint.color_highlight("IN PROGRESS", "blue")
         elif stats["failed"] == 0:
             status = hprint.color_highlight("PASS", "green")
         else:
