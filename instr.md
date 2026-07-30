@@ -1,4 +1,4 @@
-/todo
+Run the skill /coding.todoai_gp on each of the TODO, one at the time
 
 ./dev_scripts_helpers/dockerize/dockerized_pandoc.py:34:# TODO(ai_gp): Move all the non-CLI functions to
 ./dev_scripts_helpers/testing/pytest_multi_build.py:14:# TODO(ai_gp): Add comments for each command

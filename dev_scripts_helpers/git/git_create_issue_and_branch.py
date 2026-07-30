@@ -27,6 +27,7 @@ import shlex
 
 import helpers.hdbg as hdbg
 import helpers.hgit as hgit
+import helpers.hio as hio
 import helpers.hparser as hparser
 import helpers.hprint as hprint
 import helpers.hsystem as hsystem
@@ -49,9 +50,7 @@ def _get_issue_body(body_text: str, body_file: str) -> str:
     """
     if body_file:
         hdbg.dassert_file_exists(body_file, "Issue body file does not exist")
-        # TODO(ai_gp): Use hio.from_file.
-        with open(body_file, "r") as f:
-            body = f.read()
+        body = hio.from_file(body_file)
         _LOG.info("Loaded issue body from file '%s'", body_file)
         return body
     return body_text
@@ -194,6 +193,80 @@ def _print_usage_instructions(worktree_path: str, issue_id: int) -> None:
 # #############################################################################
 
 
+def _main_workflow(
+    args: argparse.Namespace, original_branch: str
+) -> None:
+    """
+    Main workflow implementation.
+
+    :param args: Parsed command-line arguments
+    :param original_branch: Original git branch name for restoration
+    """
+    # Load issue body from file or use provided text.
+    gh_issue_body = _get_issue_body(
+        args.gh_issue_body, args.gh_issue_body_file
+    )
+    _LOG.debug(
+        "gh_issue_id=%s gh_issue_title=%s gh_issue_body=%s gh_issue_body_file=%s "
+        "gh_assignee=%s create_worktree=%s create_pr=%s",
+        args.gh_issue_id,
+        args.gh_issue_title,
+        gh_issue_body,
+        args.gh_issue_body_file,
+        args.gh_assignee,
+        args.create_worktree,
+        args.create_pr,
+    )
+    # Assert that the repository does not have any submodules, since
+    # worktrees are not supported with subrepos yet.
+    hdbg.dassert(
+        not hgit.has_submodules(),
+        "Repository has submodules; worktree not supported yet",
+    )
+    # Determine issue ID.
+    if args.gh_issue_id:
+        # Skip GitHub issue creation if ID is provided.
+        issue_id = args.gh_issue_id
+        _LOG.info("Using existing GitHub issue: %s", issue_id)
+    else:
+        # Create new GitHub issue via invoke.
+        hdbg.dassert(
+            args.gh_issue_title,
+            "Issue title is required when creating a new issue",
+        )
+        cmd = "invoke gh_issue_create"
+        cmd += f" --title {shlex.quote(args.gh_issue_title)}"
+        if gh_issue_body:
+            cmd += f" --body {shlex.quote(gh_issue_body)}"
+        if args.gh_assignee:
+            cmd += f" --assignees {shlex.quote(args.gh_assignee)}"
+        _LOG.info("Creating GitHub issue via invoke: %s", cmd)
+        _, output = hsystem.system_to_string(cmd)
+        _LOG.debug("Invoke output:\n%s", output)
+        # Parse issue ID from output.
+        match = re.search(r"Created issue #(\d+)", output)
+        match = hdbg.dassert_re_match(
+            match, "Could not extract issue ID from output: %s", output
+        )
+        issue_id = int(match.group(1))
+        _LOG.info("Created issue #%s", issue_id)
+    # Create branch and PR via invoke.
+    branch_name = _create_branch_and_pr(
+        issue_id,
+        original_branch,
+        create_pr=args.create_pr,
+        gh_issue_id_provided=bool(args.gh_issue_id),
+    )
+    _LOG.info("Branch name: '%s'", branch_name)
+    # Create worktree, if requested.
+    if args.create_worktree:
+        worktree_path = _create_worktree(
+            branch_name, issue_id, original_branch
+        )
+        # Print usage instructions.
+        _print_usage_instructions(worktree_path, issue_id)
+
+
 def _main(parser: argparse.ArgumentParser) -> None:
     """
     Main entry point for the script.
@@ -205,71 +278,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
     # Capture original branch to restore on failure.
     original_branch = hgit.get_branch_name()
     try:
-        # TODO(ai_gp): Move the body of this try-except in a different function
-        # to increase readability.
-        # Load issue body from file or use provided text.
-        gh_issue_body = _get_issue_body(
-            args.gh_issue_body, args.gh_issue_body_file
-        )
-        _LOG.debug(
-            "gh_issue_id=%s gh_issue_title=%s gh_issue_body=%s gh_issue_body_file=%s "
-            "gh_assignee=%s create_worktree=%s create_pr=%s",
-            args.gh_issue_id,
-            args.gh_issue_title,
-            gh_issue_body,
-            args.gh_issue_body_file,
-            args.gh_assignee,
-            args.create_worktree,
-            args.create_pr,
-        )
-        # Assert that the repository does not have any submodules, since
-        # worktrees are not supported with subrepos yet.
-        hdbg.dassert(
-            not hgit.has_submodules(),
-            "Repository has submodules; worktree not supported yet",
-        )
-        # Determine issue ID.
-        if args.gh_issue_id:
-            # Skip GitHub issue creation if ID is provided.
-            issue_id = args.gh_issue_id
-            _LOG.info("Using existing GitHub issue: %s", issue_id)
-        else:
-            # Create new GitHub issue via invoke.
-            hdbg.dassert(
-                args.gh_issue_title,
-                "Issue title is required when creating a new issue",
-            )
-            cmd = "invoke gh_issue_create"
-            cmd += f" --title {shlex.quote(args.gh_issue_title)}"
-            if gh_issue_body:
-                cmd += f" --body {shlex.quote(gh_issue_body)}"
-            if args.gh_assignee:
-                cmd += f" --assignees {shlex.quote(args.gh_assignee)}"
-            _LOG.info("Creating GitHub issue via invoke: %s", cmd)
-            _, output = hsystem.system_to_string(cmd)
-            _LOG.debug("Invoke output:\n%s", output)
-            # Parse issue ID from output.
-            match = re.search(r"Created issue #(\d+)", output)
-            match = hdbg.dassert_re_match(
-                match, "Could not extract issue ID from output: %s", output
-            )
-            issue_id = int(match.group(1))
-            _LOG.info("Created issue #%s", issue_id)
-        # Create branch and PR via invoke.
-        branch_name = _create_branch_and_pr(
-            issue_id,
-            original_branch,
-            create_pr=args.create_pr,
-            gh_issue_id_provided=bool(args.gh_issue_id),
-        )
-        _LOG.info("Branch name: '%s'", branch_name)
-        # Create worktree, if requested.
-        if args.create_worktree:
-            worktree_path = _create_worktree(
-                branch_name, issue_id, original_branch
-            )
-            # Print usage instructions.
-            _print_usage_instructions(worktree_path, issue_id)
+        _main_workflow(args, original_branch)
     finally:
         # Return to original branch if we switched away.
         current_branch = hgit.get_branch_name()

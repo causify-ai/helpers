@@ -13,6 +13,8 @@ Usage:
 import json
 import logging
 import subprocess
+# TODO(ai_gp): Use `import datetime` and not the `from ... import`
+from datetime import datetime
 from typing import Any, Dict, List
 
 import helpers.hdbg as hdbg
@@ -121,9 +123,6 @@ def _compute_duration_minutes(created_at: str, updated_at: str) -> int:
     :param updated_at: ISO 8601 end timestamp
     :return: Duration in minutes
     """
-    # TODO(ai_gp): Move up and import as datetime.datetime
-    from datetime import datetime
-
     fmt = "%Y-%m-%dT%H:%M:%SZ"
     created = datetime.strptime(created_at, fmt)
     updated = datetime.strptime(updated_at, fmt)
