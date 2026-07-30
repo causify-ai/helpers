@@ -752,7 +752,7 @@ class Test_build_stats_to_str_colorization(hunitest.TestCase):
         ------ | ------------- | ------ | ------- | ------ | ----- | -------- |
         docker | PASS | 368    | 20      | 0      | 388   | 11.87s   |"""
         # Run test.
-        self._check_colorized_output(build_stats, "PASS", expected, dedent=True)
+        self._check_colorized_output(build_stats, "PASS", expected=expected, dedent=True)
 
     def test2(self) -> None:
         """
@@ -778,7 +778,7 @@ class Test_build_stats_to_str_colorization(hunitest.TestCase):
         ------ | ------------- | ------ | ------- | ------ | ----- | -------- |
         docker | FAIL | 357    | 20      | 11     | 388   | 12.45s   |"""
         # Run test.
-        self._check_colorized_output(build_stats, "FAIL", expected, dedent=True)
+        self._check_colorized_output(build_stats, "FAIL", expected=expected, dedent=True)
 
     def test_not_started_status_colorization(self) -> None:
         """
@@ -805,7 +805,7 @@ class Test_build_stats_to_str_colorization(hunitest.TestCase):
         dev_container | NOT STARTED | 0      | 0       | 0      | 0     | N/A      |"""
         # Run test.
         self._check_colorized_output(
-            build_stats, "NOT STARTED", expected, dedent=True
+            build_stats, "NOT STARTED", expected=expected, dedent=True
         )
 
     def test_in_progress_status_colorization(self) -> None:
@@ -833,7 +833,7 @@ class Test_build_stats_to_str_colorization(hunitest.TestCase):
         apple | IN PROGRESS | 150    | 5       | 0      | 155   | N/A      |"""
         # Run test.
         self._check_colorized_output(
-            build_stats, "IN PROGRESS", expected, dedent=True
+            build_stats, "IN PROGRESS", expected=expected, dedent=True
         )
 
     def test_in_progress_no_tests_yet(self) -> None:
