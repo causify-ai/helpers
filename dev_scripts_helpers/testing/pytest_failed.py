@@ -137,11 +137,20 @@ def _format_outcome_table(result: Dict[str, Any]) -> str:
     """
     _LOG.debug("result keys=%s", list(result.keys()))
     lines = [hprint.frame("Test Outcome Summary")]
+    # Determine status with colorization.
+    num_total = result["num_total"]
+    num_failed = result["num_failed"]
+    if num_total == 0:
+        status = hprint.color_highlight("NOT RUN", "yellow")
+    elif num_failed == 0:
+        status = hprint.color_highlight("PASS", "green")
+    else:
+        status = hprint.color_highlight("FAIL", "red")
     # Convert result dict to table row with test counts and status.
     table_data = [
         [
             result["build"],
-            result["passed"],
+            status,
             str(result["num_passed"]),
             str(result["num_skipped"]),
             str(result["num_failed"]),
@@ -224,50 +233,50 @@ def _process_single_file(
         "passed_tests.txt", build_name=build_name
     )
     hpytest.write_passed_tests(info, passed_tests_file)
-    _LOG.info("Created '%s'", passed_tests_file)
+    _LOG.info("Created '%s'...", passed_tests_file)
     # Failed.
     failed_tests_file = hpytest.get_output_file_path(
         "failed_tests.txt", build_name=build_name
     )
     hpytest.write_failed_tests(info, failed_tests_file)
-    _LOG.info("Created '%s'", failed_tests_file)
+    _LOG.info("Created '%s'...", failed_tests_file)
     # Skipped.
     skipped_tests_file = hpytest.get_output_file_path(
         "skipped_tests.txt", build_name=build_name
     )
     hpytest.write_skipped_tests(info, skipped_tests_file)
-    _LOG.info("Created '%s'", skipped_tests_file)
+    _LOG.info("Created '%s'...", skipped_tests_file)
     # Updated.
     updated_tests_file = hpytest.get_output_file_path(
         "updated_tests.txt", build_name=build_name
     )
     hpytest.write_updated_tests(info, updated_tests_file)
-    _LOG.info("Created '%s'", updated_tests_file)
+    _LOG.info("Created '%s'...", updated_tests_file)
     # - Write analysis files (duration, stacktraces, json info).
     # By duration.
     tests_by_duration_file = hpytest.get_output_file_path(
         "tests_by_duration.txt", build_name=build_name
     )
     hpytest.write_tests_by_duration(info, tests_by_duration_file)
-    _LOG.info("Created '%s'", tests_by_duration_file)
+    _LOG.info("Created '%s'...", tests_by_duration_file)
     # Stats.
     duration_stats_file = hpytest.get_output_file_path(
         "duration_stats.txt", build_name=build_name
     )
     hpytest.write_duration_stats(info, duration_stats_file)
-    _LOG.info("Created '%s'", duration_stats_file)
+    _LOG.info("Created '%s'...", duration_stats_file)
     # Stacktraces.
     stacktraces_file = hpytest.get_output_file_path(
         "stacktraces.txt", build_name=build_name
     )
     hpytest.write_test_stacktraces(info, stacktraces_file)
-    _LOG.info("Created '%s'", stacktraces_file)
+    _LOG.info("Created '%s'...", stacktraces_file)
     # Info.
     info_json_file = hpytest.get_output_file_path(
         "info.json", build_name=build_name
     )
     hio.to_json(info_json_file, info)
-    _LOG.info("Created '%s'", info_json_file)
+    _LOG.info("Created '%s'...", info_json_file)
     # Extract summary statistics from parsed info.
     num_passed = len(info["log_passed_tests"]) if info["log_passed_tests"] else 0
     num_skipped = (

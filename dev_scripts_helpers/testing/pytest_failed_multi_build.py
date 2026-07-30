@@ -68,7 +68,11 @@ def _extract_build_stats(build_name: str) -> Dict[str, Any]:
     num_failed = info.get("log_num_failed", 0) or 0
     num_skipped = info.get("log_num_skipped", 0) or 0
     num_total = num_passed + num_failed + num_skipped
-    duration = f"{info['pytest_duration_in_secs']}s" if 'pytest_duration_in_secs' in info else "N/A"
+    duration = (
+        f"{info['pytest_duration_in_secs']}s"
+        if "pytest_duration_in_secs" in info
+        else "N/A"
+    )
     # Assemble result.
     res = {
         "build": build_name,
@@ -106,12 +110,14 @@ def _generate_build_files(
         input_file = f"tmp.{in_build_tag}.{build_name}.txt"
         # Check if input file exists; skip pytest_failed.py if missing.
         if not os.path.exists(input_file):
-            _LOG.warning("Input file not found for %s: %s", build_name, input_file)
+            _LOG.warning(
+                "Input file not found for %s: %s", build_name, input_file
+            )
             # Extract build statistics (will return incomplete status).
             stats = _extract_build_stats(build_name)
             build_stats.append(stats)
             continue
-        _LOG.info("Processing %s from %s", build_name, input_file)
+        _LOG.info("Processing target='%s' from '%s'", build_name, input_file)
         # Build command to execute `pytest_failed.py` for this build.
         cmd = " ".join(
             [
@@ -148,7 +154,9 @@ def _read_failed_tests(build_name: str) -> List[str]:
         "failed_tests.txt", build_name=build_name
     )
     if not os.path.exists(failed_file):
-        _LOG.warning("Failed tests file not found for %s: %s", build_name, failed_file)
+        _LOG.warning(
+            "Failed tests file not found for %s: %s", build_name, failed_file
+        )
         return []
     txt = hio.from_file(failed_file)
     # Parse file content into list of non-empty test names.
@@ -287,20 +295,24 @@ def _build_stats_to_str(build_stats: List[Dict[str, Any]]) -> str:
         Build          Status   Passed   Skipped   Failed   Total   Duration
         -----------------------------------------------------------------------
         docker         PASS      1234        0       10      1244       45.2s
-        apple          INCOMPLETE   0        0        0        0          N/A
+        apple          NOT RUN     0        0        0        0          N/A
         dev_container  FAIL      1232        1       11      1244       48.5s
         ```
     """
     _LOG.debug("build_stats=%s items", len(build_stats))
     lines = [hprint.frame("Build Statistics")]
-    # Convert each build stat dict to table row with pass/fail/incomplete
+    # Convert each build stat dict to table row with pass/fail/not run/incomplete
     # status.
     table_data = []
     for stats in build_stats:
         if stats.get("incomplete", False):
-            status = "INCOMPLETE"
+            status = hprint.color_highlight("INCOMPLETE", "yellow")
+        elif stats["total"] == 0:
+            status = hprint.color_highlight("NOT RUN", "yellow")
+        elif stats["failed"] == 0:
+            status = hprint.color_highlight("PASS", "green")
         else:
-            status = "PASS" if stats["failed"] == 0 else "FAIL"
+            status = hprint.color_highlight("FAIL", "red")
         table_data.append(
             [
                 stats["build"],
@@ -446,21 +458,22 @@ def _main(parser: argparse.ArgumentParser) -> None:
     print(stats_summary)
     # Consolidate failed tests across all builds to identify common failures.
     test_to_builds = _consolidate_failed_tests(build_names)
-    # Print summary of failures.
-    summary = _summary_to_str(build_names, test_to_builds)
-    print(summary)
+    # Print summary of failures only if there are failed tests.
+    if test_to_builds:
+        summary = _summary_to_str(build_names, test_to_builds)
+        print(summary)
     # Create consolidated repro script combining tests from all builds.
     repro_content = _create_consolidated_repro(
         build_names, out_build_tag=out_build_tag
     )
     repro_file = "tmp.pytest_failed_multi_build.repro.sh"
     hio.create_executable_script(repro_file, repro_content)
-    _LOG.info("Created consolidated repro script: %s", repro_file)
+    _LOG.info("Created consolidated repro script: '%s'...", repro_file)
     # Create consolidated failed tests file with formatted table.
     failed_table = _failed_tests_table_to_str(test_to_builds)
     failed_file = "tmp.pytest_failed_multi_build.failed_tests.txt"
     hio.to_file(failed_file, failed_table)
-    _LOG.info("Created consolidated failed tests file: %s", failed_file)
+    _LOG.info("Created consolidated failed tests file: '%s'...", failed_file)
 
 
 if __name__ == "__main__":

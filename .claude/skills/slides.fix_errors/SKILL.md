@@ -1,13 +1,17 @@
 ---
-description: Fix slides without changing their structure
+description: Fix errors slides without changing their structure
 model: haiku
 ---
 
-- Given a markdown file with slides, fix slides without changing their structure
+# Goal
+- Given a file with slides or user content, fix errors and imprecisions in the
+  slides without changing their structure
 
+# Workflow
+
+## Read the Rules
 - Read `.claude/skills/slides.rules.md` and follow strictly the conventions and
   rules
-
 - A slide title is prepended with `*` and has hierarchical bullets
   - E.g.,
     ```
@@ -20,12 +24,12 @@ model: haiku
       - Information flows both ways in Bayesian networks
     ```
 
-# Leave Structure Unchanged
+## Leave Structure Unchanged
 - Do not change the structure of the text (e.g., in terms of title, bullet structure,
   div fenced blocks)
 - Maintain the content of the existing text
 - Do not add periods at the end of phrases
 
-# Fix Mistakes
+## Fix Mistakes
 - Fix English grammar
 - Fix any conceptual mistake only if you are sure about the correction

@@ -1,4 +1,11 @@
-from typing import Dict
+"""
+Import as:
+
+import .claude.test_control_cc_commit as ctcoccco
+"""
+
+import os
+from typing import Dict, Tuple
 
 import helpers.hunit_test as hunitest
 import control_cc_commit as cc_control
@@ -17,21 +24,23 @@ class Test_enable_git_commands(hunitest.TestCase):
     def helper(
         self,
         settings: Dict,
-        expected_result: bool,
+        expected_removed: list,
         expected_deny_list: list,
     ) -> None:
         """
         Test helper for _enable_git_commands.
 
         :param settings: Input settings dictionary
-        :param expected_result: Expected return value
+        :param expected_removed: Expected removed denials
         :param expected_deny_list: Expected deny list after execution
         """
         # Run test.
-        result = cc_control._enable_git_commands(settings)
+        removed, modified_settings = cc_control._enable_git_commands(settings)
         # Check outputs.
-        self.assertEqual(result, expected_result)
-        self.assertEqual(settings["permissions"]["deny"], expected_deny_list)
+        self.assertEqual(removed, expected_removed)
+        self.assertEqual(
+            modified_settings["permissions"]["deny"], expected_deny_list
+        )
 
     def test1(self) -> None:
         """
@@ -41,18 +50,20 @@ class Test_enable_git_commands(hunitest.TestCase):
         settings: Dict = {
             "permissions": {
                 "deny": [
-                    "Bash(*git commit:*)",
-                    "Bash(*git commit -m *)",
-                    "Bash(*git push:*)",
+                    "Bash(*git commit*)",
+                    "Bash(*git push*)",
                     "SomeOtherDenial",
                 ]
             }
         }
         # Prepare outputs.
-        expected_result = True
+        expected_removed = [
+            "Bash(*git commit*)",
+            "Bash(*git push*)",
+        ]
         expected_deny_list = ["SomeOtherDenial"]
         # Run test.
-        self.helper(settings, expected_result, expected_deny_list)
+        self.helper(settings, expected_removed, expected_deny_list)
 
     def test2(self) -> None:
         """
@@ -61,10 +72,10 @@ class Test_enable_git_commands(hunitest.TestCase):
         # Prepare inputs.
         settings: Dict = {"permissions": {"deny": ["SomeOtherDenial"]}}
         # Prepare outputs.
-        expected_result = False
+        expected_removed = []
         expected_deny_list = ["SomeOtherDenial"]
         # Run test.
-        self.helper(settings, expected_result, expected_deny_list)
+        self.helper(settings, expected_removed, expected_deny_list)
 
     def test3(self) -> None:
         """
@@ -74,16 +85,16 @@ class Test_enable_git_commands(hunitest.TestCase):
         settings: Dict = {
             "permissions": {
                 "deny": [
-                    "Bash(*git commit:*)",
+                    "Bash(*git commit*)",
                     "SomeOtherDenial",
                 ]
             }
         }
         # Prepare outputs.
-        expected_result = True
+        expected_removed = ["Bash(*git commit*)"]
         expected_deny_list = ["SomeOtherDenial"]
         # Run test.
-        self.helper(settings, expected_result, expected_deny_list)
+        self.helper(settings, expected_removed, expected_deny_list)
 
     def test4(self) -> None:
         """
@@ -92,10 +103,10 @@ class Test_enable_git_commands(hunitest.TestCase):
         # Prepare inputs.
         settings: Dict = {"permissions": {"deny": []}}
         # Prepare outputs.
-        expected_result = False
+        expected_removed = []
         expected_deny_list = []
         # Run test.
-        self.helper(settings, expected_result, expected_deny_list)
+        self.helper(settings, expected_removed, expected_deny_list)
 
     def test5(self) -> None:
         """
@@ -104,10 +115,10 @@ class Test_enable_git_commands(hunitest.TestCase):
         # Prepare inputs.
         settings: Dict = {}
         # Prepare outputs.
-        expected_result = False
+        expected_removed = []
         expected_deny_list = []
         # Run test.
-        self.helper(settings, expected_result, expected_deny_list)
+        self.helper(settings, expected_removed, expected_deny_list)
 
     def test6(self) -> None:
         """
@@ -116,147 +127,172 @@ class Test_enable_git_commands(hunitest.TestCase):
         # Prepare inputs.
         settings: Dict = {"permissions": {}}
         # Prepare outputs.
-        expected_result = False
+        expected_removed = []
         expected_deny_list = []
         # Run test.
-        self.helper(settings, expected_result, expected_deny_list)
+        self.helper(settings, expected_removed, expected_deny_list)
 
 
 # #############################################################################
-# Test_disable_git_commands
+# Test_backup_and_restore
 # #############################################################################
 
 
-class Test_disable_git_commands(hunitest.TestCase):
-    """
-    Test cases for _disable_git_commands function.
-    """
-
-    def helper(
-        self,
-        settings: Dict,
-        expected_result: bool,
-        expected_deny_set: set,
-    ) -> None:
+class Test_backup_and_restore(hunitest.TestCase):
+    def _setup_file_paths(self) -> Tuple[str, str, str]:
         """
-        Test helper for _disable_git_commands.
+        Create scratch directory and paths for settings and backup files.
 
-        :param settings: Input settings dictionary
-        :param expected_result: Expected return value
-        :param expected_deny_set: Expected deny list as a set after execution
+        :return: Tuple of (scratch_dir, settings_path, backup_path)
         """
-        # Run test.
-        result = cc_control._disable_git_commands(settings)
-        # Check outputs.
-        self.assertEqual(result, expected_result)
-        self.assertEqual(set(settings["permissions"]["deny"]), expected_deny_set)
+        scratch_dir = self.get_scratch_space()
+        settings_path = os.path.join(scratch_dir, "settings.json")
+        backup_path = os.path.join(scratch_dir, "settings.backup")
+        return scratch_dir, settings_path, backup_path
 
     def test1(self) -> None:
         """
-        Test disabling when git denials don't already exist.
+        Test that --enable creates a backup file with removed denials.
         """
-        # Prepare inputs.
-        settings: Dict = {"permissions": {"deny": ["SomeOtherDenial"]}}
-        # Prepare outputs.
-        expected_result = True
-        expected_deny_set = {
-            "SomeOtherDenial",
-            "Bash(*git commit:*)",
-            "Bash(*git commit -m *)",
-            "Bash(*git push:*)",
+        # Prepare file paths.
+        _, settings_path, backup_path = self._setup_file_paths()
+        # Prepare settings with git denials.
+        settings = {
+            "permissions": {
+                "deny": [
+                    "Bash(*git commit*)",
+                    "Bash(*git push*)",
+                    "Bash(*rm:*)",
+                ]
+            }
         }
-        # Run test.
-        self.helper(settings, expected_result, expected_deny_set)
+        cc_control._save_settings(settings_path, settings)
+        # Enable git commands.
+        loaded_settings = cc_control._load_settings(settings_path)
+        removed, _ = cc_control._enable_git_commands(loaded_settings)
+        cc_control._save_backup(backup_path, removed)
+        # Verify backup was created with correct content.
+        backup_content = cc_control._load_backup(backup_path)
+        self.assertEqual(
+            backup_content, ["Bash(*git commit*)", "Bash(*git push*)"]
+        )
 
     def test2(self) -> None:
         """
-        Test disabling when all git denials already exist.
+        Test that --disable restores denials from backup.
         """
-        # Prepare inputs.
-        settings: Dict = {
-            "permissions": {
-                "deny": [
-                    "Bash(*git commit:*)",
-                    "Bash(*git commit -m *)",
-                    "Bash(*git push:*)",
-                ]
-            }
-        }
-        # Prepare outputs.
-        expected_result = False
-        expected_deny_set = set(cc_control._GIT_DENIALS)
-        # Run test.
-        self.helper(settings, expected_result, expected_deny_set)
+        # Prepare file paths.
+        _, settings_path, backup_path = self._setup_file_paths()
+        # Prepare settings without git denials.
+        settings = {"permissions": {"deny": ["Bash(*rm:*)"]}}
+        cc_control._save_settings(settings_path, settings)
+        # Create backup with git denials.
+        backup_denials = [
+            "Bash(*git commit*)",
+            "Bash(*git push*)",
+        ]
+        cc_control._save_backup(backup_path, backup_denials)
+        # Restore from backup.
+        loaded_settings = cc_control._load_settings(settings_path)
+        _, modified_settings = cc_control._restore_from_backup(
+            loaded_settings, backup_path
+        )
+        # Verify denials were restored.
+        restored_deny_list = modified_settings["permissions"]["deny"]
+        self.assertEqual(
+            restored_deny_list,
+            ["Bash(*rm:*)", "Bash(*git commit*)", "Bash(*git push*)"],
+        )
+        # Verify backup was deleted.
+        self.assertFalse(os.path.exists(backup_path))
 
     def test3(self) -> None:
         """
-        Test disabling when only some git denials already exist.
+        Test that enable followed by disable returns to original state.
         """
-        # Prepare inputs.
-        settings: Dict = {
+        # Prepare file paths.
+        _, settings_path, backup_path = self._setup_file_paths()
+        # Prepare original settings.
+        original_settings = {
             "permissions": {
                 "deny": [
-                    "Bash(*git commit:*)",
-                    "SomeOtherDenial",
+                    "Bash(*git commit*)",
+                    "Bash(*git push*)",
+                    "Bash(*rm:*)",
                 ]
             }
         }
-        # Prepare outputs.
-        expected_result = True
-        expected_deny_set = {
-            "Bash(*git commit:*)",
-            "SomeOtherDenial",
-            "Bash(*git commit -m *)",
-            "Bash(*git push:*)",
-        }
-        # Run test.
-        self.helper(settings, expected_result, expected_deny_set)
+        cc_control._save_settings(settings_path, original_settings)
+        # Step 1: Enable (remove git denials and save backup).
+        settings_after_enable = cc_control._load_settings(settings_path)
+        removed, modified_settings_1 = cc_control._enable_git_commands(
+            settings_after_enable
+        )
+        cc_control._save_backup(backup_path, removed)
+        cc_control._save_settings(settings_path, modified_settings_1)
+        # Verify only non-git denial remains.
+        enabled_settings = cc_control._load_settings(settings_path)
+        self.assertEqual(
+            enabled_settings["permissions"]["deny"], ["Bash(*rm:*)"]
+        )
+        # Step 2: Disable (restore from backup).
+        settings_after_disable = cc_control._load_settings(settings_path)
+        _, modified_settings_2 = cc_control._restore_from_backup(
+            settings_after_disable, backup_path
+        )
+        cc_control._save_settings(settings_path, modified_settings_2)
+        # Verify settings match original.
+        final_settings = cc_control._load_settings(settings_path)
+        self.assertEqual(
+            set(final_settings["permissions"]["deny"]),
+            set(original_settings["permissions"]["deny"]),
+        )
 
     def test4(self) -> None:
         """
-        Test disabling when deny list is empty.
+        Test that --disable fails if backup file is missing.
         """
-        # Prepare inputs.
-        settings: Dict = {"permissions": {"deny": []}}
-        # Prepare outputs.
-        expected_result = True
-        expected_deny_set = set(cc_control._GIT_DENIALS)
-        # Run test.
-        self.helper(settings, expected_result, expected_deny_set)
+        # Prepare file paths.
+        _, settings_path, backup_path = self._setup_file_paths()
+        # Prepare settings.
+        settings = {"permissions": {"deny": ["Bash(*rm:*)"]}}
+        cc_control._save_settings(settings_path, settings)
+        # Try to restore without backup file.
+        loaded_settings = cc_control._load_settings(settings_path)
+        with self.assertRaises(AssertionError):
+            cc_control._restore_from_backup(loaded_settings, backup_path)
 
     def test5(self) -> None:
         """
-        Test disabling when permissions key doesn't exist.
+        Test that enable removes all denials containing git commit or git push.
         """
-        # Prepare inputs.
-        settings: Dict = {}
-        # Prepare outputs.
-        expected_result = True
-        expected_deny_set = set(cc_control._GIT_DENIALS)
-        # Run test.
-        self.helper(settings, expected_result, expected_deny_set)
-
-    def test6(self) -> None:
-        """
-        Test disabling when deny key doesn't exist under permissions.
-        """
-        # Prepare inputs.
-        settings: Dict = {"permissions": {}}
-        # Prepare outputs.
-        expected_result = True
-        expected_deny_set = set(cc_control._GIT_DENIALS)
-        # Run test.
-        self.helper(settings, expected_result, expected_deny_set)
-
-    def test7(self) -> None:
-        """
-        Test that disabling preserves unrelated denials.
-        """
-        # Prepare inputs.
-        other_denials = ["Bash(*rm:*)", "Edit(*dangerous*)"]
-        settings: Dict = {"permissions": {"deny": other_denials.copy()}}
-        # Prepare outputs.
-        expected_result = True
-        expected_deny_set = set(other_denials + cc_control._GIT_DENIALS)
-        # Run test.
-        self.helper(settings, expected_result, expected_deny_set)
+        # Prepare settings with various git patterns.
+        settings = {
+            "permissions": {
+                "deny": [
+                    "Bash(*git commit*)",
+                    "Bash(*git commit -m *)",
+                    "Bash(*git push*)",
+                    "Bash(*git push --force*)",
+                    "Edit(*git commit*)",
+                    "Bash(*rm:*)",
+                ]
+            }
+        }
+        # Enable git commands.
+        removed, modified_settings = cc_control._enable_git_commands(settings)
+        # Verify all git patterns were removed.
+        self.assertEqual(
+            removed,
+            [
+                "Bash(*git commit*)",
+                "Bash(*git commit -m *)",
+                "Bash(*git push*)",
+                "Bash(*git push --force*)",
+                "Edit(*git commit*)",
+            ],
+        )
+        # Verify only non-git denial remains.
+        self.assertEqual(
+            modified_settings["permissions"]["deny"], ["Bash(*rm:*)"]
+        )

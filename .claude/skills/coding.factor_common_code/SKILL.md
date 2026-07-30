@@ -9,7 +9,7 @@ model: haiku
 
 # Goal
 - I will provide references to one or more Python source files
-- Your task is to
+- Your task is to:
   - Read and analyze the code across these files
   - Identify meaningful duplicated or near-duplicated code blocks that can be
     safely refactored into shared functions
@@ -53,7 +53,6 @@ model: haiku
     `.claude/skills/cfile.rules.md`
 
 ## Make Changes
-- Wait for the user to review the proposed changes
 - Make the changes to remove repeated code
 
 ## Conventions

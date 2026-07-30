@@ -3,13 +3,16 @@ description: Enrich slides with references to academic papers and books
 model: haiku
 ---
 
-# Role
-- Your role is specified in `.claude/skills/role.ai_researcher.md`
-
 # Goal
 - Your task is to review the content of the file with slides and add references
   to related material
 
+# Workflow
+
+## Role
+- Your role is specified in `.claude/skills/role.ai_researcher.md`
+
+## Find References
 - For each section at level 1 (#) and level 2 (##)
   - Add supporting academic references (papers, journals, conference papers,
     books, or authoritative articles)
@@ -19,7 +22,7 @@ model: haiku
     - Include working URLs for each reference when possible
     - Prefer recent references rather than old
 
-# Output Format
+## Output Format
 - Add a comment before each line `//`
 - Print the references for books and articles
 - Use the format:

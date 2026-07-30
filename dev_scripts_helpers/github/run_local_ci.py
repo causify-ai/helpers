@@ -7,12 +7,18 @@ This script runs regression tests for the current directory and helpers
 subdirectory, either once or on a daily schedule.
 
 Usage:
-# TODO(ai_gp): Add a comment for each command line
+# Run once immediately, starting at 2am (the default).
 > run_local_ci.py --start_time 2am
+# Run as a daemon, triggering a run daily at 14:30.
 > run_local_ci.py --start_time 14:30 --daemon
+# Run once immediately, restricting pytest to the `helpers/test/` dir.
 > run_local_ci.py --pytest_target "helpers/test/"
+# Run as a daemon over the entire repo, starting at the default time.
 > run_local_ci.py --pytest_target "." --daemon
+# Run once immediately, skipping the check that the repo is at master.
 > run_local_ci.py --no_master_check
+# Run once immediately, restricting pytest to `helpers/test/` and skipping
+# the master branch check.
 > run_local_ci.py --pytest_target "helpers/test/" --no_master_check
 """
 
@@ -235,7 +241,9 @@ def _run_ci_for_target(
         _LOG.error("git pull failed in '%s'", target_dir)
         return False
     # Run pytest_multi_build.
-    _run_pytest_multi_build(target_dir, log_file_pytest, pytest_target, nice_level)
+    _run_pytest_multi_build(
+        target_dir, log_file_pytest, pytest_target, nice_level
+    )
     _LOG.info("Test output logged to '%s'", log_file_pytest)
     # Run pytest_failed_multi_build.
     _run_pytest_failed_multi_build(target_dir, log_file_failed)
@@ -285,11 +293,17 @@ def _run_all_ci(
     all_passed = True
     for target_dir in repo_dirs:
         if not os.path.isdir(target_dir):
-            _LOG.warning("Skipping target='%s' (directory does not exist)", target_dir)
+            _LOG.warning(
+                "Skipping target='%s' (directory does not exist)", target_dir
+            )
             continue
         _LOG.info("\n%s", hprint.frame(f"target='{target_dir}'"))
         success = _run_ci_for_target(
-            target_dir, pytest_target, no_master_check, nice_level, no_clean_check
+            target_dir,
+            pytest_target,
+            no_master_check,
+            nice_level,
+            no_clean_check,
         )
         if not success:
             all_passed = False
@@ -373,7 +387,13 @@ def _run_daemon_mode(
     while True:
         if _should_run_now(start_time):
             _LOG.info("Scheduled CI run starting at '%s'", start_time)
-            _run_all_ci(pytest_target, no_master_check, repo_dirs, nice_level, no_clean_check)
+            _run_all_ci(
+                pytest_target,
+                no_master_check,
+                repo_dirs,
+                nice_level,
+                no_clean_check,
+            )
             # Sleep for a minute to avoid running multiple times.
             time.sleep(60)
         else:
@@ -478,7 +498,11 @@ def _main(args: argparse.Namespace) -> None:
         # Run once immediately.
         _LOG.info("Running CI once (non-daemon mode)")
         success = _run_all_ci(
-            args.pytest_target, args.no_master_check, args.repo_dirs, args.nice, args.no_clean_check
+            args.pytest_target,
+            args.no_master_check,
+            args.repo_dirs,
+            args.nice,
+            args.no_clean_check,
         )
         exit_code = 0 if success else 1
         sys.exit(exit_code)
