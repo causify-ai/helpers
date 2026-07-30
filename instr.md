@@ -1,17 +1,4 @@
-For pytest_failed_multi_build.py change the status to
-
-Build         | Status              | Passed | Skipped | Failed | Total | Duration |
-------------- | ------------------- | ------ | ------- | ------ | ----- | -------- |
-docker        | INCOMPLETE | 0      | 0       | 0      | 0     | N/A      |
-apple         | FAIL       | 3508   | 236     | 1      | 3745  | 576.53s  |
-dev_container | PASS       | 632    | 12      | 0      | 644   | Nones    |
-
-- NOT STARTED (gray) if Total is 0 and there was no pytest file
-- IN PROGRESS (blue) if there was no pytest ending marker and total > 0
-
-Add more space for status to fit the status
-
-Add unit tests
+Implement TODO(ai_gp): In dev_scripts_helpers/documentation/test/test_notes_to_pdf.py
 
 # Conventions
 - When writing code you must always follow the instructions in

@@ -37,7 +37,7 @@ def _parse() -> argparse.ArgumentParser:
         description=__doc__,
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
-    # TODO(ai_gp): Use only the --no-abort-on-error.
+    # TODO(ai_gp): Use only one.
     parser.add_argument(
         "--abort-on-error",
         action="store_true",

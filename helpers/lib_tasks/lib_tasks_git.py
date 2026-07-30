@@ -716,7 +716,7 @@ def _delete_branches(ctx: Any, tag: str, confirm_delete: bool) -> None:
         delete_cmd = "git push origin --delete"
     else:
         raise ValueError(f"Invalid tag='{tag}'")
-    # TODO(ai_gp): Use system_to_lines, if possible.
+    # TODO(ai_gp): Use system_to_lines
     _, txt = hsystem.system_to_string(find_cmd, abort_on_error=False)
     branches = hstring.text_to_list(txt)
     # Print info.

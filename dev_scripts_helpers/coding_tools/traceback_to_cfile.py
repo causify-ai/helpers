@@ -10,13 +10,8 @@ navigate the stack trace.
 > dev_scripts/traceback_to_cfile.py -i log.txt
 > vim -c "cfile cfile"
 
-# Navigate the stacktrace from the system clipboard:
+# Navigate the stacktrace from the sytem clipboard:
 > pbpaste | traceback_to_cfile.py -i -
-# Or use the new --from_pb option:
-> traceback_to_cfile.py --from_pb
-
-# Find and parse the latest .log file:
-> traceback_to_cfile.py --from_latest_file
 
 Import as:
 
@@ -25,11 +20,8 @@ import dev_scripts_helpers.traceback_to_cfile as dstrtocf
 
 import argparse
 import logging
-import os
-import subprocess
 import sys
 
-import helpers.hclipboard as hclipb
 import helpers.hio as hio
 import helpers.hselect_input_output as hseinout
 import helpers.hparser as hparser
@@ -59,21 +51,6 @@ def _parse() -> argparse.ArgumentParser:
         default_value=True,
         help_="Make references to files in the current client",
     )
-    parser.add_argument(
-        "--from_pb",
-        action="store_true",
-        help="Read traceback from system clipboard instead of file",
-    )
-    parser.add_argument(
-        "--from_latest_file",
-        action="store_true",
-        help="Find and use the latest .log file (default behavior)",
-    )
-    parser.add_argument(
-        "--open_vim",
-        action="store_true",
-        help="Open vim with cfile for navigation after parsing",
-    )
     parser = hparser.add_verbosity_arg(parser)
     return parser  # type: ignore[no-any-return]
 
@@ -81,33 +58,29 @@ def _parse() -> argparse.ArgumentParser:
 def _main(parser: argparse.ArgumentParser) -> None:
     args = parser.parse_args()
     hseinout.init_logger_for_input_output_transform(args)
-    # Handle --from_pb option.
-    if args.from_pb:
-        _LOG.info("Reading traceback from clipboard")
-        txt_list = [hclipb.get_clipboard_content()]
-        out_file_name = "cfile"
-    else:
-        # Parse files.
-        in_file_name, out_file_name = hseinout.parse_input_output_args(
-            args, clear_screen=True
-        )
-        # Handle --from_latest_file option (or default behavior).
-        if in_file_name == _NEWEST_LOG_FILE or args.from_latest_file:
-            cmd = 'find . -type f -name "*.log" | xargs ls -1 -t'
-            dir_name = None
-            remove_files_non_present = False
-            files = hsystem.system_to_files(
-                cmd, dir_name, remove_files_non_present
-            )
-            # Pick the newest file.
-            in_file_name = files[0]
-        _LOG.info("in_file_name=%s", in_file_name)
-        if out_file_name != "-":
-            hio.delete_file(out_file_name)
-        # Read file.
-        txt_list = hseinout.from_file(in_file_name)
+    # Parse files.
+    in_file_name, out_file_name = hseinout.parse_input_output_args(
+        args, clear_screen=True
+    )
+    if in_file_name == _NEWEST_LOG_FILE:
+        cmd = 'find . -type f -name "*.log" | xargs ls -1 -t'
+        # > find . -type f -name "*.log" | xargs ls -1 -t
+        # ./run.log
+        # ./amp/core/dataflow/backtest/run_config_list.py.log
+        # ./experiments/RH1E/result_1/run_notebook.1.log
+        # ./experiments/RH1E/result_0/run_notebook.0.log
+        dir_name = None
+        remove_files_non_present = False
+        files = hsystem.system_to_files(cmd, dir_name, remove_files_non_present)
+        # Pick the newest file.
+        in_file_name = files[0]
+    _LOG.info("in_file_name=%s", in_file_name)
+    if out_file_name != "-":
+        hio.delete_file(out_file_name)
+    # Read file.
+    txt = hseinout.from_file(in_file_name)
     # Transform.
-    txt_tmp = "\n".join(txt_list)
+    txt_tmp = "\n".join(txt)
     cfile, traceback = htraceb.parse_traceback(
         txt_tmp, purify_from_client=args.purify_from_client
     )
@@ -118,16 +91,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
     cfile_as_str = htraceb.cfile_to_str(cfile)
     print(hprint.frame("cfile", char1="-") + "\n" + cfile_as_str)
     # Write file.
-    if out_file_name != "-":
-        hio.delete_file(out_file_name)
     hseinout.to_file(cfile_as_str.split("\n"), out_file_name)
-    # Open vim with cfile if requested.
-    if args.open_vim:
-        if os.path.exists(out_file_name):
-            cmd = f'vim -c "cfile {out_file_name}"'
-            subprocess.run(cmd, shell=True, check=False)
-        else:
-            _LOG.warning("Can't find %s", out_file_name)
 
 
 if __name__ == "__main__":

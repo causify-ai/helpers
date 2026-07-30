@@ -626,8 +626,8 @@ class Test_purify_super_module_references1(hunitest.TestCase):
         """
         txt = "csfy1.helpers_root.helpers.test.test_hobject._Object1"
         expected = "helpers_root.helpers.test.test_hobject._Object1"
-        # TODO(ai_gp): Assign super_module_root and then pass it. Do the same
-        # for all the functions.
+        # TODO(ai_gp): Assign super_module_root and then pass it.
+        # Do the same for all the functions.
         self.helper("/Users/user/src/csfy1", txt, expected)
 
     def test2(self) -> None:
@@ -1237,8 +1237,7 @@ class Test_purify_file_names1(hunitest.TestCase):
         """
         Test basic file name purification with relative paths.
         """
-        # TODO(ai_gp): Move the umock.patch to the helper function to simplify
-        # the code.
+        # TODO(ai_gp): Move the umock.pack to the helper
         with umock.patch(
             "helpers.hgit.get_client_root", return_value="/home/user/gitroot"
         ):
@@ -1328,7 +1327,7 @@ class Test_purify_apple_container_output1(hunitest.TestCase):
         """
         Test removing multiple container startup lines.
         """
-        # TODO(ai_gp): Use a """ and dedent instead of "..." "..."
+        # TODO(ai_gp): Use a """
         txt = (
             "[0/6] [0s]\n"
             "[1/6] Fetching image [0s]\n"
@@ -1363,7 +1362,7 @@ class Test_purify_apple_container_output1(hunitest.TestCase):
         """
         Test with only container startup lines.
         """
-        # TODO(ai_gp): Use a """ like the TODO above.
+        # TODO(ai_gp): Use a """
         txt = (
             "[0/6] [0s]\n"
             "[1/6] Fetching image [0s]\n"
@@ -1377,13 +1376,13 @@ class Test_purify_apple_container_output1(hunitest.TestCase):
         Test that lines with brackets but not starting/ending with them are
         kept.
         """
-        # TODO(ai_gp): Use a """ like the TODO above.
+        # TODO(ai_gp): Use a """
         txt = (
             "[0/6] [0s]\n"
             "Some output with [brackets] in the middle\n"
             "dot - graphviz version 12.2.1 (20241206.2353)\n"
         )
-        # TODO(ai_gp): Use a """ like the TODO above.
+        # TODO(ai_gp): Use a """
         expected = (
             "Some output with [brackets] in the middle\n"
             "dot - graphviz version 12.2.1 (20241206.2353)\n"

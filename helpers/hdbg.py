@@ -1040,10 +1040,10 @@ def get_command_line() -> str:
 # #############################################################################
 
 
-# TODO(ai_gp2): Move this to helpers/hlogging.py and change all the callers.
+# TODO(ai_gp): Move this to helpers/hlogging.py and change all the callers.
 
 
-# TODO(ai_gp2): maybe replace "force_verbose_format" and "force_print_format" with
+# TODO(ai_gp): maybe replace "force_verbose_format" and "force_print_format" with
 #  a "mode" in ("auto", "verbose", "print")
 def init_logger(
     verbosity: Union[int, str] = logging.INFO,

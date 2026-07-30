@@ -43,7 +43,7 @@ def _get_arch_tag() -> str:
     return tag
 
 
-# TODO(ai_gp2): Generalize all the skip_if and centralize them in a helper
+# TODO(ai_gp): Generalize all the skip_if and centralize them in a helper
 # hpytest_skip_if.
 def _skip_if_no_pandoc_in_docker(test_func):
     """

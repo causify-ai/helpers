@@ -72,12 +72,12 @@ Development utilities for code analysis, profiling, synchronization, and refacto
 
 - Compile all Python files in repository:
   ```bash
-  > compile_all.py
+  > ./compile_all.py
   ```
 
 - Compile with verbose output to identify problematic files:
   ```bash
-  > compile_all.py -v DEBUG
+  > ./compile_all.py -v DEBUG
   ```
 
 - Use as module import:
@@ -97,17 +97,17 @@ Development utilities for code analysis, profiling, synchronization, and refacto
 
 - Measure imports in current directory:
   ```bash
-  > measure_import_times.py
+  > ./measure_import_times.py
   ```
 
 - Measure imports in specific directory:
   ```bash
-  > measure_import_times.py --directory /path/to/project
+  > ./measure_import_times.py --directory /path/to/project
   ```
 
 - Measure with debug logging:
   ```bash
-  > measure_import_times.py -v DEBUG
+  > ./measure_import_times.py -v DEBUG
   ```
 
 ## `grsync.py`
@@ -122,22 +122,22 @@ Development utilities for code analysis, profiling, synchronization, and refacto
 
 - Preview sync to remote without executing:
   ```bash
-  > grsync.py --src_dir ~/src/project --config amp --action rsync --preview --dry_run
+  > ./grsync.py --src_dir ~/src/project --config amp --action rsync --preview --dry_run
   ```
 
 - Sync local directory to remote:
   ```bash
-  > grsync.py --src_dir ~/src/project --config amp --action rsync
+  > ./grsync.py --src_dir ~/src/project --config amp --action rsync
   ```
 
 - Generate diff report between local and remote:
   ```bash
-  > grsync.py --src_dir ~/src/project --config amp --action diff
+  > ./grsync.py --src_dir ~/src/project --config amp --action diff
   ```
 
 - Verbose diff with full file listings:
   ```bash
-  > grsync.py --src_dir ~/src/project --config amp --action diff_verb
+  > ./grsync.py --src_dir ~/src/project --config amp --action diff_verb
   ```
 
 ## `find_unused_golden_files.py`
@@ -152,17 +152,17 @@ Development utilities for code analysis, profiling, synchronization, and refacto
 
 - Find unused golden files in current directory:
   ```bash
-  > find_unused_golden_files.py
+  > ./find_unused_golden_files.py
   ```
 
 - Analyze specific directory:
   ```bash
-  > find_unused_golden_files.py --dir_name /path/to/module
+  > ./find_unused_golden_files.py --dir_name /path/to/module
   ```
 
 - Run with info-level logging:
   ```bash
-  > find_unused_golden_files.py -v INFO
+  > ./find_unused_golden_files.py -v INFO
   ```
 
 ## `diff_to_vimdiff.py`
@@ -177,22 +177,22 @@ Development utilities for code analysis, profiling, synchronization, and refacto
 
 - Generate vimdiff script for two directories:
   ```bash
-  > diff_to_vimdiff.py --dir1 /path/to/dir1 --dir2 /path/to/dir2
+  > ./diff_to_vimdiff.py --dir1 /path/to/dir1 --dir2 /path/to/dir2
   ```
 
 - Compare only files with different content:
   ```bash
-  > diff_to_vimdiff.py --dir1 ~/src/branch1 --dir2 ~/src/branch2 --only_different_file_content
+  > ./diff_to_vimdiff.py --dir1 ~/src/branch1 --dir2 ~/src/branch2 --only_different_file_content
   ```
 
 - Compare file lists instead of content:
   ```bash
-  > diff_to_vimdiff.py --dir1 ~/src/branch1 --dir2 ~/src/branch2 --compare_file_list
+  > ./diff_to_vimdiff.py --dir1 ~/src/branch1 --dir2 ~/src/branch2 --compare_file_list
   ```
 
 - Ignore certain files using regex:
   ```bash
-  > diff_to_vimdiff.py --dir1 ~/src/v1 --dir2 ~/src/v2 --ignore_files "test_.*\.py"
+  > ./diff_to_vimdiff.py --dir1 ~/src/v1 --dir2 ~/src/v2 --ignore_files "test_.*\.py"
   ```
 
 ## `reorder_python_code.py`
@@ -207,17 +207,17 @@ Development utilities for code analysis, profiling, synchronization, and refacto
 
 - Reorganize Python file using map:
   ```bash
-  > reorder_python_code.py --input_file helpers/hpandas.py --map_file hpandas_map.md
+  > ./reorder_python_code.py --input_file helpers/hpandas.py --map_file hpandas_map.md
   ```
 
 - Preview changes without writing files (dry run):
   ```bash
-  > reorder_python_code.py --input_file module.py --map_file map.md --dry_run
+  > ./reorder_python_code.py --input_file module.py --map_file map.md --dry_run
   ```
 
 - Run with debug logging to see processing details:
   ```bash
-  > reorder_python_code.py --input_file module.py --map_file map.md -v DEBUG
+  > ./reorder_python_code.py --input_file module.py --map_file map.md -v DEBUG
   ```
 
 ## `process_prof.py`
@@ -232,64 +232,47 @@ Development utilities for code analysis, profiling, synchronization, and refacto
 
 - Show profiling statistics:
   ```bash
-  > process_prof.py --file_name prof.bin --action stats
+  > ./process_prof.py --file_name prof.bin --action stats
   ```
 
 - Generate call graph as PNG:
   ```bash
-  > process_prof.py --file_name prof.bin --action plot --ext png
+  > ./process_prof.py --file_name prof.bin --action plot --ext png
   ```
 
 - Generate call graph as PostScript:
   ```bash
-  > process_prof.py --file_name prof.bin --action plot --ext ps
+  > ./process_prof.py --file_name prof.bin --action plot --ext ps
   ```
 
 ## `traceback_to_cfile.py`
 
 ### What It Does
 
-- Parses Python traceback from log file, stdin, or clipboard
+- Parses Python traceback from log file or stdin
 - Generates vim cfile for quick navigation to error locations
-- Automatically finds and uses newest .log file
 - Supports purifying paths to be relative to current client
-- Can open vim directly with cfile for navigation
 
 ### Examples
 
 - Parse pytest log and create cfile:
   ```bash
-  > traceback_to_cfile.py -i tmp.pytest.log
+  > ./traceback_to_cfile.py -i tmp.pytest.log
   ```
 
-- Use newest log file automatically (default):
+- Use newest log file automatically:
   ```bash
-  > traceback_to_cfile.py
+  > ./traceback_to_cfile.py
   ```
 
-- Parse traceback from system clipboard:
+- Parse traceback from clipboard:
   ```bash
-  > traceback_to_cfile.py --from_pb
+  > pbpaste | ./traceback_to_cfile.py -i -
   ```
 
-- Explicitly use latest .log file:
+- Open vim with cfile navigation:
   ```bash
-  > traceback_to_cfile.py --from_latest_file
-  ```
-
-- Parse and open vim with cfile navigation:
-  ```bash
-  > traceback_to_cfile.py -i error.log --open_vim
-  ```
-
-- Parse from clipboard and open vim:
-  ```bash
-  > traceback_to_cfile.py --from_pb --open_vim
-  ```
-
-- Parse traceback from clipboard via pipe (legacy):
-  ```bash
-  > pbpaste | traceback_to_cfile.py -i -
+  > ./traceback_to_cfile.py -i error.log && vim -c "cfile cfile"
   ```
 
 ## `url.py`
@@ -304,17 +287,17 @@ Development utilities for code analysis, profiling, synchronization, and refacto
 
 - Convert GitHub URL to local path and Jupyter URL:
   ```bash
-  > url.py https://github.com/org/repo/blob/main/notebooks/analysis.ipynb
+  > ./url.py https://github.com/org/repo/blob/main/notebooks/analysis.ipynb
   ```
 
 - Convert local file path to GitHub URL:
   ```bash
-  > url.py /path/to/notebooks/analysis.ipynb
+  > ./url.py /path/to/notebooks/analysis.ipynb
   ```
 
 - Short output without headers:
   ```bash
-  > url.py --short /path/to/notebook.ipynb
+  > ./url.py --short /path/to/notebook.ipynb
   ```
 
 ## `toml_merge.py`
@@ -329,17 +312,17 @@ Development utilities for code analysis, profiling, synchronization, and refacto
 
 - Merge two TOML files:
   ```bash
-  > toml_merge.py --in_file base/pyproject.toml --in_file extra/pyproject.toml --out_file merged.toml
+  > ./toml_merge.py --in_file base/pyproject.toml --in_file extra/pyproject.toml --out_file merged.toml
   ```
 
 - Merge multiple files in sequence:
   ```bash
-  > toml_merge.py --in_file file1.toml --in_file file2.toml --in_file file3.toml --out_file result.toml
+  > ./toml_merge.py --in_file file1.toml --in_file file2.toml --in_file file3.toml --out_file result.toml
   ```
 
 - Merge multiple files with debug logging:
   ```bash
-  > toml_merge.py --in_file file1.toml --in_file file2.toml --in_file file3.toml --out_file result.toml -v DEBUG
+  > ./toml_merge.py --in_file file1.toml --in_file file2.toml --in_file file3.toml --out_file result.toml -v DEBUG
   ```
 
 ## `manage_cache.py`
@@ -354,22 +337,22 @@ Development utilities for code analysis, profiling, synchronization, and refacto
 
 - Clear all cache (memory and disk):
   ```bash
-  > manage_cache.py --action clear_global_cache
+  > ./manage_cache.py --action clear_global_cache
   ```
 
 - Clear only memory cache:
   ```bash
-  > manage_cache.py --action clear_global_mem_cache
+  > ./manage_cache.py --action clear_global_mem_cache
   ```
 
 - Show cache information:
   ```bash
-  > manage_cache.py --action print_cache_info
+  > ./manage_cache.py --action print_cache_info
   ```
 
 - List available actions:
   ```bash
-  > manage_cache.py --action list
+  > ./manage_cache.py --action list
   ```
 
 ## `print_pickle.py`
@@ -384,17 +367,17 @@ Development utilities for code analysis, profiling, synchronization, and refacto
 
 - Print contents of a pickle file:
   ```bash
-  > print_pickle.py --input data.pkl
+  > ./print_pickle.py --input data.pkl
   ```
 
 - Print with increased depth for nested structures:
   ```bash
-  > print_pickle.py --input cache.pkl --depth 5
+  > ./print_pickle.py --input cache.pkl --depth 5
   ```
 
 - Print with debug logging:
   ```bash
-  > print_pickle.py --input file.pkl -v DEBUG
+  > ./print_pickle.py --input file.pkl -v DEBUG
   ```
 
 ## `parallel_script_template.py`
@@ -409,22 +392,22 @@ Development utilities for code analysis, profiling, synchronization, and refacto
 
 - Run successful workload serially:
   ```bash
-  > parallel_script_template.py --workload success --num_threads serial
+  > ./parallel_script_template.py --workload success --num_threads serial
   ```
 
 - Run workload with 4 parallel threads:
   ```bash
-  > parallel_script_template.py --workload success --num_threads 4
+  > ./parallel_script_template.py --workload success --num_threads 4
   ```
 
 - Run failure workload to test error handling:
   ```bash
-  > parallel_script_template.py --workload failure --num_threads 3
+  > ./parallel_script_template.py --workload failure --num_threads 3
   ```
 
 - Run with randomization and specific seed:
   ```bash
-  > parallel_script_template.py --workload success --num_threads 2 --randomize --seed 42
+  > ./parallel_script_template.py --workload success --num_threads 2 --randomize --seed 42
   ```
 
 ## `split_in_files.py`
@@ -453,32 +436,32 @@ themselves and any untagged content.
 
 - Split a file with tags into separate files in the same directory:
   ```bash
-  > split_in_files.py --input_file input.txt
+  > ./split_in_files.py --input_file input.txt
   ```
 
 - Split with custom output directory:
   ```bash
-  > split_in_files.py --input_file input.txt --output_dir output
+  > ./split_in_files.py --input_file input.txt --output_dir ./output
   ```
 
 - Append to existing files instead of overwriting:
   ```bash
-  > split_in_files.py --input_file input.txt --append
+  > ./split_in_files.py --input_file input.txt --append
   ```
 
 - Preview what would be done without writing files (dry run):
   ```bash
-  > split_in_files.py --input_file input.txt --dry_run
+  > ./split_in_files.py --input_file input.txt --dry_run
   ```
 
 - Keep the input file unchanged after splitting:
   ```bash
-  > split_in_files.py --input_file input.txt --preserve_input
+  > ./split_in_files.py --input_file input.txt --preserve_input
   ```
 
 - Split with verbose logging:
   ```bash
-  > split_in_files.py --input_file input.txt --output_dir output -v DEBUG
+  > ./split_in_files.py --input_file input.txt --output_dir ./output -v DEBUG
   ```
 
 ## `clean_up_text_files.sh`
@@ -493,17 +476,17 @@ themselves and any untagged content.
 
 - Clean up text files in current directory:
   ```bash
-  > clean_up_text_files.sh
+  > ./clean_up_text_files.sh
   ```
 
 - Clean specific directory:
   ```bash
-  > clean_up_text_files.sh /path/to/text/files
+  > ./clean_up_text_files.sh /path/to/text/files
   ```
 
 - Verify changes before applying:
   ```bash
-  > clean_up_text_files.sh --dry-run
+  > ./clean_up_text_files.sh --dry-run
   ```
 
 ## `code_stats.sh`
@@ -518,17 +501,17 @@ themselves and any untagged content.
 
 - Show code statistics for current repository:
   ```bash
-  > code_stats.sh
+  > ./code_stats.sh
   ```
 
 - Count code in specific directory:
   ```bash
-  > code_stats.sh /path/to/project
+  > ./code_stats.sh /path/to/project
   ```
 
 - Show detailed breakdown by file type:
   ```bash
-  > code_stats.sh --detailed
+  > ./code_stats.sh --detailed
   ```
 
 ## `invite_github_collaborator.py`
@@ -543,17 +526,17 @@ themselves and any untagged content.
 
 - Invite single user to repository:
   ```bash
-  > invite_github_collaborator.py --user github_username
+  > ./invite_github_collaborator.py --user github_username
   ```
 
 - Invite multiple users from file:
   ```bash
-  > invite_github_collaborator.py --users_file collaborators.txt
+  > ./invite_github_collaborator.py --users_file collaborators.txt
   ```
 
 - Check user status before inviting:
   ```bash
-  > invite_github_collaborator.py --user github_username --check_only
+  > ./invite_github_collaborator.py --user github_username --check_only
   ```
 
 ## `remove_jupyter_metadata.sh`
@@ -568,15 +551,15 @@ themselves and any untagged content.
 
 - Clean notebook file:
   ```bash
-  > remove_jupyter_metadata.sh notebook.ipynb
+  > ./remove_jupyter_metadata.sh notebook.ipynb
   ```
 
 - Process all notebooks in directory:
   ```bash
-  > remove_jupyter_metadata.sh notebooks/*.ipynb
+  > ./remove_jupyter_metadata.sh ./notebooks/*.ipynb
   ```
 
 - Preview changes before applying:
   ```bash
-  > remove_jupyter_metadata.sh notebook.ipynb --dry-run
+  > ./remove_jupyter_metadata.sh notebook.ipynb --dry-run
   ```

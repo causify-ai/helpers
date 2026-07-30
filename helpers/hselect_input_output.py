@@ -12,10 +12,11 @@ import os
 import sys
 from typing import Any, List, Optional, Tuple, Union
 
-import helpers.hclipboard as hclipb
 import helpers.hdbg as hdbg
 import helpers.hio as hio
 import helpers.hprint as hprint
+import helpers.hserver as hserver
+import helpers.hsystem as hsystem
 
 _LOG = logging.getLogger(__name__)
 
@@ -279,7 +280,7 @@ def from_file(file_name: str) -> List[str]:
     """
     Read file or stdin (represented by `-`), returning an array of lines.
 
-    If file_name is "pb", read from system clipboard (macOS/Linux compatible).
+    If file_name is "pb" and the platform is macOS, read from clipboard.
     """
     txt = []
     if file_name == "-":
@@ -287,9 +288,13 @@ def from_file(file_name: str) -> List[str]:
         for line in sys.stdin:
             txt.append(line.rstrip("\n"))
     elif file_name == "pb":
-        _LOG.info("Reading from clipboard")
-        txt_str = hclipb.get_clipboard_content()
-        txt = txt_str.split("\n")
+        if hserver.is_host_mac():
+            _LOG.info("Reading from clipboard")
+            cmd = "pbpaste"
+            rc, txt_str = hsystem.system_to_string(cmd)
+            txt = txt_str.split("\n")
+        else:
+            hdbg.dfatal("Reading from clipboard (pb) only works on macOS")
     else:
         txt = hio.from_file(file_name)
         txt = txt.split("\n")
@@ -308,10 +313,15 @@ def to_file(txt: Union[str, List[str]], file_name: str) -> None:
         _LOG.debug("Saving to stdout")
         print("\n".join(txt))
     elif file_name == "pb":
-        _LOG.info("Writing to clipboard")
-        txt_str = "\n".join(txt)
-        hclipb.set_clipboard_content(txt_str)
-        _LOG.info("Written to clipboard")
+        if hserver.is_host_mac():
+            _LOG.info("Writing to clipboard")
+            txt_str = "\n".join(txt)
+            txt_str_escaped = txt_str.replace("'", "'\\''")
+            cmd = f"echo -n '{txt_str_escaped}' | pbcopy"
+            hsystem.system(cmd)
+            _LOG.info("Written to clipboard")
+        else:
+            hdbg.dfatal("Writing to clipboard (pb) only works on macOS")
     else:
         _LOG.debug("Saving to file")
         with open(file_name, "w") as f:
