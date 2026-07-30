@@ -2274,10 +2274,12 @@ class Test_notes_to_pdf_tilde_in_code(hunitest.TestCase):
         actual = _to_output_str(script_txt, out_txt)
         self.check_string(actual, purify_text=True, fuzzy_match=True)
         # Check outputs: tildes must survive, not be dropped or mangled.
+        # Tildes are escaped as \~ in typst since they have special meaning in
+        # #text()[...] blocks.
         self.assertIn(
-            "default ~ credit_limit + credit_score + account_age", out_txt
+            r"default \~ credit_limit + credit_score + account_age", out_txt
         )
-        self.assertIn("a ~ b ~ c", out_txt)
+        self.assertIn(r"a \~ b \~ c", out_txt)
 
 
 # #############################################################################
