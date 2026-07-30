@@ -15,7 +15,8 @@ import helpers.hunit_test as hunitest
 import dev_scripts_helpers.testing.pytest_failed_multi_build as dshtpfmbu
 
 
-# TODO(ai_gp): Remove a call to this with a call to hprint.remove_non_printable_chars
+# TODO(ai_gp): Replace a call to this with a call to
+# hprint.remove_non_printable_chars
 def _strip_ansi_codes(text: str) -> str:
     """
     Strip ANSI escape codes from text.

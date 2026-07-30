@@ -910,7 +910,7 @@ class Test_colorized_math(hunitest.TestCase):
 # #############################################################################
 
 
-# TODO(ai_gp): Move this to test_notes_to_pdf.py end-to-end tests.
+# TODO(ai_gp2): Move this to test_notes_to_pdf.py end-to-end tests.
 class Test_tilde_in_inline_code(hunitest.TestCase):
     """
     Test that tilde (~) character is preserved in inline code blocks
