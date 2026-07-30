@@ -143,11 +143,14 @@ class Test_dassert_valid_remap(hunitest.TestCase):
             "dummy_value_3": "A, B, C",
         }
         # Run.
-        with self.assertRaises(AttributeError) as cm:
+        with self.assertRaises(AssertionError) as cm:
             hpandas.dassert_valid_remap(to_remap, remap_dict)
         actual = str(cm.exception)
         expected = r"""
-        'dict_values' object has no attribute 'count'"""
+        * Failed assertion *
+        val1=[1, 'A, B, C', 'A, B, C']
+        has duplicates
+        A, B, C"""
         # Check.
         self.assert_equal(actual, expected, fuzzy_match=True)
 

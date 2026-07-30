@@ -12,6 +12,7 @@ import dev_scripts_helpers.dockerize.lib_pandoc as dshdlipa
 import argparse
 import logging
 import shlex
+import shutil
 from typing import Any, Dict
 
 import helpers.hdbg as hdbg
@@ -22,6 +23,33 @@ import helpers.hprint as hprint
 import helpers.hsystem as hsystem
 
 _LOG = logging.getLogger(__name__)
+
+# - `host`: run the host `pandoc` binary directly (fails if missing)
+# - `dockerized`: always run pandoc inside a Docker container
+# - `auto`: use the host `pandoc` if it's available, otherwise fall back to
+#   `dockerized`
+VALID_PANDOC_BACKENDS = ["auto", "dockerized", "host"]
+
+
+def is_pandoc_on_path() -> bool:
+    """
+    Check if a `pandoc` binary is available on the host `PATH`.
+    """
+    return shutil.which("pandoc") is not None
+
+
+def run_host_pandoc(cmd: str) -> str:
+    """
+    Run a `pandoc` command directly on the host (no Docker).
+
+    :param cmd: full `pandoc` command line, e.g., `pandoc in.json -f json
+        -t typst -o out.typ`
+    :return: stdout of the command
+    """
+    hdbg.dassert(is_pandoc_on_path(), "No `pandoc` binary found on host PATH")
+    _, result = hsystem.system_to_string(cmd)
+    return result
+
 
 # Architecture Overview:
 #
@@ -409,3 +437,37 @@ def run_dockerized_pandoc(
         wrap_in_bash=False,
     )
     return ret
+
+
+def run_pandoc(
+    cmd: str,
+    container_type: str,
+    pandoc_backend: str,
+    *,
+    force_rebuild: bool = False,
+    use_sudo: bool = False,
+) -> str:
+    """
+    Run a `pandoc` command using the selected backend.
+
+    :param cmd: full `pandoc` command line (input file, options, `-o
+        output_file`)
+    :param container_type: Docker container flavor to use when running
+        dockerized, e.g., `pandoc_only`, `pandoc_latex`, `pandoc_texlive`
+    :param pandoc_backend: one of `VALID_PANDOC_BACKENDS` selecting how to
+        run pandoc (see module docstring for the semantics of each value)
+    :return: stdout of the pandoc invocation
+    """
+    hdbg.dassert_in(pandoc_backend, VALID_PANDOC_BACKENDS)
+    if pandoc_backend == "auto":
+        pandoc_backend = "host" if is_pandoc_on_path() else "dockerized"
+    if pandoc_backend == "host":
+        result = run_host_pandoc(cmd)
+    else:
+        result = run_dockerized_pandoc(
+            cmd,
+            container_type,
+            force_rebuild=force_rebuild,
+            use_sudo=use_sudo,
+        )
+    return result

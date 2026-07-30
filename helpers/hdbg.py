@@ -616,6 +616,7 @@ def dassert_no_duplicates(
     Check that `val1` has no duplicates, raise otherwise.
     """
     dassert_is_iterable(val1)
+    val1 = list(val1)
     cond = len(set(val1)) == len(val1)
     if not cond:
         # Count the occurrences of each element of the seq.
@@ -1040,10 +1041,10 @@ def get_command_line() -> str:
 # #############################################################################
 
 
-# TODO(ai_gp): Move this to helpers/hlogging.py and change all the callers.
+# TODO(ai_gp2): Move this to helpers/hlogging.py and change all the callers.
 
 
-# TODO(ai_gp): maybe replace "force_verbose_format" and "force_print_format" with
+# TODO(ai_gp2): maybe replace "force_verbose_format" and "force_print_format" with
 #  a "mode" in ("auto", "verbose", "print")
 def init_logger(
     verbosity: Union[int, str] = logging.INFO,
@@ -1088,7 +1089,7 @@ def init_logger(
         # pylint: disable=protected-access
         dassert(hasattr(logging, "_checkLevel"))
         assert hasattr(logging, "_checkLevel")
-        verbosity = logging._checkLevel(verbosity)
+        verbosity = logging._checkLevel(verbosity)  # type: ignore[attr-defined]
     else:
         dassert_isinstance(verbosity, int)
     # From https://stackoverflow.com/questions/14058453
@@ -1121,7 +1122,7 @@ def init_logger(
     # formatter = hloggin.set_v1_formatter(
     dassert(hasattr(hloggin, "set_v2_formatter"))
     assert hasattr(hloggin, "set_v2_formatter")
-    formatter = hloggin.set_v2_formatter(
+    formatter = hloggin.set_v2_formatter(  # type: ignore[attr-defined]
         ch,
         root_logger,
         force_no_warning,
@@ -1169,7 +1170,7 @@ def init_logger(
     # Shut up chatty modules.
     dassert(hasattr(hloggin, "shutup_chatty_modules"))
     assert hasattr(hloggin, "shutup_chatty_modules")
-    hloggin.shutup_chatty_modules(verbose=False)
+    hloggin.shutup_chatty_modules(verbose=False)  # type: ignore[attr-defined]
     if report_command_line:
         _LOG.info("> cmd='%s'", get_command_line())
     #

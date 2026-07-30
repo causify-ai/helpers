@@ -693,7 +693,6 @@ class Test_run_pandoc_to_slides(hunitest.TestCase):
         file_out = file_name.replace(".txt", expected_ext)
         self.assert_equal(result, file_out)
         rel_path = os.path.relpath(os.path.dirname(file_name), os.getcwd())
-        # TODO(ai_gp): Make r"
         find_cmd = "find $GIT_ROOT \\( -path '*/.git' -o -path '*/.mypy_cache' \\) -prune -o -name \"dev_scripts_helpers\" -print"
         cp_cmd = (
             f"cp -f documentation/latex_abbrevs.sty {os.path.dirname(file_name)}"

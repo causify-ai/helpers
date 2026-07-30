@@ -11,7 +11,7 @@ import re
 import sys
 from typing import Any, List, Optional, Tuple
 
-from invoke import task
+from invoke.tasks import task
 
 # We want to minimize the dependencies from non-standard Python packages since
 # this code needs to run with minimal dependencies and without Docker.
@@ -806,7 +806,7 @@ def _publish_html_coverage_report_on_s3(aws_profile: str) -> None:
     else:
         # Use `s3fs` to copy data to AWS S3.
         s3fs_ = hs3.get_s3fs(aws_profile)
-        s3fs_.put(local_coverage_path, s3_html_coverage_path, recursive=True)
+        s3fs_.put(local_coverage_path, s3_html_coverage_path, recursive=True)  # type: ignore[attr-defined]
     _LOG.info(
         "HTML coverage report is published on S3: path=`%s`",
         s3_html_coverage_path,
@@ -1073,7 +1073,9 @@ def run_coverage_subprocess(ctx, target_dir=".", generate_html_report=False):  #
 
 
 @task
-def traceback(ctx, log_name="tmp.pytest_log.txt", purify=True):  # type: ignore
+def traceback(  # type: ignore
+    ctx, log_name="tmp.pytest_log.txt", purify=True, from_pb=False
+):
     """
     Parse the traceback from Pytest and navigate it with vim.
 
@@ -1082,11 +1084,18 @@ def traceback(ctx, log_name="tmp.pytest_log.txt", purify=True):  # type: ignore
     > pytest helpers/test/test_traceback.py 2>&1 | tee tmp.pytest.log
     > pytest.sh helpers/test/test_traceback.py
     # Parse the traceback
-    > invoke traceback -i tmp.pytest.log
+    > invoke traceback --log-name tmp.pytest.log
+
+    # Parse traceback from clipboard
+    > invoke traceback --from-pb
+
+    # Parse latest .log file
+    > invoke traceback --from-latest-file
     ```
 
-    :param log_name: the file with the traceback
+    :param log_name: the file with the traceback (ignored if from_pb is True)
     :param purify: purify the filenames from client (e.g., from running inside Docker)
+    :param from_pb: read traceback from system clipboard instead of file
     """
     hltltaut.report_task()
     #
@@ -1095,7 +1104,9 @@ def traceback(ctx, log_name="tmp.pytest_log.txt", purify=True):  # type: ignore
     # Convert the traceback into a cfile.
     cmd = []
     cmd.append("traceback_to_cfile.py")
-    if log_name:
+    if from_pb:
+        cmd.append("--from_pb")
+    elif log_name:
         cmd.append(f"-i {log_name}")
     cmd.append(f"-o {dst_cfile}")
     # Purify the file names.
@@ -1103,14 +1114,10 @@ def traceback(ctx, log_name="tmp.pytest_log.txt", purify=True):  # type: ignore
         cmd.append("--purify_from_client")
     else:
         cmd.append("--no_purify_from_client")
+    # Open vim with cfile for navigation.
+    cmd.append("--open_vim")
     cmd = " ".join(cmd)
-    hltltaut.run(ctx, cmd)
-    # Read and navigate the cfile with vim.
-    if os.path.exists(dst_cfile):
-        cmd = 'vim -c "cfile cfile"'
-        hltltaut.run(ctx, cmd, pty=True)
-    else:
-        _LOG.warning("Can't find %s", dst_cfile)
+    hltltaut.run(ctx, cmd, pty=True)
 
 
 # #############################################################################
