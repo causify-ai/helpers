@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 """
 Unit tests for lib_notes_to_pdf.py.
 
@@ -180,7 +179,8 @@ class Test_run_pandoc_to_ast(hunitest.TestCase):
                 "args": (cmd,),
                 "kwargs": {
                     "log_level": logging.DEBUG,
-                    "suppress_output": False, "print_command": True,
+                    "suppress_output": False,
+                    "print_command": True,
                 },
             },
         ]
@@ -267,7 +267,8 @@ class Test_run_pandoc_from_ast(hunitest.TestCase):
                 "args": (cmd,),
                 "kwargs": {
                     "log_level": logging.DEBUG,
-                    "suppress_output": False, "print_command": True,
+                    "suppress_output": False,
+                    "print_command": True,
                 },
             },
         ]
@@ -692,8 +693,11 @@ class Test_run_pandoc_to_slides(hunitest.TestCase):
         file_out = file_name.replace(".txt", expected_ext)
         self.assert_equal(result, file_out)
         rel_path = os.path.relpath(os.path.dirname(file_name), os.getcwd())
+        # TODO(ai_gp): Make r"
         find_cmd = "find $GIT_ROOT \\( -path '*/.git' -o -path '*/.mypy_cache' \\) -prune -o -name \"dev_scripts_helpers\" -print"
-        cp_cmd = f"cp -f documentation/latex_abbrevs.sty {os.path.dirname(file_name)}"
+        cp_cmd = (
+            f"cp -f documentation/latex_abbrevs.sty {os.path.dirname(file_name)}"
+        )
         pandoc_cmd = (
             f"pandoc {file_name} -t beamer --slide-level 4"
             " -V theme:SimplePlus --include-in-header=latex_abbrevs.sty"
@@ -721,11 +725,7 @@ class Test_run_pandoc_to_slides(hunitest.TestCase):
             },
         ]
         expected_str = hunteuti._sys_calls_to_str(expected_sys_calls)
-        hunteuti.assert_sys_calls(
-            self,
-            sys_calls,
-            expected_str
-        )
+        hunteuti.assert_sys_calls(self, sys_calls, expected_str)
 
     def test1(self) -> None:
         """
@@ -800,7 +800,8 @@ class Test_run_pandoc_to_typst_slides(hunitest.TestCase):
                 ),
                 "kwargs": {
                     "log_level": logging.DEBUG,
-                    "suppress_output": False, "print_command": True,
+                    "suppress_output": False,
+                    "print_command": True,
                 },
             },
             {
@@ -824,7 +825,8 @@ class Test_run_pandoc_to_typst_slides(hunitest.TestCase):
                 ),
                 "kwargs": {
                     "log_level": logging.DEBUG,
-                    "suppress_output": False, "print_command": True,
+                    "suppress_output": False,
+                    "print_command": True,
                 },
             },
         ]
@@ -877,6 +879,7 @@ class Test_run_pandoc_to_typst_slides(hunitest.TestCase):
         # through a system call that we are about to mock out.
         real_dev_scripts_helpers_dir = hgit.find_file("dev_scripts_helpers")
         # Run test and capture system calls.
+        # TODO(ai_gp): Fix the concatenated mocks.
         with hunteuti.capture_sys_calls() as sys_calls:
             # Mock hdbg: prevents dassert_* from failing when output files don't
             # exist (Typst/PDF generation not actually run).

@@ -32,7 +32,7 @@ import re
 import tempfile
 from typing import Any, Dict, List, Tuple
 
-import dev_scripts_helpers.dockerize.dockerized_pandoc as dshddpa
+import dev_scripts_helpers.dockerize.dockerized_pandoc as dshddopa
 import helpers.hdbg as hdbg
 import helpers.hio as hio
 import helpers.hparser as hparser
@@ -112,7 +112,7 @@ def convert_markdown_to_pandoc_ast(
     # Run conversion.
     cmd = f"pandoc {in_file} -f markdown -t json -o {ast_file}"
     pandoc_docker_image = "pandoc_only"
-    dshddpa.run_pandoc(cmd, pandoc_docker_image, pandoc_backend)
+    dshddopa.run_pandoc(cmd, pandoc_docker_image, pandoc_backend)
     # Load result.
     ast = _load_ast(ast_file)
     return ast, in_file, ast_file
@@ -136,7 +136,7 @@ def convert_pandoc_ast_to_typst(
     # Run conversion.
     cmd = f"pandoc {ast_input_file} -f json -t typst -o {typst_file}"
     pandoc_docker_image = "pandoc_only"
-    dshddpa.run_pandoc(cmd, pandoc_docker_image, pandoc_backend)
+    dshddopa.run_pandoc(cmd, pandoc_docker_image, pandoc_backend)
     # Load result.
     typst_txt = hio.from_file(typst_file)
     return typst_txt, typst_file
@@ -243,7 +243,7 @@ def _render_blocks_to_typst(
         out_file = os.path.join(tmp_dir, "out.typ")
         hio.to_file(in_file, ast_json)
         cmd = f"pandoc {in_file} -f json -t typst -o {out_file}"
-        dshddpa.run_pandoc(cmd, "pandoc_only", pandoc_backend)
+        dshddopa.run_pandoc(cmd, "pandoc_only", pandoc_backend)
         typst_code = hio.from_file(out_file).strip()
     return typst_code
 
@@ -519,7 +519,7 @@ class ColorTransformer:
             out_file = os.path.join(tmp_dir, "out.typ")
             hio.to_file(in_file, ast_json)
             cmd = f"pandoc {in_file} -f json -t typst -o {out_file}"
-            dshddpa.run_pandoc(cmd, "pandoc_only", self.pandoc_backend)
+            dshddopa.run_pandoc(cmd, "pandoc_only", self.pandoc_backend)
             typst_text = hio.from_file(out_file).strip()
         hdbg.dassert(
             typst_text.startswith("$") and typst_text.endswith("$"),
@@ -567,8 +567,7 @@ class ColorTransformer:
             hdbg.dassert_in(
                 token,
                 typst_skeleton,
-                "Placeholder for \\textcolor{%s}{%s} not found in pandoc "
-                "output",
+                "Placeholder for \\textcolor{%s}{%s} not found in pandoc output",
                 color,
                 content,
             )
@@ -674,7 +673,7 @@ def _parse() -> argparse.ArgumentParser:
     parser.add_argument(
         "--pandoc_backend",
         type=str,
-        choices=dshddpa.VALID_PANDOC_BACKENDS,
+        choices=dshddopa.VALID_PANDOC_BACKENDS,
         default=_DEFAULT_PANDOC_BACKEND,
         help="How to run `pandoc`: `auto` uses the host binary if it's on "
         "PATH and falls back to Docker otherwise, `dockerized` always runs "
@@ -694,7 +693,9 @@ def _main(parser: argparse.ArgumentParser) -> None:
     args = parser.parse_args()
     hdbg.init_logger(verbosity=args.log_level, use_exec_path=True)
     actions = hselacti.select_actions(args, _VALID_ACTIONS, _DEFAULT_ACTIONS)
-    _LOG.info(hselacti.actions_to_string(actions, _VALID_ACTIONS, add_frame=True))
+    _LOG.info(
+        hselacti.actions_to_string(actions, _VALID_ACTIONS, add_frame=True)
+    )
     _LOG.info("Loading AST from '%s'", args.in_file)
     ast = _load_ast(args.in_file)
     while actions:
