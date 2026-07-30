@@ -10,11 +10,10 @@ Usage:
     > print_master_ci_state.py
 """
 
+import datetime
 import json
 import logging
 import subprocess
-# TODO(ai_gp): Use `import datetime` and not the `from ... import`
-from datetime import datetime
 from typing import Any, Dict, List
 
 import helpers.hdbg as hdbg
@@ -124,8 +123,8 @@ def _compute_duration_minutes(created_at: str, updated_at: str) -> int:
     :return: Duration in minutes
     """
     fmt = "%Y-%m-%dT%H:%M:%SZ"
-    created = datetime.strptime(created_at, fmt)
-    updated = datetime.strptime(updated_at, fmt)
+    created = datetime.datetime.strptime(created_at, fmt)
+    updated = datetime.datetime.strptime(updated_at, fmt)
     delta = updated - created
     return int(delta.total_seconds() / 60)
 

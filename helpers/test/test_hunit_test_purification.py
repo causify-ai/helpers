@@ -1328,18 +1328,17 @@ class Test_purify_apple_container_output1(hunitest.TestCase):
         """
         Test removing multiple container startup lines.
         """
-        # TODO(ai_gp): Use a """ and dedent instead of "..." "..."
-        txt = (
-            "[0/6] [0s]\n"
-            "[1/6] Fetching image [0s]\n"
-            "[2/6] Unpacking image [0s]\n"
-            "[3/6] Fetching kernel [0s]\n"
-            "[4/6] Fetching init image [0s]\n"
-            "[5/6] Unpacking init image [0s]\n"
-            "[6/6] Starting container [0s]\n"
-            "[6/6] Starting container [1s]\n"
-            "dot - graphviz version 12.2.1 (20241206.2353)\n"
-        )
+        txt = hprint.dedent(r"""
+        [0/6] [0s]
+        [1/6] Fetching image [0s]
+        [2/6] Unpacking image [0s]
+        [3/6] Fetching kernel [0s]
+        [4/6] Fetching init image [0s]
+        [5/6] Unpacking init image [0s]
+        [6/6] Starting container [0s]
+        [6/6] Starting container [1s]
+        dot - graphviz version 12.2.1 (20241206.2353)
+        """)
         expected = "dot - graphviz version 12.2.1 (20241206.2353)\n\n"
         self.helper(txt, expected)
 
@@ -1363,12 +1362,11 @@ class Test_purify_apple_container_output1(hunitest.TestCase):
         """
         Test with only container startup lines.
         """
-        # TODO(ai_gp): Use a """ like the TODO above.
-        txt = (
-            "[0/6] [0s]\n"
-            "[1/6] Fetching image [0s]\n"
-            "[2/6] Unpacking image [0s]\n"
-        )
+        txt = hprint.dedent(r"""
+        [0/6] [0s]
+        [1/6] Fetching image [0s]
+        [2/6] Unpacking image [0s]
+        """)
         expected = "\n\n"
         self.helper(txt, expected)
 
@@ -1377,15 +1375,13 @@ class Test_purify_apple_container_output1(hunitest.TestCase):
         Test that lines with brackets but not starting/ending with them are
         kept.
         """
-        # TODO(ai_gp): Use a """ like the TODO above.
-        txt = (
-            "[0/6] [0s]\n"
-            "Some output with [brackets] in the middle\n"
-            "dot - graphviz version 12.2.1 (20241206.2353)\n"
-        )
-        # TODO(ai_gp): Use a """ like the TODO above.
-        expected = (
-            "Some output with [brackets] in the middle\n"
-            "dot - graphviz version 12.2.1 (20241206.2353)\n"
-        )
+        txt = hprint.dedent(r"""
+        [0/6] [0s]
+        Some output with [brackets] in the middle
+        dot - graphviz version 12.2.1 (20241206.2353)
+        """)
+        expected = hprint.dedent(r"""
+        Some output with [brackets] in the middle
+        dot - graphviz version 12.2.1 (20241206.2353)
+        """)
         self.helper(txt, expected)

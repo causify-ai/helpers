@@ -4,30 +4,14 @@ Unit tests for pytest_failed_multi_build.py module.
 Tests consolidation of failed tests across multiple build configurations.
 """
 
-import contextlib
 import os
 from typing import Any, Dict, Optional, Set
 
 import helpers.hio as hio
 import helpers.hprint as hprint
+import helpers.hsystem as hsystem
 import helpers.hunit_test as hunitest
 import dev_scripts_helpers.testing.pytest_failed_multi_build as dshtpfmbu
-
-
-# TODO(ai_gp): Is there a similar function in helpers? If so use that
-@contextlib.contextmanager
-def _chdir_context(directory: str):
-    """
-    Context manager to temporarily change working directory.
-
-    :param directory: Directory to change to
-    """
-    original_dir = os.getcwd()
-    try:
-        os.chdir(directory)
-        yield
-    finally:
-        os.chdir(original_dir)
 
 
 # #############################################################################
@@ -53,7 +37,7 @@ class Test_read_failed_tests(hunitest.TestCase):
         hio.create_dir(build_dir, incremental=True)
         failed_file = os.path.join(build_dir, "failed_tests.txt")
         hio.to_file(failed_file, content)
-        with _chdir_context(scratch_dir):
+        with hsystem.cd(scratch_dir):
             result = dshtpfmbu._read_failed_tests(build_name)
         return result
 
@@ -132,7 +116,7 @@ class Test_read_repro_script(hunitest.TestCase):
         hio.create_dir(build_dir, incremental=True)
         repro_file = os.path.join(build_dir, "repro.sh")
         hio.to_file(repro_file, content)
-        with _chdir_context(scratch_dir):
+        with hsystem.cd(scratch_dir):
             result = dshtpfmbu._read_repro_script(build_name)
         return result
 
@@ -280,7 +264,7 @@ class Test_consolidate_failed_tests(hunitest.TestCase):
         """
         scratch_dir = self.get_scratch_space()
         self._create_failed_test_files(scratch_dir, build_tests)
-        with _chdir_context(scratch_dir):
+        with hsystem.cd(scratch_dir):
             result = dshtpfmbu._consolidate_failed_tests(build_names)
         return result
 
@@ -367,7 +351,7 @@ class Test_create_consolidated_repro(hunitest.TestCase):
         """
         scratch_dir = self.get_scratch_space()
         self._create_repro_files(scratch_dir, build_names)
-        with _chdir_context(scratch_dir):
+        with hsystem.cd(scratch_dir):
             result = dshtpfmbu._create_consolidated_repro(build_names)
             return result
 
@@ -592,7 +576,7 @@ class Test_extract_build_stats_missing_pytest_ended(hunitest.TestCase):
         }
         info_file = os.path.join(build_dir, "info.json")
         hio.to_json(info_file, info_data)
-        with _chdir_context(scratch_dir):
+        with hsystem.cd(scratch_dir):
             # Call extract_build_stats.
             result = dshtpfmbu._extract_build_stats("dev_container")
         # Check outputs - should be marked incomplete.
@@ -626,7 +610,7 @@ class Test_extract_build_stats_missing_pytest_ended(hunitest.TestCase):
         }
         info_file = os.path.join(build_dir, "info.json")
         hio.to_json(info_file, info_data)
-        with _chdir_context(scratch_dir):
+        with hsystem.cd(scratch_dir):
             # Call extract_build_stats.
             result = dshtpfmbu._extract_build_stats("docker")
         # Check outputs - should NOT be marked incomplete.
@@ -1056,7 +1040,7 @@ class Test_create_consolidated_repro_with_missing_files(hunitest.TestCase):
         docker_repro = os.path.join(docker_dir, "repro.sh")
         hio.to_file(docker_repro, "#!/bin/bash\npytest_log test_docker.py $*")
         # apple and dev_container directories don't have repro.sh.
-        with _chdir_context(scratch_dir):
+        with hsystem.cd(scratch_dir):
             # Call with all three builds.
             actual = dshtpfmbu._create_consolidated_repro(
                 ["docker", "apple", "dev_container"]
@@ -1091,7 +1075,7 @@ class Test_create_consolidated_repro_with_missing_files(hunitest.TestCase):
             repro_file = os.path.join(build_dir, "repro.sh")
             content = f"#!/bin/bash\npytest_log test_{build_name}.py $*"
             hio.to_file(repro_file, content)
-        with _chdir_context(scratch_dir):
+        with hsystem.cd(scratch_dir):
             # Call with all three builds (only docker and apple have files).
             actual = dshtpfmbu._create_consolidated_repro(
                 ["docker", "apple", "dev_container"]

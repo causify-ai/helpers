@@ -26,8 +26,8 @@ model: haiku
 
 ## Remove TODOs
 - Remove the `TODO` only if the TODO was implemented
-- If you can't implement a TODO add a comment shortly explaining why can't be
-  done, rather than removing the TODO
+- If you can't implement a TODO, leave the TODO in place and add a comment
+  shortly explaining why can't be done
 
 # Verification
 - Run the corresponding unit tests to make sure the code works
