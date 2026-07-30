@@ -657,9 +657,7 @@ def capture_sys_calls(
 
     with (
         mock.patch("subprocess.run", side_effect=mock_subprocess_run),
-        mock.patch(
-            "helpers.hsystem.system", side_effect=mock_hsystem_system
-        ),
+        mock.patch("helpers.hsystem.system", side_effect=mock_hsystem_system),
         mock.patch(
             "helpers.hsystem.system_to_string",
             side_effect=mock_hsystem_system_to_string,

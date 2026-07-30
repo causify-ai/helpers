@@ -61,6 +61,7 @@ model: haiku
 - Prepare a plan following `# Format for Unit Test Fixing Plan` from
   `.claude/skills/pytest.rules.md`
 - Save it in the file `plan.triage_local_unit_tests.md` in the current dir
+- Do not print anything on screen
 
 ## Step 5: Wait for User Feedback
 - Do not make any change to the code, but only propose the fixes

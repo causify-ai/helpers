@@ -231,10 +231,7 @@ class Test_safe_rm_file(hunitest.TestCase):
 # #############################################################################
 
 
-@pytest.mark.skipif(
-    not hgit.is_git_worktree(),
-    reason="Not in a Git worktree"
-)
+@pytest.mark.skipif(not hgit.is_git_worktree(), reason="Not in a Git worktree")
 class Test_git_worktree_handling(hunitest.TestCase):
     """
     Tests for Git worktree-specific functionality.
@@ -309,9 +306,6 @@ class Test_compute_file_signature1(hunitest.TestCase):
             "test.txt",
         ]
         self.assert_equal(str(actual), str(expected))
-
-
-# #############################################################################
 
 
 # #############################################################################
