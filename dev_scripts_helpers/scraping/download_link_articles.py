@@ -13,6 +13,9 @@
 r"""
 Download article content and HN comments from links stored in Google Sheets.
 
+For detailed documentation on the link workflow, see:
+`download_link_articles.README.md`
+
 This script processes a Google Sheets document containing article links,
 downloads article content and Hacker News comments, and optionally summarizes
 them using LLMs.

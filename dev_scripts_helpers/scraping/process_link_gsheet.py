@@ -19,6 +19,8 @@
 """
 Process links and articles from a Google Sheets document.
 
+For detailed documentation on the link workflow, see: `link_flow.README.md`
+
 This script manages the following actions:
 1. download_link_gsheet: Download data from Google Sheets to CSV (alias)
 2. update_article_url: Extract article URLs from HN links using HN API

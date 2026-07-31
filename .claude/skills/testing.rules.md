@@ -128,6 +128,41 @@
       def test2(self): ...
   ```
 
+## Test Class Documentation
+
+- Test class docstrings should document **only what is being tested**, not how or
+  why the tests work
+- Reference the function or class being tested by name and module path
+- Each test method's docstring should explain what specific case or behavior is
+  tested
+
+- **Bad** (describes how tests are organized or why testing is needed)
+  ```python
+  class Test_extract_statistics(hunitest.TestCase):
+      """
+      Validate extract_statistics() function through multiple test cases
+      to ensure correctness.
+      """
+
+      def test1(self) -> None:
+          """
+          Ensure the function handles various input formats correctly.
+          """
+  ```
+
+- **Good** (focuses on what is being tested)
+  ```python
+  class Test_extract_statistics(hunitest.TestCase):
+      """
+      Test `extract_cc_log._extract_statistics()` function.
+      """
+
+      def test1(self) -> None:
+          """
+          Ensure the function handles various input formats correctly.
+          """
+  ```
+
 ## Consolidate Inputs and Outputs
 
 - Organize input variables in a consecutive code block and then organize output
