@@ -30,13 +30,11 @@ _LOG = logging.getLogger(__name__)
 #   `dockerized`
 VALID_PANDOC_BACKENDS = ["auto", "dockerized", "host"]
 
-DEFAULT_PANDOC_BACKEND = "auto"
-
 
 def add_pandoc_backend_arg(
     parser: argparse.ArgumentParser,
     *,
-    default: str = DEFAULT_PANDOC_BACKEND,
+    default: str = "auto",
 ) -> argparse.ArgumentParser:
     """
     Add a `--pandoc_backend` command line option.

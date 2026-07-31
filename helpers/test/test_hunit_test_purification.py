@@ -33,7 +33,8 @@ class Test_purify_text1(hunitest.TestCase):
         self.assert_equal(actual, expected, **kwargs)
 
     def helper_with_git_root_mocking(self, relative_path: str) -> None:
-        """Helper for tests that need git root mocking.
+        """
+        Helper for tests that need git root mocking.
 
         Build `txt` by joining the real git root with `relative_path` and
         check that it purifies to `$GIT_ROOT/<relative_path>`.
