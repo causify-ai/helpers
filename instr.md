@@ -1,7 +1,4 @@
-How to modify the script git_create_issue_and_branch.py so that 
-
-if the GH issue is already created and passed with --gh_issue_id 1331
-one can tell the script to create a new branch adding 
+Run the skill /coding.todoai_gp on each of the TODO, one at the time
 
 # Conventions
 - When writing code you must always follow the instructions in
