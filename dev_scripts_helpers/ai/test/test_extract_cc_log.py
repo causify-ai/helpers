@@ -1,19 +1,12 @@
-#!/usr/bin/env python3
-
-"""
-Unit and end-to-end tests for extract_cc_log.py.
-"""
-
 import json
 import os
 import pprint
 from typing import Any, Dict, List
 from unittest import mock
 
+import dev_scripts_helpers.ai.extract_cc_log as dshaecclo
 import helpers.hio as hio
 import helpers.hunit_test as hunitest
-
-import dev_scripts_helpers.ai.extract_cc_log as extract_cc_log
 
 
 # #############################################################################
@@ -32,9 +25,9 @@ class Test_extract_statistics(hunitest.TestCase):
         """
         # Prepare inputs.
         input_file = os.path.join(self.get_input_dir(), "sample_cc_log.txt")
-        records = extract_cc_log._parse_records(input_file)
+        records = dshaecclo._parse_records(input_file)
         # Run test.
-        actual = extract_cc_log._extract_statistics(records)
+        actual = dshaecclo._extract_statistics(records)
         # Check outputs.
         actual_str = pprint.pformat(actual)
         expected = """
@@ -66,7 +59,7 @@ class Test_parse_records(hunitest.TestCase):
         # Prepare inputs.
         input_file = os.path.join(self.get_input_dir(), "sample_cc_log.txt")
         # Run test.
-        records = extract_cc_log._parse_records(input_file)
+        records = dshaecclo._parse_records(input_file)
         # Prepare outputs.
         has_system = any(r.get("type") == "system" for r in records)
         has_stream = any(r.get("type") == "stream_event" for r in records)
@@ -111,9 +104,9 @@ class Test_extract_requests(hunitest.TestCase):
         """
         # Prepare inputs.
         input_file = os.path.join(self.get_input_dir(), "sample_cc_log.txt")
-        records = extract_cc_log._parse_records(input_file)
+        records = dshaecclo._parse_records(input_file)
         # Run test.
-        requests = extract_cc_log._extract_requests(records)
+        requests = dshaecclo._extract_requests(records)
         # Check outputs.
         actual = pprint.pformat(requests)
         expected = """
@@ -141,9 +134,9 @@ class Test_extract_assistant_text_blocks(hunitest.TestCase):
         """
         # Prepare inputs.
         input_file = os.path.join(self.get_input_dir(), "sample_cc_log.txt")
-        records = extract_cc_log._parse_records(input_file)
+        records = dshaecclo._parse_records(input_file)
         # Run test.
-        text_blocks = extract_cc_log._extract_assistant_text_blocks(records)
+        text_blocks = dshaecclo._extract_assistant_text_blocks(records)
         # Check outputs.
         all_text = " ".join(b.get("text", "") for b in text_blocks)
         expected = """
@@ -169,9 +162,9 @@ class Test_extract_thinking_blocks(hunitest.TestCase):
         """
         # Prepare inputs.
         input_file = os.path.join(self.get_input_dir(), "sample_cc_log.txt")
-        records = extract_cc_log._parse_records(input_file)
+        records = dshaecclo._parse_records(input_file)
         # Run test.
-        thinking_blocks = extract_cc_log._extract_thinking_blocks(records)
+        thinking_blocks = dshaecclo._extract_thinking_blocks(records)
         # Check outputs.
         all_thinking = " ".join(b.get("text", "") for b in thinking_blocks)
         expected = "recursion"
@@ -234,9 +227,9 @@ class Test_extract_cc_log_py(hunitest.TestCase):
             argv.extend(["--output", output_file])
         if stats_file:
             argv.extend(["--stats", stats_file])
-        parser = extract_cc_log._parse()
+        parser = dshaecclo._parse()
         with mock.patch("sys.argv", argv):
-            extract_cc_log._main(parser)
+            dshaecclo._main(parser)
 
     def test1(self) -> None:
         """

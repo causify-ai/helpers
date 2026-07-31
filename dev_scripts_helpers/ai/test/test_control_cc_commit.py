@@ -7,9 +7,8 @@ import .claude.test_control_cc_commit as ctcoccco
 import os
 from typing import Dict, Tuple
 
+import dev_scripts_helpers.ai.control_cc_commit as dshacccco
 import helpers.hunit_test as hunitest
-
-import dev_scripts_helpers.ai.control_cc_commit as cc_control
 
 
 # #############################################################################
@@ -36,7 +35,7 @@ class Test_enable_git_commands(hunitest.TestCase):
         :param expected_deny_list: Expected deny list after execution
         """
         # Run test.
-        removed, modified_settings = cc_control._enable_git_commands(settings)
+        removed, modified_settings = dshacccco._enable_git_commands(settings)
         # Check outputs.
         self.assertEqual(removed, expected_removed)
         self.assertEqual(
@@ -167,13 +166,13 @@ class Test_backup_and_restore(hunitest.TestCase):
                 ]
             }
         }
-        cc_control._save_settings(settings_path, settings)
+        dshacccco._save_settings(settings_path, settings)
         # Enable git commands.
-        loaded_settings = cc_control._load_settings(settings_path)
-        removed, _ = cc_control._enable_git_commands(loaded_settings)
-        cc_control._save_backup(backup_path, removed)
+        loaded_settings = dshacccco._load_settings(settings_path)
+        removed, _ = dshacccco._enable_git_commands(loaded_settings)
+        dshacccco._save_backup(backup_path, removed)
         # Verify backup was created with correct content.
-        backup_content = cc_control._load_backup(backup_path)
+        backup_content = dshacccco._load_backup(backup_path)
         self.assertEqual(
             backup_content, ["Bash(*git commit*)", "Bash(*git push*)"]
         )
@@ -186,16 +185,16 @@ class Test_backup_and_restore(hunitest.TestCase):
         _, settings_path, backup_path = self._setup_file_paths()
         # Prepare settings without git denials.
         settings = {"permissions": {"deny": ["Bash(*rm:*)"]}}
-        cc_control._save_settings(settings_path, settings)
+        dshacccco._save_settings(settings_path, settings)
         # Create backup with git denials.
         backup_denials = [
             "Bash(*git commit*)",
             "Bash(*git push*)",
         ]
-        cc_control._save_backup(backup_path, backup_denials)
+        dshacccco._save_backup(backup_path, backup_denials)
         # Restore from backup.
-        loaded_settings = cc_control._load_settings(settings_path)
-        _, modified_settings = cc_control._restore_from_backup(
+        loaded_settings = dshacccco._load_settings(settings_path)
+        _, modified_settings = dshacccco._restore_from_backup(
             loaded_settings, backup_path
         )
         # Verify denials were restored.
@@ -223,27 +222,27 @@ class Test_backup_and_restore(hunitest.TestCase):
                 ]
             }
         }
-        cc_control._save_settings(settings_path, original_settings)
+        dshacccco._save_settings(settings_path, original_settings)
         # Step 1: Enable (remove git denials and save backup).
-        settings_after_enable = cc_control._load_settings(settings_path)
-        removed, modified_settings_1 = cc_control._enable_git_commands(
+        settings_after_enable = dshacccco._load_settings(settings_path)
+        removed, modified_settings_1 = dshacccco._enable_git_commands(
             settings_after_enable
         )
-        cc_control._save_backup(backup_path, removed)
-        cc_control._save_settings(settings_path, modified_settings_1)
+        dshacccco._save_backup(backup_path, removed)
+        dshacccco._save_settings(settings_path, modified_settings_1)
         # Verify only non-git denial remains.
-        enabled_settings = cc_control._load_settings(settings_path)
+        enabled_settings = dshacccco._load_settings(settings_path)
         self.assertEqual(
             enabled_settings["permissions"]["deny"], ["Bash(*rm:*)"]
         )
         # Step 2: Disable (restore from backup).
-        settings_after_disable = cc_control._load_settings(settings_path)
-        _, modified_settings_2 = cc_control._restore_from_backup(
+        settings_after_disable = dshacccco._load_settings(settings_path)
+        _, modified_settings_2 = dshacccco._restore_from_backup(
             settings_after_disable, backup_path
         )
-        cc_control._save_settings(settings_path, modified_settings_2)
+        dshacccco._save_settings(settings_path, modified_settings_2)
         # Verify settings match original.
-        final_settings = cc_control._load_settings(settings_path)
+        final_settings = dshacccco._load_settings(settings_path)
         self.assertEqual(
             set(final_settings["permissions"]["deny"]),
             set(original_settings["permissions"]["deny"]),
@@ -257,11 +256,11 @@ class Test_backup_and_restore(hunitest.TestCase):
         _, settings_path, backup_path = self._setup_file_paths()
         # Prepare settings.
         settings = {"permissions": {"deny": ["Bash(*rm:*)"]}}
-        cc_control._save_settings(settings_path, settings)
+        dshacccco._save_settings(settings_path, settings)
         # Try to restore without backup file.
-        loaded_settings = cc_control._load_settings(settings_path)
+        loaded_settings = dshacccco._load_settings(settings_path)
         with self.assertRaises(AssertionError):
-            cc_control._restore_from_backup(loaded_settings, backup_path)
+            dshacccco._restore_from_backup(loaded_settings, backup_path)
 
     def test5(self) -> None:
         """
@@ -281,7 +280,7 @@ class Test_backup_and_restore(hunitest.TestCase):
             }
         }
         # Enable git commands.
-        removed, modified_settings = cc_control._enable_git_commands(settings)
+        removed, modified_settings = dshacccco._enable_git_commands(settings)
         # Verify all git patterns were removed.
         self.assertEqual(
             removed,
