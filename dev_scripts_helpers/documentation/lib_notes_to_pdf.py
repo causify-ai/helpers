@@ -817,7 +817,8 @@ def run_pandoc_to_typst_slides(
         fail_on_warnings=fail_on_warnings,
     )
     ast_file = f"{file_with_defs}.ast.json"
-    # Step 2: transform Div[columns] -> RawBlock[typst #grid()] for multi-column layouts.
+    # Step 2: Process AST to implement certain transformations not natively
+    # supported by pandoc typst backend.
     transformed_ast_file = f"{file_name}.divved.ast.json"
     convert_script = hgit.find_file("transform_pandoc_ast_to_typst.py")
     cmd = f"{convert_script} -i {ast_file} -o {transformed_ast_file}"

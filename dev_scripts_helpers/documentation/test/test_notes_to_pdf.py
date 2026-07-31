@@ -2464,19 +2464,20 @@ class Test_small_font_code_typst(hunitest.TestCase):
         Generates PDF output through full typst pipeline.
 
         :param in_file: Path to input markdown file
-        :return: Path to generated PDF file
+        :return: Path to generated typst file
         """
         # Prepare inputs.
         exec_path = hgit.find_file_in_git_tree("notes_to_pdf.py")
         hdbg.dassert_path_exists(exec_path)
         out_dir = self.get_scratch_space()
         script_file = os.path.join(out_dir, "script.sh")
-        pdf_file = in_file.replace(".txt", ".pdf")
+        pdf_file = os.path.join(out_dir, "output.pdf")
         # Construct command - compile to PDF.
         cmd = [
             exec_path,
             f"--input {in_file}",
             "--type slides",
+            "--use_pandoc_ast_transform",
             "--slides_engine typst",
             f"--script {script_file}",
             f"--output {pdf_file}",
@@ -2488,8 +2489,11 @@ class Test_small_font_code_typst(hunitest.TestCase):
         hsystem.system(cmd)
         # Verify PDF was created.
         hdbg.dassert_path_exists(pdf_file, "PDF file was not created")
-        # TODO(ai_gp): Find the (only) typst file and return its path.
-        return pdf_file
+        # Find the typst file generated during pipeline.
+        typ_files = glob.glob(os.path.join(out_dir, "*.typ"))
+        hdbg.dassert_eq(len(typ_files), 1, f"Expected 1 .typ file, found:\n%s", "\n".join(typ_files))
+        typst_file = typ_files[0]
+        return typst_file
 
     @pytest.mark.superslow
     def test1(self) -> None:
@@ -2511,6 +2515,14 @@ class Test_small_font_code_typst(hunitest.TestCase):
                                data=train).fit()
           ```
 
+        - Small
+          ::: small-code
+          ```python
+          regr_model = smf.ols("sales ~ discounts*(month + weekday + ...)",
+                               data=train).fit()
+          ```
+          :::
+
         - Scriptfont
           \begingroup \scriptfont
           ```python
@@ -2523,14 +2535,15 @@ class Test_small_font_code_typst(hunitest.TestCase):
         in_file = os.path.join(self.get_scratch_space(), "input.md")
         hio.to_file(in_file, txt)
         # Run test.
-        pdf_file = self.helper_pdf_render(in_file)
+        typst_file = self.helper_pdf_render(in_file)
         # Check outputs.
-        # Verify PDF was successfully compiled.
-        self.assertTrue(os.path.exists(pdf_file), "PDF file was not created")
-        # Verify PDF file is not empty (has content).
-        file_size = os.path.getsize(pdf_file)
-        self.assertGreater(file_size, 0, "PDF file is empty")
-        # Report PDF path for manual inspection.
-        _LOG.info("PDF generated for visual inspection: %s", pdf_file)
-        # TODO(ai_gp): Print the name of the returned typst file and freeze it
-        # with check_string.
+        # Verify typst file was created.
+        self.assertTrue(os.path.exists(typst_file), "Typst file was not created")
+        # Verify typst file is not empty (has content).
+        file_size = os.path.getsize(typst_file)
+        self.assertGreater(file_size, 0, "Typst file is empty")
+        # Report typst file name and freeze output.
+        typst_filename = os.path.basename(typst_file)
+        _LOG.info("Typst file generated: %s", typst_filename)
+        typst_content = hio.from_file(typst_file)
+        self.check_string(typst_content, purify_text=True)

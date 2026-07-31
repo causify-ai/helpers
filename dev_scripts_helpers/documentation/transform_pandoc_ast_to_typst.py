@@ -639,10 +639,76 @@ def _transform_ast_color_text(
 
 
 # #############################################################################
+# Small Code Handler (Div.small-code wrapping)
+# #############################################################################
+
+
+def _is_small_code_div(elem: Dict[str, Any]) -> bool:
+    """
+    Check if element is a Div with class 'small-code'.
+
+    :param elem: AST element (block)
+    :return: True if Div with 'small-code' class
+    """
+    if elem.get("t") != "Div":
+        return False
+    if not elem.get("c"):
+        return False
+    id_classes_attrs = elem["c"][0]
+    classes = id_classes_attrs[1] if len(id_classes_attrs) > 1 else []
+    return "small-code" in classes
+
+
+def _transform_small_code_div(elem: Dict[str, Any]) -> Dict[str, Any]:
+    """
+    Transform Div.small-code into RawBlock wrapping content with #text(size:...).
+
+    For Typst, wraps the Div content with: #text(size: 0.8em)[...content...]
+
+    :param elem: Div AST element with small-code class
+    :return: RawBlock containing typst code with font sizing
+    """
+    if not _is_small_code_div(elem):
+        return elem
+    blocks = elem["c"][1] if len(elem["c"]) > 1 else []
+    if not blocks:
+        return elem
+    inner_typst = _render_blocks_to_typst(blocks, [1, 23, 1], "auto")
+    wrapped_typst = f"#text(size: 0.8em)[\n{inner_typst}\n]"
+    return {"t": "RawBlock", "c": ["typst", wrapped_typst]}
+
+
+def _walk_transform_small_code(obj: Any) -> Any:
+    """
+    Recursively transform small-code Divs in AST.
+    """
+    if isinstance(obj, dict):
+        if _is_small_code_div(obj):
+            return _transform_small_code_div(obj)
+        return {key: _walk_transform_small_code(value) for key, value in obj.items()}
+    elif isinstance(obj, list):
+        return [_walk_transform_small_code(item) for item in obj]
+    else:
+        return obj
+
+
+def _transform_ast_small_code(
+    ast: PandocAst,
+) -> PandocAst:
+    """
+    Transform AST: wrap Div.small-code with typst font sizing.
+
+    :param ast: Full pandoc AST dict
+    :return: Transformed AST
+    """
+    return _walk_transform_small_code(ast)
+
+
+# #############################################################################
 # CLI.
 # #############################################################################
 
-_VALID_ACTIONS = ["divved_fence", "color_text"]
+_VALID_ACTIONS = ["divved_fence", "color_text", "small_code"]
 _DEFAULT_ACTIONS = _VALID_ACTIONS[:]
 
 
@@ -713,6 +779,11 @@ def _main(parser: argparse.ArgumentParser) -> None:
             elif action == "color_text":
                 _LOG.info("Transforming AST: LaTeX colors -> Typst colors")
                 ast = _transform_ast_color_text(ast, args.pandoc_backend)
+            elif action == "small_code":
+                _LOG.info("Transforming AST: Div[small-code] -> wrapped with font sizing")
+                ast = _transform_ast_small_code(ast)
+            else:
+                raise ValueError("Invalid action='%s'" % action)
     _LOG.info("Saving transformed AST to '%s'", args.out_file)
     _save_ast(ast, args.out_file)
     _LOG.info("Done")

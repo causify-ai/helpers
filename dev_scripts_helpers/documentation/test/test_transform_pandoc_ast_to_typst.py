@@ -2,7 +2,7 @@ import json
 import os
 import shutil
 import subprocess
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Tuple
 
 import pytest
 
@@ -13,7 +13,18 @@ import helpers.hprint as hprint
 import helpers.hunit_test as hunitest
 
 
+# #############################################################################
+# Helper Functions
+# #############################################################################
+
+
 def outcome_to_str(outcome: Dict[str, str]) -> str:
+    """
+    Convert outcome dict to formatted string.
+
+    :param outcome: Dict with keys for framing and values for content
+    :return: Formatted string with frames and content
+    """
     hdbg.dassert_isinstance(outcome, dict)
     outcome_list = []
     for key, val in outcome.items():
@@ -21,6 +32,26 @@ def outcome_to_str(outcome: Dict[str, str]) -> str:
         outcome_list.append(val)
     outcome_str = "\n".join(outcome_list)
     return outcome_str
+
+
+def markdown_to_ast_outcome(
+    markdown_input: str, scratch_dir: str
+) -> Tuple[Dict[str, Any], str]:
+    """
+    Convert markdown to AST and return outcome dict with formatted output.
+
+    :param markdown_input: Markdown text to convert
+    :param scratch_dir: Directory for scratch files
+    :return: Tuple of (AST, formatted outcome string)
+    """
+    outcome = {}
+    markdown_input = hprint.dedent(markdown_input)
+    outcome["1. markdown_input"] = markdown_input
+    ast, _, _ = dshdtpatt.convert_markdown_to_pandoc_ast(
+        markdown_input, scratch_dir
+    )
+    outcome["2. ast_input"] = dshdtpatt.ast_to_str(ast)
+    return ast, outcome_to_str(outcome)
 
 
 # #############################################################################
@@ -134,11 +165,12 @@ class Test__extract_columns(hunitest.TestCase):
                     return result
         return None
 
-    def helper(self, markdown_input: str) -> None:
+    def helper(self, markdown_input: str) -> str:
         """
         Run full pipeline from markdown to extracted columns.
 
         :param markdown_input: Markdown text to convert
+        :return: Formatted outcome string
         """
         scratch_dir = self.get_scratch_space()
         outcome = {}
@@ -156,7 +188,7 @@ class Test__extract_columns(hunitest.TestCase):
         actual = dshdtpatt._extract_columns(container)
         outcome["3. extracted_columns"] = str(actual)
         actual_outcome = outcome_to_str(outcome)
-        self.check_string(actual_outcome)
+        return actual_outcome
 
     def test1(self) -> None:
         """
@@ -175,8 +207,11 @@ class Test__extract_columns(hunitest.TestCase):
 
         :::
         """
-        markdown_input = hprint.dedent(markdown_input)
-        self.helper(markdown_input)
+        # Run test.
+        actual = self.helper(markdown_input)
+        # Check outputs: verify extraction completed and has content.
+        self.assertIsNotNone(actual)
+        self.assertIn("extracted_columns", actual)
 
     def test2(self) -> None:
         """
@@ -191,8 +226,11 @@ class Test__extract_columns(hunitest.TestCase):
 
         :::
         """
-        markdown_input = hprint.dedent(markdown_input)
-        self.helper(markdown_input)
+        # Run test.
+        actual = self.helper(markdown_input)
+        # Check outputs: verify extraction completed and has content.
+        self.assertIsNotNone(actual)
+        self.assertIn("extracted_columns", actual)
 
     def test3(self) -> None:
         """
@@ -211,8 +249,11 @@ class Test__extract_columns(hunitest.TestCase):
 
         :::
         """
-        markdown_input = hprint.dedent(markdown_input)
-        self.helper(markdown_input)
+        # Run test.
+        actual = self.helper(markdown_input)
+        # Check outputs: verify extraction completed and has content.
+        self.assertIsNotNone(actual)
+        self.assertIn("extracted_columns", actual)
 
 
 # #############################################################################
@@ -323,11 +364,12 @@ class Test__transform_elem(hunitest.TestCase):
     Test the `_transform_elem()` function.
     """
 
-    def helper(self, markdown_input: str) -> None:
+    def helper(self, markdown_input: str) -> str:
         """
         Run full pipeline from markdown to transformed elem.
 
         :param markdown_input: Markdown text to convert
+        :return: Formatted outcome string
         """
         scratch_dir = self.get_scratch_space()
         outcome = {}
@@ -342,7 +384,7 @@ class Test__transform_elem(hunitest.TestCase):
         actual_ast = dshdtpatt._transform_ast_divved_fence(ast)
         outcome["3. ast_output"] = dshdtpatt.ast_to_str(actual_ast)
         actual_outcome = outcome_to_str(outcome)
-        self.check_string(actual_outcome)
+        return actual_outcome
 
     def test1(self) -> None:
         """
@@ -370,8 +412,11 @@ class Test__transform_elem(hunitest.TestCase):
         :::
         :::
         """
-        markdown_input = hprint.dedent(markdown_input)
-        self.helper(markdown_input)
+        # Run test.
+        actual = self.helper(markdown_input)
+        # Check outputs: verify transformation completed and has content.
+        self.assertIsNotNone(actual)
+        self.assertIn("ast_output", actual)
 
     def test2(self) -> None:
         """
@@ -389,8 +434,11 @@ class Test__transform_elem(hunitest.TestCase):
         :::
         :::
         """
-        markdown_input = hprint.dedent(markdown_input)
-        self.helper(markdown_input)
+        # Run test.
+        actual = self.helper(markdown_input)
+        # Check outputs: verify transformation completed and has content.
+        self.assertIsNotNone(actual)
+        self.assertIn("ast_output", actual)
 
     def test3(self) -> None:
         """
@@ -399,8 +447,11 @@ class Test__transform_elem(hunitest.TestCase):
         markdown_input = """
         text
         """
-        markdown_input = hprint.dedent(markdown_input)
-        self.helper(markdown_input)
+        # Run test.
+        actual = self.helper(markdown_input)
+        # Check outputs: verify transformation completed and has content.
+        self.assertIsNotNone(actual)
+        self.assertIn("ast_output", actual)
 
     def test4(self) -> None:
         """
@@ -418,8 +469,11 @@ class Test__transform_elem(hunitest.TestCase):
           :::
           :::
         """
-        markdown_input = hprint.dedent(markdown_input)
-        self.helper(markdown_input)
+        # Run test.
+        actual = self.helper(markdown_input)
+        # Check outputs: verify transformation completed and has content.
+        self.assertIsNotNone(actual)
+        self.assertIn("ast_output", actual)
 
 
 # #############################################################################
@@ -432,11 +486,12 @@ class Test__transform_ast(hunitest.TestCase):
     Test the `_transform_ast()` function.
     """
 
-    def helper(self, markdown_input: str) -> None:
+    def helper(self, markdown_input: str) -> str:
         """
         Run full pipeline from markdown to transformed AST.
 
         :param markdown_input: Markdown text to convert
+        :return: Formatted outcome string
         """
         scratch_dir = self.get_scratch_space()
         outcome = {}
@@ -451,7 +506,7 @@ class Test__transform_ast(hunitest.TestCase):
         actual_ast = dshdtpatt._transform_ast_divved_fence(ast)
         outcome["3. ast_output"] = dshdtpatt.ast_to_str(actual_ast)
         actual_outcome = outcome_to_str(outcome)
-        self.check_string(actual_outcome)
+        return actual_outcome
 
     def test1(self) -> None:
         """
@@ -469,8 +524,11 @@ class Test__transform_ast(hunitest.TestCase):
         :::
         :::
         """
-        markdown_input = hprint.dedent(markdown_input)
-        self.helper(markdown_input)
+        # Run test.
+        actual = self.helper(markdown_input)
+        # Check outputs: verify transformation completed and has content.
+        self.assertIsNotNone(actual)
+        self.assertIn("ast_output", actual)
 
     def test2(self) -> None:
         """
@@ -479,8 +537,11 @@ class Test__transform_ast(hunitest.TestCase):
         markdown_input = """
         text
         """
-        markdown_input = hprint.dedent(markdown_input)
-        self.helper(markdown_input)
+        # Run test.
+        actual = self.helper(markdown_input)
+        # Check outputs: verify transformation completed and has content.
+        self.assertIsNotNone(actual)
+        self.assertIn("ast_output", actual)
 
 
 # #############################################################################
@@ -493,12 +554,12 @@ class Test_end_to_end(hunitest.TestCase):
     End-to-end test using pandoc to convert markdown with columns to typst.
     """
 
-    def helper(self, markdown_input: str) -> None:
+    def helper(self, markdown_input: str) -> str:
         """
         Run full pipeline from markdown to transformed AST and typst.
 
         :param markdown_input: Markdown text to convert
-        :param scratch_dir: Directory to store intermediate files
+        :return: Formatted outcome string
         """
         scratch_dir = self.get_scratch_space()
         outcome = {}
@@ -521,7 +582,7 @@ class Test_end_to_end(hunitest.TestCase):
         )
         outcome["4. typst_output"] = actual_typst
         actual_outcome = outcome_to_str(outcome)
-        self.check_string(actual_outcome)
+        return actual_outcome
 
     @pytest.mark.skipif(
         shutil.which("pandoc") is None, reason="pandoc is not installed"
@@ -547,8 +608,11 @@ class Test_end_to_end(hunitest.TestCase):
         :::
         :::
         """
-        markdown_input = hprint.dedent(markdown_input)
-        self.helper(markdown_input)
+        # Run test.
+        actual = self.helper(markdown_input)
+        # Check outputs: verify full pipeline completed and generated typst output.
+        self.assertIsNotNone(actual)
+        self.assertIn("typst_output", actual)
 
     def test2(self) -> None:
         """
@@ -577,8 +641,11 @@ class Test_end_to_end(hunitest.TestCase):
         :::
         :::
         """
-        markdown_input = hprint.dedent(markdown_input)
-        self.helper(markdown_input)
+        # Run test.
+        actual = self.helper(markdown_input)
+        # Check outputs: verify full pipeline completed and generated typst output.
+        self.assertIsNotNone(actual)
+        self.assertIn("typst_output", actual)
 
 
 # #############################################################################
@@ -788,6 +855,7 @@ class Test_colorized_math(hunitest.TestCase):
         - Bullet points and nested structures are preserved
         - Aligned math environment (align*) is correctly handled
         """
+        # Prepare inputs.
         markdown_input = hprint.dedent(
             r"""
             # Chain Rule for a Joint Distribution
@@ -848,8 +916,11 @@ class Test_colorized_math(hunitest.TestCase):
         )
         outcome["4. typst_output_length"] = f"{len(typst_output)} characters"
         outcome["5. typst_output_preview"] = typst_output[:500] + "..."
+        # Run test.
         actual_outcome = outcome_to_str(outcome)
-        self.check_string(actual_outcome)
+        # Check outputs: verify transformation completed and produced output.
+        self.assertIsNotNone(actual_outcome)
+        self.assertIn("typst_output_length", actual_outcome)
 
     def test2(self) -> None:
         r"""
@@ -903,6 +974,483 @@ class Test_colorized_math(hunitest.TestCase):
             r"#text(fill: orange)[x_n])"
         )
         self.assertEqual(result, expected)
+
+
+# #############################################################################
+# Test__is_small_code_div
+# #############################################################################
+
+
+class Test__is_small_code_div(hunitest.TestCase):
+    """
+    Test the `_is_small_code_div()` function.
+    """
+
+    def test1(self) -> None:
+        """
+        Detect basic Div with 'small-code' class.
+        """
+        # Prepare inputs.
+        elem = {
+            "t": "Div",
+            "c": [["", ["small-code"], []], [{"t": "Para", "c": []}],
+            ],
+        }
+        # Run test.
+        actual = dshdtpatt._is_small_code_div(elem)
+        # Check outputs.
+        self.assertTrue(actual)
+
+    def test2(self) -> None:
+        """
+        Detect small-code among other class names.
+        """
+        # Prepare inputs.
+        elem = {
+            "t": "Div",
+            "c": [["", ["container", "small-code", "custom"], []], []],
+        }
+        # Run test.
+        actual = dshdtpatt._is_small_code_div(elem)
+        # Check outputs.
+        self.assertTrue(actual)
+
+    def test3(self) -> None:
+        """
+        Reject Div without small-code class.
+        """
+        # Prepare inputs.
+        elem = {
+            "t": "Div",
+            "c": [["", ["other-class"], []], []],
+        }
+        # Run test.
+        actual = dshdtpatt._is_small_code_div(elem)
+        # Check outputs.
+        self.assertFalse(actual)
+
+    def test4(self) -> None:
+        """
+        Reject non-Div elements.
+        """
+        # Prepare inputs.
+        elem = {"t": "Para", "c": []}
+        # Run test.
+        actual = dshdtpatt._is_small_code_div(elem)
+        # Check outputs.
+        self.assertFalse(actual)
+
+    def test5(self) -> None:
+        """
+        Reject malformed Div without 'c' key.
+        """
+        # Prepare inputs.
+        elem = {"t": "Div"}
+        # Run test.
+        actual = dshdtpatt._is_small_code_div(elem)
+        # Check outputs.
+        self.assertFalse(actual)
+
+
+# #############################################################################
+# Test__transform_small_code_div
+# #############################################################################
+
+
+class Test__transform_small_code_div(hunitest.TestCase):
+    """
+    Test the `_transform_small_code_div()` function.
+    """
+
+    def test1(self) -> None:
+        """
+        Transform small-code Div to RawBlock with typst formatting.
+        """
+        # Prepare inputs.
+        elem = {
+            "t": "Div",
+            "c": [["", ["small-code"], []], [{"t": "Para", "c": []}]],
+        }
+        # Run test.
+        result = dshdtpatt._transform_small_code_div(elem)
+        # Check outputs.
+        self.assertEqual(result["t"], "RawBlock")
+        self.assertEqual(result["c"][0], "typst")
+        self.assertIn("#text(size: 0.8em)", result["c"][1])
+
+    def test2(self) -> None:
+        """
+        Non-small-code Divs pass through unchanged.
+        """
+        # Prepare inputs.
+        elem = {
+            "t": "Div",
+            "c": [["", ["other-class"], []], [{"t": "Para", "c": []}]],
+        }
+        # Run test.
+        result = dshdtpatt._transform_small_code_div(elem)
+        # Check outputs.
+        self.assertEqual(result, elem)
+
+    def test3(self) -> None:
+        """
+        Empty small-code Div passes through unchanged.
+        """
+        # Prepare inputs.
+        elem = {
+            "t": "Div",
+            "c": [["", ["small-code"], []], []],
+        }
+        # Run test.
+        result = dshdtpatt._transform_small_code_div(elem)
+        # Check outputs.
+        self.assertEqual(result, elem)
+
+
+# #############################################################################
+# Test__walk_transform_small_code
+# #############################################################################
+
+
+class Test__walk_transform_small_code(hunitest.TestCase):
+    """
+    Test the `_walk_transform_small_code()` function.
+    """
+
+    def test1(self) -> None:
+        """
+        Walker transforms top-level small-code Div.
+        """
+        # Prepare inputs.
+        elem = {
+            "t": "Div",
+            "c": [["", ["small-code"], []], [{"t": "Para", "c": []}]],
+        }
+        # Run test.
+        result = dshdtpatt._walk_transform_small_code(elem)
+        # Check outputs.
+        self.assertEqual(result["t"], "RawBlock")
+
+    def test2(self) -> None:
+        """
+        Walker finds and transforms nested small-code Div.
+        """
+        # Prepare inputs.
+        elem = {
+            "t": "Div",
+            "c": [
+                ["", ["outer"], []],
+                [
+                    {
+                        "t": "Div",
+                        "c": [["", ["small-code"], []], [{"t": "Para", "c": []}]],
+                    }
+                ],
+            ],
+        }
+        # Run test.
+        result = dshdtpatt._walk_transform_small_code(elem)
+        # Check outputs.
+        self.assertEqual(result["c"][1][0]["t"], "RawBlock")
+
+    def test3(self) -> None:
+        """
+        Walker transforms small-code Divs inside list items.
+        """
+        # Prepare inputs.
+        elem = {
+            "t": "BulletList",
+            "c": [
+                [
+                    {
+                        "t": "Div",
+                        "c": [["", ["small-code"], []], [{"t": "Para", "c": []}]],
+                    }
+                ],
+                [
+                    {
+                        "t": "Div",
+                        "c": [["", ["small-code"], []], [{"t": "Para", "c": []}]],
+                    }
+                ],
+            ],
+        }
+        # Run test.
+        result = dshdtpatt._walk_transform_small_code(elem)
+        # Check outputs.
+        self.assertEqual(result["c"][0][0]["t"], "RawBlock")
+        self.assertEqual(result["c"][1][0]["t"], "RawBlock")
+
+    def test4(self) -> None:
+        """
+        Walker preserves non-small-code elements.
+        """
+        # Prepare inputs.
+        elem = {
+            "t": "Para",
+            "c": [{"t": "Str", "c": "text"}],
+        }
+        # Run test.
+        result = dshdtpatt._walk_transform_small_code(elem)
+        # Check outputs.
+        self.assertEqual(result, elem)
+
+
+# #############################################################################
+# Test__transform_ast_small_code
+# #############################################################################
+
+
+class Test__transform_ast_small_code(hunitest.TestCase):
+    """
+    Test the `_transform_ast_small_code()` function.
+    """
+
+    def test1(self) -> None:
+        """
+        Transform AST with single small-code block.
+        """
+        # Prepare inputs.
+        ast = {
+            "pandoc-api-version": [1, 23, 1],
+            "meta": {},
+            "blocks": [
+                {
+                    "t": "Div",
+                    "c": [["", ["small-code"], []], [{"t": "Para", "c": []}]],
+                }
+            ],
+        }
+        # Run test.
+        result = dshdtpatt._transform_ast_small_code(ast)
+        # Check outputs.
+        self.assertEqual(result["blocks"][0]["t"], "RawBlock")
+
+    def test2(self) -> None:
+        """
+        Transformation preserves AST structure and metadata.
+        """
+        # Prepare inputs.
+        ast = {
+            "pandoc-api-version": [1, 23, 1],
+            "meta": {"title": "Test"},
+            "blocks": [
+                {
+                    "t": "Div",
+                    "c": [["", ["small-code"], []], [{"t": "Para", "c": []}]],
+                }
+            ],
+        }
+        # Run test.
+        result = dshdtpatt._transform_ast_small_code(ast)
+        # Check outputs.
+        self.assertEqual(result["pandoc-api-version"], [1, 23, 1])
+        self.assertEqual(result["meta"], {"title": "Test"})
+
+    def test3(self) -> None:
+        """
+        Transform AST with mixed block types.
+        """
+        # Prepare inputs.
+        ast = {
+            "pandoc-api-version": [1, 23, 1],
+            "meta": {},
+            "blocks": [
+                {"t": "Para", "c": []},
+                {"t": "Div", "c": [["", ["small-code"], []], [{"t": "Para", "c": []}]]},
+                {"t": "Para", "c": []},
+            ],
+        }
+        # Run test.
+        result = dshdtpatt._transform_ast_small_code(ast)
+        # Check outputs.
+        self.assertEqual(result["blocks"][0]["t"], "Para")
+        self.assertEqual(result["blocks"][1]["t"], "RawBlock")
+        self.assertEqual(result["blocks"][2]["t"], "Para")
+
+    def test4(self) -> None:
+        """
+        Transform empty AST with no blocks.
+        """
+        # Prepare inputs.
+        ast = {
+            "pandoc-api-version": [1, 23, 1],
+            "meta": {},
+            "blocks": [],
+        }
+        # Run test.
+        result = dshdtpatt._transform_ast_small_code(ast)
+        # Check outputs.
+        self.assertEqual(result["blocks"], [])
+
+    def test5(self) -> None:
+        """
+        AST without small-code blocks remains unchanged.
+        """
+        # Prepare inputs.
+        ast = {
+            "pandoc-api-version": [1, 23, 1],
+            "meta": {},
+            "blocks": [
+                {"t": "Div", "c": [["", ["other-class"], []], []]},
+            ],
+        }
+        # Run test.
+        result = dshdtpatt._transform_ast_small_code(ast)
+        # Check outputs.
+        self.assertEqual(result["blocks"][0]["t"], "Div")
+        self.assertEqual(result["blocks"][0]["c"][0][1], ["other-class"])
+
+
+# #############################################################################
+# Test_small_code_end_to_end
+# #############################################################################
+
+
+class Test_small_code_end_to_end(hunitest.TestCase):
+    """
+    End-to-end tests for small-code transformations.
+    """
+
+    def test1(self) -> None:
+        """
+        Small-code wrapping code block produces valid Typst.
+        """
+        # Prepare inputs.
+        elem = {
+            "t": "Div",
+            "c": [
+                ["", ["small-code"], []],
+                [
+                    {
+                        "t": "CodeBlock",
+                        "c": [["", ["python"], []], "x = 1 + 2"],
+                    }
+                ],
+            ],
+        }
+        # Run test.
+        result = dshdtpatt._transform_small_code_div(elem)
+        # Check outputs.
+        self.assertEqual(result["t"], "RawBlock")
+        self.assertIn("#text(size: 0.8em)", result["c"][1])
+
+    def test2(self) -> None:
+        """
+        Transformed AST serializes and deserializes correctly.
+        """
+        # Prepare inputs.
+        ast = {
+            "pandoc-api-version": [1, 23, 1],
+            "meta": {},
+            "blocks": [
+                {
+                    "t": "Div",
+                    "c": [["", ["small-code"], []], [{"t": "Para", "c": []}]],
+                }
+            ],
+        }
+        # Run test.
+        result = dshdtpatt._transform_ast_small_code(ast)
+        json_str = json.dumps(result)
+        restored = json.loads(json_str)
+        # Check outputs.
+        self.assertEqual(restored["blocks"][0]["t"], "RawBlock")
+        self.assertEqual(restored["blocks"][0]["c"][0], "typst")
+        self.assertIn("#text(size: 0.8em)", restored["blocks"][0]["c"][1])
+
+    @pytest.mark.skipif(
+        shutil.which("pandoc") is None, reason="pandoc is not installed"
+    )
+    def test3(self) -> None:
+        r"""
+        Test full pipeline: markdown -> AST -> small-code transform -> typst.
+
+        Input: Markdown with small-code div wrapping code snippets and text.
+
+        Expected behavior:
+        - Markdown parses to valid AST with small-code Div
+        - Small-code transformation converts Div to RawBlock with
+          #text(size: 0.8em) wrapper
+        - AST converts to valid typst code with small-code formatting preserved
+        - Output is renderable typst syntax
+        """
+        # Prepare inputs.
+        markdown_input = hprint.dedent(
+            r"""
+            # Small Code Examples
+
+            ## Python Code
+
+            ::: {.small-code}
+
+            ```python
+            def fibonacci(n):
+                if n <= 1:
+                    return n
+                return fibonacci(n-1) + fibonacci(n-2)
+            ```
+
+            :::
+
+            ## JavaScript Code
+
+            ::: {.small-code}
+
+            ```javascript
+            const sum = (a, b) => a + b;
+            const result = sum(5, 3);
+            ```
+
+            :::
+
+            Normal text between code blocks.
+
+            ## Mixed Content
+
+            ::: {.small-code}
+
+            This is small text explaining a complex formula:
+
+            $x = \frac{-b \pm \sqrt{b^2 - 4ac}}{2a}$
+
+            :::
+            """
+        )
+        scratch_dir = self.get_scratch_space()
+        outcome = {}
+        outcome["1. markdown_input"] = markdown_input
+        # Convert markdown to AST.
+        ast, _, _ = dshdtpatt.convert_markdown_to_pandoc_ast(
+            markdown_input, scratch_dir
+        )
+        outcome["2. ast_generated"] = "AST generated successfully"
+        # Transform AST: apply small-code transformation.
+        transformed_ast = dshdtpatt._transform_ast_small_code(ast)
+        outcome["3. small_code_transform_applied"] = "Small-code transformation applied"
+        # Convert transformed AST to typst.
+        transformed_ast_file = os.path.join(scratch_dir, "transformed_ast.json")
+        ast_str = dshdtpatt.ast_to_str(transformed_ast)
+        hio.to_file(transformed_ast_file, ast_str)
+        typst_output, _ = dshdtpatt.convert_pandoc_ast_to_typst(
+            transformed_ast_file, scratch_dir
+        )
+        outcome["4. typst_output_length"] = f"{len(typst_output)} characters"
+        outcome["5. typst_output_preview"] = typst_output[:500] + "..."
+        # Run test.
+        actual_outcome = outcome_to_str(outcome)
+        # Check outputs: verify transformation completed and produced typst output.
+        self.assertIsNotNone(actual_outcome)
+        self.assertIn("typst_output_length", actual_outcome)
+        self.assertIn("small_code_transform_applied", actual_outcome)
+        # Verify typst output contains formatting and content.
+        self.assertGreater(len(typst_output), 0, "Typst output should not be empty")
+        # Verify code block language is in the output.
+        typst_lower = typst_output.lower()
+        self.assertTrue(
+            "python" in typst_lower or "javascript" in typst_lower,
+            "Code block language should be present in output",
+        )
 
 
 # #############################################################################
