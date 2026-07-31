@@ -450,8 +450,10 @@ def git_files(  # type: ignore
     :param on_one_line: show results only in "On one line" format (default: False)
     :param mode: Output mode:
         - "files": print the changed files
-        - "test_files": print test files associated with the changed source files
-        - "test_dirs": print test directories associated with the changed source files
+        - "test_files": print test files associated with the changed source files,
+          including the changed test files
+        - "test_dirs": print test directories associated with any changed Python
+          file
     """
     if not only_print_files:
         hltltaut.report_task()
@@ -491,9 +493,8 @@ def git_files(  # type: ignore
         output_list = sorted(test_files)
     else:
         hdbg.dassert_eq(mode, "test_dirs")
-        test_files = hunteuti.get_test_files_for_sources(files_as_list)
-        test_dirs = hunteuti.get_parent_dirs(test_files)
-        output_list = sorted(test_dirs)
+        test_dirs = hunteuti.get_test_dirs_for_python_files(files_as_list)
+        output_list = test_dirs
     # Print results in one of two formats: vertical or space-separated.
     res = " ".join(output_list)
     if on_one_line:

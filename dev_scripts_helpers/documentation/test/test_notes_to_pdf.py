@@ -2260,7 +2260,7 @@ class Test_notes_to_pdf_latex_cancel(hunitest.TestCase):
     pandoc conversion pipeline.
     """
 
-    def helper(self, markdown_content: str, expected: str) -> str:
+    def helper(self, markdown_content: str) -> str:
         """
         Helper to:
         - Create temporary markdown file
@@ -2298,9 +2298,6 @@ class Test_notes_to_pdf_latex_cancel(hunitest.TestCase):
         output_txt = ""
         if os.path.exists(pandoc_file):
             output_txt = hio.from_file(pandoc_file)
-        # Read actual.
-        expected = hprint.dedent(expected)
-        self.assert_equal(output_txt, expected, fuzzy_match=True)
         return output_txt
 
     def test1(self) -> None:
@@ -2319,11 +2316,10 @@ class Test_notes_to_pdf_latex_cancel(hunitest.TestCase):
 
         The cancelled term $\cancel{Y_0 | T=1}$ is the unobserved counterfactual.
         """
-        expected = r"""
-        """
         # Run test.
-        output_txt = self.helper(markdown_content, expected)
+        output_txt = self.helper(markdown_content)
         # Check outputs.
+        self.check_string(output_txt, fuzzy_match=True)
         self.assertIn(r"\cancel{", output_txt)
         self.assertIn("Y_1", output_txt)
         self.assertIn("Y_0", output_txt)
@@ -2345,11 +2341,10 @@ class Test_notes_to_pdf_latex_cancel(hunitest.TestCase):
 
         This is why identification strategies are necessary.
         """
-        expected = r"""
-        """
         # Run test.
-        output_txt = self.helper(markdown_content, expected)
+        output_txt = self.helper(markdown_content)
         # Check outputs.
+        self.check_string(output_txt, fuzzy_match=True)
         self.assertIn(r"\cancel{", output_txt)
         self.assertIn("E[Y", output_txt)
 
@@ -2375,10 +2370,10 @@ class Test_notes_to_pdf_latex_cancel(hunitest.TestCase):
 
         Hence $\tau_i$ is not directly identifiable without assumptions.
         """
-        expected = ""
         # Run test.
-        output_txt = self.helper(markdown_content, expected)
+        output_txt = self.helper(markdown_content)
         # Check outputs.
+        self.check_string(output_txt, fuzzy_match=True)
         self.assertIn(r"\cancel{", output_txt)
         self.assertIn(r"\tau_i", output_txt)
 
@@ -2403,9 +2398,9 @@ class Test_notes_to_pdf_latex_cancel(hunitest.TestCase):
         E[Y_0 | T=1] = \cancel{E[Y_0 | T=1]_{\text{observed}}}
         $$
         """
-        expected = ""
         # Run test.
-        output_txt = self.helper(markdown_content, expected)
+        output_txt = self.helper(markdown_content)
         # Check outputs.
+        self.check_string(output_txt, fuzzy_match=True)
         self.assertIn(r"\cancel{", output_txt)
         self.assertIn(r"\underbrace{", output_txt)

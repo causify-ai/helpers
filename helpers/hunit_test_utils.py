@@ -535,19 +535,58 @@ def get_test_files_for_sources(files: List[str]) -> List[str]:
     """
     Map a list of source files to their corresponding test files.
 
-    Filters out test files from the input list, then maps each source file
-    to its corresponding test file using `get_test_file_for_source`.
+    Maps each source file to its corresponding test file, and also includes
+    test files that are directly in the input list. Deduplicates results.
 
     :param files: list of file paths (may include both source and test files)
-    :return: list of test files that exist for the source files
+    :return: list of test files (both mapped from sources and direct test files)
     """
     source_files = [f for f in files if not is_test_file(f)]
-    test_files = []
+    test_files_input = [f for f in files if is_test_file(f)]
+    test_files_set = set()
+    # Map source files to their test files.
     for file_path in source_files:
         test_file = get_test_file_for_source(file_path)
         if test_file:
-            test_files.append(test_file)
-    return test_files
+            test_files_set.add(test_file)
+    # Include test files that are directly in the input.
+    test_files_set.update(test_files_input)
+    return list(test_files_set)
+
+
+def get_test_dirs_for_python_files(files: List[str]) -> List[str]:
+    """
+    Get test directories associated with any changed Python file.
+
+    For source files, returns the test directory where tests would live.
+    For test files, returns their parent directory.
+
+    E.g.:
+    - helpers/hdbg.py -> helpers/test/
+    - helpers/test/test_hdbg.py -> helpers/test/
+
+    :param files: list of file paths (Python files, source or test)
+    :return: list of test directories
+    """
+    test_dirs_set = set()
+    for file_path in files:
+        if not file_path.endswith(".py"):
+            continue
+        if is_test_file(file_path):
+            # For test files, use their parent directory.
+            parent_dir = os.path.dirname(file_path)
+            if parent_dir:
+                test_dirs_set.add(parent_dir)
+            else:
+                test_dirs_set.add(".")
+        else:
+            # For source files, get their test directory.
+            dir_name = os.path.dirname(file_path)
+            test_dir = os.path.join(dir_name, "test") if dir_name else "test"
+            # Only add if test directory exists (consistent with get_test_file_for_source behavior).
+            if os.path.exists(test_dir):
+                test_dirs_set.add(test_dir)
+    return sorted(test_dirs_set)
 
 
 def get_parent_dirs(files: List[str]) -> List[str]:
