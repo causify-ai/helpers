@@ -6,6 +6,7 @@ from unittest import mock
 
 import dev_scripts_helpers.ai.extract_cc_log as dshaecclo
 import helpers.hio as hio
+import helpers.hprint as hprint
 import helpers.hunit_test as hunitest
 
 
