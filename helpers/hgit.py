@@ -2055,6 +2055,29 @@ def git_add_file(file_path: str) -> List[str]:
     return added_files
 
 
+def find_merged_branches(mode: str) -> List[str]:
+    """
+    Find local or remote branches that have been merged into master.
+
+    :param mode: "local" for local branches or "remote" for remote branches
+    :return: names of the merged branches (without the `origin/` prefix
+        for remote branches)
+    """
+    if mode == "local":
+        # > git branch --merged
+        # * AmpTask1251_Update_GH_actions_for_amp_02
+        find_cmd = r"git branch --merged master | grep -v master | grep -v \*"
+    elif mode == "remote":
+        find_cmd = (
+            "git branch -r --merged origin/master"
+            + r" | grep -v master | sed 's/origin\///'"
+        )
+    else:
+        raise ValueError(f"Invalid mode='{mode}'")
+    _, branches = hsystem.system_to_lines(find_cmd, abort_on_error=False)
+    return branches
+
+
 def delete_branches(
     dir_name: str,
     mode: str,

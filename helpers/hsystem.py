@@ -77,11 +77,10 @@ def is_running_in_ipynb() -> bool:
 
 # #############################################################################
 
-_USER_NAME = None
+_USER_NAME = ""
 
 
-# TODO(ai_gp): Use "" instead of None.
-def set_user_name(user_name: Optional[str]) -> None:
+def set_user_name(user_name: str) -> None:
     """
     To impersonate a user.
 
@@ -93,7 +92,7 @@ def set_user_name(user_name: Optional[str]) -> None:
 
 
 def get_user_name() -> str:
-    if _USER_NAME is None:
+    if _USER_NAME == "":
         res = getpass.getuser()
     else:
         res = _USER_NAME
@@ -433,6 +432,21 @@ def system_to_one_line(cmd: str, *args: Any, **kwargs: Any) -> Tuple[int, str]:
     rc, output = system_to_string(cmd, *args, **kwargs)
     output = get_first_line(output)
     return rc, output
+
+
+def system_to_lines(
+    cmd: str, *args: Any, **kwargs: Any
+) -> Tuple[int, List[str]]:
+    """
+    Execute a shell command, capturing its output as a list of non-empty,
+    stripped lines.
+
+    This is a thin wrapper around system_to_string().
+    """
+    rc, output = system_to_string(cmd, *args, **kwargs)
+    lines = [line.strip() for line in output.split("\n")]
+    lines = [line for line in lines if line]
+    return rc, lines
 
 
 # #############################################################################

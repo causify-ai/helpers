@@ -1,4 +1,5 @@
 import helpers.hmarkdown as hmarkdo
+import helpers.hprint as hprint
 import helpers.hunit_test as hunitest
 
 
@@ -602,8 +603,6 @@ class Test_colorize_bullet_points_in_slide2(hunitest.TestCase):
 # #############################################################################
 
 
-# TODO(ai_gp): Factor out a helper. Use expected string and assert_equal
-# everywhere.
 class Test_bold_text_colorization_e2e(hunitest.TestCase):
     """
     End-to-end tests for bold text colorization in slides with Typst output.
@@ -612,32 +611,47 @@ class Test_bold_text_colorization_e2e(hunitest.TestCase):
     valid Typst syntax with colors and weight applied.
     """
 
-    # TODO(ai_gp): Rename test1, ...
-    def test_bold_text_colorization_typst_abbreviated(self) -> None:
+    def helper(
+        self,
+        text: str,
+        expected: str,
+        use_abbreviations: bool = False,
+        all_md_colors=None,
+    ) -> None:
+        """
+        Test helper for `colorize_bullet_points_in_slide()` with Typst.
+
+        :param text: Input markdown text
+        :param expected: Expected output
+        :param use_abbreviations: Whether to use abbreviated syntax
+        :param all_md_colors: Optional list of colors to cycle through
+        """
+        output_format = "typst"
+        actual = hmarkdo.colorize_bullet_points_in_slide(
+            text,
+            output_format,
+            use_abbreviations=use_abbreviations,
+            all_md_colors=all_md_colors,
+        )
+        self.assert_equal(actual, expected)
+
+    def test1(self) -> None:
         """
         Test abbreviated syntax produces valid Typst with color and weight.
         """
         text = "- @Definition@: Knowledge Representation"
-        output_format = "typst"
-        result = hmarkdo.colorize_bullet_points_in_slide(
-            text, output_format, use_abbreviations=True
-        )
         expected = '- `#text(fill: red, weight: "bold")[Definition]`{=typst}: Knowledge Representation'
-        self.assert_equal(result, expected)
+        self.helper(text, expected, use_abbreviations=True)
 
-    def test_bold_text_colorization_typst_full(self) -> None:
+    def test2(self) -> None:
         """
         Test full syntax produces valid Typst with color and weight.
         """
         text = "- @Definition@: Knowledge Representation"
-        output_format = "typst"
-        result = hmarkdo.colorize_bullet_points_in_slide(
-            text, output_format, use_abbreviations=False
-        )
         expected = '- `#text(fill: red, weight: "bold")[Definition]`{=typst}: Knowledge Representation'
-        self.assert_equal(result, expected)
+        self.helper(text, expected, use_abbreviations=False)
 
-    def test_multiple_bold_items_different_colors(self) -> None:
+    def test3(self) -> None:
         """
         Test multiple `@...@` markers get different colors.
         """
@@ -646,85 +660,61 @@ class Test_bold_text_colorization_e2e(hunitest.TestCase):
         - @Fact@: Second item
         - @Example@: Third item
         """
-        output_format = "typst"
-        result = hmarkdo.colorize_bullet_points_in_slide(
-            text, output_format, use_abbreviations=False
-        )
-        # Verify each bold item has a different color.
-        self.assertIn("fill: red", result)
-        self.assertIn("fill: green", result)
-        self.assertIn("fill: blue", result)
-        # Verify all have weight: "bold".
-        self.assertEqual(result.count('weight: "bold"'), 3)
+        text = hprint.dedent(text)
+        expected = r"""
+        - `#text(fill: red, weight: "bold")[Definition]`{=typst}: First item
+        - `#text(fill: green, weight: "bold")[Fact]`{=typst}: Second item
+        - `#text(fill: blue, weight: "bold")[Example]`{=typst}: Third item
+        """
+        expected = hprint.dedent(expected)
+        self.helper(text, expected, use_abbreviations=False)
 
-    def test_bold_text_with_special_characters(self) -> None:
+    def test4(self) -> None:
         """
         Test marker text containing special characters is properly colorized.
         """
         text = "- @Key insight@: Use `_` for emphasis"
-        output_format = "typst"
-        result = hmarkdo.colorize_bullet_points_in_slide(
-            text, output_format, use_abbreviations=False
-        )
-        # Verify the bold part is colorized with proper syntax.
-        self.assertIn(
-            '`#text(fill: red, weight: "bold")[Key insight]`{=typst}', result
-        )
+        expected = '- `#text(fill: red, weight: "bold")[Key insight]`{=typst}: Use `_` for emphasis'
+        self.helper(text, expected, use_abbreviations=False)
 
-    def test_bold_and_italic_combined(self) -> None:
+    def test5(self) -> None:
         """
         Test marker and italic text formatting together.
         """
         text = "- @Definition@: _Knowledge Representation_ is important"
-        output_format = "typst"
-        result = hmarkdo.colorize_bullet_points_in_slide(
-            text, output_format, use_abbreviations=False
-        )
-        # Verify marker is colorized, italic remains.
-        self.assertIn(
-            '`#text(fill: red, weight: "bold")[Definition]`{=typst}', result
-        )
-        self.assertIn("_Knowledge Representation_", result)
+        expected = '- `#text(fill: red, weight: "bold")[Definition]`{=typst}: _Knowledge Representation_ is important'
+        self.helper(text, expected, use_abbreviations=False)
 
-    def test_no_bold_text_unchanged(self) -> None:
+    def test6(self) -> None:
         """
         Test that lines without `@...@` markers are unchanged.
         """
         text = "- Just regular text without markers"
-        output_format = "typst"
-        result = hmarkdo.colorize_bullet_points_in_slide(
-            text, output_format, use_abbreviations=False
-        )
-        self.assert_equal(result, text)
+        expected = text
+        self.helper(text, expected, use_abbreviations=False)
 
-    def test_abbreviated_vs_full_syntax_equivalence(self) -> None:
+    def test7(self) -> None:
         """
         Test that abbreviated and full syntax produce equivalent Typst output.
         """
         text = "- @Item@: Description"
-        output_format = "typst"
-        abbreviated = hmarkdo.colorize_bullet_points_in_slide(
-            text, output_format, use_abbreviations=True
-        )
-        full = hmarkdo.colorize_bullet_points_in_slide(
-            text, output_format, use_abbreviations=False
-        )
-        # Both should produce the same Typst syntax.
-        self.assert_equal(abbreviated, full)
+        expected = '- `#text(fill: red, weight: "bold")[Item]`{=typst}: Description'
+        self.helper(text, expected, use_abbreviations=True)
+        self.helper(text, expected, use_abbreviations=False)
 
-    def test_rgb_color_values_in_typst(self) -> None:
+    def test8(self) -> None:
         """
         Test that colors requiring rgb() values are properly formatted.
         """
         text = "- @Item1@: Test\n- @Item2@: Test\n- @Item3@: Test\n- @Item4@: Test\n- @Item5@: Test"
-        output_format = "typst"
         all_md_colors = ["red", "orange", "violet", "magenta", "pink"]
-        result = hmarkdo.colorize_bullet_points_in_slide(
-            text,
-            output_format,
-            use_abbreviations=False,
-            all_md_colors=all_md_colors,
+        expected = (
+            '- `#text(fill: red, weight: "bold")[Item1]`{=typst}: Test\n'
+            '- `#text(fill: orange, weight: "bold")[Item2]`{=typst}: Test\n'
+            '- `#text(fill: rgb("#8B00FF"), weight: "bold")[Item3]`{=typst}: Test\n'
+            '- `#text(fill: rgb("#FF00FF"), weight: "bold")[Item4]`{=typst}: Test\n'
+            '- `#text(fill: rgb("#FFC0CB"), weight: "bold")[Item5]`{=typst}: Test'
         )
-        # Verify rgb() colors are present (for items where rgb is needed).
-        self.assertIn('rgb("#8B00FF")', result)  # violet
-        self.assertIn('rgb("#FF00FF")', result)  # magenta
+        self.helper(
+            text, expected, use_abbreviations=False, all_md_colors=all_md_colors
+        )

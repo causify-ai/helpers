@@ -685,8 +685,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
     # Handle summarize action.
     to_summarize, actions = hselacti.mark_action("summarize", actions)
     if to_summarize:
-        # TODO(ai_gp): Use dassert_lte
-        hdbg.dassert(args.md_level >= -1, "--md_level must be >= -1")
+        hdbg.dassert_lte(-1, args.md_level, "--md_level must be >= -1")
         out_file_name = _prepare_output_file(
             in_file_name, out_file_name, args.overwrite
         )

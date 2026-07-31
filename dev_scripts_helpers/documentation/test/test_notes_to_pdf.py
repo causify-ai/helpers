@@ -2015,13 +2015,12 @@ class Test_notes_to_pdf_latex_colors(hunitest.TestCase):
         hio.to_file(in_file, txt)
         return in_file
 
-    # TODO(ai_gp): Factor out the logic to run notes_to_pdf.py in a general
-    # free-standing function used by all the unit tests.
-    def helper(
-        self, type_: str, slides_engine: str, no_pdf: bool
-    ) -> Tuple[str, str]:
+    # TODO(ai_gp2): Factor out the logic to run notes_to_pdf.py in a general
+    # free-standing function used by all the unit tests. This requires opus
+    def helper(self, type_: str, slides_engine: str, no_pdf: bool) -> str:
         r"""
-        Run `notes_to_pdf.py` on markdown containing color commands.
+        Run `notes_to_pdf.py` on markdown containing color commands and
+        freeze the generated shell script and output file.
 
         :param type_: value for `--type` (e.g., `pdf`, `slides`)
         :param slides_engine: value for `--slides_engine` (e.g., `beamer`,
@@ -2029,17 +2028,7 @@ class Test_notes_to_pdf_latex_colors(hunitest.TestCase):
         :param no_pdf: if True, stop the pipeline at the intermediate
             source file (`.tex` for LaTeX / beamer, `.typ` for Typst)
             instead of compiling the PDF
-        :return: contents of the generated shell script and of the output
-            file (e.g., for `no_pdf=True`), e.g.,
-            ```
-            #!/bin/bash -xe
-            # cleanup_before
-            ## skipping this action
-            # preprocess_notes
-            .../preprocess_notes.py --input .../colors.md --output ...
-            ...
-            ```
-            and
+        :return: contents of the output file (e.g., for `no_pdf=True`), e.g.,
             ```
             % Options for packages loaded elsewhere
             \PassOptionsToPackage{unicode}{hyperref}
@@ -2106,9 +2095,11 @@ class Test_notes_to_pdf_latex_colors(hunitest.TestCase):
         # Verify script was generated.
         self.assertTrue(os.path.exists(script_file))
         script_txt = hio.from_file(script_file)
-        return script_txt, out_txt
+        # Check output.
+        actual = _to_output_str(script_txt, out_txt)
+        self.check_string(actual, purify_text=True, fuzzy_match=True)
+        return out_txt
 
-    # TODO(ai_gp): Move more boilerplate code to helper.
     def test1(self) -> None:
         r"""
         Test `--type pdf --slides_engine beamer`.
@@ -2118,10 +2109,7 @@ class Test_notes_to_pdf_latex_colors(hunitest.TestCase):
         slides_engine = "beamer"
         no_pdf = False
         # Run test.
-        script_txt, out_txt = self.helper(type_, slides_engine, no_pdf)
-        # Check output.
-        actual = _to_output_str(script_txt, out_txt)
-        self.check_string(actual, purify_text=True, fuzzy_match=True)
+        self.helper(type_, slides_engine, no_pdf)
 
     def test2(self) -> None:
         r"""
@@ -2132,10 +2120,7 @@ class Test_notes_to_pdf_latex_colors(hunitest.TestCase):
         slides_engine = "typst"
         no_pdf = False
         # Run test.
-        script_txt, out_txt = self.helper(type_, slides_engine, no_pdf)
-        # Check output.
-        actual = _to_output_str(script_txt, out_txt)
-        self.check_string(actual, purify_text=True, fuzzy_match=True)
+        self.helper(type_, slides_engine, no_pdf)
 
     def test3(self) -> None:
         r"""
@@ -2146,10 +2131,7 @@ class Test_notes_to_pdf_latex_colors(hunitest.TestCase):
         slides_engine = "beamer"
         no_pdf = False
         # Run test.
-        script_txt, out_txt = self.helper(type_, slides_engine, no_pdf)
-        # Check output.
-        actual = _to_output_str(script_txt, out_txt)
-        self.check_string(actual, purify_text=True, fuzzy_match=True)
+        self.helper(type_, slides_engine, no_pdf)
 
     def test4(self) -> None:
         r"""
@@ -2160,10 +2142,7 @@ class Test_notes_to_pdf_latex_colors(hunitest.TestCase):
         slides_engine = "typst"
         no_pdf = False
         # Run test.
-        script_txt, out_txt = self.helper(type_, slides_engine, no_pdf)
-        # Check output.
-        actual = _to_output_str(script_txt, out_txt)
-        self.check_string(actual, purify_text=True, fuzzy_match=True)
+        self.helper(type_, slides_engine, no_pdf)
 
     def test5(self) -> None:
         r"""
@@ -2174,15 +2153,10 @@ class Test_notes_to_pdf_latex_colors(hunitest.TestCase):
         slides_engine = "beamer"
         no_pdf = True
         # Run test.
-        script_txt, out_txt = self.helper(type_, slides_engine, no_pdf)
-        # Check output.
-        actual = _to_output_str(script_txt, out_txt)
-        self.check_string(actual, purify_text=True, fuzzy_match=True)
+        out_txt = self.helper(type_, slides_engine, no_pdf)
         # Check outputs.
         self.assertIn(r"\textcolor{red}", out_txt)
         self.assertIn(r"\textcolor{blue}", out_txt)
-        # TODO(ai_gp): Also freeze output checking the presence of strings
-        # with self.assert_equal
 
     def test6(self) -> None:
         r"""
@@ -2193,15 +2167,10 @@ class Test_notes_to_pdf_latex_colors(hunitest.TestCase):
         slides_engine = "typst"
         no_pdf = True
         # Run test.
-        script_txt, out_txt = self.helper(type_, slides_engine, no_pdf)
-        # Check output.
-        actual = _to_output_str(script_txt, out_txt)
-        self.check_string(actual, purify_text=True, fuzzy_match=True)
+        out_txt = self.helper(type_, slides_engine, no_pdf)
         # Check outputs.
         self.assertIn("#text(fill: red)", out_txt)
         self.assertIn("#text(fill: blue)", out_txt)
-        # TODO(ai_gp): Also freeze output checking the presence of strings
-        # with self.assert_equal
 
 
 # #############################################################################
@@ -2291,7 +2260,7 @@ class Test_notes_to_pdf_latex_cancel(hunitest.TestCase):
     pandoc conversion pipeline.
     """
 
-    def helper(self, markdown_content: str) -> str:
+    def helper(self, markdown_content: str, expected: str) -> str:
         """
         Helper to:
         - Create temporary markdown file
@@ -2329,6 +2298,9 @@ class Test_notes_to_pdf_latex_cancel(hunitest.TestCase):
         output_txt = ""
         if os.path.exists(pandoc_file):
             output_txt = hio.from_file(pandoc_file)
+        # Read actual.
+        expected = hprint.dedent(expected)
+        self.assert_equal(output_txt, expected, fuzzy_match=True)
         return output_txt
 
     def test1(self) -> None:
@@ -2347,15 +2319,14 @@ class Test_notes_to_pdf_latex_cancel(hunitest.TestCase):
 
         The cancelled term $\cancel{Y_0 | T=1}$ is the unobserved counterfactual.
         """
+        expected = r"""
+        """
         # Run test.
         output_txt = self.helper(markdown_content)
         # Check outputs.
-        # Verify cancelled notation is preserved in LaTeX output.
         self.assertIn(r"\cancel{", output_txt)
         self.assertIn("Y_1", output_txt)
         self.assertIn("Y_0", output_txt)
-        # TODO(ai_gp): Also freeze output checking the presence of strings
-        # with self.assert_equal
 
     def test2(self) -> None:
         """
@@ -2374,14 +2345,13 @@ class Test_notes_to_pdf_latex_cancel(hunitest.TestCase):
 
         This is why identification strategies are necessary.
         """
+        expected = r"""
+        """
         # Run test.
-        output_txt = self.helper(markdown_content)
+        output_txt = self.helper(markdown_content, expected)
         # Check outputs.
-        # Verify conditional expectation notation is preserved in LaTeX
         self.assertIn(r"\cancel{", output_txt)
         self.assertIn("E[Y", output_txt)
-        # TODO(ai_gp): Also freeze output checking the presence of strings
-        # with self.assert_equal
 
     def test3(self) -> None:
         """
@@ -2405,14 +2375,12 @@ class Test_notes_to_pdf_latex_cancel(hunitest.TestCase):
 
         Hence $\tau_i$ is not directly identifiable without assumptions.
         """
+        expected = ""
         # Run test.
-        output_txt = self.helper(markdown_content)
+        output_txt = self.helper(markdown_content, expected)
         # Check outputs.
-        # Verify multiple cancelled terms are preserved in LaTeX.
         self.assertIn(r"\cancel{", output_txt)
         self.assertIn(r"\tau_i", output_txt)
-        # TODO(ai_gp): Also freeze output checking the presence of strings
-        # with self.assert_equal
 
     def test4(self) -> None:
         """
@@ -2435,11 +2403,9 @@ class Test_notes_to_pdf_latex_cancel(hunitest.TestCase):
         E[Y_0 | T=1] = \cancel{E[Y_0 | T=1]_{\text{observed}}}
         $$
         """
+        expected = ""
         # Run test.
-        output_txt = self.helper(markdown_content)
+        output_txt = self.helper(markdown_content, expected)
         # Check outputs.
-        # Verify complex notation with cancelled terms is preserved in LaTeX.
         self.assertIn(r"\cancel{", output_txt)
         self.assertIn(r"\underbrace{", output_txt)
-        # TODO(ai_gp): Also freeze output checking the presence of strings
-        # with self.assert_equal

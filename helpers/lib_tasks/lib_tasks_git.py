@@ -16,7 +16,6 @@ import tqdm
 from invoke.tasks import task
 
 import helpers.hdbg as hdbg
-import helpers.hstring as hstring
 import helpers.hsystem as hsystem
 
 # We want to minimize the dependencies from non-standard Python packages since
@@ -692,33 +691,14 @@ def git_branch_create(  # type: ignore
             _LOG.warning("Failed to create PR: %s", e)
 
 
-# TODO(ai_gp): @all Move to hgit.
-def _delete_branches(ctx: Any, tag: str, confirm_delete: bool) -> None:
+def _delete_branches(tag: str, confirm_delete: bool) -> None:
     """
     Delete branches that have been merged into master.
 
-    :param ctx: Invoke context
     :param tag: Either "local" for local branches or "remote" for remote branches
     :param confirm_delete: If True, ask user for confirmation before deleting
     """
-    if tag == "local":
-        # Delete local branches that are already merged into master.
-        # > git branch --merged
-        # * AmpTask1251_Update_GH_actions_for_amp_02
-        find_cmd = r"git branch --merged master | grep -v master | grep -v \*"
-        delete_cmd = "git branch -d"
-    elif tag == "remote":
-        # Get the branches to delete.
-        find_cmd = (
-            "git branch -r --merged origin/master"
-            + r" | grep -v master | sed 's/origin\///'"
-        )
-        delete_cmd = "git push origin --delete"
-    else:
-        raise ValueError(f"Invalid tag='{tag}'")
-    # TODO(ai_gp): Use system_to_lines, if possible.
-    _, txt = hsystem.system_to_string(find_cmd, abort_on_error=False)
-    branches = hstring.text_to_list(txt)
+    branches = hgit.find_merged_branches(tag)
     # Print info.
     _LOG.info(
         "There are %d %s branches to delete:\n%s",
@@ -729,14 +709,9 @@ def _delete_branches(ctx: Any, tag: str, confirm_delete: bool) -> None:
     if not branches:
         # No branch to delete, then we are done.
         return
-    # Ask whether to continue.
-    if confirm_delete:
-        hsystem.query_yes_no(
-            hdbg.WARNING + f": Delete these {tag} branches?", abort_on_no=True
-        )
-    for branch in branches:
-        cmd_tmp = f"{delete_cmd} {branch}"
-        hltltaut.run(ctx, cmd_tmp)
+    if tag == "remote":
+        branches = [f"origin/{branch}" for branch in branches]
+    hgit.delete_branches(".", tag, branches, confirm_delete)
 
 
 @task
@@ -755,8 +730,8 @@ def git_branch_delete_merged(ctx, confirm_delete=True):  # type: ignore
     cmd = "git fetch --all --prune"
     hltltaut.run(ctx, cmd)
     # Delete local and remote branches that are already merged into master.
-    _delete_branches(ctx, "local", confirm_delete)
-    _delete_branches(ctx, "remote", confirm_delete)
+    _delete_branches("local", confirm_delete)
+    _delete_branches("remote", confirm_delete)
     #
     cmd = "git fetch --all --prune"
     hltltaut.run(ctx, cmd)
