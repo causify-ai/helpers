@@ -1,6 +1,7 @@
 import json
 import os
 import pprint
+from io import StringIO
 from typing import Any, Dict, List
 from unittest import mock
 
@@ -345,3 +346,52 @@ class Test_extract_cc_log_py(hunitest.TestCase):
         )
         # Check outputs.
         self._helper_check_stats_file(stats_file)
+
+    def test5(self) -> None:
+        """
+        Test reading from stdin using `--input -`.
+        """
+        # Prepare inputs: copy sample log to test-specific input directory.
+        test_input_dir = self.get_input_dir()
+        main_input_dir = os.path.dirname(__file__) + "/input"
+        main_input_file = os.path.join(main_input_dir, "sample_cc_log.txt")
+        test_input_file = os.path.join(test_input_dir, "sample_cc_log.txt")
+        hio.to_file(test_input_file, hio.from_file(main_input_file))
+        input_content = hio.from_file(test_input_file)
+        scratch_dir = self.get_scratch_space()
+        stats_file = os.path.join(scratch_dir, "stats.json")
+        # Run test: mock stdin with log content.
+        argv = ["extract_cc_log.py", "--input", "-", "--stats", stats_file]
+        parser = dshaecclo._parse()
+        with mock.patch("sys.argv", argv):
+            with mock.patch("sys.stdin", StringIO(input_content)):
+                dshaecclo._main(parser)
+        # Check outputs.
+        self._helper_check_stats_file(stats_file)
+
+    def test6(self) -> None:
+        """
+        Test writing to stdout using `--output -`.
+        """
+        # Prepare inputs: copy sample log to test-specific input directory.
+        test_input_dir = self.get_input_dir()
+        main_input_dir = os.path.dirname(__file__) + "/input"
+        main_input_file = os.path.join(main_input_dir, "sample_cc_log.txt")
+        test_input_file = os.path.join(test_input_dir, "sample_cc_log.txt")
+        hio.to_file(test_input_file, hio.from_file(main_input_file))
+        # Run test: capture stdout.
+        argv = ["extract_cc_log.py", "--input", test_input_file, "--output", "-"]
+        parser = dshaecclo._parse()
+        captured_output = StringIO()
+        with mock.patch("sys.argv", argv):
+            with mock.patch("sys.stdout", new=captured_output):
+                dshaecclo._main(parser)
+        # Check outputs: verify both narrative and output file content are in stdout.
+        actual = captured_output.getvalue()
+        # Check for key narrative elements.
+        self.assertIn("NARRATIVE", actual)
+        # Check for output file content (ASSISTANT TEXT appears twice: once from
+        # narrative, once from --output -).
+        self.assertIn("ASSISTANT TEXT", actual)
+        # Check for recursion content appears.
+        self.assertIn("Recursion is when a function calls itself", actual)

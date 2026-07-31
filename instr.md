@@ -1,4 +1,6 @@
-Run the skill /coding.todoai_gp on each of the TODO, one at the time
+Extend extract_cc_log.py to accept --input - and --output - for stdin and stdout
+There are functions in helpers to handle that, so use them
+
 
 # Conventions
 - When writing code you must always follow the instructions in

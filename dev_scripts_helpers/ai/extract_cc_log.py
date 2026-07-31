@@ -7,9 +7,12 @@ Parses `log.txt` and produces a chronological transcript interleaving
 thinking blocks, tool calls, results, and cost per request.
 
 Usage:
+# TODO(ai_gp): Add a comment explaining each command below
 > ./extract_cc_log.py --input log.txt
 > ./extract_cc_log.py --input log.txt --output_dir /tmp
 > ./extract_cc_log.py --input log.txt --output_dir /tmp --text_only
+> ./extract_cc_log.py --input - --output - < log.txt
+> ./extract_cc_log.py --input log.txt --output -
 """
 
 import argparse
@@ -22,6 +25,7 @@ import helpers.hdbg as hdbg
 import helpers.hio as hio
 import helpers.hparser as hparser
 import helpers.hprint as hprint
+import helpers.hselect_input_output as hseinout
 
 _LOG = logging.getLogger(__name__)
 
@@ -38,15 +42,16 @@ def _parse_records(log_file: str) -> List[Dict[str, Any]]:
     Skips non-JSON lines (e.g., shell command headers, env vars), reporting
     the count of skipped lines in debug output.
 
-    :param log_file: Path to the log file to parse
+    :param log_file: Path to the log file to parse (use `-` for stdin)
     :return: List of parsed JSON record dicts
     """
     _LOG.debug("Parsing records from '%s'", log_file)
-    hdbg.dassert_file_exists(log_file, "Log file must exist")
+    if log_file != "-":
+        hdbg.dassert_file_exists(log_file, "Log file must exist")
     records: List[Dict[str, Any]] = []
     skipped = 0
-    content = hio.from_file(log_file)
-    for line_num, line in enumerate(content.split("\n"), 1):
+    lines = hseinout.from_file(log_file)
+    for line_num, line in enumerate(lines, 1):
         line = line.strip()
         if not line:
             continue
@@ -436,14 +441,15 @@ def _write_output(
     Print output and optionally write to a file.
 
     :param output: String content to print and optionally save
-    :param file_name: File name to save under `output_dir`
+    :param file_name: File name to save under `output_dir` (use `-` for stdout only)
     :param output_dir: Optional directory to write the output file
     """
     if output_dir:
         file_path = os.path.join(output_dir, file_name)
         hio.to_file(file_path, output)
         _LOG.info("Output written to '%s'", file_path)
-    print(output)
+    else:
+        print(output)
 
 
 # #############################################################################
@@ -712,7 +718,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
         output_dir=args.output_dir,
         text_only=args.text_only,
     )
-    # Write narrative to file if --output is specified.
+    # Write narrative to file or stdout if --output is specified.
     if args.output:
         init_info = _extract_init_info(records)
         text_blocks = _extract_assistant_text_blocks(records)
@@ -738,9 +744,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
                 lines.append(text)
                 lines.append("")
         output = "\n".join(lines)
-        with open(args.output, "w") as f:
-            f.write(output)
-        _LOG.info("Output written to '%s'", args.output)
+        hseinout.to_file(output, args.output)
 
 
 if __name__ == "__main__":

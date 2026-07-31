@@ -18,6 +18,9 @@ By default both the blink and the notification are enabled.
 
 # Blink for at most 10 seconds instead of forever.
 > notify.py --timeout 10
+
+# Send notification in background and return immediately.
+> notify.py --background
 """
 
 import argparse
@@ -158,6 +161,12 @@ def _parse() -> argparse.ArgumentParser:
         default="Glass",
         help="Name of the macOS sound to play with the notification",
     )
+    hparser.add_bool_arg(
+        parser,
+        "background",
+        default_value=False,
+        help_="Run notification in background and return immediately",
+    )
     hparser.add_verbosity_arg(parser)
     return parser
 
@@ -165,6 +174,13 @@ def _parse() -> argparse.ArgumentParser:
 def _main(parser: argparse.ArgumentParser) -> None:
     args = parser.parse_args()
     hdbg.init_logger(verbosity=args.log_level, use_exec_path=True)
+    # Fork into background if requested: parent returns immediately, child
+    # continues.
+    if args.background:
+        pid = os.fork()
+        if pid != 0:
+            return
+        os.setsid()
     #
     hdbg.dassert_in("bash", os.environ.get("SHELL", ""))
     message = []
@@ -173,10 +189,10 @@ def _main(parser: argparse.ArgumentParser) -> None:
         message.append(last_command)
     else:
         message.append(args.title)
-    current_dir = os.getcwd()
-    message.append(f"dir={current_dir}")
+    #current_dir = os.getcwd()
+    #message.append(f"dir={current_dir}")
     current_iterm2_name = _get_iterm2_name()
-    message.append(f"term={current_iterm2_name}")
+    message.append(current_iterm2_name)
     message = "\n".join(message)
     if args.notify:
         _send_notification(message, sound_name=args.sound)
