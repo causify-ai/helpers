@@ -6,29 +6,22 @@ Import as:
 import dev_scripts_helpers.ai.test.test_cc_lib as daiattccl
 """
 
-import logging
+import os
 
 import helpers.hio as hio
 import helpers.hunit_test as hunitest
 
 import dev_scripts_helpers.ai.cc_lib as dshaccli
 
-_LOG = logging.getLogger(__name__)
-
 
 # #############################################################################
-# Test_PromptSequencer
+# TestPromptSequencer
 # #############################################################################
 
 
-class Test_PromptSequencer(hunitest.TestCase):
+class TestPromptSequencer(hunitest.TestCase):
     """
     Test PromptSequencer class initialization and configuration.
-
-    Tests cover:
-    - Initialization with default options
-    - Initialization with custom options
-    - Execution statistics
     """
 
     def test1(self) -> None:
@@ -36,6 +29,8 @@ class Test_PromptSequencer(hunitest.TestCase):
         Test PromptSequencer initialization with default options.
         """
         # Prepare inputs.
+        # (no input needed for default initialization)
+        # Run test.
         sequencer = dshaccli.PromptSequencer()
         # Check outputs.
         self.assertIsNotNone(sequencer)
@@ -50,8 +45,9 @@ class Test_PromptSequencer(hunitest.TestCase):
         # Prepare inputs.
         allowed_tools = ["Read", "Edit", "Bash"]
         permission_mode = "acceptEdits"
+        # TODO(ai_gp): Use self.get_scratch_space()
         cwd = "/tmp/test"
-        # Create sequencer.
+        # Run test.
         sequencer = dshaccli.PromptSequencer(
             allowed_tools=allowed_tools,
             permission_mode=permission_mode,
@@ -68,7 +64,7 @@ class Test_PromptSequencer(hunitest.TestCase):
         """
         # Prepare inputs.
         sequencer = dshaccli.PromptSequencer()
-        # Get stats.
+        # Run test.
         stats = sequencer.get_execution_stats()
         # Check outputs.
         self.assertEqual(stats["prompts_executed"], 0)
@@ -81,7 +77,7 @@ class Test_PromptSequencer(hunitest.TestCase):
         """
         # Prepare inputs.
         sequencer = dshaccli.PromptSequencer()
-        # Get response.
+        # Run test.
         response = sequencer.get_last_response()
         # Check outputs.
         self.assertEqual(response, "")
@@ -95,47 +91,74 @@ class Test_PromptSequencer(hunitest.TestCase):
 class Test_save_session_log(hunitest.TestCase):
     """
     Test save_session_log function.
-
-    Tests cover:
-    - Saving single prompt-response pair
-    - Saving multiple prompt-response pairs
-    - File format verification
     """
+
+    def helper(
+        self, prompts: list, responses: list, expected_output: str
+    ) -> None:
+        """
+        Helper for testing save_session_log.
+
+        :param prompts: List of prompts to save
+        :param responses: List of responses to save
+        :param expected_output: Expected file content
+        """
+        # Prepare inputs.
+        output_dir = self.get_output_dir()
+        output_file = os.path.join(output_dir, "session.log")
+        # Run test.
+        dshaccli.save_session_log(output_file, prompts, responses)
+        # Check outputs.
+        self.assertTrue(os.path.exists(output_file))
+        actual = hio.from_file(output_file)
+        self.assert_equal(actual, expected_output)
 
     def test1(self) -> None:
         """
         Test saving single prompt-response pair to file.
         """
         # Prepare inputs.
-        output_dir = self.get_output_dir()
-        output_file = f"{output_dir}/session.log"
         prompts = ["What is 2+2?"]
         responses = ["2+2 equals 4"]
-        # Save session log.
-        dshaccli.save_session_log(output_file, prompts, responses)
-        # Check outputs.
-        import os
-
-        self.assertTrue(os.path.exists(output_file))
-        # Verify content.
-        actual = hio.from_file(output_file)
-        self.check_string(actual)
+        # Prepare outputs.
+        expected = """
+        <prompt>
+        What is 2+2?
+        </prompt>
+        <response>
+        2+2 equals 4
+        </response>
+        """
+        # Run test.
+        self.helper(prompts, responses, expected)
 
     def test2(self) -> None:
         """
         Test saving multiple prompt-response pairs to file.
         """
         # Prepare inputs.
-        output_dir = self.get_output_dir()
-        output_file = f"{output_dir}/session_multi.log"
         prompts = ["First prompt", "Second prompt", "Third prompt"]
         responses = ["Response 1", "Response 2", "Response 3"]
-        # Save session log.
-        dshaccli.save_session_log(output_file, prompts, responses)
-        # Check outputs.
-        import os
-
-        self.assertTrue(os.path.exists(output_file))
-        # Verify content.
-        actual = hio.from_file(output_file)
-        self.check_string(actual)
+        # Prepare outputs.
+        expected = """
+        <prompt>
+        First prompt
+        </prompt>
+        <response>
+        Response 1
+        </response>
+        <prompt>
+        Second prompt
+        </prompt>
+        <response>
+        Response 2
+        </response>
+        <prompt>
+        Third prompt
+        </prompt>
+        <response>
+        Response 3
+        </response>
+        """
+        # Run test.
+        self.helper(prompts, responses, expected)

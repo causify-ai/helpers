@@ -24,11 +24,6 @@ _LOG = logging.getLogger(__name__)
 class Test_parse(hunitest.TestCase):
     """
     Test argument parsing for cc_script.
-
-    Tests cover:
-    - Parser creation and default values
-    - Required mutually exclusive group (prompts vs prompts_file)
-    - Optional arguments parsing
     """
 
     def test1(self) -> None:
@@ -37,11 +32,12 @@ class Test_parse(hunitest.TestCase):
         """
         # Prepare inputs.
         parser = dshaccsc._parse()
+        # Prepare outputs.
+        expected = "test prompt"
+        # Run test.
         args = parser.parse_args(["--prompts", "test prompt"])
         # Check outputs.
-        self.assertIsNotNone(args)
-        self.assertIn("test prompt", args.prompts)
-        self.assertEqual(args.permission_mode, "ask")
+        self.assert_equal(args.prompts, expected)
 
     def test2(self) -> None:
         """
@@ -49,21 +45,24 @@ class Test_parse(hunitest.TestCase):
         """
         # Prepare inputs.
         parser = dshaccsc._parse()
-        args = parser.parse_args(
-            [
-                "--prompts",
-                "prompt1",
-                "--permission_mode",
-                "acceptEdits",
-                "--tools",
-                "Read",
-                "--tools",
-                "Edit",
-            ]
-        )
+        argv = [
+            "--prompts",
+            "prompt1",
+            "--permission_mode",
+            "acceptEdits",
+            "--tools",
+            "Read",
+            "--tools",
+            "Edit",
+        ]
+        # Prepare outputs.
+        expected_permission = "acceptEdits"
+        expected_tools = ["Read", "Edit"]
+        # Run test.
+        args = parser.parse_args(argv)
         # Check outputs.
-        self.assertEqual(args.permission_mode, "acceptEdits")
-        self.assertEqual(args.tools, ["Read", "Edit"])
+        self.assert_equal(args.permission_mode, expected_permission)
+        self.assert_equal(str(args.tools), str(expected_tools))
 
     def test3(self) -> None:
         """
@@ -71,19 +70,22 @@ class Test_parse(hunitest.TestCase):
         """
         # Prepare inputs.
         parser = dshaccsc._parse()
-        args = parser.parse_args(
-            [
-                "--prompts",
-                "test",
-                "--output_file",
-                "/tmp/session.log",
-                "--cwd",
-                "/home/user",
-            ]
-        )
+        argv = [
+            "--prompts",
+            "test",
+            "--output_file",
+            "/tmp/session.log",
+            "--cwd",
+            "/home/user",
+        ]
+        # Prepare outputs.
+        expected_output_file = "/tmp/session.log"
+        expected_cwd = "/home/user"
+        # Run test.
+        args = parser.parse_args(argv)
         # Check outputs.
-        self.assertEqual(args.output_file, "/tmp/session.log")
-        self.assertEqual(args.cwd, "/home/user")
+        self.assert_equal(args.output_file, expected_output_file)
+        self.assert_equal(args.cwd, expected_cwd)
 
     def test4(self) -> None:
         """
@@ -91,12 +93,18 @@ class Test_parse(hunitest.TestCase):
         """
         # Prepare inputs.
         parser = dshaccsc._parse()
+        # Prepare outputs.
+        expected_permission = "ask"
+        expected_tools = []
+        expected_cwd = ""
+        expected_output_file = "cc_session.log"
+        # Run test.
         args = parser.parse_args(["--prompts", "test"])
         # Check outputs.
-        self.assertEqual(args.permission_mode, "ask")
-        self.assertEqual(args.tools, [])
-        self.assertEqual(args.cwd, "")
-        self.assertEqual(args.output_file, "cc_session.log")
+        self.assert_equal(args.permission_mode, expected_permission)
+        self.assert_equal(str(args.tools), str(expected_tools))
+        self.assert_equal(args.cwd, expected_cwd)
+        self.assert_equal(args.output_file, expected_output_file)
 
 
 # #############################################################################
@@ -107,11 +115,6 @@ class Test_parse(hunitest.TestCase):
 class Test_load_prompts_from_file(hunitest.TestCase):
     """
     Test loading prompts from file.
-
-    Tests cover:
-    - Loading single prompt from file
-    - Loading multiple prompts (one per line)
-    - Handling whitespace and empty lines
     """
 
     def test1(self) -> None:
@@ -121,14 +124,14 @@ class Test_load_prompts_from_file(hunitest.TestCase):
         # Prepare inputs.
         input_dir = self.get_input_dir()
         input_file = f"{input_dir}/single_prompt.txt"
-        # Create input file.
         content = "What is the capital of France?"
         hio.to_file(input_file, content)
-        # Load prompts.
+        # Prepare outputs.
+        expected = ["What is the capital of France?"]
+        # Run test.
         prompts = dshaccsc._load_prompts_from_file(input_file)
         # Check outputs.
-        self.assertEqual(len(prompts), 1)
-        self.assertEqual(prompts[0], "What is the capital of France?")
+        self.assert_equal(str(prompts), str(expected))
 
     def test2(self) -> None:
         """
@@ -137,18 +140,21 @@ class Test_load_prompts_from_file(hunitest.TestCase):
         # Prepare inputs.
         input_dir = self.get_input_dir()
         input_file = f"{input_dir}/multi_prompts.txt"
-        # Create input file with multiple prompts.
+        # TODO(ai_gp): Align with text and dedent.
         content = """First prompt here
 Second prompt here
 Third prompt here"""
         hio.to_file(input_file, content)
-        # Load prompts.
+        # Prepare outputs.
+        expected = [
+            "First prompt here",
+            "Second prompt here",
+            "Third prompt here",
+        ]
+        # Run test.
         prompts = dshaccsc._load_prompts_from_file(input_file)
         # Check outputs.
-        self.assertEqual(len(prompts), 3)
-        self.assertEqual(prompts[0], "First prompt here")
-        self.assertEqual(prompts[1], "Second prompt here")
-        self.assertEqual(prompts[2], "Third prompt here")
+        self.assert_equal(str(prompts), str(expected))
 
     def test3(self) -> None:
         """
@@ -157,17 +163,16 @@ Third prompt here"""
         # Prepare inputs.
         input_dir = self.get_input_dir()
         input_file = f"{input_dir}/whitespace_prompts.txt"
-        # Create input file with whitespace.
+        # TODO(ai_gp): Align with text and dedent.
         content = """Prompt 1
 
 Prompt 2
 
   Prompt 3  """
         hio.to_file(input_file, content)
-        # Load prompts.
+        # Prepare outputs.
+        expected = ["Prompt 1", "Prompt 2", "Prompt 3"]
+        # Run test.
         prompts = dshaccsc._load_prompts_from_file(input_file)
         # Check outputs.
-        self.assertEqual(len(prompts), 3)
-        self.assertEqual(prompts[0], "Prompt 1")
-        self.assertEqual(prompts[1], "Prompt 2")
-        self.assertEqual(prompts[2], "Prompt 3")
+        self.assert_equal(str(prompts), str(expected))

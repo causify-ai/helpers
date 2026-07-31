@@ -6,17 +6,8 @@ Reads a list of prompts and executes them sequentially, maintaining context
 across prompts. Outputs raw responses and saves a session log.
 
 Usage:
-    cc_script.py --prompts "prompt1" --prompts "prompt2" [--options]
-    cc_script.py --prompts_file prompts.txt [--options]
-
-Options:
-    --prompts TEXT: Individual prompt strings (can be repeated)
-    --prompts_file FILE: File with one prompt per line
-    --tools TOOL: Allowed tools (can be repeated, e.g., Read, Edit, Bash)
-    --permission_mode MODE: "ask", "acceptEdits", or "bypassPermissions"
-    --cwd PATH: Working directory for execution
-    --output_file FILE: Path to save session log
-    --log_level LEVEL: Logging level (DEBUG, INFO, WARNING, ERROR)
+> cc_script.py --prompts "prompt1" --prompts "prompt2" [--options]
+> cc_script.py --prompts_file prompts.txt [--options]
 """
 
 import argparse
@@ -35,13 +26,6 @@ import dev_scripts_helpers.ai.cc_lib as dshaccli
 _LOG = logging.getLogger(__name__)
 
 # #############################################################################
-# Constants
-# #############################################################################
-
-# Default output file for session log.
-_DEFAULT_OUTPUT_FILE = "cc_session.log"
-
-# #############################################################################
 # Prompt Loading
 # #############################################################################
 
@@ -55,13 +39,10 @@ def _load_prompts_from_file(file_path: str) -> List[str]:
     """
     hdbg.dassert_file_exists(file_path)
     _LOG.debug("Loading prompts from file '%s'", file_path)
-
     content = hio.from_file(file_path)
     prompts = [line.strip() for line in content.split("\n") if line.strip()]
-
-    hdbg.dassert(len(prompts) > 0, "Prompts file is empty")
+    hdbg.dassert_lt(0, len(prompts), "Prompts file is empty")
     _LOG.info("Loaded %d prompts from file", len(prompts))
-
     return prompts
 
 
@@ -87,23 +68,16 @@ async def _execute_prompts(
     :raises RuntimeError: If execution fails
     """
     _LOG.info("Starting prompt execution with %d prompts", len(prompts))
-
     sequencer = dshaccli.PromptSequencer(
         allowed_tools=allowed_tools,
         permission_mode=permission_mode,
         cwd=cwd,
     )
-
-    try:
-        await sequencer.execute(prompts)
-    except RuntimeError as e:
-        _LOG.error("Prompt execution failed: %s", str(e))
-        raise
-
+    await sequencer.execute(prompts)
     # Collect responses (for now, just the last one from sequencer).
+    # TODO(gp): Extend this.
     stats = sequencer.get_execution_stats()
     _LOG.info("Execution completed: %s", stats)
-
     # Return execution results.
     return {
         "prompts": prompts,
@@ -123,6 +97,7 @@ def _print_response(response: str) -> None:
 
     :param response: Response text from Claude
     """
+    # TODO(ai_gp): -> hprint.frame
     print("\n" + "=" * 80)
     print("CLAUDE RESPONSE:")
     print("=" * 80)
@@ -215,7 +190,7 @@ def _parse() -> argparse.ArgumentParser:
     parser.add_argument(
         "--output_file",
         type=str,
-        default=_DEFAULT_OUTPUT_FILE,
+        default="tmp.cc_script.log",
         help="Path to save session log",
     )
 

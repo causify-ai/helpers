@@ -642,6 +642,30 @@
   hio.to_file(test_file, "content")
   ```
 
+## Do Not Use /tmp in Tests
+
+- Always use `self.get_scratch_space()` instead of hardcoding `/tmp` paths for
+  test files
+- Reason: `/tmp` is not managed by the test framework and won't be automatically
+  cleaned up; this leaves stray test files on the system and makes tests less
+  portable across environments
+
+- **Bad** (hardcoding `/tmp`)
+  ```python
+  # Prepare inputs.
+  cwd = "/tmp/test"
+  test_file = os.path.join(cwd, "data.txt")
+  hio.to_file(test_file, "content")
+  ```
+
+- **Good** (using `self.get_scratch_space()`)
+  ```python
+  # Prepare inputs.
+  scratch_dir = self.get_scratch_space()
+  test_file = os.path.join(scratch_dir, "data.txt")
+  hio.to_file(test_file, "content")
+  ```
+
 ## Setup and Teardown
 
 - Use `set_up_test()` and `tear_down_test()` via `@pytest.fixture(autouse=True)`
