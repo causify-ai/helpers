@@ -10,14 +10,15 @@ import logging
 import textwrap
 from typing import List
 
+import helpers.hio as hio
+import helpers.hprint as hprint
+import helpers.hunit_test as hunitest
+
 import pytest
 
-import helpers.hio as hio  # noqa: E402
-import helpers.hprint as hprint
-import helpers.hunit_test as hunitest  # noqa: E402
-
 pytest.importorskip("claude_agent_sdk")
-import dev_scripts_helpers.ai.cc_script as dshaccsc  # noqa: E402
+
+import dev_scripts_helpers.ai.cc_script as dshaccsc
 
 _LOG = logging.getLogger(__name__)
 

@@ -8,13 +8,15 @@ import dev_scripts_helpers.ai.test.test_cc_lib as daiattccl
 
 import os
 
+import helpers.hio as hio
+import helpers.hprint as hprint
+import helpers.hunit_test as hunitest
+
 import pytest
 
-import helpers.hio as hio  # noqa: E402
-import helpers.hunit_test as hunitest  # noqa: E402
-
 pytest.importorskip("claude_agent_sdk")
-import dev_scripts_helpers.ai.cc_lib as dshaccli  # noqa: E402
+
+import dev_scripts_helpers.ai.cc_lib as dshaccli
 
 
 # #############################################################################

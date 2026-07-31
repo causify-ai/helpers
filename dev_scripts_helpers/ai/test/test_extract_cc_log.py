@@ -143,10 +143,17 @@ class Test_extract_assistant_text_blocks(hunitest.TestCase):
         # Run test.
         text_blocks = dshaecclo._extract_assistant_text_blocks(records)
         # Check outputs.
-        all_text = " ".join(b.get("text", "") for b in text_blocks)
-        # Verify text blocks were extracted and contain recursion content
-        self.assertIn("Recursion", all_text)
-        self.assertIn("function", all_text)
+        all_text = "\n".join(b.get("text", "") for b in text_blocks)
+        expected = r"""
+        Recursion is when a function calls itself to solve a problem by breaking it into smaller instances of the same problem. Each recursive call operates on simpler input until reaching a base case—a condition that stops further recursion and returns a value.
+        Key components: a base case(exit condition)and a recursive case(calls itself with reduced input). Without a base case,recursion loops infinitely.
+        Examples: factorial(n! = n ×(n-1)!),tree traversal,binary search. Each call adds a stack frame; deep recursion risks stack overflow. Iteration often replaces recursion for performance,but recursion clarifies problems with inherent recursive structure.
+        Recursion is when a function calls itself to solve a problem by breaking it into smaller instances of the same problem. Each recursive call operates on simpler input until reaching a base case—a condition that stops further recursion and returns a value.
+        Key components: a base case(exit condition)and a recursive case(calls itself with reduced input). Without a base case,recursion loops infinitely.
+        Examples: factorial(n! = n ×(n-1)!),tree traversal,binary search. Each call adds a stack frame; deep recursion risks stack overflow. Iteration often replaces recursion for performance,but recursion clarifies problems with inherent recursive structure.
+        """
+        expected = hprint.dedent(expected)
+        self.assert_equal(all_text, expected, fuzzy_match=True)
 
 
 # #############################################################################
@@ -169,9 +176,17 @@ class Test_extract_thinking_blocks(hunitest.TestCase):
         # Run test.
         thinking_blocks = dshaecclo._extract_thinking_blocks(records)
         # Check outputs.
-        all_thinking = " ".join(b.get("text", "") for b in thinking_blocks)
-        # Verify thinking blocks were extracted and contain recursion reference
-        self.assertIn("recursion", all_thinking.lower())
+        all_thinking = "\n".join(b.get("text", "") for b in thinking_blocks)
+        expected = r"""
+        User is asking for a 100-word description of recursion. This is a straightforward educational question. They want me to explain recursion concisely.
+        Given the caveman mode instructions from CLAUDE.md,I should be terse - strip fluff,use fragments,keep it technical. But this is an educational explanation,so I need to be clear. I'll keep it direct and technical without filler.
+        Let me write a clear,technical 100-word explanation of recursion.
+        User is asking for a 100-word description of recursion. This is a straightforward educational question. They want me to explain recursion concisely.
+        Given the caveman mode instructions from CLAUDE.md,I should be terse - strip fluff,use fragments,keep it technical. But this is an educational explanation,so I need to be clear. I'll keep it direct and technical without filler.
+        Let me write a clear,technical 100-word explanation of recursion.
+        """
+        expected = hprint.dedent(expected)
+        self.assert_equal(all_thinking, expected, fuzzy_match=True)
 
 
 # #############################################################################
@@ -259,10 +274,14 @@ class Test_extract_cc_log_py(hunitest.TestCase):
         self._run_extract_cc_log(input_file, output_file=output_file)
         # Check outputs.
         actual = hio.from_file(output_file)
-        # Verify narrative contains session info and extracted content
-        self.assertIn("Session:", actual)
-        self.assertIn("ASSISTANT TEXT", actual)
-        self.assertIn("Recursion", actual)
+        expected = """
+        === Session: 6da1ffe9 | claude-haiku-4-5-20251001 | CC 2.1.220 ===
+        ASSISTANT TEXT
+        Recursion is when a function calls itself to solve a problem by breaking it into smaller instances of the same problem. Each recursive call operates on simpler input until reaching a base case—a condition that stops further recursion and returns a value.
+        Key components: a base case(exit condition)and a recursive case(calls itself with reduced input). Without a base case,recursion loops infinitely.
+        Examples: factorial(n! = n ×(n-1)!),tree traversal,binary search. Each call adds a stack frame; deep recursion risks stack overflow. Iteration often replaces recursion for performance,but recursion clarifies problems with inherent recursive structure.
+        """
+        self.assert_equal(actual, expected, fuzzy_match=True)
 
     def test3(self) -> None:
         """
