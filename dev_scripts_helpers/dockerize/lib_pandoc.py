@@ -31,6 +31,30 @@ _LOG = logging.getLogger(__name__)
 VALID_PANDOC_BACKENDS = ["auto", "dockerized", "host"]
 
 
+def add_pandoc_backend_arg(
+    parser: argparse.ArgumentParser,
+    *,
+    default: str = "auto",
+) -> argparse.ArgumentParser:
+    """
+    Add a `--pandoc_backend` command line option.
+
+    :param parser: parser to add the option to
+    :param default: default backend to use
+    :return: parser with the option added
+    """
+    parser.add_argument(
+        "--pandoc_backend",
+        type=str,
+        choices=VALID_PANDOC_BACKENDS,
+        default=default,
+        help="How to run `pandoc`: `auto` uses the host binary "
+        "and falls back to Docker otherwise, `dockerized` always runs "
+        "pandoc in Docker, `host` always runs the host binary",
+    )
+    return parser
+
+
 def is_pandoc_on_path() -> bool:
     """
     Check if a `pandoc` binary is available on the host `PATH`.

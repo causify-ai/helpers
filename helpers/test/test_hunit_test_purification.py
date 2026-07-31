@@ -8,7 +8,7 @@ import datetime
 import logging
 import os
 import unittest.mock as umock
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Tuple
 
 import pytest
 
@@ -32,14 +32,19 @@ class Test_purify_text1(hunitest.TestCase):
         actual = huntepur.purify_txt_from_client(txt)
         self.assert_equal(actual, expected, **kwargs)
 
-    def helper_with_git_root_mocking(self, txt: str, expected: str) -> None:
-        """Helper for tests that need git root mocking.
+    def helper_with_git_root_mocking(self, relative_path: str) -> None:
+        """
+        Helper for tests that need git root mocking.
 
-        :param txt: Input text to test
-        :param expected: Expected output
+        Build `txt` by joining the real git root with `relative_path` and
+        check that it purifies to `$GIT_ROOT/<relative_path>`.
+
+        :param relative_path: path relative to the git root to test
         """
         git_root: str = hgit.get_client_root(super_module=False)
         pwd: str = os.path.dirname(git_root)
+        txt = os.path.join(git_root, relative_path)
+        expected = f"$GIT_ROOT/{relative_path}"
         with umock.patch("os.getcwd", return_value=pwd):
             self.helper(txt, expected)
 
@@ -63,38 +68,25 @@ class Test_purify_text1(hunitest.TestCase):
         expected = "helpers.test.test_system_interaction.py"
         self.helper(txt, expected)
 
-    # TODO(ai_gp): Factor out more code in an helper function
-    # git_root = hgit.get_client_root(super_module=False)
-    # txt = os.path.join(git_root, "src/file.py")
-    # and simplify the code below
     def test5(self) -> None:
         """
         Test that longer paths are processed before shorter ones using real paths.
         """
-        git_root = hgit.get_client_root(super_module=False)
-        txt = os.path.join(git_root, "src/file.py")
-        expected = "$GIT_ROOT/src/file.py"
-        self.helper_with_git_root_mocking(txt, expected)
+        self.helper_with_git_root_mocking("src/file.py")
 
     def test6(self) -> None:
         """
         Test that paths with multiple occurrences of the same pattern are
         processed correctly using real paths.
         """
-        git_root = hgit.get_client_root(super_module=False)
-        txt = os.path.join(git_root, "src/project/file.py")
-        expected = "$GIT_ROOT/src/project/file.py"
-        self.helper_with_git_root_mocking(txt, expected)
+        self.helper_with_git_root_mocking("src/project/file.py")
 
     def test7(self) -> None:
         """
         Test that paths with multiple patterns are processed in the correct
         order using real pwd.
         """
-        git_root = hgit.get_client_root(super_module=False)
-        txt = os.path.join(git_root, "src/project/file.py")
-        expected = "$GIT_ROOT/src/project/file.py"
-        self.helper_with_git_root_mocking(txt, expected)
+        self.helper_with_git_root_mocking("src/project/file.py")
 
     def test8(self) -> None:
         """
@@ -275,16 +267,29 @@ class Test_purify_directory_paths1(hunitest.TestCase):
         ):
             self.helper(input_, expected)
 
-    # TODO(ai_gp): Factor out more code.
+    def _get_git_root_and_fake_csfy_env_vars(
+        self,
+    ) -> Tuple[str, str, Dict[str, str]]:
+        """
+        Return the real git root together with a fake
+        `CSFY_HOST_GIT_ROOT_PATH` and the corresponding `env_vars` dict.
+
+        :return: real git root, fake `CSFY_HOST_GIT_ROOT_PATH`, and
+            `env_vars` dict patching `CSFY_HOST_GIT_ROOT_PATH` to the fake
+            value
+        """
+        git_root = hgit.get_client_root(super_module=False)
+        csfy_host_git_root = "/tmp/csfy_host_git_root"
+        env_vars = {"CSFY_HOST_GIT_ROOT_PATH": csfy_host_git_root}
+        return git_root, csfy_host_git_root, env_vars
+
     def test1(self) -> None:
         """
         Test the replacement of `GIT_ROOT` using real git root.
         """
-        git_root = hgit.get_client_root(super_module=False)
-        csfy_host_git_root = "/tmp/csfy_host_git_root"
+        git_root, _, env_vars = self._get_git_root_and_fake_csfy_env_vars()
         input_ = os.path.join(git_root, "src/subdir/file.py")
         expected = "$GIT_ROOT/src/subdir/file.py"
-        env_vars = {"CSFY_HOST_GIT_ROOT_PATH": csfy_host_git_root}
         self.helper_with_env_and_pwd_mocking(
             input_, expected, env_vars, git_root
         )
@@ -293,11 +298,11 @@ class Test_purify_directory_paths1(hunitest.TestCase):
         """
         Test the replacement of `CSFY_HOST_GIT_ROOT_PATH` using real git root.
         """
-        git_root = hgit.get_client_root(super_module=False)
-        csfy_host_git_root = "/tmp/csfy_host_git_root"
+        git_root, csfy_host_git_root, env_vars = (
+            self._get_git_root_and_fake_csfy_env_vars()
+        )
         input_ = f"{csfy_host_git_root}/other/file.py"
         expected = "$CSFY_HOST_GIT_ROOT_PATH/other/file.py"
-        env_vars = {"CSFY_HOST_GIT_ROOT_PATH": csfy_host_git_root}
         self.helper_with_env_and_pwd_mocking(
             input_, expected, env_vars, git_root
         )
@@ -306,7 +311,7 @@ class Test_purify_directory_paths1(hunitest.TestCase):
         """
         Test the replacement of `PWD` using real git root and pwd.
         """
-        git_root = hgit.get_client_root(super_module=False)
+        git_root, _, env_vars = self._get_git_root_and_fake_csfy_env_vars()
         git_root = git_root.rstrip("/")
         pwd = os.path.dirname(git_root)
         # TODO(gp): Skip test if pwd is "/": the purification function
@@ -315,10 +320,8 @@ class Test_purify_directory_paths1(hunitest.TestCase):
         # git_root="/app" gives pwd="/").
         if pwd == "/":
             pytest.skip("Cannot test PWD replacement when parent directory is /")
-        csfy_host_git_root = "/tmp/csfy_host_git_root"
         input_ = f"{pwd}/documents/file.py"
         expected = "$PWD/documents/file.py"
-        env_vars = {"CSFY_HOST_GIT_ROOT_PATH": csfy_host_git_root}
         with umock.patch("helpers.hgit.get_client_root", return_value=git_root):
             self.helper_with_env_and_pwd_mocking(
                 input_, expected, env_vars, git_root
@@ -352,7 +355,7 @@ class Test_purify_from_environment1(hunitest.TestCase):
             self.assert_equal(actual, expected, fuzzy_match=True)
         finally:
             # Reset the global user name variable regardless of a test results.
-            hsystem.set_user_name(None)
+            hsystem.set_user_name("")
 
     def test1(self) -> None:
         input_ = "IMAGE=$CSFY_ECR_BASE_PATH/amp_test:local-root-1.0.0"
@@ -626,9 +629,8 @@ class Test_purify_super_module_references1(hunitest.TestCase):
         """
         txt = "csfy1.helpers_root.helpers.test.test_hobject._Object1"
         expected = "helpers_root.helpers.test.test_hobject._Object1"
-        # TODO(ai_gp): Assign super_module_root and then pass it. Do the same
-        # for all the functions.
-        self.helper("/Users/user/src/csfy1", txt, expected)
+        super_module_root = "/Users/user/src/csfy1"
+        self.helper(super_module_root, txt, expected)
 
     def test2(self) -> None:
         """
@@ -641,7 +643,8 @@ class Test_purify_super_module_references1(hunitest.TestCase):
         expected = (
             "<helpers_root.helpers.test.test_hobject._Object1 at 0x123456>"
         )
-        self.helper("/Users/user/src/csfy1", txt, expected)
+        super_module_root = "/Users/user/src/csfy1"
+        self.helper(super_module_root, txt, expected)
 
     def test3(self) -> None:
         """
@@ -650,7 +653,8 @@ class Test_purify_super_module_references1(hunitest.TestCase):
         """
         txt = "class 'csfy1.helpers_root.helpers.test.test_hdbg._Man'"
         expected = "class 'helpers_root.helpers.test.test_hdbg._Man'"
-        self.helper("/Users/user/src/csfy1", txt, expected)
+        super_module_root = "/Users/user/src/csfy1"
+        self.helper(super_module_root, txt, expected)
 
     def test4(self) -> None:
         """
@@ -659,7 +663,8 @@ class Test_purify_super_module_references1(hunitest.TestCase):
         """
         txt = "cmamp1.helpers_root.helpers.test.test_hobject._Object1"
         expected = "helpers_root.helpers.test.test_hobject._Object1"
-        self.helper("/Users/user/src/cmamp1", txt, expected)
+        super_module_root = "/Users/user/src/cmamp1"
+        self.helper(super_module_root, txt, expected)
 
     def test5(self) -> None:
         """
@@ -668,7 +673,8 @@ class Test_purify_super_module_references1(hunitest.TestCase):
         """
         txt = "amp.helpers.test.test_hobject._Object1"
         expected = "amp.helpers.test.test_hobject._Object1"
-        self.helper("/Users/user/src/amp", txt, expected)
+        super_module_root = "/Users/user/src/amp"
+        self.helper(super_module_root, txt, expected)
 
     def test6(self) -> None:
         """
@@ -676,7 +682,8 @@ class Test_purify_super_module_references1(hunitest.TestCase):
         """
         txt = "helpers.test.test_hobject._Object1"
         expected = "helpers.test.test_hobject._Object1"
-        self.helper("/Users/user/src/csfy1", txt, expected)
+        super_module_root = "/Users/user/src/csfy1"
+        self.helper(super_module_root, txt, expected)
 
     def test7(self) -> None:
         """
@@ -684,7 +691,8 @@ class Test_purify_super_module_references1(hunitest.TestCase):
         """
         txt = "csfy1.helpers_root.helpers.test.test_hobject._Object1"
         expected = "csfy1.helpers_root.helpers.test.test_hobject._Object1"
-        self.helper("/", txt, expected)
+        super_module_root = "/"
+        self.helper(super_module_root, txt, expected)
 
 
 # #############################################################################
@@ -1228,7 +1236,10 @@ class Test_purify_line_number1(hunitest.TestCase):
 
 class Test_purify_file_names1(hunitest.TestCase):
     def helper(self, file_names: List[str], expected: List[str]) -> None:
-        actual = huntepur.purify_file_names(file_names)
+        with umock.patch(
+            "helpers.hgit.get_client_root", return_value="/home/user/gitroot"
+        ):
+            actual = huntepur.purify_file_names(file_names)
         actual_str = "\n".join(str(path) for path in actual)
         expected_str = "\n".join(str(path) for path in expected)
         self.assert_equal(actual_str, expected_str)
@@ -1237,66 +1248,52 @@ class Test_purify_file_names1(hunitest.TestCase):
         """
         Test basic file name purification with relative paths.
         """
-        # TODO(ai_gp): Move the umock.patch to the helper function to simplify
-        # the code.
-        with umock.patch(
-            "helpers.hgit.get_client_root", return_value="/home/user/gitroot"
-        ):
-            txt = [
-                "/home/user/gitroot/helpers/test/test_file.py",
-                "/home/user/gitroot/amp/helpers/test/test_dbg.py",
-            ]
-            expected = [
-                "helpers/test/test_file.py",
-                "helpers/test/test_dbg.py",
-            ]
-            self.helper(txt, expected)
+        txt = [
+            "/home/user/gitroot/helpers/test/test_file.py",
+            "/home/user/gitroot/amp/helpers/test/test_dbg.py",
+        ]
+        expected = [
+            "helpers/test/test_file.py",
+            "helpers/test/test_dbg.py",
+        ]
+        self.helper(txt, expected)
 
     def test2(self) -> None:
         """
         Test file name purification with nested amp references.
         """
-        with umock.patch(
-            "helpers.hgit.get_client_root", return_value="/home/user/gitroot"
-        ):
-            txt = [
-                "/home/user/gitroot/amp/helpers/amp/test/test_file.py",
-                "/home/user/gitroot/amp/helpers/test/amp/test_dbg.py",
-            ]
-            expected = [
-                "helpers/test/test_file.py",
-                "helpers/test/test_dbg.py",
-            ]
-            self.helper(txt, expected)
+        txt = [
+            "/home/user/gitroot/amp/helpers/amp/test/test_file.py",
+            "/home/user/gitroot/amp/helpers/test/amp/test_dbg.py",
+        ]
+        expected = [
+            "helpers/test/test_file.py",
+            "helpers/test/test_dbg.py",
+        ]
+        self.helper(txt, expected)
 
     def test3(self) -> None:
         """
         Test file name purification with app references to ensure that they are
         not replaced.
         """
-        with umock.patch(
-            "helpers.hgit.get_client_root", return_value="/home/user/gitroot"
-        ):
-            txt = [
-                "/home/user/gitroot/app/helpers/test/test_file.py",
-                "/home/user/gitroot/app/amp/helpers/test/test_dbg.py",
-            ]
-            expected = [
-                "app/helpers/test/test_file.py",
-                "app/helpers/test/test_dbg.py",
-            ]
-            self.helper(txt, expected)
+        txt = [
+            "/home/user/gitroot/app/helpers/test/test_file.py",
+            "/home/user/gitroot/app/amp/helpers/test/test_dbg.py",
+        ]
+        expected = [
+            "app/helpers/test/test_file.py",
+            "app/helpers/test/test_dbg.py",
+        ]
+        self.helper(txt, expected)
 
     def test4(self) -> None:
         """
         Test file name purification with empty list.
         """
-        with umock.patch(
-            "helpers.hgit.get_client_root", return_value="/home/user/gitroot"
-        ):
-            txt = []
-            expected = []
-            self.helper(txt, expected)
+        txt = []
+        expected = []
+        self.helper(txt, expected)
 
 
 # #############################################################################
