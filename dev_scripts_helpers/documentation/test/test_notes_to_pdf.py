@@ -2491,7 +2491,12 @@ class Test_small_font_code_typst(hunitest.TestCase):
         hdbg.dassert_path_exists(pdf_file, "PDF file was not created")
         # Find the typst file generated during pipeline.
         typ_files = glob.glob(os.path.join(out_dir, "*.typ"))
-        hdbg.dassert_eq(len(typ_files), 1, f"Expected 1 .typ file, found:\n%s", "\n".join(typ_files))
+        hdbg.dassert_eq(
+            len(typ_files),
+            1,
+            "Expected 1 .typ file, found:\n%s",
+            "\n".join(typ_files),
+        )
         typst_file = typ_files[0]
         return typst_file
 
@@ -2516,20 +2521,13 @@ class Test_small_font_code_typst(hunitest.TestCase):
           ```
 
         - Small
+
           ::: small-code
           ```python
           regr_model = smf.ols("sales ~ discounts*(month + weekday + ...)",
                                data=train).fit()
           ```
           :::
-
-        - Scriptfont
-          \begingroup \scriptfont
-          ```python
-          regr_model = smf.ols("sales ~ discounts*(month + weekday + ...)",
-                               data=train).fit()
-          ```
-          \endgroup
         """
         txt = hprint.dedent(txt, remove_lead_trail_empty_lines_=True)
         in_file = os.path.join(self.get_scratch_space(), "input.md")

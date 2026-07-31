@@ -993,7 +993,9 @@ class Test__is_small_code_div(hunitest.TestCase):
         # Prepare inputs.
         elem = {
             "t": "Div",
-            "c": [["", ["small-code"], []], [{"t": "Para", "c": []}],
+            "c": [
+                ["", ["small-code"], []],
+                [{"t": "Para", "c": []}],
             ],
         }
         # Run test.
@@ -1143,7 +1145,10 @@ class Test__walk_transform_small_code(hunitest.TestCase):
                 [
                     {
                         "t": "Div",
-                        "c": [["", ["small-code"], []], [{"t": "Para", "c": []}]],
+                        "c": [
+                            ["", ["small-code"], []],
+                            [{"t": "Para", "c": []}],
+                        ],
                     }
                 ],
             ],
@@ -1164,13 +1169,19 @@ class Test__walk_transform_small_code(hunitest.TestCase):
                 [
                     {
                         "t": "Div",
-                        "c": [["", ["small-code"], []], [{"t": "Para", "c": []}]],
+                        "c": [
+                            ["", ["small-code"], []],
+                            [{"t": "Para", "c": []}],
+                        ],
                     }
                 ],
                 [
                     {
                         "t": "Div",
-                        "c": [["", ["small-code"], []], [{"t": "Para", "c": []}]],
+                        "c": [
+                            ["", ["small-code"], []],
+                            [{"t": "Para", "c": []}],
+                        ],
                     }
                 ],
             ],
@@ -1257,7 +1268,10 @@ class Test__transform_ast_small_code(hunitest.TestCase):
             "meta": {},
             "blocks": [
                 {"t": "Para", "c": []},
-                {"t": "Div", "c": [["", ["small-code"], []], [{"t": "Para", "c": []}]]},
+                {
+                    "t": "Div",
+                    "c": [["", ["small-code"], []], [{"t": "Para", "c": []}]],
+                },
                 {"t": "Para", "c": []},
             ],
         }
@@ -1427,7 +1441,9 @@ class Test_small_code_end_to_end(hunitest.TestCase):
         outcome["2. ast_generated"] = "AST generated successfully"
         # Transform AST: apply small-code transformation.
         transformed_ast = dshdtpatt._transform_ast_small_code(ast)
-        outcome["3. small_code_transform_applied"] = "Small-code transformation applied"
+        outcome["3. small_code_transform_applied"] = (
+            "Small-code transformation applied"
+        )
         # Convert transformed AST to typst.
         transformed_ast_file = os.path.join(scratch_dir, "transformed_ast.json")
         ast_str = dshdtpatt.ast_to_str(transformed_ast)
@@ -1444,7 +1460,9 @@ class Test_small_code_end_to_end(hunitest.TestCase):
         self.assertIn("typst_output_length", actual_outcome)
         self.assertIn("small_code_transform_applied", actual_outcome)
         # Verify typst output contains formatting and content.
-        self.assertGreater(len(typst_output), 0, "Typst output should not be empty")
+        self.assertGreater(
+            len(typst_output), 0, "Typst output should not be empty"
+        )
         # Verify code block language is in the output.
         typst_lower = typst_output.lower()
         self.assertTrue(

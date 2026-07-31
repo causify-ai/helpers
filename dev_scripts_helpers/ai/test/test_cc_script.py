@@ -7,7 +7,6 @@ import dev_scripts_helpers.ai.test.test_cc_script as daiattccs
 """
 
 import logging
-import textwrap
 from typing import List
 
 import helpers.hio as hio
@@ -148,13 +147,13 @@ class Test_load_prompts_from_file(hunitest.TestCase):
         """
         Test loading multiple prompts from file.
         """
-        content = hprint.dedent(
-        """
+        content = """
         First prompt here
         Second prompt here
         Third prompt here
         """
         )
+        content = hprint.dedent(content)
         expected = [
             "First prompt here",
             "Second prompt here",
@@ -166,13 +165,13 @@ class Test_load_prompts_from_file(hunitest.TestCase):
         """
         Test loading prompts with empty lines and whitespace.
         """
-        content = hprint.dedent(
-        """
+        content = """
         Prompt 1
 
         Prompt 2
 
           Prompt 3  """
         )
+        content = hprint.dedent(content)
         expected = ["Prompt 1", "Prompt 2", "Prompt 3"]
         self._load_and_parse_prompts("whitespace_prompts.txt", content, expected)

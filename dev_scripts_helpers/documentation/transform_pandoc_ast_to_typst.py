@@ -685,7 +685,9 @@ def _walk_transform_small_code(obj: Any) -> Any:
     if isinstance(obj, dict):
         if _is_small_code_div(obj):
             return _transform_small_code_div(obj)
-        return {key: _walk_transform_small_code(value) for key, value in obj.items()}
+        return {
+            key: _walk_transform_small_code(value) for key, value in obj.items()
+        }
     elif isinstance(obj, list):
         return [_walk_transform_small_code(item) for item in obj]
     else:
@@ -780,7 +782,9 @@ def _main(parser: argparse.ArgumentParser) -> None:
                 _LOG.info("Transforming AST: LaTeX colors -> Typst colors")
                 ast = _transform_ast_color_text(ast, args.pandoc_backend)
             elif action == "small_code":
-                _LOG.info("Transforming AST: Div[small-code] -> wrapped with font sizing")
+                _LOG.info(
+                    "Transforming AST: Div[small-code] -> wrapped with font sizing"
+                )
                 ast = _transform_ast_small_code(ast)
             else:
                 raise ValueError("Invalid action='%s'" % action)
