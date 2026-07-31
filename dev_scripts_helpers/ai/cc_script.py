@@ -30,7 +30,7 @@ import helpers.hdbg as hdbg
 import helpers.hio as hio
 import helpers.hparser as hparser
 
-import dev_scripts_helpers.ai.cc_lib as cclib
+import dev_scripts_helpers.ai.cc_lib as dshaccli
 
 _LOG = logging.getLogger(__name__)
 
@@ -88,7 +88,7 @@ async def _execute_prompts(
     """
     _LOG.info("Starting prompt execution with %d prompts", len(prompts))
 
-    sequencer = cclib.PromptSequencer(
+    sequencer = dshaccli.PromptSequencer(
         allowed_tools=allowed_tools,
         permission_mode=permission_mode,
         cwd=cwd,

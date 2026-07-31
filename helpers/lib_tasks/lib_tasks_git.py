@@ -616,9 +616,11 @@ def git_branch_create(  # type: ignore
     :param abort_if_not_master: abort if not on master branch
         (default: True, only used if only_branch_from_master is True)
     """
-    hdbg.dassert(not any(suffix.startswith(char) for char in "_-."),
-                     "suffix='%s' should not start with _, -, or . since it's added as '_{suffix}'",
-                     suffix)
+    hdbg.dassert(
+        not any(suffix.startswith(char) for char in "_-."),
+        "suffix='%s' should not start with _, -, or . since it's added as '_{suffix}'",
+        suffix,
+    )
     hltltaut.report_task()
     # Verify working directory is clean if requested.
     hgit.is_client_clean(dir_name=".", abort_if_not_clean=abort_if_not_clean)

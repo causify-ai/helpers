@@ -644,9 +644,7 @@ def _extract_statistics(records: List[Dict[str, Any]]) -> Dict[str, Any]:
                 total_cost = rec.get("total_cost_usd", 0)
                 break
     num_requests = len(requests)
-    num_messages_user = sum(
-        1 for rec in records if rec.get("type") == "user"
-    )
+    num_messages_user = sum(1 for rec in records if rec.get("type") == "user")
     num_messages_assistant = sum(
         1 for rec in records if rec.get("type") == "assistant"
     )
@@ -726,7 +724,9 @@ def _main(parser: argparse.ArgumentParser) -> None:
             model = init_info.get("model", "")
             cc_ver = init_info.get("claude_code_version", "")
             session_id = init_info.get("session_id", "")[:8]
-            lines.append(f"=== Session: {session_id} | {model} | CC {cc_ver} ===")
+            lines.append(
+                f"=== Session: {session_id} | {model} | CC {cc_ver} ==="
+            )
         else:
             lines.append("=== Claude Code Session ===")
         lines.append("")

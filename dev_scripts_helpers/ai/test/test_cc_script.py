@@ -11,7 +11,7 @@ import logging
 import helpers.hio as hio
 import helpers.hunit_test as hunitest
 
-import dev_scripts_helpers.ai.cc_script as ccscr
+import dev_scripts_helpers.ai.cc_script as dshaccsc
 
 _LOG = logging.getLogger(__name__)
 
@@ -36,7 +36,7 @@ class Test_parse(hunitest.TestCase):
         Test parser creation with valid prompt arguments.
         """
         # Prepare inputs.
-        parser = ccscr._parse()
+        parser = dshaccsc._parse()
         args = parser.parse_args(["--prompts", "test prompt"])
         # Check outputs.
         self.assertIsNotNone(args)
@@ -48,13 +48,19 @@ class Test_parse(hunitest.TestCase):
         Test parser with custom permission_mode and tools.
         """
         # Prepare inputs.
-        parser = ccscr._parse()
-        args = parser.parse_args([
-            "--prompts", "prompt1",
-            "--permission_mode", "acceptEdits",
-            "--tools", "Read",
-            "--tools", "Edit",
-        ])
+        parser = dshaccsc._parse()
+        args = parser.parse_args(
+            [
+                "--prompts",
+                "prompt1",
+                "--permission_mode",
+                "acceptEdits",
+                "--tools",
+                "Read",
+                "--tools",
+                "Edit",
+            ]
+        )
         # Check outputs.
         self.assertEqual(args.permission_mode, "acceptEdits")
         self.assertEqual(args.tools, ["Read", "Edit"])
@@ -64,12 +70,17 @@ class Test_parse(hunitest.TestCase):
         Test parser with output_file and cwd options.
         """
         # Prepare inputs.
-        parser = ccscr._parse()
-        args = parser.parse_args([
-            "--prompts", "test",
-            "--output_file", "/tmp/session.log",
-            "--cwd", "/home/user",
-        ])
+        parser = dshaccsc._parse()
+        args = parser.parse_args(
+            [
+                "--prompts",
+                "test",
+                "--output_file",
+                "/tmp/session.log",
+                "--cwd",
+                "/home/user",
+            ]
+        )
         # Check outputs.
         self.assertEqual(args.output_file, "/tmp/session.log")
         self.assertEqual(args.cwd, "/home/user")
@@ -79,7 +90,7 @@ class Test_parse(hunitest.TestCase):
         Test parser default values.
         """
         # Prepare inputs.
-        parser = ccscr._parse()
+        parser = dshaccsc._parse()
         args = parser.parse_args(["--prompts", "test"])
         # Check outputs.
         self.assertEqual(args.permission_mode, "ask")
@@ -114,7 +125,7 @@ class Test_load_prompts_from_file(hunitest.TestCase):
         content = "What is the capital of France?"
         hio.to_file(input_file, content)
         # Load prompts.
-        prompts = ccscr._load_prompts_from_file(input_file)
+        prompts = dshaccsc._load_prompts_from_file(input_file)
         # Check outputs.
         self.assertEqual(len(prompts), 1)
         self.assertEqual(prompts[0], "What is the capital of France?")
@@ -132,7 +143,7 @@ Second prompt here
 Third prompt here"""
         hio.to_file(input_file, content)
         # Load prompts.
-        prompts = ccscr._load_prompts_from_file(input_file)
+        prompts = dshaccsc._load_prompts_from_file(input_file)
         # Check outputs.
         self.assertEqual(len(prompts), 3)
         self.assertEqual(prompts[0], "First prompt here")
@@ -154,7 +165,7 @@ Prompt 2
   Prompt 3  """
         hio.to_file(input_file, content)
         # Load prompts.
-        prompts = ccscr._load_prompts_from_file(input_file)
+        prompts = dshaccsc._load_prompts_from_file(input_file)
         # Check outputs.
         self.assertEqual(len(prompts), 3)
         self.assertEqual(prompts[0], "Prompt 1")

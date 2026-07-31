@@ -206,7 +206,9 @@ class Test_extract_cc_log_py(hunitest.TestCase):
         :param stats_file: Path to stats JSON file to verify
         """
         actual = hio.from_file(stats_file)
-        self.assert_equal(actual, self._EXPECTED_STATS, dedent=True, fuzzy_match=True)
+        self.assert_equal(
+            actual, self._EXPECTED_STATS, dedent=True, fuzzy_match=True
+        )
 
     def _run_extract_cc_log(
         self,

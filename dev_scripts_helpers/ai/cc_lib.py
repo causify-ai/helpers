@@ -6,7 +6,7 @@ maintaining context across prompts.
 
 Import as:
 
-import dev_scripts_helpers.ai.cc_lib as cclib
+import dev_scripts_helpers.ai.cc_lib as dshaccli
 """
 
 import json
@@ -17,6 +17,7 @@ import helpers.hdbg as hdbg
 import helpers.hio as hio
 
 _LOG = logging.getLogger(__name__)
+
 
 # #############################################################################
 # PromptSequencer
@@ -78,7 +79,9 @@ class PromptSequencer:
             len(prompts) > 0,
             "Must provide at least one prompt",
         )
-        _LOG.info("Starting prompt sequence execution with %d prompts", len(prompts))
+        _LOG.info(
+            "Starting prompt sequence execution with %d prompts", len(prompts)
+        )
 
         # Import Claude SDK here to avoid hard dependency at module level.
         try:
@@ -101,9 +104,7 @@ class PromptSequencer:
             self._session_started = True
 
             for prompt_idx, prompt in enumerate(prompts, 1):
-                _LOG.info(
-                    "Executing prompt %d/%d", prompt_idx, len(prompts)
-                )
+                _LOG.info("Executing prompt %d/%d", prompt_idx, len(prompts))
                 _LOG.debug("Prompt content: %s", prompt[:100])
 
                 try:
@@ -172,7 +173,9 @@ def save_session_log(
     :param prompts: List of executed prompts
     :param responses: List of corresponding responses
     """
-    hdbg.dassert_eq(len(prompts), len(responses), "Mismatched prompt/response counts")
+    hdbg.dassert_eq(
+        len(prompts), len(responses), "Mismatched prompt/response counts"
+    )
 
     # Create session record.
     session_log = {

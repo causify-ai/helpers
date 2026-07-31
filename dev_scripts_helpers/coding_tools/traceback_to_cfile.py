@@ -92,7 +92,9 @@ def _parse() -> argparse.ArgumentParser:
 
 def _main(parser: argparse.ArgumentParser) -> None:
     args = parser.parse_args()
-    hdbg.init_logger(verbosity=args.log_level, use_exec_path=True, force_white=False)
+    hdbg.init_logger(
+        verbosity=args.log_level, use_exec_path=True, force_white=False
+    )
     out_file_name = args.output
     if args.from_pb:
         # Handle --from_pb option.
@@ -104,9 +106,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
         cmd = 'find . -type f -name "*.log" | xargs ls -1 -t'
         dir_name = None
         remove_files_non_present = False
-        files = hsystem.system_to_files(
-            cmd, dir_name, remove_files_non_present
-        )
+        files = hsystem.system_to_files(cmd, dir_name, remove_files_non_present)
         in_file_name = files[0]
         _LOG.info("in_file_name=%s", in_file_name)
         if out_file_name != "-":

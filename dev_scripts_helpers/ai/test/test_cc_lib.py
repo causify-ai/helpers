@@ -11,7 +11,7 @@ import logging
 import helpers.hio as hio
 import helpers.hunit_test as hunitest
 
-import dev_scripts_helpers.ai.cc_lib as cclib
+import dev_scripts_helpers.ai.cc_lib as dshaccli
 
 _LOG = logging.getLogger(__name__)
 
@@ -36,7 +36,7 @@ class Test_PromptSequencer(hunitest.TestCase):
         Test PromptSequencer initialization with default options.
         """
         # Prepare inputs.
-        sequencer = cclib.PromptSequencer()
+        sequencer = dshaccli.PromptSequencer()
         # Check outputs.
         self.assertIsNotNone(sequencer)
         self.assertEqual(sequencer.allowed_tools, [])
@@ -52,7 +52,7 @@ class Test_PromptSequencer(hunitest.TestCase):
         permission_mode = "acceptEdits"
         cwd = "/tmp/test"
         # Create sequencer.
-        sequencer = cclib.PromptSequencer(
+        sequencer = dshaccli.PromptSequencer(
             allowed_tools=allowed_tools,
             permission_mode=permission_mode,
             cwd=cwd,
@@ -67,7 +67,7 @@ class Test_PromptSequencer(hunitest.TestCase):
         Test execution stats initialization.
         """
         # Prepare inputs.
-        sequencer = cclib.PromptSequencer()
+        sequencer = dshaccli.PromptSequencer()
         # Get stats.
         stats = sequencer.get_execution_stats()
         # Check outputs.
@@ -80,7 +80,7 @@ class Test_PromptSequencer(hunitest.TestCase):
         Test last response getter when no execution occurred.
         """
         # Prepare inputs.
-        sequencer = cclib.PromptSequencer()
+        sequencer = dshaccli.PromptSequencer()
         # Get response.
         response = sequencer.get_last_response()
         # Check outputs.
@@ -112,9 +112,10 @@ class Test_save_session_log(hunitest.TestCase):
         prompts = ["What is 2+2?"]
         responses = ["2+2 equals 4"]
         # Save session log.
-        cclib.save_session_log(output_file, prompts, responses)
+        dshaccli.save_session_log(output_file, prompts, responses)
         # Check outputs.
         import os
+
         self.assertTrue(os.path.exists(output_file))
         # Verify content.
         actual = hio.from_file(output_file)
@@ -130,9 +131,10 @@ class Test_save_session_log(hunitest.TestCase):
         prompts = ["First prompt", "Second prompt", "Third prompt"]
         responses = ["Response 1", "Response 2", "Response 3"]
         # Save session log.
-        cclib.save_session_log(output_file, prompts, responses)
+        dshaccli.save_session_log(output_file, prompts, responses)
         # Check outputs.
         import os
+
         self.assertTrue(os.path.exists(output_file))
         # Verify content.
         actual = hio.from_file(output_file)
