@@ -19,7 +19,8 @@
 """
 Process links and articles from a Google Sheets document.
 
-For detailed documentation on the link workflow, see: `link_flow.README.md`
+For detailed documentation on the link workflow, see:
+`dev_scripts_helpers/scraping/link_flow.README.md`
 
 This script manages the following actions:
 1. download_link_gsheet: Download data from Google Sheets to CSV (alias)

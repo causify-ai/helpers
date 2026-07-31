@@ -671,12 +671,12 @@ def git_branch_create(  # type: ignore
     if only_branch_from_master:
         curr_branch = hgit.get_branch_name()
         if curr_branch != "master":
-            if abort_if_not_master:
-                hdbg.dfatal(
-                    "Must be on 'master' branch to create new branch; "
-                    f"currently on '{curr_branch}'. "
-                    "Use --abort-if-not-master=False to bypass this check."
-                )
+            hdbg.dassert(
+                not abort_if_not_master,
+                "Must be on 'master' branch to create new branch; "
+                f"currently on '{curr_branch}'. "
+                "Use --abort-if-not-master=False to bypass this check."
+            )
             _LOG.info(
                 f"Switching from '{curr_branch}' to 'master' to create branch"
             )

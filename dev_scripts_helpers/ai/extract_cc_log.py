@@ -19,7 +19,9 @@ import os
 from typing import Any, Dict, List
 
 import helpers.hdbg as hdbg
+import helpers.hio as hio
 import helpers.hparser as hparser
+import helpers.hprint as hprint
 
 _LOG = logging.getLogger(__name__)
 
@@ -43,19 +45,19 @@ def _parse_records(log_file: str) -> List[Dict[str, Any]]:
     hdbg.dassert_file_exists(log_file, "Log file must exist")
     records: List[Dict[str, Any]] = []
     skipped = 0
-    with open(log_file, "r") as f:
-        for line_num, line in enumerate(f, 1):
-            line = line.strip()
-            if not line:
-                continue
-            try:
-                record = json.loads(line)
-                records.append(record)
-            except json.JSONDecodeError:
-                _LOG.debug(
-                    "Skipping non-JSON line %d: '%s'", line_num, line[:60]
-                )
-                skipped += 1
+    content = hio.from_file(log_file)
+    for line_num, line in enumerate(content.split("\n"), 1):
+        line = line.strip()
+        if not line:
+            continue
+        try:
+            record = json.loads(line)
+            records.append(record)
+        except json.JSONDecodeError:
+            _LOG.debug(
+                "Skipping non-JSON line %d: '%s'", line_num, line[:60]
+            )
+            skipped += 1
     _LOG.info("Parsed '%d' JSON records from '%s'", len(records), log_file)
     _LOG.debug("Skipped '%d' non-JSON lines", skipped)
     return records
@@ -440,10 +442,8 @@ def _write_output(
     :param output_dir: Optional directory to write the output file
     """
     if output_dir:
-        os.makedirs(output_dir, exist_ok=True)
         file_path = os.path.join(output_dir, file_name)
-        with open(file_path, "w") as f:
-            f.write(output)
+        hio.to_file(file_path, output)
         _LOG.info("Output written to '%s'", file_path)
     print(output)
 
@@ -487,9 +487,8 @@ def _print_narrative(
     # Text-only mode: just the assistant text output.
     if text_only:
         lines.append("")
-        lines.append("-" * 60)
-        lines.append("ASSISTANT TEXT")
-        lines.append("-" * 60)
+        frame_str = hprint.frame("ASSISTANT TEXT").rstrip("\n")
+        lines.extend(frame_str.split("\n"))
         lines.append("")
         seen_text: set = set()
         for tb in text_blocks:
@@ -503,9 +502,8 @@ def _print_narrative(
         return
     # Full narrative mode.
     lines.append("")
-    lines.append("-" * 60)
-    lines.append("NARRATIVE")
-    lines.append("-" * 60)
+    frame_str = hprint.frame("NARRATIVE").rstrip("\n")
+    lines.extend(frame_str.split("\n"))
     lines.append("")
     # Pre-extract thinking text in order.
     thinking_texts: List[str] = []
@@ -595,9 +593,8 @@ def _print_narrative(
             lines.append(detail)
     # Append assistant text at the end.
     lines.append("")
-    lines.append("-" * 60)
-    lines.append("ASSISTANT TEXT")
-    lines.append("-" * 60)
+    frame_str = hprint.frame("ASSISTANT TEXT").rstrip("\n")
+    lines.extend(frame_str.split("\n"))
     lines.append("")
     dedup_texts: set = set()
     for tb in text_blocks:
@@ -732,9 +729,8 @@ def _main(parser: argparse.ArgumentParser) -> None:
         else:
             lines.append("=== Claude Code Session ===")
         lines.append("")
-        lines.append("-" * 60)
-        lines.append("ASSISTANT TEXT")
-        lines.append("-" * 60)
+        frame_str = hprint.frame("ASSISTANT TEXT").rstrip("\n")
+        lines.extend(frame_str.split("\n"))
         lines.append("")
         seen_text: set = set()
         for tb in text_blocks:

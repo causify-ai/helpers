@@ -2,7 +2,7 @@
 Declarative LLM decorator for transforming Python functions into LLM calls.
 
 For detailed documentation, architecture diagrams, and usage examples, see:
-`hllm_decorator.README.md`
+`helpers/hllm_decorator.README.md`
 
 Import as:
 

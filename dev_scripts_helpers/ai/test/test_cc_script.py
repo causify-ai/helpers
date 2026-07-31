@@ -7,6 +7,8 @@ import dev_scripts_helpers.ai.test.test_cc_script as daiattccs
 """
 
 import logging
+import textwrap
+from typing import List
 
 import helpers.hio as hio
 import helpers.hunit_test as hunitest
@@ -117,62 +119,54 @@ class Test_load_prompts_from_file(hunitest.TestCase):
     Test loading prompts from file.
     """
 
+    def _load_and_parse_prompts(
+        self, filename: str, content: str, expected: List[str]
+    ) -> None:
+        """
+        Helper to create a file with content, load prompts from it, and assert.
+        """
+        input_dir = self.get_input_dir()
+        input_file = f"{input_dir}/{filename}"
+        hio.to_file(input_file, content)
+        prompts = dshaccsc._load_prompts_from_file(input_file)
+        self.assert_equal(str(prompts), str(expected))
+
     def test1(self) -> None:
         """
         Test loading single prompt from file.
         """
-        # Prepare inputs.
-        input_dir = self.get_input_dir()
-        input_file = f"{input_dir}/single_prompt.txt"
         content = "What is the capital of France?"
-        hio.to_file(input_file, content)
-        # Prepare outputs.
         expected = ["What is the capital of France?"]
-        # Run test.
-        prompts = dshaccsc._load_prompts_from_file(input_file)
-        # Check outputs.
-        self.assert_equal(str(prompts), str(expected))
+        self._load_and_parse_prompts("single_prompt.txt", content, expected)
 
     def test2(self) -> None:
         """
         Test loading multiple prompts from file.
         """
-        # Prepare inputs.
-        input_dir = self.get_input_dir()
-        input_file = f"{input_dir}/multi_prompts.txt"
-        # TODO(ai_gp): Align with text and dedent.
-        content = """First prompt here
-Second prompt here
-Third prompt here"""
-        hio.to_file(input_file, content)
-        # Prepare outputs.
+        content = textwrap.dedent(
+            """\
+            First prompt here
+            Second prompt here
+            Third prompt here"""
+        )
         expected = [
             "First prompt here",
             "Second prompt here",
             "Third prompt here",
         ]
-        # Run test.
-        prompts = dshaccsc._load_prompts_from_file(input_file)
-        # Check outputs.
-        self.assert_equal(str(prompts), str(expected))
+        self._load_and_parse_prompts("multi_prompts.txt", content, expected)
 
     def test3(self) -> None:
         """
         Test loading prompts with empty lines and whitespace.
         """
-        # Prepare inputs.
-        input_dir = self.get_input_dir()
-        input_file = f"{input_dir}/whitespace_prompts.txt"
-        # TODO(ai_gp): Align with text and dedent.
-        content = """Prompt 1
+        content = textwrap.dedent(
+            """\
+            Prompt 1
 
-Prompt 2
+            Prompt 2
 
-  Prompt 3  """
-        hio.to_file(input_file, content)
-        # Prepare outputs.
+              Prompt 3  """
+        )
         expected = ["Prompt 1", "Prompt 2", "Prompt 3"]
-        # Run test.
-        prompts = dshaccsc._load_prompts_from_file(input_file)
-        # Check outputs.
-        self.assert_equal(str(prompts), str(expected))
+        self._load_and_parse_prompts("whitespace_prompts.txt", content, expected)
