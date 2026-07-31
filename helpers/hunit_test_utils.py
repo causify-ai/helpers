@@ -498,16 +498,14 @@ def is_test_file(file_path: str) -> bool:
 
     A file is considered a test file if:
     - It contains "/test/" in its path, OR
-    - Its basename starts with "test_", OR
+    - Its basename starts with "test_"
 
     :param file_path: path to check
     :return: True if file_path is a test file, False otherwise
     """
-    return ((
-        "/test/" in file_path
-        or file_path.split("/")[-1].startswith("test_"))
-        and file_path.endswith(".py")
-    )
+    return (
+        "/test/" in file_path or file_path.split("/")[-1].startswith("test_")
+    ) and file_path.endswith(".py")
 
 
 def get_test_file_for_source(source_file: str) -> Optional[str]:
