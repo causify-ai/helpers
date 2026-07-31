@@ -2322,7 +2322,7 @@ class Test_notes_to_pdf_latex_cancel(hunitest.TestCase):
         expected = r"""
         """
         # Run test.
-        output_txt = self.helper(markdown_content)
+        output_txt = self.helper(markdown_content, expected)
         # Check outputs.
         self.assertIn(r"\cancel{", output_txt)
         self.assertIn("Y_1", output_txt)

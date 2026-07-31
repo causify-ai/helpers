@@ -698,7 +698,9 @@ class Test_bold_text_colorization_e2e(hunitest.TestCase):
         Test that abbreviated and full syntax produce equivalent Typst output.
         """
         text = "- @Item@: Description"
-        expected = '- `#text(fill: red, weight: "bold")[Item]`{=typst}: Description'
+        expected = (
+            '- `#text(fill: red, weight: "bold")[Item]`{=typst}: Description'
+        )
         self.helper(text, expected, use_abbreviations=True)
         self.helper(text, expected, use_abbreviations=False)
 

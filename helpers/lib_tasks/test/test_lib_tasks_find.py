@@ -24,7 +24,7 @@ class Test_find_short_import1(hunitest.TestCase):
             ("file1.py", 10, "import dataflow.core.dag_runner as dtfcodarun"),
             ("file1.py", 11, "import helpers.hpandas as hpandas"),
         ]
-        results = hltltafi._find_short_import(iterator, "dtfcodarun")
+        results = hltltafi._find_short_import(iter(iterator), "dtfcodarun")
         actual = "\n".join(map(str, results))
         # pylint: disable=line-too-long
         expected = r"""('file1.py', 10, 'import dataflow.core.dag_runner as dtfcodarun', 'dtfcodarun', 'import dataflow.core.dag_runner as dtfcodarun')"""
@@ -52,7 +52,7 @@ class Test_find_func_class_uses1(hunitest.TestCase):
             ("file1.py", 12, "dag_builder: dtfcodabui.DagRunner,"),
             ("file1.py", 13, ":param dag_builder: `DagRunner` instance"),
         ]
-        results = hltltafi._find_func_class_uses(iterator, "DagRunner")
+        results = hltltafi._find_func_class_uses(iter(iterator), "DagRunner")
         actual = "\n".join(map(str, results))
         expected = r"""
         ('file1.py', 10, 'dag_runner = dtfamsys.RealTimeDagRunner(**dag_runner_kwargs)', 'dtfamsys', 'RealTimeDagRunner')

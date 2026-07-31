@@ -44,7 +44,10 @@ import helpers.hprint as hprint
 if TYPE_CHECKING:
 
     class _LoggerWithTrace(logging.Logger):
-        def trace(self, _msg: object, *_args: object, **_kwargs: object) -> None: ...
+        def trace(
+            self, _msg: object, *_args: object, **_kwargs: object
+        ) -> None: ...
+
 
 _LOG = cast("_LoggerWithTrace", logging.getLogger(__name__))
 
