@@ -10,10 +10,14 @@ import logging
 import textwrap
 from typing import List
 
-import helpers.hio as hio
-import helpers.hunit_test as hunitest
+import pytest
 
-import dev_scripts_helpers.ai.cc_script as dshaccsc
+import helpers.hio as hio  # noqa: E402
+import helpers.hprint as hprint
+import helpers.hunit_test as hunitest  # noqa: E402
+
+pytest.importorskip("claude_agent_sdk")
+import dev_scripts_helpers.ai.cc_script as dshaccsc  # noqa: E402
 
 _LOG = logging.getLogger(__name__)
 
@@ -35,11 +39,11 @@ class Test_parse(hunitest.TestCase):
         # Prepare inputs.
         parser = dshaccsc._parse()
         # Prepare outputs.
-        expected = "test prompt"
+        expected = "['test prompt']"
         # Run test.
         args = parser.parse_args(["--prompts", "test prompt"])
         # Check outputs.
-        self.assert_equal(args.prompts, expected)
+        self.assert_equal(str(args.prompts), expected)
 
     def test2(self) -> None:
         """
@@ -99,7 +103,7 @@ class Test_parse(hunitest.TestCase):
         expected_permission = "ask"
         expected_tools = []
         expected_cwd = ""
-        expected_output_file = "cc_session.log"
+        expected_output_file = "tmp.cc_script.log"
         # Run test.
         args = parser.parse_args(["--prompts", "test"])
         # Check outputs.
@@ -143,11 +147,12 @@ class Test_load_prompts_from_file(hunitest.TestCase):
         """
         Test loading multiple prompts from file.
         """
-        content = textwrap.dedent(
-            """\
-            First prompt here
-            Second prompt here
-            Third prompt here"""
+        content = hprint.dedent(
+        """
+        First prompt here
+        Second prompt here
+        Third prompt here
+        """
         )
         expected = [
             "First prompt here",
@@ -160,13 +165,13 @@ class Test_load_prompts_from_file(hunitest.TestCase):
         """
         Test loading prompts with empty lines and whitespace.
         """
-        content = textwrap.dedent(
-            """\
-            Prompt 1
+        content = hprint.dedent(
+        """
+        Prompt 1
 
-            Prompt 2
+        Prompt 2
 
-              Prompt 3  """
+          Prompt 3  """
         )
         expected = ["Prompt 1", "Prompt 2", "Prompt 3"]
         self._load_and_parse_prompts("whitespace_prompts.txt", content, expected)

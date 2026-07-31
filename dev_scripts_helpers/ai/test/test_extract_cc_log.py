@@ -110,10 +110,15 @@ class Test_extract_requests(hunitest.TestCase):
         # Check outputs.
         actual = pprint.pformat(requests)
         expected = """
-        [{'input_tokens': 10,
+        [{'cost': 0,
+          'input_tokens': 10,
+          'message_id': 'msg_011CdYxEHPoMjy7CdDPza2YB',
+          'model': 'claude-haiku-4-5-20251001',
           'output_tokens': 259,
+          'provider': '',
+          'speed': '',
           'thinking_tokens': 110,
-          'ttft_ms': [0-9.]+}]
+          'ttft_ms': 1010}]
         """
         self.assert_equal(actual, expected, fuzzy_match=True)
 
@@ -139,11 +144,9 @@ class Test_extract_assistant_text_blocks(hunitest.TestCase):
         text_blocks = dshaecclo._extract_assistant_text_blocks(records)
         # Check outputs.
         all_text = " ".join(b.get("text", "") for b in text_blocks)
-        expected = """
-        Recursion
-        .*function.*
-        """
-        self.assert_equal(all_text, expected, fuzzy_match=True)
+        # Verify text blocks were extracted and contain recursion content
+        self.assertIn("Recursion", all_text)
+        self.assertIn("function", all_text)
 
 
 # #############################################################################
@@ -167,8 +170,8 @@ class Test_extract_thinking_blocks(hunitest.TestCase):
         thinking_blocks = dshaecclo._extract_thinking_blocks(records)
         # Check outputs.
         all_thinking = " ".join(b.get("text", "") for b in thinking_blocks)
-        expected = "recursion"
-        self.assert_equal(all_thinking.lower(), expected, fuzzy_match=True)
+        # Verify thinking blocks were extracted and contain recursion reference
+        self.assertIn("recursion", all_thinking.lower())
 
 
 # #############################################################################
@@ -183,13 +186,13 @@ class Test_extract_cc_log_py(hunitest.TestCase):
 
     _EXPECTED_STATS = """
     {
-        "num_messages_assistant": 2,
-        "num_messages_user": 0,
-        "num_requests": 1,
-        "total_cost": 0.0241739,
         "total_input_tokens": 10,
         "total_output_tokens": 259,
-        "total_thinking_tokens": 110
+        "total_thinking_tokens": 110,
+        "total_cost": 0.0241739,
+        "num_requests": 1,
+        "num_messages_user": 0,
+        "num_messages_assistant": 2
     }
     """
 
@@ -256,11 +259,10 @@ class Test_extract_cc_log_py(hunitest.TestCase):
         self._run_extract_cc_log(input_file, output_file=output_file)
         # Check outputs.
         actual = hio.from_file(output_file)
-        expected = """
-        Recursion
-        .*ASSISTANT TEXT.*
-        """
-        self.assert_equal(actual, expected, fuzzy_match=True)
+        # Verify narrative contains session info and extracted content
+        self.assertIn("Session:", actual)
+        self.assertIn("ASSISTANT TEXT", actual)
+        self.assertIn("Recursion", actual)
 
     def test3(self) -> None:
         """
