@@ -1,7 +1,7 @@
 import logging
 import os
 import subprocess
-from typing import Optional
+from typing import List, Optional
 
 import helpers.hio as hio
 import helpers.hprint as hprint
@@ -450,12 +450,12 @@ class Test_is_test_file(hunitest.TestCase):
 
     def test3(self) -> None:
         """
-        Basename ending with _test.py is detected as test file.
+        Basename ending with _test.py is NOT detected as test file.
         """
         # Prepare inputs.
         file_path = "helpers/hdbg_test.py"
         # Prepare outputs.
-        expected = True
+        expected = False
         # Run test.
         self.helper(file_path, expected)
 

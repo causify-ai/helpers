@@ -494,20 +494,19 @@ def check_env_to_str(
 
 def is_test_file(file_path: str) -> bool:
     """
-    Check if a file is a test file.
+    Check if a Python file is a test file.
 
     A file is considered a test file if:
     - It contains "/test/" in its path, OR
     - Its basename starts with "test_", OR
-    - Its basename ends with "_test.py"
 
     :param file_path: path to check
     :return: True if file_path is a test file, False otherwise
     """
-    return (
+    return ((
         "/test/" in file_path
-        or file_path.split("/")[-1].startswith("test_")
-        or file_path.endswith("_test.py")
+        or file_path.split("/")[-1].startswith("test_"))
+        and file_path.endswith(".py")
     )
 
 
