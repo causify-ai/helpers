@@ -674,8 +674,8 @@ def git_branch_create(  # type: ignore
             hdbg.dassert(
                 not abort_if_not_master,
                 "Must be on 'master' branch to create new branch; "
-                f"currently on '{curr_branch}'. "
-                "Use --abort-if-not-master=False to bypass this check."
+                "currently on '%s'",
+                curr_branch,
             )
             _LOG.info(
                 f"Switching from '{curr_branch}' to 'master' to create branch"

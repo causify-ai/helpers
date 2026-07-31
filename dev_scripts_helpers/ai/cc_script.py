@@ -1,4 +1,7 @@
-#!/usr/bin/env python3
+#!/usr/bin/env -S uv run
+# /// script
+# dependencies = ["anthropic-sdk"]
+# ///
 """
 Execute sequential prompts against Claude Code.
 

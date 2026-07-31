@@ -54,9 +54,7 @@ def _parse_records(log_file: str) -> List[Dict[str, Any]]:
             record = json.loads(line)
             records.append(record)
         except json.JSONDecodeError:
-            _LOG.debug(
-                "Skipping non-JSON line %d: '%s'", line_num, line[:60]
-            )
+            _LOG.debug("Skipping non-JSON line %d: '%s'", line_num, line[:60])
             skipped += 1
     _LOG.info("Parsed '%d' JSON records from '%s'", len(records), log_file)
     _LOG.debug("Skipped '%d' non-JSON lines", skipped)

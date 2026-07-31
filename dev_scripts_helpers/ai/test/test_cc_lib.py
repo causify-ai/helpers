@@ -9,7 +9,12 @@ import dev_scripts_helpers.ai.test.test_cc_lib as daiattccl
 import os
 
 import helpers.hio as hio
+import helpers.hprint as hprint
 import helpers.hunit_test as hunitest
+
+import pytest
+
+pytest.importorskip("claude_agent_sdk")
 
 import dev_scripts_helpers.ai.cc_lib as dshaccli
 
@@ -122,13 +127,17 @@ class Test_save_session_log(hunitest.TestCase):
         responses = ["2+2 equals 4"]
         # Prepare outputs.
         expected = """
-        <prompt>
-        What is 2+2?
-        </prompt>
-        <response>
-        2+2 equals 4
-        </response>
-        """
+        {
+          "prompts_and_responses": [
+            {
+              "prompt_index": 1,
+              "prompt": "What is 2+2?",
+              "response": "2+2 equals 4"
+            }
+          ],
+          "total_prompts": 1
+        }"""
+        expected = hprint.dedent(expected)
         # Run test.
         self.helper(prompts, responses, expected)
 
@@ -141,24 +150,26 @@ class Test_save_session_log(hunitest.TestCase):
         responses = ["Response 1", "Response 2", "Response 3"]
         # Prepare outputs.
         expected = """
-        <prompt>
-        First prompt
-        </prompt>
-        <response>
-        Response 1
-        </response>
-        <prompt>
-        Second prompt
-        </prompt>
-        <response>
-        Response 2
-        </response>
-        <prompt>
-        Third prompt
-        </prompt>
-        <response>
-        Response 3
-        </response>
-        """
+        {
+          "prompts_and_responses": [
+            {
+              "prompt_index": 1,
+              "prompt": "First prompt",
+              "response": "Response 1"
+            },
+            {
+              "prompt_index": 2,
+              "prompt": "Second prompt",
+              "response": "Response 2"
+            },
+            {
+              "prompt_index": 3,
+              "prompt": "Third prompt",
+              "response": "Response 3"
+            }
+          ],
+          "total_prompts": 3
+        }"""
+        expected = hprint.dedent(expected)
         # Run test.
         self.helper(prompts, responses, expected)
