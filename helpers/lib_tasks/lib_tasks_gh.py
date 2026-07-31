@@ -537,6 +537,7 @@ def _check_if_pr_exists(title: str) -> bool:
     return pr_exists
 
 
+# TODO(ai_gp): Factor out this in a script.
 @task
 def gh_create_pr(  # type: ignore
     ctx,
@@ -626,8 +627,6 @@ def gh_create_pr(  # type: ignore
         cmd = f"gh pr merge {title} --auto --delete-branch --squash"
         hltltaut.run(ctx, cmd)
 
-
-# TODO(gp): Add gh_open_pr to jump to the PR from this branch.
 
 # TODO(Grisha): probably the section deserves a separate lib.
 # #############################################################################

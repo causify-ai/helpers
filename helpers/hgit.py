@@ -2054,20 +2054,17 @@ def git_add_file(file_path: str) -> List[str]:
     return added_files
 
 
-def find_merged_branches(mode: str) -> List[str]:
+def get_merged_branches(mode: str) -> List[str]:
     """
-    Find local or remote branches that have been merged into master.
+    Get list of branches that have been merged into master.
 
     :param mode: "local" for local branches or "remote" for remote branches
-    :return: names of the merged branches (without the `origin/` prefix
-        for remote branches)
+    :return: List of merged branch names
     """
     if mode == "local":
-        # > git branch --merged
-        # * AmpTask1251_Update_GH_actions_for_amp_02
-        find_cmd = r"git branch --merged master | grep -v master | grep -v \*"
+        cmd = r"git branch --merged master | grep -v master | grep -v \*"
     elif mode == "remote":
-        find_cmd = (
+        cmd = (
             "git branch -r --merged origin/master"
             + r" | grep -v master | sed 's/origin\///'"
         )
