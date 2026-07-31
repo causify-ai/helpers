@@ -88,12 +88,10 @@ class Test_read_failed_tests(hunitest.TestCase):
         """
         # Prepare inputs.
         build_name = "apple"
-        # Run test.
-        result = self.helper(build_name, "")
-        # Check outputs.
+        # Prepare outputs.
         expected = []
-        # TODO(ai_gp): Move to helper
-        self.assert_equal(str(result), str(expected))
+        # Run test.
+        self.helper(build_name, "", expected)
 
     def test3(self) -> None:
         """
@@ -107,15 +105,13 @@ class Test_read_failed_tests(hunitest.TestCase):
             helpers/test/test_module.py::TestClass::test_method2
         """
         content = hprint.dedent(content)
-        # Run test.
-        result = self.helper(build_name, content)
-        # Check outputs.
+        # Prepare outputs.
         expected = [
             "helpers/test/test_module.py::TestClass::test_method1",
             "helpers/test/test_module.py::TestClass::test_method2",
         ]
-        # TODO(ai_gp): Move to helper
-        self.assert_equal(str(result), str(expected))
+        # Run test.
+        self.helper(build_name, content, expected)
 
 
 # #############################################################################
@@ -225,10 +221,7 @@ class Test_extract_tests_from_repro(hunitest.TestCase):
             "helpers/test/test_module.py::TestClass::test_method1",
         ]
         # Run test.
-        actual = self.helper(repro_content, 1)
-        # Check outputs.
-        # TODO(ai_gp): Move to helper
-        self.assert_equal(str(actual), str(expected))
+        self.helper(repro_content, 1, expected)
 
     def test3(self) -> None:
         """
@@ -241,12 +234,10 @@ class Test_extract_tests_from_repro(hunitest.TestCase):
         echo "hello"
         """
         repro_content = hprint.dedent(repro_content)
-        # Run test.
-        actual = dshtpfmbu._extract_tests_from_repro(repro_content)
-        # Check outputs.
+        # Prepare outputs.
         expected = []
-        # TODO(ai_gp): Move to helper
-        self.assertEqual(actual, expected)
+        # Run test.
+        self.helper(repro_content, 0, expected)
 
 
 # #############################################################################
