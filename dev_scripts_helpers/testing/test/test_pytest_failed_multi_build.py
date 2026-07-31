@@ -15,6 +15,34 @@ import dev_scripts_helpers.testing.pytest_failed_multi_build as dshtpfmbu
 
 
 # #############################################################################
+# Shared Helper Functions
+# #############################################################################
+
+
+def _setup_build_files(
+    test_case: hunitest.TestCase,
+    build_name: str,
+    file_name: str,
+    content: str,
+) -> str:
+    """
+    Setup build directory and file for testing.
+
+    :param test_case: Test case instance
+    :param build_name: Build configuration name
+    :param file_name: Name of file to create (e.g., "failed_tests.txt", "repro.sh")
+    :param content: Content to write to file
+    :return: Scratch directory path
+    """
+    scratch_dir = test_case.get_scratch_space()
+    build_dir = os.path.join(scratch_dir, f"tmp.pytest_failed.{build_name}")
+    hio.create_dir(build_dir, incremental=True)
+    file_path = os.path.join(build_dir, file_name)
+    hio.to_file(file_path, content)
+    return scratch_dir
+
+
+# #############################################################################
 # Test_read_failed_tests
 # #############################################################################
 
@@ -24,21 +52,20 @@ class Test_read_failed_tests(hunitest.TestCase):
     Test `_read_failed_tests` function for reading failed test files.
     """
 
-    def helper(self, build_name: str, content: str) -> Any:
+    def helper(self, build_name: str, content: str, expected: Any = None) -> Any:
         """
-        Helper method to run test in scratch directory.
+        Helper method to run test in scratch directory and check outputs.
 
         :param build_name: Build configuration name
         :param content: Content to write to failed tests file
+        :param expected: Expected output (if provided, runs assertion)
         :return: Result from _read_failed_tests
         """
-        scratch_dir = self.get_scratch_space()
-        build_dir = os.path.join(scratch_dir, f"tmp.pytest_failed.{build_name}")
-        hio.create_dir(build_dir, incremental=True)
-        failed_file = os.path.join(build_dir, "failed_tests.txt")
-        hio.to_file(failed_file, content)
+        scratch_dir = _setup_build_files(self, build_name, "failed_tests.txt", content)
         with hsystem.cd(scratch_dir):
             result = dshtpfmbu._read_failed_tests(build_name)
+        if expected is not None:
+            self.assert_equal(str(result), str(expected))
         return result
 
     def test1(self) -> None:
@@ -52,11 +79,8 @@ class Test_read_failed_tests(hunitest.TestCase):
             "helpers/test/test_module.py::TestClass::test_method2",
         ]
         # Run test.
-        result = self.helper(build_name, "\n".join(tests))
-        # TODO(ai_gp): Move this code to helper since it's shared across tests.
-        # Check outputs.
         expected = tests
-        self.assert_equal(str(result), str(expected))
+        self.helper(build_name, "\n".join(tests), expected)
 
     def test2(self) -> None:
         """
@@ -102,22 +126,20 @@ class Test_read_repro_script(hunitest.TestCase):
     Test _read_repro_script function for reading repro scripts.
     """
 
-    # TODO(ai_gp): Can this be factored out outside multiple classes.
-    def helper(self, build_name: str, content: str) -> str:
+    def helper(self, build_name: str, content: str, expected: Optional[str] = None) -> str:
         """
-        Helper method to run test in scratch directory.
+        Helper method to run test in scratch directory and check outputs.
 
         :param build_name: Build configuration name
         :param content: Content to write to repro file
+        :param expected: Expected output (if provided, runs assertion)
         :return: Result from _read_repro_script
         """
-        scratch_dir = self.get_scratch_space()
-        build_dir = os.path.join(scratch_dir, f"tmp.pytest_failed.{build_name}")
-        hio.create_dir(build_dir, incremental=True)
-        repro_file = os.path.join(build_dir, "repro.sh")
-        hio.to_file(repro_file, content)
+        scratch_dir = _setup_build_files(self, build_name, "repro.sh", content)
         with hsystem.cd(scratch_dir):
             result = dshtpfmbu._read_repro_script(build_name)
+        if expected is not None:
+            self.assert_equal(result, expected)
         return result
 
     def test1(self) -> None:
@@ -132,11 +154,8 @@ class Test_read_repro_script(hunitest.TestCase):
         """
         content = hprint.dedent(content)
         # Run test.
-        result = self.helper(build_name, content)
-        # TODO(ai_gp): Move this code to helper since it's shared across tests.
-        # Check outputs.
         expected = content
-        self.assert_equal(result, expected)
+        self.helper(build_name, content, expected)
 
 
 # #############################################################################
@@ -149,16 +168,24 @@ class Test_extract_tests_from_repro(hunitest.TestCase):
     Test _extract_tests_from_repro function for extracting test names.
     """
 
-    def helper(self, repro_content: str, expected_count: int) -> Any:
+    def helper(
+        self,
+        repro_content: str,
+        expected_count: int,
+        expected: Optional[Any] = None,
+    ) -> Any:
         """
         Test helper for _extract_tests_from_repro.
 
         :param repro_content: Repro script content
         :param expected_count: Expected number of tests extracted
+        :param expected: Expected output (if provided, runs assertion)
         :return: Actual extracted tests
         """
         actual = dshtpfmbu._extract_tests_from_repro(repro_content)
         self.assertEqual(len(actual), expected_count)
+        if expected is not None:
+            self.assert_equal(str(actual), str(expected))
         return actual
 
     def test1(self) -> None:
@@ -177,11 +204,8 @@ class Test_extract_tests_from_repro(hunitest.TestCase):
             "helpers/test/test_module.py::TestClass::test_method1",
             "helpers/test/test_module.py::TestClass::test_method2",
         ]
-        # TODO(ai_gp): Move this code to helper since it's shared across tests.
         # Run test.
-        actual = self.helper(repro_content, 2)
-        # Check outputs.
-        self.assert_equal(str(actual), str(expected))
+        self.helper(repro_content, 2, expected)
 
     def test2(self) -> None:
         """
@@ -254,18 +278,21 @@ class Test_consolidate_failed_tests(hunitest.TestCase):
         self,
         build_names: list,
         build_tests: Dict[str, list],
+        expected: Optional[Dict[str, Set[str]]] = None,
     ) -> Dict[str, Set[str]]:
         """
         Helper to create files and run consolidation test.
 
         :param build_names: List of build names
         :param build_tests: Dict mapping build name to test list
+        :param expected: Expected output (if provided, runs assertion)
         :return: Result from _consolidate_failed_tests
         """
         scratch_dir = self.get_scratch_space()
         self._create_failed_test_files(scratch_dir, build_tests)
         with hsystem.cd(scratch_dir):
             result = dshtpfmbu._consolidate_failed_tests(build_names)
+        self.assert_equal(str(result), str(expected))
         return result
 
     def test1(self) -> None:
@@ -277,15 +304,13 @@ class Test_consolidate_failed_tests(hunitest.TestCase):
         build_tests = {
             "docker": ["test_method1", "test_method2"],
         }
-        # Run test.
-        result = self.helper(build_names, build_tests)
-        # Check outputs.
+        # Prepare outputs.
         expected = {
             "test_method1": {"docker"},
             "test_method2": {"docker"},
         }
-        # TODO(ai_gp): Move this code to helper since it's shared across tests.
-        self.assert_equal(str(result), str(expected))
+        # Run test.
+        self.helper(build_names, build_tests, expected)
 
     def test2(self) -> None:
         """
@@ -305,6 +330,7 @@ class Test_consolidate_failed_tests(hunitest.TestCase):
             "test_method2": {"docker", "apple"},
             "test_method3": {"apple"},
         }
+        # TODO(ai_gp): pass an Expected Output and `assert_equal`
         self.assert_equal(str(result), str(expected))
 
 
@@ -341,19 +367,22 @@ class Test_create_consolidated_repro(hunitest.TestCase):
 
     def helper(
         self,
-        build_names: list,
+        build_names: List[str],
+        expected: str,
     ) -> str:
         """
         Helper to create repro files and run consolidation test.
 
         :param build_names: List of build names
+        :param expected: Expected output (if provided, runs assertion)
         :return: Result from _create_consolidated_repro
         """
         scratch_dir = self.get_scratch_space()
         self._create_repro_files(scratch_dir, build_names)
         with hsystem.cd(scratch_dir):
             result = dshtpfmbu._create_consolidated_repro(build_names)
-            return result
+        self.assert_equal(result, expected, dedent=True, fuzzy_match=True)
+        return result
 
     def test1(self) -> None:
         """
@@ -361,9 +390,7 @@ class Test_create_consolidated_repro(hunitest.TestCase):
         """
         # Prepare inputs.
         build_names = ["docker", "apple"]
-        # Run test.
-        actual = self.helper(build_names)
-        # Check outputs.
+        # Prepare outputs.
         expected = """
         #!/bin/bash
         # Consolidated repro script for multiple builds.
@@ -377,8 +404,8 @@ class Test_create_consolidated_repro(hunitest.TestCase):
         export CSFY_DOCKER_ENGINE='apple'; pytest_log test/test_apple.py::TestClass::test_method $* 2>&1 | tee tmp.$BUILD_TAG.apple.txt
 
         """
-        # TODO(ai_gp): Move this code to helper since it's shared across tests.
-        self.assert_equal(actual, expected, dedent=True, fuzzy_match=True)
+        # Run test.
+        self.helper(build_names, expected)
 
     def test2(self) -> None:
         """
@@ -401,6 +428,7 @@ class Test_create_consolidated_repro(hunitest.TestCase):
         export CSFY_DOCKER_ENGINE='docker'; invoke docker_cmd --stage=local -v 1.6.0 --cmd "pytest_log test/test_dev_container.py::TestClass::test_method $*" 2>&1 | tee tmp.$BUILD_TAG.dev_container.txt
 
         """
+        # TODO(ai_gp): Use the assertion inside helper, passing expected.
         self.assert_equal(actual, expected, dedent=True, fuzzy_match=True)
 
 
@@ -418,15 +446,18 @@ class Test_summary_to_str(hunitest.TestCase):
         self,
         build_names: list,
         test_to_builds: Dict[str, Set[str]],
+        expected: str,
     ) -> str:
         """
-        Test helper for _summary_to_str.
+        Test helper for _summary_to_str and check outputs.
 
         :param build_names: List of build names
         :param test_to_builds: Dict mapping test names to sets of build names
+        :param expected: Expected output (if provided, runs assertion)
         :return: Summary string result
         """
         actual = dshtpfmbu._summary_to_str(build_names, test_to_builds)
+        self.assert_equal(actual, expected, dedent=True, fuzzy_match=True)
         return actual
 
     def test1(self) -> None:
@@ -439,9 +470,7 @@ class Test_summary_to_str(hunitest.TestCase):
             "test_method1": {"docker"},
             "test_method2": {"docker"},
         }
-        # Run test.
-        actual = self.helper(build_names, test_to_builds)
-        # Check outputs.
+        # Prepare outputs.
         expected = """
         ################################################################################
         Failed Tests Summary
@@ -455,8 +484,8 @@ class Test_summary_to_str(hunitest.TestCase):
         Across builds: docker
         Tests failing in multiple builds: 0
         """
-        # TODO(ai_gp): Move this code to helper since it's shared across tests.
-        self.assert_equal(actual, expected, dedent=True, fuzzy_match=True)
+        # Run test.
+        self.helper(build_names, test_to_builds, expected)
 
     def test2(self) -> None:
         """
@@ -486,6 +515,7 @@ class Test_summary_to_str(hunitest.TestCase):
         Across builds: docker, apple, dev_container
         Tests failing in multiple builds: 2
         """
+        # TODO(ai_gp): Use the assertion inside helper, passing expected.
         self.assert_equal(actual, expected, dedent=True, fuzzy_match=True)
 
     def test3(self) -> None:
@@ -509,6 +539,7 @@ class Test_summary_to_str(hunitest.TestCase):
         Across builds: docker, apple
         Tests failing in multiple builds: 0
         """
+        # TODO(ai_gp): Use the assertion inside helper, passing expected.
         self.assert_equal(actual, expected, dedent=True, fuzzy_match=True)
 
 
@@ -557,16 +588,28 @@ class Test_extract_build_stats_missing_pytest_ended(hunitest.TestCase):
     Test _extract_build_stats marks INCOMPLETE when pytest_ended token missing.
     """
 
-    # TODO(ai_gp): Factor out common code in a helper function.
+    def helper(self, build_name: str, info_data: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Helper to setup build directory with info.json and extract stats.
+
+        :param build_name: Build configuration name
+        :param info_data: Data to write to info.json
+        :return: Result from _extract_build_stats
+        """
+        scratch_dir = self.get_scratch_space()
+        build_dir = os.path.join(scratch_dir, f"tmp.pytest_failed.{build_name}")
+        hio.create_dir(build_dir, incremental=True)
+        info_file = os.path.join(build_dir, "info.json")
+        hio.to_json(info_file, info_data)
+        with hsystem.cd(scratch_dir):
+            result = dshtpfmbu._extract_build_stats(build_name)
+        return result
+
     def test1(self) -> None:
         """
         Test that missing pytest_ended token marks build as INCOMPLETE.
         """
         # Prepare inputs.
-        scratch_dir = self.get_scratch_space()
-        build_dir = os.path.join(scratch_dir, "tmp.pytest_failed.dev_container")
-        hio.create_dir(build_dir, incremental=True)
-        # Create info.json without pytest_ended token.
         info_data = {
             "pytest_started": "2024-01-01T00:00:00",
             "log_num_passed": 100,
@@ -574,32 +617,25 @@ class Test_extract_build_stats_missing_pytest_ended(hunitest.TestCase):
             "log_num_skipped": 2,
             "pytest_duration_in_secs": 45.2,
         }
-        info_file = os.path.join(build_dir, "info.json")
-        hio.to_json(info_file, info_data)
-        with hsystem.cd(scratch_dir):
-            # Call extract_build_stats.
-            result = dshtpfmbu._extract_build_stats("dev_container")
+        # Run test.
+        result = self.helper("dev_container", info_data)
         # Check outputs - should be marked incomplete.
-        build = result["build"]
-        incomplete = result["incomplete"]
-        passed = result["passed"]
-        failed = result["failed"]
-        self.assert_equal(str(build), "dev_container")
-        self.assert_equal(str(incomplete), "True")
-        self.assert_equal(str(passed), "100")
-        self.assert_equal(str(failed), "5")
-        # TODO(ai_gp): Add an expected = "" and a self.assert_equal inside
-        # the helper.
+        expected = {
+            "build": "dev_container",
+            "passed": 100,
+            "skipped": 2,
+            "failed": 5,
+            "total": 107,
+            "duration": "45.2s",
+            "incomplete": True,
+        }
+        self.assert_equal(str(result), str(expected))
 
     def test2(self) -> None:
         """
         Test that presence of pytest_ended token marks build as COMPLETE.
         """
         # Prepare inputs.
-        scratch_dir = self.get_scratch_space()
-        build_dir = os.path.join(scratch_dir, "tmp.pytest_failed.docker")
-        hio.create_dir(build_dir, incremental=True)
-        # Create info.json WITH pytest_ended token.
         info_data = {
             "pytest_started": "2024-01-01T00:00:00",
             "pytest_ended": "2024-01-01T00:00:45",
@@ -608,22 +644,19 @@ class Test_extract_build_stats_missing_pytest_ended(hunitest.TestCase):
             "log_num_skipped": 2,
             "pytest_duration_in_secs": 45.2,
         }
-        info_file = os.path.join(build_dir, "info.json")
-        hio.to_json(info_file, info_data)
-        with hsystem.cd(scratch_dir):
-            # Call extract_build_stats.
-            result = dshtpfmbu._extract_build_stats("docker")
+        # Run test.
+        result = self.helper("docker", info_data)
         # Check outputs - should NOT be marked incomplete.
-        build = result["build"]
-        incomplete = result["incomplete"]
-        passed = result["passed"]
-        failed = result["failed"]
-        self.assert_equal(str(build), "docker")
-        self.assert_equal(str(incomplete), "False")
-        self.assert_equal(str(passed), "100")
-        self.assert_equal(str(failed), "0")
-        # TODO(ai_gp): Add an expected = "" and a self.assert_equal inside
-        # the helper.
+        expected = {
+            "build": "docker",
+            "passed": 100,
+            "skipped": 2,
+            "failed": 0,
+            "total": 102,
+            "duration": "45.2s",
+            "incomplete": False,
+        }
+        self.assert_equal(str(result), str(expected))
 
 
 # #############################################################################
@@ -854,12 +887,16 @@ class Test_build_stats_to_str_colorization(hunitest.TestCase):
                 "incomplete": True,
             },
         ]
-        # This case should be NOT STARTED based on the logic.
-        actual = dshtpfmbu._build_stats_to_str(build_stats)
-        clean_actual = hprint.remove_non_printable_chars(actual)
-        # Verify NOT STARTED appears for incomplete=True, total=0.
-        self.assertIn("NOT STARTED", clean_actual)
-        # TODO(ai_gp): Add expected and call self._check_colorized_output
+        # Prepare outputs.
+        expected = """
+        ################################################################################
+        Build Statistics
+        ################################################################################
+        Build  | Status              | Passed | Skipped | Failed | Total | Duration |
+        ------ | ------------------- | ------ | ------- | ------ | ----- | -------- |
+        docker | NOT STARTED | 0      | 0       | 0      | 0     | N/A      |"""
+        # Run test.
+        self._check_colorized_output(build_stats, "NOT STARTED", expected=expected, dedent=True)
 
 
 # #############################################################################
