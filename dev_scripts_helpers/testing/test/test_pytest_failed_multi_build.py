@@ -5,7 +5,7 @@ Tests consolidation of failed tests across multiple build configurations.
 """
 
 import os
-from typing import Any, Dict, Optional, Set
+from typing import Any, Dict, List, Optional, Set
 
 import helpers.hio as hio
 import helpers.hprint as hprint
@@ -323,15 +323,12 @@ class Test_consolidate_failed_tests(hunitest.TestCase):
             "apple": ["test_method2", "test_method3"],
         }
         # Run test.
-        result = self.helper(build_names, build_tests)
-        # Check outputs.
         expected = {
             "test_method1": {"docker"},
             "test_method2": {"docker", "apple"},
             "test_method3": {"apple"},
         }
-        # TODO(ai_gp): pass an Expected Output and `assert_equal`
-        self.assert_equal(str(result), str(expected))
+        self.helper(build_names, build_tests, expected)
 
 
 # #############################################################################
@@ -362,6 +359,7 @@ class Test_create_consolidated_repro(hunitest.TestCase):
             hio.create_dir(build_dir, incremental=True)
             repro_file = os.path.join(build_dir, "repro.sh")
             tests = f"test/test_{build_name}.py::TestClass::test_method"
+            # TODO(ai_gp): Use """ and dedent.
             content = f"#!/bin/bash -xe\n# Repro script\npytest_log {tests} $*"
             hio.to_file(repro_file, content)
 
@@ -413,9 +411,7 @@ class Test_create_consolidated_repro(hunitest.TestCase):
         """
         # Prepare inputs.
         build_names = ["dev_container"]
-        # Run test.
-        actual = self.helper(build_names)
-        # Check outputs.
+        # Prepare outputs.
         # Expected: Bash script with dev_container-specific repro command.
         # dev_container uses invoke docker_cmd, docker/apple use plain pytest_log.
         expected = """
@@ -428,8 +424,8 @@ class Test_create_consolidated_repro(hunitest.TestCase):
         export CSFY_DOCKER_ENGINE='docker'; invoke docker_cmd --stage=local -v 1.6.0 --cmd "pytest_log test/test_dev_container.py::TestClass::test_method $*" 2>&1 | tee tmp.$BUILD_TAG.dev_container.txt
 
         """
-        # TODO(ai_gp): Use the assertion inside helper, passing expected.
-        self.assert_equal(actual, expected, dedent=True, fuzzy_match=True)
+        # Run test.
+        self.helper(build_names, expected)
 
 
 # #############################################################################
@@ -498,9 +494,7 @@ class Test_summary_to_str(hunitest.TestCase):
             "test_method2": {"docker"},
             "test_method3": {"apple", "dev_container"},
         }
-        # Run test.
-        actual = self.helper(build_names, test_to_builds)
-        # Check outputs.
+        # Prepare outputs.
         expected = """
         ################################################################################
         Failed Tests Summary
@@ -515,8 +509,8 @@ class Test_summary_to_str(hunitest.TestCase):
         Across builds: docker, apple, dev_container
         Tests failing in multiple builds: 2
         """
-        # TODO(ai_gp): Use the assertion inside helper, passing expected.
-        self.assert_equal(actual, expected, dedent=True, fuzzy_match=True)
+        # Run test.
+        self.helper(build_names, test_to_builds, expected)
 
     def test3(self) -> None:
         """
@@ -525,9 +519,7 @@ class Test_summary_to_str(hunitest.TestCase):
         # Prepare inputs.
         build_names = ["docker", "apple"]
         test_to_builds = {}
-        # Run test.
-        actual = self.helper(build_names, test_to_builds)
-        # Check outputs.
+        # Prepare outputs.
         expected = """
         ################################################################################
         Failed Tests Summary
@@ -539,8 +531,8 @@ class Test_summary_to_str(hunitest.TestCase):
         Across builds: docker, apple
         Tests failing in multiple builds: 0
         """
-        # TODO(ai_gp): Use the assertion inside helper, passing expected.
-        self.assert_equal(actual, expected, dedent=True, fuzzy_match=True)
+        # Run test.
+        self.helper(build_names, test_to_builds, expected)
 
 
 # #############################################################################
@@ -629,6 +621,7 @@ class Test_extract_build_stats_missing_pytest_ended(hunitest.TestCase):
             "duration": "45.2s",
             "incomplete": True,
         }
+        # TODO(ai_gp): Move to helper.
         self.assert_equal(str(result), str(expected))
 
     def test2(self) -> None:
@@ -669,7 +662,7 @@ class Test_build_stats_to_str_incomplete_status(hunitest.TestCase):
     Test _build_stats_to_str displays status correctly with incomplete builds.
     """
 
-    def test_incomplete_status_display(self) -> None:
+    def test1(self) -> None:
         """
         Test that proper status is displayed with incomplete builds.
         Incomplete builds with total=0 show NOT STARTED status.
@@ -906,10 +899,12 @@ class Test_build_stats_to_str_colorization(hunitest.TestCase):
 
 class Test_build_stats_to_str_new_status_conditions(hunitest.TestCase):
     """
-    Test _build_stats_to_str with new status conditions (NOT STARTED, IN PROGRESS).
+    Test _build_stats_to_str with new status conditions.
     """
 
-    def test_not_started_no_pytest_file(self) -> None:
+    # TODO(ai_gp): Factor out a helper function with a self.assert_equal so
+    # that we can check the output of each test.
+    def test1(self) -> None:
         """
         Test NOT STARTED status when no pytest file exists.
         Scenario: incomplete=True, total=0 (no info.json file)
@@ -933,7 +928,7 @@ class Test_build_stats_to_str_new_status_conditions(hunitest.TestCase):
         self.assertIn("NOT STARTED", clean_actual)
         self.assertNotIn("IN PROGRESS", clean_actual)
 
-    def test_in_progress_pytest_running_with_tests(self) -> None:
+    def test2(self) -> None:
         """
         Test IN PROGRESS status when pytest running but unfinished.
         Scenario: incomplete=True, total>0 (no pytest_ended marker)
@@ -957,7 +952,7 @@ class Test_build_stats_to_str_new_status_conditions(hunitest.TestCase):
         self.assertIn("IN PROGRESS", clean_actual)
         self.assertNotIn("NOT STARTED", clean_actual)
 
-    def test_in_progress_pytest_started_no_output(self) -> None:
+    def test3(self) -> None:
         """
         Test IN PROGRESS status when pytest started but no output yet.
         Scenario: incomplete=True, total=0, but info.json exists (edge case)
@@ -981,7 +976,7 @@ class Test_build_stats_to_str_new_status_conditions(hunitest.TestCase):
         # Check outputs - total=0 should be NOT STARTED.
         self.assertIn("NOT STARTED", clean_actual)
 
-    def test_completed_no_failures(self) -> None:
+    def test4(self) -> None:
         """
         Test PASS status when pytest completed with no failures.
         Scenario: incomplete=False, failed=0
@@ -1005,7 +1000,7 @@ class Test_build_stats_to_str_new_status_conditions(hunitest.TestCase):
         self.assertIn("PASS", clean_actual)
         self.assertNotIn("FAIL", clean_actual)
 
-    def test_completed_with_failures(self) -> None:
+    def test5(self) -> None:
         """
         Test FAIL status when pytest completed with failures.
         Scenario: incomplete=False, failed>0
@@ -1029,7 +1024,7 @@ class Test_build_stats_to_str_new_status_conditions(hunitest.TestCase):
         self.assertIn("FAIL", clean_actual)
         self.assertNotIn("PASS", clean_actual)
 
-    def test_multiple_builds_mixed_statuses(self) -> None:
+    def test6(self) -> None:
         """
         Test table with multiple builds showing all status types.
         """
@@ -1078,6 +1073,8 @@ class Test_build_stats_to_str_new_status_conditions(hunitest.TestCase):
 
 
 class Test_create_consolidated_repro_with_missing_files(hunitest.TestCase):
+    # TODO(ai_gp): Factor out a helper function with a self.assert_equal so
+    # that we can check the output of each test.
     def test1(self) -> None:
         """
         Test that missing repro scripts are skipped without crashing.
