@@ -92,6 +92,7 @@ class Test_read_failed_tests(hunitest.TestCase):
         result = self.helper(build_name, "")
         # Check outputs.
         expected = []
+        # TODO(ai_gp): Move to helper
         self.assert_equal(str(result), str(expected))
 
     def test3(self) -> None:
@@ -113,6 +114,7 @@ class Test_read_failed_tests(hunitest.TestCase):
             "helpers/test/test_module.py::TestClass::test_method1",
             "helpers/test/test_module.py::TestClass::test_method2",
         ]
+        # TODO(ai_gp): Move to helper
         self.assert_equal(str(result), str(expected))
 
 
@@ -225,6 +227,7 @@ class Test_extract_tests_from_repro(hunitest.TestCase):
         # Run test.
         actual = self.helper(repro_content, 1)
         # Check outputs.
+        # TODO(ai_gp): Move to helper
         self.assert_equal(str(actual), str(expected))
 
     def test3(self) -> None:
@@ -242,6 +245,7 @@ class Test_extract_tests_from_repro(hunitest.TestCase):
         actual = dshtpfmbu._extract_tests_from_repro(repro_content)
         # Check outputs.
         expected = []
+        # TODO(ai_gp): Move to helper
         self.assertEqual(actual, expected)
 
 
@@ -344,7 +348,7 @@ class Test_create_consolidated_repro(hunitest.TestCase):
     def _create_repro_files(
         self,
         scratch_dir: str,
-        build_names: list,
+        build_names: List[str],
     ) -> None:
         """
         Create repro script files for multiple builds.
@@ -359,8 +363,12 @@ class Test_create_consolidated_repro(hunitest.TestCase):
             hio.create_dir(build_dir, incremental=True)
             repro_file = os.path.join(build_dir, "repro.sh")
             tests = f"test/test_{build_name}.py::TestClass::test_method"
-            # TODO(ai_gp): Use """ and dedent.
-            content = f"#!/bin/bash -xe\n# Repro script\npytest_log {tests} $*"
+            content = f"""
+            #!/bin/bash -xe
+            # Repro script
+            pytest_log {tests} $*
+            """
+            content = hprint.dedent(content)
             hio.to_file(repro_file, content)
 
     def helper(
@@ -580,12 +588,18 @@ class Test_extract_build_stats_missing_pytest_ended(hunitest.TestCase):
     Test _extract_build_stats marks INCOMPLETE when pytest_ended token missing.
     """
 
-    def helper(self, build_name: str, info_data: Dict[str, Any]) -> Dict[str, Any]:
+    def helper(
+        self,
+        build_name: str,
+        info_data: Dict[str, Any],
+        expected: Dict[str, Any]
+    ) -> Dict[str, Any]:
         """
         Helper to setup build directory with info.json and extract stats.
 
         :param build_name: Build configuration name
         :param info_data: Data to write to info.json
+        :param expected: Expected output (if provided, runs assertion)
         :return: Result from _extract_build_stats
         """
         scratch_dir = self.get_scratch_space()
@@ -595,6 +609,7 @@ class Test_extract_build_stats_missing_pytest_ended(hunitest.TestCase):
         hio.to_json(info_file, info_data)
         with hsystem.cd(scratch_dir):
             result = dshtpfmbu._extract_build_stats(build_name)
+        self.assert_equal(str(result), str(expected))
         return result
 
     def test1(self) -> None:
@@ -609,9 +624,7 @@ class Test_extract_build_stats_missing_pytest_ended(hunitest.TestCase):
             "log_num_skipped": 2,
             "pytest_duration_in_secs": 45.2,
         }
-        # Run test.
-        result = self.helper("dev_container", info_data)
-        # Check outputs - should be marked incomplete.
+        # Prepare outputs.
         expected = {
             "build": "dev_container",
             "passed": 100,
@@ -621,8 +634,8 @@ class Test_extract_build_stats_missing_pytest_ended(hunitest.TestCase):
             "duration": "45.2s",
             "incomplete": True,
         }
-        # TODO(ai_gp): Move to helper.
-        self.assert_equal(str(result), str(expected))
+        # Run test.
+        self.helper("dev_container", info_data, expected)
 
     def test2(self) -> None:
         """
@@ -637,9 +650,7 @@ class Test_extract_build_stats_missing_pytest_ended(hunitest.TestCase):
             "log_num_skipped": 2,
             "pytest_duration_in_secs": 45.2,
         }
-        # Run test.
-        result = self.helper("docker", info_data)
-        # Check outputs - should NOT be marked incomplete.
+        # Prepare outputs.
         expected = {
             "build": "docker",
             "passed": 100,
@@ -649,7 +660,8 @@ class Test_extract_build_stats_missing_pytest_ended(hunitest.TestCase):
             "duration": "45.2s",
             "incomplete": False,
         }
-        self.assert_equal(str(result), str(expected))
+        # Run test.
+        self.helper("docker", info_data, expected)
 
 
 # #############################################################################
@@ -730,8 +742,8 @@ class Test_build_stats_to_str_colorization(hunitest.TestCase):
         self,
         build_stats: list,
         expected_status: str,
+        expected: str,
         *,
-        expected: Optional[str] = None,
         dedent: bool = False,
     ) -> None:
         """
@@ -747,14 +759,11 @@ class Test_build_stats_to_str_colorization(hunitest.TestCase):
         self.assertIn("\033[", actual)
         clean_actual = hprint.remove_non_printable_chars(actual)
         # Check that expected status appears in output or compare full output.
-        if expected is not None:
-            if dedent:
-                expected_str = hprint.dedent(expected).strip()
-            else:
-                expected_str = expected
-            self.assert_equal(clean_actual, expected_str)
+        if dedent:
+            expected_str = hprint.dedent(expected).strip()
         else:
-            self.assertIn(expected_status, clean_actual)
+            expected_str = expected
+        self.assert_equal(clean_actual, expected_str)
 
     def test1(self) -> None:
         """
@@ -780,7 +789,7 @@ class Test_build_stats_to_str_colorization(hunitest.TestCase):
         ------ | ------------- | ------ | ------- | ------ | ----- | -------- |
         docker | PASS | 368    | 20      | 0      | 388   | 11.87s   |"""
         # Run test.
-        self._check_colorized_output(build_stats, "PASS", expected=expected, dedent=True)
+        self._check_colorized_output(build_stats, "PASS", expected, dedent=True)
 
     def test2(self) -> None:
         """
@@ -806,9 +815,9 @@ class Test_build_stats_to_str_colorization(hunitest.TestCase):
         ------ | ------------- | ------ | ------- | ------ | ----- | -------- |
         docker | FAIL | 357    | 20      | 11     | 388   | 12.45s   |"""
         # Run test.
-        self._check_colorized_output(build_stats, "FAIL", expected=expected, dedent=True)
+        self._check_colorized_output(build_stats, "FAIL", expected, dedent=True)
 
-    def test_not_started_status_colorization(self) -> None:
+    def test3(self) -> None:
         """
         Test that NOT STARTED status is displayed when no info file exists.
         """
@@ -833,10 +842,10 @@ class Test_build_stats_to_str_colorization(hunitest.TestCase):
         dev_container | NOT STARTED | 0      | 0       | 0      | 0     | N/A      |"""
         # Run test.
         self._check_colorized_output(
-            build_stats, "NOT STARTED", expected=expected, dedent=True
+            build_stats, "NOT STARTED", expected, dedent=True
         )
 
-    def test_in_progress_status_colorization(self) -> None:
+    def test4(self) -> None:
         """
         Test that IN PROGRESS status is displayed when pytest incomplete.
         """
@@ -861,10 +870,10 @@ class Test_build_stats_to_str_colorization(hunitest.TestCase):
         apple | IN PROGRESS | 150    | 5       | 0      | 155   | N/A      |"""
         # Run test.
         self._check_colorized_output(
-            build_stats, "IN PROGRESS", expected=expected, dedent=True
+            build_stats, "IN PROGRESS", expected, dedent=True
         )
 
-    def test_in_progress_no_tests_yet(self) -> None:
+    def test5(self) -> None:
         """
         Test that IN PROGRESS status is displayed even with no tests output yet.
         """
@@ -889,7 +898,7 @@ class Test_build_stats_to_str_colorization(hunitest.TestCase):
         ------ | ------------------- | ------ | ------- | ------ | ----- | -------- |
         docker | NOT STARTED | 0      | 0       | 0      | 0     | N/A      |"""
         # Run test.
-        self._check_colorized_output(build_stats, "NOT STARTED", expected=expected, dedent=True)
+        self._check_colorized_output(build_stats, "NOT STARTED", expected, dedent=True)
 
 
 # #############################################################################
@@ -902,8 +911,30 @@ class Test_build_stats_to_str_new_status_conditions(hunitest.TestCase):
     Test _build_stats_to_str with new status conditions.
     """
 
-    # TODO(ai_gp): Factor out a helper function with a self.assert_equal so
-    # that we can check the output of each test.
+    def helper(
+        self,
+        build_stats: List[Any],
+        expected_strings: Optional[List[str]] = None,
+        unexpected_strings: Optional[List[str]] = None,
+    ) -> str:
+        """
+        Helper to run _build_stats_to_str and optionally check outputs.
+
+        :param build_stats: Build statistics list
+        :param expected_strings: List of strings expected to be in output
+        :param unexpected_strings: List of strings not expected to be in output
+        :return: Cleaned output from _build_stats_to_str with ANSI codes removed
+        """
+        actual = dshtpfmbu._build_stats_to_str(build_stats)
+        clean_actual = hprint.remove_non_printable_chars(actual)
+        if expected_strings is not None:
+            for expected in expected_strings:
+                self.assertIn(expected, clean_actual)
+        if unexpected_strings is not None:
+            for unexpected in unexpected_strings:
+                self.assertNotIn(unexpected, clean_actual)
+        return clean_actual
+
     def test1(self) -> None:
         """
         Test NOT STARTED status when no pytest file exists.
@@ -922,11 +953,7 @@ class Test_build_stats_to_str_new_status_conditions(hunitest.TestCase):
             },
         ]
         # Run test.
-        actual = dshtpfmbu._build_stats_to_str(build_stats)
-        clean_actual = hprint.remove_non_printable_chars(actual)
-        # Check outputs.
-        self.assertIn("NOT STARTED", clean_actual)
-        self.assertNotIn("IN PROGRESS", clean_actual)
+        self.helper(build_stats, ["NOT STARTED"], ["IN PROGRESS"])
 
     def test2(self) -> None:
         """
@@ -946,11 +973,7 @@ class Test_build_stats_to_str_new_status_conditions(hunitest.TestCase):
             },
         ]
         # Run test.
-        actual = dshtpfmbu._build_stats_to_str(build_stats)
-        clean_actual = hprint.remove_non_printable_chars(actual)
-        # Check outputs.
-        self.assertIn("IN PROGRESS", clean_actual)
-        self.assertNotIn("NOT STARTED", clean_actual)
+        self.helper(build_stats, ["IN PROGRESS"], ["NOT STARTED"])
 
     def test3(self) -> None:
         """
@@ -971,10 +994,7 @@ class Test_build_stats_to_str_new_status_conditions(hunitest.TestCase):
             },
         ]
         # Run test.
-        actual = dshtpfmbu._build_stats_to_str(build_stats)
-        clean_actual = hprint.remove_non_printable_chars(actual)
-        # Check outputs - total=0 should be NOT STARTED.
-        self.assertIn("NOT STARTED", clean_actual)
+        self.helper(build_stats, ["NOT STARTED"])
 
     def test4(self) -> None:
         """
@@ -994,11 +1014,7 @@ class Test_build_stats_to_str_new_status_conditions(hunitest.TestCase):
             },
         ]
         # Run test.
-        actual = dshtpfmbu._build_stats_to_str(build_stats)
-        clean_actual = hprint.remove_non_printable_chars(actual)
-        # Check outputs.
-        self.assertIn("PASS", clean_actual)
-        self.assertNotIn("FAIL", clean_actual)
+        self.helper(build_stats, ["PASS"], ["FAIL"])
 
     def test5(self) -> None:
         """
@@ -1018,11 +1034,7 @@ class Test_build_stats_to_str_new_status_conditions(hunitest.TestCase):
             },
         ]
         # Run test.
-        actual = dshtpfmbu._build_stats_to_str(build_stats)
-        clean_actual = hprint.remove_non_printable_chars(actual)
-        # Check outputs.
-        self.assertIn("FAIL", clean_actual)
-        self.assertNotIn("PASS", clean_actual)
+        self.helper(build_stats, ["FAIL"], ["PASS"])
 
     def test6(self) -> None:
         """
@@ -1059,12 +1071,10 @@ class Test_build_stats_to_str_new_status_conditions(hunitest.TestCase):
             },
         ]
         # Run test.
-        actual = dshtpfmbu._build_stats_to_str(build_stats)
-        clean_actual = hprint.remove_non_printable_chars(actual)
-        # Check outputs.
-        self.assertIn("NOT STARTED", clean_actual)
-        self.assertIn("IN PROGRESS", clean_actual)
-        self.assertIn("PASS", clean_actual)
+        self.helper(
+            build_stats,
+            ["NOT STARTED", "IN PROGRESS", "PASS"],
+        )
 
 
 # #############################################################################
@@ -1073,28 +1083,42 @@ class Test_build_stats_to_str_new_status_conditions(hunitest.TestCase):
 
 
 class Test_create_consolidated_repro_with_missing_files(hunitest.TestCase):
-    # TODO(ai_gp): Factor out a helper function with a self.assert_equal so
-    # that we can check the output of each test.
+    def helper(
+        self,
+        build_names_to_call: List[str],
+        build_names_to_create: List[str],
+        expected: str,
+    ) -> str:
+        """
+        Helper to create repro files and run consolidation test.
+
+        :param build_names_to_call: List of build names to pass to _create_consolidated_repro
+        :param build_names_to_create: List of build names to actually create files for
+        :param expected: Expected output (if provided, runs assertion)
+        :return: Result from _create_consolidated_repro
+        """
+        scratch_dir = self.get_scratch_space()
+        for build_name in build_names_to_create:
+            build_dir = os.path.join(
+                scratch_dir, f"tmp.pytest_failed.{build_name}"
+            )
+            hio.create_dir(build_dir, incremental=True)
+            repro_file = os.path.join(build_dir, "repro.sh")
+            content = f"#!/bin/bash\npytest_log test_{build_name}.py $*"
+            hio.to_file(repro_file, content)
+        with hsystem.cd(scratch_dir):
+            result = dshtpfmbu._create_consolidated_repro(build_names_to_call)
+        self.assert_equal(result, expected, dedent=True, fuzzy_match=True)
+        return result
+
     def test1(self) -> None:
         """
         Test that missing repro scripts are skipped without crashing.
         """
         # Prepare inputs.
-        scratch_dir = self.get_scratch_space()
-        # Create repro file only for docker build.
-        docker_dir = os.path.join(scratch_dir, "tmp.pytest_failed.docker")
-        hio.create_dir(docker_dir, incremental=True)
-        docker_repro = os.path.join(docker_dir, "repro.sh")
-        hio.to_file(docker_repro, "#!/bin/bash\npytest_log test_docker.py $*")
-        # apple and dev_container directories don't have repro.sh.
-        with hsystem.cd(scratch_dir):
-            # Call with all three builds.
-            actual = dshtpfmbu._create_consolidated_repro(
-                ["docker", "apple", "dev_container"]
-            )
-        # Check outputs.
-        # Expected: Consolidated script includes only available builds.
-        # Only docker has a repro.sh file, so only docker section appears.
+        build_names_to_call = ["docker", "apple", "dev_container"]
+        # Only docker has repro.sh
+        build_names_to_create = ["docker"]
         expected = """
         #!/bin/bash
         # Consolidated repro script for multiple builds.
@@ -1105,31 +1129,17 @@ class Test_create_consolidated_repro_with_missing_files(hunitest.TestCase):
         export CSFY_DOCKER_ENGINE='docker'; pytest_log test_docker.py $* 2>&1 | tee tmp.$BUILD_TAG.docker.txt
 
         """
-        self.assert_equal(actual, expected, dedent=True, fuzzy_match=True)
+        # Run test.
+        self.helper(build_names_to_call, build_names_to_create, expected)
 
     def test2(self) -> None:
         """
         Test that only builds with repro scripts are consolidated.
         """
         # Prepare inputs.
-        scratch_dir = self.get_scratch_space()
-        # Create repro files for docker and apple.
-        for build_name in ["docker", "apple"]:
-            build_dir = os.path.join(
-                scratch_dir, f"tmp.pytest_failed.{build_name}"
-            )
-            hio.create_dir(build_dir, incremental=True)
-            repro_file = os.path.join(build_dir, "repro.sh")
-            content = f"#!/bin/bash\npytest_log test_{build_name}.py $*"
-            hio.to_file(repro_file, content)
-        with hsystem.cd(scratch_dir):
-            # Call with all three builds (only docker and apple have files).
-            actual = dshtpfmbu._create_consolidated_repro(
-                ["docker", "apple", "dev_container"]
-            )
-        # Check outputs.
-        # Expected: Consolidated script includes only builds with repro files.
-        # Docker and apple have repro.sh files, but dev_container is skipped.
+        build_names_to_call = ["docker", "apple", "dev_container"]
+        # Only these have repro.sh
+        build_names_to_create = ["docker", "apple"]
         expected = """
         #!/bin/bash
         # Consolidated repro script for multiple builds.
@@ -1143,4 +1153,5 @@ class Test_create_consolidated_repro_with_missing_files(hunitest.TestCase):
         export CSFY_DOCKER_ENGINE='apple'; pytest_log test_apple.py $* 2>&1 | tee tmp.$BUILD_TAG.apple.txt
 
         """
-        self.assert_equal(actual, expected, dedent=True, fuzzy_match=True)
+        # Run test.
+        self.helper(build_names_to_call, build_names_to_create, expected)
