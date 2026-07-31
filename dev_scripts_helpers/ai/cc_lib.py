@@ -9,16 +9,19 @@ Import as:
 import dev_scripts_helpers.ai.cc_lib as dshaccli
 """
 
+# TODO(gp): Maybe -> helpers/hanthropic.py?
+
 import json
 import logging
 from typing import Any, Dict, List, Optional
+
+# TODO(ai_gp): Use import and not from import
+from claude_agent_sdk import ClaudeSDKClient, ClaudeAgentOptions
 
 import helpers.hdbg as hdbg
 import helpers.hio as hio
 
 _LOG = logging.getLogger(__name__)
-
-# TODO(gp): Maybe hanthropic.py?
 
 # #############################################################################
 # PromptSequencer
@@ -77,17 +80,10 @@ class PromptSequencer:
             - Context preserved between prompts
         :raises RuntimeError: If any prompt execution fails
         """
-        # TODO(ai_gp): Use dassert_lt
-        hdbg.dassert(
-            len(prompts) > 0,
-            "Must provide at least one prompt",
-        )
+        hdbg.dassert_lt(0, len(prompts), "Must provide at least one prompt")
         _LOG.info(
             "Starting prompt sequence execution with %d prompts", len(prompts)
         )
-        # Import Claude SDK here to avoid hard dependency at module level.
-        # TODO(ai_gp): Move up and use import instead of from ... import
-        from claude_agent_sdk import ClaudeSDKClient, ClaudeAgentOptions
         # Create options for Claude SDK.
         options = ClaudeAgentOptions(
             allowed_tools=self.allowed_tools,

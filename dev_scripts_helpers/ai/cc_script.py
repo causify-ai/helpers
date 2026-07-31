@@ -6,8 +6,10 @@ Reads a list of prompts and executes them sequentially, maintaining context
 across prompts. Outputs raw responses and saves a session log.
 
 Usage:
-# TODO(ai_gp): Add comments explaining each command.
+# Execute with inline prompts.
 > cc_script.py --prompts "prompt1" --prompts "prompt2" [--options]
+
+# Execute with prompts from a file (one per line).
 > cc_script.py --prompts_file prompts.txt [--options]
 """
 
@@ -20,6 +22,7 @@ from typing import Any, Dict, List
 import helpers.hdbg as hdbg
 import helpers.hio as hio
 import helpers.hparser as hparser
+import helpers.hprint as hprint
 
 import dev_scripts_helpers.ai.cc_lib as dshaccli
 
@@ -99,13 +102,12 @@ def _print_response(response: str) -> None:
 
     :param response: Response text from Claude
     """
-    # Print response with frame
-    # TODO(ai_gp): use hprint.frame
-    print("\n" + "=" * 80)
-    print("CLAUDE RESPONSE:")
-    print("=" * 80)
-    print(response)
-    print("=" * 80 + "\n")
+    framed = hprint.frame(
+        "CLAUDE RESPONSE:\n\n" + response,
+        char1="=",
+        num_chars=80,
+    )
+    print("\n" + framed + "\n")
 
 
 def _save_session_log(
@@ -214,8 +216,7 @@ async def _main_async(args: argparse.Namespace) -> None:
         prompts = _load_prompts_from_file(args.prompts_file)
     else:
         prompts = [p for p in args.prompts if p]
-        # TODO(ai_gp): Use dassert_lt
-        hdbg.dassert(len(prompts) > 0, "No prompts provided")
+        hdbg.dassert_lt(0, len(prompts), "No prompts provided")
         _LOG.info("Loaded %d prompts from command line", len(prompts))
     # Execute prompts.
     result = await _execute_prompts(
