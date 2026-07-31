@@ -6,6 +6,7 @@ Reads a list of prompts and executes them sequentially, maintaining context
 across prompts. Outputs raw responses and saves a session log.
 
 Usage:
+# TODO(ai_gp): Add comments explaining each command.
 > cc_script.py --prompts "prompt1" --prompts "prompt2" [--options]
 > cc_script.py --prompts_file prompts.txt [--options]
 """
@@ -14,7 +15,6 @@ import argparse
 import asyncio
 import json
 import logging
-import sys
 from typing import Any, Dict, List
 
 import helpers.hdbg as hdbg
@@ -39,8 +39,10 @@ def _load_prompts_from_file(file_path: str) -> List[str]:
     """
     hdbg.dassert_file_exists(file_path)
     _LOG.debug("Loading prompts from file '%s'", file_path)
+    # Read.
     content = hio.from_file(file_path)
     prompts = [line.strip() for line in content.split("\n") if line.strip()]
+    # Check.
     hdbg.dassert_lt(0, len(prompts), "Prompts file is empty")
     _LOG.info("Loaded %d prompts from file", len(prompts))
     return prompts
@@ -97,7 +99,8 @@ def _print_response(response: str) -> None:
 
     :param response: Response text from Claude
     """
-    # TODO(ai_gp): -> hprint.frame
+    # Print response with frame
+    # TODO(ai_gp): use hprint.frame
     print("\n" + "=" * 80)
     print("CLAUDE RESPONSE:")
     print("=" * 80)
@@ -124,7 +127,6 @@ def _save_session_log(
         ],
         "total_prompts": len(prompts),
     }
-
     content = json.dumps(session_data, indent=2)
     hio.to_file(output_file, content)
     _LOG.info("Session log saved to '%s'", output_file)
@@ -145,7 +147,6 @@ def _parse() -> argparse.ArgumentParser:
         description=__doc__,
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
-
     # Prompt input options (mutually exclusive).
     input_group = parser.add_mutually_exclusive_group(required=True)
     input_group.add_argument(
@@ -162,7 +163,6 @@ def _parse() -> argparse.ArgumentParser:
         default="",
         help="File with one prompt per line",
     )
-
     # Claude options.
     parser.add_argument(
         "--tools",
@@ -185,7 +185,6 @@ def _parse() -> argparse.ArgumentParser:
         default="",
         help="Working directory for execution",
     )
-
     # Output options.
     parser.add_argument(
         "--output_file",
@@ -193,10 +192,8 @@ def _parse() -> argparse.ArgumentParser:
         default="tmp.cc_script.log",
         help="Path to save session log",
     )
-
     # Logging options.
     hparser.add_verbosity_arg(parser)
-
     return parser
 
 
@@ -217,28 +214,21 @@ async def _main_async(args: argparse.Namespace) -> None:
         prompts = _load_prompts_from_file(args.prompts_file)
     else:
         prompts = [p for p in args.prompts if p]
+        # TODO(ai_gp): Use dassert_lt
         hdbg.dassert(len(prompts) > 0, "No prompts provided")
         _LOG.info("Loaded %d prompts from command line", len(prompts))
-
     # Execute prompts.
-    try:
-        result = await _execute_prompts(
-            prompts=prompts,
-            allowed_tools=args.tools,
-            permission_mode=args.permission_mode,
-            cwd=args.cwd,
-        )
-    except RuntimeError as e:
-        _LOG.error("Execution failed: %s", str(e))
-        sys.exit(1)
-
+    result = await _execute_prompts(
+        prompts=prompts,
+        allowed_tools=args.tools,
+        permission_mode=args.permission_mode,
+        cwd=args.cwd,
+    )
     # Print response.
     for response in result["responses"]:
         _print_response(response)
-
     # Save session log.
     _save_session_log(args.output_file, result["prompts"], result["responses"])
-
     _LOG.info("Execution complete")
 
 
@@ -250,12 +240,7 @@ def _main(args: argparse.Namespace) -> None:
     """
     hdbg.init_logger(verbosity=args.log_level, use_exec_path=True)
     _LOG.debug("Starting with args: %s", args)
-
-    try:
-        asyncio.run(_main_async(args))
-    except Exception as e:
-        _LOG.error("Fatal error: %s", str(e))
-        sys.exit(1)
+    asyncio.run(_main_async(args))
 
 
 if __name__ == "__main__":

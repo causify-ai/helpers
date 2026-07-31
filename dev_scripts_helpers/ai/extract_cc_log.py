@@ -599,9 +599,11 @@ def _print_narrative(
     lines.append("ASSISTANT TEXT")
     lines.append("-" * 60)
     lines.append("")
+    dedup_texts: set = set()
     for tb in text_blocks:
         text = tb.get("text", "")
-        if text.strip():
+        if text.strip() and text not in dedup_texts:
+            dedup_texts.add(text)
             lines.append(text)
             lines.append("")
     output = "\n".join(lines)
