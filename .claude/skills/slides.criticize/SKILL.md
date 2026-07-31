@@ -1,5 +1,5 @@
 ---
-description: Read, criticize, and propose improvements for lectures slides
+description: Read, criticize, and propose improvements for one or more lectures slides
 model: opus
 ---
 

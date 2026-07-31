@@ -128,6 +128,41 @@
       def test2(self): ...
   ```
 
+## Test Class Documentation
+
+- Test class docstrings should document **only what is being tested**, not how or
+  why the tests work
+- Reference the function or class being tested by name and module path
+- Each test method's docstring should explain what specific case or behavior is
+  tested
+
+- **Bad** (describes how tests are organized or why testing is needed)
+  ```python
+  class Test_extract_statistics(hunitest.TestCase):
+      """
+      Validate extract_statistics() function through multiple test cases
+      to ensure correctness.
+      """
+
+      def test1(self) -> None:
+          """
+          Ensure the function handles various input formats correctly.
+          """
+  ```
+
+- **Good** (focuses on what is being tested)
+  ```python
+  class Test_extract_statistics(hunitest.TestCase):
+      """
+      Test `extract_cc_log._extract_statistics()` function.
+      """
+
+      def test1(self) -> None:
+          """
+          Ensure the function handles various input formats correctly.
+          """
+  ```
+
 ## Consolidate Inputs and Outputs
 
 - Organize input variables in a consecutive code block and then organize output
@@ -604,6 +639,30 @@
   # Prepare inputs.
   scratch_dir = self.get_scratch_space()
   test_file = os.path.join(scratch_dir, "test.txt")
+  hio.to_file(test_file, "content")
+  ```
+
+## Do Not Use /tmp in Tests
+
+- Always use `self.get_scratch_space()` instead of hardcoding `/tmp` paths for
+  test files
+- Reason: `/tmp` is not managed by the test framework and won't be automatically
+  cleaned up; this leaves stray test files on the system and makes tests less
+  portable across environments
+
+- **Bad** (hardcoding `/tmp`)
+  ```python
+  # Prepare inputs.
+  cwd = "/tmp/test"
+  test_file = os.path.join(cwd, "data.txt")
+  hio.to_file(test_file, "content")
+  ```
+
+- **Good** (using `self.get_scratch_space()`)
+  ```python
+  # Prepare inputs.
+  scratch_dir = self.get_scratch_space()
+  test_file = os.path.join(scratch_dir, "data.txt")
   hio.to_file(test_file, "content")
   ```
 

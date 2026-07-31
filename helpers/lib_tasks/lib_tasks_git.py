@@ -167,6 +167,7 @@ def git_pull(ctx):  # type: ignore
         _remove_write_perm_from_symlink(root_dir)
 
 
+# TODO(gp): Seems thin.
 @task
 def git_fetch_master(ctx):  # type: ignore
     """
@@ -580,6 +581,8 @@ def git_branch_create(  # type: ignore
     only_branch_from_master=True,
     check_branch_name=True,
     create_pr=True,
+    abort_if_not_clean=True,
+    abort_if_not_master=True,
 ):
     """
     Create and push upstream branch `branch_name` or the one corresponding to
@@ -596,19 +599,31 @@ def git_branch_create(  # type: ignore
 
     :param branch_name: name of the branch to create (e.g.,
         `LemTask169_Get_GH_actions`)
-    :param issue_id: use the canonical name for the branch corresponding to that
-        issue
-    :param repo_short_name: name of the GitHub repo_short_name that the `issue_id`
-        belongs to
+    :param issue_id: use the canonical name for the branch corresponding to
+        that issue
+    :param repo_short_name: name of the GitHub repo_short_name that the
+        `issue_id` belongs to
         - "current" (default): the current repo_short_name
         - short name (e.g., "amp", "lm") of the branch
-    :param suffix: suffix (e.g., "02") to add to the branch name when using issue_id
+    :param suffix: suffix (e.g., "02") to add to the branch name when using
+        `issue_id`
     :param only_branch_from_master: only allow to branch from master
     :param check_branch_name: make sure the name of the branch is valid like
         `{Amp,...}TaskXYZ_...`
     :param create_pr: create a draft PR for the new branch (default: True)
+    :param abort_if_not_clean: abort if the client has uncommitted changes
+        (default: True)
+    :param abort_if_not_master: abort if not on master branch
+        (default: True, only used if only_branch_from_master is True)
     """
+    hdbg.dassert(
+        not any(suffix.startswith(char) for char in "_-."),
+        "suffix='%s' should not start with _, -, or . since it's added as '_{suffix}'",
+        suffix,
+    )
     hltltaut.report_task()
+    # Verify working directory is clean if requested.
+    hgit.is_client_clean(dir_name=".", abort_if_not_clean=abort_if_not_clean)
     if issue_id > 0:
         # Convert GitHub issue ID to branch name.
         hdbg.dassert_eq(
@@ -625,15 +640,6 @@ def git_branch_create(  # type: ignore
             branch_name,
         )
         if suffix != "":
-            # Add the suffix.
-            _LOG.debug("Adding suffix '%s' to '%s'", suffix, branch_name)
-            if suffix[0] in ("-", "_"):
-                _LOG.warning(
-                    "Suffix '%s' should not start with '%s': removing",
-                    suffix,
-                    suffix[0],
-                )
-                suffix = suffix.rstrip("-_")
             branch_name += "_" + suffix
     _LOG.info("branch_name='%s'", branch_name)
     hdbg.dassert_ne(
@@ -665,6 +671,11 @@ def git_branch_create(  # type: ignore
     if only_branch_from_master:
         curr_branch = hgit.get_branch_name()
         if curr_branch != "master":
+            hdbg.dassert(
+                not abort_if_not_master,
+                "Must be on 'master' branch to create new branch; "
+                "currently on '%s'", curr_branch
+            )
             _LOG.info(
                 f"Switching from '{curr_branch}' to 'master' to create branch"
             )

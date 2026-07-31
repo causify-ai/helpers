@@ -1,0 +1,10 @@
+{
+  "prompts_and_responses": [
+    {
+      "prompt_index": 1,
+      "prompt": "What is 2+2?",
+      "response": "2+2 equals 4"
+    }
+  ],
+  "total_prompts": 1
+}

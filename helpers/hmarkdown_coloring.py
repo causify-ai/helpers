@@ -178,9 +178,9 @@ def process_color_commands(in_line: str, output_format: str) -> str:
                 else:
                     ret = rf"\textcolor{{{output_color}}}{{\text{{{content}}}}}"
             elif output_format == "typst":
-                typst_code = (
-                    f'#text(fill: {output_color}, weight: "bold")[{content}]'
-                )
+                # Escape tildes (~) since they have special meaning in typst.
+                escaped_content = content.replace("~", r"\~")
+                typst_code = f'#text(fill: {output_color}, weight: "bold")[{escaped_content}]'
                 ret = f"`{typst_code}`{{=typst}}"
             else:
                 raise ValueError("Invalid output_format='%s'" % output_format)
@@ -367,14 +367,15 @@ def colorize_bullet_points_in_slide(
                     "Selected color is not in the Typst color mapping",
                 )
                 typst_color = typst_mapping[color_to_use]
-                # Typst: no escaping needed for underscores/ampersands in text mode.
-                # TODO(gp): They seem exactly the same?
+                # Escape tildes (~) since they have special meaning in typst.
+                escaped_text = text.replace("~", r"\~")
+                # TODO(ai_gp): They seem exactly the same operation. Keep the second one.
                 if use_abbreviations:
                     # Abbreviated: wrap in backticks for proper typst syntax
-                    ret = f'`#text(fill: {typst_color}, weight: "bold")[{text}]`{{=typst}}'
+                    ret = f'`#text(fill: {typst_color}, weight: "bold")[{escaped_text}]`{{=typst}}'
                 else:
                     # Full: #text(fill: color)[text]
-                    ret = f'#text(fill: {typst_color}, weight: "bold")[{text}]'
+                    ret = f'#text(fill: {typst_color}, weight: "bold")[{escaped_text}]'
                     ret = "`" + ret + "`{=typst}"
             return ret
 

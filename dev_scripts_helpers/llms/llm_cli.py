@@ -18,7 +18,7 @@ r"""
 CLI script to apply LLM transformations to text files or text input.
 
 For detailed documentation, usage examples, and feature descriptions, see:
-`dev_scripts_helpers/llms/README.md`
+`llm_cli.README.md`
 
 Import as:
 

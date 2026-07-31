@@ -49,7 +49,7 @@
 <!--  ``` -->
 <!--  rendered_images:end -->
 <!--  render_images:begin -->
-![](README.hllm_decorator.md.figs/README.hllm_decorator.1.png)
+![](hllm_decorator.README.md.figs/README.hllm_decorator.1.png)
 <!--  render_images:end -->
 
 ## C2 - Container
@@ -95,7 +95,7 @@
 <!--  ``` -->
 <!--  rendered_images:end -->
 <!--  render_images:begin -->
-![](README.hllm_decorator.md.figs/README.hllm_decorator.2.png)
+![](hllm_decorator.README.md.figs/README.hllm_decorator.2.png)
 <!--  render_images:end -->
 
 ## C3 - Component
@@ -118,7 +118,7 @@
 <!--  ``` -->
 <!--  rendered_images:end -->
 <!--  render_images:begin -->
-![](README.hllm_decorator.md.figs/README.hllm_decorator.3.png)
+![](hllm_decorator.README.md.figs/README.hllm_decorator.3.png)
 <!--  render_images:end -->
 
 ## C4 - Code
@@ -202,7 +202,7 @@
 <!--  ``` -->
 <!--  rendered_images:end -->
 <!--  render_images:begin -->
-![](README.hllm_decorator.md.figs/README.hllm_decorator.4.png)
+![](hllm_decorator.README.md.figs/README.hllm_decorator.4.png)
 <!--  render_images:end -->
 
 # External Dependencies

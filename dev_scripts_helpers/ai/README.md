@@ -1,5 +1,8 @@
 # AI Tools
 
+// TODO(ai_gp): dev_scripts_helpers/ai/ -> dev_scripts_helpers/agents or merge
+// into dev_scripts_helpers/llms
+
 Claude Code CLI wrapper scripts for development workflows. Provides convenient
 shortcuts for interactive sessions, non-interactive prompts, and instruction file
 generation with model selection and sensible defaults.
@@ -14,10 +17,28 @@ This directory has no subdirectories.
   - Interactive Claude Code session launcher with model selection (Anthropic or OpenRouter)
 - `ccp`
   - Non-interactive Claude Code runner for single-prompt execution with text output
+  - TODO(gp): Remove this script since too thin
 - `create_instr`
   - Creates instruction files from template with vimdiff comparison for easy editing
+  - TODO(gp): Remove this script since not useful
 - `README.md`
   - This documentation file
+
+# Automation Tools
+
+- `llm_cli.py`: an interface to llm Python package
+  - Runs an LLM
+- `llm_transform.py`: apply a transform to a file and / or stdin
+  - TODO(gp): This is going to be merged / folded into `llm_cli.py`
+- `linters2/lint_cc.py`: apply a set of transformations using Claude Code
+- `cc`: wrapper
+- `batch_cc.py` 
+
+- Skills
+  ./.claude/skills/coding.todoai_gp
+  ./dev_scripts_helpers/llms/inject_todos.py
+
+./.claude/skills/coding.create_auto_todo
 
 # Description of Executables
 
@@ -109,3 +130,39 @@ This directory has no subdirectories.
   ```bash
   > create_instr 3
   ```
+
+##
+
+### [ ] Apply Skills and Rules
+- Create a script to apply a skill to a set of files
+  - It should apply it calling CC or an LLM (needs API tokens)
+  ```
+  Apply rule ## Use `typing` Module Style for Type Hints to src/helpers1292/linters2/test/test_lint.py
+  ```
+
+> apply_cc_skill.py --skill ... or --rule ... --files ...
+
+- Is there anything already? linters2/lint_cc.py?
+
+- Sometimes we need to dialogue with an agent, other times we just need an LLM
+
+- Apply rules in chunks
+  - Extract a chunk of a markdown file
+  - Split it in rules (H1, H2)
+  - Apply that chunk of rules to a file
+  - Use Claude or an LLM
+
+- Sometimes you need an agent since one prompt requires to read another one
+  - Simple logic to inline files if they are reachable (recursively)
+
+- Pass multiple prompts to an LLM to apply on the same text
+- Need to fix Claude batch mode
+- Can we control Claude instead of kicking off
+
+- P1: Do it in parallel?
+
+Fix the output
+
+### [ ] todo injection logic
+- Find / update the todo injection logic
+
