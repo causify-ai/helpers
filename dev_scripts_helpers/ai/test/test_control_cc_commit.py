@@ -8,7 +8,8 @@ import os
 from typing import Dict, Tuple
 
 import helpers.hunit_test as hunitest
-import control_cc_commit as cc_control
+
+import dev_scripts_helpers.ai.control_cc_commit as cc_control
 
 
 # #############################################################################

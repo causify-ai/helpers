@@ -12,7 +12,8 @@ from unittest import mock
 
 import helpers.hio as hio
 import helpers.hunit_test as hunitest
-import extract_cc_log
+
+import dev_scripts_helpers.ai.extract_cc_log as extract_cc_log
 
 
 # #############################################################################
