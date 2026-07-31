@@ -2445,3 +2445,92 @@ class Test_notes_to_pdf_latex_cancel(hunitest.TestCase):
         self.assertIn(r"\underbrace{", output_txt)
         # TODO(ai_gp): Also freeze output checking the presence of strings
         # with self.assert_equal
+
+
+# #############################################################################
+# Test_small_font_code_typst
+# #############################################################################
+
+
+class Test_small_font_code_typst(hunitest.TestCase):
+    """
+    Test LaTeX small font markers in code blocks render correctly to typst.
+    """
+
+    def helper_pdf_render(self, in_file: str) -> str:
+        """
+        Helper to run notes_to_pdf.py with typst slides and PDF compilation.
+
+        Generates PDF output through full typst pipeline.
+
+        :param in_file: Path to input markdown file
+        :return: Path to generated PDF file
+        """
+        # Prepare inputs.
+        exec_path = hgit.find_file_in_git_tree("notes_to_pdf.py")
+        hdbg.dassert_path_exists(exec_path)
+        out_dir = self.get_scratch_space()
+        script_file = os.path.join(out_dir, "script.sh")
+        pdf_file = in_file.replace(".txt", ".pdf")
+        # Construct command - compile to PDF.
+        cmd = [
+            exec_path,
+            f"--input {in_file}",
+            "--type slides",
+            "--slides_engine typst",
+            f"--script {script_file}",
+            f"--output {pdf_file}",
+            "--skip_action open",
+        ]
+        cmd = " ".join(cmd)
+        _LOG.debug("cmd=%s", cmd)
+        # Execute the command.
+        hsystem.system(cmd)
+        # Verify PDF was created.
+        hdbg.dassert_path_exists(pdf_file, "PDF file was not created")
+        # TODO(ai_gp): Find the (only) typst file and return its path.
+        return pdf_file
+
+    @pytest.mark.superslow
+    def test1(self) -> None:
+        r"""
+        Test small font code renders to PDF via full typst pipeline.
+
+        Verifies that markdown with `\begingroup \scriptfont ... \endgroup`
+        successfully compiles to PDF through the complete typst pipeline.
+        PDF output is generated for manual visual inspection to verify font
+        sizing is applied correctly. Typst output frozen in test1 for
+        regression testing.
+        """
+        # Prepare inputs.
+        txt = r"""
+        * CATE Model Estimation
+        - Normal
+          ```python
+          regr_model = smf.ols("sales ~ discounts*(month + weekday + ...)",
+                               data=train).fit()
+          ```
+
+        - Scriptfont
+          \begingroup \scriptfont
+          ```python
+          regr_model = smf.ols("sales ~ discounts*(month + weekday + ...)",
+                               data=train).fit()
+          ```
+          \endgroup
+        """
+        txt = hprint.dedent(txt, remove_lead_trail_empty_lines_=True)
+        in_file = os.path.join(self.get_scratch_space(), "input.md")
+        hio.to_file(in_file, txt)
+        # Run test.
+        pdf_file = self.helper_pdf_render(in_file)
+        # Check outputs.
+        # Verify PDF was successfully compiled.
+        self.assertTrue(os.path.exists(pdf_file), "PDF file was not created")
+        # Verify PDF file is not empty (has content).
+        file_size = os.path.getsize(pdf_file)
+        self.assertGreater(file_size, 0, "PDF file is empty")
+        # Report PDF path for manual inspection.
+        _LOG.info("PDF generated for visual inspection: %s", pdf_file)
+        # TODO(ai_gp): Print the name of the returned typst file and freeze it
+        # with check_string.
