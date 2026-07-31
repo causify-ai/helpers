@@ -2071,6 +2071,7 @@ def get_merged_branches(mode: str) -> List[str]:
         )
     else:
         raise ValueError(f"Invalid mode='{mode}'")
+    # TODO(ai_gp): Use system_to_lines if it's implemented in hsystem.
     _, txt = hsystem.system_to_string(cmd, abort_on_error=False)
     branches = hstring.text_to_list(txt)
     return branches
