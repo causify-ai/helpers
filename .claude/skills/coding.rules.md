@@ -1267,6 +1267,43 @@
   files
   - No need to clean up files
 
+# File Organization and Naming
+
+## Use `<module>.README.md` Naming Convention for Documentation Files
+
+- All README files documenting a specific module or component must follow the
+  naming convention `<module>.README.md`
+- The corresponding Python module (e.g., `<module>.py`) should have a docstring
+  that references this README file
+- This convention makes it clear which README file documents which module and
+  improves discoverability
+
+- **Bad**: Inconsistent README naming
+  ```
+  README.llm_cli.md
+  download_link_articles.README.py.md
+  README.link_flow.md
+  README.hllm_decorator.md
+  ```
+
+- **Good**: Consistent `<module>.README.md` format
+  ```
+  llm_cli.README.md
+  download_link_articles.README.md
+  link_flow.README.md
+  hllm_decorator.README.md
+  ```
+
+- **Good**: Docstring in corresponding module references the README
+  ```python
+  """
+  Declarative LLM decorator for transforming Python functions into LLM calls.
+
+  For detailed documentation, architecture diagrams, and usage examples, see:
+  `hllm_decorator.README.md`
+  """
+  ```
+
 # Code Quality and Performance
 
 ## Use Progress Bar

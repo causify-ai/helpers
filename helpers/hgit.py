@@ -2055,6 +2055,28 @@ def git_add_file(file_path: str) -> List[str]:
     return added_files
 
 
+def get_merged_branches(mode: str) -> List[str]:
+    """
+    Get list of branches that have been merged into master.
+
+    :param mode: "local" for local branches or "remote" for remote branches
+    :return: List of merged branch names
+    """
+    if mode == "local":
+        cmd = r"git branch --merged master | grep -v master | grep -v \*"
+    elif mode == "remote":
+        cmd = (
+            "git branch -r --merged origin/master"
+            + r" | grep -v master | sed 's/origin\///'"
+        )
+    else:
+        raise ValueError(f"Invalid mode='{mode}'")
+    # TODO(ai_gp): Use system_to_lines if it's implemented in hsystem.
+    _, txt = hsystem.system_to_string(cmd, abort_on_error=False)
+    branches = hstring.text_to_list(txt)
+    return branches
+
+
 def delete_branches(
     dir_name: str,
     mode: str,

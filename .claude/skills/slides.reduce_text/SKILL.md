@@ -4,7 +4,8 @@ model: haiku
 ---
 
 # Goal
-- Your goal is to improve the slide text without changing their structure
+- Your goal is to reduce the text in the slide text without changing content or
+  structure
 
 # Workflow
 
