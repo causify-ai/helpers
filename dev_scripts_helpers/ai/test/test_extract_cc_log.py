@@ -15,6 +15,11 @@ import helpers.hunit_test as hunitest
 import extract_cc_log
 
 
+# #############################################################################
+# Test_extract_statistics
+# #############################################################################
+
+
 class Test_extract_statistics(hunitest.TestCase):
     """
     Test `extract_cc_log._extract_statistics()` function.
@@ -43,11 +48,165 @@ class Test_extract_statistics(hunitest.TestCase):
         self.assert_equal(actual_str, expected, dedent=True, fuzzy_match=True)
 
 
-# TODO(ai_gp): This should be last
+# #############################################################################
+# Test_parse_records
+# #############################################################################
+
+
+class Test_parse_records(hunitest.TestCase):
+    """
+    Test `extract_cc_log._parse_records()` function.
+    """
+
+    def test1(self) -> None:
+        """
+        Parse records from sample CC log file.
+        """
+        # Prepare inputs.
+        input_file = os.path.join(self.get_input_dir(), "sample_cc_log.txt")
+        # Run test.
+        records = extract_cc_log._parse_records(input_file)
+        # Prepare outputs.
+        has_system = any(r.get("type") == "system" for r in records)
+        has_stream = any(r.get("type") == "stream_event" for r in records)
+        # Check outputs.
+        actual = {
+            "num_records": len(records),
+            "has_system_records": has_system,
+            "has_stream_event_records": has_stream,
+        }
+        expected = {
+            "num_records": True,
+            "has_system_records": True,
+            "has_stream_event_records": True,
+        }
+        self.assert_equal(
+            str(actual["num_records"] > 0),
+            str(expected["num_records"]),
+        )
+        self.assert_equal(
+            str(actual["has_system_records"]),
+            str(expected["has_system_records"]),
+        )
+        self.assert_equal(
+            str(actual["has_stream_event_records"]),
+            str(expected["has_stream_event_records"]),
+        )
+
+
+# #############################################################################
+# Test_extract_requests
+# #############################################################################
+
+
+class Test_extract_requests(hunitest.TestCase):
+    """
+    Test `extract_cc_log._extract_requests()` function.
+    """
+
+    def test1(self) -> None:
+        """
+        Extract request metadata from sample CC log.
+        """
+        # Prepare inputs.
+        input_file = os.path.join(self.get_input_dir(), "sample_cc_log.txt")
+        records = extract_cc_log._parse_records(input_file)
+        # Run test.
+        requests = extract_cc_log._extract_requests(records)
+        # Check outputs.
+        actual = pprint.pformat(requests)
+        expected = """
+        [{'input_tokens': 10,
+          'output_tokens': 259,
+          'thinking_tokens': 110,
+          'ttft_ms': [0-9.]+}]
+        """
+        self.assert_equal(actual, expected, fuzzy_match=True)
+
+
+# #############################################################################
+# Test_extract_assistant_text_blocks
+# #############################################################################
+
+
+class Test_extract_assistant_text_blocks(hunitest.TestCase):
+    """
+    Test `extract_cc_log._extract_assistant_text_blocks()` function.
+    """
+
+    def test1(self) -> None:
+        """
+        Extract assistant text blocks from sample CC log.
+        """
+        # Prepare inputs.
+        input_file = os.path.join(self.get_input_dir(), "sample_cc_log.txt")
+        records = extract_cc_log._parse_records(input_file)
+        # Run test.
+        text_blocks = extract_cc_log._extract_assistant_text_blocks(records)
+        # Check outputs.
+        all_text = " ".join(b.get("text", "") for b in text_blocks)
+        expected = """
+        Recursion
+        .*function.*
+        """
+        self.assert_equal(all_text, expected, fuzzy_match=True)
+
+
+# #############################################################################
+# Test_extract_thinking_blocks
+# #############################################################################
+
+
+class Test_extract_thinking_blocks(hunitest.TestCase):
+    """
+    Test `extract_cc_log._extract_thinking_blocks()` function.
+    """
+
+    def test1(self) -> None:
+        """
+        Extract thinking blocks from sample CC log.
+        """
+        # Prepare inputs.
+        input_file = os.path.join(self.get_input_dir(), "sample_cc_log.txt")
+        records = extract_cc_log._parse_records(input_file)
+        # Run test.
+        thinking_blocks = extract_cc_log._extract_thinking_blocks(records)
+        # Check outputs.
+        all_thinking = " ".join(b.get("text", "") for b in thinking_blocks)
+        expected = "recursion"
+        self.assert_equal(all_thinking.lower(), expected, fuzzy_match=True)
+
+
+# #############################################################################
+# Test_extract_cc_log_py
+# #############################################################################
+
+
 class Test_extract_cc_log_py(hunitest.TestCase):
     """
     End-to-end tests for extract_cc_log.py executable.
     """
+
+    _EXPECTED_STATS = """
+    {
+        "num_messages_assistant": 2,
+        "num_messages_user": 0,
+        "num_requests": 1,
+        "total_cost": 0.0241739,
+        "total_input_tokens": 10,
+        "total_output_tokens": 259,
+        "total_thinking_tokens": 110
+    }
+    """
+
+    def _helper_check_stats_file(self, stats_file: str) -> None:
+        """
+        Verify stats file contains expected output.
+
+        :param stats_file: Path to stats JSON file to verify
+        """
+        actual = hio.from_file(stats_file)
+        self.assert_equal(actual, self._EXPECTED_STATS, dedent=True, fuzzy_match=True)
 
     def _run_extract_cc_log(
         self,
@@ -65,7 +224,7 @@ class Test_extract_cc_log_py(hunitest.TestCase):
         :param output_file: Optional output file for narrative
         :param stats_file: Optional output file for statistics
         """
-        argv = ["extract_cc_log.py", "--file", log_file]
+        argv = ["extract_cc_log.py", "--input", log_file]
         if output_dir:
             argv.extend(["--output_dir", output_dir])
         if output_file:
@@ -87,19 +246,7 @@ class Test_extract_cc_log_py(hunitest.TestCase):
         # Run test.
         self._run_extract_cc_log(input_file, stats_file=stats_file)
         # Check outputs.
-        actual = hio.from_file(stats_file)
-        expected = """
-        {
-            "num_messages_assistant": 2,
-            "num_messages_user": 0,
-            "num_requests": 1,
-            "total_cost": 0.0241739,
-            "total_input_tokens": 10,
-            "total_output_tokens": 259,
-            "total_thinking_tokens": 110
-        }
-        """
-        self.assert_equal(actual, expected, dedent=True, fuzzy_match=True)
+        self._helper_check_stats_file(stats_file)
 
     def test2(self) -> None:
         """
@@ -179,127 +326,4 @@ class Test_extract_cc_log_py(hunitest.TestCase):
             input_file, output_dir=output_dir, stats_file=stats_file
         )
         # Check outputs.
-        actual = hio.from_file(stats_file)
-        expected = """
-        {
-            "num_messages_assistant": 2,
-            "num_messages_user": 0,
-            "num_requests": 1,
-            "total_cost": 0.0241739,
-            "total_input_tokens": 10,
-            "total_output_tokens": 259,
-            "total_thinking_tokens": 110
-        }
-        """
-        self.assert_equal(actual, expected, dedent=True, fuzzy_match=True)
-
-
-class Test_parse_records(hunitest.TestCase):
-    """
-    Test `extract_cc_log._parse_records()` function.
-    """
-
-    def test1(self) -> None:
-        """
-        Parse records from sample CC log file.
-        """
-        # Prepare inputs.
-        input_file = os.path.join(self.get_input_dir(), "sample_cc_log.txt")
-        # Run test.
-        records = extract_cc_log._parse_records(input_file)
-        # Prepare outputs.
-        has_system = any(r.get("type") == "system" for r in records)
-        has_stream = any(r.get("type") == "stream_event" for r in records)
-        # Check outputs.
-        actual = {
-            "num_records": len(records),
-            "has_system_records": has_system,
-            "has_stream_event_records": has_stream,
-        }
-        expected = {
-            "num_records": True,
-            "has_system_records": True,
-            "has_stream_event_records": True,
-        }
-        self.assert_equal(
-            str(actual["num_records"] > 0),
-            str(expected["num_records"]),
-        )
-        self.assert_equal(
-            str(actual["has_system_records"]),
-            str(expected["has_system_records"]),
-        )
-        self.assert_equal(
-            str(actual["has_stream_event_records"]),
-            str(expected["has_stream_event_records"]),
-        )
-
-
-class Test_extract_requests(hunitest.TestCase):
-    """
-    Test `extract_cc_log._extract_requests()` function.
-    """
-
-    def test1(self) -> None:
-        """
-        Extract request metadata from sample CC log.
-        """
-        # Prepare inputs.
-        input_file = os.path.join(self.get_input_dir(), "sample_cc_log.txt")
-        records = extract_cc_log._parse_records(input_file)
-        # Run test.
-        requests = extract_cc_log._extract_requests(records)
-        # Check outputs.
-        actual = pprint.pformat(requests)
-        expected = """
-        [{'input_tokens': 10,
-          'output_tokens': 259,
-          'thinking_tokens': 110,
-          'ttft_ms': [0-9.]+}]
-        """
-        self.assert_equal(actual, expected, fuzzy_match=True)
-
-
-class Test_extract_assistant_text_blocks(hunitest.TestCase):
-    """
-    Test `extract_cc_log._extract_assistant_text_blocks()` function.
-    """
-
-    def test1(self) -> None:
-        """
-        Extract assistant text blocks from sample CC log.
-        """
-        # Prepare inputs.
-        input_file = os.path.join(self.get_input_dir(), "sample_cc_log.txt")
-        records = extract_cc_log._parse_records(input_file)
-        # Run test.
-        text_blocks = extract_cc_log._extract_assistant_text_blocks(records)
-        # Check outputs.
-        all_text = " ".join(b.get("text", "") for b in text_blocks)
-        expected = """
-        Recursion
-        .*function.*
-        """
-        self.assert_equal(all_text, expected, fuzzy_match=True)
-
-
-class Test_extract_thinking_blocks(hunitest.TestCase):
-    """
-    Test `extract_cc_log._extract_thinking_blocks()` function.
-    """
-
-    def test1(self) -> None:
-        """
-        Extract thinking blocks from sample CC log.
-        """
-        # Prepare inputs.
-        input_file = os.path.join(self.get_input_dir(), "sample_cc_log.txt")
-        records = extract_cc_log._parse_records(input_file)
-        # Run test.
-        thinking_blocks = extract_cc_log._extract_thinking_blocks(records)
-        # Check outputs.
-        all_thinking = " ".join(b.get("text", "") for b in thinking_blocks)
-        expected = "recursion"
-        self.assert_equal(
-            all_thinking.lower(), expected, fuzzy_match=True
-        )
+        self._helper_check_stats_file(stats_file)

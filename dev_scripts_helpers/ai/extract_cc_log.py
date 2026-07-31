@@ -7,9 +7,9 @@ Parses `log.txt` and produces a chronological transcript interleaving
 thinking blocks, tool calls, results, and cost per request.
 
 Usage:
-> ./extract_cc_log.py --file log.txt
-> ./extract_cc_log.py --file log.txt --output_dir /tmp
-> ./extract_cc_log.py --file log.txt --output_dir /tmp --text_only
+> ./extract_cc_log.py --input log.txt
+> ./extract_cc_log.py --input log.txt --output_dir /tmp
+> ./extract_cc_log.py --input log.txt --output_dir /tmp --text_only
 """
 
 import argparse
@@ -22,13 +22,6 @@ import helpers.hdbg as hdbg
 import helpers.hparser as hparser
 
 _LOG = logging.getLogger(__name__)
-
-# #############################################################################
-# Constants
-# #############################################################################
-
-# Default path to the Claude Code log file.
-DEFAULT_LOG_FILE = "log.txt"
 
 
 # #############################################################################
@@ -482,9 +475,7 @@ def _print_narrative(
     thinking_blocks = _extract_thinking_blocks(records)
     text_blocks = _extract_assistant_text_blocks(records)
     tool_events = _extract_tool_calls(records)
-
     lines: List[str] = []
-
     # Header.
     if init_info:
         model = init_info.get("model", "")
@@ -493,8 +484,7 @@ def _print_narrative(
         lines.append(f"=== Session: {session_id} | {model} | CC {cc_ver} ===")
     else:
         lines.append("=== Claude Code Session ===")
-
-    # --- Text-only mode: just the assistant text output ---
+    # Text-only mode: just the assistant text output.
     if text_only:
         lines.append("")
         lines.append("-" * 60)
@@ -511,14 +501,12 @@ def _print_narrative(
         output = "\n".join(lines)
         _write_output(output, "cc_log_assistant_text.txt", output_dir=output_dir)
         return
-
-    # --- Full narrative mode ---
+    # Full narrative mode.
     lines.append("")
     lines.append("-" * 60)
     lines.append("NARRATIVE")
     lines.append("-" * 60)
     lines.append("")
-
     # Pre-extract thinking text in order.
     thinking_texts: List[str] = []
     for tb in thinking_blocks:
@@ -533,11 +521,9 @@ def _print_narrative(
         if text.strip() and text not in seen_text:
             seen_text.add(text)
             assistant_texts.append(text)
-
     # Walk through records in chronological order emitting events.
     msg_num = 0
     think_idx = 0
-    text_idx = 0
     in_message = False
     for rec in records:
         if rec.get("type") != "stream_event":
@@ -567,7 +553,6 @@ def _print_narrative(
             lines.append("")
         elif event_type == "message_stop":
             in_message = False
-
         # When a content block stops, check if it was a thinking block.
         if event_type == "content_block_stop" and in_message:
             if think_idx < len(thinking_texts):
@@ -575,7 +560,6 @@ def _print_narrative(
                 lines.append("  [Think] " + text.replace("\n", "\n          "))
                 lines.append("")
                 think_idx += 1
-
     # Emit tool calls paired with their results.
     lines.append("")
     lines.append("Tools:")
@@ -609,7 +593,6 @@ def _print_narrative(
             if dur:
                 detail += " duration=" + str(dur) + "ms"
             lines.append(detail)
-
     # Append assistant text at the end.
     lines.append("")
     lines.append("-" * 60)
@@ -621,7 +604,6 @@ def _print_narrative(
         if text.strip():
             lines.append(text)
             lines.append("")
-
     output = "\n".join(lines)
     _write_output(output, "cc_log_narrative.txt", output_dir=output_dir)
 
@@ -631,15 +613,63 @@ def _print_narrative(
 # #############################################################################
 
 
+def _extract_statistics(records: List[Dict[str, Any]]) -> Dict[str, Any]:
+    """
+    Extract statistics from parsed log records.
+
+    Collects token counts, message counts, and request metadata.
+
+    :param records: Parsed JSON records from the log file
+    :return: Dict with statistics
+        ```
+        {
+            "total_input_tokens": 10,
+            "total_output_tokens": 259,
+            "total_thinking_tokens": 110,
+            "total_cost": 0.0241739,
+            "num_requests": 1,
+            "num_messages_user": 1,
+            "num_messages_assistant": 1,
+        }
+        ```
+    """
+    requests = _extract_requests(records)
+    total_input = sum(r.get("input_tokens", 0) for r in requests)
+    total_output = sum(r.get("output_tokens", 0) for r in requests)
+    total_thinking = sum(r.get("thinking_tokens", 0) for r in requests)
+    total_cost = sum(r.get("cost", 0) for r in requests)
+    if total_cost == 0:
+        for rec in records:
+            if rec.get("type") == "result":
+                total_cost = rec.get("total_cost_usd", 0)
+                break
+    num_requests = len(requests)
+    num_messages_user = sum(
+        1 for rec in records if rec.get("type") == "user"
+    )
+    num_messages_assistant = sum(
+        1 for rec in records if rec.get("type") == "assistant"
+    )
+    return {
+        "total_input_tokens": total_input,
+        "total_output_tokens": total_output,
+        "total_thinking_tokens": total_thinking,
+        "total_cost": total_cost,
+        "num_requests": num_requests,
+        "num_messages_user": num_messages_user,
+        "num_messages_assistant": num_messages_assistant,
+    }
+
+
 def _parse() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         description=__doc__,
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
     parser.add_argument(
-        "--file",
+        "--input",
         action="store",
-        default=DEFAULT_LOG_FILE,
+        required=True,
         help="Path to the Claude Code log file to parse",
     )
     parser.add_argument(
@@ -647,6 +677,18 @@ def _parse() -> argparse.ArgumentParser:
         action="store",
         default="",
         help="Directory to write narrative output (default: print only)",
+    )
+    parser.add_argument(
+        "--output",
+        action="store",
+        default="",
+        help="File path to write narrative output (alternative to --output_dir)",
+    )
+    parser.add_argument(
+        "--stats",
+        action="store",
+        default="",
+        help="File path to write statistics as JSON",
     )
     # Extraction options.
     parser.add_argument(
@@ -662,13 +704,47 @@ def _main(parser: argparse.ArgumentParser) -> None:
     args = parser.parse_args()
     hdbg.init_logger(verbosity=args.log_level, use_exec_path=True)
     # Parse the log file.
-    records = _parse_records(args.file)
+    records = _parse_records(args.input)
+    # Extract and save statistics if requested.
+    if args.stats:
+        stats = _extract_statistics(records)
+        with open(args.stats, "w") as f:
+            json.dump(stats, f, indent=2)
+        _LOG.info("Statistics written to '%s'", args.stats)
     # Print a chronological narrative.
     _print_narrative(
         records,
         output_dir=args.output_dir,
         text_only=args.text_only,
     )
+    # Write narrative to file if --output is specified.
+    if args.output:
+        init_info = _extract_init_info(records)
+        text_blocks = _extract_assistant_text_blocks(records)
+        lines: List[str] = []
+        if init_info:
+            model = init_info.get("model", "")
+            cc_ver = init_info.get("claude_code_version", "")
+            session_id = init_info.get("session_id", "")[:8]
+            lines.append(f"=== Session: {session_id} | {model} | CC {cc_ver} ===")
+        else:
+            lines.append("=== Claude Code Session ===")
+        lines.append("")
+        lines.append("-" * 60)
+        lines.append("ASSISTANT TEXT")
+        lines.append("-" * 60)
+        lines.append("")
+        seen_text: set = set()
+        for tb in text_blocks:
+            text = tb.get("text", "")
+            if text.strip() and text not in seen_text:
+                seen_text.add(text)
+                lines.append(text)
+                lines.append("")
+        output = "\n".join(lines)
+        with open(args.output, "w") as f:
+            f.write(output)
+        _LOG.info("Output written to '%s'", args.output)
 
 
 if __name__ == "__main__":

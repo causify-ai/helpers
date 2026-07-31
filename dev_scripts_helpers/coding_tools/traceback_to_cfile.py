@@ -30,6 +30,7 @@ import subprocess
 import sys
 
 import helpers.hclipboard as hclipbo
+import helpers.hdbg as hdbg
 import helpers.hio as hio
 import helpers.hselect_input_output as hseinout
 import helpers.hparser as hparser
@@ -41,33 +42,44 @@ _LOG = logging.getLogger(__name__)
 
 # #############################################################################
 
-_NEWEST_LOG_FILE = "__NEWEST_LOG_FILE__"
-
 
 def _parse() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         description=__doc__,
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
-    in_default = _NEWEST_LOG_FILE
-    parser = hseinout.add_input_output_args(
-        parser, in_default=in_default, out_default="cfile"
+    # Mutually exclusive input methods
+    input_group = parser.add_mutually_exclusive_group(required=True)
+    input_group.add_argument(
+        "-i",
+        "--input",
+        dest="input",
+        type=str,
+        help="Input file or `-` for stdin",
+    )
+    input_group.add_argument(
+        "--from_pb",
+        action="store_true",
+        help="Read traceback from system clipboard",
+    )
+    input_group.add_argument(
+        "--from_latest_file",
+        action="store_true",
+        help="Find and use the latest .log file",
+    )
+    parser.add_argument(
+        "-o",
+        "--output",
+        dest="output",
+        type=str,
+        default="cfile",
+        help="Output file (default: cfile)",
     )
     parser = hparser.add_bool_arg(
         parser,
         "purify_from_client",
         default_value=True,
         help_="Make references to files in the current client",
-    )
-    parser.add_argument(
-        "--from_pb",
-        action="store_true",
-        help="Read traceback from system clipboard instead of file",
-    )
-    parser.add_argument(
-        "--from_latest_file",
-        action="store_true",
-        help="Find and use the latest .log file (default behavior)",
     )
     parser.add_argument(
         "--open_vim",
@@ -80,32 +92,38 @@ def _parse() -> argparse.ArgumentParser:
 
 def _main(parser: argparse.ArgumentParser) -> None:
     args = parser.parse_args()
-    hseinout.init_logger_for_input_output_transform(args)
-    # Handle --from_pb option.
+    hdbg.init_logger(verbosity=args.log_level, use_exec_path=True, force_white=False)
+    out_file_name = args.output
     if args.from_pb:
+        # Handle --from_pb option.
         _LOG.info("Reading traceback from clipboard")
         txt_list = [hclipbo.get_clipboard_content()]
-        out_file_name = "cfile"
-    else:
-        # Parse files.
-        in_file_name, out_file_name = hseinout.parse_input_output_args(
-            args, clear_screen=True
+    elif args.from_latest_file:
+        # Handle --from_latest_file option.
+        _LOG.info("Finding latest .log file")
+        cmd = 'find . -type f -name "*.log" | xargs ls -1 -t'
+        dir_name = None
+        remove_files_non_present = False
+        files = hsystem.system_to_files(
+            cmd, dir_name, remove_files_non_present
         )
-        # Handle --from_latest_file option (or default behavior).
-        if in_file_name == _NEWEST_LOG_FILE or args.from_latest_file:
-            cmd = 'find . -type f -name "*.log" | xargs ls -1 -t'
-            dir_name = None
-            remove_files_non_present = False
-            files = hsystem.system_to_files(
-                cmd, dir_name, remove_files_non_present
-            )
-            # Pick the newest file.
-            in_file_name = files[0]
+        in_file_name = files[0]
         _LOG.info("in_file_name=%s", in_file_name)
         if out_file_name != "-":
             hio.delete_file(out_file_name)
-        # Read file.
         txt_list = hseinout.from_file(in_file_name)
+    elif args.input:
+        # Handle --input option.
+        in_file_name = args.input
+        if out_file_name != "-":
+            os.system("clear")
+        _LOG.info("in_file_name=%s", in_file_name)
+        _LOG.info("out_file_name=%s", out_file_name)
+        if out_file_name != "-":
+            hio.delete_file(out_file_name)
+        txt_list = hseinout.from_file(in_file_name)
+    else:
+        raise ValueError("Invalid input argument specification")
     # Transform.
     txt_tmp = "\n".join(txt_list)
     cfile, traceback = htraceb.parse_traceback(

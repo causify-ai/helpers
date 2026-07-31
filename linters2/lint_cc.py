@@ -13,11 +13,10 @@ This script:
 - Invokes Claude Code with that prompt on the selected files
 
 Examples:
-# Lint specific Python files using the proper rule file (for Python files
-# use `.claude/skills/coding.rules.md`):
+# Lint specific Python files using `.claude/skills/coding.rules.md`:
 > lint_cc.py --files "file1.py file2.py"
 
-# Lint Python testing files (with `claude/skills/testing.rules.md`):
+# Lint Python testing files with `claude/skills/testing.rules.md`:
 > lint_cc.py --files "test_foo.py test_bar.py"
 
 # Files can be selected with --files, --from_file, --branch
