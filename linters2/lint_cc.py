@@ -495,7 +495,7 @@ def _main(parser: argparse.ArgumentParser) -> int:
     ret = 0
     topic_info: Dict = {}
     for file_path in tqdm(files, desc="Processing files"):
-        # TODO(ai_gp): Move to a _process_file
+        # TODO(ai_gp): Move to a separate function _process_file()
         if args.apply_incrementally:
             rc = _process_file_incrementally(
                 file_path,
