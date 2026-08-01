@@ -33,17 +33,29 @@ class Test_purify_text1(hunitest.TestCase):
     """
 
     def helper(self, txt: str, expected: str, **kwargs: Any) -> None:
+        """
+        Helper for testing purify_txt_from_client.
+
+        :param txt: Input text to purify
+        :param expected: Expected output
+        :param kwargs: Additional arguments to pass to assert_equal
+        """
+        # Run test.
         actual = huntepur.purify_txt_from_client(txt)
+        # Check outputs.
         self.assert_equal(actual, expected, **kwargs)
 
     def helper_with_git_root_mocking(self, txt: str, expected: str) -> None:
-        """Helper for tests that need git root mocking.
+        """
+        Helper for tests that need git root mocking.
 
         :param txt: Input text to test
         :param expected: Expected output
         """
+        # Prepare inputs.
         git_root: str = hgit.get_client_root(super_module=False)
         pwd: str = os.path.dirname(git_root)
+        # Run test.
         with umock.patch("os.getcwd", return_value=pwd):
             self.helper(txt, expected)
 
@@ -299,7 +311,15 @@ class Test_purify_directory_paths1(hunitest.TestCase):
     """
 
     def helper(self, input_: str, expected: str) -> None:
+        """
+        Helper for testing purify_directory_paths.
+
+        :param input_: Input path to test
+        :param expected: Expected output path
+        """
+        # Run test.
         actual = huntepur.purify_directory_paths(input_)
+        # Check outputs.
         self.assert_equal(actual, expected, fuzzy_match=True)
 
     def helper_with_env_and_pwd_mocking(
@@ -317,11 +337,13 @@ class Test_purify_directory_paths1(hunitest.TestCase):
         :param env_vars: Optional dict of env vars to patch
         :param git_root: Optional git root (if None, uses actual git root)
         """
+        # Prepare inputs.
         if git_root is None:
             git_root = hgit.get_client_root(super_module=False)
         pwd: str = os.path.dirname(git_root)
         if env_vars is None:
             env_vars = {}
+        # Run test.
         with (
             umock.patch.dict("os.environ", env_vars, clear=True),
             umock.patch("os.getcwd", return_value=pwd),
@@ -400,14 +422,21 @@ class Test_purify_from_environment1(hunitest.TestCase):
     """
 
     def helper(self, input_: str, expected: str) -> None:
+        """
+        Helper for testing purify_from_environment.
+
+        :param input_: Input string to purify
+        :param expected: Expected output
+        """
         try:
-            # Manually set a user name to test the behaviour.
+            # Prepare inputs.
             hsystem.set_user_name("root")
-            # Run.
+            # Run test.
             actual = huntepur.purify_from_environment(input_)
+            # Check outputs.
             self.assert_equal(actual, expected, fuzzy_match=True)
         finally:
-            # Reset the global user name variable regardless of a test results.
+            # Reset the global user name variable regardless of test results.
             hsystem.set_user_name(None)
 
     def test1(self) -> None:
@@ -447,9 +476,19 @@ class Test_purify_amp_reference1(hunitest.TestCase):
     """
 
     def helper(self, txt: str, expected: str) -> None:
+        """
+        Helper for testing purify_amp_references.
+
+        :param txt: Input text to purify
+        :param expected: Expected output
+        """
+        # Prepare inputs.
         txt = hprint.dedent(txt)
+        # Run test.
         actual = huntepur.purify_amp_references(txt)
+        # Prepare outputs.
         expected = hprint.dedent(expected)
+        # Check outputs.
         self.assert_equal(actual, expected)
 
     def test1(self) -> None:
@@ -584,7 +623,15 @@ class Test_purify_app_references1(hunitest.TestCase):
     """
 
     def helper(self, txt: str, expected: str) -> None:
+        """
+        Helper for testing purify_app_references.
+
+        :param txt: Input text to purify
+        :param expected: Expected output
+        """
+        # Run test.
         actual = huntepur.purify_app_references(txt)
+        # Check outputs.
         self.assert_equal(actual, expected)
 
     def test1(self) -> None:
@@ -680,10 +727,20 @@ class Test_purify_super_module_references1(hunitest.TestCase):
     """
 
     def helper(self, super_module_root: str, txt: str, expected: str) -> None:
+        """
+        Helper for testing purify_super_module_references.
+
+        :param super_module_root: Super module root path to mock
+        :param txt: Input text to purify
+        :param expected: Expected output
+        """
+        # Prepare inputs.
+        # Run test.
         with umock.patch(
             "helpers.hgit.get_client_root", return_value=super_module_root
         ):
             actual = huntepur.purify_super_module_references(txt)
+        # Check outputs.
         self.assert_equal(actual, expected)
 
     def test1(self) -> None:
@@ -794,10 +851,19 @@ class Test_purify_from_env_vars(hunitest.TestCase):
     """
 
     def helper(self, env_var: str) -> None:
+        """
+        Helper for testing purify_from_env_vars.
+
+        :param env_var: Environment variable to test
+        """
+        # Prepare inputs.
         env_var_value = os.environ[env_var]
         input_ = f"s3://{env_var_value}/"
-        actual = huntepur.purify_from_env_vars(input_)
+        # Prepare outputs.
         expected = f"s3://${env_var}/"
+        # Run test.
+        actual = huntepur.purify_from_env_vars(input_)
+        # Check outputs.
         self.assert_equal(actual, expected, fuzzy_match=True)
 
     @pytest.mark.skipif(
@@ -844,9 +910,19 @@ class Test_purify_object_representation1(hunitest.TestCase):
     """
 
     def helper(self, txt: str, expected: str) -> None:
+        """
+        Helper for testing purify_object_representation.
+
+        :param txt: Input text to purify
+        :param expected: Expected output
+        """
+        # Prepare inputs.
         txt = hprint.dedent(txt)
+        # Run test.
         actual = huntepur.purify_object_representation(txt)
+        # Prepare outputs.
         expected = hprint.dedent(expected)
+        # Check outputs.
         self.assert_equal(actual, expected)
 
     def test1(self) -> None:
@@ -952,7 +1028,15 @@ class Test_purify_today_date1(hunitest.TestCase):
     """
 
     def helper(self, txt: str, expected: str) -> None:
+        """
+        Helper for testing purify_today_date.
+
+        :param txt: Input text to purify
+        :param expected: Expected output
+        """
+        # Run test.
         actual = huntepur.purify_today_date(txt)
+        # Check outputs.
         self.assert_equal(actual, expected)
 
     def test1(self) -> None:
@@ -1015,7 +1099,15 @@ class Test_purify_white_spaces1(hunitest.TestCase):
     """
 
     def helper(self, txt: str, expected: str) -> None:
+        """
+        Helper for testing purify_white_spaces.
+
+        :param txt: Input text to purify
+        :param expected: Expected output
+        """
+        # Run test.
         actual = huntepur.purify_white_spaces(txt)
+        # Check outputs.
         self.assert_equal(actual, expected)
 
     def test1(self) -> None:
@@ -1062,7 +1154,15 @@ class Test_purify_parquet_file_names1(hunitest.TestCase):
     """
 
     def helper(self, txt: str, expected: str) -> None:
+        """
+        Helper for testing purify_parquet_file_names.
+
+        :param txt: Input text to purify
+        :param expected: Expected output
+        """
+        # Run test.
         actual = huntepur.purify_parquet_file_names(txt)
+        # Check outputs.
         self.assert_equal(actual, expected)
 
     def test1(self) -> None:
@@ -1106,7 +1206,15 @@ class Test_purify_helpers1(hunitest.TestCase):
     """
 
     def helper(self, txt: str, expected: str) -> None:
+        """
+        Helper for testing purify_helpers.
+
+        :param txt: Input text to purify
+        :param expected: Expected output
+        """
+        # Run test.
         actual = huntepur.purify_helpers(txt)
+        # Check outputs.
         self.assert_equal(actual, expected)
 
     def test1(self) -> None:
@@ -1385,12 +1493,16 @@ class Test_purify_file_names1(hunitest.TestCase):
         :param expected: Expected output file names
         :param git_root: Git root to mock
         """
+        # Prepare inputs.
+        # Run test.
         with umock.patch(
             "helpers.hgit.get_client_root", return_value=git_root
         ):
             actual = huntepur.purify_file_names(file_names)
+        # Prepare outputs.
         actual_str = "\n".join(str(path) for path in actual)
         expected_str = "\n".join(str(path) for path in expected)
+        # Check outputs.
         self.assert_equal(actual_str, expected_str)
 
     def test1(self) -> None:

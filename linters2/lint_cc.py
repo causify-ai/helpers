@@ -282,7 +282,7 @@ def _run_claude_code(
         #"--model",
         #model,
         "-p",
-        f"Execute the file {prompt_file}",
+        f"'Execute the file {prompt_file}'",
     ]
     # Tee the output through extract_cc_log2.py for formatting.
     _EXTRACT_LOG = hgit.find_file(

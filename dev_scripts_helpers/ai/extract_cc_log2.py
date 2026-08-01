@@ -6,6 +6,11 @@ import json
 current_type = None
 first_delta = {"thinking": True, "text": True}
 
+# ANSI color codes
+GRAY = "\033[90m"
+WHITE = "\033[97m"
+RESET = "\033[0m"
+
 for line in sys.stdin:
     line = line.strip()
     if not line:
@@ -31,11 +36,11 @@ for line in sys.stdin:
                             first_delta["thinking"] = False
                         else:
                             print()  # blank line between blocks
-                        print("\n=== THINKING ===\n", end="", flush=True)
+                        print(f"\n{GRAY}=== THINKING ==={RESET}\n", end="", flush=True)
                         current_type = "thinking"
 
                     content = delta.get("thinking", "")
-                    print(content, end="", flush=True)
+                    print(f"{GRAY}{content}{RESET}", end="", flush=True)
 
                 elif delta_type == "text_delta":
                     if current_type != "text":
@@ -43,11 +48,11 @@ for line in sys.stdin:
                             first_delta["text"] = False
                         else:
                             print()  # blank line between blocks
-                        print("\n=== ASSISTANT ===\n", end="", flush=True)
+                        print(f"\n{WHITE}=== ASSISTANT ==={RESET}\n", end="", flush=True)
                         current_type = "text"
 
                     content = delta.get("text", "")
-                    print(content, end="", flush=True)
+                    print(f"{WHITE}{content}{RESET}", end="", flush=True)
 
     except (json.JSONDecodeError, KeyError, TypeError):
         pass
