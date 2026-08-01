@@ -23,13 +23,6 @@ import helpers.hprint as hprint
 
 _LOG = logging.getLogger(__name__)
 
-# ANSI color codes, matching the rendering of `extract_cc_log2.py`.
-# TODO(ai_gp): Use hprint.text_colorize
-_GRAY = "\033[90m"
-_WHITE = "\033[97m"
-_RESET = "\033[0m"
-
-
 # #############################################################################
 # Message Rendering
 # #############################################################################
@@ -51,14 +44,16 @@ def print_message(message: Any) -> None:
     # Render each content block in the message with appropriate formatting.
     for block in message.content:
         if isinstance(block, claude_agent_sdk.TextBlock):
-            header = f"{_WHITE}=== ASSISTANT ==={_RESET}"
-            body = f"{_WHITE}{block.text}{_RESET}"
+            header = hprint.color_highlight("=== ASSISTANT ===", "bright_white")
+            body = hprint.color_highlight(block.text, "bright_white")
         elif isinstance(block, claude_agent_sdk.ThinkingBlock):
-            header = f"{_GRAY}=== THINKING ==={_RESET}"
-            body = f"{_GRAY}{block.thinking}{_RESET}"
+            header = hprint.color_highlight("=== THINKING ===", "gray")
+            body = hprint.color_highlight(block.thinking, "gray")
         elif isinstance(block, claude_agent_sdk.ToolUseBlock):
-            header = f"{_GRAY}=== TOOL: {block.name} ==={_RESET}"
-            body = f"{_GRAY}{block.input}{_RESET}"
+            header = hprint.color_highlight(
+                f"=== TOOL: {block.name} ===", "yellow"
+            )
+            body = hprint.color_highlight(block.input, "gray")
         else:
             continue
         print(f"\n{header}\n{body}", flush=True)
@@ -91,8 +86,9 @@ class PromptSequencer:
         :param allowed_tools: List of allowed tools (e.g., ["Read", "Edit"])
             - None means "all tools allowed"
         :param permission_mode: Permission handling mode
-            - Options: "ask", "acceptEdits", "bypassPermissions"
-            - TODO(ai_gp): Explain what each means
+            - "ask" (prompt user for each operation)
+            - "acceptEdits" (auto-accept edits without prompting)
+            - "bypassPermissions" (bypass all permission checks)
         :param cwd: Working directory for Claude Code execution
             - "" means current directory
         :param print_output: If True, print Claude messages to stdout as
@@ -105,9 +101,11 @@ class PromptSequencer:
         self.permission_mode = permission_mode
         self.cwd = cwd
         self.print_output = print_output
-        # TODO(ai_gp): Add an explanation for each variable.
+        # Tracks if async session has started.
         self._session_started = False
+        # Count of executed prompts.
         self._prompts_executed = 0
+        # Last response from Claude.
         self._last_response = ""
 
     async def execute(self, prompts: List[str]) -> None:
@@ -136,8 +134,11 @@ class PromptSequencer:
         async with claude_agent_sdk.ClaudeSDKClient(options=options) as client:
             self._session_started = True
             for prompt_idx, prompt in enumerate(prompts, 1):
-                # TODO(ai_gp): Use hprint.frame
-                _LOG.info("Executing prompt %d/%d", prompt_idx, len(prompts))
+                # TODO(ai_gp): Make it blue
+                _LOG.info(
+                    "%s",
+                    hprint.frame(f"Executing prompt {prompt_idx}/{len(prompts)}")
+                )
                 _LOG.debug("Prompt content:\n%s ...", prompt[:200])
                 # Query Claude with prompt and collect response asynchronously.
                 await client.query(prompt)

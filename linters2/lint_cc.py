@@ -61,12 +61,14 @@ _LOG = logging.getLogger(__name__)
 # #############################################################################
 
 
-def _get_rules_for_topic(topic: str) -> Dict:
+def _get_rules_for_topic(topic: str) -> Dict[str, Dict]:
     """
     Get rules and templates for a given topic.
+    // TODO(ai_gp): Add an example
 
     :param topic: Topic name (e.g., 'coding', 'testing')
     :return: Dict with role, rules list, templates list, and other config
+    // TODO(ai_gp): Add an example
     """
     _LOG.debug("Looking up rules for topic: '%s'", topic)
     TOPIC_TO_INFO = {
@@ -151,6 +153,7 @@ def _get_rules_for_topic(topic: str) -> Dict:
         TOPIC_TO_INFO,
         "Topic not found in rules",
     )
+    # TODO(ai_gp): Add an example of how topic_info look like.
     topic_info = TOPIC_TO_INFO[topic]
     topic_info["role"] = ".claude/skills/%s" % topic_info["role"]
     topic_info["rules"] = [f".claude/skills/{r}" for r in topic_info["rules"]]
@@ -171,6 +174,7 @@ def _get_rules_for_topic(topic: str) -> Dict:
 def _infer_topic_from_filename(file_path: str) -> str:
     """
     Detect the file type and return the corresponding topic.
+    // TODO(ai_gp): Make an example
 
     :param file_path: Path to the file
     :return: topic (e.g., 'coding.format')
@@ -182,9 +186,9 @@ def _infer_topic_from_filename(file_path: str) -> str:
     elif basename.endswith(".md"):
         if basename.startswith("README"):
             topic = "readme"
-        elif "_in_30_mins.md" in file_path:
+        elif "_in_30_mins.md" in basename:
             topic = "tool_X_in_30_mins"
-        elif "_in_60_mins.md" in file_path:
+        elif "_in_60_mins.md" in basename:
             topic = "tool_X_in_60_mins"
         elif ".claude/skills/" in file_path:
             topic = "skill"
@@ -203,7 +207,7 @@ def _infer_topic_from_filename(file_path: str) -> str:
         topic = "slides"
     else:
         raise ValueError(f"Invalid topic for filename '{file_path}'")
-    _LOG.debug("return='%s'", topic)
+    _LOG.debug("file_path=%s -> return='%s'", file_path, topic)
     return topic
 
 
