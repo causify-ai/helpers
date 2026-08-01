@@ -55,7 +55,7 @@ def _to_skip_on_update_outcomes() -> bool:
 
 
 # #############################################################################
-# TestGetInputDir
+# Test_get_input_dir
 # #############################################################################
 
 
@@ -64,16 +64,16 @@ class Test_get_input_dir(hunitest.TestCase):
     Test hunitest.get_input_dir().
     """
 
-    def test_get_input_dir1(self) -> None:
+    def test1(self) -> None:
         """
         Test hunitest.get_input_dir().
         """
         actual = self.get_input_dir()
         actual = huntepur.purify_txt_from_client(actual)
-        expected = "$GIT_ROOT/helpers/test/outcomes/Test_get_input_dir.test_get_input_dir1/input"
+        expected = "$GIT_ROOT/helpers/test/outcomes/Test_get_input_dir.test1/input"
         self.assertEqual(actual, expected)
 
-    def test_get_input_dir2(self) -> None:
+    def test2(self) -> None:
         use_only_test_class = False
         test_class_name = "test_class"
         test_method_name = "test_method"
@@ -87,7 +87,7 @@ class Test_get_input_dir(hunitest.TestCase):
         expected = "$GIT_ROOT/helpers/test/outcomes/test_class.test_method/input"
         self.assertEqual(actual, expected)
 
-    def test_get_input_dir3(self) -> None:
+    def test3(self) -> None:
         use_only_test_class = False
         test_class_name = None
         test_method_name = None
@@ -98,10 +98,10 @@ class Test_get_input_dir(hunitest.TestCase):
         )
         actual = huntepur.purify_txt_from_client(actual)
         #
-        expected = "$GIT_ROOT/helpers/test/outcomes/TestGetInputDir.test_get_input_dir3/input"
+        expected = "$GIT_ROOT/helpers/test/outcomes/Test_get_input_dir.test3/input"
         self.assertEqual(actual, expected)
 
-    def test_get_input_dir4(self) -> None:
+    def test4(self) -> None:
         use_only_test_class = True
         test_class_name = None
         test_method_name = None
@@ -112,53 +112,53 @@ class Test_get_input_dir(hunitest.TestCase):
         )
         actual = huntepur.purify_txt_from_client(actual)
         #
-        expected = "$GIT_ROOT/helpers/test/outcomes/TestGetInputDir/input"
+        expected = "$GIT_ROOT/helpers/test/outcomes/Test_get_input_dir/input"
         self.assertEqual(actual, expected)
 
 
 # #############################################################################
-# TestGetOutputDir
+# Test_get_output_dir
 # #############################################################################
 
 
-class TestGetOutputDir(hunitest.TestCase):
+class Test_get_output_dir(hunitest.TestCase):
     """
     Test hunitest.get_output_dir().
     """
 
-    def test_get_output_dir1(self) -> None:
+    def test1(self) -> None:
         """
         Test hunitest.get_output_dir().
         """
         actual = self.get_output_dir()
         actual = huntepur.purify_txt_from_client(actual)
-        expected = "$GIT_ROOT/helpers/test/outcomes/TestGetOutputDir.test_get_output_dir1/output"
+        expected = "$GIT_ROOT/helpers/test/outcomes/Test_get_output_dir.test1/output"
         self.assertEqual(actual, expected)
 
 
 # #############################################################################
-# TestGetScratchSpace
+# Test_get_scratch_space
 # #############################################################################
 
 
-class TestGetScratchSpace(hunitest.TestCase):
+class Test_get_scratch_space(hunitest.TestCase):
     """
     Test hunitest.get_scratch_space().
     """
 
-    def test_get_scratch_space1(self) -> None:
+    def test1(self) -> None:
         """
         Test hunitest.get_scratch_space().
         """
         actual = self.get_scratch_space()
         actual = huntepur.purify_txt_from_client(actual)
         expected = (
-            "$GIT_ROOT/helpers/test/outcomes/TestGetScratchSpace.test_get_scratch_space1"
+            "$GIT_ROOT/helpers/test/outcomes/Test_get_scratch_space.test1"
             "/tmp.scratch"
         )
         self.assertEqual(actual, expected)
 
-    def test_get_scratch_space2(self) -> None:
+    def test2(self) -> None:
         test_class_name = "test_class"
         test_method_name = "test_method"
         actual = self.get_scratch_space(
@@ -170,7 +170,7 @@ class TestGetScratchSpace(hunitest.TestCase):
         )
         self.assertEqual(actual, expected)
 
-    def test_get_scratch_space3(self) -> None:
+    def test3(self) -> None:
         test_class_name = "test_class"
         test_method_name = "test_method"
         use_absolute_path = False
@@ -185,21 +185,21 @@ class TestGetScratchSpace(hunitest.TestCase):
 
 
 # #############################################################################
-# TestGetS3ScratchDir
+# Test_get_s3_scratch_dir
 # #############################################################################
 
 
-class TestGetS3ScratchDir(hunitest.TestCase):
+class Test_get_s3_scratch_dir(hunitest.TestCase):
     """
     Test hunitest.get_s3_scratch_dir().
     """
 
-    def test_get_s3_scratch_dir1(self) -> None:
+    def test1(self) -> None:
         actual = self.get_s3_scratch_dir()
         _LOG.debug("actual=%s", actual)
         # It is difficult to test, so we just execute.
 
-    def test_get_s3_scratch_dir2(self) -> None:
+    def test2(self) -> None:
         test_class_name = "test_class"
         test_method_name = "test_method"
         actual = self.get_s3_scratch_dir(
@@ -210,28 +210,28 @@ class TestGetS3ScratchDir(hunitest.TestCase):
 
 
 # #############################################################################
-# TestAssertEqual
+# Test_assert_equal
 # #############################################################################
 
 
-class TestAssertEqual(hunitest.TestCase):
+class Test_assert_equal(hunitest.TestCase):
     """
     Test hunitest.assert_equal().
     """
 
-    def test_assert_equal1(self) -> None:
+    def test1(self) -> None:
         actual = "hello world"
         expected = actual
         self.assert_equal(actual, expected)
 
-    def test_assert_not_equal1(self) -> None:
+    def test2(self) -> None:
         actual = "hello world"
         expected = "hello world w"
         tmp_dir = tempfile.mkdtemp()
         with self.assertRaises(RuntimeError):
             self.assert_equal(actual, expected, dst_dir=tmp_dir)
 
-    def test_assert_not_equal2(self) -> None:
+    def test3(self) -> None:
         actual = "hello world"
         expected = "hello world w"
         # Create a dir like `/var/tmp/tmph_kun9xq`.
@@ -262,7 +262,7 @@ class TestAssertEqual(hunitest.TestCase):
         else
             cmd='vimdiff'
         fi;
-        cmd="$cmd helpers/test/outcomes/TestAssertEqual.test_assert_not_equal2/tmp.final.actual.txt helpers/test/outcomes/TestAssertEqual.test_assert_not_equal2/tmp.final.expected.txt"
+        cmd="$cmd helpers/test/outcomes/Test_assert_equal.test3/tmp.final.actual.txt helpers/test/outcomes/Test_assert_equal.test3/tmp.final.expected.txt"
         eval $cmd
 
         '''
@@ -270,19 +270,19 @@ class TestAssertEqual(hunitest.TestCase):
         # pylint: enable=line-too-long
         self.assert_equal(actual, expected, fuzzy_match=True)
 
-    def test_assert_equal_fuzzy_match1(self) -> None:
+    def test4(self) -> None:
         actual = "hello world"
         expected = "hello world "
         is_equal = self.assert_equal(actual, expected, fuzzy_match=True)
         self.assertTrue(is_equal)
 
-    def test_assert_equal5(self) -> None:
+    def test5(self) -> None:
         actual = "hello world"
         expected = "hello world2"
         with self.assertRaises(RuntimeError):
             self.assert_equal(actual, expected, fuzzy_match=True)
 
-    def _remove_lines1(self) -> None:
+    def test6(self) -> None:
         txt = r"""
         # #####################################################################
         * Failed assertion *
@@ -377,25 +377,25 @@ class Test_AssertEqual1(hunitest.TestCase):
         # Check that the assertion is what expected.
         actual = str(cm.exception)
         actual = huntepur.purify_txt_from_client(actual)
-        expected = hprint.dedent('''
-        --------------------------------------------------------------------------------
-        ACTUAL vs EXPECTED [via assert_equal()]: Test_AssertEqual1.test_not_equal1
-        --------------------------------------------------------------------------------
+        expected = (
+            "\n"
+            + hprint.dedent('''
+            --------------------------------------------------------------------------------
+            ACTUAL vs EXPECTED [via assert_equal()]: Test_AssertEqual1.test_not_equal1
+            --------------------------------------------------------------------------------
 
-                                                                                  (
-        completed failure Lint    Run_linter                                      |  completed       failure Lint    Run_linter
-        completed       success Lint    Fast_tests                                (
-        completed       success Lint    Slow_tests                                (
-        Diff with:
-        > ./tmp.diff.sh
-        --------------------------------------------------------------------------------
-        ACTUAL VARIABLE: Test_AssertEqual1.test_not_equal1
-        --------------------------------------------------------------------------------
-        expected = r"""
-        completed failure Lint    Run_linter
-        completed       success Lint    Fast_tests
-        completed       success Lint    Slow_tests
-        """''')
+            completed failure Lint    Run_linter                                      |  completed       failure Lint    Run_linter
+            completed       success Lint    Fast_tests                                (
+            completed       success Lint    Slow_tests                                (
+            Diff with:
+            > ./tmp.diff.sh
+            --------------------------------------------------------------------------------
+            ACTUAL VARIABLE: Test_AssertEqual1.test_not_equal1
+            --------------------------------------------------------------------------------
+            expected = r"""completed failure Lint    Run_linter
+            completed       success Lint    Fast_tests
+            completed       success Lint    Slow_tests"""''')
+        )
         if actual != expected:
             scratch_dir = self.get_scratch_space()
             hio.to_file(os.path.join(scratch_dir, "actual.txt"), actual)
@@ -446,11 +446,11 @@ class Test_AssertEqual1(hunitest.TestCase):
 
 
 # #############################################################################
-# TestCheckString1
+# Test_check_string1
 # #############################################################################
 
 
-class TestCheckString1(hunitest.TestCase):
+class Test_check_string1(hunitest.TestCase):
     def test1(self) -> None:
         """
         Compare the actual value to a matching golden outcome.
@@ -654,11 +654,11 @@ class TestCheckString1(hunitest.TestCase):
 
 
 # #############################################################################
-# TestCheckDataFrame1
+# Test_check_dataframe1
 # #############################################################################
 
 
-class TestCheckDataFrame1(hunitest.TestCase):
+class Test_check_dataframe1(hunitest.TestCase):
     """
     Some of these tests can't pass with `--update_outcomes`, since they
     exercise the logic in `--update_outcomes` itself.
@@ -997,6 +997,8 @@ class Test_get_dir_signature1(hunitest.TestCase):
         # pylint: enable=line-too-long
         self.assert_equal(actual, expected, fuzzy_match=True)
 
+
+
     def test2(self) -> None:
         """
         Test dir signature including the file content.
@@ -1008,13 +1010,15 @@ class Test_get_dir_signature1(hunitest.TestCase):
 
 
 # #############################################################################
-# Test_assert_equal_options1
+# Test_assert_equal_fuzzy_match
 # #############################################################################
 
 
-# TODO(ai_gp2): Split in multiple classes, one per testing function,
-# Test_assert_equal_fuzzy_match, Test_assert_equal_purify_text, ...
-class Test_assert_equal_options1(hunitest.TestCase):
+class Test_assert_equal_fuzzy_match(hunitest.TestCase):
+    """
+    Tests for assert_equal with fuzzy_match option.
+    """
+
     def helper(
         self,
         actual: str,
@@ -1022,20 +1026,10 @@ class Test_assert_equal_options1(hunitest.TestCase):
         expected_is_equal: bool,
         *,
         fuzzy_match: bool = False,
-        purify_text: bool = False,
-        purify_expected_text: bool = False,
         ignore_line_breaks: bool = False,
     ) -> None:
         """
-        Helper for testing assert_equal with various options.
-
-        :param actual: actual test output
-        :param expected: expected test output
-        :param expected_is_equal: expected result of comparison
-        :param fuzzy_match: ignore whitespace differences
-        :param purify_text: remove environment-specific details
-        :param purify_expected_text: purify expected in addition to actual
-        :param ignore_line_breaks: treat line breaks as spaces
+        Helper for testing assert_equal with fuzzy_match option.
         """
         test_name = self._get_test_name()
         test_dir = self.get_scratch_space()
@@ -1045,13 +1039,11 @@ class Test_assert_equal_options1(hunitest.TestCase):
             test_name,
             test_dir,
             fuzzy_match=fuzzy_match,
-            purify_text=purify_text,
-            purify_expected_text=purify_expected_text,
             ignore_line_breaks=ignore_line_breaks,
         )
         self.assertEqual(is_equal, expected_is_equal)
 
-    def test_fuzzy_match1(self) -> None:
+    def test1(self) -> None:
         """
         Test fuzzy_match ignores trailing spaces.
         """
@@ -1059,7 +1051,7 @@ class Test_assert_equal_options1(hunitest.TestCase):
         expected = "hello world   "
         self.helper(actual, expected, True, fuzzy_match=True)
 
-    def test_fuzzy_match2(self) -> None:
+    def test2(self) -> None:
         """
         Test fuzzy_match ignores leading spaces.
         """
@@ -1067,7 +1059,7 @@ class Test_assert_equal_options1(hunitest.TestCase):
         expected = "   hello world"
         self.helper(actual, expected, True, fuzzy_match=True)
 
-    def test_fuzzy_match3(self) -> None:
+    def test3(self) -> None:
         """
         Test fuzzy_match collapses multiple spaces into one.
         """
@@ -1075,7 +1067,7 @@ class Test_assert_equal_options1(hunitest.TestCase):
         expected = "hello    world"
         self.helper(actual, expected, True, fuzzy_match=True)
 
-    def test_fuzzy_match4(self) -> None:
+    def test4(self) -> None:
         """
         Test fuzzy_match removes empty lines.
         """
@@ -1088,7 +1080,7 @@ class Test_assert_equal_options1(hunitest.TestCase):
         expected = hprint.dedent(expected)
         self.helper(actual, expected, True, fuzzy_match=True)
 
-    def test_fuzzy_match5(self) -> None:
+    def test5(self) -> None:
         """
         Test fuzzy_match raises error on actual content mismatch.
         """
@@ -1102,7 +1094,7 @@ class Test_assert_equal_options1(hunitest.TestCase):
             )
 
     # TODO(ai_gp2): This should pass when using ignore_line_breaks
-    def test_fuzzy_match6(self) -> None:
+    def test6(self) -> None:
         """
         Test fuzzy_match + ignore_line_breaks with inline vs multiline dicts.
 
@@ -1165,7 +1157,7 @@ class Test_assert_equal_options1(hunitest.TestCase):
             )
 
     # TODO(ai_gp2): Use helper.
-    def test_fuzzy_match7(self) -> None:
+    def test7(self) -> None:
         """
         Test fuzzy_match + ignore_line_breaks with consistent formatting.
 
@@ -1207,33 +1199,60 @@ class Test_assert_equal_options1(hunitest.TestCase):
         )
         self.assertTrue(is_equal)
 
-    def test_purify_text1(self) -> None:
+
+# #############################################################################
+# Test_assert_equal_purify_text
+# #############################################################################
+
+
+class Test_assert_equal_purify_text(hunitest.TestCase):
+    """
+    Tests for assert_equal with purify_text option.
+    """
+
+    def helper(
+        self,
+        actual: str,
+        expected: str,
+        expected_is_equal: bool,
+        *,
+        purify_text: bool = False,
+        purify_expected_text: bool = False,
+    ) -> None:
+        """
+        Helper for testing assert_equal with purify_text option.
+        """
+        test_name = self._get_test_name()
+        test_dir = self.get_scratch_space()
+        is_equal = hunitest.assert_equal(
+            actual,
+            expected,
+            test_name,
+            test_dir,
+            purify_text=purify_text,
+            purify_expected_text=purify_expected_text,
+        )
+        self.assertEqual(is_equal, expected_is_equal)
+
+    def test1(self) -> None:
         """
         Test purify_text removes timestamps.
-
-        Timestamps like '2024-01-15 10:30:45' get normalized during purification.
         """
-        # Use purify_text to normalize the actual output.
         actual = "Processed at 2024-01-15 10:30:45"
         expected = "Processed at 2024-01-15 10:30:45"
         self.helper(actual, expected, True, purify_text=True)
 
-    def test_purify_text2(self) -> None:
+    def test2(self) -> None:
         """
         Test purify_text normalizes memory addresses.
-
-        Memory addresses like 0x7f1234567890 get normalized during purification.
         """
         actual = "Object at address 0x7f1234567890"
         expected = "Object at address 0x7f1234567890"
         self.helper(actual, expected, True, purify_text=True)
 
-    def test_purify_text3(self) -> None:
+    def test3(self) -> None:
         """
         Test purify_text only purifies actual when purify_expected_text=False.
-
-        When purify_expected_text=False, only actual text is purified,
-        expected remains as-is.
         """
         actual = "output value"
         expected = "output value"
@@ -1241,12 +1260,44 @@ class Test_assert_equal_options1(hunitest.TestCase):
             actual, expected, True, purify_text=True, purify_expected_text=False
         )
 
-    def test_purify_expected_text1(self) -> None:
+
+# #############################################################################
+# Test_assert_equal_purify_expected_text
+# #############################################################################
+
+
+class Test_assert_equal_purify_expected_text(hunitest.TestCase):
+    """
+    Tests for assert_equal with purify_expected_text option.
+    """
+
+    def helper(
+        self,
+        actual: str,
+        expected: str,
+        expected_is_equal: bool,
+        *,
+        purify_text: bool = False,
+        purify_expected_text: bool = False,
+    ) -> None:
+        """
+        Helper for testing assert_equal with purify_expected_text option.
+        """
+        test_name = self._get_test_name()
+        test_dir = self.get_scratch_space()
+        is_equal = hunitest.assert_equal(
+            actual,
+            expected,
+            test_name,
+            test_dir,
+            purify_text=purify_text,
+            purify_expected_text=purify_expected_text,
+        )
+        self.assertEqual(is_equal, expected_is_equal)
+
+    def test1(self) -> None:
         """
         Test purify_expected_text purifies both when purify_text=True.
-
-        When both purify_text=True and purify_expected_text=True,
-        both actual and expected are purified.
         """
         actual = "output value"
         expected = "output value"
@@ -1254,7 +1305,7 @@ class Test_assert_equal_options1(hunitest.TestCase):
             actual, expected, True, purify_text=True, purify_expected_text=True
         )
 
-    def test_purify_expected_text2(self) -> None:
+    def test2(self) -> None:
         """
         Test purify_expected_text has no effect if purify_text=False.
         """
@@ -1264,7 +1315,40 @@ class Test_assert_equal_options1(hunitest.TestCase):
             actual, expected, True, purify_text=False, purify_expected_text=True
         )
 
-    def test_ignore_line_breaks1(self) -> None:
+
+# #############################################################################
+# Test_assert_equal_ignore_line_breaks
+# #############################################################################
+
+
+class Test_assert_equal_ignore_line_breaks(hunitest.TestCase):
+    """
+    Tests for assert_equal with ignore_line_breaks option.
+    """
+
+    def helper(
+        self,
+        actual: str,
+        expected: str,
+        expected_is_equal: bool,
+        *,
+        ignore_line_breaks: bool = False,
+    ) -> None:
+        """
+        Helper for testing assert_equal with ignore_line_breaks option.
+        """
+        test_name = self._get_test_name()
+        test_dir = self.get_scratch_space()
+        is_equal = hunitest.assert_equal(
+            actual,
+            expected,
+            test_name,
+            test_dir,
+            ignore_line_breaks=ignore_line_breaks,
+        )
+        self.assertEqual(is_equal, expected_is_equal)
+
+    def test1(self) -> None:
         """
         Test ignore_line_breaks treats single newline as space.
         """
@@ -1272,7 +1356,7 @@ class Test_assert_equal_options1(hunitest.TestCase):
         expected = "hello world"
         self.helper(actual, expected, True, ignore_line_breaks=True)
 
-    def test_ignore_line_breaks2(self) -> None:
+    def test2(self) -> None:
         """
         Test ignore_line_breaks treats multiple newlines as spaces.
         """
@@ -1280,7 +1364,7 @@ class Test_assert_equal_options1(hunitest.TestCase):
         expected = "hello   world"
         self.helper(actual, expected, True, ignore_line_breaks=True)
 
-    def test_ignore_line_breaks3(self) -> None:
+    def test3(self) -> None:
         """
         Test ignore_line_breaks converts multiline text to single line.
         """
@@ -1293,7 +1377,7 @@ class Test_assert_equal_options1(hunitest.TestCase):
         expected = "line1 line2 line3"
         self.helper(actual, expected, True, ignore_line_breaks=True)
 
-    def test_ignore_line_breaks4(self) -> None:
+    def test4(self) -> None:
         """
         Test ignore_line_breaks still catches content mismatches.
         """
@@ -1306,7 +1390,46 @@ class Test_assert_equal_options1(hunitest.TestCase):
                 actual, expected, test_name, test_dir, ignore_line_breaks=True
             )
 
-    def test_combined1(self) -> None:
+
+# #############################################################################
+# Test_assert_equal_combined_options
+# #############################################################################
+
+
+class Test_assert_equal_combined_options(hunitest.TestCase):
+    """
+    Tests for assert_equal with combined options.
+    """
+
+    def helper(
+        self,
+        actual: str,
+        expected: str,
+        expected_is_equal: bool,
+        *,
+        fuzzy_match: bool = False,
+        purify_text: bool = False,
+        purify_expected_text: bool = False,
+        ignore_line_breaks: bool = False,
+    ) -> None:
+        """
+        Helper for testing assert_equal with combined options.
+        """
+        test_name = self._get_test_name()
+        test_dir = self.get_scratch_space()
+        is_equal = hunitest.assert_equal(
+            actual,
+            expected,
+            test_name,
+            test_dir,
+            fuzzy_match=fuzzy_match,
+            purify_text=purify_text,
+            purify_expected_text=purify_expected_text,
+            ignore_line_breaks=ignore_line_breaks,
+        )
+        self.assertEqual(is_equal, expected_is_equal)
+
+    def test1(self) -> None:
         """
         Test combining fuzzy_match and ignore_line_breaks.
         """
@@ -1321,23 +1444,17 @@ class Test_assert_equal_options1(hunitest.TestCase):
             actual, expected, True, fuzzy_match=True, ignore_line_breaks=True
         )
 
-    def test_combined2(self) -> None:
+    def test2(self) -> None:
         """
         Test combining purify_text and fuzzy_match.
-
-        Combining purify_text and fuzzy_match allows matching text that has
-        both environment-specific differences and whitespace differences.
         """
         actual = "output    value"
         expected = "output value"
         self.helper(actual, expected, True, purify_text=True, fuzzy_match=True)
 
-    def test_combined3(self) -> None:
+    def test3(self) -> None:
         """
-        Test combining all four options: fuzzy_match, purify_text,
-        purify_expected_text, ignore_line_breaks.
-
-        Combining all options allows the most flexible text matching.
+        Test combining all four options.
         """
         actual = "result:  value1  value2"
         expected = """

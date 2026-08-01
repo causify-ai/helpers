@@ -62,7 +62,8 @@ class PromptSequencer:
         self._prompts_executed = 0
         self._last_response = ""
         _LOG.debug(
-            "PromptSequencer initialized: " + hprint.to_str("allowed_tools permission_mode cwd")
+            "PromptSequencer initialized: "
+            + hprint.to_str("allowed_tools permission_mode cwd")
         )
 
     async def execute(self, prompts: List[str]) -> None:
