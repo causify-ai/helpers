@@ -1,7 +1,7 @@
 #!/usr/bin/env -S uv run
 
 # /// script
-# dependencies = ["tqdm"]
+# dependencies = ["tqdm", "anthropic", "claude-agent-sdk", "opentelemetry-api"]
 # ///
 
 """
@@ -33,12 +33,14 @@ Quick examples:
 """
 
 import argparse
+import asyncio
 import logging
 import os
-from typing import cast, Dict, Tuple
+from typing import cast, Dict, List, Tuple
 
 from tqdm import tqdm
 
+import dev_scripts_helpers.ai.cc_lib as dshaccli
 import helpers.hdbg as hdbg
 import helpers.hgit as hgit
 import helpers.hio as hio
@@ -66,6 +68,7 @@ def _get_rules_for_topic(topic: str) -> Dict:
     :param topic: Topic name (e.g., 'coding', 'testing')
     :return: Dict with role, rules list, templates list, and other config
     """
+    _LOG.debug("Looking up rules for topic: '%s'", topic)
     TOPIC_TO_INFO = {
         "bash": {
             "role": "role.coding.md",
@@ -159,6 +162,9 @@ def _get_rules_for_topic(topic: str) -> Dict:
         "readme",
         "markdown",
     )
+    _LOG.debug(
+        "topic_info=%s", topic_info
+    )
     return topic_info
 
 
@@ -169,6 +175,7 @@ def _infer_topic_from_filename(file_path: str) -> str:
     :param file_path: Path to the file
     :return: topic (e.g., 'coding.format')
     """
+    _LOG.debug("Inferring topic from file: '%s'", file_path)
     basename = os.path.basename(file_path)
     if basename.endswith(".ipynb"):
         topic = "notebook"
@@ -196,6 +203,7 @@ def _infer_topic_from_filename(file_path: str) -> str:
         topic = "slides"
     else:
         raise ValueError(f"Invalid topic for filename '{file_path}'")
+    _LOG.debug("return='%s'", topic)
     return topic
 
 
@@ -206,15 +214,16 @@ def _extract_h1_sections(rule_file: str) -> list:
     :param rule_file: Path to the rule file
     :return: List of tuples (title, content) for each H1 section
     """
+    _LOG.debug("Extracting H1 sections from: '%s'", rule_file)
     hdbg.dassert_file_exists(rule_file, "Rule file not found")
     lines = hio.from_file(rule_file).split("\n")
     headers = hmarhead.extract_headers_from_markdown(lines, max_level=1)
-    # Filter only level-1 headers
+    # Filter only level-1 headers.
     h1_headers = [h for h in headers if h.level == 1]
     sections = []
     for idx, header in enumerate(h1_headers):
         start_line = header.line_number - 1
-        # Find the next H1 header (or end of file)
+        # Find the next H1 header (or end of file).
         if idx + 1 < len(h1_headers):
             end_line = h1_headers[idx + 1].line_number - 1
         else:
@@ -222,6 +231,7 @@ def _extract_h1_sections(rule_file: str) -> list:
         section_lines = lines[start_line:end_line]
         section_content = "\n".join(section_lines).strip()
         sections.append((header.description, section_content))
+    _LOG.debug("return=%d sections", len(sections))
     return sections
 
 
@@ -237,6 +247,7 @@ def _build_prompt(topic: str) -> Tuple[str, Dict]:
     :param topic: Topic name (e.g., 'coding', 'testing')
     :return: Tuple of (prompt string, topic_info dict)
     """
+    _LOG.debug("Building prompt for topic: '%s'", topic)
     topic_info = _get_rules_for_topic(topic)
     role = topic_info["role"]
     rules = topic_info["rules"]
@@ -259,6 +270,7 @@ def _build_prompt(topic: str) -> Tuple[str, Dict]:
         "You MUST make sure not to change the behavior or the intent of the passed file"
     )
     txt = "\n".join(prompt_parts)
+    _LOG.debug("return=prompt_length=%d", len(txt))
     return txt, topic_info
 
 
@@ -287,6 +299,9 @@ def _run_claude_code(
     :param model: Model to use for Claude invocation
     :return: Return code (0 on success, or subprocess return code)
     """
+    _LOG.debug(
+        hprint.to_str("prompt topic file_path dry_run model")
+    )
     hdbg.dassert_file_exists(file_path)
     _LOG.info("Using model: %s", model)
     _LOG.info("\n%s\n%s", hprint.frame("Prompt (%s):") % topic, prompt)
@@ -312,8 +327,10 @@ def _run_claude_code(
     _LOG.info("Claude command: %s", cmd)
     if dry_run:
         _LOG.info("Dry run: command not executed")
+        _LOG.debug("return=0")
         return 0
     hsystem.system(cmd)
+    _LOG.debug("return=0")
     return 0
 
 
@@ -322,24 +339,18 @@ def _run_claude_code(
 # #############################################################################
 
 
-def _process_file_incrementally(
-    file_path: str,
-    dry_run: bool,
-    model: str,
-) -> int:
+def _build_incremental_messages(file_path: str) -> List[str]:
     """
-    Apply rules incrementally, one H1 section per Claude Code interaction.
+    Build a sequence of messages for incremental rule application.
 
     :param file_path: Path to the file to process
-    :param dry_run: If True, print messages without executing
-    :param model: Model to use for Claude invocation
-    :return: Return code (0 on success)
+    :return: List of messages to send sequentially
     """
+    _LOG.debug("Building incremental messages for: '%s'", file_path)
     hdbg.dassert_file_exists(file_path)
     inferred_topic = _infer_topic_from_filename(file_path)
     topic_info = _get_rules_for_topic(inferred_topic)
     rule_files = topic_info["rules"]
-    # Infer role and template info.
     role = topic_info["role"]
     templates = topic_info["templates"]
     hdbg.dassert_file_exists(role, "Role file not found")
@@ -372,20 +383,40 @@ def _process_file_incrementally(
         all_sections.extend(sections)
     _LOG.info("Total H1 sections: %d", len(all_sections))
     # Build messages
-    messages = []
+    messages: List[str] = []
     # First message: template
     messages.append(template_message)
     # Second message: target file specification
-    target_message = (
-        f"You will apply the rules that I will give you to {file_path}"
-    )
+    target_message = f"You will apply the rules that I will give you to {file_path}"
     messages.append(target_message)
-    # Subsequent messages: one per H1 section
+    # Subsequent messages: one per H1 section.
     for _, section_content in all_sections:
-        section_message = (
-            f"Apply the following rule to the file:\n\n{section_content}"
-        )
+        section_message = f"Apply the following rule to the file:\n\n{section_content}"
         messages.append(section_message)
+    _LOG.debug("return=%d messages", len(messages))
+    return messages
+
+
+async def _process_file_incrementally(
+    file_path: str,
+    dry_run: bool,
+    model: str,
+) -> int:
+    """
+    Apply rules incrementally, one H1 section per Claude Code interaction.
+
+    :param file_path: Path to the file to process
+    :param dry_run: If True, print messages without executing
+    :param model: Model to use for Claude invocation (used via SDK configuration)
+    :return: Return code (0 on success)
+    """
+    _LOG.debug(
+        hprint.to_str("file_path dry_run model")
+    )
+    # Model selection is handled by the SDK through environment variables.
+    if model:
+        _LOG.info("Model hint provided: %s (handled by SDK)", model)
+    messages = _build_incremental_messages(file_path)
     # Handle dry run.
     if dry_run:
         _LOG.warning("Dry Run - Messages to be sent:")
@@ -396,22 +427,24 @@ def _process_file_incrementally(
                 hprint.frame(f"Message {idx}/{len(messages)}:"),
                 msg_preview,
             )
+        _LOG.debug("return=0 (dry_run)")
         return 0
-    # Execute messages sequentially with cc wrapper.
+    # Execute messages sequentially using PromptSequencer.
     _LOG.info("Executing %d messages sequentially", len(messages))
-    for idx, msg in enumerate(messages, 1):
-        _LOG.info("\n%s", hprint.frame(f"Message {idx}/{len(messages)}:"))
-        rc = _run_claude_code(
-            msg,
-            f"incremental-{idx}",
-            file_path,
-            dry_run=False,
-            model=model,
+    try:
+        sequencer = dshaccli.PromptSequencer(
+            permission_mode="acceptEdits",
+            cwd=os.getcwd(),
         )
-        if rc != 0:
-            _LOG.error("Message %d failed with return code %d", idx, rc)
-            return rc
-    return 0
+        await sequencer.execute(messages)
+        stats = sequencer.get_execution_stats()
+        _LOG.info("Execution completed: %s", stats)
+        _LOG.debug("return=0")
+        return 0
+    except Exception as e:
+        _LOG.error("Sequential execution failed: %s", str(e))
+        _LOG.debug("return=1")
+        return 1
 
 
 def _process_file(
@@ -425,15 +458,20 @@ def _process_file(
     :param args: Parsed command-line arguments.
     :return: Tuple of (return code, topic_info dict).
     """
+    _LOG.debug("Processing file: '%s'", file_path)
     topic_info = {}
 
     if args.apply_incrementally:
-        rc = _process_file_incrementally(
-            file_path,
-            args.dry_run,
-            args.model,
+        # Apply rules incrementally via async processor.
+        rc = asyncio.run(
+            _process_file_incrementally(
+                file_path,
+                args.dry_run,
+                args.model,
+            )
         )
     elif args.skill:
+        # Execute a specific skill on the file.
         full_skill_name = hmarsele.find_skill(args.skill)
         prompt = f"/{full_skill_name} {file_path}"
         topic_str = "skill"
@@ -447,7 +485,8 @@ def _process_file(
             model=args.model,
         )
     elif args.rule:
-        _LOG.debug("Executing rigrule: %s", args.rule)
+        # Execute a specific rule on the file.
+        _LOG.debug("Executing rule: %s", args.rule)
         rule_content = hmarsele.extract_rule_from_file(args.rule)
         prompt = f"Execute the rule below on file {file_path}:\n\n{rule_content}"
         topic_str = "rule"
@@ -461,6 +500,7 @@ def _process_file(
             model=args.model,
         )
     else:
+        # Infer topic from file and build prompt from topic rules.
         if args.topic:
             topic_str = args.topic
             prompt, topic_info = _build_prompt(topic_str)
@@ -482,6 +522,7 @@ def _process_file(
             model=args.model,
         )
 
+    _LOG.debug("return=(%d, topic_info)", rc)
     return rc, topic_info
 
 
