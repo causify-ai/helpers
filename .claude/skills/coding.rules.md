@@ -64,9 +64,10 @@
 
 - For multi-line strings in code (test fixtures, expected outputs, scripts,
   documentation examples), use assignment with `"""` and `hprint.dedent()` instead
-  of escaped `\n` in string literals
+  of escaped `\n` in string literals or `textwrap.dedent`
 - This improves readability, maintainability, and makes the string structure
   immediately visible
+- Always use `hprint.dedent()` from helpers, not `textwrap.dedent`
 - Assign the indented string to a variable, then call `hprint.dedent()` on it
 
 - **Bad**: Escaped newlines (hard to read and modify)
@@ -76,28 +77,43 @@
   config = "key1: value1\nkey2: value2\nkey3: value3"
   ```
 
+- **Bad**: Using `textwrap.dedent` instead of `hprint.dedent`
+  ```python
+  from textwrap import dedent
+
+  template_message += dedent("""
+      You MUST make sure not to change the behavior or the intent of the passed file""")
+  ```
+
 - **Good**: Triple-quote assignment with `hprint.dedent`
   ```python
+  import helpers.hprint as hprint
+
   content = """
-  #!/bin/bash
-  pytest helpers/test/test_module.py
-  echo 'done'
-  """
+    #!/bin/bash
+    pytest helpers/test/test_module.py
+    echo 'done'
+    """
   content = hprint.dedent(content)
 
   bash_script = """
-  set -e
-  echo 'start'
-  pytest test.py
-  """
+    set -e
+    echo 'start'
+    pytest test.py
+    """
   bash_script = hprint.dedent(bash_script)
 
   config = """
-  key1: value1
-  key2: value2
-  key3: value3
-  """
+    key1: value1
+    key2: value2
+    key3: value3
+    """
   config = hprint.dedent(config)
+
+  template_message = """
+    You MUST make sure not to change the behavior or the intent of the passed file
+    """
+  template_message = hprint.dedent(template_message)
   ```
 
 ## Use Progress Bar
@@ -1005,6 +1021,30 @@
 
     pattern = re.compile(quote_pattern, re.VERBOSE)
     ```
+
+## Enclose File Paths in Single Quotes
+
+- When referring to file paths in messages and responses during coding tasks, enclose
+  them in single quotes to make them visually distinct and easier to identify
+- This applies to all file references in user-facing text and comments
+
+- **Bad**: File paths without enclosure
+  ```
+  Incremental processing of linters2/test/test_lint_cc.py
+  ```
+- **Good**: File paths enclosed in single quotes
+  ```
+  Incremental processing of 'linters2/test/test_lint_cc.py'
+  ```
+
+- **Bad**: Mixed formatting
+  ```
+  Working on file `src/main.py` and linters2/test/test_lint_cc.py
+  ```
+- **Good**: Consistent single quote enclosure for all file paths
+  ```
+  Working on file 'src/main.py' and 'linters2/test/test_lint_cc.py'
+  ```
 
 # Logging
 

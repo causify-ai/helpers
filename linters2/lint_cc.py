@@ -306,10 +306,19 @@ def _process_file_incrementally(
     # Build the initial template message.
     role_content = hio.from_file(role)
     template_message = role_content
-    # TODO(ai_gp): Make it """ and then dedent
-    template_message += "\n\nYou MUST make sure not to change the behavior or the intent of the passed file"
+    msg = """
+
+    You MUST make sure not to change the behavior or the intent of the passed file
+    """
+    msg = hprint.dedent(msg)
+    template_message += msg
     if templates:
-        template_message += "\n\nYou MUST follow the templates below:"
+        msg = """
+
+        You MUST follow the templates below:
+        """
+        msg = hprint.dedent(msg)
+        template_message += msg
         for template_file in templates:
             template_message += f"\n- {template_file}"
     _LOG.info("Incremental processing of %s", file_path)
@@ -330,22 +339,22 @@ def _process_file_incrementally(
     target_message = f"You will apply the rules that I will give you to {file_path}"
     messages.append(target_message)
     # Subsequent messages: one per H1 section
-    for section_title, section_content in all_sections:
+    for _, section_content in all_sections:
         section_message = (
-            f"Apply this rule ({section_title}) to the file:\n\n{section_content}"
+            f"Apply the following rule to the file:\n\n{section_content}"
         )
         messages.append(section_message)
-    # Handle dry run
+    # Handle dry run.
     if dry_run:
-        _LOG.info("\n%s\n", hprint.frame("Dry Run - Messages to be sent:"))
+        _LOG.warning("Dry Run - Messages to be sent:")
         for idx, msg in enumerate(messages, 1):
             msg_preview = msg[:200] + "..." if len(msg) > 200 else msg
-            _LOG.info("Message %d:\n%s\n", idx, msg_preview)
+            _LOG.info("\n%s\n%s", hprint.frame(f"Message {idx}/{len(messages)}:"), msg_preview)
         return 0
-    # Execute messages sequentially with cc wrapper
+    # Execute messages sequentially with cc wrapper.
     _LOG.info("Executing %d messages sequentially", len(messages))
     for idx, msg in enumerate(messages, 1):
-        _LOG.info("Sending message %d/%d", idx, len(messages))
+        _LOG.info("\n%s", hprint.frame(f"Message {idx}/{len(messages)}:"))
         rc = _run_claude_code(
             msg,
             f"incremental-{idx}",
@@ -407,6 +416,79 @@ def _run_claude_code(
         return 0
     result = subprocess.run(cmd, shell=True)
     return result.returncode
+
+
+def _process_file(
+    file_path: str,
+    args: argparse.Namespace,
+) -> Tuple[int, Dict]:
+    """
+    Process a single file with the given arguments.
+
+    :param file_path: Path to the file to process.
+    :param args: Parsed command-line arguments.
+    :return: Tuple of (return code, topic_info dict).
+    """
+    topic_info = {}
+
+    if args.apply_incrementally:
+        rc = _process_file_incrementally(
+            file_path,
+            args.dry_run,
+            args.model,
+        )
+    elif args.skill:
+        full_skill_name = hmarsele.find_skill(args.skill)
+        prompt = f"/{full_skill_name} {file_path}"
+        topic_str = "skill"
+        inferred_topic = _infer_topic_from_filename(file_path)
+        topic_info = _get_rules_for_topic(inferred_topic)
+        rc = _run_claude_code(
+            prompt,
+            topic_str,
+            file_path,
+            dry_run=args.dry_run,
+            model=args.model,
+        )
+    elif args.rule:
+        _LOG.debug("Executing rigrule: %s", args.rule)
+        rule_content = hmarsele.extract_rule_from_file(args.rule)
+        prompt = (
+            f"Execute the rule below on file {file_path}:\n\n{rule_content}"
+        )
+        topic_str = "rule"
+        inferred_topic = _infer_topic_from_filename(file_path)
+        topic_info = _get_rules_for_topic(inferred_topic)
+        rc = _run_claude_code(
+            prompt,
+            topic_str,
+            file_path,
+            dry_run=args.dry_run,
+            model=args.model,
+        )
+    else:
+        if args.topic:
+            topic_str = args.topic
+            prompt, topic_info = _build_prompt(topic_str)
+        else:
+            topic = _infer_topic_from_filename(file_path)
+            hdbg.dassert_is_not(topic, None, "Topic detection failed")
+            topic_str = cast(str, topic)
+        prompt, topic_info = _build_prompt(topic_str)
+        prompt += (
+            f"\n\nProcess the file {file_path} and make the changes "
+            + "according to the rules and conventions without asking "
+            + "questions to the user"
+        )
+        rc = _run_claude_code(
+            prompt,
+            topic_str,
+            file_path,
+            dry_run=args.dry_run,
+            model=args.model,
+        )
+
+    return rc, topic_info
 
 
 # #############################################################################
@@ -491,73 +573,15 @@ def _main(parser: argparse.ArgumentParser) -> int:
             "--topic can only be used with a single file",
         )
     _LOG.info("Processing %d file(s)", len(files))
-    #
     ret = 0
-    topic_info: Dict = {}
     for file_path in tqdm(files, desc="Processing files"):
-        # TODO(ai_gp): Move to a separate function _process_file()
-        if args.apply_incrementally:
-            rc = _process_file_incrementally(
-                file_path,
-                args.dry_run,
-                args.model,
-            )
-        elif args.skill:
-            full_skill_name = hmarsele.find_skill(args.skill)
-            prompt = f"/{full_skill_name} {file_path}"
-            topic_str = "skill"
-            inferred_topic = _infer_topic_from_filename(file_path)
-            topic_info = _get_rules_for_topic(inferred_topic)
-            rc = _run_claude_code(
-                prompt,
-                topic_str,
-                file_path,
-                dry_run=args.dry_run,
-                model=args.model,
-            )
-        elif args.rule:
-            _LOG.debug("Executing rigrule: %s", args.rule)
-            rule_content = hmarsele.extract_rule_from_file(args.rule)
-            prompt = (
-                f"Execute the rule below on file {file_path}:\n\n{rule_content}"
-            )
-            topic_str = "rule"
-            inferred_topic = _infer_topic_from_filename(file_path)
-            topic_info = _get_rules_for_topic(inferred_topic)
-            rc = _run_claude_code(
-                prompt,
-                topic_str,
-                file_path,
-                dry_run=args.dry_run,
-                model=args.model,
-            )
-        else:
-            if args.topic:
-                topic_str = args.topic
-                prompt, topic_info = _build_prompt(topic_str)
-            else:
-                topic = _infer_topic_from_filename(file_path)
-                hdbg.dassert_is_not(topic, None, "Topic detection failed")
-                topic_str = cast(str, topic)
-            prompt, topic_info = _build_prompt(topic_str)
-            prompt += (
-                f"\n\nProcess the file {file_path} and make the changes "
-                + "according to the rules and conventions without asking "
-                + "questions to the user"
-            )
-            rc = _run_claude_code(
-                prompt,
-                topic_str,
-                file_path,
-                dry_run=args.dry_run,
-                model=args.model,
-            )
+        rc, topic_info = _process_file(file_path, args)
         ret |= rc
-        if not args.apply_incrementally and "topic_info" in locals():
-            if topic_info["run_jupytext"]:
+        if not args.apply_incrementally and topic_info:
+            if topic_info.get("run_jupytext"):
                 cmd = ["jupytext", "--sync", file_path]
                 hsystem.system(" ".join(cmd))
-            if topic_info["run_lint"]:
+            if topic_info.get("run_lint"):
                 hlint.lint_file(file_path)
     return ret
 
