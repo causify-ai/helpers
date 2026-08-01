@@ -224,8 +224,16 @@ def has_color_command(text: str) -> bool:
 # `@` must not be preceded by a word character so that email addresses like
 # `foo@bar.com` are not mistaken for markers (real markers are always preceded
 # by whitespace or punctuation, e.g., `- @Definition@:`).
-# TODO(ai_gp): Use re.VERBOSE and comments this expression
-_COLOR_MARKER_REGEX = r"(?<!\w)@([^@\n]+)@"
+_COLOR_MARKER_REGEX = re.compile(
+    r"""
+    (?<!\w)      # Negative lookbehind: the opening `@` must not be preceded
+                 # by a word character (e.g., rejects `foo@bar.com`).
+    @            # Match the opening `@` marker.
+    ([^@\n]+)    # Capture everything up to the next `@` or newline.
+    @            # Match the closing `@` marker.
+    """,
+    re.VERBOSE,
+)
 
 
 # TODO(gp): -> List[str]
@@ -369,14 +377,10 @@ def colorize_bullet_points_in_slide(
                 typst_color = typst_mapping[color_to_use]
                 # Escape tildes (~) since they have special meaning in typst.
                 escaped_text = text.replace("~", r"\~")
-                # TODO(ai_gp): They seem exactly the same operation. Keep the second one.
-                if use_abbreviations:
-                    # Abbreviated: wrap in backticks for proper typst syntax
-                    ret = f'`#text(fill: {typst_color}, weight: "bold")[{escaped_text}]`{{=typst}}'
-                else:
-                    # Full: #text(fill: color)[text]
-                    ret = f'#text(fill: {typst_color}, weight: "bold")[{escaped_text}]'
-                    ret = "`" + ret + "`{=typst}"
+                ret = (
+                    f'#text(fill: {typst_color}, weight: "bold")[{escaped_text}]'
+                )
+                ret = "`" + ret + "`{=typst}"
             return ret
 
         line = re.sub(_COLOR_MARKER_REGEX, color_replacer, line)

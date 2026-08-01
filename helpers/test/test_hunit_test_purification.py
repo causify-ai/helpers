@@ -8,7 +8,7 @@ import datetime
 import logging
 import os
 import unittest.mock as umock
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Tuple
 
 import pytest
 
@@ -45,17 +45,20 @@ class Test_purify_txt_from_client(hunitest.TestCase):
         # Check outputs.
         self.assert_equal(actual, expected, **kwargs)
 
-    def helper_with_git_root_mocking(self, txt: str, expected: str) -> None:
+    def helper_with_git_root_mocking(self, relative_path: str) -> None:
         """
         Helper for tests that need git root mocking.
 
-        :param txt: Input text to test
-        :param expected: Expected output
+        Build `txt` by joining the real git root with `relative_path` and
+        check that it purifies to `$GIT_ROOT/<relative_path>`.
+
+        :param relative_path: path relative to the git root to test
         """
         # Prepare inputs.
         git_root: str = hgit.get_client_root(super_module=False)
         pwd: str = os.path.dirname(git_root)
-        # Run test.
+        txt = os.path.join(git_root, relative_path)
+        expected = f"$GIT_ROOT/{relative_path}"
         with umock.patch("os.getcwd", return_value=pwd):
             self.helper(txt, expected)
 
@@ -117,39 +120,21 @@ class Test_purify_txt_from_client(hunitest.TestCase):
         """
         Test that longer paths are processed before shorter ones using real paths.
         """
-        # Prepare inputs.
-        git_root = hgit.get_client_root(super_module=False)
-        txt = os.path.join(git_root, "src/file.py")
-        # Prepare outputs.
-        expected = "$GIT_ROOT/src/file.py"
-        # Run test.
-        self.helper_with_git_root_mocking(txt, expected)
+        self.helper_with_git_root_mocking("src/file.py")
 
     def test6(self) -> None:
         """
         Test that paths with multiple occurrences of the same pattern are
         processed correctly using real paths.
         """
-        # Prepare inputs.
-        git_root = hgit.get_client_root(super_module=False)
-        txt = os.path.join(git_root, "src/project/file.py")
-        # Prepare outputs.
-        expected = "$GIT_ROOT/src/project/file.py"
-        # Run test.
-        self.helper_with_git_root_mocking(txt, expected)
+        self.helper_with_git_root_mocking("src/project/file.py")
 
     def test7(self) -> None:
         """
         Test that paths with multiple patterns are processed in the correct
         order using real pwd.
         """
-        # Prepare inputs.
-        git_root = hgit.get_client_root(super_module=False)
-        txt = os.path.join(git_root, "src/project/file.py")
-        # Prepare outputs.
-        expected = "$GIT_ROOT/src/project/file.py"
-        # Run test.
-        self.helper_with_git_root_mocking(txt, expected)
+        self.helper_with_git_root_mocking("src/project/file.py")
 
     def test8(self) -> None:
         """
@@ -366,15 +351,29 @@ class Test_purify_directory_paths(hunitest.TestCase):
         ):
             self.helper(input_, expected)
 
+    def _get_git_root_and_fake_csfy_env_vars(
+        self,
+    ) -> Tuple[str, str, Dict[str, str]]:
+        """
+        Return the real git root together with a fake
+        `CSFY_HOST_GIT_ROOT_PATH` and the corresponding `env_vars` dict.
+
+        :return: real git root, fake `CSFY_HOST_GIT_ROOT_PATH`, and
+            `env_vars` dict patching `CSFY_HOST_GIT_ROOT_PATH` to the fake
+            value
+        """
+        git_root = hgit.get_client_root(super_module=False)
+        csfy_host_git_root = "/tmp/csfy_host_git_root"
+        env_vars = {"CSFY_HOST_GIT_ROOT_PATH": csfy_host_git_root}
+        return git_root, csfy_host_git_root, env_vars
+
     def test1(self) -> None:
         """
         Test the replacement of `GIT_ROOT` using real git root.
         """
-        git_root = hgit.get_client_root(super_module=False)
-        csfy_host_git_root = "/tmp/csfy_host_git_root"
+        git_root, _, env_vars = self._get_git_root_and_fake_csfy_env_vars()
         input_ = os.path.join(git_root, "src/subdir/file.py")
         expected = "$GIT_ROOT/src/subdir/file.py"
-        env_vars = {"CSFY_HOST_GIT_ROOT_PATH": csfy_host_git_root}
         self.helper_with_env_and_pwd_mocking(
             input_, expected, env_vars, git_root
         )
@@ -383,11 +382,11 @@ class Test_purify_directory_paths(hunitest.TestCase):
         """
         Test the replacement of `CSFY_HOST_GIT_ROOT_PATH` using real git root.
         """
-        git_root = hgit.get_client_root(super_module=False)
-        csfy_host_git_root = "/tmp/csfy_host_git_root"
+        git_root, csfy_host_git_root, env_vars = (
+            self._get_git_root_and_fake_csfy_env_vars()
+        )
         input_ = f"{csfy_host_git_root}/other/file.py"
         expected = "$CSFY_HOST_GIT_ROOT_PATH/other/file.py"
-        env_vars = {"CSFY_HOST_GIT_ROOT_PATH": csfy_host_git_root}
         self.helper_with_env_and_pwd_mocking(
             input_, expected, env_vars, git_root
         )
@@ -396,7 +395,7 @@ class Test_purify_directory_paths(hunitest.TestCase):
         """
         Test the replacement of `PWD` using real git root and pwd.
         """
-        git_root = hgit.get_client_root(super_module=False)
+        git_root, _, env_vars = self._get_git_root_and_fake_csfy_env_vars()
         git_root = git_root.rstrip("/")
         pwd = os.path.dirname(git_root)
         # TODO(gp): Skip test if pwd is "/": the purification function
@@ -405,10 +404,8 @@ class Test_purify_directory_paths(hunitest.TestCase):
         # git_root="/app" gives pwd="/").
         if pwd == "/":
             pytest.skip("Cannot test PWD replacement when parent directory is /")
-        csfy_host_git_root = "/tmp/csfy_host_git_root"
         input_ = f"{pwd}/documents/file.py"
         expected = "$PWD/documents/file.py"
-        env_vars = {"CSFY_HOST_GIT_ROOT_PATH": csfy_host_git_root}
         with umock.patch("helpers.hgit.get_client_root", return_value=git_root):
             self.helper_with_env_and_pwd_mocking(
                 input_, expected, env_vars, git_root
@@ -468,7 +465,8 @@ class Test_purify_from_environment(hunitest.TestCase):
             # Check outputs.
             self.assert_equal(actual, expected, fuzzy_match=True)
         finally:
-            hsystem.set_user_name(None)
+            # Reset the global user name variable regardless of a test results.
+            hsystem.set_user_name("")
 
     def test1(self) -> None:
         input_ = "IMAGE=$CSFY_ECR_BASE_PATH/amp_test:local-root-1.0.0"

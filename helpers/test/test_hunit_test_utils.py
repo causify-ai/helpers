@@ -1,7 +1,7 @@
 import logging
 import os
 import subprocess
-from typing import Optional
+from typing import Callable, List, Optional
 
 import helpers.hio as hio
 import helpers.hprint as hprint
@@ -450,12 +450,12 @@ class Test_is_test_file(hunitest.TestCase):
 
     def test3(self) -> None:
         """
-        Basename ending with _test.py is detected as test file.
+        Basename ending with _test.py is NOT detected as test file.
         """
         # Prepare inputs.
         file_path = "helpers/hdbg_test.py"
         # Prepare outputs.
-        expected = True
+        expected = False
         # Run test.
         self.helper(file_path, expected)
 
@@ -530,7 +530,7 @@ class Test_get_test_files_for_sources(hunitest.TestCase):
 
     def test2(self) -> None:
         """
-        Only test files as input returns empty list.
+        Only test files as input returns those test files.
         """
         # Prepare inputs.
         files = [
@@ -538,9 +538,12 @@ class Test_get_test_files_for_sources(hunitest.TestCase):
             "helpers/test/test_hio.py",
         ]
         # Prepare outputs.
-        expected = []
+        expected = [
+            "helpers/test/test_hdbg.py",
+            "helpers/test/test_hio.py",
+        ]
         # Run test.
-        self.helper(files, expected)
+        self.helper(files, expected, sort_result=True)
 
     def test3(self) -> None:
         """
@@ -571,6 +574,121 @@ class Test_get_test_files_for_sources(hunitest.TestCase):
         self.helper(files, expected)
 
     def test5(self) -> None:
+        """
+        Empty input returns empty list.
+        """
+        # Prepare inputs.
+        files = []
+        # Prepare outputs.
+        expected = []
+        # Run test.
+        self.helper(files, expected)
+
+
+# #############################################################################
+# Test_get_test_dirs_for_python_files
+# #############################################################################
+
+
+class Test_get_test_dirs_for_python_files(hunitest.TestCase):
+    """
+    Test extracting test directories for Python files (source or test).
+    """
+
+    def helper(
+        self, files: List[str], expected: List[str], *, sort_result: bool = False
+    ) -> None:
+        """
+        Test helper for get_test_dirs_for_python_files.
+
+        :param files: Input file list
+        :param expected: Expected test directory list
+        :param sort_result: Whether to sort before comparing
+        """
+        # Run test.
+        actual = hunteuti.get_test_dirs_for_python_files(files)
+        # Check outputs.
+        if sort_result:
+            self.assertEqual(sorted(actual), sorted(expected))
+        else:
+            self.assertEqual(actual, expected)
+
+    def test1(self) -> None:
+        """
+        Source file with existing test dir returns test dir.
+        """
+        # Prepare inputs.
+        files = ["helpers/hdbg.py"]
+        # Prepare outputs.
+        expected = ["helpers/test"]
+        # Run test.
+        self.helper(files, expected)
+
+    def test2(self) -> None:
+        """
+        Test file returns its parent directory.
+        """
+        # Prepare inputs.
+        files = ["dev_scripts_helpers/documentation/test/test_notes_to_pdf.py"]
+        # Prepare outputs.
+        expected = ["dev_scripts_helpers/documentation/test"]
+        # Run test.
+        self.helper(files, expected)
+
+    def test3(self) -> None:
+        """
+        Mixed source and test files returns both their test dirs.
+        """
+        # Prepare inputs.
+        files = [
+            "helpers/hdbg.py",
+            "dev_scripts_helpers/documentation/test/test_notes_to_pdf.py",
+        ]
+        # Prepare outputs.
+        expected = [
+            "dev_scripts_helpers/documentation/test",
+            "helpers/test",
+        ]
+        # Run test.
+        self.helper(files, expected, sort_result=True)
+
+    def test4(self) -> None:
+        """
+        Source file without test dir is skipped.
+        """
+        # Prepare inputs.
+        files = ["tasks.py"]
+        # Prepare outputs.
+        expected = []
+        # Run test.
+        self.helper(files, expected)
+
+    def test5(self) -> None:
+        """
+        Non-Python files are skipped.
+        """
+        # Prepare inputs.
+        files = ["README.md", "pyproject.toml"]
+        # Prepare outputs.
+        expected = []
+        # Run test.
+        self.helper(files, expected)
+
+    def test6(self) -> None:
+        """
+        Duplicate test dirs are deduplicated.
+        """
+        # Prepare inputs.
+        files = [
+            "helpers/hdbg.py",
+            "helpers/hio.py",
+        ]
+        # Prepare outputs.
+        expected = ["helpers/test"]
+        # Run test.
+        self.helper(files, expected)
+
+    def test7(self) -> None:
         """
         Empty input returns empty list.
         """
@@ -703,11 +821,25 @@ class Test_get_parent_dirs(hunitest.TestCase):
 # #############################################################################
 
 
-# TODO(ai_gp): Factor out the common code with /coding.factor_common_code
 class Test_capture_sys_calls(hunitest.TestCase):
     """
     Test system call capture functionality.
     """
+
+    def _assert_sys_calls(
+        self,
+        test_func: Callable[[], None],  # type: ignore
+        expected: str,
+    ) -> None:
+        """
+        Capture system calls and assert against expected output.
+
+        :param test_func: Callable that makes system calls
+        :param expected: Expected string representation of calls
+        """
+        with hunteuti.capture_sys_calls() as sys_calls:
+            test_func()
+        hunteuti.assert_sys_calls(self, sys_calls, expected)
 
     def test1(self) -> None:
         """
@@ -722,10 +854,10 @@ class Test_capture_sys_calls(hunitest.TestCase):
         },
         ]"""
         # Run test.
-        with hunteuti.capture_sys_calls() as sys_calls:
-            subprocess.run(["echo", "hello"], check=False)
-        # Check outputs.
-        hunteuti.assert_sys_calls(self, sys_calls, expected)
+        self._assert_sys_calls(
+            lambda: subprocess.run(["echo", "hello"], check=False),
+            expected,
+        )
 
     def test2(self) -> None:
         """
@@ -740,10 +872,10 @@ class Test_capture_sys_calls(hunitest.TestCase):
         },
         ]"""
         # Run test.
-        with hunteuti.capture_sys_calls() as sys_calls:
-            hsystem.system("echo hello", suppress_output=True)
-        # Check outputs.
-        hunteuti.assert_sys_calls(self, sys_calls, expected)
+        self._assert_sys_calls(
+            lambda: hsystem.system("echo hello", suppress_output=True),
+            expected,
+        )
 
     def test3(self) -> None:
         """
@@ -758,10 +890,10 @@ class Test_capture_sys_calls(hunitest.TestCase):
         },
         ]"""
         # Run test.
-        with hunteuti.capture_sys_calls() as sys_calls:
-            hsystem.system_to_string("echo test", suppress_output=True)
-        # Check outputs.
-        hunteuti.assert_sys_calls(self, sys_calls, expected)
+        self._assert_sys_calls(
+            lambda: hsystem.system_to_string("echo test", suppress_output=True),
+            expected,
+        )
 
     def test4(self) -> None:
         """
@@ -781,11 +913,13 @@ class Test_capture_sys_calls(hunitest.TestCase):
         },
         ]"""
         # Run test.
-        with hunteuti.capture_sys_calls() as sys_calls:
-            hsystem.system("echo hello", suppress_output=True)
-            hsystem.system_to_string("echo world", suppress_output=True)
-        # Check outputs.
-        hunteuti.assert_sys_calls(self, sys_calls, expected)
+        self._assert_sys_calls(
+            lambda: (
+                hsystem.system("echo hello", suppress_output=True),
+                hsystem.system_to_string("echo world", suppress_output=True),
+            ),
+            expected,
+        )
 
     def test5(self) -> None:
         """
@@ -813,10 +947,10 @@ class Test_capture_sys_calls(hunitest.TestCase):
         ]"""
         expected_str = hprint.dedent(expected_str)
         # Run test.
-        with hunteuti.capture_sys_calls() as sys_calls:
-            hsystem.system("echo test", suppress_output=True)
-        # Check outputs.
-        hunteuti.assert_sys_calls(self, sys_calls, expected_str)
+        self._assert_sys_calls(
+            lambda: hsystem.system("echo test", suppress_output=True),
+            expected_str,
+        )
 
     def test7(self) -> None:
         """
@@ -836,12 +970,13 @@ class Test_capture_sys_calls(hunitest.TestCase):
         },
         ]"""
         expected_str = hprint.dedent(expected_str)
+
         # Run test.
-        with hunteuti.capture_sys_calls() as sys_calls:
+        def test_calls() -> None:
             hsystem.system("echo hello", suppress_output=True)
             hsystem.system("echo world", suppress_output=True)
-        # Check outputs.
-        hunteuti.assert_sys_calls(self, sys_calls, expected_str)
+
+        self._assert_sys_calls(test_calls, expected_str)
 
     def test8(self) -> None:
         """

@@ -24,7 +24,7 @@ class Test_find_short_import1(hunitest.TestCase):
             ("file1.py", 10, "import dataflow.core.dag_runner as dtfcodarun"),
             ("file1.py", 11, "import helpers.hpandas as hpandas"),
         ]
-        results = hltltafi._find_short_import(iterator, "dtfcodarun")
+        results = hltltafi._find_short_import(iter(iterator), "dtfcodarun")
         actual = "\n".join(map(str, results))
         # pylint: disable=line-too-long
         expected = r"""('file1.py', 10, 'import dataflow.core.dag_runner as dtfcodarun', 'dtfcodarun', 'import dataflow.core.dag_runner as dtfcodarun')"""
@@ -52,7 +52,7 @@ class Test_find_func_class_uses1(hunitest.TestCase):
             ("file1.py", 12, "dag_builder: dtfcodabui.DagRunner,"),
             ("file1.py", 13, ":param dag_builder: `DagRunner` instance"),
         ]
-        results = hltltafi._find_func_class_uses(iterator, "DagRunner")
+        results = hltltafi._find_func_class_uses(iter(iterator), "DagRunner")
         actual = "\n".join(map(str, results))
         expected = r"""
         ('file1.py', 10, 'dag_runner = dtfamsys.RealTimeDagRunner(**dag_runner_kwargs)', 'dtfamsys', 'RealTimeDagRunner')
@@ -70,8 +70,7 @@ class TestLibTasksRunTests1(hunitest.TestCase):
     Test `_find_test_files()`, `_find_test_decorator()`.
     """
 
-    # TODO(ai_gp): Rename the tests to test1, test2, ...
-    def test_find_test_files1(self) -> None:
+    def test1(self) -> None:
         """
         Find all the test files in the current dir.
         """
@@ -79,7 +78,7 @@ class TestLibTasksRunTests1(hunitest.TestCase):
         # For sure there are more than 1 test files: at least this one.
         self.assertGreater(len(files), 1)
 
-    def test_find_test_files2(self) -> None:
+    def test2(self) -> None:
         """
         Find all the test files from the top of the super module root.
         """
@@ -88,7 +87,7 @@ class TestLibTasksRunTests1(hunitest.TestCase):
         # For sure there are more than 1 test files: at least this one.
         self.assertGreater(len(files), 1)
 
-    def test_find_test_class1(self) -> None:
+    def test3(self) -> None:
         """
         Find the current test class.
         """
@@ -104,7 +103,7 @@ class TestLibTasksRunTests1(hunitest.TestCase):
         ]
         self.assert_equal(str(actual), str(expected), purify_text=True)
 
-    def test_find_test_class2(self) -> None:
+    def test4(self) -> None:
         """
         Find the current test class.
         """
@@ -119,7 +118,7 @@ class TestLibTasksRunTests1(hunitest.TestCase):
         ]
         self.assert_equal(str(actual), str(expected), purify_text=True)
 
-    def test_find_test_class3(self) -> None:
+    def test5(self) -> None:
         """
         Create synthetic code and look for a class.
         """
@@ -155,12 +154,12 @@ class TestLibTasksRunTests1(hunitest.TestCase):
         actual = hltltafi._find_test_class("TestHelloWorld", file_names)
         actual = huntepur.purify_file_names(actual)
         expected = [
-            "helpers/lib_tasks/test/outcomes/TestLibTasksRunTests1.test_find_test_class3/tmp.scratch/"
+            "helpers/lib_tasks/test/outcomes/TestLibTasksRunTests1.test5/tmp.scratch/"
             "test/test_this.py::TestHelloWorld"
         ]
         self.assert_equal(str(actual), str(expected), purify_text=True)
 
-    def test_find_test_decorator1(self) -> None:
+    def test6(self) -> None:
         """
         Find test functions in the "no_container" in synthetic code.
         """
@@ -193,14 +192,14 @@ class TestLibTasksRunTests1(hunitest.TestCase):
         actual = hltltafi._find_test_decorator("no_container", file_names)
         actual = huntepur.purify_file_names(actual)
         expected = [
-            "helpers/lib_tasks/test/outcomes/TestLibTasksRunTests1.test_find_test_decorator1/"
+            "helpers/lib_tasks/test/outcomes/TestLibTasksRunTests1.test6/"
             "tmp.scratch/test/test_that.py"
         ]
         self.assert_equal(str(actual), str(expected), purify_text=True)
 
     # TODO(gp): This test can run in amp.
     @pytest.mark.skipif(not hgit.is_amp(), reason="Only run in amp")
-    def test_find_test_decorator2(self) -> None:
+    def test7(self) -> None:
         """
         Find test functions in the "no_container" test list.
         """

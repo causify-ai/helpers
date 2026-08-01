@@ -817,11 +817,10 @@ def _get_submodule_hash(dir_name: str) -> str:
     hdbg.dassert_path_exists(dir_name)
     # Use git ls-tree to get the submodule entry which includes its hash.
     cmd = f"git ls-tree master | grep {dir_name} | sort"
-    data: Tuple[int, str] = hsystem.system_to_one_line(cmd)
-    _, output = data
+    _, output = hsystem.system_to_one_line(cmd)
     _LOG.debug("output=%s", output)
     # Parse the output; format is: "160000 commit <hash>  <dir_name>".
-    data: List[str] = output.split()
+    data = output.split()
     _LOG.debug("data=%s", data)
     # Extract the hash from the third field (index 2).
     git_hash = data[2]
@@ -2071,9 +2070,7 @@ def get_merged_branches(mode: str) -> List[str]:
         )
     else:
         raise ValueError(f"Invalid mode='{mode}'")
-    # TODO(ai_gp): Use system_to_lines if it's implemented in hsystem.
-    _, txt = hsystem.system_to_string(cmd, abort_on_error=False)
-    branches = hstring.text_to_list(txt)
+    _, branches = hsystem.system_to_lines(find_cmd, abort_on_error=False)
     return branches
 
 

@@ -43,7 +43,7 @@ _LOG = logging.getLogger(__name__)
 # Default backend for running `pandoc`: see
 # `dev_scripts_helpers/dockerize/lib_pandoc.py` for the semantics of
 # `auto` / `dockerized` / `host`.
-_DEFAULT_PANDOC_BACKEND = "auto"
+_DEFAULT_PANDOC_BACKEND = dshdlipa.DEFAULT_PANDOC_BACKEND
 
 
 # #############################################################################
@@ -738,16 +738,7 @@ def _parse() -> argparse.ArgumentParser:
         default="",
         help="Output AST JSON file (or - for stdout)",
     )
-    # TODO(ai_gp): Factor out this as a parser option in the library.
-    parser.add_argument(
-        "--pandoc_backend",
-        type=str,
-        choices=dshdlipa.VALID_PANDOC_BACKENDS,
-        default=_DEFAULT_PANDOC_BACKEND,
-        help="How to run `pandoc`: `auto` uses the host binary "
-        "and falls back to Docker otherwise, `dockerized` always runs "
-        "pandoc in Docker, `host` always runs the host binary",
-    )
+    dshdlipa.add_pandoc_backend_arg(parser, default=_DEFAULT_PANDOC_BACKEND)
     hselacti.add_action_arg(parser, _VALID_ACTIONS, _DEFAULT_ACTIONS)
     hparser.add_verbosity_arg(parser)
     return parser
