@@ -1,10 +1,10 @@
-# mdm - Unified Markdown File Manager
-
-- Single command to manage research ideas, blog posts, Claude Code skills, and short stories across multiple repositories
-- Instead of remembering different commands and directory paths, access all markdown content from anywhere with one interface
+# Mdm - Unified Markdown File Manager
+- Single command to manage research ideas, blog posts, Claude Code skills, and
+  short stories across multiple repositories
+- Instead of remembering different commands and directory paths, access all
+  markdown content from anywhere with one interface
 
 ## Quick Start
-
 - List all skills:
   ```bash
   > mdm skill list
@@ -23,37 +23,35 @@
   ```
 
 ## The Problem Solved
-
 - Without `mdm`, managing markdown content required:
-  - Remembering separate bash script families: `skill*`, `blog*`, `res*`, `story*`
+  - Remembering separate bash script families: `skill*`, `blog*`, `res*`,
+    `story*`
   - Navigating to different directories for different content types
   - Context switching between multiple workflows and commands
   - Looking up directory locations and specific syntax for each type
 - `mdm` provides one command with a single interface across all types
 
 ## Content Types
-
 - `mdm` manages four types of markdown content, each stored in its own location:
 
-| Type | Location | Purpose |
-| :--- | :--- | :--- |
-| `skill` | `<helpers_root>/.claude/skills/` | Claude Code skills and extensions |
-| `blog` | `<blog_repo>/blog/posts/` | Blog posts |
-| `research` | `<umd_classes1>/research/ideas/` | Research ideas and notes |
-| `story` | `<notes1>/short_stories/` | Short stories |
+| Type       | Location                         | Purpose                           |
+| :--------- | :------------------------------- | :-------------------------------- |
+| `skill`    | `<helpers_root>/.claude/skills/` | Claude Code skills and extensions |
+| `blog`     | `<blog_repo>/blog/posts/`        | Blog posts                        |
+| `research` | `<umd_classes1>/research/ideas/` | Research ideas and notes          |
+| `story`    | `<notes1>/short_stories/`        | Short stories                     |
 
 ## Usage Syntax
-
 - Command format:
   ```bash
   > mdm <type> <action> [name_filter]
   ```
 - `type`: Content type (skill, blog, research, story)
 - `action`: What to do with the content
-- `name_filter`: Optional pattern to narrow results (not all actions support this)
+- `name_filter`: Optional pattern to narrow results (not all actions support
+  this)
 
 ## Actions
-
 - **list**: Show markdown files
   - Lists markdown files for the given type, formatted for easy scanning
   - Usage:
@@ -109,7 +107,6 @@
     ```
 
 ## Smart Prefix Matching
-
 - Both type and action names support prefix matching where the first match wins
 - Reduces typing by using abbreviations
 
@@ -135,7 +132,6 @@
   ```
 
 ## Common Workflows
-
 - Creating new content:
   ```bash
   > mdm skill edit your_skill_name
@@ -163,9 +159,12 @@
   ```
 
 ## Tips and Conventions
-
 - **Naming**: Use underscores for spaces in file names (e.g., `My_Blog_Post.md`)
-- **Skills**: Follow the dot-separated naming convention (e.g., `category.skill_name`)
-- **Filtering**: Use lowercase patterns when searching; matching is case-sensitive
-- **Templates**: `edit` action automatically creates properly formatted templates for new files
-- **Scripting**: Use `directory` action to get paths for shell scripts and automation
+- **Skills**: Follow the dot-separated naming convention (e.g.,
+  `category.skill_name`)
+- **Filtering**: Use lowercase patterns when searching; matching is
+  case-sensitive
+- **Templates**: `edit` action automatically creates properly formatted
+  templates for new files
+- **Scripting**: Use `directory` action to get paths for shell scripts and
+  automation

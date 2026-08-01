@@ -1,10 +1,9 @@
 # AI Workflows: Topics, Skills, and Rules
+- This document explains the conventions and tools used to organize AI-assisted
+  work via Claude Code in this repo (e.g., **topics**, **skills**, **rules**) and
+  the command-line tools that operate on them (`mdm`, `lint_cc.py`, `rig`)
 
-This document explains the conventions and tools used to organize AI-assisted
-work (via Claude Code) in this repo: **topics**, **skills**, **rules**, and the
-command-line tools that operate on them (`mdm`, `lint_cc.py`, `rig`).
-
-See `.claude/skills/skill.rules.md` for the full authoring conventions.
+- See `.claude/skills/skill.rules.md` for the full authoring conventions
 
 ## Definitions
 
@@ -18,23 +17,23 @@ See `.claude/skills/skill.rules.md` for the full authoring conventions.
   > find .claude/skills -name "*.md" | sed 's|.claude/skills/||; s|\..*||' | sort | uniq
   ```
 - Current topics include:
-  - `architecture` - Architecture and design documentation
-  - `auto_task` - Automated task definitions and workflows
-  - `bash` - Bash scripting and shell commands
-  - `blog` - Blog post creation and formatting
-  - `cfile` - C/C++ file conventions
-  - `coding` - Python code style and conventions
-  - `latex` - LaTeX document processing
-  - `markdown` - Markdown formatting and structure
-  - `notebook` - Jupyter notebook conventions
-  - `pytest` - Testing framework and patterns
-  - `readme` - README file creation and updates
-  - `slides` - Presentation slide creation
-  - `svg` - SVG graphics handling
-  - `text` - General text and writing conventions
-  - `tikz` - TikZ diagram creation
-  - `tool_X_in_60_mins` - Tool tutorials and guides
-  - `visuals` - Visual design and graphics
+  - `architecture`: Architecture and design documentation
+  - `auto_task`: Automated task definitions and workflows
+  - `bash`: Bash scripting and shell commands
+  - `blog`: Blog post creation and formatting
+  - `cfile`: vim cfile conventions
+  - `coding`: Python code style and conventions
+  - `latex`: LaTeX document processing
+  - `markdown`: Markdown formatting and structure
+  - `notebook`: Jupyter notebook conventions
+  - `pytest`: Testing framework and patterns
+  - `readme`: README file creation and updates
+  - `slides`: Presentation slide creation
+  - `svg`: SVG graphics handling
+  - `text`: General text and writing conventions
+  - `tikz`: TikZ diagram creation
+  - `tool_X_in_60_mins`: Tool tutorials and guides
+  - `visuals`: Visual design and graphics
 
 ### Skills
 - A **skill** is a specific, actionable task organized under a topic (e.g.,
@@ -48,40 +47,40 @@ See `.claude/skills/skill.rules.md` for the full authoring conventions.
   `Constraints`, `Examples`, `Verification`)
 
 ### Rules
-- A **rule file** (`.claude/skills/<TOPIC>.rules.md`) documents the
-  conventions and standards for a topic:
+- A **rule file** (`.claude/skills/<TOPIC>.rules.md`) documents the conventions
+  and standards for a topic:
   - Naming conventions and patterns
   - Code/content style guidelines
   - Decision criteria for consistency
   - Examples of good and bad practices
 - Skills reference their topic's rule file to avoid duplicating conventions
   across related tasks
-- `.claude/rules.md` is the top-level map from file type (e.g., `.py`,
-  `.ipynb`, `.md`) to the rule file and template that apply to it; when
-  operating on a file, read `.claude/rules.md` first to find which rules and
-  templates to follow
+- `.claude/rules.md` is the top-level map from file type (e.g., `.py`, `.ipynb`,
+  `.md`) to the rule file and template that apply to it; when operating on a
+  file, read `.claude/rules.md` first to find which rules and templates to
+  follow
 
 ## Tools
 
-### `mdm` — unified markdown content manager
+### `mdm`: Unified Markdown Content Manager
 - `mdm` manages skills, blog posts, research ideas, and short stories across
-  repositories with one consistent interface: `mdm <type> <action>
-  [name_filter]`
+  repositories with one consistent interface:
+  `mdm <type> <action> [name_filter]`
 - Full reference: `dev_scripts_helpers/system_tools/mdm.README.md`
 - Common commands:
   ```bash
-  mdm skill list                     # List all skill names
-  mdm skill full_list                # List all skills with full paths
-  mdm skill describe blog.add_figures # Show a skill's frontmatter description
-  mdm skill edit coding.new_action   # Open (or scaffold) a skill in vim
-  mdm skill directory                # Print the path to .claude/skills
-  mdm skill types                    # List unique topic prefixes
+  > mdm skill list                     # List all skill names
+  > mdm skill full_list                # List all skills with full paths
+  > mdm skill describe blog.add_figures # Show a skill's frontmatter description
+  > mdm skill edit coding.new_action   # Open (or scaffold) a skill in vim
+  > mdm skill directory                # Print the path to .claude/skills
+  > mdm skill types                    # List unique topic prefixes
   ```
 - Type (`skill`, `blog`, `research`, `story`) and action (`list`, `full_list`,
   `describe`, `edit`, `directory`, `types`) both support prefix matching, so
   `mdm sk l` is equivalent to `mdm skill list`
 
-### `lint_cc.py` — apply rules/skills to files via Claude Code
+### `lint_cc.py`: Apply Rules/skills to Files Via Claude Code
 - Detects file types, builds a prompt from the matching rules or skill, and
   invokes Claude Code on the selected files
 - Select files with `--files`, `--from_file`, `--modified`, `--branch`,
@@ -104,42 +103,42 @@ See `.claude/skills/skill.rules.md` for the full authoring conventions.
   ```
 - Use `--dry_run` to print the command without executing it
 
-### `rig` — ripgrep wrapper for finding rules, TODOs, and definitions
+### `rig`: Ripgrep Wrapper for Finding Rules, TODOs, and Definitions
 - `rig <pattern> [<dir>] [<ext>] [--options]`, with mode flags that change the
   search target instead of the pattern:
-  - `--rule` - search Markdown headers in `.claude/skills/*.rules.md` (used by
+  - `--rule`: search Markdown headers in `.claude/skills/*.rules.md` (used by
     `lint_cc.py --rule` to resolve a keyword to a specific rule section)
-  - `--todo` - search for `TODO(ai_gp)`-style patterns
-  - `--def` - search for Python `class`/`def` definitions
+  - `--todo`: search for `TODO(ai_gp)`-style patterns
+  - `--def`: search for Python `class`/`def` definitions
 - `rigrule` is a shortcut for `rig --rule "$@"`
 - `rigrulec` is the same, plus `--cfile` to capture results to a `cfile` and
   open them in vim with `:cfile cfile`
 
 ## Workflows
 
-### Find and apply a specific rule to a file
+### Find and Apply a Specific Rule to a File
 1. Locate the rule with `rigrule "<keyword>"` or by browsing
    `.claude/skills/<TOPIC>.rules.md`
 2. Apply it with `lint_cc.py --rule "<keyword or path:line>" --files "<file>"`
 
-### Lint files by topic instead of a single rule
+### Lint Files by Topic Instead of a Single Rule
 - Use `lint_cc.py --files "<files>" --topic <topic>` to apply the topic's full
   rules file, or `--modified` / `--branch` / `--last_commit` / `--all` instead
   of `--files` to select files by git state rather than by name
 
-### Run a skill on a file
+### Run a Skill on a File
 - Use `lint_cc.py --files "<file>" --skill <topic>.<action>` to execute one
   skill (as opposed to a whole rules file) on a file
 
-### Create or browse a skill
+### Create or Browse a Skill
 1. `mdm skill list` (or `mdm skill list <pattern>`) to see what already exists
-2. `mdm skill edit <topic>.<action>` to open the skill, or scaffold a new one
-   if it doesn't exist yet
+2. `mdm skill edit <topic>.<action>` to open the skill, or scaffold a new one if
+   it doesn't exist yet
 3. Follow `.claude/skills/skill.rules.md` for frontmatter, structure, and
    naming; add or update the topic's `.claude/skills/<topic>.rules.md` if the
    skill introduces a new convention
 
-### Add or update a rule
+### Add or Update a Rule
 1. Decide rule vs. skill per `.claude/skills/skill.rules.md` ("Rules vs
    Skills"): rules capture conventions and decision criteria that apply across
    tasks; skills capture a single step-by-step task
