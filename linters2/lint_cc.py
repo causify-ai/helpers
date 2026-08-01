@@ -279,17 +279,22 @@ def _run_claude_code(
     )
     cmd_parts = [
         _CC_WRAPPER,
-        "--model",
-        model,
+        #"--model",
+        #model,
         "-p",
         f"Execute the file {prompt_file}",
     ]
-    cmd = " ".join(cmd_parts)
+    # Tee the output through extract_cc_log2.py for formatting.
+    _EXTRACT_LOG = hgit.find_file(
+        "extract_cc_log2.py",
+        dir_path=os.path.join(os.path.dirname(__file__), "..", "dev_scripts_helpers", "ai"),
+    )
+    cmd = " ".join(cmd_parts) + f" | {_EXTRACT_LOG}"
     _LOG.info("Claude command: %s", cmd)
     if dry_run:
         _LOG.info("Dry run: command not executed")
         return 0
-    result = subprocess.run(cmd_parts, capture_output=False)
+    result = subprocess.run(cmd, shell=True)
     return result.returncode
 
 

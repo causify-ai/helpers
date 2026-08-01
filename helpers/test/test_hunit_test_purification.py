@@ -60,12 +60,22 @@ class Test_purify_text1(hunitest.TestCase):
 
     def test2(self) -> None:
         """
-        Test removing 'amp/' prefix (duplicate test).
+        Test removing 'amp/' prefix from multiple paths in one string.
         """
         # Prepare inputs.
-        txt = "amp/helpers/test/test_system_interaction.py"
+        txt = """
+        amp/helpers/test/test_file1.py
+        amp/helpers/test/test_file2.py
+        amp/helpers/test/test_file3.py
+        """
+        txt = hprint.dedent(txt)
         # Prepare outputs.
-        expected = "helpers/test/test_system_interaction.py"
+        expected = """
+        helpers/test/test_file1.py
+        helpers/test/test_file2.py
+        helpers/test/test_file3.py
+        """
+        expected = hprint.dedent(expected)
         # Run test.
         self.helper(txt, expected)
 
@@ -180,12 +190,13 @@ class Test_purify_text1(hunitest.TestCase):
         """
         Test case when client root path is equal to `/`
         """
-        # pylint: disable=redefined-outer-name
-        hgit = umock.Mock()
-        hgit.get_client_root.return_value = "/"
+        # Prepare inputs.
         txt = "/tmp/subdir1"
+        # Prepare outputs.
         expected = txt
-        self.helper(txt, expected)
+        # Run test.
+        with umock.patch("helpers.hgit.get_client_root", return_value="/"):
+            self.helper(txt, expected)
 
     def test11(self) -> None:
         """
@@ -317,7 +328,6 @@ class Test_purify_directory_paths1(hunitest.TestCase):
         ):
             self.helper(input_, expected)
 
-    # TODO(ai_gp): Factor out more code.
     def test1(self) -> None:
         """
         Test the replacement of `GIT_ROOT` using real git root.
@@ -682,67 +692,93 @@ class Test_purify_super_module_references1(hunitest.TestCase):
         `csfy1`, as opposed to the hardcoded `amp`/`app` names) from a plain
         dotted qualname.
         """
+        # Prepare inputs.
+        super_module_root = "/Users/user/src/csfy1"
         txt = "csfy1.helpers_root.helpers.test.test_hobject._Object1"
+        # Prepare outputs.
         expected = "helpers_root.helpers.test.test_hobject._Object1"
-        # TODO(ai_gp): Assign super_module_root and then pass it. Do the same
-        # for all the functions.
-        self.helper("/Users/user/src/csfy1", txt, expected)
+        # Run test.
+        self.helper(super_module_root, txt, expected)
 
     def test2(self) -> None:
         """
         Test stripping the super-module prefix from a `<module.Class object
         at 0x...>`-style repr.
         """
+        # Prepare inputs.
+        super_module_root = "/Users/user/src/csfy1"
         txt = (
             "<csfy1.helpers_root.helpers.test.test_hobject._Object1 at 0x123456>"
         )
+        # Prepare outputs.
         expected = (
             "<helpers_root.helpers.test.test_hobject._Object1 at 0x123456>"
         )
-        self.helper("/Users/user/src/csfy1", txt, expected)
+        # Run test.
+        self.helper(super_module_root, txt, expected)
 
     def test3(self) -> None:
         """
         Test stripping the super-module prefix from a `class '...'`-style
         reference.
         """
+        # Prepare inputs.
+        super_module_root = "/Users/user/src/csfy1"
         txt = "class 'csfy1.helpers_root.helpers.test.test_hdbg._Man'"
+        # Prepare outputs.
         expected = "class 'helpers_root.helpers.test.test_hdbg._Man'"
-        self.helper("/Users/user/src/csfy1", txt, expected)
+        # Run test.
+        self.helper(super_module_root, txt, expected)
 
     def test4(self) -> None:
         """
         Test that a super-module name other than `csfy1` is also handled,
         since the prefix is derived dynamically instead of hardcoded.
         """
+        # Prepare inputs.
+        super_module_root = "/Users/user/src/cmamp1"
         txt = "cmamp1.helpers_root.helpers.test.test_hobject._Object1"
+        # Prepare outputs.
         expected = "helpers_root.helpers.test.test_hobject._Object1"
-        self.helper("/Users/user/src/cmamp1", txt, expected)
+        # Run test.
+        self.helper(super_module_root, txt, expected)
 
     def test5(self) -> None:
         """
         Test that `amp`/`app` are left untouched, since those are already
         handled by `purify_amp_references()`/`purify_app_references()`.
         """
+        # Prepare inputs.
+        super_module_root = "/Users/user/src/amp"
         txt = "amp.helpers.test.test_hobject._Object1"
+        # Prepare outputs.
         expected = "amp.helpers.test.test_hobject._Object1"
-        self.helper("/Users/user/src/amp", txt, expected)
+        # Run test.
+        self.helper(super_module_root, txt, expected)
 
     def test6(self) -> None:
         """
         Test that text with no super-module reference is left unchanged.
         """
+        # Prepare inputs.
+        super_module_root = "/Users/user/src/csfy1"
         txt = "helpers.test.test_hobject._Object1"
+        # Prepare outputs.
         expected = "helpers.test.test_hobject._Object1"
-        self.helper("/Users/user/src/csfy1", txt, expected)
+        # Run test.
+        self.helper(super_module_root, txt, expected)
 
     def test7(self) -> None:
         """
         Test that a `/` super-module root (no nesting detected) is a no-op.
         """
+        # Prepare inputs.
+        super_module_root = "/"
         txt = "csfy1.helpers_root.helpers.test.test_hobject._Object1"
+        # Prepare outputs.
         expected = "csfy1.helpers_root.helpers.test.test_hobject._Object1"
-        self.helper("/", txt, expected)
+        # Run test.
+        self.helper(super_module_root, txt, expected)
 
 
 # #############################################################################
@@ -1336,8 +1372,23 @@ class Test_purify_file_names1(hunitest.TestCase):
     Test `hunit_test_purification.purify_file_names()` function.
     """
 
-    def helper(self, file_names: List[str], expected: List[str]) -> None:
-        actual = huntepur.purify_file_names(file_names)
+    def helper(
+        self,
+        file_names: List[str],
+        expected: List[str],
+        git_root: str = "/home/user/gitroot",
+    ) -> None:
+        """
+        Helper for testing purify_file_names.
+
+        :param file_names: Input file names to purify
+        :param expected: Expected output file names
+        :param git_root: Git root to mock
+        """
+        with umock.patch(
+            "helpers.hgit.get_client_root", return_value=git_root
+        ):
+            actual = huntepur.purify_file_names(file_names)
         actual_str = "\n".join(str(path) for path in actual)
         expected_str = "\n".join(str(path) for path in expected)
         self.assert_equal(actual_str, expected_str)
@@ -1346,66 +1397,64 @@ class Test_purify_file_names1(hunitest.TestCase):
         """
         Test basic file name purification with relative paths.
         """
-        # TODO(ai_gp): Move the umock.patch to the helper function to simplify
-        # the code.
-        with umock.patch(
-            "helpers.hgit.get_client_root", return_value="/home/user/gitroot"
-        ):
-            txt = [
-                "/home/user/gitroot/helpers/test/test_file.py",
-                "/home/user/gitroot/amp/helpers/test/test_dbg.py",
-            ]
-            expected = [
-                "helpers/test/test_file.py",
-                "helpers/test/test_dbg.py",
-            ]
-            self.helper(txt, expected)
+        # Prepare inputs.
+        file_names = [
+            "/home/user/gitroot/helpers/test/test_file.py",
+            "/home/user/gitroot/amp/helpers/test/test_dbg.py",
+        ]
+        # Prepare outputs.
+        expected = [
+            "helpers/test/test_file.py",
+            "helpers/test/test_dbg.py",
+        ]
+        # Run test.
+        self.helper(file_names, expected)
 
     def test2(self) -> None:
         """
         Test file name purification with nested amp references.
         """
-        with umock.patch(
-            "helpers.hgit.get_client_root", return_value="/home/user/gitroot"
-        ):
-            txt = [
-                "/home/user/gitroot/amp/helpers/amp/test/test_file.py",
-                "/home/user/gitroot/amp/helpers/test/amp/test_dbg.py",
-            ]
-            expected = [
-                "helpers/test/test_file.py",
-                "helpers/test/test_dbg.py",
-            ]
-            self.helper(txt, expected)
+        # Prepare inputs.
+        file_names = [
+            "/home/user/gitroot/amp/helpers/amp/test/test_file.py",
+            "/home/user/gitroot/amp/helpers/test/amp/test_dbg.py",
+        ]
+        # Prepare outputs.
+        expected = [
+            "helpers/test/test_file.py",
+            "helpers/test/test_dbg.py",
+        ]
+        # Run test.
+        self.helper(file_names, expected)
 
     def test3(self) -> None:
         """
         Test file name purification with app references to ensure that they are
         not replaced.
         """
-        with umock.patch(
-            "helpers.hgit.get_client_root", return_value="/home/user/gitroot"
-        ):
-            txt = [
-                "/home/user/gitroot/app/helpers/test/test_file.py",
-                "/home/user/gitroot/app/amp/helpers/test/test_dbg.py",
-            ]
-            expected = [
-                "app/helpers/test/test_file.py",
-                "app/helpers/test/test_dbg.py",
-            ]
-            self.helper(txt, expected)
+        # Prepare inputs.
+        file_names = [
+            "/home/user/gitroot/app/helpers/test/test_file.py",
+            "/home/user/gitroot/app/amp/helpers/test/test_dbg.py",
+        ]
+        # Prepare outputs.
+        expected = [
+            "app/helpers/test/test_file.py",
+            "app/helpers/test/test_dbg.py",
+        ]
+        # Run test.
+        self.helper(file_names, expected)
 
     def test4(self) -> None:
         """
         Test file name purification with empty list.
         """
-        with umock.patch(
-            "helpers.hgit.get_client_root", return_value="/home/user/gitroot"
-        ):
-            txt = []
-            expected = []
-            self.helper(txt, expected)
+        # Prepare inputs.
+        file_names = []
+        # Prepare outputs.
+        expected = []
+        # Run test.
+        self.helper(file_names, expected)
 
 
 # #############################################################################
