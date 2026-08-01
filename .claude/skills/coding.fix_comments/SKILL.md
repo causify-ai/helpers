@@ -6,5 +6,6 @@ model: haiku
 - Given the passed Python file
   - For all the code you must follow all the instructions from
     `.claude/skills/coding.rules.md`
-    - `# Documentation and Comments`
+    - `# Docstrings`
+    - `# Comments`
   - You must not change the actual intention or behavior of the Python code

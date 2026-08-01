@@ -1,9 +1,14 @@
-Extend lint_cc.py to use an option --apply_incrementally
+Extend lint_cc.py to use an option --apply_incrementally and apply
+the rules from a file incrementally with multiple calls to claude code
+instead all at once
+
+Extract the H1 sections of the rule file using the functions in
+helpers/hmarkdown_*.py
 
 Use the code in ./dev_scripts_helpers/ai/cc_lib.py
-to apply the rules one by one, extracting the H1 sections
+to apply the rules one by one to one insance of claude code
 
-First message, based on the type of file
+The first message to send to CC, based on the type of file
 ```
 # Goal
 - I will pass you a file and you will update the file to follow rules and
@@ -23,13 +28,18 @@ You are an experienced Python developer with expertise in:
 - Read the template file `.claude/templates/testing.template.py`
 ```
 
-Second message
+The second message is to communicate which file is the target
 
 ```
-- The file ./helpers/test/test_hunit_test_purification.py
+- You will apply the rules that I will give you to
+  ./helpers/test/test_hunit_test_purification.py
 ```
 
-- Apply a rule files using one 
+- Apply a rule files using multiple interactions with Claude Code
+  one per H1
+
+- Add an option --dry_run to see how messages will be generated without
+  sending them to claude code
 
 # Conventions
 - When writing code you must always follow the instructions in

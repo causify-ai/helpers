@@ -6,7 +6,7 @@
 
 - Assume the script needs to run only on Linux and MacOS
 
-# Code Style and Structure
+# Code Style
 
 ## Follow the Coding Style From the Template
 
@@ -99,6 +99,13 @@
   """
   config = hprint.dedent(config)
   ```
+
+## Use Progress Bar
+
+- When there are expensive for loop, use a progress bar using `tqdm` to track
+  the progress
+
+# Code Organization
 
 ## Mark Private Functions
 
@@ -266,11 +273,6 @@
     # Generate predictions for each (features, treatment) combination.
     test_cf = test_cf.assign(**{y_hat_col: lambda d: s_learner.predict(d[X + [T]])})
     ```
-
-## Use Progress Bar
-
-- When there are expensive for loop, use a progress bar using `tqdm` to track
-  the progress
 
 # Function Design
 
@@ -578,7 +580,7 @@
 - Do not use try except to recover errors but let statements raise their own
   errors
 
-# Documentation and Comments
+# Docstrings
 
 ## Use Docstrings on Three Lines
 
@@ -753,6 +755,8 @@
     """
   ````
 
+
+# Comments
 
 ## Use Verbatim to Refer to Python Objects
 
@@ -1055,7 +1059,7 @@
   _LOG.info("Downloading '%s' from '%s'", book_name, url)
   ```
 
-# Script Development
+# Script Structure
 
 ## Use Script Template
 
@@ -1153,6 +1157,20 @@
   # Run the script: standardize_book_filename.py
   # Usage: convert_epub_to_md.py input.epub output.md
   ```
+
+## Create Dirs
+
+- If directory doesn't exist create it using `hio.create_dir`
+  - If a `--from_scratch` option is requested, create the directory from scratch
+
+## Temporary Files
+
+- When using temporary files use files named
+  `tmp.${name_of_script}.{function}.txt` to increase debuggability by inspecting
+  files
+  - No need to clean up files
+
+# Command-Line Argument Parsing
 
 ## Use Standard Argument Helpers From `hparser`
 
@@ -1267,18 +1285,6 @@
   - For strings: use `""` (empty string)
   - For integers: use `0` (or another sentinel like `-1`)
   - For paths: use `""` (empty string) or handle validation in the parser
-
-## Create Dirs
-
-- If directory doesn't exist create it using `hio.create_dir`
-  - If a `--from_scratch` option is requested, create the directory from scratch
-
-## Temporary Files
-
-- When using temporary files use files named
-  `tmp.${name_of_script}.{function}.txt` to increase debuggability by inspecting
-  files
-  - No need to clean up files
 
 # System Integration
 

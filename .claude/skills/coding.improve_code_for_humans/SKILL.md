@@ -11,7 +11,7 @@ more readable and debuggable for humans.
 
 ## Add Comments
 - Improve code readability by adding concise comments.
-- Follow the section `# Documentation and Comments` from the file `.claude/skills/coding.rules.md`
+- Follow the section `# Comments` from the file `.claude/skills/coding.rules.md`
 
 ## Add Debug Logging for Function Entry, Execution, and Results
 - Track function execution by adding `_LOG.debug` statements.
