@@ -1459,3 +1459,21 @@
   `hllm_decorator.README.md`
   """
   ```
+
+## Keep `<module>.README.md` in Sync With the Module
+
+- When a Python file's docstring references a companion `<module>.README.md`
+  (see `## Use `<module>.README.md` Naming Convention for Documentation
+  Files`), update that README whenever the module's code changes
+- Reflect the change in every affected part of the README, not just one
+  section:
+  - **Interface**: function signatures, CLI options, parameters
+  - **Architecture**: data flow, key functions, design patterns
+  - **Use cases**: examples and workflows
+- Treat the README as being as out-of-sync-prone as a docstring; apply the
+  same discipline as `## Update Docstrings If Out-of-sync`
+
+- **Bad**: Add a new `--dry_run` CLI option to `lint_cc.py` but leave
+  `lint_cc.README.md`'s argument table and examples unchanged
+- **Good**: Add a new `--dry_run` CLI option to `lint_cc.py`, add it to the
+  README's argument table, and add a usage example demonstrating it

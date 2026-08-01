@@ -417,9 +417,6 @@ async def _process_file_incrementally(
     _LOG.debug(
         hprint.to_str("file_path dry_run model")
     )
-    # Model selection is handled by the SDK through environment variables.
-    if model:
-        _LOG.info("Model hint provided: %s (handled by SDK)", model)
     messages = _build_incremental_messages(file_path)
     # Handle dry run.
     if dry_run:
@@ -437,8 +434,12 @@ async def _process_file_incrementally(
     _LOG.info("Executing %d messages sequentially", len(messages))
     try:
         sequencer = dshaccli.PromptSequencer(
+            allowed_tools=["Read", "Edit", "Grep", "Glob"],
+            disallowed_tools=["Bash", "Task", "WebFetch"],
             permission_mode="acceptEdits",
             cwd=os.getcwd(),
+            model=model or None,
+            target_file=file_path,
         )
         await sequencer.execute(messages)
         stats = sequencer.get_execution_stats()
@@ -464,9 +465,10 @@ def _process_file(
     """
     _LOG.debug("Processing file: '%s'", file_path)
     topic_info = {}
-
     if args.apply_incrementally:
         # Apply rules incrementally via async processor.
+        inferred_topic = _infer_topic_from_filename(file_path)
+        topic_info = _get_rules_for_topic(inferred_topic)
         rc = asyncio.run(
             _process_file_incrementally(
                 file_path,
@@ -616,7 +618,7 @@ def _main(parser: argparse.ArgumentParser) -> int:
     for file_path in tqdm(files, desc="Processing files"):
         rc, topic_info = _process_file(file_path, args)
         ret |= rc
-        if not args.apply_incrementally and topic_info:
+        if topic_info:
             if topic_info.get("run_jupytext"):
                 cmd = ["jupytext", "--sync", file_path]
                 hsystem.system(" ".join(cmd))

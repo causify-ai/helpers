@@ -13,7 +13,8 @@ import dev_scripts_helpers.ai.cc_lib as dshaccli
 
 import json
 import logging
-from typing import Any, Dict, List, Optional
+import os
+from typing import Any, Awaitable, Callable, Dict, List, Optional
 
 import claude_agent_sdk
 
@@ -22,6 +23,17 @@ import helpers.hio as hio
 import helpers.hprint as hprint
 
 _LOG = logging.getLogger(__name__)
+
+# Tools that can modify file content, and therefore must be scoped to the
+# target file by `_make_file_scope_guard()`.
+# TODO(ai_gp): Move this in _make_file_scope_guard
+_FILE_MODIFYING_TOOLS = ("Edit", "Write", "NotebookEdit", "MultiEdit")
+
+CanUseToolFn = Callable[
+    [str, Dict[str, Any], Any],
+    Awaitable[Any],
+]
+
 
 # #############################################################################
 # Message Rendering
@@ -59,6 +71,43 @@ def print_message(message: Any) -> None:
         print(f"\n{header}\n{body}", flush=True)
 
 
+def _make_file_scope_guard(target_file: str) -> CanUseToolFn:
+    """
+    Build a `can_use_tool` callback that restricts edits to `target_file`.
+
+    Any file-modifying tool (see `_FILE_MODIFYING_TOOLS`) whose `file_path`
+    input resolves to a different file is denied.
+
+    :param target_file: the only file that file-modifying tools may target
+    :return: async callback usable as `ClaudeAgentOptions.can_use_tool`
+    """
+    target_abspath = os.path.abspath(target_file)
+
+    async def can_use_tool(
+        tool_name: str,
+        tool_input: Dict[str, Any],
+        _context: Any,
+    ) -> Any:
+        if tool_name in _FILE_MODIFYING_TOOLS:
+            file_path = tool_input.get("file_path", "")
+            if file_path and os.path.abspath(file_path) != target_abspath:
+                _LOG.warning(
+                    "Denying '%s' on '%s': only '%s' may be modified",
+                    tool_name,
+                    file_path,
+                    target_file,
+                )
+                return claude_agent_sdk.types.PermissionResultDeny(
+                    message=(
+                        f"Only '{target_file}' may be modified in this "
+                        "session"
+                    ),
+                )
+        return claude_agent_sdk.types.PermissionResultAllow()
+
+    return can_use_tool
+
+
 # #############################################################################
 # PromptSequencer
 # #############################################################################
@@ -76,15 +125,23 @@ class PromptSequencer:
         self,
         *,
         allowed_tools: Optional[List[str]] = None,
+        disallowed_tools: Optional[List[str]] = None,
         permission_mode: str = "ask",
         cwd: str = "",
         print_output: bool = True,
+        # TODO(ai_gp): Use "" as default
+        model: Optional[str] = None,
+        setting_sources: Optional[List[str]] = None,
+        target_file: str = "",
+        can_use_tool: Optional[CanUseToolFn] = None,
     ) -> None:
         """
         Initialize PromptSequencer with Claude Code options.
 
         :param allowed_tools: List of allowed tools (e.g., ["Read", "Edit"])
             - None means "all tools allowed"
+        :param disallowed_tools: List of tools to explicitly deny (e.g.,
+            ["Bash", "Task", "WebFetch"])
         :param permission_mode: Permission handling mode
             - "ask" (prompt user for each operation)
             - "acceptEdits" (auto-accept edits without prompting)
@@ -93,14 +150,41 @@ class PromptSequencer:
             - "" means current directory
         :param print_output: If True, print Claude messages to stdout as
             they are received
+        :param model: Model name to use for the session
+            - None means the SDK default
+        :param setting_sources: Which settings sources to load
+            (`"user"`, `"project"`, `"local"`)
+            - None defaults to `[]` so the session does not pick up user
+              global instructions or project hooks, keeping runs
+              reproducible
+        :param target_file: if non-empty and `can_use_tool` is not passed,
+            a default guard is installed that denies edits to any file
+            other than this one
+        :param can_use_tool: explicit permission callback, overrides the
+            `target_file` guard when provided
         """
         _LOG.debug(
-            hprint.to_str("allowed_tools permission_mode cwd")
+            hprint.to_str(
+                "allowed_tools disallowed_tools permission_mode cwd model "
+                "setting_sources target_file"
+            )
         )
         self.allowed_tools = allowed_tools or []
+        self.disallowed_tools = disallowed_tools or []
         self.permission_mode = permission_mode
         self.cwd = cwd
         self.print_output = print_output
+        self.model = model
+        self.setting_sources = (
+            [] if setting_sources is None else setting_sources
+        )
+        self.target_file = target_file
+        if can_use_tool is not None:
+            self.can_use_tool = can_use_tool
+        elif target_file:
+            self.can_use_tool = _make_file_scope_guard(target_file)
+        else:
+            self.can_use_tool = None
         # Tracks if async session has started.
         self._session_started = False
         # Count of executed prompts.
@@ -127,8 +211,12 @@ class PromptSequencer:
         # Create options for Claude SDK.
         options = claude_agent_sdk.ClaudeAgentOptions(
             allowed_tools=self.allowed_tools,
+            disallowed_tools=self.disallowed_tools,
             permission_mode=self.permission_mode,  # type: ignore
             cwd=self.cwd or None,
+            model=self.model or None,
+            setting_sources=self.setting_sources,  # type: ignore
+            can_use_tool=self.can_use_tool,
         )
         # Execute prompts in session with context preservation.
         async with claude_agent_sdk.ClaudeSDKClient(options=options) as client:

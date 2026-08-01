@@ -17,7 +17,7 @@
     "deny": [
     ]
   },
-  "model": "haiku",
+  "model": "sonnet",
   "hooks": {
     "Notification": [
       {
