@@ -1359,7 +1359,15 @@ class Test_purify_docker_cmd1(hunitest.TestCase):
     """
 
     def helper(self, txt: str, expected: str) -> None:
+        """
+        Helper for testing purify_docker_cmd.
+
+        :param txt: Input docker command to normalize
+        :param expected: Expected output
+        """
+        # Run test.
         actual = huntepur.purify_docker_cmd(txt)
+        # Check outputs.
         self.assert_equal(actual, expected)
 
     def test1(self) -> None:
@@ -1580,7 +1588,15 @@ class Test_purify_apple_container_output1(hunitest.TestCase):
     """
 
     def helper(self, txt: str, expected: str) -> None:
+        """
+        Helper for testing purify_apple_container_output.
+
+        :param txt: Input text to purify
+        :param expected: Expected output
+        """
+        # Run test.
         actual = huntepur.purify_apple_container_output(txt)
+        # Check outputs.
         self.assert_equal(actual, expected)
 
     def test1(self) -> None:

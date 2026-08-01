@@ -8,9 +8,10 @@ model: haiku
   - The inputs and outputs are strings with """ and dedent
   - The output being checked with `self.assert_equal()`
   - Follow the directions in `.claude/skills/testing.rules.md`
+    - `# Writing Test Code`
+    - `## Code Formatting in Tests`
     - `# Test Input and Output Handling`
-    - `## String Formatting for Test Inputs and Assertions`
-    - `## Use an Expected Output`
+    - `## Compare Whole Output with assert_equal, Not Piecewise`
 
 - Factor out as much code as possible in helper functions
   - Follow the directions in `.claude/skills/testing.rules.md`

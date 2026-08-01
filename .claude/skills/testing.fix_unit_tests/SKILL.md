@@ -18,7 +18,7 @@ model: haiku
   - `## Avoid Replicated Assignment`
   - `## Consolidate inputs and outputs`
   - `## Assign Variables and Then Call Functions`
-  - `## Use an Expected Output and assert_equal`
+  - `## Compare Whole Output with assert_equal, Not Piecewise`
   - `## Replace Checking Invariants with assert_equal`
 
 ## Step 2: Come up with Plan
