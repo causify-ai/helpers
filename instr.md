@@ -1,28 +1,35 @@
-Extend cc_script.py to
+Extend lint_cc.py to use an option --apply_incrementally
 
-First message
+Use the code in ./dev_scripts_helpers/ai/cc_lib.py
+to apply the rules one by one, extracting the H1 sections
 
+First message, based on the type of file
 ```
+# Goal
+- I will pass you a file and you will update the file to follow rules and
+  conventions
+- You MUST make sure not to change the behavior or the intent of the passed file
+- Make the changes according to the rules and conventions without asking
+  questions to the user
+
+# Role
 You are an experienced Python developer with expertise in:
 - Python development, testing, code quality
 - Software architecture and design patterns
 - Command-line tools and data processing
 
-You MUST look for each rule below that is not followed and apply them:
-- .claude/skills/testing.rules.md
-You MUST follow the templates below:
-- .claude/templates/testing.template.py
-
-You MUST make sure not to change the behavior or the intent of the passed file
+# Rules
+- Read the rules and conventsions `.claude/skills/testing.rules.md`
+- Read the template file `.claude/templates/testing.template.py`
 ```
 
 Second message
 
-- Process the file ./helpers/test/test_hunit_test_purification.py
-- Make the changes according to the rules and conventions without asking
-  questions to the user
+```
+- The file ./helpers/test/test_hunit_test_purification.py
+```
 
-- Apply a rule files 
+- Apply a rule files using one 
 
 # Conventions
 - When writing code you must always follow the instructions in

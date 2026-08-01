@@ -8,7 +8,7 @@
 Format or lint files using Claude Code.
 
 This script:
-- Detects file types (by extension and path pattern)
+- Detects file types by extension and path pattern
 - Builds a prompt
 - Invokes Claude Code with that prompt on the selected files
 
@@ -19,18 +19,18 @@ Examples:
 # Lint Python testing files with `claude/skills/testing.rules.md`:
 > lint_cc.py --files "test_foo.py test_bar.py"
 
-# Files can be selected with --files, --from_file, --branch
+# Files can be selected with --files, --from_file, --branch:
 > lint_cc.py --branch
 
 # Lint modified files in the client:
 > lint_cc.py --modified
 
-# Call a specific topic rules on a single file (in this case
+# Call a specific topic rules on a single file (e.g.,
 # `.claude/skills/coding.rules.md`)
-> lint_cc.py --topic coding --files "file.py"
+> lint_cc.py --files "file.py" --topic coding
 
 # Execute a skill on a single file:
-> lint_cc.py --skill coding.fix_inline --files "file.py"
+> lint_cc.py --files "file.py" --skill coding.fix_inline
 
 # Execute a rule on a single file using one of these formats:
 # - Full path (path:line:header format with header validation)
@@ -48,7 +48,7 @@ Examples:
 > lint_cc.py --rule ".claude/skills/coding.rules.md:58:## Mark Private Functions" --files "file.py"
 
 # Print the command without executing:
-> lint_cc.py --dry_run --files "*.md"
+> lint_cc.py --files "*.md" --dry_run
 
 # Run with debug logging:
 > lint_cc.py --files "*.py" -v DEBUG
@@ -298,6 +298,11 @@ def _run_claude_code(
     return result.returncode
 
 
+# #############################################################################
+# CLI
+# #############################################################################
+
+
 def _parse() -> argparse.ArgumentParser:
     """
     Parse command-line arguments.
@@ -372,6 +377,7 @@ def _main(parser: argparse.ArgumentParser) -> int:
     #
     ret = 0
     for file_path in tqdm(files, desc="Processing files"):
+        # TODO(ai_gp): Move to a _process_file
         if args.skill:
             full_skill_name = hmarsele.find_skill(args.skill)
             prompt = f"/{full_skill_name} {file_path}"
