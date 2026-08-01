@@ -1,9 +1,7 @@
-import logging
+import tempfile
 
 import linters2.lint_cc as llincc
 import helpers.hunit_test as hunitest
-
-_LOG = logging.getLogger(__name__)
 
 
 # #############################################################################
@@ -319,3 +317,97 @@ class Test_get_rules_for_topic(hunitest.TestCase):
         for topic in topics:
             topic_info = llincc._get_rules_for_topic(topic)
             self.assertIsNotNone(topic_info)
+
+
+# #############################################################################
+# Test_extract_h1_sections
+# #############################################################################
+
+
+class Test_extract_h1_sections(hunitest.TestCase):
+    """
+    Tests for `lint_cc._extract_h1_sections()` function.
+    """
+
+    def test1(self) -> None:
+        """
+        Test extraction of H1 sections from a simple markdown file.
+        """
+        # Prepare inputs.
+        content = """# Section 1
+Content for section 1
+
+## Subsection 1.1
+More content
+
+# Section 2
+Content for section 2
+
+## Subsection 2.1
+More content
+"""
+        with tempfile.NamedTemporaryFile(
+            mode="w", suffix=".md", delete=False
+        ) as f:
+            f.write(content)
+            temp_file = f.name
+        # Run test.
+        try:
+            sections = llincc._extract_h1_sections(temp_file)
+            # Check outputs.
+            self.assertEqual(len(sections), 2)
+            self.assertEqual(sections[0][0], "Section 1")
+            self.assertEqual(sections[1][0], "Section 2")
+            self.assertIn("Content for section 1", sections[0][1])
+            self.assertIn("Content for section 2", sections[1][1])
+        finally:
+            import os
+            os.unlink(temp_file)
+
+    def test2(self) -> None:
+        """
+        Test extraction of H1 sections from testing.rules.md.
+        """
+        # Prepare inputs.
+        rule_file = "./.claude/skills/testing.rules.md"
+        # Run test.
+        sections = llincc._extract_h1_sections(rule_file)
+        # Check outputs.
+        self.assertGreater(len(sections), 0)
+        # Verify we have expected H1 sections
+        titles = [title for title, _ in sections]
+        self.assertIn("Testing Philosophy", titles)
+        self.assertIn("Test Coverage", titles)
+
+    def test3(self) -> None:
+        """
+        Test that H1 sections include their content.
+        """
+        # Prepare inputs.
+        content = """# Header 1
+Line 1
+Line 2
+
+### Subsection
+Line 3
+
+# Header 2
+Line 4
+"""
+        with tempfile.NamedTemporaryFile(
+            mode="w", suffix=".md", delete=False
+        ) as f:
+            f.write(content)
+            temp_file = f.name
+        # Run test.
+        try:
+            sections = llincc._extract_h1_sections(temp_file)
+            # Check outputs.
+            self.assertEqual(len(sections), 2)
+            self.assertIn("Line 1", sections[0][1])
+            self.assertIn("Line 2", sections[0][1])
+            self.assertIn("Line 3", sections[0][1])
+            self.assertIn("Line 4", sections[1][1])
+        finally:
+            import os
+            os.unlink(temp_file)

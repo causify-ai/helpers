@@ -47,6 +47,13 @@ Examples:
 #   ```
 > lint_cc.py --rule ".claude/skills/coding.rules.md:58:## Mark Private Functions" --files "file.py"
 
+# Apply rules incrementally (one H1 section per Claude Code interaction):
+# This sends rules sequentially, allowing Claude to refine the file after each rule
+> lint_cc.py --files "test_foo.py" --apply_incrementally
+
+# Preview incremental messages without sending to Claude:
+> lint_cc.py --files "test_foo.py" --apply_incrementally --dry_run
+
 # Print the command without executing:
 > lint_cc.py --files "*.md" --dry_run
 
@@ -66,6 +73,7 @@ import helpers.hdbg as hdbg
 import helpers.hgit as hgit
 import helpers.hio as hio
 import helpers.hlint as hlint
+import helpers.hmarkdown_headers as hmarhead
 import helpers.hmarkdown_select as hmarsele
 import helpers.hselect_input_output as hseinout
 import helpers.hparser as hparser
@@ -216,6 +224,32 @@ def _infer_topic_from_filename(file_path: str) -> str:
     return topic
 
 
+def _extract_h1_sections(rule_file: str) -> list:
+    """
+    Extract all H1 (level 1) sections from a rule file.
+
+    :param rule_file: Path to the rule file
+    :return: List of tuples (title, content) for each H1 section
+    """
+    hdbg.dassert_file_exists(rule_file, "Rule file not found")
+    lines = hio.from_file(rule_file).split("\n")
+    headers = hmarhead.extract_headers_from_markdown(lines, max_level=1)
+    # Filter only level-1 headers
+    h1_headers = [h for h in headers if h.level == 1]
+    sections = []
+    for idx, header in enumerate(h1_headers):
+        start_line = header.line_number - 1
+        # Find the next H1 header (or end of file)
+        if idx + 1 < len(h1_headers):
+            end_line = h1_headers[idx + 1].line_number - 1
+        else:
+            end_line = len(lines)
+        section_lines = lines[start_line:end_line]
+        section_content = "\n".join(section_lines).strip()
+        sections.append((header.description, section_content))
+    return sections
+
+
 def _build_prompt(topic: str) -> Tuple[str, Dict]:
     """
     Build a Claude Code prompt for the given skill.
@@ -246,6 +280,83 @@ def _build_prompt(topic: str) -> Tuple[str, Dict]:
     )
     txt = "\n".join(prompt_parts)
     return txt, topic_info
+
+
+def _process_file_incrementally(
+    file_path: str,
+    dry_run: bool,
+    model: str,
+) -> int:
+    """
+    Apply rules incrementally, one H1 section per Claude Code interaction.
+
+    :param file_path: Path to the file to process
+    :param dry_run: If True, print messages without executing
+    :param model: Model to use for Claude invocation
+    :return: Return code (0 on success)
+    """
+    hdbg.dassert_file_exists(file_path)
+    inferred_topic = _infer_topic_from_filename(file_path)
+    topic_info = _get_rules_for_topic(inferred_topic)
+    rule_files = topic_info["rules"]
+    # Infer role and template info.
+    role = topic_info["role"]
+    templates = topic_info["templates"]
+    hdbg.dassert_file_exists(role, "Role file not found")
+    # Build the initial template message.
+    role_content = hio.from_file(role)
+    template_message = role_content
+    # TODO(ai_gp): Make it """ and then dedent
+    template_message += "\n\nYou MUST make sure not to change the behavior or the intent of the passed file"
+    if templates:
+        template_message += "\n\nYou MUST follow the templates below:"
+        for template_file in templates:
+            template_message += f"\n- {template_file}"
+    _LOG.info("Incremental processing of %s", file_path)
+    _LOG.info("Number of rule files: %d", len(rule_files))
+    # Extract all H1 sections from all rule files
+    all_sections = []
+    for rule_file in rule_files:
+        hdbg.dassert_file_exists(rule_file, "Rule file not found")
+        sections = _extract_h1_sections(rule_file)
+        _LOG.info("Extracted %d H1 sections from %s", len(sections), rule_file)
+        all_sections.extend(sections)
+    _LOG.info("Total H1 sections: %d", len(all_sections))
+    # Build messages
+    messages = []
+    # First message: template
+    messages.append(template_message)
+    # Second message: target file specification
+    target_message = f"You will apply the rules that I will give you to {file_path}"
+    messages.append(target_message)
+    # Subsequent messages: one per H1 section
+    for section_title, section_content in all_sections:
+        section_message = (
+            f"Apply this rule ({section_title}) to the file:\n\n{section_content}"
+        )
+        messages.append(section_message)
+    # Handle dry run
+    if dry_run:
+        _LOG.info("\n%s\n", hprint.frame("Dry Run - Messages to be sent:"))
+        for idx, msg in enumerate(messages, 1):
+            msg_preview = msg[:200] + "..." if len(msg) > 200 else msg
+            _LOG.info("Message %d:\n%s\n", idx, msg_preview)
+        return 0
+    # Execute messages sequentially with cc wrapper
+    _LOG.info("Executing %d messages sequentially", len(messages))
+    for idx, msg in enumerate(messages, 1):
+        _LOG.info("Sending message %d/%d", idx, len(messages))
+        rc = _run_claude_code(
+            msg,
+            f"incremental-{idx}",
+            file_path,
+            dry_run=False,
+            model=model,
+        )
+        if rc != 0:
+            _LOG.error("Message %d failed with return code %d", idx, rc)
+            return rc
+    return 0
 
 
 def _run_claude_code(
@@ -331,6 +442,11 @@ def _parse() -> argparse.ArgumentParser:
     )
     hmarsele.add_rule_cli_arg(action_group)
     parser.add_argument(
+        "--apply_incrementally",
+        action="store_true",
+        help="Apply rules incrementally, one H1 section per Claude Code interaction",
+    )
+    parser.add_argument(
         "--dry_run",
         action="store_true",
         help="Print the command but don't execute",
@@ -357,12 +473,13 @@ def _main(parser: argparse.ArgumentParser) -> int:
             bool(args.topic),
             bool(args.skill),
             bool(args.rule),
+            bool(args.apply_incrementally),
         ]
     )
     hdbg.dassert_lte(
         num_exclusive,
         1,
-        "Only one of --topic, --skill, or --rule can be used simultaneously",
+        "Only one of --topic, --skill, --rule, or --apply_incrementally can be used simultaneously",
     )
     files = hseinout.parse_file_selection_args(args, remove_dirs=False)
     files = hseinout.parse_file_type_filter_args(args, files)
@@ -376,9 +493,16 @@ def _main(parser: argparse.ArgumentParser) -> int:
     _LOG.info("Processing %d file(s)", len(files))
     #
     ret = 0
+    topic_info: Dict = {}
     for file_path in tqdm(files, desc="Processing files"):
         # TODO(ai_gp): Move to a _process_file
-        if args.skill:
+        if args.apply_incrementally:
+            rc = _process_file_incrementally(
+                file_path,
+                args.dry_run,
+                args.model,
+            )
+        elif args.skill:
             full_skill_name = hmarsele.find_skill(args.skill)
             prompt = f"/{full_skill_name} {file_path}"
             topic_str = "skill"
@@ -429,11 +553,12 @@ def _main(parser: argparse.ArgumentParser) -> int:
                 model=args.model,
             )
         ret |= rc
-        if topic_info["run_jupytext"]:
-            cmd = ["jupytext", "--sync", file_path]
-            hsystem.system(" ".join(cmd))
-        if topic_info["run_lint"]:
-            hlint.lint_file(file_path)
+        if not args.apply_incrementally and "topic_info" in locals():
+            if topic_info["run_jupytext"]:
+                cmd = ["jupytext", "--sync", file_path]
+                hsystem.system(" ".join(cmd))
+            if topic_info["run_lint"]:
+                hlint.lint_file(file_path)
     return ret
 
 

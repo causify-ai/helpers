@@ -60,6 +60,26 @@
   file, read `.claude/rules.md` first to find which rules and templates to
   follow
 
+### Templates
+- A **template** (`.claude/templates/*.template.<ext>`) is a starting-point
+  file to copy from when creating a new file of a given kind: it fixes the
+  boilerplate (headers, imports, section markers, placeholders) so new content
+  follows the same shape as existing content
+- Unlike rules (conventions to check against) and skills (steps to execute),
+  templates are files to instantiate directly
+- `.claude/rules.md` pairs each file type with its template, e.g.:
+  - `.claude/templates/coding.template.py` for `.py` files
+  - `.claude/templates/testing.template.py` for `test_*.py` files
+  - `.claude/templates/notebook.template.ipynb` for `.ipynb` files
+  - `.claude/templates/readme.template.md` for `README.md` files
+- Other templates cover specific artifacts referenced by individual skills
+  rather than a whole file type, e.g. `architecture_doc.template.md`,
+  `slides.template.md`, `github_PR_plan.template.md`, `book_map.template.md`,
+  `graphviz.template.md`, `tikz.template.md`, `typst.template.typ`
+- Placeholders inside a template use the `<VAR>` notation (e.g., `<Directory
+  Name>`) per `.claude/skills/skill.rules.md`; fill them in and remove any
+  optional sections that don't apply
+
 ## Tools
 
 ### `mdm`: Unified Markdown Content Manager
@@ -146,3 +166,12 @@
    `#` sections with `##` sub-rules
 3. Verify the rule is discoverable: `rigrule "<keyword>"` should resolve to it
    uniquely
+
+### Start a New File From a Template
+1. Look up the file type in `.claude/rules.md` to find its template (e.g.,
+   `.py` -> `.claude/templates/coding.template.py`)
+2. Copy the template to the new file's path and fill in the `<VAR>`
+   placeholders
+3. Apply the corresponding rules with `lint_cc.py --files "<file>" --topic
+   <topic>` to check the new file follows conventions the template doesn't
+   already encode (e.g., naming, docstring content)
