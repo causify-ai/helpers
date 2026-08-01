@@ -15,11 +15,11 @@ import json
 import logging
 from typing import Any, Dict, List, Optional
 
-# TODO(ai_gp): Use import and not from import
-from claude_agent_sdk import ClaudeSDKClient, ClaudeAgentOptions
+import claude_agent_sdk
 
 import helpers.hdbg as hdbg
 import helpers.hio as hio
+import helpers.hprint as hprint
 
 _LOG = logging.getLogger(__name__)
 
@@ -61,13 +61,8 @@ class PromptSequencer:
         self._session_started = False
         self._prompts_executed = 0
         self._last_response = ""
-        # TODO(ai_gp): Use hprint.to_str
         _LOG.debug(
-            "PromptSequencer initialized: allowed_tools=%s, "
-            "permission_mode=%s, cwd=%s",
-            allowed_tools,
-            permission_mode,
-            cwd,
+            "PromptSequencer initialized: " + hprint.to_str("allowed_tools permission_mode cwd")
         )
 
     async def execute(self, prompts: List[str]) -> None:
@@ -86,13 +81,13 @@ class PromptSequencer:
             "Starting prompt sequence execution with %d prompts", len(prompts)
         )
         # Create options for Claude SDK.
-        options = ClaudeAgentOptions(
+        options = claude_agent_sdk.ClaudeAgentOptions(
             allowed_tools=self.allowed_tools,
             permission_mode=self.permission_mode,  # type: ignore
             cwd=self.cwd or None,
         )
         # Execute prompts in session.
-        async with ClaudeSDKClient(options=options) as client:
+        async with claude_agent_sdk.ClaudeSDKClient(options=options) as client:
             self._session_started = True
             for prompt_idx, prompt in enumerate(prompts, 1):
                 _LOG.info("Executing prompt %d/%d", prompt_idx, len(prompts))

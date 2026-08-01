@@ -1,7 +1,7 @@
 import logging
 import os
 import subprocess
-from typing import List, Optional
+from typing import Callable, List, Optional
 
 import helpers.hio as hio
 import helpers.hprint as hprint
@@ -821,11 +821,25 @@ class Test_get_parent_dirs(hunitest.TestCase):
 # #############################################################################
 
 
-# TODO(ai_gp): Factor out the common code with /coding.factor_common_code
 class Test_capture_sys_calls(hunitest.TestCase):
     """
     Test system call capture functionality.
     """
+
+    def _assert_sys_calls(
+        self,
+        test_func: Callable[[], None],  # type: ignore
+        expected: str,
+    ) -> None:
+        """
+        Capture system calls and assert against expected output.
+
+        :param test_func: Callable that makes system calls
+        :param expected: Expected string representation of calls
+        """
+        with hunteuti.capture_sys_calls() as sys_calls:
+            test_func()
+        hunteuti.assert_sys_calls(self, sys_calls, expected)
 
     def test1(self) -> None:
         """
@@ -840,10 +854,10 @@ class Test_capture_sys_calls(hunitest.TestCase):
         },
         ]"""
         # Run test.
-        with hunteuti.capture_sys_calls() as sys_calls:
-            subprocess.run(["echo", "hello"], check=False)
-        # Check outputs.
-        hunteuti.assert_sys_calls(self, sys_calls, expected)
+        self._assert_sys_calls(
+            lambda: subprocess.run(["echo", "hello"], check=False),
+            expected,
+        )
 
     def test2(self) -> None:
         """
@@ -858,10 +872,10 @@ class Test_capture_sys_calls(hunitest.TestCase):
         },
         ]"""
         # Run test.
-        with hunteuti.capture_sys_calls() as sys_calls:
-            hsystem.system("echo hello", suppress_output=True)
-        # Check outputs.
-        hunteuti.assert_sys_calls(self, sys_calls, expected)
+        self._assert_sys_calls(
+            lambda: hsystem.system("echo hello", suppress_output=True),
+            expected,
+        )
 
     def test3(self) -> None:
         """
@@ -876,10 +890,10 @@ class Test_capture_sys_calls(hunitest.TestCase):
         },
         ]"""
         # Run test.
-        with hunteuti.capture_sys_calls() as sys_calls:
-            hsystem.system_to_string("echo test", suppress_output=True)
-        # Check outputs.
-        hunteuti.assert_sys_calls(self, sys_calls, expected)
+        self._assert_sys_calls(
+            lambda: hsystem.system_to_string("echo test", suppress_output=True),
+            expected,
+        )
 
     def test4(self) -> None:
         """
@@ -899,11 +913,13 @@ class Test_capture_sys_calls(hunitest.TestCase):
         },
         ]"""
         # Run test.
-        with hunteuti.capture_sys_calls() as sys_calls:
-            hsystem.system("echo hello", suppress_output=True)
-            hsystem.system_to_string("echo world", suppress_output=True)
-        # Check outputs.
-        hunteuti.assert_sys_calls(self, sys_calls, expected)
+        self._assert_sys_calls(
+            lambda: (
+                hsystem.system("echo hello", suppress_output=True),
+                hsystem.system_to_string("echo world", suppress_output=True),
+            ),
+            expected,
+        )
 
     def test5(self) -> None:
         """
@@ -931,10 +947,10 @@ class Test_capture_sys_calls(hunitest.TestCase):
         ]"""
         expected_str = hprint.dedent(expected_str)
         # Run test.
-        with hunteuti.capture_sys_calls() as sys_calls:
-            hsystem.system("echo test", suppress_output=True)
-        # Check outputs.
-        hunteuti.assert_sys_calls(self, sys_calls, expected_str)
+        self._assert_sys_calls(
+            lambda: hsystem.system("echo test", suppress_output=True),
+            expected_str,
+        )
 
     def test7(self) -> None:
         """
@@ -955,11 +971,10 @@ class Test_capture_sys_calls(hunitest.TestCase):
         ]"""
         expected_str = hprint.dedent(expected_str)
         # Run test.
-        with hunteuti.capture_sys_calls() as sys_calls:
+        def test_calls() -> None:
             hsystem.system("echo hello", suppress_output=True)
             hsystem.system("echo world", suppress_output=True)
-        # Check outputs.
-        hunteuti.assert_sys_calls(self, sys_calls, expected_str)
+        self._assert_sys_calls(test_calls, expected_str)
 
     def test8(self) -> None:
         """

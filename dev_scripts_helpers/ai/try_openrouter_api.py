@@ -1,6 +1,11 @@
-#!/usr/bin/env python
+#!/usr/bin/env -S uv run
 
-# TODO(ai_gp): Add the uv package
+# /// script
+# dependencies = [
+#   "anthropic",
+# ]
+# ///
+
 import os
 import sys
 from anthropic import Anthropic

@@ -50,8 +50,7 @@ class TestPromptSequencer(hunitest.TestCase):
         # Prepare inputs.
         allowed_tools = ["Read", "Edit", "Bash"]
         permission_mode = "acceptEdits"
-        # TODO(ai_gp): Use self.get_scratch_space()
-        cwd = "/tmp/test"
+        cwd = self.get_scratch_space()
         # Run test.
         sequencer = dshaccli.PromptSequencer(
             allowed_tools=allowed_tools,

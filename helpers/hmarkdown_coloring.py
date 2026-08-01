@@ -377,14 +377,8 @@ def colorize_bullet_points_in_slide(
                 typst_color = typst_mapping[color_to_use]
                 # Escape tildes (~) since they have special meaning in typst.
                 escaped_text = text.replace("~", r"\~")
-                # TODO(ai_gp): They seem exactly the same operation. Keep the second one.
-                if use_abbreviations:
-                    # Abbreviated: wrap in backticks for proper typst syntax
-                    ret = f'`#text(fill: {typst_color}, weight: "bold")[{escaped_text}]`{{=typst}}'
-                else:
-                    # Full: #text(fill: color)[text]
-                    ret = f'#text(fill: {typst_color}, weight: "bold")[{escaped_text}]'
-                    ret = "`" + ret + "`{=typst}"
+                ret = f'#text(fill: {typst_color}, weight: "bold")[{escaped_text}]'
+                ret = "`" + ret + "`{=typst}"
             return ret
 
         line = re.sub(_COLOR_MARKER_REGEX, color_replacer, line)

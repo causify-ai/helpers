@@ -55,15 +55,13 @@ def _to_skip_on_update_outcomes() -> bool:
 
 
 # #############################################################################
-# TestTestCase1
+# TestGetInputDir
 # #############################################################################
 
 
-# TODO(ai_gp): Split in multiple classes, one per testing function,
-# get_input_dir, get_output_dir, get_scratch_dir
-class TestTestCase1(hunitest.TestCase):
+class Test_get_input_dir(hunitest.TestCase):
     """
-    Test free-standing functions in unit_test.py.
+    Test hunitest.get_input_dir().
     """
 
     def test_get_input_dir1(self) -> None:
@@ -72,7 +70,7 @@ class TestTestCase1(hunitest.TestCase):
         """
         actual = self.get_input_dir()
         actual = huntepur.purify_txt_from_client(actual)
-        expected = "$GIT_ROOT/helpers/test/outcomes/TestTestCase1.test_get_input_dir1/input"
+        expected = "$GIT_ROOT/helpers/test/outcomes/Test_get_input_dir.test_get_input_dir1/input"
         self.assertEqual(actual, expected)
 
     def test_get_input_dir2(self) -> None:
@@ -100,7 +98,7 @@ class TestTestCase1(hunitest.TestCase):
         )
         actual = huntepur.purify_txt_from_client(actual)
         #
-        expected = "$GIT_ROOT/helpers/test/outcomes/TestTestCase1.test_get_input_dir3/input"
+        expected = "$GIT_ROOT/helpers/test/outcomes/TestGetInputDir.test_get_input_dir3/input"
         self.assertEqual(actual, expected)
 
     def test_get_input_dir4(self) -> None:
@@ -114,8 +112,19 @@ class TestTestCase1(hunitest.TestCase):
         )
         actual = huntepur.purify_txt_from_client(actual)
         #
-        expected = "$GIT_ROOT/helpers/test/outcomes/TestTestCase1/input"
+        expected = "$GIT_ROOT/helpers/test/outcomes/TestGetInputDir/input"
         self.assertEqual(actual, expected)
+
+
+# #############################################################################
+# TestGetOutputDir
+# #############################################################################
+
+
+class TestGetOutputDir(hunitest.TestCase):
+    """
+    Test hunitest.get_output_dir().
+    """
 
     def test_get_output_dir1(self) -> None:
         """
@@ -123,8 +132,19 @@ class TestTestCase1(hunitest.TestCase):
         """
         actual = self.get_output_dir()
         actual = huntepur.purify_txt_from_client(actual)
-        expected = "$GIT_ROOT/helpers/test/outcomes/TestTestCase1.test_get_output_dir1/output"
+        expected = "$GIT_ROOT/helpers/test/outcomes/TestGetOutputDir.test_get_output_dir1/output"
         self.assertEqual(actual, expected)
+
+
+# #############################################################################
+# TestGetScratchSpace
+# #############################################################################
+
+
+class TestGetScratchSpace(hunitest.TestCase):
+    """
+    Test hunitest.get_scratch_space().
+    """
 
     def test_get_scratch_space1(self) -> None:
         """
@@ -133,7 +153,7 @@ class TestTestCase1(hunitest.TestCase):
         actual = self.get_scratch_space()
         actual = huntepur.purify_txt_from_client(actual)
         expected = (
-            "$GIT_ROOT/helpers/test/outcomes/TestTestCase1.test_get_scratch_space1"
+            "$GIT_ROOT/helpers/test/outcomes/TestGetScratchSpace.test_get_scratch_space1"
             "/tmp.scratch"
         )
         self.assertEqual(actual, expected)
@@ -163,6 +183,17 @@ class TestTestCase1(hunitest.TestCase):
         expected = "outcomes/test_class.test_method/tmp.scratch"
         self.assertEqual(actual, expected)
 
+
+# #############################################################################
+# TestGetS3ScratchDir
+# #############################################################################
+
+
+class TestGetS3ScratchDir(hunitest.TestCase):
+    """
+    Test hunitest.get_s3_scratch_dir().
+    """
+
     def test_get_s3_scratch_dir1(self) -> None:
         actual = self.get_s3_scratch_dir()
         _LOG.debug("actual=%s", actual)
@@ -176,6 +207,17 @@ class TestTestCase1(hunitest.TestCase):
         )
         _LOG.debug("actual=%s", actual)
         # It is difficult to test, so we just execute.
+
+
+# #############################################################################
+# TestAssertEqual
+# #############################################################################
+
+
+class TestAssertEqual(hunitest.TestCase):
+    """
+    Test hunitest.assert_equal().
+    """
 
     def test_assert_equal1(self) -> None:
         actual = "hello world"
@@ -220,7 +262,7 @@ class TestTestCase1(hunitest.TestCase):
         else
             cmd='vimdiff'
         fi;
-        cmd="$cmd helpers/test/outcomes/TestTestCase1.test_assert_not_equal2/tmp.final.actual.txt helpers/test/outcomes/TestTestCase1.test_assert_not_equal2/tmp.final.expected.txt"
+        cmd="$cmd helpers/test/outcomes/TestAssertEqual.test_assert_not_equal2/tmp.final.actual.txt helpers/test/outcomes/TestAssertEqual.test_assert_not_equal2/tmp.final.expected.txt"
         eval $cmd
 
         '''
@@ -266,24 +308,22 @@ class TestTestCase1(hunitest.TestCase):
 # #############################################################################
 
 
-# TODO(ai_gp): Indent the """ strings to align with the rest of the code code
-# and use dedent.
 @pytest.mark.need_dev_container
 class Test_AssertEqual1(hunitest.TestCase):
     def test_equal1(self) -> None:
         """
         Matching actual and expected without fuzzy matching.
         """
-        actual = r"""
-completed       failure Lint    Run_linter
-completed       success Lint    Fast_tests
-completed       success Lint    Slow_tests
-"""
-        expected = r"""
-completed       failure Lint    Run_linter
-completed       success Lint    Fast_tests
-completed       success Lint    Slow_tests
-"""
+        actual = hprint.dedent(r"""
+        completed       failure Lint    Run_linter
+        completed       success Lint    Fast_tests
+        completed       success Lint    Slow_tests
+        """)
+        expected = hprint.dedent(r"""
+        completed       failure Lint    Run_linter
+        completed       success Lint    Fast_tests
+        completed       success Lint    Slow_tests
+        """)
         test_name = self._get_test_name()
         test_dir = self.get_scratch_space()
         is_equal = hunitest.assert_equal(actual, expected, test_name, test_dir)
@@ -294,16 +334,16 @@ completed       success Lint    Slow_tests
         """
         Matching actual and expected with fuzzy matching.
         """
-        actual = r"""
-completed failure Lint Run_linter
-completed success Lint Fast_tests
-completed success Lint Slow_tests
-"""
-        expected = r"""
-completed       failure Lint    Run_linter
-completed       success Lint    Fast_tests
-completed       success Lint    Slow_tests
-"""
+        actual = hprint.dedent(r"""
+        completed failure Lint Run_linter
+        completed success Lint Fast_tests
+        completed success Lint Slow_tests
+        """)
+        expected = hprint.dedent(r"""
+        completed       failure Lint    Run_linter
+        completed       success Lint    Fast_tests
+        completed       success Lint    Slow_tests
+        """)
         test_name = self._get_test_name()
         test_dir = self.get_scratch_space()
         fuzzy_match = True
@@ -317,16 +357,16 @@ completed       success Lint    Slow_tests
         """
         Mismatching actual and expected.
         """
-        actual = r"""
-completed failure Lint    Run_linter
-completed       success Lint    Fast_tests
-completed       success Lint    Slow_tests
-"""
-        expected = r"""
-completed       failure Lint    Run_linter
-completed       success Lint    Fast_tests
-completed       success Lint    Slow_tests
-"""
+        actual = hprint.dedent(r"""
+        completed failure Lint    Run_linter
+        completed       success Lint    Fast_tests
+        completed       success Lint    Slow_tests
+        """)
+        expected = hprint.dedent(r"""
+        completed       failure Lint    Run_linter
+        completed       success Lint    Fast_tests
+        completed       success Lint    Slow_tests
+        """)
         test_name = self._get_test_name()
         test_dir = self.get_scratch_space()
         fuzzy_match = False
@@ -337,25 +377,25 @@ completed       success Lint    Slow_tests
         # Check that the assertion is what expected.
         actual = str(cm.exception)
         actual = huntepur.purify_txt_from_client(actual)
-        expected = '''
---------------------------------------------------------------------------------
-ACTUAL vs EXPECTED [via assert_equal()]: Test_AssertEqual1.test_not_equal1
---------------------------------------------------------------------------------
+        expected = hprint.dedent('''
+        --------------------------------------------------------------------------------
+        ACTUAL vs EXPECTED [via assert_equal()]: Test_AssertEqual1.test_not_equal1
+        --------------------------------------------------------------------------------
 
-                                                                          (
-completed failure Lint    Run_linter                                      |  completed       failure Lint    Run_linter
-completed       success Lint    Fast_tests                                (
-completed       success Lint    Slow_tests                                (
-Diff with:
-> ./tmp.diff.sh
---------------------------------------------------------------------------------
-ACTUAL VARIABLE: Test_AssertEqual1.test_not_equal1
---------------------------------------------------------------------------------
-expected = r"""
-completed failure Lint    Run_linter
-completed       success Lint    Fast_tests
-completed       success Lint    Slow_tests
-"""'''
+                                                                                  (
+        completed failure Lint    Run_linter                                      |  completed       failure Lint    Run_linter
+        completed       success Lint    Fast_tests                                (
+        completed       success Lint    Slow_tests                                (
+        Diff with:
+        > ./tmp.diff.sh
+        --------------------------------------------------------------------------------
+        ACTUAL VARIABLE: Test_AssertEqual1.test_not_equal1
+        --------------------------------------------------------------------------------
+        expected = r"""
+        completed failure Lint    Run_linter
+        completed       success Lint    Fast_tests
+        completed       success Lint    Slow_tests
+        """''')
         if actual != expected:
             scratch_dir = self.get_scratch_space()
             hio.to_file(os.path.join(scratch_dir, "actual.txt"), actual)
@@ -390,16 +430,17 @@ completed       success Lint    Slow_tests
         Create a mismatch on purpose to see how the suggested updated to
         expected variable looks like.
         """
-        actual = r"""empty
-start
+        actual = hprint.dedent(r"""
+        empty
+        start
 
-completed failure Lint    Run_linter
-completed       success Lint    Fast_tests
-completed       success Lint    Slow_tests
+        completed failure Lint    Run_linter
+        completed       success Lint    Fast_tests
+        completed       success Lint    Slow_tests
 
-end
+        end
 
-"""
+        """)
         expected = "hello"
         self.assert_equal(actual, expected, fuzzy_match=False)
 
@@ -409,10 +450,8 @@ end
 # #############################################################################
 
 
-# TODO(ai_gp): Rename the methods to test1, test2, ... and use
-# /coding.factor_common_code
 class TestCheckString1(hunitest.TestCase):
-    def test_check_string1(self) -> None:
+    def test1(self) -> None:
         """
         Compare the actual value to a matching golden outcome.
         """
@@ -437,7 +476,7 @@ class TestCheckString1(hunitest.TestCase):
         self.assertTrue(file_exists)
         self.assertTrue(is_equal)
 
-    def test_check_string_not_equal1(self) -> None:
+    def test2(self) -> None:
         """
         Compare the actual value to a mismatching golden outcome.
         """
@@ -464,7 +503,7 @@ class TestCheckString1(hunitest.TestCase):
         self.assertTrue(file_exists)
         self.assertFalse(is_equal)
 
-    def test_check_string_not_equal2(self) -> None:
+    def test3(self) -> None:
         """
         Compare the actual value to a mismatching golden outcome and udpate it.
         """
@@ -497,7 +536,7 @@ class TestCheckString1(hunitest.TestCase):
         # The golden outcome was updated.
         self.assertEqual(new_golden, "hello world")
 
-    def test_check_string_not_equal3(self) -> None:
+    def test4(self) -> None:
         """
         Like test_check_string_not_equal1() but raising the exception.
         """
@@ -519,7 +558,7 @@ class TestCheckString1(hunitest.TestCase):
             hio.to_file(file_name, golden_outcome)
             _git_add(file_name)
 
-    def test_check_string_missing1(self) -> None:
+    def test5(self) -> None:
         """
         When running with --update_outcomes, the golden outcome was missing and
         so it was added.
@@ -553,7 +592,7 @@ class TestCheckString1(hunitest.TestCase):
         #
         self.assertEqual(new_golden, "hello world")
 
-    def test_check_string_missing2(self) -> None:
+    def test6(self) -> None:
         """
         Without running with --update_outcomes, the golden outcome was missing,
         action_on_missing_golden="assert", and the unit test framework
@@ -583,7 +622,7 @@ class TestCheckString1(hunitest.TestCase):
         #
         self.assertEqual(new_golden, "hello world")
 
-    def test_check_string_missing3(self) -> None:
+    def test7(self) -> None:
         """
         Without running with --update_outcomes, the golden outcome was missing,
         action_on_missing_golden="update", and the unit test framework updates
@@ -619,8 +658,6 @@ class TestCheckString1(hunitest.TestCase):
 # #############################################################################
 
 
-# TODO(ai_gp): Rename the methods to test1, test2, ... and use
-# /coding.factor_common_code
 class TestCheckDataFrame1(hunitest.TestCase):
     """
     Some of these tests can't pass with `--update_outcomes`, since they
@@ -651,7 +688,7 @@ class TestCheckDataFrame1(hunitest.TestCase):
             _git_add(file_name)
         return outcome_updated, file_exists, is_equal
 
-    def test_check_df_equal1(self) -> None:
+    def test1(self) -> None:
         """
         Compare the actual value of a df to a matching golden outcome.
         """
@@ -668,7 +705,7 @@ class TestCheckDataFrame1(hunitest.TestCase):
         self.assertTrue(file_exists)
         self.assertTrue(is_equal)
 
-    def test_check_df_equal2(self) -> None:
+    def test2(self) -> None:
         """
         Compare the actual value of a df to a matching golden outcome.
         """
@@ -685,7 +722,7 @@ class TestCheckDataFrame1(hunitest.TestCase):
         self.assertTrue(file_exists)
         self.assertTrue(is_equal)
 
-    def test_check_df_equal3(self) -> None:
+    def test3(self) -> None:
         """
         Compare the actual value of a df to a matching golden outcome.
         """
@@ -702,7 +739,7 @@ class TestCheckDataFrame1(hunitest.TestCase):
         self.assertTrue(file_exists)
         self.assertTrue(is_equal)
 
-    def test_check_df_not_equal1(self) -> None:
+    def test4(self) -> None:
         """
         Compare the actual value of a df to a non-matching golden outcome.
         """
@@ -740,7 +777,7 @@ class TestCheckDataFrame1(hunitest.TestCase):
         """
         self.assert_equal(self._error_msg, exp_error_msg, fuzzy_match=True)
 
-    def test_check_df_not_equal2(self) -> None:
+    def test5(self) -> None:
         """
         Compare the actual value of a df to a not matching golden outcome.
         """
@@ -757,7 +794,7 @@ class TestCheckDataFrame1(hunitest.TestCase):
         self.assertTrue(file_exists)
         self.assertFalse(is_equal)
 
-    def test_check_df_not_equal3(self) -> None:
+    def test6(self) -> None:
         """
         Compare the actual value to a mismatching golden outcome and update it.
         """
@@ -792,7 +829,7 @@ class TestCheckDataFrame1(hunitest.TestCase):
         # Check golden.
         self.assert_equal(str(new_golden), str(actual))
 
-    def test_check_df_not_equal4(self) -> None:
+    def test7(self) -> None:
         """
         Like `test_check_df_not_equal1()` but raising the exception.
         """
@@ -804,7 +841,7 @@ class TestCheckDataFrame1(hunitest.TestCase):
         with self.assertRaises(RuntimeError):
             self._check_df_helper(actual, abort_on_error, err_threshold)
 
-    def test_check_df_missing1(self) -> None:
+    def test8(self) -> None:
         """
         When running with --update_outcomes, the golden outcome was missing and
         so it was added.
@@ -839,7 +876,7 @@ class TestCheckDataFrame1(hunitest.TestCase):
         # Check golden.
         self.assert_equal(str(new_golden), str(actual))
 
-    def test_check_df_missing2(self) -> None:
+    def test9(self) -> None:
         """
         Without running with --update_outcomes, the golden outcome was missing,
         action_on_missing_golden="assert", and the unit test framework
@@ -869,7 +906,7 @@ class TestCheckDataFrame1(hunitest.TestCase):
         # Check golden.
         self.assert_equal(str(new_golden), str(actual))
 
-    def test_check_df_missing3(self) -> None:
+    def test10(self) -> None:
         """
         Without running with --update_outcomes, the golden outcome was missing,
         action_on_missing_golden="update", and the unit test framework updates
