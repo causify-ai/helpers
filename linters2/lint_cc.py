@@ -1,7 +1,7 @@
 #!/usr/bin/env -S uv run
 
 # /// script
-# dependencies = ["tqdm"]
+# dependencies = ["tqdm", "anthropic", "claude-agent-sdk"]
 # ///
 
 """
@@ -33,12 +33,14 @@ Quick examples:
 """
 
 import argparse
+import asyncio
 import logging
 import os
-from typing import cast, Dict, Tuple
+from typing import cast, Dict, List, Tuple
 
 from tqdm import tqdm
 
+import dev_scripts_helpers.ai.cc_lib as dshaccli
 import helpers.hdbg as hdbg
 import helpers.hgit as hgit
 import helpers.hio as hio
@@ -322,24 +324,17 @@ def _run_claude_code(
 # #############################################################################
 
 
-def _process_file_incrementally(
-    file_path: str,
-    dry_run: bool,
-    model: str,
-) -> int:
+def _build_incremental_messages(file_path: str) -> List[str]:
     """
-    Apply rules incrementally, one H1 section per Claude Code interaction.
+    Build a sequence of messages for incremental rule application.
 
     :param file_path: Path to the file to process
-    :param dry_run: If True, print messages without executing
-    :param model: Model to use for Claude invocation
-    :return: Return code (0 on success)
+    :return: List of messages to send sequentially
     """
     hdbg.dassert_file_exists(file_path)
     inferred_topic = _infer_topic_from_filename(file_path)
     topic_info = _get_rules_for_topic(inferred_topic)
     rule_files = topic_info["rules"]
-    # Infer role and template info.
     role = topic_info["role"]
     templates = topic_info["templates"]
     hdbg.dassert_file_exists(role, "Role file not found")
@@ -372,20 +367,36 @@ def _process_file_incrementally(
         all_sections.extend(sections)
     _LOG.info("Total H1 sections: %d", len(all_sections))
     # Build messages
-    messages = []
+    messages: List[str] = []
     # First message: template
     messages.append(template_message)
     # Second message: target file specification
-    target_message = (
-        f"You will apply the rules that I will give you to {file_path}"
-    )
+    target_message = f"You will apply the rules that I will give you to {file_path}"
     messages.append(target_message)
     # Subsequent messages: one per H1 section
     for _, section_content in all_sections:
-        section_message = (
-            f"Apply the following rule to the file:\n\n{section_content}"
-        )
+        section_message = f"Apply the following rule to the file:\n\n{section_content}"
         messages.append(section_message)
+    return messages
+
+
+async def _process_file_incrementally(
+    file_path: str,
+    dry_run: bool,
+    model: str,
+) -> int:
+    """
+    Apply rules incrementally, one H1 section per Claude Code interaction.
+
+    :param file_path: Path to the file to process
+    :param dry_run: If True, print messages without executing
+    :param model: Model to use for Claude invocation (used via SDK configuration)
+    :return: Return code (0 on success)
+    """
+    # Model selection is handled by the SDK through environment variables
+    if model:
+        _LOG.info("Model hint provided: %s (handled by SDK)", model)
+    messages = _build_incremental_messages(file_path)
     # Handle dry run.
     if dry_run:
         _LOG.warning("Dry Run - Messages to be sent:")
@@ -397,21 +408,20 @@ def _process_file_incrementally(
                 msg_preview,
             )
         return 0
-    # Execute messages sequentially with cc wrapper.
+    # Execute messages sequentially using PromptSequencer.
     _LOG.info("Executing %d messages sequentially", len(messages))
-    for idx, msg in enumerate(messages, 1):
-        _LOG.info("\n%s", hprint.frame(f"Message {idx}/{len(messages)}:"))
-        rc = _run_claude_code(
-            msg,
-            f"incremental-{idx}",
-            file_path,
-            dry_run=False,
-            model=model,
+    try:
+        sequencer = dshaccli.PromptSequencer(
+            permission_mode="acceptEdits",
+            cwd=os.getcwd(),
         )
-        if rc != 0:
-            _LOG.error("Message %d failed with return code %d", idx, rc)
-            return rc
-    return 0
+        await sequencer.execute(messages)
+        stats = sequencer.get_execution_stats()
+        _LOG.info("Execution completed: %s", stats)
+        return 0
+    except Exception as e:
+        _LOG.error("Sequential execution failed: %s", str(e))
+        return 1
 
 
 def _process_file(
@@ -428,10 +438,12 @@ def _process_file(
     topic_info = {}
 
     if args.apply_incrementally:
-        rc = _process_file_incrementally(
-            file_path,
-            args.dry_run,
-            args.model,
+        rc = asyncio.run(
+            _process_file_incrementally(
+                file_path,
+                args.dry_run,
+                args.model,
+            )
         )
     elif args.skill:
         full_skill_name = hmarsele.find_skill(args.skill)

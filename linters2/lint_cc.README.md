@@ -54,3 +54,17 @@ Claude Code integration for topic-based intelligent formatting.
     ```
     --rule "dassert"
     ```
+
+- Apply rules incrementally with sequential Claude interactions:
+  ```bash
+  lint_cc.py --files "file.py" --apply_incrementally
+  ```
+  - Extracts H1 sections from rule files
+  - Sends each rule to Claude Code sequentially with context preservation
+  - Maintains conversation state across rule applications
+  - Useful for complex files requiring step-by-step rule application
+
+- Preview incremental application without executing:
+  ```bash
+  lint_cc.py --files "file.py" --apply_incrementally --dry_run
+  ```
