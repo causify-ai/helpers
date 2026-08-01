@@ -29,6 +29,7 @@ _LOG = logging.getLogger(__name__)
 # - `auto`: use the host `pandoc` if it's available, otherwise fall back to
 #   `dockerized`
 VALID_PANDOC_BACKENDS = ["auto", "dockerized", "host"]
+DEFAULT_PANDOC_BACKEND = "auto"
 
 
 def add_pandoc_backend_arg(
