@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 """
 Notify the user that the last command is completed through different channels:
@@ -56,11 +56,12 @@ def _get_iterm2_name() -> str:
 
     :return: iTerm2 session name
     """
-    cmd = (
-        'osascript -e \'tell application "iTerm2" to name of current '
-        "session of current window'"
-    )
-    _, name = hsystem.system_to_one_line(cmd)
+    cmd = [
+        "osascript",
+        "-e",
+        'tell application "iTerm2" to name of current session of current window',
+    ]
+    _, name = hsystem.system_to_one_line(" ".join(cmd))
     return name
 
 
@@ -77,11 +78,12 @@ def _send_notification(message: str, *, sound_name: str = "Glass") -> None:
     hdbg.dassert_eq(
         platform.system(), "Darwin", "Notifications are only supported on macOS"
     )
-    cmd = (
-        f'osascript -e \'display notification "{message}" '
-        f'with title "" sound name "{sound_name}"\''
-    )
-    hsystem.system(cmd)
+    cmd = [
+        "osascript",
+        "-e",
+        f'display notification "{message}" with title "" sound name "{sound_name}"',
+    ]
+    hsystem.system(" ".join(cmd))
 
 
 def _blink_pane(timeout: int) -> None:
@@ -146,8 +148,7 @@ def _parse() -> argparse.ArgumentParser:
         action="store",
         type=int,
         default=-1,
-        help="Number of seconds to blink for; -1 means blink forever "
-        "until Ctrl-C",
+        help="Number of seconds to blink for (blink forever if not set)",
     )
     parser.add_argument(
         "--title",
@@ -184,8 +185,8 @@ def _main(parser: argparse.ArgumentParser) -> None:
     #
     hdbg.dassert_in("bash", os.environ.get("SHELL", ""))
     message = []
-    #current_dir = os.getcwd()
-    #message.append(f"dir={current_dir}")
+    # current_dir = os.getcwd()
+    # message.append(f"dir={current_dir}")
     current_iterm2_name = _get_iterm2_name()
     message.append(current_iterm2_name)
     if args.title == "":

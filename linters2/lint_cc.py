@@ -7,64 +7,34 @@
 """
 Format or lint files using Claude Code.
 
+For detailed documentation, usage examples, and command-line options, see:
+`linters2/lint_cc.README.md`
+
 This script:
 - Detects file types by extension and path pattern
 - Builds a prompt
 - Invokes Claude Code with that prompt on the selected files
 
-Examples:
-# Lint specific Python files using `.claude/skills/coding.rules.md`:
+Quick examples:
+# Lint specific Python files:
 > lint_cc.py --files "file1.py file2.py"
 
-# Lint Python testing files with `claude/skills/testing.rules.md`:
-> lint_cc.py --files "test_foo.py test_bar.py"
-
-# Files can be selected with --files, --from_file, --branch:
-> lint_cc.py --branch
-
-# Lint modified files in the client:
+# Lint modified files:
 > lint_cc.py --modified
 
-# Call a specific topic rules on a single file (e.g.,
-# `.claude/skills/coding.rules.md`)
+# Apply specific topic rules:
 > lint_cc.py --files "file.py" --topic coding
 
-# Execute a skill on a single file:
+# Execute a skill:
 > lint_cc.py --files "file.py" --skill coding.fix_inline
 
-# Execute a rule on a single file using one of these formats:
-# - Full path (path:line:header format with header validation)
-#   ```
-#   --rule ".claude/skills/coding.rules.md:58:## Mark Private Functions"
-#   ```
-# - Line number only (extracts the section starting at that line)
-#   ```
-#   --rule ".claude/skills/coding.rules.md:58"
-#   ```
-# - Keyword search: (searches for unique matching rule using rigrule)
-#   ```
-#   --rule "dassert"
-#   ```
-> lint_cc.py --rule ".claude/skills/coding.rules.md:58:## Mark Private Functions" --files "file.py"
-
-# Apply rules incrementally (one H1 section per Claude Code interaction):
-# This sends rules sequentially, allowing Claude to refine the file after each rule
-> lint_cc.py --files "test_foo.py" --apply_incrementally
-
-# Preview incremental messages without sending to Claude:
-> lint_cc.py --files "test_foo.py" --apply_incrementally --dry_run
-
-# Print the command without executing:
+# Print command without executing:
 > lint_cc.py --files "*.md" --dry_run
-
-# Run with debug logging:
-> lint_cc.py --files "*.py" -v DEBUG
 """
 
 import argparse
 import logging
 import os
-import subprocess
 from typing import cast, Dict, Tuple
 
 from tqdm import tqdm
@@ -82,6 +52,11 @@ import helpers.hsystem as hsystem
 
 
 _LOG = logging.getLogger(__name__)
+
+
+# #############################################################################
+# Low-level Utility Functions
+# #############################################################################
 
 
 def _get_rules_for_topic(topic: str) -> Dict:
@@ -250,6 +225,11 @@ def _extract_h1_sections(rule_file: str) -> list:
     return sections
 
 
+# #############################################################################
+# Prompt Building
+# #############################################################################
+
+
 def _build_prompt(topic: str) -> Tuple[str, Dict]:
     """
     Build a Claude Code prompt for the given skill.
@@ -280,6 +260,66 @@ def _build_prompt(topic: str) -> Tuple[str, Dict]:
     )
     txt = "\n".join(prompt_parts)
     return txt, topic_info
+
+
+# #############################################################################
+# Execution
+# #############################################################################
+
+
+def _run_claude_code(
+    prompt: str,
+    topic: str,
+    file_path: str,
+    dry_run: bool,
+    model: str,
+) -> int:
+    """
+    Run Claude Code with the given prompt via the cc wrapper.
+
+    Delegates to `dev_scripts_helpers/ai/cc` which handles model routing
+    (OpenRouter vs direct Anthropic) and environment variable setup.
+
+    :param prompt: Claude Code prompt
+    :param topic: Topic for logging purposes
+    :param file_path: File to process
+    :param dry_run: If True, print command but don't execute
+    :param model: Model to use for Claude invocation
+    :return: Return code (0 on success, or subprocess return code)
+    """
+    hdbg.dassert_file_exists(file_path)
+    _LOG.info("Using model: %s", model)
+    _LOG.info("\n%s\n%s", hprint.frame("Prompt (%s):") % topic, prompt)
+    prompt_file = "tmp.lint_cc.prompt.txt"
+    hio.to_file(prompt_file, prompt)
+    # Call the cc wrapper which handles model routing and env setup.
+    _CC_WRAPPER = hgit.find_file(
+        "cc", dir_path=os.path.join(os.path.dirname(__file__), "..")
+    )
+    # Tee the output through extract_cc_log2.py for formatting.
+    _EXTRACT_LOG = hgit.find_file(
+        "extract_cc_log2.py",
+        dir_path=os.path.join(
+            os.path.dirname(__file__), "..", "dev_scripts_helpers", "ai"
+        ),
+    )
+    cmd = [
+        _CC_WRAPPER,
+        "-p",
+        f"Execute the file {prompt_file}",
+    ]
+    cmd = " ".join(cmd) + f" | {_EXTRACT_LOG}"
+    _LOG.info("Claude command: %s", cmd)
+    if dry_run:
+        _LOG.info("Dry run: command not executed")
+        return 0
+    hsystem.system(cmd)
+    return 0
+
+
+# #############################################################################
+# File Processing
+# #############################################################################
 
 
 def _process_file_incrementally(
@@ -336,7 +376,9 @@ def _process_file_incrementally(
     # First message: template
     messages.append(template_message)
     # Second message: target file specification
-    target_message = f"You will apply the rules that I will give you to {file_path}"
+    target_message = (
+        f"You will apply the rules that I will give you to {file_path}"
+    )
     messages.append(target_message)
     # Subsequent messages: one per H1 section
     for _, section_content in all_sections:
@@ -349,7 +391,11 @@ def _process_file_incrementally(
         _LOG.warning("Dry Run - Messages to be sent:")
         for idx, msg in enumerate(messages, 1):
             msg_preview = msg[:200] + "..." if len(msg) > 200 else msg
-            _LOG.info("\n%s\n%s", hprint.frame(f"Message {idx}/{len(messages)}:"), msg_preview)
+            _LOG.info(
+                "\n%s\n%s",
+                hprint.frame(f"Message {idx}/{len(messages)}:"),
+                msg_preview,
+            )
         return 0
     # Execute messages sequentially with cc wrapper.
     _LOG.info("Executing %d messages sequentially", len(messages))
@@ -366,56 +412,6 @@ def _process_file_incrementally(
             _LOG.error("Message %d failed with return code %d", idx, rc)
             return rc
     return 0
-
-
-def _run_claude_code(
-    prompt: str,
-    topic: str,
-    file_path: str,
-    dry_run: bool,
-    model: str,
-) -> int:
-    """
-    Run Claude Code with the given prompt via the cc wrapper.
-
-    Delegates to `dev_scripts_helpers/ai/cc` which handles model routing
-    (OpenRouter vs direct Anthropic) and environment variable setup.
-
-    :param prompt: Claude Code prompt
-    :param topic: Topic for logging purposes
-    :param file_path: File to process
-    :param dry_run: If True, print command but don't execute
-    :param model: Model to use for Claude invocation
-    :return: Return code (0 on success, or subprocess return code)
-    """
-    hdbg.dassert_file_exists(file_path)
-    _LOG.info("Using model: %s", model)
-    _LOG.info("\n%s\n%s", hprint.frame("Prompt (%s):") % topic, prompt)
-    prompt_file = "tmp.lint_cc.prompt.txt"
-    hio.to_file(prompt_file, prompt)
-    # Call the cc wrapper which handles model routing and env setup.
-    _CC_WRAPPER = hgit.find_file(
-        "cc", dir_path=os.path.join(os.path.dirname(__file__), "..")
-    )
-    cmd_parts = [
-        _CC_WRAPPER,
-        #"--model",
-        #model,
-        "-p",
-        f"'Execute the file {prompt_file}'",
-    ]
-    # Tee the output through extract_cc_log2.py for formatting.
-    _EXTRACT_LOG = hgit.find_file(
-        "extract_cc_log2.py",
-        dir_path=os.path.join(os.path.dirname(__file__), "..", "dev_scripts_helpers", "ai"),
-    )
-    cmd = " ".join(cmd_parts) + f" | {_EXTRACT_LOG}"
-    _LOG.info("Claude command: %s", cmd)
-    if dry_run:
-        _LOG.info("Dry run: command not executed")
-        return 0
-    result = subprocess.run(cmd, shell=True)
-    return result.returncode
 
 
 def _process_file(
@@ -453,9 +449,7 @@ def _process_file(
     elif args.rule:
         _LOG.debug("Executing rigrule: %s", args.rule)
         rule_content = hmarsele.extract_rule_from_file(args.rule)
-        prompt = (
-            f"Execute the rule below on file {file_path}:\n\n{rule_content}"
-        )
+        prompt = f"Execute the rule below on file {file_path}:\n\n{rule_content}"
         topic_str = "rule"
         inferred_topic = _infer_topic_from_filename(file_path)
         topic_info = _get_rules_for_topic(inferred_topic)

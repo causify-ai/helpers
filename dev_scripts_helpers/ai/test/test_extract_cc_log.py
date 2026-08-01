@@ -22,11 +22,15 @@ class Test_extract_statistics(hunitest.TestCase):
     """
 
     def _get_sample_input_file(self) -> str:
-        """Get path to sample CC log file."""
+        """
+        Get path to sample CC log file.
+        """
         return os.path.join(self.get_input_dir(), "sample_cc_log.txt")
 
     def _parse_sample_records(self, input_file: str) -> List[Dict[str, Any]]:
-        """Parse records from sample input file."""
+        """
+        Parse records from sample input file.
+        """
         return dshaecclo._parse_records(input_file)
 
     def test1(self) -> None:
@@ -63,11 +67,15 @@ class Test_parse_records(hunitest.TestCase):
     """
 
     def _get_sample_input_file(self) -> str:
-        """Get path to sample CC log file."""
+        """
+        Get path to sample CC log file.
+        """
         return os.path.join(self.get_input_dir(), "sample_cc_log.txt")
 
     def _parse_sample_records(self, input_file: str) -> List[Dict[str, Any]]:
-        """Parse records from sample input file."""
+        """
+        Parse records from sample input file.
+        """
         return dshaecclo._parse_records(input_file)
 
     def test1(self) -> None:
@@ -117,11 +125,15 @@ class Test_extract_requests(hunitest.TestCase):
     """
 
     def _get_sample_input_file(self) -> str:
-        """Get path to sample CC log file."""
+        """
+        Get path to sample CC log file.
+        """
         return os.path.join(self.get_input_dir(), "sample_cc_log.txt")
 
     def _parse_sample_records(self, input_file: str) -> List[Dict[str, Any]]:
-        """Parse records from sample input file."""
+        """
+        Parse records from sample input file.
+        """
         return dshaecclo._parse_records(input_file)
 
     def test1(self) -> None:
@@ -160,11 +172,15 @@ class Test_extract_assistant_text_blocks(hunitest.TestCase):
     """
 
     def _get_sample_input_file(self) -> str:
-        """Get path to sample CC log file."""
+        """
+        Get path to sample CC log file.
+        """
         return os.path.join(self.get_input_dir(), "sample_cc_log.txt")
 
     def _parse_sample_records(self, input_file: str) -> List[Dict[str, Any]]:
-        """Parse records from sample input file."""
+        """
+        Parse records from sample input file.
+        """
         return dshaecclo._parse_records(input_file)
 
     def test1(self) -> None:
@@ -201,11 +217,15 @@ class Test_extract_thinking_blocks(hunitest.TestCase):
     """
 
     def _get_sample_input_file(self) -> str:
-        """Get path to sample CC log file."""
+        """
+        Get path to sample CC log file.
+        """
         return os.path.join(self.get_input_dir(), "sample_cc_log.txt")
 
     def _parse_sample_records(self, input_file: str) -> List[Dict[str, Any]]:
-        """Parse records from sample input file."""
+        """
+        Parse records from sample input file.
+        """
         return dshaecclo._parse_records(input_file)
 
     def test1(self) -> None:
@@ -254,7 +274,9 @@ class Test_extract_cc_log_py(hunitest.TestCase):
     """
 
     def _get_sample_input_file(self) -> str:
-        """Get path to sample CC log file."""
+        """
+        Get path to sample CC log file.
+        """
         return os.path.join(self.get_input_dir(), "sample_cc_log.txt")
 
     def _setup_test_input_file(

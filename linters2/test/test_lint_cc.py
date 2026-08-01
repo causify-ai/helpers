@@ -1,3 +1,4 @@
+import os
 import tempfile
 
 import linters2.lint_cc as llincc
@@ -361,7 +362,6 @@ More content
             self.assertIn("Content for section 1", sections[0][1])
             self.assertIn("Content for section 2", sections[1][1])
         finally:
-            import os
             os.unlink(temp_file)
 
     def test2(self) -> None:
@@ -409,5 +409,4 @@ Line 4
             self.assertIn("Line 3", sections[0][1])
             self.assertIn("Line 4", sections[1][1])
         finally:
-            import os
             os.unlink(temp_file)

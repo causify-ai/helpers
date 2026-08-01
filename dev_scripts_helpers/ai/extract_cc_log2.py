@@ -36,7 +36,11 @@ for line in sys.stdin:
                             first_delta["thinking"] = False
                         else:
                             print()  # blank line between blocks
-                        print(f"\n{GRAY}=== THINKING ==={RESET}\n", end="", flush=True)
+                        print(
+                            f"\n{GRAY}=== THINKING ==={RESET}\n",
+                            end="",
+                            flush=True,
+                        )
                         current_type = "thinking"
 
                     content = delta.get("thinking", "")
@@ -48,7 +52,11 @@ for line in sys.stdin:
                             first_delta["text"] = False
                         else:
                             print()  # blank line between blocks
-                        print(f"\n{WHITE}=== ASSISTANT ==={RESET}\n", end="", flush=True)
+                        print(
+                            f"\n{WHITE}=== ASSISTANT ==={RESET}\n",
+                            end="",
+                            flush=True,
+                        )
                         current_type = "text"
 
                     content = delta.get("text", "")

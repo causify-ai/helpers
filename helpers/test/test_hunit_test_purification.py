@@ -23,11 +23,11 @@ _LOG = logging.getLogger(__name__)
 
 
 # #############################################################################
-# Test_purify_text1
+# Test_purify_txt_from_client
 # #############################################################################
 
 
-class Test_purify_text1(hunitest.TestCase):
+class Test_purify_txt_from_client(hunitest.TestCase):
     """
     Test `hunit_test_purification.purify_txt_from_client()` function.
     """
@@ -299,13 +299,29 @@ class Test_purify_text1(hunitest.TestCase):
         # Run test.
         self.helper(txt, expected)
 
+    def test14(self) -> None:
+        """
+        Test with empty string input.
+        """
+        txt = ""
+        expected = ""
+        self.helper(txt, expected)
+
+    def test15(self) -> None:
+        """
+        Test with single character input.
+        """
+        txt = "a"
+        expected = "a"
+        self.helper(txt, expected)
+
 
 # #############################################################################
-# Test_purify_directory_paths1
+# Test_purify_directory_paths
 # #############################################################################
 
 
-class Test_purify_directory_paths1(hunitest.TestCase):
+class Test_purify_directory_paths(hunitest.TestCase):
     """
     Test `hunit_test_purification.purify_directory_paths()` function.
     """
@@ -410,13 +426,29 @@ class Test_purify_directory_paths1(hunitest.TestCase):
             input_, expected, env_vars, git_root
         )
 
+    def test5(self) -> None:
+        """
+        Test with empty string input.
+        """
+        input_ = ""
+        expected = ""
+        self.helper(input_, expected)
+
+    def test6(self) -> None:
+        """
+        Test with single character input.
+        """
+        input_ = "a"
+        expected = "a"
+        self.helper(input_, expected)
+
 
 # #############################################################################
-# Test_purify_from_environment1
+# Test_purify_from_environment
 # #############################################################################
 
 
-class Test_purify_from_environment1(hunitest.TestCase):
+class Test_purify_from_environment(hunitest.TestCase):
     """
     Test `hunit_test_purification.purify_from_environment()` function.
     """
@@ -428,15 +460,14 @@ class Test_purify_from_environment1(hunitest.TestCase):
         :param input_: Input string to purify
         :param expected: Expected output
         """
+        # Prepare inputs.
+        hsystem.set_user_name("root")
         try:
-            # Prepare inputs.
-            hsystem.set_user_name("root")
             # Run test.
             actual = huntepur.purify_from_environment(input_)
             # Check outputs.
             self.assert_equal(actual, expected, fuzzy_match=True)
         finally:
-            # Reset the global user name variable regardless of test results.
             hsystem.set_user_name(None)
 
     def test1(self) -> None:
@@ -464,13 +495,23 @@ class Test_purify_from_environment1(hunitest.TestCase):
         expected = "out_col_groups: [('root_q_mv',), ('root_q_mv_adj',), ('root_q_mv_os',)]"
         self.helper(input_, expected)
 
+    def test6(self) -> None:
+        input_ = ""
+        expected = ""
+        self.helper(input_, expected)
+
+    def test7(self) -> None:
+        input_ = "a"
+        expected = "a"
+        self.helper(input_, expected)
+
 
 # #############################################################################
-# Test_purify_amp_reference1
+# Test_purify_amp_references
 # #############################################################################
 
 
-class Test_purify_amp_reference1(hunitest.TestCase):
+class Test_purify_amp_references(hunitest.TestCase):
     """
     Test `hunit_test_purification.purify_amp_references()` function.
     """
@@ -484,10 +525,10 @@ class Test_purify_amp_reference1(hunitest.TestCase):
         """
         # Prepare inputs.
         txt = hprint.dedent(txt)
-        # Run test.
-        actual = huntepur.purify_amp_references(txt)
         # Prepare outputs.
         expected = hprint.dedent(expected)
+        # Run test.
+        actual = huntepur.purify_amp_references(txt)
         # Check outputs.
         self.assert_equal(actual, expected)
 
@@ -611,13 +652,29 @@ class Test_purify_amp_reference1(hunitest.TestCase):
         """
         self.helper(txt, expected)
 
+    def test10(self) -> None:
+        """
+        Test with empty string input.
+        """
+        txt = ""
+        expected = ""
+        self.helper(txt, expected)
+
+    def test11(self) -> None:
+        """
+        Test with single character input.
+        """
+        txt = "a"
+        expected = "a"
+        self.helper(txt, expected)
+
 
 # #############################################################################
-# Test_purify_app_references1
+# Test_purify_app_references
 # #############################################################################
 
 
-class Test_purify_app_references1(hunitest.TestCase):
+class Test_purify_app_references(hunitest.TestCase):
     """
     Test `hunit_test_purification.purify_app_references()` function.
     """
@@ -629,6 +686,7 @@ class Test_purify_app_references1(hunitest.TestCase):
         :param txt: Input text to purify
         :param expected: Expected output
         """
+        # Prepare inputs.
         # Run test.
         actual = huntepur.purify_app_references(txt)
         # Check outputs.
@@ -715,13 +773,29 @@ class Test_purify_app_references1(hunitest.TestCase):
         """
         self.helper(txt, expected)
 
+    def test9(self) -> None:
+        """
+        Test with empty string input.
+        """
+        txt = ""
+        expected = ""
+        self.helper(txt, expected)
+
+    def test10(self) -> None:
+        """
+        Test with single character input.
+        """
+        txt = "a"
+        expected = "a"
+        self.helper(txt, expected)
+
 
 # #############################################################################
-# Test_purify_super_module_references1
+# Test_purify_super_module_references
 # #############################################################################
 
 
-class Test_purify_super_module_references1(hunitest.TestCase):
+class Test_purify_super_module_references(hunitest.TestCase):
     """
     Test `hunit_test_purification.purify_super_module_references()` function.
     """
@@ -734,7 +808,6 @@ class Test_purify_super_module_references1(hunitest.TestCase):
         :param txt: Input text to purify
         :param expected: Expected output
         """
-        # Prepare inputs.
         # Run test.
         with umock.patch(
             "helpers.hgit.get_client_root", return_value=super_module_root
@@ -837,6 +910,24 @@ class Test_purify_super_module_references1(hunitest.TestCase):
         # Run test.
         self.helper(super_module_root, txt, expected)
 
+    def test8(self) -> None:
+        """
+        Test with empty string input.
+        """
+        super_module_root = "/Users/user/src/csfy1"
+        txt = ""
+        expected = ""
+        self.helper(super_module_root, txt, expected)
+
+    def test9(self) -> None:
+        """
+        Test with single character input.
+        """
+        super_module_root = "/Users/user/src/csfy1"
+        txt = "a"
+        expected = "a"
+        self.helper(super_module_root, txt, expected)
+
 
 # #############################################################################
 # Test_purify_from_env_vars
@@ -878,33 +969,12 @@ class Test_purify_from_env_vars(hunitest.TestCase):
         self.helper(env_var)
 
 
-# TODO(gp): HelpersTask1
-#    @pytest.mark.skipif(
-#        not hrecouti.get_repo_config().get_name() == "//cmamp",
-#        reason="Run only in //cmamp",
-#    )
-#    def test_end_to_end(self) -> None:
-#        """
-#        - Multiple env vars.
-#        """
-#        #am_aws_s3_bucket = os.environ["AM_AWS_S3_BUCKET"]
-#        csfy_aws_s3_bucket = os.environ["CSFY_AWS_S3_BUCKET"]
-#        #
-#        text = f"""
-#        $AM_AWS_S3_BUCKET = {am_aws_s3_bucket}
-#        $CSFY_AWS_S3_BUCKET = {csfy_aws_s3_bucket}
-#        """
-#        #
-#        actual = huntepur.purify_from_env_vars(text)
-#        self.check_string(actual, fuzzy_match=True)
-
-
 # #############################################################################
-# Test_purify_object_representation1
+# Test_purify_object_representation
 # #############################################################################
 
 
-class Test_purify_object_representation1(hunitest.TestCase):
+class Test_purify_object_representation(hunitest.TestCase):
     """
     Test `hunit_test_purification.purify_object_representation()` function.
     """
@@ -918,10 +988,10 @@ class Test_purify_object_representation1(hunitest.TestCase):
         """
         # Prepare inputs.
         txt = hprint.dedent(txt)
-        # Run test.
-        actual = huntepur.purify_object_representation(txt)
         # Prepare outputs.
         expected = hprint.dedent(expected)
+        # Run test.
+        actual = huntepur.purify_object_representation(txt)
         # Check outputs.
         self.assert_equal(actual, expected)
 
@@ -1016,13 +1086,29 @@ class Test_purify_object_representation1(hunitest.TestCase):
         expected = " ".join(hprint.dedent(expected).split("\n"))
         self.helper(txt, expected)
 
+    def test5(self) -> None:
+        """
+        Test with empty string input.
+        """
+        txt = ""
+        expected = ""
+        self.helper(txt, expected)
+
+    def test6(self) -> None:
+        """
+        Test with single character input.
+        """
+        txt = "a"
+        expected = "a"
+        self.helper(txt, expected)
+
 
 # #############################################################################
-# Test_purify_today_date1
+# Test_purify_today_date
 # #############################################################################
 
 
-class Test_purify_today_date1(hunitest.TestCase):
+class Test_purify_today_date(hunitest.TestCase):
     """
     Test `hunit_test_purification.purify_today_date()` function.
     """
@@ -1034,6 +1120,7 @@ class Test_purify_today_date1(hunitest.TestCase):
         :param txt: Input text to purify
         :param expected: Expected output
         """
+        # Prepare inputs.
         # Run test.
         actual = huntepur.purify_today_date(txt)
         # Check outputs.
@@ -1087,13 +1174,29 @@ class Test_purify_today_date1(hunitest.TestCase):
         """
         self.helper(txt, expected)
 
+    def test4(self) -> None:
+        """
+        Test with empty string input.
+        """
+        txt = ""
+        expected = ""
+        self.helper(txt, expected)
+
+    def test5(self) -> None:
+        """
+        Test with single character input.
+        """
+        txt = "a"
+        expected = "a"
+        self.helper(txt, expected)
+
 
 # #############################################################################
-# Test_purify_white_spaces1
+# Test_purify_white_spaces
 # #############################################################################
 
 
-class Test_purify_white_spaces1(hunitest.TestCase):
+class Test_purify_white_spaces(hunitest.TestCase):
     """
     Test `hunit_test_purification.purify_white_spaces()` function.
     """
@@ -1105,6 +1208,7 @@ class Test_purify_white_spaces1(hunitest.TestCase):
         :param txt: Input text to purify
         :param expected: Expected output
         """
+        # Prepare inputs.
         # Run test.
         actual = huntepur.purify_white_spaces(txt)
         # Check outputs.
@@ -1142,13 +1246,29 @@ class Test_purify_white_spaces1(hunitest.TestCase):
         expected = "Line 1    with    spaces\nLine 2\twith\ttabs\n"
         self.helper(txt, expected)
 
+    def test5(self) -> None:
+        """
+        Test with empty string input.
+        """
+        txt = ""
+        expected = ""
+        self.helper(txt, expected)
+
+    def test6(self) -> None:
+        """
+        Test with single line no trailing spaces.
+        """
+        txt = "Line with no trailing spaces"
+        expected = "Line with no trailing spaces\n"
+        self.helper(txt, expected)
+
 
 # #############################################################################
-# Test_purify_parquet_file_names1
+# Test_purify_parquet_file_names
 # #############################################################################
 
 
-class Test_purify_parquet_file_names1(hunitest.TestCase):
+class Test_purify_parquet_file_names(hunitest.TestCase):
     """
     Test `hunit_test_purification.purify_parquet_file_names()` function.
     """
@@ -1160,6 +1280,7 @@ class Test_purify_parquet_file_names1(hunitest.TestCase):
         :param txt: Input text to purify
         :param expected: Expected output
         """
+        # Prepare inputs.
         # Run test.
         actual = huntepur.purify_parquet_file_names(txt)
         # Check outputs.
@@ -1194,13 +1315,29 @@ class Test_purify_parquet_file_names1(hunitest.TestCase):
         """
         self.helper(txt, expected)
 
+    def test3(self) -> None:
+        """
+        Test with empty string input.
+        """
+        txt = ""
+        expected = ""
+        self.helper(txt, expected)
+
+    def test4(self) -> None:
+        """
+        Test with string containing no parquet files.
+        """
+        txt = "some random text"
+        expected = "some random text"
+        self.helper(txt, expected)
+
 
 # #############################################################################
-# Test_purify_helpers1
+# Test_purify_helpers
 # #############################################################################
 
 
-class Test_purify_helpers1(hunitest.TestCase):
+class Test_purify_helpers(hunitest.TestCase):
     """
     Test `hunit_test_purification.purify_helpers()` function.
     """
@@ -1212,6 +1349,7 @@ class Test_purify_helpers1(hunitest.TestCase):
         :param txt: Input text to purify
         :param expected: Expected output
         """
+        # Prepare inputs.
         # Run test.
         actual = huntepur.purify_helpers(txt)
         # Check outputs.
@@ -1285,13 +1423,29 @@ class Test_purify_helpers1(hunitest.TestCase):
         """
         self.helper(txt, expected)
 
+    def test5(self) -> None:
+        """
+        Test with empty string input.
+        """
+        txt = ""
+        expected = ""
+        self.helper(txt, expected)
+
+    def test6(self) -> None:
+        """
+        Test with single character input.
+        """
+        txt = "a"
+        expected = "a"
+        self.helper(txt, expected)
+
 
 # #############################################################################
-# Test_purify_docker_image_name1
+# Test_purify_docker_image_name
 # #############################################################################
 
 
-class Test_purify_docker_image_name1(hunitest.TestCase):
+class Test_purify_docker_image_name(hunitest.TestCase):
     """
     Test `hunit_test_purification.purify_docker_image_name()` function.
     """
@@ -1347,13 +1501,31 @@ class Test_purify_docker_image_name1(hunitest.TestCase):
         # Check outputs.
         self.assert_equal(actual, expected, fuzzy_match=True)
 
+    def test4(self) -> None:
+        """
+        Test with empty string input.
+        """
+        txt = ""
+        expected = ""
+        actual = huntepur.purify_docker_image_name(txt)
+        self.assert_equal(actual, expected)
+
+    def test5(self) -> None:
+        """
+        Test with single character input.
+        """
+        txt = "a"
+        expected = "a"
+        actual = huntepur.purify_docker_image_name(txt)
+        self.assert_equal(actual, expected)
+
 
 # #############################################################################
-# Test_purify_docker_cmd1
+# Test_purify_docker_cmd
 # #############################################################################
 
 
-class Test_purify_docker_cmd1(hunitest.TestCase):
+class Test_purify_docker_cmd(hunitest.TestCase):
     """
     Test normalization of `docker run` / `container run` commands.
     """
@@ -1365,6 +1537,7 @@ class Test_purify_docker_cmd1(hunitest.TestCase):
         :param txt: Input docker command to normalize
         :param expected: Expected output
         """
+        # Prepare inputs.
         # Run test.
         actual = huntepur.purify_docker_cmd(txt)
         # Check outputs.
@@ -1445,13 +1618,29 @@ class Test_purify_docker_cmd1(hunitest.TestCase):
         expected = txt
         self.helper(txt, expected)
 
+    def test6(self) -> None:
+        """
+        Test with empty string input.
+        """
+        txt = ""
+        expected = ""
+        self.helper(txt, expected)
+
+    def test7(self) -> None:
+        """
+        Test with single character input.
+        """
+        txt = "a"
+        expected = "a"
+        self.helper(txt, expected)
+
 
 # #############################################################################
-# Test_purify_line_number1
+# Test_purify_line_number
 # #############################################################################
 
 
-class Test_purify_line_number1(hunitest.TestCase):
+class Test_purify_line_number(hunitest.TestCase):
     """
     Test `hunit_test_purification.purify_line_number()` function.
     """
@@ -1477,13 +1666,31 @@ class Test_purify_line_number1(hunitest.TestCase):
         # Check outputs.
         self.assert_equal(actual, expected, fuzzy_match=True)
 
+    def test2(self) -> None:
+        """
+        Test with empty string input.
+        """
+        txt = ""
+        expected = ""
+        actual = huntepur.purify_line_number(txt)
+        self.assert_equal(actual, expected)
+
+    def test3(self) -> None:
+        """
+        Test with single character input.
+        """
+        txt = "a"
+        expected = "a"
+        actual = huntepur.purify_line_number(txt)
+        self.assert_equal(actual, expected)
+
 
 # #############################################################################
-# Test_purify_file_names1
+# Test_purify_file_names
 # #############################################################################
 
 
-class Test_purify_file_names1(hunitest.TestCase):
+class Test_purify_file_names(hunitest.TestCase):
     """
     Test `hunit_test_purification.purify_file_names()` function.
     """
@@ -1503,9 +1710,7 @@ class Test_purify_file_names1(hunitest.TestCase):
         """
         # Prepare inputs.
         # Run test.
-        with umock.patch(
-            "helpers.hgit.get_client_root", return_value=git_root
-        ):
+        with umock.patch("helpers.hgit.get_client_root", return_value=git_root):
             actual = huntepur.purify_file_names(file_names)
         # Prepare outputs.
         actual_str = "\n".join(str(path) for path in actual)
@@ -1578,11 +1783,11 @@ class Test_purify_file_names1(hunitest.TestCase):
 
 
 # #############################################################################
-# Test_purify_apple_container_output1
+# Test_purify_apple_container_output
 # #############################################################################
 
 
-class Test_purify_apple_container_output1(hunitest.TestCase):
+class Test_purify_apple_container_output(hunitest.TestCase):
     """
     Test `hunit_test_purification.purify_apple_container_output()` function.
     """
@@ -1594,6 +1799,7 @@ class Test_purify_apple_container_output1(hunitest.TestCase):
         :param txt: Input text to purify
         :param expected: Expected output
         """
+        # Prepare inputs.
         # Run test.
         actual = huntepur.purify_apple_container_output(txt)
         # Check outputs.
