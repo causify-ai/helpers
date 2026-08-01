@@ -1,6 +1,4 @@
-Extend extract_cc_log.py to accept --input - and --output - for stdin and stdout
-There are functions in helpers to handle that, so use them
-
+Extend lint_cc.py to apply the r
 
 # Conventions
 - When writing code you must always follow the instructions in

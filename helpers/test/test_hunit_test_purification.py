@@ -28,6 +28,10 @@ _LOG = logging.getLogger(__name__)
 
 
 class Test_purify_text1(hunitest.TestCase):
+    """
+    Test `hunit_test_purification.purify_txt_from_client()` function.
+    """
+
     def helper(self, txt: str, expected: str, **kwargs: Any) -> None:
         actual = huntepur.purify_txt_from_client(txt)
         self.assert_equal(actual, expected, **kwargs)
@@ -44,36 +48,59 @@ class Test_purify_text1(hunitest.TestCase):
             self.helper(txt, expected)
 
     def test1(self) -> None:
+        """
+        Test removing 'amp/' prefix from file paths.
+        """
+        # Prepare inputs.
         txt = "amp/helpers/test/test_system_interaction.py"
+        # Prepare outputs.
         expected = "helpers/test/test_system_interaction.py"
+        # Run test.
         self.helper(txt, expected)
 
     def test2(self) -> None:
+        """
+        Test removing 'amp/' prefix (duplicate test).
+        """
+        # Prepare inputs.
         txt = "amp/helpers/test/test_system_interaction.py"
+        # Prepare outputs.
         expected = "helpers/test/test_system_interaction.py"
+        # Run test.
         self.helper(txt, expected)
 
     def test3(self) -> None:
+        """
+        Test removing 'amp/' prefix from list of file paths.
+        """
+        # Prepare inputs.
         txt = "['amp/helpers/test/test_system_interaction.py']"
+        # Prepare outputs.
         expected = "['helpers/test/test_system_interaction.py']"
+        # Run test.
         self.helper(txt, expected)
 
     def test4(self) -> None:
+        """
+        Test removing 'app.' prefix from dotted module paths.
+        """
+        # Prepare inputs.
         txt = "app.helpers.test.test_system_interaction.py"
+        # Prepare outputs.
         expected = "helpers.test.test_system_interaction.py"
+        # Run test.
         self.helper(txt, expected)
 
-    # TODO(ai_gp): Factor out more code in an helper function
-    # git_root = hgit.get_client_root(super_module=False)
-    # txt = os.path.join(git_root, "src/file.py")
-    # and simplify the code below
     def test5(self) -> None:
         """
         Test that longer paths are processed before shorter ones using real paths.
         """
+        # Prepare inputs.
         git_root = hgit.get_client_root(super_module=False)
         txt = os.path.join(git_root, "src/file.py")
+        # Prepare outputs.
         expected = "$GIT_ROOT/src/file.py"
+        # Run test.
         self.helper_with_git_root_mocking(txt, expected)
 
     def test6(self) -> None:
@@ -81,9 +108,12 @@ class Test_purify_text1(hunitest.TestCase):
         Test that paths with multiple occurrences of the same pattern are
         processed correctly using real paths.
         """
+        # Prepare inputs.
         git_root = hgit.get_client_root(super_module=False)
         txt = os.path.join(git_root, "src/project/file.py")
+        # Prepare outputs.
         expected = "$GIT_ROOT/src/project/file.py"
+        # Run test.
         self.helper_with_git_root_mocking(txt, expected)
 
     def test7(self) -> None:
@@ -91,9 +121,12 @@ class Test_purify_text1(hunitest.TestCase):
         Test that paths with multiple patterns are processed in the correct
         order using real pwd.
         """
+        # Prepare inputs.
         git_root = hgit.get_client_root(super_module=False)
         txt = os.path.join(git_root, "src/project/file.py")
+        # Prepare outputs.
         expected = "$GIT_ROOT/src/project/file.py"
+        # Run test.
         self.helper_with_git_root_mocking(txt, expected)
 
     def test8(self) -> None:
@@ -110,8 +143,11 @@ class Test_purify_text1(hunitest.TestCase):
             self.helper(txt, expected)
 
     def test9(self) -> None:
+        """
+        Test purification of pylint/flake8/mypy output with $SUPER_MODULE paths.
+        """
+        # Prepare inputs.
         super_module_path = hgit.get_client_root(super_module=True)
-        # TODO(gp): We should remove the current path.
         # pylint: disable=line-too-long
         txt = r"""
         ************* Module input [pylint]
@@ -125,6 +161,8 @@ class Test_purify_text1(hunitest.TestCase):
         """
         txt = hprint.dedent(txt)
         txt = txt.replace("$SUPER_MODULE", super_module_path)
+        # pylint: enable=line-too-long
+        # Prepare outputs.
         expected = r"""
         ************* Module input [pylint]
         $GIT_ROOT/dev_scripts/test/Test_linter_py1.test_linter1/tmp.scratch/input.py: Your code has been rated at -10.00/10 (previous run: -10.00/10, +0.00) [pylint]
@@ -135,7 +173,7 @@ class Test_purify_text1(hunitest.TestCase):
         dev_scripts/test/Test_linter_py1.test_linter1/tmp.scratch/input.py:3: [W1401(anomalous-backslash-in-string), ] Anomalous backslash in string: '\s'. String constant might be missing an r prefix. [pylint]
         dev_scripts/test/Test_linter_py1.test_linter1/tmp.scratch/input.py:3: error: Name 're' is not defined [mypy]
         """
-        # pylint: enable=line-too-long
+        # Run test.
         self.helper(txt, expected, dedent=True)
 
     def test10(self) -> None:
@@ -245,6 +283,10 @@ class Test_purify_text1(hunitest.TestCase):
 
 
 class Test_purify_directory_paths1(hunitest.TestCase):
+    """
+    Test `hunit_test_purification.purify_directory_paths()` function.
+    """
+
     def helper(self, input_: str, expected: str) -> None:
         actual = huntepur.purify_directory_paths(input_)
         self.assert_equal(actual, expected, fuzzy_match=True)
@@ -343,6 +385,10 @@ class Test_purify_directory_paths1(hunitest.TestCase):
 
 
 class Test_purify_from_environment1(hunitest.TestCase):
+    """
+    Test `hunit_test_purification.purify_from_environment()` function.
+    """
+
     def helper(self, input_: str, expected: str) -> None:
         try:
             # Manually set a user name to test the behaviour.
@@ -386,6 +432,10 @@ class Test_purify_from_environment1(hunitest.TestCase):
 
 
 class Test_purify_amp_reference1(hunitest.TestCase):
+    """
+    Test `hunit_test_purification.purify_amp_references()` function.
+    """
+
     def helper(self, txt: str, expected: str) -> None:
         txt = hprint.dedent(txt)
         actual = huntepur.purify_amp_references(txt)
@@ -519,6 +569,10 @@ class Test_purify_amp_reference1(hunitest.TestCase):
 
 
 class Test_purify_app_references1(hunitest.TestCase):
+    """
+    Test `hunit_test_purification.purify_app_references()` function.
+    """
+
     def helper(self, txt: str, expected: str) -> None:
         actual = huntepur.purify_app_references(txt)
         self.assert_equal(actual, expected)
@@ -611,6 +665,10 @@ class Test_purify_app_references1(hunitest.TestCase):
 
 
 class Test_purify_super_module_references1(hunitest.TestCase):
+    """
+    Test `hunit_test_purification.purify_super_module_references()` function.
+    """
+
     def helper(self, super_module_root: str, txt: str, expected: str) -> None:
         with umock.patch(
             "helpers.hgit.get_client_root", return_value=super_module_root
@@ -745,6 +803,10 @@ class Test_purify_from_env_vars(hunitest.TestCase):
 
 
 class Test_purify_object_representation1(hunitest.TestCase):
+    """
+    Test `hunit_test_purification.purify_object_representation()` function.
+    """
+
     def helper(self, txt: str, expected: str) -> None:
         txt = hprint.dedent(txt)
         actual = huntepur.purify_object_representation(txt)
@@ -849,6 +911,10 @@ class Test_purify_object_representation1(hunitest.TestCase):
 
 
 class Test_purify_today_date1(hunitest.TestCase):
+    """
+    Test `hunit_test_purification.purify_today_date()` function.
+    """
+
     def helper(self, txt: str, expected: str) -> None:
         actual = huntepur.purify_today_date(txt)
         self.assert_equal(actual, expected)
@@ -908,6 +974,10 @@ class Test_purify_today_date1(hunitest.TestCase):
 
 
 class Test_purify_white_spaces1(hunitest.TestCase):
+    """
+    Test `hunit_test_purification.purify_white_spaces()` function.
+    """
+
     def helper(self, txt: str, expected: str) -> None:
         actual = huntepur.purify_white_spaces(txt)
         self.assert_equal(actual, expected)
@@ -951,6 +1021,10 @@ class Test_purify_white_spaces1(hunitest.TestCase):
 
 
 class Test_purify_parquet_file_names1(hunitest.TestCase):
+    """
+    Test `hunit_test_purification.purify_parquet_file_names()` function.
+    """
+
     def helper(self, txt: str, expected: str) -> None:
         actual = huntepur.purify_parquet_file_names(txt)
         self.assert_equal(actual, expected)
@@ -991,6 +1065,10 @@ class Test_purify_parquet_file_names1(hunitest.TestCase):
 
 
 class Test_purify_helpers1(hunitest.TestCase):
+    """
+    Test `hunit_test_purification.purify_helpers()` function.
+    """
+
     def helper(self, txt: str, expected: str) -> None:
         actual = huntepur.purify_helpers(txt)
         self.assert_equal(actual, expected)
@@ -1070,40 +1148,59 @@ class Test_purify_helpers1(hunitest.TestCase):
 
 
 class Test_purify_docker_image_name1(hunitest.TestCase):
+    """
+    Test `hunit_test_purification.purify_docker_image_name()` function.
+    """
+
     def test1(self) -> None:
+        """
+        Test replacing hex container ID with $CONTAINER_ID placeholder.
+        """
+        # Prepare inputs.
         txt = r"""
         docker run --rm --user $(id -u):$(id -g) --workdir $GIT_ROOT --mount type=bind,source=/Users/saggese/src/helpers1,target=$GIT_ROOT tmp.latex.edb567be pdflatex -output-directory
         """
+        # Prepare outputs.
         expected = r"""
         docker run --rm --user $(id -u):$(id -g) --workdir $GIT_ROOT --mount type=bind,source=/Users/saggese/src/helpers1,target=$GIT_ROOT tmp.latex.$CONTAINER_ID pdflatex -output-directory
         """
+        # Run test.
         actual = huntepur.purify_docker_image_name(txt)
+        # Check outputs.
         self.assert_equal(actual, expected, fuzzy_match=True)
 
     def test2(self) -> None:
         """
         Test patterns like `tmp.latex.aarch64.2f590c86.2f590c86`.
         """
+        # Prepare inputs.
         txt = r"""
         docker run --rm --user $(id -u):$(id -g) --workdir $GIT_ROOT --mount type=bind,source=/Users/saggese/src/helpers1,target=$GIT_ROOT tmp.latex.aarch64.2f590c86.2f590c86 pdflatex -output-directory
         """
+        # Prepare outputs.
         expected = r"""
         docker run --rm --user $(id -u):$(id -g) --workdir $GIT_ROOT --mount type=bind,source=/Users/saggese/src/helpers1,target=$GIT_ROOT tmp.latex.$ARCH.$CONTAINER_ID pdflatex -output-directory
         """
+        # Run test.
         actual = huntepur.purify_docker_image_name(txt)
+        # Check outputs.
         self.assert_equal(actual, expected, fuzzy_match=True)
 
     def test3(self) -> None:
         """
         Test the Apple `container` engine executable (instead of `docker`).
         """
+        # Prepare inputs.
         txt = r"""
         container run --rm --user $(id -u):$(id -g) --workdir /app --mount type=bind,source=/Users/saggese/src/helpers1,target=/app tmp.latex.arm64.417056b0 pdflatex -output-directory
         """
+        # Prepare outputs.
         expected = r"""
         container run --rm --user $(id -u):$(id -g) --workdir /app --mount type=bind,source=/Users/saggese/src/helpers1,target=/app tmp.latex.$ARCH.$CONTAINER_ID pdflatex -output-directory
         """
+        # Run test.
         actual = huntepur.purify_docker_image_name(txt)
+        # Check outputs.
         self.assert_equal(actual, expected, fuzzy_match=True)
 
 
@@ -1203,21 +1300,29 @@ class Test_purify_docker_cmd1(hunitest.TestCase):
 
 
 class Test_purify_line_number1(hunitest.TestCase):
+    """
+    Test `hunit_test_purification.purify_line_number()` function.
+    """
+
     def test1(self) -> None:
         """
-        Check that the text is purified from line numbers correctly.
+        Test replacing line numbers in file paths with $LINE_NUMBER placeholder.
         """
+        # Prepare inputs.
         txt = """
         dag_config (marked_as_used=False, writer=None, val_type=config_root.config.config_.Config):
         in_col_groups (marked_as_used=True, writer=$GIT_ROOT/dataflow/system/system_builder_utils.py::286::apply_history_lookback, val_type=list): [('close',), ('volume',)]
         out_col_group (marked_as_used=True, writer=$GIT_ROOT/dataflow/system/system_builder_utils.py::286::apply_history_lookback, val_type=tuple): ()
         """
+        # Prepare outputs.
         expected = r"""
         dag_config (marked_as_used=False, writer=None, val_type=config_root.config.config_.Config):
         in_col_groups (marked_as_used=True, writer=$GIT_ROOT/dataflow/system/system_builder_utils.py::$LINE_NUMBER::apply_history_lookback, val_type=list): [('close',), ('volume',)]
         out_col_group (marked_as_used=True, writer=$GIT_ROOT/dataflow/system/system_builder_utils.py::$LINE_NUMBER::apply_history_lookback, val_type=tuple): ()
         """
+        # Run test.
         actual = huntepur.purify_line_number(txt)
+        # Check outputs.
         self.assert_equal(actual, expected, fuzzy_match=True)
 
 
@@ -1227,6 +1332,10 @@ class Test_purify_line_number1(hunitest.TestCase):
 
 
 class Test_purify_file_names1(hunitest.TestCase):
+    """
+    Test `hunit_test_purification.purify_file_names()` function.
+    """
+
     def helper(self, file_names: List[str], expected: List[str]) -> None:
         actual = huntepur.purify_file_names(file_names)
         actual_str = "\n".join(str(path) for path in actual)
@@ -1305,6 +1414,10 @@ class Test_purify_file_names1(hunitest.TestCase):
 
 
 class Test_purify_apple_container_output1(hunitest.TestCase):
+    """
+    Test `hunit_test_purification.purify_apple_container_output()` function.
+    """
+
     def helper(self, txt: str, expected: str) -> None:
         actual = huntepur.purify_apple_container_output(txt)
         self.assert_equal(actual, expected)
