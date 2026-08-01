@@ -184,15 +184,15 @@ def _main(parser: argparse.ArgumentParser) -> None:
     #
     hdbg.dassert_in("bash", os.environ.get("SHELL", ""))
     message = []
+    #current_dir = os.getcwd()
+    #message.append(f"dir={current_dir}")
+    current_iterm2_name = _get_iterm2_name()
+    message.append(current_iterm2_name)
     if args.title == "":
         last_command = _get_last_command()
         message.append(last_command)
     else:
         message.append(args.title)
-    #current_dir = os.getcwd()
-    #message.append(f"dir={current_dir}")
-    current_iterm2_name = _get_iterm2_name()
-    message.append(current_iterm2_name)
     message = "\n".join(message)
     if args.notify:
         _send_notification(message, sound_name=args.sound)

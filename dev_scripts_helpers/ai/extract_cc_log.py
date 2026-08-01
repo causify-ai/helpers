@@ -511,9 +511,11 @@ def _print_narrative(
     lines.append("")
     # Pre-extract thinking text in order.
     thinking_texts: List[str] = []
+    seen_thinking: set = set()
     for tb in thinking_blocks:
         text = tb.get("text", "")
-        if text.strip():
+        if text.strip() and text not in seen_thinking:
+            seen_thinking.add(text)
             thinking_texts.append(text)
     # Pre-extract assistant text in order.
     assistant_texts: List[str] = []
