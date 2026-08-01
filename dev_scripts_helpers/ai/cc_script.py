@@ -80,6 +80,8 @@ async def _execute_prompts(
         allowed_tools=allowed_tools,
         permission_mode=permission_mode,
         cwd=cwd,
+        # The response is printed by `_print_response()` at the end of the run.
+        print_output=False,
     )
     await sequencer.execute(prompts)
     # Collect responses (for now, just the last one from sequencer).

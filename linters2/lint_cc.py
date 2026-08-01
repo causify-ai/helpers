@@ -1,7 +1,7 @@
 #!/usr/bin/env -S uv run
 
 # /// script
-# dependencies = ["tqdm", "anthropic", "claude-agent-sdk"]
+# dependencies = ["tqdm", "anthropic", "claude-agent-sdk", "opentelemetry-api"]
 # ///
 
 """

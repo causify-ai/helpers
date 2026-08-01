@@ -23,6 +23,43 @@ import helpers.hprint as hprint
 
 _LOG = logging.getLogger(__name__)
 
+# ANSI color codes, matching the rendering of `extract_cc_log2.py`.
+_GRAY = "\033[90m"
+_WHITE = "\033[97m"
+_RESET = "\033[0m"
+
+
+# #############################################################################
+# Message Rendering
+# #############################################################################
+
+
+def print_message(message: Any) -> None:
+    """
+    Print the content of a Claude message to stdout.
+
+    Render assistant text, thinking, and tool calls in a human-readable
+    format. Messages that carry no printable content (e.g., results,
+    system metadata) are skipped.
+
+    :param message: Message received from the Claude SDK
+    """
+    if not isinstance(message, claude_agent_sdk.AssistantMessage):
+        return
+    for block in message.content:
+        if isinstance(block, claude_agent_sdk.TextBlock):
+            header = f"{_WHITE}=== ASSISTANT ==={_RESET}"
+            body = f"{_WHITE}{block.text}{_RESET}"
+        elif isinstance(block, claude_agent_sdk.ThinkingBlock):
+            header = f"{_GRAY}=== THINKING ==={_RESET}"
+            body = f"{_GRAY}{block.thinking}{_RESET}"
+        elif isinstance(block, claude_agent_sdk.ToolUseBlock):
+            header = f"{_GRAY}=== TOOL: {block.name} ==={_RESET}"
+            body = f"{_GRAY}{block.input}{_RESET}"
+        else:
+            continue
+        print(f"\n{header}\n{body}", flush=True)
+
 
 # #############################################################################
 # PromptSequencer
@@ -43,6 +80,7 @@ class PromptSequencer:
         allowed_tools: Optional[List[str]] = None,
         permission_mode: str = "ask",
         cwd: str = "",
+        print_output: bool = True,
     ) -> None:
         """
         Initialize PromptSequencer with Claude Code options.
@@ -54,10 +92,14 @@ class PromptSequencer:
             - Default: "ask"
         :param cwd: Working directory for Claude Code execution
             - Default: "" (current directory)
+        :param print_output: If True, print Claude messages to stdout as
+            they are received
+            - Default: True
         """
         self.allowed_tools = allowed_tools or []
         self.permission_mode = permission_mode
         self.cwd = cwd
+        self.print_output = print_output
         self._session_started = False
         self._prompts_executed = 0
         self._last_response = ""
@@ -99,6 +141,8 @@ class PromptSequencer:
                     # Collect response messages.
                     response_parts: List[str] = []
                     async for message in client.receive_response():
+                        if self.print_output:
+                            print_message(message)
                         response_parts.append(str(message))
                     response_text = "".join(response_parts)
                     self._last_response = response_text

@@ -15,21 +15,16 @@ for line in sys.stdin:
     line = line.strip()
     if not line:
         continue
-
     # sys.stderr.write(".")
     # sys.stderr.flush()
-
     try:
         obj = json.loads(line)
-
         # Handle stream events with deltas
         if obj.get("type") == "stream_event":
             event = obj.get("event", {})
-
             if event.get("type") == "content_block_delta":
                 delta = event.get("delta", {})
                 delta_type = delta.get("type")
-
                 if delta_type == "thinking_delta":
                     if current_type != "thinking":
                         if first_delta["thinking"]:
@@ -42,10 +37,8 @@ for line in sys.stdin:
                             flush=True,
                         )
                         current_type = "thinking"
-
                     content = delta.get("thinking", "")
                     print(f"{GRAY}{content}{RESET}", end="", flush=True)
-
                 elif delta_type == "text_delta":
                     if current_type != "text":
                         if first_delta["text"]:
@@ -58,10 +51,8 @@ for line in sys.stdin:
                             flush=True,
                         )
                         current_type = "text"
-
                     content = delta.get("text", "")
                     print(f"{WHITE}{content}{RESET}", end="", flush=True)
-
     except (json.JSONDecodeError, KeyError, TypeError):
         pass
 
