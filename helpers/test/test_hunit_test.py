@@ -299,13 +299,15 @@ class Test_assert_equal(hunitest.TestCase):
         # #####################################################################
         """
         actual = hunitest._remove_spaces(txt)
-        expected = r"""
-        * Failed assertion *
-        'in1' not in '{'in1': 'out1'}'
-        ##
-        `in1` already receiving input from node n1
-        # #####################################################################
-        """
+        expected = (
+            "# #####################################################################\n"
+            "* Failed assertion *\n"
+            "'in1' not in '{'in1': 'out1'}'\n"
+            "##\n"
+            "`in1` already receiving input from node n1\n"
+            "# #####################################################################\n"
+            "# #####################################################################"
+        )
         self.assert_equal(actual, expected, fuzzy_match=False)
 
 
