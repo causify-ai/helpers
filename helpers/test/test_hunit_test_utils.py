@@ -970,10 +970,12 @@ class Test_capture_sys_calls(hunitest.TestCase):
         },
         ]"""
         expected_str = hprint.dedent(expected_str)
+
         # Run test.
         def test_calls() -> None:
             hsystem.system("echo hello", suppress_output=True)
             hsystem.system("echo world", suppress_output=True)
+
         self._assert_sys_calls(test_calls, expected_str)
 
     def test8(self) -> None:

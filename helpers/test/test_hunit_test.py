@@ -70,7 +70,9 @@ class Test_get_input_dir(hunitest.TestCase):
         """
         actual = self.get_input_dir()
         actual = huntepur.purify_txt_from_client(actual)
-        expected = "$GIT_ROOT/helpers/test/outcomes/Test_get_input_dir.test1/input"
+        expected = (
+            "$GIT_ROOT/helpers/test/outcomes/Test_get_input_dir.test1/input"
+        )
         self.assertEqual(actual, expected)
 
     def test2(self) -> None:
@@ -98,7 +100,9 @@ class Test_get_input_dir(hunitest.TestCase):
         )
         actual = huntepur.purify_txt_from_client(actual)
         #
-        expected = "$GIT_ROOT/helpers/test/outcomes/Test_get_input_dir.test3/input"
+        expected = (
+            "$GIT_ROOT/helpers/test/outcomes/Test_get_input_dir.test3/input"
+        )
         self.assertEqual(actual, expected)
 
     def test4(self) -> None:
@@ -132,7 +136,9 @@ class Test_get_output_dir(hunitest.TestCase):
         """
         actual = self.get_output_dir()
         actual = huntepur.purify_txt_from_client(actual)
-        expected = "$GIT_ROOT/helpers/test/outcomes/Test_get_output_dir.test1/output"
+        expected = (
+            "$GIT_ROOT/helpers/test/outcomes/Test_get_output_dir.test1/output"
+        )
         self.assertEqual(actual, expected)
 
 
@@ -377,9 +383,7 @@ class Test_AssertEqual1(hunitest.TestCase):
         # Check that the assertion is what expected.
         actual = str(cm.exception)
         actual = huntepur.purify_txt_from_client(actual)
-        expected = (
-            "\n"
-            + hprint.dedent('''
+        expected = "\n" + hprint.dedent('''
             --------------------------------------------------------------------------------
             ACTUAL vs EXPECTED [via assert_equal()]: Test_AssertEqual1.test_not_equal1
             --------------------------------------------------------------------------------
@@ -395,7 +399,6 @@ class Test_AssertEqual1(hunitest.TestCase):
             expected = r"""completed failure Lint    Run_linter
             completed       success Lint    Fast_tests
             completed       success Lint    Slow_tests"""''')
-        )
         if actual != expected:
             scratch_dir = self.get_scratch_space()
             hio.to_file(os.path.join(scratch_dir, "actual.txt"), actual)
@@ -996,8 +999,6 @@ class Test_get_dir_signature1(hunitest.TestCase):
         """
         # pylint: enable=line-too-long
         self.assert_equal(actual, expected, fuzzy_match=True)
-
-
 
     def test2(self) -> None:
         """
