@@ -826,6 +826,552 @@ class Test_process_file_incremental_mode(hunitest.TestCase):
 
 
 # #############################################################################
+# Test_process_file_one_shot
+# #############################################################################
+
+
+class Test_process_file_one_shot(hunitest.TestCase):
+    """
+    Test `cc_lint._process_file()` in `--mode one_shot` across {topic,
+    skill, rule, default}, with the subprocess call mocked out (no network).
+    """
+
+    def helper(
+        self,
+        *,
+        topic: str,
+        skill: str,
+        rule: str,
+        expected_prompt_substring: str,
+    ) -> None:
+        """
+        Run `_process_file()` in `one_shot` mode and check the dispatched
+        prompt.
+
+        :param topic: `--topic` value, or `""`
+        :param skill: `--skill` value, or `""`
+        :param rule: `--rule` value, or `""`
+        :param expected_prompt_substring: text expected in the prompt written
+            to `tmp.cc_lint.prompt.txt`
+        """
+        # Prepare inputs.
+        scratch_dir = self.get_scratch_space()
+        file_path = os.path.join(scratch_dir, "example.py")
+        hio.to_file(file_path, "x = 1\n")
+        args = argparse.Namespace(
+            mode="one_shot",
+            topic=topic,
+            skill=skill,
+            rule=rule,
+            dry_run=False,
+            model="",
+        )
+        # Run test.
+        with (
+            umock.patch.object(lcclint.hsystem, "system") as mock_system,
+            umock.patch.object(
+                lcclint.hmarsele,
+                "find_skill",
+                return_value=".claude/skills/coding.fix_inline.md",
+            ),
+        ):
+            rc, topic_info = lcclint._process_file(file_path, args)
+        # Check outputs.
+        self.assertEqual(rc, 0)
+        mock_system.assert_called_once()
+        prompt_content = hio.from_file("tmp.cc_lint.prompt.txt")
+        self.assertIn(expected_prompt_substring, prompt_content)
+        self.assertIn(file_path, prompt_content)
+        self.assertTrue(topic_info)
+
+    def test1(self) -> None:
+        """
+        Test the default (filename-inferred topic) dispatch.
+        """
+        # Prepare inputs.
+        topic = ""
+        skill = ""
+        rule = ""
+        # Prepare outputs.
+        expected_prompt_substring = "coding.rules.md"
+        # Run test.
+        self.helper(
+            topic=topic,
+            skill=skill,
+            rule=rule,
+            expected_prompt_substring=expected_prompt_substring,
+        )
+
+    def test2(self) -> None:
+        """
+        Test the explicit `--topic` dispatch.
+        """
+        # Prepare inputs.
+        topic = "markdown"
+        skill = ""
+        rule = ""
+        # Prepare outputs.
+        expected_prompt_substring = "markdown.rules.md"
+        # Run test.
+        self.helper(
+            topic=topic,
+            skill=skill,
+            rule=rule,
+            expected_prompt_substring=expected_prompt_substring,
+        )
+
+    def test3(self) -> None:
+        """
+        Test the `--skill` dispatch.
+        """
+        # Prepare inputs.
+        topic = ""
+        skill = "coding.fix_inline"
+        rule = ""
+        # Prepare outputs.
+        expected_prompt_substring = "/.claude/skills/coding.fix_inline.md"
+        # Run test.
+        self.helper(
+            topic=topic,
+            skill=skill,
+            rule=rule,
+            expected_prompt_substring=expected_prompt_substring,
+        )
+
+    def test4(self) -> None:
+        """
+        Test the `--rule` dispatch.
+        """
+        # Prepare inputs.
+        scratch_dir = self.get_scratch_space()
+        rule_file = os.path.join(scratch_dir, "test.rules.md")
+        hio.to_file(rule_file, "# My Rule\nDo the thing.\n")
+        topic = ""
+        skill = ""
+        rule = rule_file
+        # Prepare outputs.
+        expected_prompt_substring = "# My Rule\nDo the thing."
+        # Run test.
+        self.helper(
+            topic=topic,
+            skill=skill,
+            rule=rule,
+            expected_prompt_substring=expected_prompt_substring,
+        )
+
+
+# #############################################################################
+# Test_process_file_incremental
+# #############################################################################
+
+
+class Test_process_file_incremental(hunitest.TestCase):
+    """
+    Test `cc_lint._process_file()` in `--mode session`/`--mode stateless`
+    across {topic, skill, rule, default}, against a fake SDK client (no
+    network).
+    """
+
+    def helper(
+        self,
+        *,
+        mode: str,
+        topic: str,
+        skill: str,
+        rule: str,
+        expected_num_messages: int,
+    ) -> List[str]:
+        """
+        Run `_process_file()` incrementally and check the dispatched
+        message count.
+
+        :param mode: `"session"` or `"stateless"`
+        :param topic: `--topic` value, or `""`
+        :param skill: `--skill` value, or `""`
+        :param rule: `--rule` value, or `""`
+        :param expected_num_messages: expected number of prompts queried
+        :return: prompts queried against the fake SDK client, for tests that
+            need additional checks
+        """
+        # Prepare inputs.
+        scratch_dir = self.get_scratch_space()
+        file_path = os.path.join(scratch_dir, "example.py")
+        hio.to_file(file_path, "x = 1\n")
+        args = argparse.Namespace(
+            mode=mode,
+            topic=topic,
+            skill=skill,
+            rule=rule,
+            dry_run=False,
+            model="",
+        )
+        msg = claude_agent_sdk.AssistantMessage(
+            content=[claude_agent_sdk.TextBlock(text="LLM> NO-OP")],
+            model="claude-test",
+        )
+        fake_client = dshaccli.FakeClaudeSDKClient(
+            responses_by_call=[[msg]] * expected_num_messages
+        )
+        # Run test.
+        with (
+            umock.patch(
+                "claude_agent_sdk.ClaudeSDKClient"
+            ) as mock_client_cls,
+            umock.patch.object(
+                lcclint.hmarsele,
+                "find_skill",
+                return_value=".claude/skills/coding.fix_inline.md",
+            ),
+        ):
+            mock_client_cls.return_value = fake_client
+            rc, topic_info = lcclint._process_file(file_path, args)
+        # Check outputs.
+        self.assertEqual(rc, 0)
+        self.assertEqual(
+            len(fake_client.queried_prompts), expected_num_messages
+        )
+        for prompt in fake_client.queried_prompts:
+            self.assertIn(file_path, prompt)
+        self.assertTrue(topic_info)
+        return fake_client.queried_prompts
+
+    def test1(self) -> None:
+        """
+        Test `--mode session` with the default (filename-inferred) topic.
+        """
+        # Prepare inputs.
+        mode = "session"
+        topic = ""
+        skill = ""
+        rule = ""
+        # Prepare outputs.
+        expected_num_messages = len(
+            lcclint._extract_h1_sections(".claude/skills/coding.rules.md")
+        )
+        # Run test.
+        self.helper(
+            mode=mode,
+            topic=topic,
+            skill=skill,
+            rule=rule,
+            expected_num_messages=expected_num_messages,
+        )
+
+    def test2(self) -> None:
+        """
+        Test `--mode session` with an explicit `--topic`.
+        """
+        # Prepare inputs.
+        mode = "session"
+        topic = "markdown"
+        skill = ""
+        rule = ""
+        # Prepare outputs.
+        expected_num_messages = len(
+            lcclint._extract_h1_sections(".claude/skills/markdown.rules.md")
+        ) + len(lcclint._extract_h1_sections(".claude/skills/text.rules.md"))
+        # Run test.
+        self.helper(
+            mode=mode,
+            topic=topic,
+            skill=skill,
+            rule=rule,
+            expected_num_messages=expected_num_messages,
+        )
+
+    def test3(self) -> None:
+        """
+        Test `--mode session` with `--skill`.
+        """
+        # Prepare inputs.
+        mode = "session"
+        topic = ""
+        skill = "coding.fix_inline"
+        rule = ""
+        # Prepare outputs.
+        expected_num_messages = 1
+        # Run test.
+        prompts = self.helper(
+            mode=mode,
+            topic=topic,
+            skill=skill,
+            rule=rule,
+            expected_num_messages=expected_num_messages,
+        )
+        # Check outputs.
+        self.assertTrue(
+            prompts[0].startswith("/.claude/skills/coding.fix_inline.md ")
+        )
+
+    def test4(self) -> None:
+        """
+        Test `--mode session` with `--rule`.
+        """
+        # Prepare inputs.
+        mode = "session"
+        scratch_dir = self.get_scratch_space()
+        rule_file = os.path.join(scratch_dir, "test.rules.md")
+        rule_content = """
+            # Rule One
+            Content one
+
+            # Rule Two
+            Content two
+            """
+        rule_content = hprint.dedent(rule_content)
+        hio.to_file(rule_file, rule_content)
+        topic = ""
+        skill = ""
+        rule = rule_file
+        # Prepare outputs.
+        expected_num_messages = 2
+        # Run test.
+        self.helper(
+            mode=mode,
+            topic=topic,
+            skill=skill,
+            rule=rule,
+            expected_num_messages=expected_num_messages,
+        )
+
+    def test5(self) -> None:
+        """
+        Test `--mode stateless` with the default (filename-inferred) topic.
+        """
+        # Prepare inputs.
+        mode = "stateless"
+        topic = ""
+        skill = ""
+        rule = ""
+        # Prepare outputs.
+        expected_num_messages = len(
+            lcclint._extract_h1_sections(".claude/skills/coding.rules.md")
+        )
+        # Run test.
+        self.helper(
+            mode=mode,
+            topic=topic,
+            skill=skill,
+            rule=rule,
+            expected_num_messages=expected_num_messages,
+        )
+
+    def test6(self) -> None:
+        """
+        Test `--mode stateless` with an explicit `--topic`.
+        """
+        # Prepare inputs.
+        mode = "stateless"
+        topic = "markdown"
+        skill = ""
+        rule = ""
+        # Prepare outputs.
+        expected_num_messages = len(
+            lcclint._extract_h1_sections(".claude/skills/markdown.rules.md")
+        ) + len(lcclint._extract_h1_sections(".claude/skills/text.rules.md"))
+        # Run test.
+        self.helper(
+            mode=mode,
+            topic=topic,
+            skill=skill,
+            rule=rule,
+            expected_num_messages=expected_num_messages,
+        )
+
+    def test7(self) -> None:
+        """
+        Test `--mode stateless` with `--skill`.
+        """
+        # Prepare inputs.
+        mode = "stateless"
+        topic = ""
+        skill = "coding.fix_inline"
+        rule = ""
+        # Prepare outputs.
+        expected_num_messages = 1
+        # Run test.
+        prompts = self.helper(
+            mode=mode,
+            topic=topic,
+            skill=skill,
+            rule=rule,
+            expected_num_messages=expected_num_messages,
+        )
+        # Check outputs.
+        self.assertTrue(
+            prompts[0].startswith("/.claude/skills/coding.fix_inline.md ")
+        )
+
+    def test8(self) -> None:
+        """
+        Test `--mode stateless` with `--rule`.
+        """
+        # Prepare inputs.
+        mode = "stateless"
+        scratch_dir = self.get_scratch_space()
+        rule_file = os.path.join(scratch_dir, "test.rules.md")
+        rule_content = """
+            # Rule One
+            Content one
+
+            # Rule Two
+            Content two
+            """
+        rule_content = hprint.dedent(rule_content)
+        hio.to_file(rule_file, rule_content)
+        topic = ""
+        skill = ""
+        rule = rule_file
+        # Prepare outputs.
+        expected_num_messages = 2
+        # Run test.
+        self.helper(
+            mode=mode,
+            topic=topic,
+            skill=skill,
+            rule=rule,
+            expected_num_messages=expected_num_messages,
+        )
+
+
+# #############################################################################
+# Test_process_file_end_to_end
+# #############################################################################
+
+
+@pytest.mark.skip(
+    reason=(
+        "Run manually: makes a real Claude Agent SDK/CLI call and costs "
+        "tokens"
+    )
+)
+class Test_process_file_end_to_end(hunitest.TestCase):
+    """
+    Exercise `cc_lint._process_file()` for real across {topic, skill, rule,
+    default}, using the `--mode` selected by `_MODE`.
+    """
+
+    # Edit this to exercise a different `--mode` manually.
+    _MODE = "stateless"
+    # The cheapest available model, to keep manual runs inexpensive. Only
+    # takes effect for `_MODE in ("session", "stateless")`:
+    # `_run_claude_code()` does not forward `--model` to the `cc` wrapper.
+    _MODEL = "claude-haiku-4-5-20251001"
+
+    def helper(
+        self, *, topic: str, skill: str, rule: str, expected_substring: str
+    ) -> None:
+        """
+        Run `_process_file()` for real under `_MODE` and loosely check the
+        outcome.
+
+        :param topic: `--topic` value, or `""`
+        :param skill: `--skill` value, or `""`
+        :param rule: `--rule` value, or `""`
+        :param expected_substring: substring expected in the prompt file
+            written by the `one_shot` path; unused for `session`/`stateless`,
+            which only expose a no-op contract outcome, not the prompt text
+        """
+        # Prepare inputs.
+        scratch_dir = self.get_scratch_space()
+        file_path = os.path.join(scratch_dir, "example.py")
+        hio.to_file(file_path, "x = 1\n")
+        args = argparse.Namespace(
+            mode=self._MODE,
+            topic=topic,
+            skill=skill,
+            rule=rule,
+            dry_run=False,
+            model=self._MODEL,
+        )
+        # Run test.
+        rc, topic_info = lcclint._process_file(file_path, args)
+        # Check outputs.
+        self.assertEqual(rc, 0)
+        self.assertTrue(topic_info)
+        if self._MODE == "one_shot":
+            prompt_content = hio.from_file("tmp.cc_lint.prompt.txt")
+            self.assertIn(expected_substring, prompt_content)
+
+    def test1(self) -> None:
+        """
+        Test the default (filename-inferred topic) dispatch.
+        """
+        # Prepare inputs.
+        topic = ""
+        skill = ""
+        rule = ""
+        # Prepare outputs.
+        expected_substring = "coding.rules.md"
+        # Run test.
+        self.helper(
+            topic=topic,
+            skill=skill,
+            rule=rule,
+            expected_substring=expected_substring,
+        )
+
+    def test2(self) -> None:
+        """
+        Test the explicit `--topic` dispatch.
+        """
+        # Prepare inputs.
+        topic = "markdown"
+        skill = ""
+        rule = ""
+        # Prepare outputs.
+        expected_substring = "markdown.rules.md"
+        # Run test.
+        self.helper(
+            topic=topic,
+            skill=skill,
+            rule=rule,
+            expected_substring=expected_substring,
+        )
+
+    def test3(self) -> None:
+        """
+        Test the `--skill` dispatch.
+        """
+        # Prepare inputs.
+        topic = ""
+        skill = "coding.fix_inline"
+        rule = ""
+        # Prepare outputs.
+        expected_substring = "coding.fix_inline"
+        # Run test.
+        self.helper(
+            topic=topic,
+            skill=skill,
+            rule=rule,
+            expected_substring=expected_substring,
+        )
+
+    def test4(self) -> None:
+        """
+        Test the `--rule` dispatch.
+        """
+        # Prepare inputs.
+        scratch_dir = self.get_scratch_space()
+        rule_file = os.path.join(scratch_dir, "test.rules.md")
+        hio.to_file(
+            rule_file, "# My Rule\nReply with exactly the word OK.\n"
+        )
+        topic = ""
+        skill = ""
+        rule = rule_file
+        # Prepare outputs.
+        expected_substring = "My Rule"
+        # Run test.
+        self.helper(
+            topic=topic,
+            skill=skill,
+            rule=rule,
+            expected_substring=expected_substring,
+        )
+
+
+# #############################################################################
 # Test_parse
 # #############################################################################
 
