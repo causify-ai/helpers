@@ -1,10 +1,6 @@
-1) In cc_lint.py 
-
-`--topic`, `--skill`, `--rule`, and `--mode` are orthogonal now since what to
-process and how to process
-
-2) Create unit tests to test `--mode` in all 3 ways (both with fake and with real
-workload)
+In cc_lint.py, change --dry_run to save a file in tmp.cc_lint_dry_run.txt with
+the same output as now but without trimming the output
+Do not print on screen
 
 # Conventions
 - When writing code you must always follow the instructions in

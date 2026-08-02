@@ -28,7 +28,7 @@ Quick examples:
 # Execute a skill:
 > cc_lint.py --files "file.py" --skill coding.fix_inline
 
-# Print command without executing:
+# Save command to `tmp.cc_lint_dry_run.txt` without executing:
 > cc_lint.py --files "*.md" --dry_run
 """
 
@@ -54,6 +54,10 @@ import helpers.hsystem as hsystem
 
 
 _LOG = logging.getLogger(__name__)
+
+# File collecting the untrimmed dry-run output instead of printing it to
+# screen.
+_DRY_RUN_FILE = "tmp.cc_lint_dry_run.txt"
 
 
 # #############################################################################
@@ -326,7 +330,8 @@ def _run_claude_code(
     :param prompt: Claude Code prompt
     :param topic: Topic for logging purposes
     :param file_path: File to process
-    :param dry_run: If True, print command but don't execute
+    :param dry_run: If True, save the command and prompt to
+        `_DRY_RUN_FILE` instead of executing
     :param model: Model to use for Claude invocation
     :return: Return code (0 on success, or subprocess return code)
     """
@@ -334,8 +339,6 @@ def _run_claude_code(
         hprint.to_str("prompt topic file_path dry_run model")
     )
     hdbg.dassert_file_exists(file_path)
-    _LOG.info("Using model: %s", model)
-    _LOG.info("\n%s\n%s", hprint.frame("Prompt (%s):") % topic, prompt)
     prompt_file = "tmp.cc_lint.prompt.txt"
     hio.to_file(prompt_file, prompt)
     # Call the cc wrapper which handles model routing and env setup.
@@ -355,11 +358,22 @@ def _run_claude_code(
         f"Execute the file {prompt_file}",
     ]
     cmd = " ".join(cmd) + f" | {_EXTRACT_LOG}"
-    _LOG.info("Claude command: %s", cmd)
     if dry_run:
-        _LOG.info("Dry run: command not executed")
+        # Save the full, untrimmed dry-run output to a file instead of
+        # printing it to screen.
+        dry_run_output = [
+            "Using model: %s" % model,
+            hprint.frame("Prompt (%s):" % topic),
+            prompt,
+            "Claude command: %s" % cmd,
+            "Dry run: command not executed",
+        ]
+        hio.to_file(_DRY_RUN_FILE, "\n".join(dry_run_output))
         _LOG.debug("return=0")
         return 0
+    _LOG.info("Using model: %s", model)
+    _LOG.info("\n%s\n%s", hprint.frame("Prompt (%s):") % topic, prompt)
+    _LOG.info("Claude command: %s", cmd)
     hsystem.system(cmd)
     _LOG.debug("return=0")
     return 0
@@ -382,26 +396,26 @@ def _build_incremental_system_prompt(topic_info: Dict) -> str:
     :return: system prompt text combining the role, the templates to
         follow, and the "do not change behavior" instruction
     """
+    system_prompt: List[str] = []
+    #
     role = topic_info["role"]
-    templates = topic_info["templates"]
     hdbg.dassert_file_exists(role, "Role file not found")
     role_content = hio.from_file(role)
-    system_prompt = role_content
-    msg = """
-
-    You MUST make sure not to change the behavior or the intent of the passed file
-    """
-    system_prompt += hprint.dedent(msg)
+    system_prompt.append(role_content)
+    #
+    msg = "You MUST make sure not to change the behavior or the intent of the passed file"
+    system_prompt.append(msg)
+    #
+    templates = topic_info["templates"]
     if templates:
-        msg = """
-
-        You MUST follow the templates below:
-        """
-        system_prompt += hprint.dedent(msg)
+        msg = "You MUST follow the templates below:"
+        system_prompt.append(msg)
         for template_file in templates:
-            system_prompt += f"\n- {template_file}"
-    _LOG.debug("return=system_prompt_length=%d", len(system_prompt))
-    return system_prompt
+            system_prompt.append(f"\n- {template_file}")
+    #
+    system_prompt_as_str = "\n".join(system_prompt)
+    _LOG.debug(hprint.to_str("system_prompt_as_str"))
+    return system_prompt_as_str
 
 
 def _build_rule_message(file_path: str, rule_content: str) -> str:
@@ -417,19 +431,24 @@ def _build_rule_message(file_path: str, rule_content: str) -> str:
     :return: prompt text requiring a structured `LLM> NO-OP` or `LLM>
         CHANGED: <summary>` reply
     """
+    rule_message: List[str] = []
     header = f"""
-    Re-read `{file_path}` from disk
-    Apply ONLY the rule below to `{file_path}`
-    Do not revisit rules applied earlier
+    - Re-read `{file_path}` from disk
+    - Apply ONLY the rule below to `{file_path}`
+    - Do not revisit rules applied earlier
     """
-    header = hprint.dedent(header)
+    rule_message.append(hprint.dedent(header))
+    #
+    rule_message.append(rule_content)
+    #
     footer = """
-    Reply with exactly one line:
-    - `LLM> NO-OP` if the file already complies with the rule
-    - `LLM> CHANGED: <one-line summary>` if you made an edit
+    - Reply with exactly one line:
+      - `LLM> NO-OP` if the file already complies with the rule
+      - `LLM> CHANGED: <one-line summary>` if you made an edit
     """
-    footer = hprint.dedent(footer)
-    msg = f"{header}\n{rule_content}\n\n{footer}"
+    rule_message.append(hprint.dedent(footer))
+    #
+    msg = "\n".join(rule_message)
     return msg
 
 
@@ -460,6 +479,7 @@ def _build_incremental_messages(
         )
         all_sections.extend(sections)
     _LOG.info("Total H1 sections: %d", len(all_sections))
+    #
     messages = [
         _build_rule_message(file_path, section_content)
         for _, section_content in all_sections
@@ -555,15 +575,18 @@ async def _process_file_incrementally(
         messages = _build_incremental_messages(file_path, topic_info)
     # Handle dry run.
     if dry_run:
-        _LOG.warning("Dry Run - System prompt and messages to be sent:")
-        _LOG.info("\n%s\n%s", hprint.frame("System prompt:"), system_prompt)
+        # Save the full, untrimmed dry-run output to a file instead of
+        # printing it to screen.
+        dry_run_output = ["Dry Run - System prompt and messages to be sent:"]
+        dry_run_output.append(
+            "\n%s\n%s" % (hprint.frame("System prompt:"), system_prompt)
+        )
         for idx, msg in enumerate(messages, 1):
-            msg_preview = msg[:200] + "..." if len(msg) > 200 else msg
-            _LOG.info(
-                "\n%s\n%s",
-                hprint.frame(f"Message {idx}/{len(messages)}:"),
-                msg_preview,
+            dry_run_output.append(
+                "\n%s\n%s"
+                % (hprint.frame(f"Message {idx}/{len(messages)}:"), msg)
             )
+        hio.to_file(_DRY_RUN_FILE, "\n".join(dry_run_output))
         _LOG.debug("return=0 (dry_run)")
         return 0
     # Execute messages using PromptSequencer.
@@ -734,7 +757,7 @@ def _parse() -> argparse.ArgumentParser:
     parser.add_argument(
         "--dry_run",
         action="store_true",
-        help="Print the command but don't execute",
+        help=f"Save the command to '{_DRY_RUN_FILE}' instead of executing",
     )
     parser.add_argument(
         "--model",

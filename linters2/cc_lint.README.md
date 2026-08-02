@@ -26,7 +26,8 @@ Claude Code integration for topic-based intelligent formatting.
   > cc_lint.py --modified
   ```
 
-- Preview command without executing (dry-run):
+- Preview command without executing (dry-run), saved to
+  `tmp.cc_lint_dry_run.txt` instead of printed to screen:
   ```bash
   > cc_lint.py --dry_run --files "*.md"
   ```
@@ -90,7 +91,8 @@ Claude Code integration for topic-based intelligent formatting.
   - `--mode one_shot` (the default) applies all rules in a single Claude Code
     invocation instead
 
-- Preview incremental application without executing:
+- Preview incremental application without executing, saved to
+  `tmp.cc_lint_dry_run.txt` instead of printed to screen:
   ```bash
   > cc_lint.py --files "file.py" --mode stateless --dry_run
   ```
@@ -140,6 +142,11 @@ Claude Code integration for topic-based intelligent formatting.
             of `_build_prompt()`
       - Topic inference (`_infer_topic_from_filename()`) is used by every
         branch above whenever `--topic` is not given explicitly
+      - `--dry_run` (orthogonal to `--mode`/`--topic`/`--skill`/`--rule`):
+        `_run_claude_code()` and `_process_file_incrementally()` each write
+        their full, untrimmed dry-run output (prompt/messages and the
+        command that would have run) to `tmp.cc_lint_dry_run.txt` instead
+        of executing or printing to screen
   - After `_process_file()` returns, `_main()` runs post-processing from
     `topic_info` (`jupytext --sync`, `hlint.lint_file()`) for every mode
 
