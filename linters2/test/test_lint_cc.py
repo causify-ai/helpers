@@ -1,7 +1,9 @@
+import argparse
 import os
 import tempfile
 
 import linters2.lint_cc as llincc
+import helpers.hio as hio
 import helpers.hunit_test as hunitest
 
 
@@ -211,6 +213,7 @@ class Test_get_rules_for_topic(hunitest.TestCase):
         # Run test.
         topic_info = llincc._get_rules_for_topic(topic)
         # Check outputs.
+        # TODO(ai_gp): Compare topic_info to an expected string with self.assert_equal.
         self.assertIn("role", topic_info)
         self.assertIn("rules", topic_info)
         self.assertIn("templates", topic_info)
@@ -410,3 +413,39 @@ Line 4
             self.assertIn("Line 4", sections[1][1])
         finally:
             os.unlink(temp_file)
+
+
+# #############################################################################
+# Test_process_file_apply_incrementally
+# #############################################################################
+
+
+class Test_process_file_apply_incrementally(hunitest.TestCase):
+    """
+    Tests for `lint_cc._process_file()` on the `--apply_incrementally` branch.
+    """
+
+    def test1(self) -> None:
+        """
+        Test that `topic_info` stays populated in dry-run incremental mode.
+        """
+        # Prepare inputs.
+        scratch_dir = self.get_scratch_space()
+        file_path = os.path.join(scratch_dir, "example.py")
+        hio.to_file(file_path, "x = 1\n")
+        args = argparse.Namespace(
+            apply_incrementally=True,
+            skill="",
+            rule="",
+            topic="",
+            dry_run=True,
+            model="",
+        )
+        # Run test.
+        rc, topic_info = llincc._process_file(file_path, args)
+        # Check outputs.
+        self.assertEqual(rc, 0)
+        self.assertIn("role", topic_info)
+        self.assertIn("rules", topic_info)
+        self.assertIn("templates", topic_info)
+        self.assertGreater(len(topic_info["rules"]), 0)
