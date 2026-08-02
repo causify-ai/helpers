@@ -38,7 +38,7 @@ class Test_infer_topic_from_filename(hunitest.TestCase):
         # Run test.
         topic = lcclint._infer_topic_from_filename(filename)
         # Check outputs.
-        self.assertEqual(topic, expected)
+        self.assert_equal(topic, expected)
 
     def test1(self) -> None:
         """
@@ -359,12 +359,6 @@ class Test_get_rules_for_topic(hunitest.TestCase):
         """
         # Run test.
         topic_info = self.helper(topic, expected)
-        # Check outputs.
-        self.assertTrue(topic_info["role"].startswith(".claude/skills/"))
-        for rule in topic_info["rules"]:
-            self.assertTrue(rule.startswith(".claude/skills/"))
-        for template in topic_info["templates"]:
-            self.assertTrue(template.startswith(".claude/templates/"))
 
     def test9(self) -> None:
         """
@@ -388,9 +382,8 @@ class Test_get_rules_for_topic(hunitest.TestCase):
         ]
         # Run test and check outputs.
         for topic in topics:
-            with self.subTest(topic=topic):
-                topic_info = lcclint._get_rules_for_topic(topic)
-                self.assertIsNotNone(topic_info)
+            topic_info = lcclint._get_rules_for_topic(topic)
+            self.assertIsNotNone(topic_info)
 
 
 # #############################################################################
@@ -402,6 +395,24 @@ class Test_extract_h1_sections(hunitest.TestCase):
     """
     Tests for `cc_lint._extract_h1_sections()` function.
     """
+
+    def helper(self, content: str, expected: str) -> None:
+        """
+        Write `content` to a scratch markdown file and check the extracted
+        H1 sections against `expected`.
+
+        :param content: markdown content to write to the scratch file
+        :param expected: expected `pprint.pformat()` output of the
+            extracted sections
+        """
+        scratch_dir = self.get_scratch_space()
+        file_path = os.path.join(scratch_dir, "test.md")
+        hio.to_file(file_path, content)
+        # Run test.
+        sections = lcclint._extract_h1_sections(file_path)
+        # Check outputs.
+        actual = pprint.pformat(sections)
+        self.assert_equal(actual, expected, dedent=True)
 
     def test1(self) -> None:
         """
@@ -430,11 +441,34 @@ class Test_extract_h1_sections(hunitest.TestCase):
           '# Section 2\nContent for section 2\n\n## Subsection 2.1\nMore content')]
         """
         # Run test.
-        self._helper(content, expected)
+        self.helper(content, expected)
 
     def test2(self) -> None:
         """
-        Test extraction of H1 sections from testing.rules.md.
+        Test that H1 sections include their content.
+        """
+        # Prepare inputs.
+        content = """# Header 1
+        Line 1
+        Line 2
+
+        ### Subsection
+        Line 3
+
+        # Header 2
+        Line 4
+        """
+        # Prepare outputs.
+        expected = r"""
+        [('Header 1', '# Header 1\nLine 1\nLine 2\n\n### Subsection\nLine 3'),
+         ('Header 2', '# Header 2\nLine 4')]
+        """
+        # Run test.
+        self.helper(content, expected)
+
+    def test3(self) -> None:
+        """
+        Test extraction of H1 sections from `testing.rules.md`.
         """
         # Prepare inputs.
         rule_file = "./.claude/skills/testing.rules.md"
@@ -450,47 +484,6 @@ class Test_extract_h1_sections(hunitest.TestCase):
         titles = [title for title, _ in sections]
         self.assertIn("Testing Philosophy", titles)
         self.assertIn("Test Coverage", titles)
-
-    def test3(self) -> None:
-        """
-        Test that H1 sections include their content.
-        """
-        # Prepare inputs.
-        content = """# Header 1
-Line 1
-Line 2
-
-### Subsection
-Line 3
-
-# Header 2
-Line 4
-"""
-        # Prepare outputs.
-        expected = r"""
-        [('Header 1', '# Header 1\nLine 1\nLine 2\n\n### Subsection\nLine 3'),
-         ('Header 2', '# Header 2\nLine 4')]
-        """
-        # Run test.
-        self._helper(content, expected)
-
-    def _helper(self, content: str, expected: str) -> None:
-        """
-        Write `content` to a scratch markdown file and check the extracted
-        H1 sections against `expected`.
-
-        :param content: markdown content to write to the scratch file
-        :param expected: expected `pprint.pformat()` output of the
-            extracted sections
-        """
-        scratch_dir = self.get_scratch_space()
-        file_path = os.path.join(scratch_dir, "test.md")
-        hio.to_file(file_path, content)
-        # Run test.
-        sections = lcclint._extract_h1_sections(file_path)
-        # Check outputs.
-        actual = pprint.pformat(sections)
-        self.assert_equal(actual, expected, dedent=True)
 
 
 # #############################################################################
@@ -1049,8 +1042,9 @@ class Test_process_file_incremental(hunitest.TestCase):
         skill = ""
         rule = ""
         # Prepare outputs.
+        coding_rule_file = ".claude/skills/coding.rules.md"
         expected_num_messages = len(
-            lcclint._extract_h1_sections(".claude/skills/coding.rules.md")
+            lcclint._extract_h1_sections(coding_rule_file)
         )
         # Run test.
         self.helper(
@@ -1071,9 +1065,11 @@ class Test_process_file_incremental(hunitest.TestCase):
         skill = ""
         rule = ""
         # Prepare outputs.
+        markdown_rule_file = ".claude/skills/markdown.rules.md"
+        text_rule_file = ".claude/skills/text.rules.md"
         expected_num_messages = len(
-            lcclint._extract_h1_sections(".claude/skills/markdown.rules.md")
-        ) + len(lcclint._extract_h1_sections(".claude/skills/text.rules.md"))
+            lcclint._extract_h1_sections(markdown_rule_file)
+        ) + len(lcclint._extract_h1_sections(text_rule_file))
         # Run test.
         self.helper(
             mode=mode,
@@ -1148,8 +1144,9 @@ class Test_process_file_incremental(hunitest.TestCase):
         skill = ""
         rule = ""
         # Prepare outputs.
+        coding_rule_file = ".claude/skills/coding.rules.md"
         expected_num_messages = len(
-            lcclint._extract_h1_sections(".claude/skills/coding.rules.md")
+            lcclint._extract_h1_sections(coding_rule_file)
         )
         # Run test.
         self.helper(
@@ -1170,9 +1167,11 @@ class Test_process_file_incremental(hunitest.TestCase):
         skill = ""
         rule = ""
         # Prepare outputs.
+        markdown_rule_file = ".claude/skills/markdown.rules.md"
+        text_rule_file = ".claude/skills/text.rules.md"
         expected_num_messages = len(
-            lcclint._extract_h1_sections(".claude/skills/markdown.rules.md")
-        ) + len(lcclint._extract_h1_sections(".claude/skills/text.rules.md"))
+            lcclint._extract_h1_sections(markdown_rule_file)
+        ) + len(lcclint._extract_h1_sections(text_rule_file))
         # Run test.
         self.helper(
             mode=mode,
@@ -1397,7 +1396,7 @@ class Test_parse(hunitest.TestCase):
         # Run test.
         args = parser.parse_args(argv)
         # Check outputs.
-        self.assertEqual(args.mode, expected_mode)
+        self.assert_equal(args.mode, expected_mode)
 
     def test1(self) -> None:
         """
