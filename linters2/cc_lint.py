@@ -34,9 +34,12 @@ Quick examples:
 
 import argparse
 import asyncio
+import dataclasses
+import json
 import logging
 import os
-from typing import cast, Dict, List, Tuple
+import re
+from typing import Any, cast, Dict, List, Optional, Tuple
 
 from tqdm import tqdm
 
@@ -44,6 +47,7 @@ import dev_scripts_helpers.ai.cc_lib as dshaccli
 import helpers.hdbg as hdbg
 import helpers.hgit as hgit
 import helpers.hio as hio
+import helpers.hllm_cli as hllmcli
 import helpers.hlint as hlint
 import helpers.hmarkdown_headers as hmarhead
 import helpers.hmarkdown_select as hmarsele
@@ -271,6 +275,408 @@ def _extract_h1_sections(rule_file: str) -> List[Tuple[str, str]]:
 
 
 # #############################################################################
+# Rule Chunking and Filtering
+# #############################################################################
+
+# TODO(ai_gp): Move this (and unit tests) to ./helpers/hmarkdown_rules.py
+# TODO(ai_gp): Add comments for each block of code in the functions.
+
+@dataclasses.dataclass
+class RuleChunk:
+    """
+    One rule section ready to be applied as a single incremental turn.
+    """
+
+    title: str
+    content: str
+    order: int
+
+
+def _estimate_tokens(text: str) -> int:
+    """
+    Estimate the token count of `text` using a character-based heuristic
+    (~4-characters-per-token ratio)
+
+    :param text: text to estimate
+    :return: estimated token count
+    """
+    num_tokens = len(text) // 4
+    return num_tokens
+
+
+def _split_h1_section_at_level(
+    h1_title: str, h1_lines: List[str], *, level: int
+) -> List[Tuple[str, str]]:
+    """
+    Split one H1 section's lines into chunks at `level`.
+
+    Falls back to keeping the whole H1 section as a single chunk when it
+    has no header at `level` (e.g., a flat rule file with only H1
+    sections), so callers get one chunk per topic instead of zero.
+
+    :param h1_title: title of the enclosing H1 section
+    :param h1_lines: the H1 section's lines, starting at its own `# <h1_title>`
+        header line
+    :param level: header level to split at
+        - `1` returns the whole section unsplit
+    :return: list of (title, content) tuples
+        - Every `content` starts with the `# <h1_title>` line so the
+          parent H1 stays visible as context
+        - Any preamble between the H1 header and the first sub-header is
+          folded into the first chunk instead of being dropped
+    """
+    hdbg.dassert_lte(1, level, "Header level must be at least 1")
+    if level <= 1:
+        return [(h1_title, "\n".join(h1_lines).strip())]
+    sub_headers = hmarhead.extract_headers_from_markdown(
+        h1_lines, max_level=level
+    )
+    target_headers = [h for h in sub_headers if h.level == level]
+    if not target_headers:
+        # No sub-header at `level`: keep the H1 section whole.
+        return [(h1_title, "\n".join(h1_lines).strip())]
+    h1_header_line = f"# {h1_title}"
+    sections = []
+    for idx, header in enumerate(target_headers):
+        # The first chunk absorbs the H1 header line and any preamble
+        # before the first sub-header; later chunks start at their own
+        # sub-header line.
+        start_line = 0 if idx == 0 else header.line_number - 1
+        if idx + 1 < len(target_headers):
+            end_line = target_headers[idx + 1].line_number - 1
+        else:
+            end_line = len(h1_lines)
+        section_content = "\n".join(h1_lines[start_line:end_line]).strip()
+        if not section_content.startswith(h1_header_line):
+            section_content = f"{h1_header_line}\n\n{section_content}"
+        sections.append((header.description, section_content))
+    _LOG.debug("return=%d sections", len(sections))
+    return sections
+
+
+def _extract_sections_at_level(
+    lines: List[str], *, level: int
+) -> List[Tuple[str, str]]:
+    """
+    Extract chunk sections from markdown lines.
+
+    Splits every H1 section at `level`, carrying the parent H1 title into
+    each chunk (see `_split_h1_section_at_level()`).
+
+    :param lines: markdown content split into lines
+    :param level: header level to split rule sections at
+        - E>g., `1`=H1, `2`=H2, ...
+    :return: list of (title, content) tuples, in file order
+    """
+    h1_sections = _extract_h1_sections_from_lines(lines)
+    all_sections: List[Tuple[str, str]] = []
+    for h1_title, h1_content in h1_sections:
+        h1_lines = h1_content.split("\n")
+        all_sections.extend(
+            _split_h1_section_at_level(h1_title, h1_lines, level=level)
+        )
+    _LOG.debug("return=%d sections", len(all_sections))
+    return all_sections
+
+
+def _chunk_h1_title(chunk: RuleChunk) -> str:
+    """
+    Get the H1 title `chunk` was carried under.
+
+    Every chunk's content starts with its own or its parent H1's header
+    line (see `_extract_sections_at_level()`), so this is a cheap lookup
+    instead of a separate field on `RuleChunk`.
+
+    :param chunk: chunk to inspect
+    :return: title from the leading `# <title>` line
+    """
+    first_line = chunk.content.split("\n", 1)[0]
+    title = first_line.lstrip("#").strip()
+    return title
+
+
+def _merge_small_chunks(
+    chunks: List[RuleChunk], *, max_tokens: int
+) -> List[RuleChunk]:
+    """
+    Greedily pack consecutive small chunks up to a token budget.
+
+    Only merges chunks that share the same parent H1 (see
+    `_chunk_h1_title()`), so packing never mixes content from unrelated
+    sections (e.g., folding the `# Verification` checklist into an
+    unrelated neighbor).
+
+    :param chunks: ordered chunks to pack, e.g., the output of
+        `_build_rule_chunks()`
+    :param max_tokens: token budget per merged chunk; a chunk already over
+        budget by itself is kept as its own chunk unmerged
+    :return: chunks with consecutive same-H1 small ones combined, in
+        original order, `order` renumbered from `0`
+    """
+    if not chunks:
+        return []
+    merged: List[RuleChunk] = []
+    bucket_titles = [chunks[0].title]
+    bucket_content = [chunks[0].content]
+    bucket_tokens = _estimate_tokens(chunks[0].content)
+    bucket_h1 = _chunk_h1_title(chunks[0])
+    for chunk in chunks[1:]:
+        chunk_tokens = _estimate_tokens(chunk.content)
+        same_h1 = _chunk_h1_title(chunk) == bucket_h1
+        fits_budget = bucket_tokens + chunk_tokens <= max_tokens
+        if same_h1 and fits_budget:
+            # Strip the repeated H1 header line before folding into the
+            # bucket, since the bucket's first chunk already carries it.
+            content_to_add = chunk.content
+            if content_to_add.startswith(f"# {bucket_h1}"):
+                content_to_add = content_to_add.split("\n", 1)[-1].strip()
+            bucket_titles.append(chunk.title)
+            bucket_content.append(content_to_add)
+            bucket_tokens += chunk_tokens
+        else:
+            merged.append(
+                RuleChunk(
+                    title=" / ".join(bucket_titles),
+                    content="\n\n".join(bucket_content),
+                    order=len(merged),
+                )
+            )
+            bucket_titles = [chunk.title]
+            bucket_content = [chunk.content]
+            bucket_tokens = chunk_tokens
+            bucket_h1 = _chunk_h1_title(chunk)
+    merged.append(
+        RuleChunk(
+            title=" / ".join(bucket_titles),
+            content="\n\n".join(bucket_content),
+            order=len(merged),
+        )
+    )
+    _LOG.debug("return=%d merged chunks", len(merged))
+    return merged
+
+
+def _build_rule_chunks(
+    topic_info: Dict,
+    *,
+    level: int = 2,
+    max_tokens: int = 1500,
+    merge_small_rules: bool = False,
+) -> List[RuleChunk]:
+    """
+    Build the ordered `RuleChunk` sequence for a topic's rule files.
+
+    :param topic_info: topic configuration dict from `_get_rules_for_topic()`
+    :param level: header level to split each rule file at (`1`=H1, `2`=H2,
+        ...); an H1 section with no header at `level` is kept whole
+    :param max_tokens: token budget for `_merge_small_chunks()`, used only
+        when `merge_small_rules` is `True`
+    :param merge_small_rules: if `True`, greedily pack consecutive small
+        chunks up to `max_tokens` (see `_merge_small_chunks()`)
+    :return: one `RuleChunk` per section across every rule file in
+        `topic_info["rules"]`, in file order, `order` set to position
+    """
+    _LOG.debug(
+        hprint.to_str("level max_tokens merge_small_rules")
+    )
+    rule_files = topic_info["rules"]
+    all_sections: List[Tuple[str, str]] = []
+    for rule_file in rule_files:
+        hdbg.dassert_file_exists(rule_file, "Rule file not found")
+        lines = hio.from_file(rule_file).split("\n")
+        all_sections.extend(_extract_sections_at_level(lines, level=level))
+    chunks = [
+        RuleChunk(title=title, content=content, order=idx)
+        for idx, (title, content) in enumerate(all_sections)
+    ]
+    if merge_small_rules:
+        chunks = _merge_small_chunks(chunks, max_tokens=max_tokens)
+    _LOG.debug("return=%d chunks", len(chunks))
+    return chunks
+
+
+def _call_llm_for_json(prompt: str, *, model: str) -> Optional[Any]:
+    """
+    Call the LLM with `prompt` and parse a JSON value out of the reply.
+
+    Strips any surrounding prose or Markdown code fence around the JSON
+    payload, since models often wrap structured replies in
+    ` ```json ... ``` `.
+
+    :param prompt: prompt requesting a JSON reply
+    :param model: model to use, or `""` for `hllmcli.apply_llm()`'s default
+    :return: the parsed JSON value (a list or a dict, depending on the
+        prompt), or `None` if no JSON could be parsed out of the reply
+    """
+    _LOG.debug(hprint.to_str("model"))
+    response, _ = hllmcli.apply_llm(prompt, model=model)
+    match = re.search(r"\[.*\]|\{.*\}", response, re.DOTALL)
+    if not match:
+        _LOG.warning("No JSON found in LLM reply: '%s'", response)
+        return None
+    try:
+        result = json.loads(match.group(0))
+    except json.JSONDecodeError:
+        _LOG.warning("Could not parse JSON from LLM reply: '%s'", response)
+        return None
+    _LOG.debug("return=%s", hprint.to_str("result"))
+    return result
+
+
+def _is_verification_chunk(chunk: RuleChunk) -> bool:
+    """
+    Check whether `chunk` belongs to the terminal `# Verification` section.
+
+    :param chunk: chunk to check
+    :return: whether `chunk`'s own or parent H1 title (see
+        `_chunk_h1_title()`) is `"Verification"`
+    """
+    is_verification = _chunk_h1_title(chunk) == "Verification"
+    return is_verification
+
+
+def _filter_relevant_chunks(
+    file_path: str, chunks: List[RuleChunk], *, model: str = ""
+) -> List[RuleChunk]:
+    """
+    Keep only the chunks applicable to `file_path`, via one LLM pre-pass.
+
+    Sends every chunk title plus `file_path`'s content to the LLM and asks
+    for the applicable subset, so a file that never touches, e.g., AWS
+    mocking does not spend a turn on the AWS mocking rule chunk. Biases
+    toward inclusion: chunks are kept unfiltered whenever the reply cannot
+    be parsed or would discard every chunk, since dropping an applicable
+    rule is worse than one extra no-op turn.
+
+    :param file_path: file the chunks would be applied to
+    :param chunks: candidate chunks to filter
+    :param model: model to use for the pre-pass, or `""` for the default
+    :return: the chunks whose title was selected, `order` renumbered from
+        `0`; unchanged from `chunks` when the reply cannot be trusted
+    """
+    _LOG.debug(hprint.to_str("file_path model"))
+    hdbg.dassert_file_exists(file_path)
+    file_content = hio.from_file(file_path)
+    titles_list = "\n".join(f"- {chunk.title}" for chunk in chunks)
+    prompt = f"""
+        You are selecting which rule sections apply to the file below.
+
+        File path: {file_path}
+        File content:
+        ```
+        {file_content}
+        ```
+
+        Candidate rule section titles:
+        {titles_list}
+
+        Reply with a JSON array of the titles (copied exactly) that apply
+        to this file. If in doubt, include the title.
+        """
+    prompt = hprint.dedent(prompt)
+    selected = _call_llm_for_json(prompt, model=model)
+    if not isinstance(selected, list):
+        _LOG.warning(
+            "Relevance filter reply was not a JSON list; keeping all %d "
+            "chunk(s)",
+            len(chunks),
+        )
+        return chunks
+    selected_set = set(selected)
+    kept = [chunk for chunk in chunks if chunk.title in selected_set]
+    discarded_titles = [
+        chunk.title for chunk in chunks if chunk.title not in selected_set
+    ]
+    if discarded_titles:
+        _LOG.info(
+            "Discarded %d chunk(s) as not relevant: %s",
+            len(discarded_titles),
+            discarded_titles,
+        )
+    if not kept:
+        _LOG.warning(
+            "Relevance filter selected zero chunks; keeping all %d "
+            "chunk(s)",
+            len(chunks),
+        )
+        return chunks
+    kept = [
+        dataclasses.replace(chunk, order=idx)
+        for idx, chunk in enumerate(kept)
+    ]
+    _LOG.debug("return=%d chunks", len(kept))
+    return kept
+
+
+# Category rank used to sort chunks so semantic changes land before
+# structural ones, and structural before pure formatting.
+_CATEGORY_RANK = {"semantic": 0, "structural": 1, "formatting": 2}
+
+
+def _order_chunks_by_dependency(
+    chunks: List[RuleChunk], *, model: str = ""
+) -> List[RuleChunk]:
+    """
+    Reorder chunks so interacting rules stop fighting each other.
+
+    Runs one LLM pre-pass to categorize each chunk as `semantic`,
+    `structural`, or `formatting`, then sorts semantic-first so intent
+    changes land before code-shape changes and before pure formatting,
+    keeping file order as the tiebreaker within a category. Regardless of
+    category, any chunk under the `# Verification` H1 (see
+    `_is_verification_chunk()`) is always moved to the end, since it is a
+    terminal gate rather than a rule to apply mid-sequence.
+
+    :param chunks: candidate chunks to reorder
+    :param model: model to use for the pre-pass, or `""` for the default
+    :return: chunks sorted by category with `# Verification` last, `order`
+        renumbered from `0`; falls back to `"structural"` for a chunk
+        missing from the reply, and to file order when the reply cannot be
+        parsed
+    """
+    _LOG.debug(hprint.to_str("model"))
+    titles_list = "\n".join(f"- {chunk.title}" for chunk in chunks)
+    prompt = f"""
+        Classify each rule section title below into exactly one category:
+        - "semantic": changes behavior or intent
+        - "structural": reorganizes code without changing behavior
+        - "formatting": pure style or formatting
+
+        Rule section titles:
+        {titles_list}
+
+        Reply with a JSON object mapping each title (copied exactly) to
+        its category.
+        """
+    prompt = hprint.dedent(prompt)
+    categories = _call_llm_for_json(prompt, model=model)
+    if not isinstance(categories, dict):
+        _LOG.warning(
+            "Dependency ordering reply was not a JSON object; keeping "
+            "file order for %d chunk(s)",
+            len(chunks),
+        )
+        categories = {}
+
+    def _rank(chunk: RuleChunk) -> Tuple[bool, int]:
+        if _is_verification_chunk(chunk):
+            return (True, 0)
+        category = categories.get(chunk.title, "structural")
+        category_rank = _CATEGORY_RANK.get(
+            category, _CATEGORY_RANK["structural"]
+        )
+        return (False, category_rank)
+
+    ordered = sorted(chunks, key=_rank)
+    ordered = [
+        dataclasses.replace(chunk, order=idx)
+        for idx, chunk in enumerate(ordered)
+    ]
+    _LOG.debug("return=%d chunks", len(ordered))
+    return ordered
+
+
+# #############################################################################
 # Prompt Building
 # #############################################################################
 
@@ -456,7 +862,15 @@ def _build_rule_message(file_path: str, rule_content: str) -> str:
 
 
 def _build_incremental_messages(
-    file_path: str, topic_info: Dict
+    file_path: str,
+    topic_info: Dict,
+    *,
+    level: int = 2,
+    max_tokens: int = 1500,
+    merge_small_rules: bool = False,
+    filter_rules_by_relevance: bool = False,
+    order_rules_by_dependency: bool = False,
+    model: str = "",
 ) -> List[str]:
     """
     Build a sequence of rule messages for incremental rule application.
@@ -464,28 +878,44 @@ def _build_incremental_messages(
     :param file_path: path of the file to process, interpolated into every
         rule message
     :param topic_info: topic configuration dict from `_get_rules_for_topic()`
-    :return: one message per H1 rule section; the role and the "do not
-        change behavior" instruction live in the system prompt instead (see
+    :param level: header level to split each rule file at, passed to
+        `_build_rule_chunks()`
+    :param max_tokens: token budget passed to `_build_rule_chunks()`, used
+        only when `merge_small_rules` is `True`
+    :param merge_small_rules: if `True`, pack small chunks up to
+        `max_tokens` (see `_build_rule_chunks()`)
+    :param filter_rules_by_relevance: if `True`, drop chunks the pre-pass in
+        `_filter_relevant_chunks()` finds inapplicable to `file_path`
+    :param order_rules_by_dependency: if `True`, reorder chunks via
+        `_order_chunks_by_dependency()` so semantic rules land first and
+        `# Verification` lands last
+    :param model: model to use for the `filter_rules_by_relevance` and
+        `order_rules_by_dependency` pre-passes
+    :return: one message per rule chunk; the role and the "do not change
+        behavior" instruction live in the system prompt instead (see
         `_build_incremental_system_prompt()`)
     """
-    _LOG.debug(hprint.to_str("file_path"))
-    hdbg.dassert_file_exists(file_path)
-    rule_files = topic_info["rules"]
-    _LOG.info("Number of rule files: %d", len(rule_files))
-    # Extract all H1 sections from all rule files.
-    all_sections = []
-    for rule_file in rule_files:
-        hdbg.dassert_file_exists(rule_file, "Rule file not found")
-        sections = _extract_h1_sections(rule_file)
-        _LOG.info(
-            "Extracted %d H1 sections from '%s'", len(sections), rule_file
+    _LOG.debug(
+        hprint.to_str(
+            "file_path level max_tokens merge_small_rules "
+            "filter_rules_by_relevance order_rules_by_dependency"
         )
-        all_sections.extend(sections)
-    _LOG.info("Total H1 sections: %d", len(all_sections))
+    )
+    hdbg.dassert_file_exists(file_path)
+    chunks = _build_rule_chunks(
+        topic_info,
+        level=level,
+        max_tokens=max_tokens,
+        merge_small_rules=merge_small_rules,
+    )
+    _LOG.info("Built %d rule chunk(s) at level %d", len(chunks), level)
+    if filter_rules_by_relevance:
+        chunks = _filter_relevant_chunks(file_path, chunks, model=model)
+    if order_rules_by_dependency:
+        chunks = _order_chunks_by_dependency(chunks, model=model)
     #
     messages = [
-        _build_rule_message(file_path, section_content)
-        for _, section_content in all_sections
+        _build_rule_message(file_path, chunk.content) for chunk in chunks
     ]
     _LOG.debug("return=%d messages", len(messages))
     return messages
@@ -529,6 +959,11 @@ async def _process_file_incrementally(
     *,
     skill: str = "",
     rule: str = "",
+    rule_level: int = 2,
+    max_chunk_tokens: int = 1500,
+    merge_small_rules: bool = False,
+    filter_rules_by_relevance: bool = False,
+    order_rules_by_dependency: bool = False,
 ) -> int:
     """
     Apply rules incrementally, one chunk per Claude Code interaction.
@@ -541,12 +976,16 @@ async def _process_file_incrementally(
     - `rule`: the rule text from `hmarsele.extract_rule_from_file()`, split
       into H1 sections when it has more than one, else kept as a single
       chunk (see `_build_incremental_messages_for_rule()`)
-    - neither: one chunk per H1 section across `topic_info["rules"]` (see
+    - neither: one `RuleChunk` per section across `topic_info["rules"]`,
+      shaped by `rule_level`/`max_chunk_tokens`/`merge_small_rules`/
+      `filter_rules_by_relevance`/`order_rules_by_dependency` (see
       `_build_incremental_messages()`)
 
     :param file_path: Path to the file to process
     :param dry_run: If True, print messages without executing
-    :param model: Model to use for Claude invocation (used via SDK configuration)
+    :param model: Model to use for Claude invocation (used via SDK
+        configuration, and for the `filter_rules_by_relevance`/
+        `order_rules_by_dependency` pre-passes)
     :param context_strategy: `"stateless"` for a fresh session per chunk, or
         `"session"` for a single session shared across all chunks (i.e.,
         `--mode` when it is not `"one_shot"`)
@@ -555,11 +994,23 @@ async def _process_file_incrementally(
         `skill` nor `rule` is set, for the rule files to split into chunks
     :param skill: skill name to execute via `--skill`, if any
     :param rule: rule specification to execute via `--rule`, if any
+    :param rule_level: header level to split rule chunks at, when neither
+        `skill` nor `rule` is set
+    :param max_chunk_tokens: token budget per merged chunk, used only when
+        `merge_small_rules` is `True`
+    :param merge_small_rules: if `True`, pack small chunks up to
+        `max_chunk_tokens`
+    :param filter_rules_by_relevance: if `True`, drop chunks an LLM
+        pre-pass finds inapplicable to `file_path`
+    :param order_rules_by_dependency: if `True`, reorder chunks via an LLM
+        pre-pass so semantic rules apply first and `# Verification` last
     :return: Return code (0 on success)
     """
     _LOG.debug(
         hprint.to_str(
-            "file_path dry_run model context_strategy skill rule"
+            "file_path dry_run model context_strategy skill rule "
+            "rule_level max_chunk_tokens merge_small_rules "
+            "filter_rules_by_relevance order_rules_by_dependency"
         )
     )
     hdbg.dassert_file_exists(file_path)
@@ -575,7 +1026,16 @@ async def _process_file_incrementally(
             file_path, rule_content
         )
     else:
-        messages = _build_incremental_messages(file_path, topic_info)
+        messages = _build_incremental_messages(
+            file_path,
+            topic_info,
+            level=rule_level,
+            max_tokens=max_chunk_tokens,
+            merge_small_rules=merge_small_rules,
+            filter_rules_by_relevance=filter_rules_by_relevance,
+            order_rules_by_dependency=order_rules_by_dependency,
+            model=model,
+        )
     # Handle dry run.
     if dry_run:
         # Save the full, untrimmed dry-run output to a file instead of
@@ -655,6 +1115,11 @@ def _process_file(
                 topic_info,
                 skill=args.skill,
                 rule=args.rule,
+                rule_level=args.rule_level,
+                max_chunk_tokens=args.max_chunk_tokens,
+                merge_small_rules=args.merge_small_rules,
+                filter_rules_by_relevance=args.filter_rules_by_relevance,
+                order_rules_by_dependency=args.order_rules_by_dependency,
             )
         )
     elif args.skill:
@@ -759,6 +1224,40 @@ def _parse() -> argparse.ArgumentParser:
           per Claude Code interaction, sharing one session across all chunks
           ('session') or opening a fresh session per chunk ('stateless')
         """)
+    )
+    parser.add_argument(
+        "--rule_level",
+        type=int,
+        default=2,
+        help="Header level to split rule chunks at in --mode "
+        "session/stateless (1=H1, 2=H2, ...); an H1 section with no header "
+        "at this level is kept whole",
+    )
+    parser.add_argument(
+        "--max_chunk_tokens",
+        type=int,
+        default=1500,
+        help="Token budget per merged rule chunk; used only with "
+        "--merge_small_rules",
+    )
+    parser.add_argument(
+        "--merge_small_rules",
+        action="store_true",
+        help="Greedily pack consecutive small rule chunks under the same "
+        "parent H1 up to --max_chunk_tokens",
+    )
+    parser.add_argument(
+        "--filter_rules_by_relevance",
+        action="store_true",
+        help="Drop rule chunks an LLM pre-pass finds inapplicable to the "
+        "file being processed",
+    )
+    parser.add_argument(
+        "--order_rules_by_dependency",
+        action="store_true",
+        help="Reorder rule chunks via an LLM pre-pass so semantic rules "
+        "apply before structural and formatting rules, with the "
+        "Verification checklist always last",
     )
     parser.add_argument(
         "--dry_run",

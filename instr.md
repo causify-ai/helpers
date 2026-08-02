@@ -1,6 +1,4 @@
-In cc_lint.py, change --dry_run to save a file in tmp.cc_lint_dry_run.txt with
-the same output as now but without trimming the output
-Do not print on screen
+Implement phase 3 of plan.md and add unit tests
 
 # Conventions
 - When writing code you must always follow the instructions in

@@ -97,6 +97,38 @@ Claude Code integration for topic-based intelligent formatting.
   > cc_lint.py --files "file.py" --mode stateless --dry_run
   ```
 
+- Control rule chunking in `--mode session`/`stateless` for `--topic`/default
+  path only
+  - Split at H1 instead of the default H2, and carry the parent H1 title into
+    each H2+ chunk:
+    ```bash
+    > cc_lint.py --files "file.py" --mode stateless \
+        --rule_level 1
+    ```
+  - Greedily pack consecutive small same-H1 chunks up to a token budget:
+    ```bash
+    > cc_lint.py --files "file.py" --mode stateless \
+        --merge_small_rules --max_chunk_tokens 1500
+    ```
+  - Drop chunks an LLM pre-pass finds inapplicable to the file, logging what was
+    discarded:
+    ```bash
+    > cc_lint.py --files "file.py" --mode stateless \
+        --filter_rules_by_relevance
+    ```
+  - Reorder chunks via an LLM pre-pass: semantic, then structural, then
+    formatting, with the Verification checklist always last:
+    ```bash
+    > cc_lint.py --files "file.py" --mode stateless \
+      --order_rules_by_dependency
+    ```
+  - These four flags are orthogonal and can be combined so that they are applied
+    in order:
+    - split (`--rule_level`)
+    - merge (`--merge_small_rules`)
+    - filter (`--filter_rules_by_relevance`)
+    - order (`--order_rules_by_dependency`)
+
 ## Software Architecture
 
 ### Data Flow
@@ -104,7 +136,7 @@ Claude Code integration for topic-based intelligent formatting.
 - `_main()`
   - Selects files
   - Asserts that at most one of `--topic`, `--skill`, and `--rule` is set
-    (`--mode` is orthogonal and not part of this check)
+  - `--mode` is orthogonal
   - Loops over files calling `_process_file()`
     - `_process_file()` dispatches on `args.mode` first, then on the "what"
       (`--topic`/`--skill`/`--rule`/default):
@@ -118,17 +150,24 @@ Claude Code integration for topic-based intelligent formatting.
           - `--rule`: `hmarsele.extract_rule_from_file()`'s text, split into
             per-H1-section messages via `_build_incremental_messages_for_rule()`
             when it carries more than one, else a single message
-          - `--topic` / default: `_build_incremental_messages()`, one H1
-            section per topic rule file (`_extract_h1_sections()`), each
-            templated by `_build_rule_message()` into a message that
-            re-anchors on the target file path and demands a structured
-            `LLM> NO-OP` / `LLM> CHANGED: <summary>` reply
-        - hands the system prompt and messages to `PromptSequencer.execute()`
+          - `--topic` / default: `_build_incremental_messages()`
+            - builds one `RuleChunk` per section across the topic's rule files
+              via `_build_rule_chunks()` (split at `--rule_level`, carrying the
+              parent H1 title into each chunk; merged up to `--max_chunk_tokens`
+              when `--merge_small_rules` is set)
+            - optionally `_filter_relevant_chunks()` and
+              `_order_chunks_by_dependency()` (each one cheap
+              `hllmcli.apply_llm()` pre-pass) when `--filter_rules_by_relevance`/
+              `--order_rules_by_dependency` are set
+            - every chunk is templated by `_build_rule_message()` into a message
+              that re-anchors on the target file path and demands a structured
+              `LLM> NO-OP` / `LLM> CHANGED: <summary>` reply
+        - Hands the system prompt and messages to `PromptSequencer.execute()`
           from `dev_scripts_helpers/ai/cc_lib.py`, which
-          - runs under `--mode`'s `context_strategy`: `stateless` opens a
+          - Runs under `--mode`'s `context_strategy`: `stateless` opens a
             fresh `ClaudeSDKClient` per message, `session` shares one client
             across all messages
-          - parses each reply's no-op contract via `_parse_rule_outcome()`,
+          - Parses each reply's no-op contract via `_parse_rule_outcome()`,
             exposed as `get_outcomes()`
       - **`--mode one_shot`** (the default):
         - **Default** / `--topic`
@@ -153,17 +192,25 @@ Claude Code integration for topic-based intelligent formatting.
 ### Design Patterns
 
 - **In-process session vs. subprocess delegation**:
-  - the single-shot paths write a prompt file and shell out to the `cc` wrapper,
+  - The single-shot paths write a prompt file and shell out to the `cc` wrapper,
     piping output through `extract_cc_log2.py`
-  - the incremental path talks to `claude_agent_sdk.ClaudeSDKClient` directly,
+  - The incremental path talks to `claude_agent_sdk.ClaudeSDKClient` directly,
     with `--mode` choosing whether one session spans all messages or each
     message gets its own
-- **Permission callback for scoping**: file-modification safety is enforced by an
-  SDK `can_use_tool` callback (`_make_file_scope_guard()`), not by prompt wording
-- **No-op contract over free-form replies**: each rule message demands a
-  structured `LLM> NO-OP` / `LLM> CHANGED: <summary>` reply instead of letting
-  the model narrate freely, so a compliant file produces zero edits instead of
-  forced churn
+- **Permission callback for scoping**:
+  - File-modification safety is enforced by an SDK `can_use_tool` callback
+    (`_make_file_scope_guard()`), not by prompt wording
+- **No-op contract over free-form replies**:
+  - Each rule message demands a structured `LLM> NO-OP` / `LLM> CHANGED:
+    <summary>` reply instead of letting the model narrate freely
+- **Bias toward inclusion on pre-pass failure**: `_filter_relevant_chunks()`
+  keeps every chunk unfiltered when the LLM reply cannot be parsed as a JSON
+  list or would discard every chunk, since silently dropping an applicable
+  rule is worse than one extra no-op turn
+- **Merge never crosses a parent H1 boundary**: `_merge_small_chunks()` only
+  packs consecutive chunks that share the same parent H1 title, so packing
+  never folds, e.g., the `# Verification` checklist into an unrelated
+  neighboring chunk
 
 ### Invariants
 
@@ -184,5 +231,9 @@ Claude Code integration for topic-based intelligent formatting.
   hooks cannot change what a lint run does from one machine to another
 - Every prompt (single-shot or per-rule) carries the "do not change the
   behavior or intent of the file" instruction
+- With `--order_rules_by_dependency`, a chunk under the `# Verification` H1
+  is always sorted last regardless of its LLM-assigned category (see
+  `_is_verification_chunk()`), since it is a terminal gate rather than a
+  rule to apply mid-sequence
 - Post-processing (`jupytext --sync`, `hlint.lint_file()`) runs whenever
   `topic_info` is populated

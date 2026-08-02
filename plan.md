@@ -11,6 +11,11 @@
 - Change:
   - Split at the level given by `--rule_level`, defaulting to H2
   - Carry the parent H1 title into each chunk as context
+
+## Merge tokens with a Token Budget
+- Add a switch to enable this transform --merge_small_rules
+
+- Change:
   - Greedily pack consecutive small sections up to `--max_chunk_tokens`
   - Introduce a `RuleChunk` dataclass:
     ```python
@@ -23,6 +28,7 @@
 - Done when: chunk sizes fall within a single order of magnitude
 
 ## Filter Rules by Relevance
+- Add a switch to enable this transform --filter_rules_by_relevance
 
 - Problem:
   - A test file with no mocks still spends turns on the AWS mocking rules and the
@@ -31,9 +37,13 @@
   - Add one cheap pre-pass that sends the chunk titles and the file, and asks for
     a JSON list of applicable titles
   - Run only the selected chunks, and log the discarded ones
-- Done when: the turn count drops on files that exercise a subset of the rules
+
+- Re-use the master flow, in the sense that rules are filtered and written
+  in a temporary file and then reused for the split
+  - This transform is done at the beginning and then the normal flow is reused
 
 ## Order Chunks by Dependency
+- Add a switch to enalbe this transform --order_rules_by_dependency
 
 - Problem:
   - Chunks are applied in file order, so interacting rules can fight each other
@@ -42,10 +52,15 @@
   - The `# Verification` checklist is applied as one section among many rather
     than as a final gate
 - Change:
-  - Assign each chunk a category: semantic, structural, or formatting
-  - Sort by category, then by file order
+  - Add one pre-pass to assign each chunk a category: semantic, structural, or
+    formatting with an explanation of what they are
+  - Sort by category (semantic > structural > formatting)
+  - Then apply them in order
   - Always run the `# Verification` checklist last, as a terminal pass
-- Done when: the verification checklist is the final message in every run
+
+- Re-use the master flow, in the sense that rules are filtered and written
+  in a temporary file and then reused for the split
+  - This transform is done at the beginning and then the normal flow is reused
 
 # Phase 4: Checkpointing and Resume
 
@@ -174,12 +189,3 @@
   - Mitigated by allowing reads anywhere while restricting writes to the target
 - **Pinning the settings sources changes behavior for existing users**:
   - Mitigated by landing the change with a note in `linters2/lint_cc.README.md`
-
-# Suggested Order of Work
-
-1. Phase 1, since the `--model` flag, the tool scoping, and the post-processing
-   gap are outright defects
-2. Phase 2, which removes two wasted turns and costs little
-3. Phase 3, which cuts cost the most by making chunks uniform and fewer
-4. Phase 4, which makes unattended runs safe
-5. Phase 5, which is useful only once the earlier phases have settled

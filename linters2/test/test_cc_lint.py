@@ -487,6 +487,570 @@ class Test_extract_h1_sections(hunitest.TestCase):
 
 
 # #############################################################################
+# Test_extract_sections_at_level
+# #############################################################################
+
+
+class Test_extract_sections_at_level(hunitest.TestCase):
+    """
+    Tests for `cc_lint._extract_sections_at_level()` function.
+    """
+
+    def helper(self, content: str, level: int, expected: str) -> None:
+        """
+        Extract sections from `content` at `level` and check them against
+        `expected`.
+
+        :param content: markdown content to split
+        :param level: header level to split at
+        :param expected: expected `pprint.pformat()` output of the
+            extracted sections
+        """
+        # Prepare inputs.
+        lines = content.split("\n")
+        # Run test.
+        sections = lcclint._extract_sections_at_level(lines, level=level)
+        # Check outputs.
+        actual = pprint.pformat(sections)
+        self.assert_equal(actual, expected, dedent=True)
+
+    def test1(self) -> None:
+        """
+        Test that splitting at H2 carries the parent H1 title into each
+        chunk.
+        """
+        # Prepare inputs.
+        content = """
+            # Chapter One
+            ## Section A
+            Content A
+
+            ## Section B
+            Content B
+            """
+        content = hprint.dedent(content)
+        level = 2
+        # Prepare outputs.
+        expected = r"""
+        [('Section A', '# Chapter One\n## Section A\nContent A'),
+         ('Section B', '# Chapter One\n\n## Section B\nContent B')]
+        """
+        # Run test.
+        self.helper(content, level, expected)
+
+    def test2(self) -> None:
+        """
+        Test that an H1 section with no header at `level` is kept whole.
+        """
+        # Prepare inputs.
+        content = """
+            # Chapter One
+            Content one
+
+            # Chapter Two
+            Content two
+            """
+        content = hprint.dedent(content)
+        level = 2
+        # Prepare outputs.
+        expected = r"""
+        [('Chapter One', '# Chapter One\nContent one'),
+         ('Chapter Two', '# Chapter Two\nContent two')]
+        """
+        # Run test.
+        self.helper(content, level, expected)
+
+    def test3(self) -> None:
+        """
+        Test that `level=1` returns each H1 section unsplit.
+        """
+        # Prepare inputs.
+        content = """
+            # Chapter One
+            ## Section A
+            Content A
+
+            # Chapter Two
+            Content two
+            """
+        content = hprint.dedent(content)
+        level = 1
+        # Prepare outputs.
+        expected = r"""
+        [('Chapter One', '# Chapter One\n## Section A\nContent A'),
+         ('Chapter Two', '# Chapter Two\nContent two')]
+        """
+        # Run test.
+        self.helper(content, level, expected)
+
+    def test4(self) -> None:
+        """
+        Test that preamble text before the first H2 is folded into the
+        first chunk instead of being dropped.
+        """
+        # Prepare inputs.
+        content = """
+            # Chapter One
+            Preamble text
+
+            ## Section A
+            Content A
+
+            ## Section B
+            Content B
+            """
+        content = hprint.dedent(content)
+        level = 2
+        # Prepare outputs.
+        expected = r"""
+        [('Section A', '# Chapter One\nPreamble text\n\n## Section A\nContent A'),
+         ('Section B', '# Chapter One\n\n## Section B\nContent B')]
+        """
+        # Run test.
+        self.helper(content, level, expected)
+
+
+# #############################################################################
+# Test_merge_small_chunks
+# #############################################################################
+
+
+class Test_merge_small_chunks(hunitest.TestCase):
+    """
+    Tests for `cc_lint._merge_small_chunks()` function.
+    """
+
+    def test1(self) -> None:
+        """
+        Test that two small chunks under the same parent H1 are packed
+        into one, with the repeated H1 header line stripped.
+        """
+        # Prepare inputs.
+        chunks = [
+            lcclint.RuleChunk(
+                title="A", content="# Chapter\n\n## A\nshort", order=0
+            ),
+            lcclint.RuleChunk(
+                title="B", content="# Chapter\n\n## B\nshort", order=1
+            ),
+        ]
+        max_tokens = 1500
+        # Prepare outputs.
+        expected = [
+            lcclint.RuleChunk(
+                title="A / B",
+                content="# Chapter\n\n## A\nshort\n\n## B\nshort",
+                order=0,
+            )
+        ]
+        # Run test.
+        actual = lcclint._merge_small_chunks(chunks, max_tokens=max_tokens)
+        # Check outputs.
+        self.assert_equal(str(actual), str(expected))
+
+    def test2(self) -> None:
+        """
+        Test that chunks are kept unmerged when the combined size would
+        exceed the token budget.
+        """
+        # Prepare inputs.
+        chunks = [
+            lcclint.RuleChunk(
+                title="A", content="# Chapter\n\n## A\nshort", order=0
+            ),
+            lcclint.RuleChunk(
+                title="B", content="# Chapter\n\n## B\nshort", order=1
+            ),
+        ]
+        max_tokens = 1
+        # Prepare outputs.
+        expected = chunks
+        # Run test.
+        actual = lcclint._merge_small_chunks(chunks, max_tokens=max_tokens)
+        # Check outputs.
+        self.assert_equal(str(actual), str(expected))
+
+    def test3(self) -> None:
+        """
+        Test that chunks under different parent H1s are never merged, even
+        when both fit within the token budget.
+        """
+        # Prepare inputs.
+        chunks = [
+            lcclint.RuleChunk(
+                title="A", content="# Chapter One\n\n## A\nshort", order=0
+            ),
+            lcclint.RuleChunk(
+                title="B", content="# Chapter Two\n\n## B\nshort", order=1
+            ),
+        ]
+        max_tokens = 1500
+        # Prepare outputs.
+        expected = chunks
+        # Run test.
+        actual = lcclint._merge_small_chunks(chunks, max_tokens=max_tokens)
+        # Check outputs.
+        self.assert_equal(str(actual), str(expected))
+
+    def test4(self) -> None:
+        """
+        Test that an empty chunk list returns an empty list.
+        """
+        # Prepare inputs.
+        chunks: List[lcclint.RuleChunk] = []
+        max_tokens = 1500
+        # Prepare outputs.
+        expected: List[lcclint.RuleChunk] = []
+        # Run test.
+        actual = lcclint._merge_small_chunks(chunks, max_tokens=max_tokens)
+        # Check outputs.
+        self.assert_equal(str(actual), str(expected))
+
+
+# #############################################################################
+# Test_build_rule_chunks
+# #############################################################################
+
+
+class Test_build_rule_chunks(hunitest.TestCase):
+    """
+    Tests for `cc_lint._build_rule_chunks()` function.
+    """
+
+    def test1(self) -> None:
+        """
+        Test that the default level (H2) splits a two-H1, two-H2-each rule
+        file into one chunk per H2 section, in file order.
+        """
+        # Prepare inputs.
+        scratch_dir = self.get_scratch_space()
+        rules_content = """
+            # Chapter One
+            ## Section A
+            Content A
+
+            ## Section B
+            Content B
+
+            # Chapter Two
+            ## Section C
+            Content C
+            """
+        rules_content = hprint.dedent(rules_content)
+        rule_file = os.path.join(scratch_dir, "test.rules.md")
+        hio.to_file(rule_file, rules_content)
+        topic_info = {"rules": [rule_file]}
+        # Prepare outputs.
+        expected = [
+            lcclint.RuleChunk(
+                title="Section A",
+                content="# Chapter One\n## Section A\nContent A",
+                order=0,
+            ),
+            lcclint.RuleChunk(
+                title="Section B",
+                content="# Chapter One\n\n## Section B\nContent B",
+                order=1,
+            ),
+            lcclint.RuleChunk(
+                title="Section C",
+                content="# Chapter Two\n## Section C\nContent C",
+                order=2,
+            ),
+        ]
+        # Run test.
+        actual = lcclint._build_rule_chunks(topic_info)
+        # Check outputs.
+        self.assert_equal(str(actual), str(expected))
+
+    def test2(self) -> None:
+        """
+        Test that `merge_small_rules=True` packs the two H2 chunks under
+        `# Chapter One` into one, leaving `# Chapter Two` unmerged.
+        """
+        # Prepare inputs.
+        scratch_dir = self.get_scratch_space()
+        rules_content = """
+            # Chapter One
+            ## Section A
+            Content A
+
+            ## Section B
+            Content B
+
+            # Chapter Two
+            ## Section C
+            Content C
+            """
+        rules_content = hprint.dedent(rules_content)
+        rule_file = os.path.join(scratch_dir, "test.rules.md")
+        hio.to_file(rule_file, rules_content)
+        topic_info = {"rules": [rule_file]}
+        # Prepare outputs.
+        expected = [
+            lcclint.RuleChunk(
+                title="Section A / Section B",
+                content=(
+                    "# Chapter One\n## Section A\nContent A\n\n"
+                    "## Section B\nContent B"
+                ),
+                order=0,
+            ),
+            lcclint.RuleChunk(
+                title="Section C",
+                content="# Chapter Two\n## Section C\nContent C",
+                order=1,
+            ),
+        ]
+        # Run test.
+        actual = lcclint._build_rule_chunks(
+            topic_info, merge_small_rules=True, max_tokens=1500
+        )
+        # Check outputs.
+        self.assert_equal(str(actual), str(expected))
+
+    def test3(self) -> None:
+        """
+        Test that `level=1` yields one chunk per H1 section, matching
+        `_extract_h1_sections()`'s output.
+        """
+        # Prepare inputs.
+        rule_file = ".claude/skills/testing.rules.md"
+        topic_info = {"rules": [rule_file]}
+        expected_sections = lcclint._extract_h1_sections(rule_file)
+        # Prepare outputs.
+        expected = [
+            lcclint.RuleChunk(title=title, content=content, order=idx)
+            for idx, (title, content) in enumerate(expected_sections)
+        ]
+        # Run test.
+        actual = lcclint._build_rule_chunks(topic_info, level=1)
+        # Check outputs.
+        self.assert_equal(str(actual), str(expected))
+
+
+# #############################################################################
+# Test_filter_relevant_chunks
+# #############################################################################
+
+
+class Test_filter_relevant_chunks(hunitest.TestCase):
+    """
+    Tests for `cc_lint._filter_relevant_chunks()` function.
+    """
+
+    def helper(self, llm_reply: str, expected_titles: List[str]) -> None:
+        """
+        Filter a fixed 3-chunk candidate list with a mocked LLM reply and
+        check the kept titles.
+
+        :param llm_reply: raw text returned by the mocked
+            `hllmcli.apply_llm()`
+        :param expected_titles: expected `chunk.title` for every chunk kept
+        """
+        # Prepare inputs.
+        scratch_dir = self.get_scratch_space()
+        file_path = os.path.join(scratch_dir, "example.py")
+        hio.to_file(file_path, "x = 1\n")
+        chunks = [
+            lcclint.RuleChunk(
+                title="AWS Mocking", content="# Mocking\n\ncontent1", order=0
+            ),
+            lcclint.RuleChunk(
+                title="Syscall Mocking",
+                content="# Mocking\n\ncontent2",
+                order=1,
+            ),
+            lcclint.RuleChunk(
+                title="Test One Thing",
+                content="# Testing Philosophy\n\ncontent3",
+                order=2,
+            ),
+        ]
+        # Run test.
+        with umock.patch.object(
+            lcclint.hllmcli, "apply_llm", return_value=(llm_reply, None)
+        ):
+            actual = lcclint._filter_relevant_chunks(file_path, chunks)
+        # Check outputs.
+        actual_titles = [chunk.title for chunk in actual]
+        self.assert_equal(str(actual_titles), str(expected_titles))
+        self.assert_equal(
+            str([chunk.order for chunk in actual]),
+            str(list(range(len(actual)))),
+        )
+
+    def test1(self) -> None:
+        """
+        Test that only the chunks named in the JSON list reply are kept.
+        """
+        # Prepare inputs.
+        llm_reply = '["Test One Thing"]'
+        # Prepare outputs.
+        expected_titles = ["Test One Thing"]
+        # Run test.
+        self.helper(llm_reply, expected_titles)
+
+    def test2(self) -> None:
+        """
+        Test that every chunk is kept when the reply is not valid JSON
+        (fail open).
+        """
+        # Prepare inputs.
+        llm_reply = "not json at all"
+        # Prepare outputs.
+        expected_titles = [
+            "AWS Mocking",
+            "Syscall Mocking",
+            "Test One Thing",
+        ]
+        # Run test.
+        self.helper(llm_reply, expected_titles)
+
+    def test3(self) -> None:
+        """
+        Test that every chunk is kept when the reply selects zero chunks
+        (fail open).
+        """
+        # Prepare inputs.
+        llm_reply = "[]"
+        # Prepare outputs.
+        expected_titles = [
+            "AWS Mocking",
+            "Syscall Mocking",
+            "Test One Thing",
+        ]
+        # Run test.
+        self.helper(llm_reply, expected_titles)
+
+    def test4(self) -> None:
+        """
+        Test that a JSON list reply wrapped in a Markdown code fence is
+        still parsed correctly.
+        """
+        # Prepare inputs.
+        llm_reply = '```json\n["AWS Mocking", "Syscall Mocking"]\n```'
+        # Prepare outputs.
+        expected_titles = ["AWS Mocking", "Syscall Mocking"]
+        # Run test.
+        self.helper(llm_reply, expected_titles)
+
+
+# #############################################################################
+# Test_order_chunks_by_dependency
+# #############################################################################
+
+
+class Test_order_chunks_by_dependency(hunitest.TestCase):
+    """
+    Tests for `cc_lint._order_chunks_by_dependency()` function.
+    """
+
+    def helper(self, llm_reply: str, expected_titles: List[str]) -> None:
+        """
+        Reorder a fixed 4-chunk candidate list with a mocked LLM reply and
+        check the resulting title order.
+
+        :param llm_reply: raw text returned by the mocked
+            `hllmcli.apply_llm()`
+        :param expected_titles: expected `chunk.title` order after sorting
+        """
+        # Prepare inputs.
+        chunks = [
+            lcclint.RuleChunk(
+                title="Fix Formatting",
+                content="# Style\n\ncontent1",
+                order=0,
+            ),
+            lcclint.RuleChunk(
+                title="Change Behavior",
+                content="# Style\n\ncontent2",
+                order=1,
+            ),
+            lcclint.RuleChunk(
+                title="Reorg Code", content="# Style\n\ncontent3", order=2
+            ),
+            lcclint.RuleChunk(
+                title="Checklist",
+                content="# Verification\n\ncontent4",
+                order=3,
+            ),
+        ]
+        # Run test.
+        with umock.patch.object(
+            lcclint.hllmcli, "apply_llm", return_value=(llm_reply, None)
+        ):
+            actual = lcclint._order_chunks_by_dependency(chunks)
+        # Check outputs.
+        actual_titles = [chunk.title for chunk in actual]
+        self.assert_equal(str(actual_titles), str(expected_titles))
+        self.assert_equal(
+            str([chunk.order for chunk in actual]),
+            str(list(range(len(actual)))),
+        )
+
+    def test1(self) -> None:
+        """
+        Test that chunks sort semantic, then structural, then formatting,
+        with the `# Verification` chunk always last even though it was
+        categorized as `semantic`.
+        """
+        # Prepare inputs.
+        llm_reply = """
+        {"Fix Formatting": "formatting",
+         "Change Behavior": "semantic",
+         "Reorg Code": "structural",
+         "Checklist": "semantic"}
+        """
+        # Prepare outputs.
+        expected_titles = [
+            "Change Behavior",
+            "Reorg Code",
+            "Fix Formatting",
+            "Checklist",
+        ]
+        # Run test.
+        self.helper(llm_reply, expected_titles)
+
+    def test2(self) -> None:
+        """
+        Test that file order is preserved (a stable sort with every chunk
+        defaulting to `structural`) when the reply is not valid JSON.
+        """
+        # Prepare inputs.
+        llm_reply = "nonsense reply"
+        # Prepare outputs.
+        expected_titles = [
+            "Fix Formatting",
+            "Change Behavior",
+            "Reorg Code",
+            "Checklist",
+        ]
+        # Run test.
+        self.helper(llm_reply, expected_titles)
+
+    def test3(self) -> None:
+        """
+        Test that a chunk missing from the reply's category mapping
+        defaults to `structural`.
+        """
+        # Prepare inputs.
+        llm_reply = '{"Change Behavior": "semantic"}'
+        # Prepare outputs.
+        # `Fix Formatting` and `Reorg Code` both fall back to
+        # `structural`, so they keep their relative file order after the
+        # `semantic` chunk; `Checklist` stays last.
+        expected_titles = [
+            "Change Behavior",
+            "Fix Formatting",
+            "Reorg Code",
+            "Checklist",
+        ]
+        # Run test.
+        self.helper(llm_reply, expected_titles)
+
+
+# #############################################################################
 # Test_build_incremental_system_prompt
 # #############################################################################
 
@@ -804,6 +1368,11 @@ class Test_process_file_incremental_mode(hunitest.TestCase):
             topic="",
             dry_run=True,
             model="",
+            rule_level=2,
+            max_chunk_tokens=1500,
+            merge_small_rules=False,
+            filter_rules_by_relevance=False,
+            order_rules_by_dependency=False,
         )
         # Prepare outputs.
         expected_rc = 0
@@ -1001,6 +1570,11 @@ class Test_process_file_incremental(hunitest.TestCase):
             rule=rule,
             dry_run=False,
             model="",
+            rule_level=2,
+            max_chunk_tokens=1500,
+            merge_small_rules=False,
+            filter_rules_by_relevance=False,
+            order_rules_by_dependency=False,
         )
         msg = claude_agent_sdk.AssistantMessage(
             content=[claude_agent_sdk.TextBlock(text="LLM> NO-OP")],
@@ -1042,9 +1616,9 @@ class Test_process_file_incremental(hunitest.TestCase):
         skill = ""
         rule = ""
         # Prepare outputs.
-        coding_rule_file = ".claude/skills/coding.rules.md"
+        coding_topic_info = lcclint._get_rules_for_topic("coding")
         expected_num_messages = len(
-            lcclint._extract_h1_sections(coding_rule_file)
+            lcclint._build_rule_chunks(coding_topic_info)
         )
         # Run test.
         self.helper(
@@ -1065,11 +1639,10 @@ class Test_process_file_incremental(hunitest.TestCase):
         skill = ""
         rule = ""
         # Prepare outputs.
-        markdown_rule_file = ".claude/skills/markdown.rules.md"
-        text_rule_file = ".claude/skills/text.rules.md"
+        markdown_topic_info = lcclint._get_rules_for_topic("markdown")
         expected_num_messages = len(
-            lcclint._extract_h1_sections(markdown_rule_file)
-        ) + len(lcclint._extract_h1_sections(text_rule_file))
+            lcclint._build_rule_chunks(markdown_topic_info)
+        )
         # Run test.
         self.helper(
             mode=mode,
@@ -1144,9 +1717,9 @@ class Test_process_file_incremental(hunitest.TestCase):
         skill = ""
         rule = ""
         # Prepare outputs.
-        coding_rule_file = ".claude/skills/coding.rules.md"
+        coding_topic_info = lcclint._get_rules_for_topic("coding")
         expected_num_messages = len(
-            lcclint._extract_h1_sections(coding_rule_file)
+            lcclint._build_rule_chunks(coding_topic_info)
         )
         # Run test.
         self.helper(
@@ -1167,11 +1740,10 @@ class Test_process_file_incremental(hunitest.TestCase):
         skill = ""
         rule = ""
         # Prepare outputs.
-        markdown_rule_file = ".claude/skills/markdown.rules.md"
-        text_rule_file = ".claude/skills/text.rules.md"
+        markdown_topic_info = lcclint._get_rules_for_topic("markdown")
         expected_num_messages = len(
-            lcclint._extract_h1_sections(markdown_rule_file)
-        ) + len(lcclint._extract_h1_sections(text_rule_file))
+            lcclint._build_rule_chunks(markdown_topic_info)
+        )
         # Run test.
         self.helper(
             mode=mode,
@@ -1286,6 +1858,11 @@ class Test_process_file_end_to_end(hunitest.TestCase):
             rule=rule,
             dry_run=False,
             model=self._MODEL,
+            rule_level=2,
+            max_chunk_tokens=1500,
+            merge_small_rules=False,
+            filter_rules_by_relevance=False,
+            order_rules_by_dependency=False,
         )
         # Run test.
         rc, topic_info = lcclint._process_file(file_path, args)
@@ -1398,6 +1975,24 @@ class Test_parse(hunitest.TestCase):
         # Check outputs.
         self.assert_equal(args.mode, expected_mode)
 
+    def helper2(self, argv: List[str], expected: Dict[str, Any]) -> None:
+        """
+        Parse `argv` and check the rule-chunking args against `expected`.
+
+        :param argv: command-line arguments to parse
+        :param expected: expected `{attr_name: value}` for every
+            rule-chunking arg (`rule_level`, `max_chunk_tokens`,
+            `merge_small_rules`, `filter_rules_by_relevance`,
+            `order_rules_by_dependency`)
+        """
+        # Prepare inputs.
+        parser = lcclint._parse()
+        # Run test.
+        args = parser.parse_args(argv)
+        # Check outputs.
+        actual = {name: getattr(args, name) for name in expected}
+        self.assert_equal(str(actual), str(expected))
+
     def test1(self) -> None:
         """
         Test that `--mode` defaults to `one_shot`.
@@ -1441,3 +2036,51 @@ class Test_parse(hunitest.TestCase):
         # Run test and check outputs.
         with self.assertRaises(SystemExit):
             parser.parse_args(argv)
+
+    def test5(self) -> None:
+        """
+        Test the default values of the rule-chunking args.
+        """
+        # Prepare inputs.
+        argv: List[str] = []
+        # Prepare outputs.
+        expected = {
+            "rule_level": 2,
+            "max_chunk_tokens": 1500,
+            "merge_small_rules": False,
+            "filter_rules_by_relevance": False,
+            "order_rules_by_dependency": False,
+        }
+        # Run test.
+        self.helper2(argv, expected)
+
+    def test6(self) -> None:
+        """
+        Test that `--rule_level` and `--max_chunk_tokens` parse as `int`.
+        """
+        # Prepare inputs.
+        argv = ["--rule_level", "1", "--max_chunk_tokens", "500"]
+        # Prepare outputs.
+        expected = {"rule_level": 1, "max_chunk_tokens": 500}
+        # Run test.
+        self.helper2(argv, expected)
+
+    def test7(self) -> None:
+        """
+        Test that `--merge_small_rules`, `--filter_rules_by_relevance`, and
+        `--order_rules_by_dependency` are independent boolean switches.
+        """
+        # Prepare inputs.
+        argv = [
+            "--merge_small_rules",
+            "--filter_rules_by_relevance",
+            "--order_rules_by_dependency",
+        ]
+        # Prepare outputs.
+        expected = {
+            "merge_small_rules": True,
+            "filter_rules_by_relevance": True,
+            "order_rules_by_dependency": True,
+        }
+        # Run test.
+        self.helper2(argv, expected)

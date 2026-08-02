@@ -353,9 +353,9 @@ class PromptSequencer:
         """
         msg = []
         msg.append(hprint.frame(f"Executing prompt {prompt_idx}/{total_prompts}"))
-        msg.append("Prompt content:\n%s", prompt)
-        msg = hprint.color_highlight(msg, "blue")
-        _LOG.info("\n%s", msg)
+        msg.append("Prompt content:\n%s" % prompt)
+        msg_as_str = hprint.color_highlight("\n".join(msg), "blue")
+        _LOG.info("\n%s", msg_as_str)
         # Query Claude with prompt and collect response asynchronously.
         await client.query(prompt)
         # Collect response messages from stream.
