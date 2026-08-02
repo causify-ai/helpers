@@ -1,9 +1,11 @@
 import argparse
 import os
-import tempfile
+import pprint
+from typing import Any, Dict
 
 import linters2.lint_cc as llincc
 import helpers.hio as hio
+import helpers.hprint as hprint
 import helpers.hunit_test as hunitest
 
 
@@ -193,19 +195,20 @@ class Test_get_rules_for_topic(hunitest.TestCase):
     Tests for `lint_cc._get_rules_for_topic()` function.
     """
 
-    # TODO(ai_gp): pass an expected and do self.assert_equal
-    # return the output for more checks if needed
-    # TODO(ai_gp): Rename to helper and use it for all the test methods.
-    def helper_check_run_lint(self, topic: str) -> None:
+    def helper(self, topic: str, expected: str) -> Dict[str, Any]:
         """
-        Test helper that verifies `run_lint` is set for a given topic.
+        Test helper for `_get_rules_for_topic()`.
 
-        :param topic: Topic name to retrieve rules for
+        :param topic: topic name to retrieve rules for
+        :param expected: expected string representation of `topic_info`
+        :return: `topic_info` dict, for tests that need additional checks
         """
         # Run test.
         topic_info = llincc._get_rules_for_topic(topic)
         # Check outputs.
-        self.assertTrue(topic_info["run_lint"])
+        actual = pprint.pformat(topic_info)
+        self.assert_equal(actual, expected, dedent=True)
+        return topic_info
 
     def test1(self) -> None:
         """
@@ -213,19 +216,16 @@ class Test_get_rules_for_topic(hunitest.TestCase):
         """
         # Prepare inputs.
         topic = "coding"
+        # Prepare outputs.
+        expected = """
+        {'role': '.claude/skills/role.coding.md',
+         'rules': ['.claude/skills/coding.rules.md'],
+         'run_jupytext': False,
+         'run_lint': False,
+         'templates': ['.claude/templates/coding.template.py']}
+        """
         # Run test.
-        topic_info = llincc._get_rules_for_topic(topic)
-        # Check outputs.
-        # TODO(ai_gp): Use pprint instead of repr
-        actual = repr(topic_info)
-        # TODO(ai_gp): Use """ and dedent
-        expected = (
-            "{'role': '.claude/skills/role.coding.md', "
-            "'rules': ['.claude/skills/coding.rules.md'], "
-            "'templates': ['.claude/templates/coding.template.py'], "
-            "'run_jupytext': False, 'run_lint': False}"
-        )
-        self.assert_equal(actual, expected)
+        self.helper(topic, expected)
 
     def test2(self) -> None:
         """
@@ -233,8 +233,16 @@ class Test_get_rules_for_topic(hunitest.TestCase):
         """
         # Prepare inputs.
         topic = "testing"
+        # Prepare outputs.
+        expected = """
+        {'role': '.claude/skills/role.coding.md',
+         'rules': ['.claude/skills/testing.rules.md'],
+         'run_jupytext': False,
+         'run_lint': False,
+         'templates': ['.claude/templates/testing.template.py']}
+        """
         # Run test.
-        topic_info = llincc._get_rules_for_topic(topic)
+        topic_info = self.helper(topic, expected)
         # Check outputs.
         self.assertIn("rules", topic_info)
         self.assertTrue(any("testing" in r for r in topic_info["rules"]))
@@ -245,8 +253,16 @@ class Test_get_rules_for_topic(hunitest.TestCase):
         """
         # Prepare inputs.
         topic = "markdown"
+        # Prepare outputs.
+        expected = """
+        {'role': '.claude/skills/role.ai_researcher.md',
+         'rules': ['.claude/skills/markdown.rules.md', '.claude/skills/text.rules.md'],
+         'run_jupytext': False,
+         'run_lint': True,
+         'templates': []}
+        """
         # Run test.
-        topic_info = llincc._get_rules_for_topic(topic)
+        topic_info = self.helper(topic, expected)
         # Check outputs.
         self.assertGreater(len(topic_info["rules"]), 0)
 
@@ -256,8 +272,17 @@ class Test_get_rules_for_topic(hunitest.TestCase):
         """
         # Prepare inputs.
         topic = "notebook"
+        # Prepare outputs.
+        expected = """
+        {'role': '.claude/skills/role.notebook.md',
+         'rules': ['.claude/skills/notebook.rules.md'],
+         'run_jupytext': True,
+         'run_lint': False,
+         'templates': ['.claude/templates/notebook.template.ipynb',
+                       '.claude/templates/notebook_utils_template.py']}
+        """
         # Run test.
-        topic_info = llincc._get_rules_for_topic(topic)
+        topic_info = self.helper(topic, expected)
         # Check outputs.
         self.assertTrue(topic_info["run_jupytext"])
 
@@ -267,8 +292,18 @@ class Test_get_rules_for_topic(hunitest.TestCase):
         """
         # Prepare inputs.
         topic = "readme"
+        # Prepare outputs.
+        expected = """
+        {'role': '.claude/skills/role.ai_researcher.md',
+         'rules': ['.claude/skills/readme.rules.md'],
+         'run_jupytext': False,
+         'run_lint': True,
+         'templates': []}
+        """
         # Run test.
-        self.helper_check_run_lint(topic)
+        topic_info = self.helper(topic, expected)
+        # Check outputs.
+        self.assertTrue(topic_info["run_lint"])
 
     def test6(self) -> None:
         """
@@ -276,8 +311,18 @@ class Test_get_rules_for_topic(hunitest.TestCase):
         """
         # Prepare inputs.
         topic = "markdown"
+        # Prepare outputs.
+        expected = """
+        {'role': '.claude/skills/role.ai_researcher.md',
+         'rules': ['.claude/skills/markdown.rules.md', '.claude/skills/text.rules.md'],
+         'run_jupytext': False,
+         'run_lint': True,
+         'templates': []}
+        """
         # Run test.
-        self.helper_check_run_lint(topic)
+        topic_info = self.helper(topic, expected)
+        # Check outputs.
+        self.assertTrue(topic_info["run_lint"])
 
     def test7(self) -> None:
         """
@@ -295,8 +340,16 @@ class Test_get_rules_for_topic(hunitest.TestCase):
         """
         # Prepare inputs.
         topic = "coding"
+        # Prepare outputs.
+        expected = """
+        {'role': '.claude/skills/role.coding.md',
+         'rules': ['.claude/skills/coding.rules.md'],
+         'run_jupytext': False,
+         'run_lint': False,
+         'templates': ['.claude/templates/coding.template.py']}
+        """
         # Run test.
-        topic_info = llincc._get_rules_for_topic(topic)
+        topic_info = self.helper(topic, expected)
         # Check outputs.
         self.assertTrue(topic_info["role"].startswith(".claude/skills/"))
         for rule in topic_info["rules"]:
@@ -358,27 +411,23 @@ class Test_extract_h1_sections(hunitest.TestCase):
             ## Subsection 2.1
             More content
             """
-        content = self.dedent(content)
-        # TODO(ai_gp): Use selg.get_scratch_space.
-        with tempfile.NamedTemporaryFile(
-            mode="w", suffix=".md", delete=False
-        ) as f:
-            f.write(content)
-            temp_file = f.name
+        content = hprint.dedent(content)
+        scratch_dir = self.get_scratch_space()
+        file_path = os.path.join(scratch_dir, "test.md")
+        hio.to_file(file_path, content)
+        # Prepare outputs.
+        expected = r"""
+        [('Section 1',
+          '# Section 1\nContent for section 1\n\n## Subsection 1.1\nMore content'),
+         ('Section 2',
+          '# Section 2\nContent for section 2\n\n## Subsection 2.1\nMore content')]
+        """
         # Run test.
-        try:
-            sections = llincc._extract_h1_sections(temp_file)
-            # Check outputs.
-            # TODO(ai_gp): Use an expected = """, dedent and assert_equal
-            self.assertEqual(len(sections), 2)
-            self.assertEqual(sections[0][0], "Section 1")
-            self.assertEqual(sections[1][0], "Section 2")
-            self.assertIn("Content for section 1", sections[0][1])
-            self.assertIn("Content for section 2", sections[1][1])
-        finally:
-            os.unlink(temp_file)
+        sections = llincc._extract_h1_sections(file_path)
+        # Check outputs.
+        actual = pprint.pformat(sections)
+        self.assert_equal(actual, expected, dedent=True)
 
-    # TODO(ai_gp): Same TODOs as test1
     def test2(self) -> None:
         """
         Test extraction of H1 sections from testing.rules.md.
@@ -389,12 +438,17 @@ class Test_extract_h1_sections(hunitest.TestCase):
         sections = llincc._extract_h1_sections(rule_file)
         # Check outputs.
         self.assertGreater(len(sections), 0)
-        # Verify we have expected H1 sections
+        # Verify we have expected H1 sections.
+        # `rule_file` is the live `testing.rules.md` doc, whose H1 section
+        # content changes often; hardwiring its full text as `expected` for
+        # `assert_equal` would be large and brittle, so property-based checks
+        # are kept instead.
         titles = [title for title, _ in sections]
         self.assertIn("Testing Philosophy", titles)
         self.assertIn("Test Coverage", titles)
 
-    # TODO(ai_gp): Same TODOs as test1
+    # TODO(ai_gp): Factor out code in an helper function that is used by
+    # test1 and test3
     def test3(self) -> None:
         """
         Test that H1 sections include their content.
@@ -410,22 +464,19 @@ Line 3
 # Header 2
 Line 4
 """
-        with tempfile.NamedTemporaryFile(
-            mode="w", suffix=".md", delete=False
-        ) as f:
-            f.write(content)
-            temp_file = f.name
+        scratch_dir = self.get_scratch_space()
+        file_path = os.path.join(scratch_dir, "test.md")
+        hio.to_file(file_path, content)
+        # Prepare outputs.
+        expected = r"""
+        [('Header 1', '# Header 1\nLine 1\nLine 2\n\n### Subsection\nLine 3'),
+         ('Header 2', '# Header 2\nLine 4')]
+        """
         # Run test.
-        try:
-            sections = llincc._extract_h1_sections(temp_file)
-            # Check outputs.
-            self.assertEqual(len(sections), 2)
-            self.assertIn("Line 1", sections[0][1])
-            self.assertIn("Line 2", sections[0][1])
-            self.assertIn("Line 3", sections[0][1])
-            self.assertIn("Line 4", sections[1][1])
-        finally:
-            os.unlink(temp_file)
+        sections = llincc._extract_h1_sections(file_path)
+        # Check outputs.
+        actual = pprint.pformat(sections)
+        self.assert_equal(actual, expected, dedent=True)
 
 
 # #############################################################################
@@ -454,12 +505,18 @@ class Test_process_file_apply_incrementally(hunitest.TestCase):
             dry_run=True,
             model="",
         )
+        # Prepare outputs.
+        expected_rc = 0
+        expected_topic_info = """
+        {'role': '.claude/skills/role.coding.md',
+         'rules': ['.claude/skills/coding.rules.md'],
+         'run_jupytext': False,
+         'run_lint': False,
+         'templates': ['.claude/templates/coding.template.py']}
+        """
         # Run test.
         rc, topic_info = llincc._process_file(file_path, args)
         # Check outputs.
-        # TODO(ai_gp): Use expected = """ and self.assert_equal
-        self.assertEqual(rc, 0)
-        self.assertIn("role", topic_info)
-        self.assertIn("rules", topic_info)
-        self.assertIn("templates", topic_info)
-        self.assertGreater(len(topic_info["rules"]), 0)
+        self.assertEqual(rc, expected_rc)
+        actual_topic_info = pprint.pformat(topic_info)
+        self.assert_equal(actual_topic_info, expected_topic_info, dedent=True)
