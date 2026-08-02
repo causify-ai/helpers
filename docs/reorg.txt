@@ -1,30 +1,30 @@
-- [.] docs/general_background/all.common_abbreviations.reference.md
-  docs/general_background/all.glossary.reference.md
-- merge with abbrev
-
 docs/general_background/all.literature_review.reference.md
 - Remove or move
-
 docs/general_background/all.reading_list.reference.md
-
-docs/tools/documentation_toolchain/all.latex_toolchain.how_to_guide.md
--> ?
-
-- [x] docs/tools/documentation_toolchain/all.notes_to_pdf.explanation.md
--> Merge into ./dev_scripts_helpers/documentation/notes_to_pdf.README.md (done)
-
-- [x] docs/tools/documentation_toolchain/all.render_images.explanation.md
--> ./dev_scripts_helpers/documentation/render_images.README.md (done)
-
-docs/tools/documentation_toolchain/all.extract_notes.reference.md
--> ./dev_scripts_helpers/notebooks/extract_notebook_images.README.md
 
 docs/tools/all.pycharm.how_to_guide.md
 
 docs/tools/all.imports_and_packages.how_to_guide.md
 - Useful
 
-docs/tools/all.precommit.how_to_guide.md
+# DONE
+
+- [x] docs/general_background/all.common_abbreviations.reference.md
+  docs/general_background/all.glossary.reference.md
+- merge with abbrev
+
+- [x] docs/tools/documentation_toolchain/all.latex_toolchain.how_to_guide.md
+
+- [x] docs/tools/documentation_toolchain/all.notes_to_pdf.explanation.md
+  -> Merge into ./dev_scripts_helpers/documentation/notes_to_pdf.README.md (done)
+
+- [x] docs/tools/documentation_toolchain/all.render_images.explanation.md
+  -> ./dev_scripts_helpers/documentation/render_images.README.md (done)
+
+- [x] docs/tools/documentation_toolchain/all.extract_notes.reference.md
+  -> ./dev_scripts_helpers/notebooks/extract_notebook_images.README.md
+
+[x] docs/tools/all.precommit.how_to_guide.md
 -> linters2/lint.README.md
 
 docs/tools/docker/all.develop_in_helpers.how_to_guide.md
@@ -38,7 +38,7 @@ docs/tools/all.ssh.how_to_guide.md
 - Thin
 
 docs/tools/all.tutorial_template.md
-- Diataxis template? Need clean up
+- Diataxis template? Need clean up and move to documentation_meta/
 
 docs/blogging/all.ghost_platform.how_to_guide.md
 docs/blogging/all.publish_causify_blogs.how_to_guide.md

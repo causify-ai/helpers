@@ -1,12 +1,21 @@
 import argparse
 import os
 import pprint
+import unittest.mock as umock
 from typing import Any, Dict, List, Tuple
 
-import linters2.cc_lint as lcclint
 import helpers.hio as hio
 import helpers.hprint as hprint
 import helpers.hunit_test as hunitest
+
+import pytest
+
+pytest.importorskip("claude_agent_sdk")
+
+import claude_agent_sdk
+
+import dev_scripts_helpers.ai.cc_lib as dshaccli
+import linters2.cc_lint as lcclint
 
 
 # #############################################################################
@@ -688,6 +697,88 @@ class Test_build_incremental_messages(hunitest.TestCase):
         role_content = hio.from_file(topic_info["role"])
         for msg in messages:
             self.assertNotIn(role_content, msg)
+
+
+# #############################################################################
+# Test_build_incremental_messages_for_rule
+# #############################################################################
+
+
+class Test_build_incremental_messages_for_rule(hunitest.TestCase):
+    """
+    Tests for `cc_lint._build_incremental_messages_for_rule()` function.
+    """
+
+    def helper(
+        self, file_path: str, rule_content: str, expected: List[str]
+    ) -> None:
+        """
+        Build messages for `rule_content` and check them against `expected`.
+
+        :param file_path: path of the file the rule applies to
+        :param rule_content: rule text as returned by
+            `hmarsele.extract_rule_from_file()`
+        :param expected: expected list of messages
+        """
+        # Run test.
+        actual = lcclint._build_incremental_messages_for_rule(
+            file_path, rule_content
+        )
+        # Check outputs.
+        self.assert_equal(str(actual), str(expected))
+
+    def test1(self) -> None:
+        """
+        Test that a whole-file rule spec with two H1 sections is split into
+        one message per section.
+        """
+        # Prepare inputs.
+        file_path = "example.py"
+        rule_content = """
+            # Rule One
+            Content one
+
+            # Rule Two
+            Content two
+            """
+        rule_content = hprint.dedent(rule_content)
+        # Prepare outputs.
+        expected = [
+            lcclint._build_rule_message(
+                file_path, "# Rule One\nContent one"
+            ),
+            lcclint._build_rule_message(
+                file_path, "# Rule Two\nContent two"
+            ),
+        ]
+        # Run test.
+        self.helper(file_path, rule_content, expected)
+
+    def test2(self) -> None:
+        """
+        Test that a rule spec with zero H1 sections (a line-anchored extract
+        starting below H1 level) is kept as a single message.
+        """
+        # Prepare inputs.
+        file_path = "example.py"
+        rule_content = "## Mark Private Functions\nSome content here."
+        # Prepare outputs.
+        expected = [lcclint._build_rule_message(file_path, rule_content)]
+        # Run test.
+        self.helper(file_path, rule_content, expected)
+
+    def test3(self) -> None:
+        """
+        Test that a whole-file rule spec with a single H1 section is kept as
+        a single message.
+        """
+        # Prepare inputs.
+        file_path = "example.py"
+        rule_content = "# Only Rule\nSome content."
+        # Prepare outputs.
+        expected = [lcclint._build_rule_message(file_path, rule_content)]
+        # Run test.
+        self.helper(file_path, rule_content, expected)
 
 
 # #############################################################################

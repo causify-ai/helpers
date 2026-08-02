@@ -226,16 +226,13 @@ def _infer_topic_from_filename(file_path: str) -> str:
     return topic
 
 
-def _extract_h1_sections(rule_file: str) -> list:
+def _extract_h1_sections_from_lines(lines: List[str]) -> List[Tuple[str, str]]:
     """
-    Extract all H1 (level 1) sections from a rule file.
+    Extract all H1 (level 1) sections from markdown lines already in memory.
 
-    :param rule_file: Path to the rule file
-    :return: List of tuples (title, content) for each H1 section
+    :param lines: markdown content split into lines
+    :return: list of tuples (title, content) for each H1 section
     """
-    _LOG.debug("Extracting H1 sections from: '%s'", rule_file)
-    hdbg.dassert_file_exists(rule_file, "Rule file not found")
-    lines = hio.from_file(rule_file).split("\n")
     headers = hmarhead.extract_headers_from_markdown(lines, max_level=1)
     # Filter only level-1 headers.
     h1_headers = [h for h in headers if h.level == 1]
@@ -251,6 +248,21 @@ def _extract_h1_sections(rule_file: str) -> list:
         section_content = "\n".join(section_lines).strip()
         sections.append((header.description, section_content))
     _LOG.debug("return=%d sections", len(sections))
+    return sections
+
+
+# TODO(ai_gp): Thin, inline
+def _extract_h1_sections(rule_file: str) -> List[Tuple[str, str]]:
+    """
+    Extract all H1 (level 1) sections from a rule file on disk.
+
+    :param rule_file: Path to the rule file
+    :return: List of tuples (title, content) for each H1 section
+    """
+    _LOG.debug("Extracting H1 sections from: '%s'", rule_file)
+    hdbg.dassert_file_exists(rule_file, "Rule file not found")
+    lines = hio.from_file(rule_file).split("\n")
+    sections = _extract_h1_sections_from_lines(lines)
     return sections
 
 
@@ -456,29 +468,91 @@ def _build_incremental_messages(
     return messages
 
 
+def _build_incremental_messages_for_rule(
+    file_path: str, rule_content: str
+) -> List[str]:
+    """
+    Build incremental rule messages for a `--rule` specification.
+
+    A whole-file rule spec (`path/to/rules.md`) can carry more than one H1
+    section, so it is split into one chunk per section, like the `--topic`
+    path.
+    A line-anchored spec (`path/to/rules.md:N`) already extracts a single
+    section, so it is kept as one chunk.
+
+    :param file_path: path of the file to apply the rule to
+    :param rule_content: rule text from `hmarsele.extract_rule_from_file()`
+    :return: one message per H1 section in `rule_content`, or a single
+        message when it has zero or one H1 section
+    """
+    _LOG.debug(hprint.to_str("file_path"))
+    lines = rule_content.split("\n")
+    sections = _extract_h1_sections_from_lines(lines)
+    if len(sections) > 1:
+        contents = [section_content for _, section_content in sections]
+    else:
+        contents = [rule_content]
+    messages = [_build_rule_message(file_path, content) for content in contents]
+    _LOG.debug("return=%d messages", len(messages))
+    return messages
+
+
 async def _process_file_incrementally(
     file_path: str,
     dry_run: bool,
     model: str,
     context_strategy: str,
+    topic_info: Dict,
+    *,
+    skill: str = "",
+    rule: str = "",
 ) -> int:
     """
-    Apply rules incrementally, one H1 section per Claude Code interaction.
+    Apply rules incrementally, one chunk per Claude Code interaction.
+
+    The chunks sent depend on which "what" was specified, mirroring the
+    `--topic`/`--skill`/`--rule`/default dispatch of the `one_shot` path:
+    - `skill`: a single, non-decomposed `/{skill} {file_path}` slash-command
+      chunk, since it is a command for Claude Code's own skill loader, not
+      declarative rule prose to split
+    - `rule`: the rule text from `hmarsele.extract_rule_from_file()`, split
+      into H1 sections when it has more than one, else kept as a single
+      chunk (see `_build_incremental_messages_for_rule()`)
+    - neither: one chunk per H1 section across `topic_info["rules"]` (see
+      `_build_incremental_messages()`)
 
     :param file_path: Path to the file to process
     :param dry_run: If True, print messages without executing
     :param model: Model to use for Claude invocation (used via SDK configuration)
-    :param context_strategy: `"stateless"` for a fresh session per rule
-        chunk, or `"session"` for a single session shared across all rule
-        chunks (i.e., `--mode` when it is not `"one_shot"`)
+    :param context_strategy: `"stateless"` for a fresh session per chunk, or
+        `"session"` for a single session shared across all chunks (i.e.,
+        `--mode` when it is not `"one_shot"`)
+    :param topic_info: topic configuration dict from `_get_rules_for_topic()`,
+        used for the system prompt (role, templates) and, when neither
+        `skill` nor `rule` is set, for the rule files to split into chunks
+    :param skill: skill name to execute via `--skill`, if any
+    :param rule: rule specification to execute via `--rule`, if any
     :return: Return code (0 on success)
     """
-    _LOG.debug(hprint.to_str("file_path dry_run model context_strategy"))
+    _LOG.debug(
+        hprint.to_str(
+            "file_path dry_run model context_strategy skill rule"
+        )
+    )
     hdbg.dassert_file_exists(file_path)
-    inferred_topic = _infer_topic_from_filename(file_path)
-    topic_info = _get_rules_for_topic(inferred_topic)
     system_prompt = _build_incremental_system_prompt(topic_info)
-    messages = _build_incremental_messages(file_path, topic_info)
+    if skill:
+        # A skill invocation is a single command for Claude Code's own skill
+        # loader, kept as-is instead of being split into rule chunks.
+        full_skill_name = hmarsele.find_skill(skill)
+        messages = [f"/{full_skill_name} {file_path}"]
+    elif rule:
+        rule_content = hmarsele.extract_rule_from_file(rule)
+        messages = _build_incremental_messages_for_rule(
+            file_path, rule_content
+        )
+    else:
+        messages = _build_incremental_messages(file_path, topic_info)
     # Handle dry run.
     if dry_run:
         _LOG.warning("Dry Run - System prompt and messages to be sent:")
@@ -537,15 +611,23 @@ def _process_file(
     topic_info = {}
     if args.mode != "one_shot":
         # Apply rules incrementally via async processor, with `args.mode`
-        # ("session" or "stateless") selecting the context strategy.
-        inferred_topic = _infer_topic_from_filename(file_path)
-        topic_info = _get_rules_for_topic(inferred_topic)
+        # ("session" or "stateless") selecting the context strategy, and
+        # `args.skill`/`args.rule`/`args.topic` selecting the "what"
+        # (mirroring the topic/skill/rule/default dispatch below).
+        if args.topic:
+            topic_str = args.topic
+        else:
+            topic_str = _infer_topic_from_filename(file_path)
+        topic_info = _get_rules_for_topic(topic_str)
         rc = asyncio.run(
             _process_file_incrementally(
                 file_path,
                 args.dry_run,
                 args.model,
                 args.mode,
+                topic_info,
+                skill=args.skill,
+                rule=args.rule,
             )
         )
     elif args.skill:
@@ -671,19 +753,20 @@ def _main(parser: argparse.ArgumentParser) -> int:
     args = parser.parse_args()
     hdbg.init_logger(verbosity=args.log_level, use_exec_path=True)
     # Select files.
+    # Mutual exclusivity between `--topic`/`--skill`/`--rule` is already
+    # enforced by their argparse mutually exclusive group.
+    # `--mode` is orthogonal to `--topic`/`--skill`/ `--rule`.
     num_exclusive = sum(
         [
             bool(args.topic),
             bool(args.skill),
             bool(args.rule),
-            args.mode != "one_shot",
         ]
     )
     hdbg.dassert_lte(
         num_exclusive,
         1,
-        "Only one of --topic, --skill, --rule, or --mode "
-        "(session/stateless) can be used simultaneously",
+        "Only one of --topic, --skill, or --rule can be used simultaneously",
     )
     files = hseinout.parse_file_selection_args(args, remove_dirs=False)
     files = hseinout.parse_file_type_filter_args(args, files)

@@ -58,21 +58,34 @@ Claude Code integration for topic-based intelligent formatting.
     --rule "dassert"
     ```
 
-- Apply rules incrementally, one rule per Claude interaction, with a fresh
-  session per rule (`--mode stateless`) or one session shared across all
-  rules (`--mode session`):
+- Apply rules incrementally, one chunk per Claude interaction, with a fresh
+  session per chunk (`--mode stateless`) or one session shared across all
+  chunks (`--mode session`):
   ```bash
   > cc_lint.py --files "file.py" --mode stateless
   > cc_lint.py --files "file.py" --mode session
   ```
-  - `stateless`: a fresh session per rule, giving each rule uniform cost and
+  - `stateless`: a fresh session per chunk, giving each chunk uniform cost and
     full attention
-  - `session`: one session shared across all rules, for rules that depend on
+  - `session`: one session shared across all chunks, for rules that depend on
     each other
-  - Both extract H1 sections from rule files and send each rule to Claude
-    Code as its own turn, re-anchored on the target file path
-  - Both require a structured `LLM> NO-OP` / `LLM> CHANGED: <summary>` reply
-    so a compliant rule produces zero edits
+  - `--mode` is orthogonal to `--topic`/`--skill`/`--rule`/default: any of
+    them can be combined with any `--mode`, e.g.
+    ```bash
+    > cc_lint.py --files "file.py" --skill coding.fix_inline --mode stateless
+    > cc_lint.py --files "file.py" --rule ".claude/skills/coding.rules.md" --mode session
+    ```
+  - What gets chunked depends on the combination:
+    - `--topic` / default: one chunk per H1 section across the topic's rule
+      files
+    - `--rule`: the rule text, split into one chunk per H1 section when it
+      has more than one (whole-file spec), else kept as a single chunk
+      (line-anchored spec)
+    - `--skill`: a single, non-decomposed `/{skill} {file_path}` chunk
+  - Every chunk sent as a rule (`--topic`/default/`--rule`) requires a
+    structured `LLM> NO-OP` / `LLM> CHANGED: <summary>` reply so a compliant
+    rule produces zero edits; a `--skill` chunk does not, since it invokes
+    Claude Code's own skill loader instead of declarative rule prose
   - Useful for complex files requiring step-by-step rule application
   - `--mode one_shot` (the default) applies all rules in a single Claude Code
     invocation instead
@@ -88,37 +101,45 @@ Claude Code integration for topic-based intelligent formatting.
 
 - `_main()`
   - Selects files
-  - Asserts that at most one of `--topic`, `--skill`, `--rule`, and `--mode`
-    (when not `one_shot`) is set
+  - Asserts that at most one of `--topic`, `--skill`, and `--rule` is set
+    (`--mode` is orthogonal and not part of this check)
   - Loops over files calling `_process_file()`
-    - `_process_file()` dispatches to one of the modes:
-      - **Default** / `--topic`
-        - `_build_prompt()` assembles one prompt (role + rule file references +
-          "do not change behavior" instruction)
-        - `_run_claude_code()` writes it to `tmp.cc_lint.prompt.txt` and shells
-          out to the `cc` wrapper as a subprocess
-      - `--skill` / `--rule`:
-        - same `_run_claude_code()` path, with the prompt built from
-          `hmarsele.find_skill()` or `hmarsele.extract_rule_from_file()` instead
-          of `_build_prompt()`
-      - `--mode session` / `--mode stateless`:
-        - `_process_file_incrementally()`
-          - builds the system prompt via `_build_incremental_system_prompt()`
-            (role + templates + "do not change behavior")
-          - builds a message list via `_build_incremental_messages()`
-            - one H1 section per topic rule file (`_extract_h1_sections()`), each
-              templated by `_build_rule_message()` into a message that re-anchors
-              on the target file path and demands a structured `LLM> NO-OP` /
-              `LLM> CHANGED: <summary>` reply
-          - hands the system prompt and messages to `PromptSequencer.execute()`
-            from `dev_scripts_helpers/ai/cc_lib.py`, which
-            - runs under `--mode`'s `context_strategy`: `stateless` opens a
-              fresh `ClaudeSDKClient` per message, `session` shares one client
-              across all messages
-            - parses each reply's no-op contract via `_parse_rule_outcome()`,
-              exposed as `get_outcomes()`
-        - Topic inference (`_infer_topic_from_filename()`) is shared by all
-          modes whenever `--topic` is not given explicitly
+    - `_process_file()` dispatches on `args.mode` first, then on the "what"
+      (`--topic`/`--skill`/`--rule`/default):
+      - **`--mode session` / `--mode stateless`**:
+        - `_process_file_incrementally()` builds the system prompt via
+          `_build_incremental_system_prompt()` (role + templates + "do not
+          change behavior"), then builds a message list depending on the
+          "what":
+          - `--skill`: a single `/{skill} {file_path}` message (via
+            `hmarsele.find_skill()`), sent as-is
+          - `--rule`: `hmarsele.extract_rule_from_file()`'s text, split into
+            per-H1-section messages via `_build_incremental_messages_for_rule()`
+            when it carries more than one, else a single message
+          - `--topic` / default: `_build_incremental_messages()`, one H1
+            section per topic rule file (`_extract_h1_sections()`), each
+            templated by `_build_rule_message()` into a message that
+            re-anchors on the target file path and demands a structured
+            `LLM> NO-OP` / `LLM> CHANGED: <summary>` reply
+        - hands the system prompt and messages to `PromptSequencer.execute()`
+          from `dev_scripts_helpers/ai/cc_lib.py`, which
+          - runs under `--mode`'s `context_strategy`: `stateless` opens a
+            fresh `ClaudeSDKClient` per message, `session` shares one client
+            across all messages
+          - parses each reply's no-op contract via `_parse_rule_outcome()`,
+            exposed as `get_outcomes()`
+      - **`--mode one_shot`** (the default):
+        - **Default** / `--topic`
+          - `_build_prompt()` assembles one prompt (role + rule file references +
+            "do not change behavior" instruction)
+          - `_run_claude_code()` writes it to `tmp.cc_lint.prompt.txt` and shells
+            out to the `cc` wrapper as a subprocess
+        - `--skill` / `--rule`:
+          - same `_run_claude_code()` path, with the prompt built from
+            `hmarsele.find_skill()` or `hmarsele.extract_rule_from_file()` instead
+            of `_build_prompt()`
+      - Topic inference (`_infer_topic_from_filename()`) is used by every
+        branch above whenever `--topic` is not given explicitly
   - After `_process_file()` returns, `_main()` runs post-processing from
     `topic_info` (`jupytext --sync`, `hlint.lint_file()`) for every mode
 
@@ -139,8 +160,11 @@ Claude Code integration for topic-based intelligent formatting.
 
 ### Invariants
 
-- Exactly one action mode is active per invocation (`--topic`, `--skill`,
-  `--rule`, or `--mode` set to `session`/`stateless`)
+- `--mode` (`one_shot`/`session`/`stateless`) and the "what"
+  (`--topic`/`--skill`/`--rule`/default) are independent selections: exactly
+  one "what" is active per invocation (enforced by an argparse mutually
+  exclusive group plus `_main()`'s `num_exclusive` check), and it can be
+  combined with any `--mode`
 - The incremental path never edits a file other than the one passed to
   `_process_file_incrementally()`
   - Enforced at the tool-permission layer via `target_file`, independent of what

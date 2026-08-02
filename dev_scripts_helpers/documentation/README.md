@@ -32,6 +32,16 @@ The toolchain supports multiple documentation workflows:
     - Standard Latex code to convert into PDF files
     - E.g., [`//cmamp/papers`]
     - E.g., [`//cmamp/papers/KaizenFlow`]
+    - Each project lives in its own directory (e.g., under `//papers`) with
+      dockerized scripts that assign project-specific variables and then call
+      the main scripts to do the actual work
+      - `run_latex.sh`: create the PDF from the Latex files
+      - `lint_latex.sh`: lint the Latex files
+    - Run the scripts from the top of the repo tree, e.g.,
+      ```bash
+      > papers/DataFlow_stream_computing_framework/run_latex.sh
+      > papers/DataFlow_stream_computing_framework/lint_latex.sh
+      ```
   - **markdown**
     - Documentation using Causify markdown extensions
       - E.g., `//helpers/docs`, `//cmamp/docs`, `//tutorials/docs`
@@ -40,10 +50,17 @@ The toolchain supports multiple documentation workflows:
     - It is automatically rendered with `mkdocs` and published on GitHub
       - E.g., [https://causify-ai.github.io/helpers](https://causify-ai.github.io/helpers)
   - **notes** (aka **.txt**)
-    - `Pandoc` markdown with Causify extensions
+    - `Pandoc` markdown with Causify extensions, including
+      - Latex
+      - Block comments
+      - Calls to external tools, such as `mermaid`, `plantuml`, `tikz`, ...
     - Processed by `preprocess_notes.py` to be converted in standard `Pandoc`
       markdown
-    - Can be converted into PDFs and in Anki Q/A
+    - Can be converted into
+      - PDF (through a conversion to an intermediate Latex file)
+      - Slides (through beamer)
+      - HTML
+      - Questions / answers (through Anki)
     - E.g., `//notes/notes/...`
       ```
       > vi /Users/saggese/src/notes1/notes/math.machine_learning.txt
@@ -156,6 +173,7 @@ The toolchain supports multiple documentation workflows:
   - Shell Script Utilities
     - `epub_to_md.sh`: Converts EPUB to Markdown (shell wrapper)
     - `latexdockercmd.sh`: LaTeX Docker command utility
+    - `lint_latex.sh`: Dockerized linter for LaTeX files using Prettier
     - `open_md_in_browser.sh`: Renders Markdown to HTML and opens in browser
     - `open_md_on_github.sh`: Opens a file in GitHub web interface
     - `open_md.sh`: Opens Markdown files (general utility)
@@ -1471,6 +1489,18 @@ The `--md_end "END"` special value is useful for reading from a starting section
 - Compile a LaTeX file to PDF
   ```bash
   > run_latex.sh paper.tex
+  ```
+
+## `lint_latex.sh`
+
+### What It Does
+- Dockerized linter for LaTeX files using Prettier
+- Runs `lint_txt.py` on every `.tex` file in the same directory as the script
+
+### Examples
+- Lint the LaTeX files in a project directory
+  ```bash
+  > papers/DataFlow_stream_computing_framework/lint_latex.sh
   ```
 
 ## `replace_latex.sh`
