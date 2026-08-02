@@ -1,6 +1,3 @@
-// TODO(ai_gp): Follow the rules of .claude/skills/markdown.rules.md especially
-// using nested bullet points
-
 # Test Skip Conditions Guide
 
 This document organizes all pytest skip conditions used across the helpers
@@ -29,89 +26,87 @@ configuration to ensure they run only when appropriate.
 
 Tests that depend on specific operating systems or host configurations:
 
-// TODO(ai_gp): Use Condition, Effect, Example for all the tables
+// TODO(ai_gp): Remove example in all the tables
 
-| Condition | Reason | Impact |
+| Condition | Effect | Example |
 | :------- | :------- | :------- |
-| `sys.platform == "darwin"` | Platform-specific behavior | Skipped on macOS |
-| `hserver.is_host_mac()` | Docker compose mismatch | Skipped when Mac is host |
-| `not hserver.is_host_mac()` | Requires non-Mac host | Skipped when Mac is host |
-| `hserver.is_host_gp_mac()` | GP's Mac specific test | Skipped on other machines |
-| `not hserver.is_host_gp_mac()` | Not GP's Mac | Skipped on GP's Mac |
+| `sys.platform == "darwin"` | Skipped on macOS | `@pytest.mark.skipif(sys.platform == "darwin", reason="")` |
+| `hserver.is_host_mac()` | Skipped when the host is a Mac, due to Docker compose mismatch | `@pytest.mark.skipif(hserver.is_host_mac(), reason="Docker compose mismatch")` |
+| `not hserver.is_host_mac()` | Skipped on non-Mac hosts; the test requires a Mac | `@pytest.mark.skipif(not hserver.is_host_mac(), reason="See CsfyTask8868")` |
+| `hserver.is_host_gp_mac()` | Skipped when running on GP's Mac specifically | `@pytest.mark.skipif(hserver.is_host_gp_mac(), reason="Fails on GP's Mac")` |
+| `not hserver.is_host_gp_mac()` | Skipped on every machine except GP's Mac | `@pytest.mark.skipif(not hserver.is_host_gp_mac(), reason="Tests only run on GP's Mac")` |
 
 ### Container and Docker Environment
 
 Tests that require specific Docker or container configurations:
 
-| Condition | Reason | Impact |
+| Condition | Effect | Example |
 | :------- | :------- | :------- |
-| `hserver.is_inside_docker()` | Test needs to run outside Docker | Skipped inside Docker |
-| `not hserver.is_inside_docker()` | Requires running outside Docker | Skipped outside Docker |
-| `hserver.can_run_docker_from_docker()` | Docker-in-docker capability needed | Skipped when unavailable |
-| `hdocker.get_docker_engine() == "apple"` | Apple Docker engine check | Skipped with other engines |
-| `hserver.is_inside_docker() and hserver.is_host_gp_mac()` | Inside Docker on GP's Mac | Skipped when condition false |
-| `not hserver.is_inside_docker() and hserver.is_host_gp_mac()` | Outside Docker on GP's Mac | Skipped when condition false |
+| `hserver.is_inside_docker()` | Skipped inside Docker; the test needs to run on the host | `@pytest.mark.skipif(hserver.is_inside_docker(), reason="Test needs to run outside Docker")` |
+| `not hserver.is_inside_docker()` | Skipped outside Docker; the test needs a container | `@pytest.mark.skipif(not hserver.is_inside_docker(), reason="Requires running inside Docker")` |
+| `not hserver.can_run_docker_from_docker()` | Skipped when the docker-in-docker capability is unavailable | `@pytest.mark.skipif(not hserver.can_run_docker_from_docker(), reason="Requires docker-in-docker")` |
+| `hserver.is_host_mac() and hdocker.get_docker_engine() == "apple"` | Skipped on Mac hosts using the Apple container engine | `@pytest.mark.skipif(hserver.is_host_mac() and hdocker.get_docker_engine() == "apple", reason="Fails with Apple container engine, see HelpersTask1273")` |
+| `not (hserver.is_inside_docker() and hserver.is_host_gp_mac())` | Skipped unless running inside Docker on GP's Mac | `@pytest.mark.skipif(not (hserver.is_inside_docker() and hserver.is_host_gp_mac()), reason="Config not matching")` |
+| `not (not hserver.is_inside_docker() and hserver.is_host_gp_mac())` | Skipped unless running outside Docker on GP's Mac | `@pytest.mark.skipif(not (not hserver.is_inside_docker() and hserver.is_host_gp_mac()), reason="Config not matching")` |
 
 ### Continuous Integration
 
 Tests affected by CI execution context:
 
-| Condition | Reason |
-| :------- | :------- |
-| `hserver.is_inside_ci()` | In CI output differs from local |
-| `not hserver.is_inside_ci()` | Requires local execution environment |
-| `hserver.is_inside_ci() or not hgit.is_in_amp_as_supermodule()` | Complex CI/repo check |
+| Condition | Effect | Example |
+| :------- | :------- | :------- |
+| `hserver.is_inside_ci()` | Skipped in CI; local output differs from CI output | `@pytest.mark.skipif(hserver.is_inside_ci(), reason="Output differs in CI")` |
+| `not hserver.is_inside_ci()` | Skipped outside CI; the test requires the CI environment | `@pytest.mark.skipif(not hserver.is_inside_ci(), reason="Requires CI execution environment")` |
+| `hserver.is_inside_ci() or not hgit.is_in_amp_as_supermodule()` | Skipped in CI, or whenever the repo isn't set up as the AMP supermodule | `@pytest.mark.skipif(hserver.is_inside_ci() or not hgit.is_in_amp_as_supermodule(), reason="Complex CI/repo check")` |
 
 ### Infrastructure and Deployment Context
 
 Tests requiring specific Causify infrastructure:
 
-| Condition | Reason |
-| :------- | :------- |
-| `hserver.is_inside_docker_container_on_csfy_server()` | Running on Csfy server |
-| `hserver.is_outside_docker_container_on_csfy_server()` | Running outside Docker on Csfy |
-| `hserver.is_inside_docker_container_on_csfy_server()` | Config matching check |
+| Condition | Effect | Example |
+| :------- | :------- | :------- |
+| `not hserver.is_inside_docker_container_on_csfy_server()` | Skipped unless running inside a Docker container on the Csfy server | `@pytest.mark.skipif(not hserver.is_inside_docker_container_on_csfy_server(), reason="Config not matching")` |
+| `not hserver.is_outside_docker_container_on_csfy_server()` | Skipped unless running outside Docker on the Csfy server | `@pytest.mark.skipif(not hserver.is_outside_docker_container_on_csfy_server(), reason="Config not matching")` |
 
 ### Repository Structure and Configuration
 
 Tests tied to specific repository configurations:
 
-| Condition | Reason |
-| :------- | :------- |
-| `hgit.is_amp()` | Only run in AMP repository |
-| `not hgit.is_amp()` | Only run outside AMP |
-| `hgit.is_in_amp_as_supermodule()` | Requires AMP as supermodule |
-| `not hgit.is_in_amp_as_supermodule()` | Requires different structure |
-| `hgit.is_in_amp_as_submodule()` | Requires AMP as submodule |
-| `not hgit.is_in_amp_as_submodule()` | Requires AMP as supermodule |
-| `hgit.is_in_helpers_as_supermodule()` | Requires Helpers as supermodule |
-| `hgit.is_git_worktree()` | Requires Git worktree setup |
-| `not hgit.is_git_worktree()` | Not in a Git worktree |
+| Condition | Effect | Example |
+| :------- | :------- | :------- |
+| `not hgit.is_amp()` | Skipped outside the AMP repository | `@pytest.mark.skipif(not hgit.is_amp(), reason="Only run in amp")` |
+| `hgit.is_amp()` | Skipped inside the AMP repository | `@pytest.mark.skipif(hgit.is_amp(), reason="Only run outside amp")` |
+| `not hgit.is_in_amp_as_supermodule()` | Skipped unless AMP is set up as the supermodule | `@pytest.mark.skipif(not hgit.is_in_amp_as_supermodule(), reason="Requires AMP as supermodule")` |
+| `hgit.is_in_amp_as_submodule()` | Skipped when AMP is set up as a submodule; the test needs to run directly | `@pytest.mark.skipif(hgit.is_in_amp_as_submodule(), reason="Only run in amp directly")` |
+| `not hgit.is_in_amp_as_submodule()` | Skipped unless AMP is set up as a submodule | `@pytest.mark.skipif(not hgit.is_in_amp_as_submodule(), reason="Only run in amp as submodule")` |
+| `not hgit.is_in_helpers_as_supermodule()` | Skipped unless Helpers is set up as the supermodule | `@pytest.mark.skipif(not hgit.is_in_helpers_as_supermodule(), reason="Run only in helpers as super module")` |
+| `hgit.is_git_worktree()` | Skipped when running from inside a Git worktree | `@pytest.mark.skipif(hgit.is_git_worktree(), reason="Requires a regular (non-worktree) checkout")` |
+| `not hgit.is_git_worktree()` | Skipped unless running from inside a Git worktree | `@pytest.mark.skipif(not hgit.is_git_worktree(), reason="Not in a Git worktree")` |
 
 ### Dependencies and Tools
 
 Tests requiring specific external tools or libraries:
 
-| Condition | Reason |
-| :------- | :------- |
-| `hllmcli._check_llm_executable()` | LLM executable found |
-| `not hllmcli._check_llm_executable()` | LLM executable not found |
-| `shutil.which("pandoc") is None` | Pandoc not installed |
-| `shutil.which("typst") is None` | Typst not installed |
-| `hmarform.is_flowmark_available("global")` | Flowmark tool available |
-| `hmarform.is_mdformat_available("library")` | mdformat tool available |
-| `hmarform.is_prettier_available("global")` | Prettier tool available |
-| `version.parse(jupytext.__version__) < version.parse("1.17.1")` | Jupytext version requirement |
-| `_TABULATE_AVAILABLE` | Tabulate module available |
+| Condition | Effect | Example |
+| :------- | :------- | :------- |
+| `hllmcli._check_llm_executable()` | Skipped when the `llm` executable is found; the test targets the not-found path | `@pytest.mark.skipif(hllmcli._check_llm_executable(), reason="Requires llm executable to be absent")` |
+| `not hllmcli._check_llm_executable()` | Skipped when the `llm` executable isn't found | `@pytest.mark.skipif(not hllmcli._check_llm_executable(), reason="llm executable not found")` |
+| `shutil.which("pandoc") is None` | Skipped when pandoc isn't installed | `@pytest.mark.skipif(shutil.which("pandoc") is None, reason="pandoc is not installed")` |
+| `shutil.which("typst") is None` | Skipped when typst isn't installed | `@pytest.mark.skipif(shutil.which("typst") is None, reason="typst is not installed")` |
+| `not hmarform.is_flowmark_available("global")` | Skipped when the flowmark tool isn't available | `@pytest.mark.skipif(not hmarform.is_flowmark_available("global"), reason="flowmark package not installed")` |
+| `not hmarform.is_mdformat_available("library")` | Skipped when the mdformat tool isn't available | `@pytest.mark.skipif(not hmarform.is_mdformat_available("library"), reason="mdformat package not installed")` |
+| `not hmarform.is_prettier_available("global")` | Skipped when prettier isn't available | `@pytest.mark.skipif(not hmarform.is_prettier_available("global"), reason="prettier not installed globally")` |
+| `version.parse(jupytext.__version__) < version.parse("1.17.1")` | Skipped when the installed jupytext version is too old | `@pytest.mark.skipif(version.parse(jupytext.__version__) < version.parse("1.17.1"), reason="Jupytext version requirement")` |
+| `not _TABULATE_AVAILABLE` | Skipped when the tabulate module isn't available | `@pytest.mark.skipif(not _TABULATE_AVAILABLE, reason="Requires tabulate dependency for pandas.to_markdown()")` |
 
 ### Cloud and AWS Services
 
 Tests requiring cloud service availability:
 
-| Condition | Reason |
-| :------- | :------- |
-| `hserver.is_CK_S3_available()` | CK AWS S3 available |
-| `not hserver.is_CK_S3_available()` | CK AWS S3 not available |
+| Condition | Effect | Example |
+| :------- | :------- | :------- |
+| `not hserver.is_CK_S3_available()` | Skipped when CK AWS S3 isn't available | `@pytest.mark.skipif(not hserver.is_CK_S3_available(), reason="Run only if CK S3 is available")` |
+| `hserver.is_CK_S3_available()` | Skipped when CK AWS S3 is available; the test targets the unavailable path | `@pytest.mark.skipif(hserver.is_CK_S3_available(), reason="Requires CK S3 to be unavailable")` |
 
 ## Known Issues and References
 
@@ -129,34 +124,32 @@ Understanding when tests execute helps with debugging and maintenance.
 
 ### Tests Requiring Docker
 
-These tests need Docker and container capabilities:
-
-- Tests marked `requires_docker_in_docker`: Need docker children or sibling containers
-- Tests checking `can_run_docker_from_docker()`: Require docker-in-docker capability
-- Tests marked `requires_docker_in_docker`: Require docker socket access
+- Docker and container capabilities:
+  - `requires_docker_in_docker`: Needs docker children or sibling containers,
+    including socket access
+  - `can_run_docker_from_docker()`: Requires docker-in-docker capability
 
 ### Tests Requiring Infrastructure
 
-These tests depend on specific infrastructure being available:
-
-- Tests marked `requires_ck_infra`: Need CK infrastructure access
-- Tests marked `requires_ck_aws`: Need CK AWS connection
-- Tests checking Csfy server: Require Csfy infrastructure
+- Infrastructure and cloud access:
+  - `requires_ck_infra`: Needs CK infrastructure access
+  - `requires_ck_aws`: Needs CK AWS connection
+  - Csfy server checks (e.g., `hserver.is_inside_docker_container_on_csfy_server()`):
+    Require Csfy infrastructure
 
 ### Tests Requiring Development Environment
 
-These tests need special setup or dependencies:
-
-- Tests marked `need_dev_container`: Depend on dev container with extra dependencies
-- Tests checking for tool availability: Skip if required tools are missing
+- Development environment dependencies:
+  - `need_dev_container`: Depends on a dev container with extra dependencies
+  - Tool-availability checks (e.g., `hmarform.is_flowmark_available()`): Skip
+    if the required tool is missing
 
 ### Tests Running Outside Containers
 
-These tests specifically run outside Docker:
-
-- Tests marked `no_container`: Invoke target tests running on host
-- Tests checking `is_inside_docker()`: Require host execution
-- Tests checking `is_git_worktree()`: Require local Git setup
+- Host-only execution:
+  - `no_container`: Invoke target tests running on host
+  - `hserver.is_inside_docker()`: Requires host execution
+  - `hgit.is_git_worktree()`: Requires local Git worktree setup
 
 ## Test Organization Strategy
 

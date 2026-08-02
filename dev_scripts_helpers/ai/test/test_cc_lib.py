@@ -188,27 +188,7 @@ class Test_PromptSequencer_execute(hunitest.TestCase):
     Test `PromptSequencer.execute()` against a fake SDK client (no network).
     """
 
-    # TODO(ai_gp): Move to cc_lib.py as part of the _FakeClaudeSDKClient.str
-    # and print all the state of the fake
-    def _options_to_str(self, mock_client_cls: umock.Mock) -> str:
-        """
-        Build a string representation of the `options` passed to the mocked
-        `ClaudeSDKClient`.
-
-        :param mock_client_cls: mock replacing `claude_agent_sdk.ClaudeSDKClient`
-        :return: string with the relevant `options` fields
-        """
-        _, kwargs = mock_client_cls.call_args
-        options = kwargs["options"]
-        fields = (
-            options.allowed_tools,
-            options.disallowed_tools,
-            options.permission_mode,
-            options.model,
-            options.setting_sources,
-        )
-        return repr(fields)
-
+    # TODO(ai_gp): Factor out common code in helper.
     def test1(self) -> None:
         """
         Test that execute() drives the SDK client with the expected options.
@@ -233,7 +213,7 @@ class Test_PromptSequencer_execute(hunitest.TestCase):
             print_output=False,
         )
         # Run test.
-        fake_client = dshaccli._FakeClaudeSDKClient(
+        fake_client = dshaccli.FakeClaudeSDKClient(
             responses_by_call=[[msg1], [msg2]]
         )
         with umock.patch(
@@ -243,18 +223,16 @@ class Test_PromptSequencer_execute(hunitest.TestCase):
             asyncio.run(sequencer.execute(["prompt A", "prompt B"]))
         # Check outputs.
         mock_client_cls.assert_called_once()
-        actual = self._options_to_str(mock_client_cls)
+        _, kwargs = mock_client_cls.call_args
+        fake_client.options = kwargs["options"]
+        actual = str(fake_client)
         expected = (
-            "(['Read', 'Edit'], ['Bash'], 'acceptEdits', "
-            "'claude-test-model', ['project'])"
+            "options=(['Read', 'Edit'], ['Bash'], 'acceptEdits', "
+            "'claude-test-model', ['project']), queried_prompts=['prompt "
+            "A', 'prompt B'], aenter_called=True, aexit_called=True"
         )
         self.assert_equal(actual, expected)
-        _, kwargs = mock_client_cls.call_args
-        options = kwargs["options"]
-        self.assertIs(options.can_use_tool, sequencer.can_use_tool)
-        self.assertTrue(fake_client.aenter_called)
-        self.assertTrue(fake_client.aexit_called)
-        self.assertEqual(fake_client.queried_prompts, ["prompt A", "prompt B"])
+        self.assertIs(fake_client.options.can_use_tool, sequencer.can_use_tool)
         self.assertEqual(sequencer._prompts_executed, 2)
         self.assertNotEqual(sequencer.get_last_response(), "")
 
@@ -273,7 +251,7 @@ class Test_PromptSequencer_execute(hunitest.TestCase):
             target_file="/tmp/target.py",
             print_output=False,
         )
-        fake_client = dshaccli._FakeClaudeSDKClient(responses_by_call=[[msg1]])
+        fake_client = dshaccli.FakeClaudeSDKClient(responses_by_call=[[msg1]])
         # Run test.
         with umock.patch(
             "claude_agent_sdk.ClaudeSDKClient"
@@ -305,7 +283,7 @@ class Test_PromptSequencer_execute(hunitest.TestCase):
             target_file="/tmp/target.py",
             print_output=False,
         )
-        fake_client = dshaccli._FakeClaudeSDKClient(
+        fake_client = dshaccli.FakeClaudeSDKClient(
             responses_by_call=[[msg1], [msg2]]
         )
         # Run test.
@@ -356,7 +334,7 @@ class Test_PromptSequencer_context_strategy(hunitest.TestCase):
             target_file="/tmp/target.py",
             print_output=False,
         )
-        fake_client = dshaccli._FakeClaudeSDKClient(
+        fake_client = dshaccli.FakeClaudeSDKClient(
             responses_by_call=[[msg1], [msg2]]
         )
         # Run test.
@@ -499,6 +477,10 @@ class Test_PromptSequencer_execute_end_to_end(hunitest.TestCase):
     Unlike `Test_PromptSequencer_execute`, nothing here is mocked: each test
     makes a real `claude_agent_sdk.ClaudeSDKClient` call, requires the local
     `claude` CLI to be authenticated, and spends real API tokens.
+
+    Real LLM replies are not byte-exact even under strict formatting
+    instructions, so `self.assert_equal` is not used on `get_last_response()`,
+    and we use `assertIn`.
     """
 
     # The cheapest available model is used to keep manual runs inexpensive.
@@ -518,20 +500,27 @@ class Test_PromptSequencer_execute_end_to_end(hunitest.TestCase):
         "Task",
     ]
 
-    # TODO(ai_gp): Factor out common code in helper and check the output
-    # with expected and self.assert_equal
-    def test1(self) -> None:
+    def helper(self) -> "dshaccli.PromptSequencer":
         """
-        Test that a real single-prompt session returns the expected reply.
+        Build a `PromptSequencer` for a real, manual, no-tool-access run.
+
+        :return: sequencer configured with `_NO_TOOLS` and `_MODEL`, ready
+            for `execute()`
         """
-        # Prepare inputs.
-        sequencer = dshaccli.PromptSequencer(
+        return dshaccli.PromptSequencer(
             disallowed_tools=self._NO_TOOLS,
             permission_mode="bypassPermissions",
             cwd=self.get_scratch_space(),
             model=self._MODEL,
             print_output=False,
         )
+
+    def test1(self) -> None:
+        """
+        Test that a real single-prompt session returns the expected reply.
+        """
+        # Prepare inputs.
+        sequencer = self.helper()
         prompt = (
             "Reply with exactly the single word PONG and nothing else, "
             "no punctuation."
@@ -547,13 +536,7 @@ class Test_PromptSequencer_execute_end_to_end(hunitest.TestCase):
         Test that conversation context is preserved across sequential prompts.
         """
         # Prepare inputs.
-        sequencer = dshaccli.PromptSequencer(
-            disallowed_tools=self._NO_TOOLS,
-            permission_mode="bypassPermissions",
-            cwd=self.get_scratch_space(),
-            model=self._MODEL,
-            print_output=False,
-        )
+        sequencer = self.helper()
         prompts = [
             "Remember the secret number 84210. Reply with OK and nothing else.",
             "What secret number did I ask you to remember? Reply with only "

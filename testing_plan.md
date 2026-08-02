@@ -81,7 +81,7 @@ New class `Test_PromptSequencer_execute`, placed after `TestPromptSequencer`.
 Define a small test-local fake (not `AsyncMock`, which can't cleanly emulate
 an async-generator method) directly above the class:
 ```python
-class _FakeClaudeSDKClient:
+class FakeClaudeSDKClient:
     def __init__(self, responses_by_call):
         self._responses_by_call = responses_by_call
         self.queried_prompts = []
@@ -115,7 +115,7 @@ let it construct for real and assert on its actual fields.
 Test body (one test is enough):
 1. Build two real `claude_agent_sdk.AssistantMessage(content=[TextBlock(...)],
    model="claude-test")` fixtures.
-2. `fake_client = _FakeClaudeSDKClient(responses_by_call=[[msg1], [msg2]])`.
+2. `fake_client = FakeClaudeSDKClient(responses_by_call=[[msg1], [msg2]])`.
 3. Construct `PromptSequencer(allowed_tools=..., disallowed_tools=...,
    permission_mode="acceptEdits", cwd=..., model="claude-test-model",
    setting_sources=["project"], target_file="/tmp/target.py",

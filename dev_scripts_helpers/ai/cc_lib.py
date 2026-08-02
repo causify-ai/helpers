@@ -36,21 +36,22 @@ CanUseToolFn = Callable[
 # #############################################################################
 
 
-# TODO(ai_gp): message_to_str and return str
-def print_message(message: Any) -> None:
+def message_to_str(message: Any) -> str:
     """
-    Print the content of a Claude message to stdout.
+    Render the content of a Claude message as a human-readable string.
 
-    Render assistant text, thinking, and tool calls in a human-readable
-    format. Messages that carry no printable content (e.g., results,
-    system metadata) are skipped.
+    Render assistant text, thinking, and tool calls in a human-readable format.
+    Messages that carry no printable content (e.g., results, system metadata)
+    yield `""`.
 
     :param message: Message received from the Claude SDK
+    :return: human-readable rendering of `message`, or `""` if there is
+        nothing to print
     """
-    # _LOG.debug("Printing message of type: %s", type(message).__name__)
     if not isinstance(message, claude_agent_sdk.AssistantMessage):
-        return
+        return ""
     # Render each content block in the message with appropriate formatting.
+    chunks = []
     for block in message.content:
         if isinstance(block, claude_agent_sdk.TextBlock):
             header = hprint.color_highlight("=== ASSISTANT ===", "bright_white")
@@ -65,7 +66,20 @@ def print_message(message: Any) -> None:
             body = hprint.color_highlight(block.input, "gray")
         else:
             continue
-        print(f"\n{header}\n{body}", flush=True)
+        chunks.append(f"\n{header}\n{body}")
+    return "".join(chunks)
+
+
+# TODO(ai_gp): Consider inlining.
+def print_message(message: Any) -> None:
+    """
+    Print the content of a Claude message to stdout.
+
+    :param message: Message received from the Claude SDK
+    """
+    text = message_to_str(message)
+    if text:
+        print(text, flush=True)
 
 
 def _extract_assistant_text(message: Any) -> str:
@@ -421,8 +435,7 @@ class PromptSequencer:
 # #############################################################################
 
 
-# TODO(ai_gp): make it public
-class _FakeClaudeSDKClient:
+class FakeClaudeSDKClient:
     """
     Minimal stand-in for `claude_agent_sdk.ClaudeSDKClient`.
 
@@ -432,11 +445,15 @@ class _FakeClaudeSDKClient:
 
     def __init__(self, responses_by_call: list) -> None:
         self._responses_by_call = responses_by_call
-        self.queried_prompts: list = []
+        self.queried_prompts: List = []
         self.aenter_called = False
         self.aexit_called = False
+        # Populated by the caller from the `options` a mocked
+        # `claude_agent_sdk.ClaudeSDKClient(...)` construction received,
+        # since this fake is not actually built with those kwargs.
+        self.options: Any = None
 
-    async def __aenter__(self) -> "_FakeClaudeSDKClient":
+    async def __aenter__(self) -> "FakeClaudeSDKClient":
         self.aenter_called = True
         return self
 
@@ -451,6 +468,33 @@ class _FakeClaudeSDKClient:
         idx = len(self.queried_prompts) - 1
         for message in self._responses_by_call[idx]:
             yield message
+
+    # TODO(gp): Maybe better to just print all the values.
+    def __str__(self) -> str:
+        """
+        Render all the fake client's state, for test assertions.
+
+        Extracts only the subset of `options` fields that, rather than the full
+        `ClaudeAgentOptions` repr, which carries many defaulted fields.
+
+        :return: string with `options`, `queried_prompts`, `aenter_called`, and
+            `aexit_called`
+        """
+        options = None
+        if self.options is not None:
+            options = (
+                self.options.allowed_tools,
+                self.options.disallowed_tools,
+                self.options.permission_mode,
+                self.options.model,
+                self.options.setting_sources,
+            )
+        return (
+            f"options={options!r}, "
+            f"queried_prompts={self.queried_prompts!r}, "
+            f"aenter_called={self.aenter_called!r}, "
+            f"aexit_called={self.aexit_called!r}"
+        )
 
 
 # #############################################################################
@@ -472,11 +516,7 @@ def save_session_log(
     :param prompts: List of executed prompts
     :param responses: List of corresponding responses
     """
-    _LOG.debug(
-        "save_session_log() called: output_file=%s num_pairs=%d",
-        output_file,
-        len(prompts),
-    )
+    _LOG.debug(output_file=%s num_pairs=%d", output_file, len(prompts))
     hdbg.dassert_eq(
         len(prompts), len(responses), "Mismatched prompt/response counts"
     )
@@ -498,4 +538,3 @@ def save_session_log(
     content = json.dumps(session_log, indent=2)
     hio.to_file(output_file, content)
     _LOG.info("Session log saved to '%s'", output_file)
-    _LOG.debug("return=None")
