@@ -412,9 +412,6 @@ class Test_extract_h1_sections(hunitest.TestCase):
             More content
             """
         content = hprint.dedent(content)
-        scratch_dir = self.get_scratch_space()
-        file_path = os.path.join(scratch_dir, "test.md")
-        hio.to_file(file_path, content)
         # Prepare outputs.
         expected = r"""
         [('Section 1',
@@ -423,10 +420,7 @@ class Test_extract_h1_sections(hunitest.TestCase):
           '# Section 2\nContent for section 2\n\n## Subsection 2.1\nMore content')]
         """
         # Run test.
-        sections = llincc._extract_h1_sections(file_path)
-        # Check outputs.
-        actual = pprint.pformat(sections)
-        self.assert_equal(actual, expected, dedent=True)
+        self._helper(content, expected)
 
     def test2(self) -> None:
         """
@@ -447,8 +441,6 @@ class Test_extract_h1_sections(hunitest.TestCase):
         self.assertIn("Testing Philosophy", titles)
         self.assertIn("Test Coverage", titles)
 
-    # TODO(ai_gp): Factor out code in an helper function that is used by
-    # test1 and test3
     def test3(self) -> None:
         """
         Test that H1 sections include their content.
@@ -464,14 +456,26 @@ Line 3
 # Header 2
 Line 4
 """
-        scratch_dir = self.get_scratch_space()
-        file_path = os.path.join(scratch_dir, "test.md")
-        hio.to_file(file_path, content)
         # Prepare outputs.
         expected = r"""
         [('Header 1', '# Header 1\nLine 1\nLine 2\n\n### Subsection\nLine 3'),
          ('Header 2', '# Header 2\nLine 4')]
         """
+        # Run test.
+        self._helper(content, expected)
+
+    def _helper(self, content: str, expected: str) -> None:
+        """
+        Write `content` to a scratch markdown file and check the extracted
+        H1 sections against `expected`.
+
+        :param content: markdown content to write to the scratch file
+        :param expected: expected `pprint.pformat()` output of the
+            extracted sections
+        """
+        scratch_dir = self.get_scratch_space()
+        file_path = os.path.join(scratch_dir, "test.md")
+        hio.to_file(file_path, content)
         # Run test.
         sections = llincc._extract_h1_sections(file_path)
         # Check outputs.

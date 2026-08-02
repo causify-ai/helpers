@@ -277,6 +277,7 @@ class PromptSequencer:
 # #############################################################################
 
 
+# TODO(ai_gp): make it public
 class _FakeClaudeSDKClient:
     """
     Minimal stand-in for `claude_agent_sdk.ClaudeSDKClient`.

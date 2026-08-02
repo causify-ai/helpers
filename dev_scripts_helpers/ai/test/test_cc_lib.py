@@ -188,6 +188,8 @@ class Test_PromptSequencer_execute(hunitest.TestCase):
     Test `PromptSequencer.execute()` against a fake SDK client (no network).
     """
 
+    # TODO(ai_gp): Move to cc_lib.py as part of the _FakeClaudeSDKClient.str
+    # and print all the state of the fake
     def _options_to_str(self, mock_client_cls: umock.Mock) -> str:
         """
         Build a string representation of the `options` passed to the mocked
@@ -220,9 +222,6 @@ class Test_PromptSequencer_execute(hunitest.TestCase):
             content=[claude_agent_sdk.TextBlock(text="response B")],
             model="claude-test",
         )
-        fake_client = dshaccli._FakeClaudeSDKClient(
-            responses_by_call=[[msg1], [msg2]]
-        )
         sequencer = dshaccli.PromptSequencer(
             allowed_tools=["Read", "Edit"],
             disallowed_tools=["Bash"],
@@ -234,6 +233,9 @@ class Test_PromptSequencer_execute(hunitest.TestCase):
             print_output=False,
         )
         # Run test.
+        fake_client = dshaccli._FakeClaudeSDKClient(
+            responses_by_call=[[msg1], [msg2]]
+        )
         with umock.patch(
             "claude_agent_sdk.ClaudeSDKClient"
         ) as mock_client_cls:
