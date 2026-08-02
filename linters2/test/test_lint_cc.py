@@ -493,7 +493,8 @@ class Test_build_incremental_system_prompt(hunitest.TestCase):
     Tests for `lint_cc._build_incremental_system_prompt()` function.
     """
 
-    # TODO(ai_gp): Factor out common code and do the checking inside.
+    # TODO(ai_gp): Factor out common code and do the checking inside with
+    # self.assert_equal
     def test1(self) -> None:
         """
         Test that the role content and the "do not change behavior"

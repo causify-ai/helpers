@@ -1,3 +1,6 @@
+// TODO(ai_gp): Follow the rules of .claude/skills/markdown.rules.md especially
+// using nested bullet points
+
 # Test Skip Conditions Guide
 
 This document organizes all pytest skip conditions used across the helpers
@@ -26,7 +29,7 @@ configuration to ensure they run only when appropriate.
 
 Tests that depend on specific operating systems or host configurations:
 
-// TODO(ai_gp): Condition, Effect, Example
+// TODO(ai_gp): Use Condition, Effect, Example for all the tables
 
 | Condition | Reason | Impact |
 | :------- | :------- | :------- |

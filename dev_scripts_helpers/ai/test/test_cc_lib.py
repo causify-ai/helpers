@@ -518,7 +518,8 @@ class Test_PromptSequencer_execute_end_to_end(hunitest.TestCase):
         "Task",
     ]
 
-    # TODO(ai_gp): Factor out common code in helper.
+    # TODO(ai_gp): Factor out common code in helper and check the output
+    # with expected and self.assert_equal
     def test1(self) -> None:
         """
         Test that a real single-prompt session returns the expected reply.
