@@ -238,50 +238,6 @@ def _infer_topic_from_filename(file_path: str) -> str:
 # Rule Chunking and Filtering
 # #############################################################################
 
-# TODO(ai_gp): Move the following code (and its unit tests) to ./helpers/hmarkdown_*.py
-# depending on where it's best
-# TODO(ai_gp): Add comments for each block of code in the functions.
-
-
-def _extract_h1_sections_from_lines(lines: List[str]) -> List[Tuple[str, str]]:
-    """
-    Extract all H1 (level 1) sections from markdown lines already in memory.
-
-    :param lines: markdown content split into lines
-    :return: list of tuples (title, content) for each H1 section
-    """
-    headers = hmarhead.extract_headers_from_markdown(lines, max_level=1)
-    # Filter only level-1 headers.
-    h1_headers = [h for h in headers if h.level == 1]
-    sections = []
-    for idx, header in enumerate(h1_headers):
-        start_line = header.line_number - 1
-        # Find the next H1 header (or end of file).
-        if idx + 1 < len(h1_headers):
-            end_line = h1_headers[idx + 1].line_number - 1
-        else:
-            end_line = len(lines)
-        section_lines = lines[start_line:end_line]
-        section_content = "\n".join(section_lines).strip()
-        sections.append((header.description, section_content))
-    _LOG.debug("return=%d sections", len(sections))
-    return sections
-
-
-# TODO(ai_gp): Inline it in the callers and remove unit tests for it.
-def _extract_h1_sections(rule_file: str) -> List[Tuple[str, str]]:
-    """
-    Extract all H1 (level 1) sections from a rule file on disk.
-
-    :param rule_file: Path to the rule file
-    :return: List of tuples (title, content) for each H1 section
-    """
-    _LOG.debug("Extracting H1 sections from: '%s'", rule_file)
-    hdbg.dassert_file_exists(rule_file, "Rule file not found")
-    lines = hio.from_file(rule_file).split("\n")
-    sections = _extract_h1_sections_from_lines(lines)
-    return sections
-
 
 @dataclasses.dataclass
 class RuleChunk:
@@ -306,92 +262,18 @@ def _estimate_tokens(text: str) -> int:
     return num_tokens
 
 
-def _split_h1_section_at_level(
-    h1_title: str, h1_lines: List[str], *, level: int
-) -> List[Tuple[str, str]]:
-    """
-    Split one H1 section's lines into chunks at `level`.
-
-    Falls back to keeping the whole H1 section as a single chunk when it
-    has no header at `level` (e.g., a flat rule file with only H1
-    sections), so callers get one chunk per topic instead of zero.
-
-    :param h1_title: title of the enclosing H1 section
-    :param h1_lines: the H1 section's lines, starting at its own `# <h1_title>`
-        header line
-    :param level: header level to split at
-        - `1` returns the whole section unsplit
-    :return: list of (title, content) tuples
-        - Every `content` starts with the `# <h1_title>` line so the
-          parent H1 stays visible as context
-        - Any preamble between the H1 header and the first sub-header is
-          folded into the first chunk instead of being dropped
-    """
-    hdbg.dassert_lte(1, level, "Header level must be at least 1")
-    if level <= 1:
-        return [(h1_title, "\n".join(h1_lines).strip())]
-    sub_headers = hmarhead.extract_headers_from_markdown(
-        h1_lines, max_level=level
-    )
-    target_headers = [h for h in sub_headers if h.level == level]
-    if not target_headers:
-        # No sub-header at `level`: keep the H1 section whole.
-        return [(h1_title, "\n".join(h1_lines).strip())]
-    h1_header_line = f"# {h1_title}"
-    sections = []
-    for idx, header in enumerate(target_headers):
-        # The first chunk absorbs the H1 header line and any preamble
-        # before the first sub-header; later chunks start at their own
-        # sub-header line.
-        start_line = 0 if idx == 0 else header.line_number - 1
-        if idx + 1 < len(target_headers):
-            end_line = target_headers[idx + 1].line_number - 1
-        else:
-            end_line = len(h1_lines)
-        section_content = "\n".join(h1_lines[start_line:end_line]).strip()
-        if not section_content.startswith(h1_header_line):
-            section_content = f"{h1_header_line}\n\n{section_content}"
-        sections.append((header.description, section_content))
-    _LOG.debug("return=%d sections", len(sections))
-    return sections
-
-
-def _extract_sections_at_level(
-    lines: List[str], *, level: int
-) -> List[Tuple[str, str]]:
-    """
-    Extract chunk sections from markdown lines.
-
-    Splits every H1 section at `level`, carrying the parent H1 title into
-    each chunk (see `_split_h1_section_at_level()`).
-
-    :param lines: markdown content split into lines
-    :param level: header level to split rule sections at
-        - E>g., `1`=H1, `2`=H2, ...
-    :return: list of (title, content) tuples, in file order
-    """
-    h1_sections = _extract_h1_sections_from_lines(lines)
-    all_sections: List[Tuple[str, str]] = []
-    for h1_title, h1_content in h1_sections:
-        h1_lines = h1_content.split("\n")
-        all_sections.extend(
-            _split_h1_section_at_level(h1_title, h1_lines, level=level)
-        )
-    _LOG.debug("return=%d sections", len(all_sections))
-    return all_sections
-
-
 def _chunk_h1_title(chunk: RuleChunk) -> str:
     """
     Get the H1 title `chunk` was carried under.
 
     Every chunk's content starts with its own or its parent H1's header
-    line (see `_extract_sections_at_level()`), so this is a cheap lookup
-    instead of a separate field on `RuleChunk`.
+    line (see `hmarhead.extract_sections_at_level()`), so this is a cheap
+    lookup instead of a separate field on `RuleChunk`.
 
     :param chunk: chunk to inspect
     :return: title from the leading `# <title>` line
     """
+    # The H1 header line is always the first line of the chunk's content.
     first_line = chunk.content.split("\n", 1)[0]
     title = first_line.lstrip("#").strip()
     return title
@@ -417,11 +299,15 @@ def _merge_small_chunks(
     """
     if not chunks:
         return []
+    # Seed the current bucket from the first chunk.
     merged: List[RuleChunk] = []
     bucket_titles = [chunks[0].title]
     bucket_content = [chunks[0].content]
     bucket_tokens = _estimate_tokens(chunks[0].content)
     bucket_h1 = _chunk_h1_title(chunks[0])
+    # Greedily fold each subsequent chunk into the current bucket when it
+    # shares the parent H1 and still fits the token budget, otherwise flush
+    # the bucket and start a new one.
     for chunk in chunks[1:]:
         chunk_tokens = _estimate_tokens(chunk.content)
         same_h1 = _chunk_h1_title(chunk) == bucket_h1
@@ -447,6 +333,7 @@ def _merge_small_chunks(
             bucket_content = [chunk.content]
             bucket_tokens = chunk_tokens
             bucket_h1 = _chunk_h1_title(chunk)
+    # Flush the last bucket.
     merged.append(
         RuleChunk(
             title=" / ".join(bucket_titles),
@@ -481,16 +368,20 @@ def _build_rule_chunks(
     _LOG.debug(
         hprint.to_str("level max_tokens merge_small_rules")
     )
+    # Split every rule file's H1 sections into chunks at `level`.
     rule_files = topic_info["rules"]
     all_sections: List[Tuple[str, str]] = []
     for rule_file in rule_files:
         hdbg.dassert_file_exists(rule_file, "Rule file not found")
         lines = hio.from_file(rule_file).split("\n")
-        all_sections.extend(_extract_sections_at_level(lines, level=level))
+        all_sections.extend(
+            hmarhead.extract_sections_at_level(lines, level=level)
+        )
     chunks = [
         RuleChunk(title=title, content=content, order=idx)
         for idx, (title, content) in enumerate(all_sections)
     ]
+    # Optionally pack small chunks together to cut the number of turns.
     if merge_small_rules:
         chunks = _merge_small_chunks(chunks, max_tokens=max_tokens)
     _LOG.debug("return=%d chunks", len(chunks))
@@ -511,11 +402,13 @@ def _call_llm_for_json(prompt: str, *, model: str) -> Optional[Any]:
         prompt), or `None` if no JSON could be parsed out of the reply
     """
     _LOG.debug(hprint.to_str("model"))
+    # Query the LLM and locate the JSON payload inside the reply.
     response, _ = hllmcli.apply_llm(prompt, model=model)
     match = re.search(r"\[.*\]|\{.*\}", response, re.DOTALL)
     if not match:
         _LOG.warning("No JSON found in LLM reply: '%s'", response)
         return None
+    # Parse the located payload.
     try:
         result = json.loads(match.group(0))
     except json.JSONDecodeError:
@@ -557,6 +450,7 @@ def _filter_relevant_chunks(
         `0`; unchanged from `chunks` when the reply cannot be trusted
     """
     _LOG.debug(hprint.to_str("file_path model"))
+    # Ask the LLM which candidate chunk titles apply to `file_path`.
     hdbg.dassert_file_exists(file_path)
     file_content = hio.from_file(file_path)
     titles_list = "\n".join(f"- {chunk.title}" for chunk in chunks)
@@ -577,6 +471,7 @@ def _filter_relevant_chunks(
         """
     prompt = hprint.dedent(prompt)
     selected = _call_llm_for_json(prompt, model=model)
+    # Fail open (keep every chunk) when the reply is not a JSON list.
     if not isinstance(selected, list):
         _LOG.warning(
             "Relevance filter reply was not a JSON list; keeping all %d "
@@ -584,6 +479,7 @@ def _filter_relevant_chunks(
             len(chunks),
         )
         return chunks
+    # Keep only the chunks whose title was selected.
     selected_set = set(selected)
     kept = [chunk for chunk in chunks if chunk.title in selected_set]
     discarded_titles = [
@@ -595,6 +491,7 @@ def _filter_relevant_chunks(
             len(discarded_titles),
             discarded_titles,
         )
+    # Fail open (keep every chunk) when the reply would discard all of them.
     if not kept:
         _LOG.warning(
             "Relevance filter selected zero chunks; keeping all %d "
@@ -637,6 +534,7 @@ def _order_chunks_by_dependency(
         parsed
     """
     _LOG.debug(hprint.to_str("model"))
+    # Ask the LLM to categorize every chunk title.
     titles_list = "\n".join(f"- {chunk.title}" for chunk in chunks)
     prompt = f"""
         Classify each rule section title below into exactly one category:
@@ -652,6 +550,8 @@ def _order_chunks_by_dependency(
         """
     prompt = hprint.dedent(prompt)
     categories = _call_llm_for_json(prompt, model=model)
+    # Fall back to file order (every chunk `"structural"`) when the reply
+    # is not a JSON object.
     if not isinstance(categories, dict):
         _LOG.warning(
             "Dependency ordering reply was not a JSON object; keeping "
@@ -669,6 +569,8 @@ def _order_chunks_by_dependency(
         )
         return (False, category_rank)
 
+    # Sort semantic-first, `# Verification` always last, file order as the
+    # tiebreaker within a category (`sorted()` is stable).
     ordered = sorted(chunks, key=_rank)
     ordered = [
         dataclasses.replace(chunk, order=idx)
@@ -942,7 +844,7 @@ def _build_incremental_messages_for_rule(
     """
     _LOG.debug(hprint.to_str("file_path"))
     lines = rule_content.split("\n")
-    sections = _extract_h1_sections_from_lines(lines)
+    sections = hmarhead.extract_h1_sections_from_lines(lines)
     if len(sections) > 1:
         contents = [section_content for _, section_content in sections]
     else:

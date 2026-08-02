@@ -70,18 +70,6 @@ def message_to_str(message: Any) -> str:
     return "".join(chunks)
 
 
-# TODO(ai_gp): Consider inlining, if it's used only once.
-def print_message(message: Any) -> None:
-    """
-    Print the content of a Claude message to stdout.
-
-    :param message: Message received from the Claude SDK
-    """
-    text = message_to_str(message)
-    if text:
-        print(text, flush=True)
-
-
 def _extract_assistant_text(message: Any) -> str:
     """
     Extract the concatenated `TextBlock` content from an assistant message.
@@ -362,7 +350,9 @@ class PromptSequencer:
         text_parts: List[str] = []
         async for message in client.receive_response():
             if self.print_output:
-                print_message(message)
+                text = message_to_str(message)
+                if text:
+                    print(text, flush=True)
             response_parts.append(str(message))
             text = _extract_assistant_text(message)
             if text:

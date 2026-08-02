@@ -5,6 +5,7 @@ import unittest.mock as umock
 from typing import Any, Dict, List, Tuple
 
 import helpers.hio as hio
+import helpers.hmarkdown_headers as hmarhead
 import helpers.hprint as hprint
 import helpers.hunit_test as hunitest
 
@@ -387,230 +388,6 @@ class Test_get_rules_for_topic(hunitest.TestCase):
 
 
 # #############################################################################
-# Test_extract_h1_sections
-# #############################################################################
-
-
-class Test_extract_h1_sections(hunitest.TestCase):
-    """
-    Tests for `cc_lint._extract_h1_sections()` function.
-    """
-
-    def helper(self, content: str, expected: str) -> None:
-        """
-        Write `content` to a scratch markdown file and check the extracted
-        H1 sections against `expected`.
-
-        :param content: markdown content to write to the scratch file
-        :param expected: expected `pprint.pformat()` output of the
-            extracted sections
-        """
-        scratch_dir = self.get_scratch_space()
-        file_path = os.path.join(scratch_dir, "test.md")
-        hio.to_file(file_path, content)
-        # Run test.
-        sections = lcclint._extract_h1_sections(file_path)
-        # Check outputs.
-        actual = pprint.pformat(sections)
-        self.assert_equal(actual, expected, dedent=True)
-
-    def test1(self) -> None:
-        """
-        Test extraction of H1 sections from a simple markdown file.
-        """
-        # Prepare inputs.
-        content = """
-            # Section 1
-            Content for section 1
-
-            ## Subsection 1.1
-            More content
-
-            # Section 2
-            Content for section 2
-
-            ## Subsection 2.1
-            More content
-            """
-        content = hprint.dedent(content)
-        # Prepare outputs.
-        expected = r"""
-        [('Section 1',
-          '# Section 1\nContent for section 1\n\n## Subsection 1.1\nMore content'),
-         ('Section 2',
-          '# Section 2\nContent for section 2\n\n## Subsection 2.1\nMore content')]
-        """
-        # Run test.
-        self.helper(content, expected)
-
-    def test2(self) -> None:
-        """
-        Test that H1 sections include their content.
-        """
-        # Prepare inputs.
-        content = """# Header 1
-        Line 1
-        Line 2
-
-        ### Subsection
-        Line 3
-
-        # Header 2
-        Line 4
-        """
-        # Prepare outputs.
-        expected = r"""
-        [('Header 1', '# Header 1\nLine 1\nLine 2\n\n### Subsection\nLine 3'),
-         ('Header 2', '# Header 2\nLine 4')]
-        """
-        # Run test.
-        self.helper(content, expected)
-
-    def test3(self) -> None:
-        """
-        Test extraction of H1 sections from `testing.rules.md`.
-        """
-        # Prepare inputs.
-        rule_file = "./.claude/skills/testing.rules.md"
-        # Run test.
-        sections = lcclint._extract_h1_sections(rule_file)
-        # Check outputs.
-        self.assertGreater(len(sections), 0)
-        # Verify we have expected H1 sections.
-        # `rule_file` is the live `testing.rules.md` doc, whose H1 section
-        # content changes often; hardwiring its full text as `expected` for
-        # `assert_equal` would be large and brittle, so property-based checks
-        # are kept instead.
-        titles = [title for title, _ in sections]
-        self.assertIn("Testing Philosophy", titles)
-        self.assertIn("Test Coverage", titles)
-
-
-# #############################################################################
-# Test_extract_sections_at_level
-# #############################################################################
-
-
-class Test_extract_sections_at_level(hunitest.TestCase):
-    """
-    Tests for `cc_lint._extract_sections_at_level()` function.
-    """
-
-    def helper(self, content: str, level: int, expected: str) -> None:
-        """
-        Extract sections from `content` at `level` and check them against
-        `expected`.
-
-        :param content: markdown content to split
-        :param level: header level to split at
-        :param expected: expected `pprint.pformat()` output of the
-            extracted sections
-        """
-        # Prepare inputs.
-        lines = content.split("\n")
-        # Run test.
-        sections = lcclint._extract_sections_at_level(lines, level=level)
-        # Check outputs.
-        actual = pprint.pformat(sections)
-        self.assert_equal(actual, expected, dedent=True)
-
-    def test1(self) -> None:
-        """
-        Test that splitting at H2 carries the parent H1 title into each
-        chunk.
-        """
-        # Prepare inputs.
-        content = """
-            # Chapter One
-            ## Section A
-            Content A
-
-            ## Section B
-            Content B
-            """
-        content = hprint.dedent(content)
-        level = 2
-        # Prepare outputs.
-        expected = r"""
-        [('Section A', '# Chapter One\n## Section A\nContent A'),
-         ('Section B', '# Chapter One\n\n## Section B\nContent B')]
-        """
-        # Run test.
-        self.helper(content, level, expected)
-
-    def test2(self) -> None:
-        """
-        Test that an H1 section with no header at `level` is kept whole.
-        """
-        # Prepare inputs.
-        content = """
-            # Chapter One
-            Content one
-
-            # Chapter Two
-            Content two
-            """
-        content = hprint.dedent(content)
-        level = 2
-        # Prepare outputs.
-        expected = r"""
-        [('Chapter One', '# Chapter One\nContent one'),
-         ('Chapter Two', '# Chapter Two\nContent two')]
-        """
-        # Run test.
-        self.helper(content, level, expected)
-
-    def test3(self) -> None:
-        """
-        Test that `level=1` returns each H1 section unsplit.
-        """
-        # Prepare inputs.
-        content = """
-            # Chapter One
-            ## Section A
-            Content A
-
-            # Chapter Two
-            Content two
-            """
-        content = hprint.dedent(content)
-        level = 1
-        # Prepare outputs.
-        expected = r"""
-        [('Chapter One', '# Chapter One\n## Section A\nContent A'),
-         ('Chapter Two', '# Chapter Two\nContent two')]
-        """
-        # Run test.
-        self.helper(content, level, expected)
-
-    def test4(self) -> None:
-        """
-        Test that preamble text before the first H2 is folded into the
-        first chunk instead of being dropped.
-        """
-        # Prepare inputs.
-        content = """
-            # Chapter One
-            Preamble text
-
-            ## Section A
-            Content A
-
-            ## Section B
-            Content B
-            """
-        content = hprint.dedent(content)
-        level = 2
-        # Prepare outputs.
-        expected = r"""
-        [('Section A', '# Chapter One\nPreamble text\n\n## Section A\nContent A'),
-         ('Section B', '# Chapter One\n\n## Section B\nContent B')]
-        """
-        # Run test.
-        self.helper(content, level, expected)
-
-
-# #############################################################################
 # Test_merge_small_chunks
 # #############################################################################
 
@@ -812,12 +589,13 @@ class Test_build_rule_chunks(hunitest.TestCase):
     def test3(self) -> None:
         """
         Test that `level=1` yields one chunk per H1 section, matching
-        `_extract_h1_sections()`'s output.
+        `hmarhead.extract_h1_sections_from_lines()`'s output.
         """
         # Prepare inputs.
         rule_file = ".claude/skills/testing.rules.md"
         topic_info = {"rules": [rule_file]}
-        expected_sections = lcclint._extract_h1_sections(rule_file)
+        lines = hio.from_file(rule_file).split("\n")
+        expected_sections = hmarhead.extract_h1_sections_from_lines(lines)
         # Prepare outputs.
         expected = [
             lcclint.RuleChunk(title=title, content=content, order=idx)
@@ -1165,16 +943,20 @@ class Test_build_rule_message(hunitest.TestCase):
         file_path = "linters2/test/test_cc_lint.py"
         rule_content = "# Some Rule\nDo the thing."
         # Prepare outputs.
-        # TODO(ai_gp): Use """ and dedent
-        expected = (
-            f"Re-read `{file_path}` from disk\n"
-            f"Apply ONLY the rule below to `{file_path}`\n"
-            "Do not revisit rules applied earlier\n"
-            f"{rule_content}\n\n"
-            "Reply with exactly one line:\n"
-            "- `LLM> NO-OP` if the file already complies with the rule\n"
-            "- `LLM> CHANGED: <one-line summary>` if you made an edit"
-        )
+        # TODO(ai_gp): Use _expected_message
+        header = f"""
+        - Re-read `{file_path}` from disk
+        - Apply ONLY the rule below to `{file_path}`
+        - Do not revisit rules applied earlier
+        """
+        header = hprint.dedent(header)
+        footer = """
+        - Reply with exactly one line:
+          - `LLM> NO-OP` if the file already complies with the rule
+          - `LLM> CHANGED: <one-line summary>` if you made an edit
+        """
+        footer = hprint.dedent(footer)
+        expected = f"{header}\n```\n{rule_content}\n```\n{footer}"
         # Run test.
         self.helper(file_path, rule_content, expected)
 
@@ -1186,16 +968,20 @@ class Test_build_rule_message(hunitest.TestCase):
         file_path = "example.py"
         rule_content = "# Rule\nContent"
         # Prepare outputs.
-        # TODO(ai_gp): Use """ and dedent
-        expected = (
-            f"Re-read `{file_path}` from disk\n"
-            f"Apply ONLY the rule below to `{file_path}`\n"
-            "Do not revisit rules applied earlier\n"
-            f"{rule_content}\n\n"
-            "Reply with exactly one line:\n"
-            "- `LLM> NO-OP` if the file already complies with the rule\n"
-            "- `LLM> CHANGED: <one-line summary>` if you made an edit"
-        )
+        # TODO(ai_gp): Use _expected_message
+        header = f"""
+        - Re-read `{file_path}` from disk
+        - Apply ONLY the rule below to `{file_path}`
+        - Do not revisit rules applied earlier
+        """
+        header = hprint.dedent(header)
+        footer = """
+        - Reply with exactly one line:
+          - `LLM> NO-OP` if the file already complies with the rule
+          - `LLM> CHANGED: <one-line summary>` if you made an edit
+        """
+        footer = hprint.dedent(footer)
+        expected = f"{header}\n```\n{rule_content}\n```\n{footer}"
         # Run test.
         self.helper(file_path, rule_content, expected)
 
@@ -1203,6 +989,32 @@ class Test_build_rule_message(hunitest.TestCase):
 # #############################################################################
 # Test_build_incremental_messages
 # #############################################################################
+
+
+def _expected_message(section_content: str) -> str:
+    msg = []
+    header = f"""
+    - Re-read `{file_path}` from disk
+    - Apply ONLY the rule below to `{file_path}`
+    - Do not revisit rules applied earlier
+    """
+    header = hprint.dedent(header)
+    msg.append(header)
+    #
+    msg.append("```")
+    msg.append(section_content)
+    msg.append("```")
+    #
+    footer = """
+    - Reply with exactly one line:
+      - `LLM> NO-OP` if the file already complies with the rule
+      - `LLM> CHANGED: <one-line summary>` if you made an edit
+    """
+    footer = hprint.dedent(footer)
+    msg.append(footer)
+    #
+    msg_as_str = "\n".join(msg)
+    return msg_as_str
 
 
 class Test_build_incremental_messages(hunitest.TestCase):
@@ -1234,18 +1046,6 @@ class Test_build_incremental_messages(hunitest.TestCase):
             "rules": [rule_file],
             "templates": [],
         }
-        def _expected_message(section_content: str) -> str:
-            # TODO(ai_gp): Use """ and dedent
-            return (
-                f"Re-read `{file_path}` from disk\n"
-                f"Apply ONLY the rule below to `{file_path}`\n"
-                "Do not revisit rules applied earlier\n"
-                f"{section_content}\n\n"
-                "Reply with exactly one line:\n"
-                "- `LLM> NO-OP` if the file already complies with the rule\n"
-                "- `LLM> CHANGED: <one-line summary>` if you made an edit"
-            )
-
         # Prepare outputs.
         expected = [
             _expected_message("# Rule One\nContent one"),

@@ -9,6 +9,7 @@ import dev_scripts_helpers.ai.test.test_cc_lib as daiattccl
 import asyncio
 import os
 import unittest.mock as umock
+from typing import List
 
 import helpers.hio as hio
 import helpers.hprint as hprint
@@ -188,7 +189,29 @@ class Test_PromptSequencer_execute(hunitest.TestCase):
     Test `PromptSequencer.execute()` against a fake SDK client (no network).
     """
 
-    # TODO(ai_gp): Factor out common code in helper.
+    def helper(
+        self,
+        sequencer: dshaccli.PromptSequencer,
+        prompts: List[str],
+        fake_client: dshaccli.FakeClaudeSDKClient,
+    ) -> umock.MagicMock:
+        """
+        Run `sequencer.execute(prompts)` against a mocked SDK client.
+
+        :param sequencer: sequencer under test
+        :param prompts: prompts passed to `sequencer.execute()`
+        :param fake_client: fake client returned by the mocked
+            `claude_agent_sdk.ClaudeSDKClient` constructor
+        :return: the mock replacing `claude_agent_sdk.ClaudeSDKClient`, for
+            tests that need to inspect its `call_args`
+        """
+        with umock.patch(
+            "claude_agent_sdk.ClaudeSDKClient"
+        ) as mock_client_cls:
+            mock_client_cls.return_value = fake_client
+            asyncio.run(sequencer.execute(prompts))
+        return mock_client_cls
+
     def test1(self) -> None:
         """
         Test that execute() drives the SDK client with the expected options.
@@ -212,15 +235,13 @@ class Test_PromptSequencer_execute(hunitest.TestCase):
             target_file="/tmp/target.py",
             print_output=False,
         )
-        # Run test.
         fake_client = dshaccli.FakeClaudeSDKClient(
             responses_by_call=[[msg1], [msg2]]
         )
-        with umock.patch(
-            "claude_agent_sdk.ClaudeSDKClient"
-        ) as mock_client_cls:
-            mock_client_cls.return_value = fake_client
-            asyncio.run(sequencer.execute(["prompt A", "prompt B"]))
+        # Run test.
+        mock_client_cls = self.helper(
+            sequencer, ["prompt A", "prompt B"], fake_client
+        )
         # Check outputs.
         mock_client_cls.assert_called_once()
         _, kwargs = mock_client_cls.call_args
@@ -253,11 +274,7 @@ class Test_PromptSequencer_execute(hunitest.TestCase):
         )
         fake_client = dshaccli.FakeClaudeSDKClient(responses_by_call=[[msg1]])
         # Run test.
-        with umock.patch(
-            "claude_agent_sdk.ClaudeSDKClient"
-        ) as mock_client_cls:
-            mock_client_cls.return_value = fake_client
-            asyncio.run(sequencer.execute(["prompt A"]))
+        mock_client_cls = self.helper(sequencer, ["prompt A"], fake_client)
         # Check outputs.
         _, kwargs = mock_client_cls.call_args
         options = kwargs["options"]
@@ -287,11 +304,7 @@ class Test_PromptSequencer_execute(hunitest.TestCase):
             responses_by_call=[[msg1], [msg2]]
         )
         # Run test.
-        with umock.patch(
-            "claude_agent_sdk.ClaudeSDKClient"
-        ) as mock_client_cls:
-            mock_client_cls.return_value = fake_client
-            asyncio.run(sequencer.execute(["prompt A", "prompt B"]))
+        self.helper(sequencer, ["prompt A", "prompt B"], fake_client)
         # Check outputs.
         expected = "['NO-OP', 'CHANGED: fixed x']"
         self.assertEqual(str(sequencer.get_outcomes()), expected)
