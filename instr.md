@@ -1,5 +1,4 @@
-Add unit tests for linters2/lint_cc.py to test what is not tested
-yet
+Implement phase 2 from plan.md and update the tests
 
 # Conventions
 - When writing code you must always follow the instructions in

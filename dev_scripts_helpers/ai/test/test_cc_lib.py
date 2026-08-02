@@ -258,24 +258,250 @@ class Test_PromptSequencer_execute(hunitest.TestCase):
         self.assertEqual(sequencer._prompts_executed, 2)
         self.assertNotEqual(sequencer.get_last_response(), "")
 
+    def test2(self) -> None:
+        """
+        Test that `system_prompt` is forwarded to `ClaudeAgentOptions`.
+        """
+        # Prepare inputs.
+        msg1 = claude_agent_sdk.AssistantMessage(
+            content=[claude_agent_sdk.TextBlock(text="LLM> NO-OP")],
+            model="claude-test",
+        )
+        sequencer = dshaccli.PromptSequencer(
+            cwd=self.get_scratch_space(),
+            system_prompt="Follow the rules.",
+            target_file="/tmp/target.py",
+            print_output=False,
+        )
+        fake_client = dshaccli._FakeClaudeSDKClient(responses_by_call=[[msg1]])
+        # Run test.
+        with umock.patch(
+            "claude_agent_sdk.ClaudeSDKClient"
+        ) as mock_client_cls:
+            mock_client_cls.return_value = fake_client
+            asyncio.run(sequencer.execute(["prompt A"]))
+        # Check outputs.
+        _, kwargs = mock_client_cls.call_args
+        options = kwargs["options"]
+        self.assertEqual(options.system_prompt, "Follow the rules.")
+
+    def test3(self) -> None:
+        """
+        Test that `get_outcomes()` records the no-op contract per prompt.
+        """
+        # Prepare inputs.
+        msg1 = claude_agent_sdk.AssistantMessage(
+            content=[claude_agent_sdk.TextBlock(text="LLM> NO-OP")],
+            model="claude-test",
+        )
+        msg2 = claude_agent_sdk.AssistantMessage(
+            content=[
+                claude_agent_sdk.TextBlock(text="LLM> CHANGED: fixed x")
+            ],
+            model="claude-test",
+        )
+        sequencer = dshaccli.PromptSequencer(
+            cwd=self.get_scratch_space(),
+            target_file="/tmp/target.py",
+            print_output=False,
+        )
+        fake_client = dshaccli._FakeClaudeSDKClient(
+            responses_by_call=[[msg1], [msg2]]
+        )
+        # Run test.
+        with umock.patch(
+            "claude_agent_sdk.ClaudeSDKClient"
+        ) as mock_client_cls:
+            mock_client_cls.return_value = fake_client
+            asyncio.run(sequencer.execute(["prompt A", "prompt B"]))
+        # Check outputs.
+        expected = "['NO-OP', 'CHANGED: fixed x']"
+        self.assertEqual(str(sequencer.get_outcomes()), expected)
+        self.assertEqual(len(sequencer.get_responses()), 2)
+
+
+# #############################################################################
+# Test_PromptSequencer_context_strategy
+# #############################################################################
+
+
+class Test_PromptSequencer_context_strategy(hunitest.TestCase):
+    """
+    Test `PromptSequencer.execute()` client construction per context strategy.
+    """
+
+    def helper(
+        self, context_strategy: str, expected_call_count: int
+    ) -> None:
+        """
+        Run two prompts under `context_strategy` and check how many times
+        `ClaudeSDKClient` was constructed.
+
+        :param context_strategy: `"session"` or `"stateless"`
+        :param expected_call_count: expected `ClaudeSDKClient` construction
+            count
+        """
+        # Prepare inputs.
+        msg1 = claude_agent_sdk.AssistantMessage(
+            content=[claude_agent_sdk.TextBlock(text="LLM> NO-OP")],
+            model="claude-test",
+        )
+        msg2 = claude_agent_sdk.AssistantMessage(
+            content=[claude_agent_sdk.TextBlock(text="LLM> NO-OP")],
+            model="claude-test",
+        )
+        sequencer = dshaccli.PromptSequencer(
+            cwd=self.get_scratch_space(),
+            context_strategy=context_strategy,
+            target_file="/tmp/target.py",
+            print_output=False,
+        )
+        fake_client = dshaccli._FakeClaudeSDKClient(
+            responses_by_call=[[msg1], [msg2]]
+        )
+        # Run test.
+        with umock.patch(
+            "claude_agent_sdk.ClaudeSDKClient"
+        ) as mock_client_cls:
+            mock_client_cls.return_value = fake_client
+            asyncio.run(sequencer.execute(["prompt A", "prompt B"]))
+        # Check outputs.
+        self.assertEqual(mock_client_cls.call_count, expected_call_count)
+        self.assertEqual(sequencer._prompts_executed, 2)
+
+    def test1(self) -> None:
+        """
+        Test that `session` mode reuses a single client for all prompts.
+        """
+        # Prepare inputs.
+        context_strategy = "session"
+        # Prepare outputs.
+        expected_call_count = 1
+        # Run test.
+        self.helper(context_strategy, expected_call_count)
+
+    def test2(self) -> None:
+        """
+        Test that `stateless` mode opens one fresh client per prompt.
+        """
+        # Prepare inputs.
+        context_strategy = "stateless"
+        # Prepare outputs.
+        expected_call_count = 2
+        # Run test.
+        self.helper(context_strategy, expected_call_count)
+
+    def test3(self) -> None:
+        """
+        Test that an invalid context strategy is rejected at construction.
+        """
+        # Run test and check outputs.
+        with self.assertRaises(AssertionError):
+            dshaccli.PromptSequencer(context_strategy="bogus")
+
+
+# #############################################################################
+# Test_parse_rule_outcome
+# #############################################################################
+
+
+class Test_parse_rule_outcome(hunitest.TestCase):
+    """
+    Test `_parse_rule_outcome()` no-op contract parser.
+    """
+
+    def helper(self, assistant_text: str, expected: str) -> None:
+        """
+        Parse `assistant_text` and check the result against `expected`.
+
+        :param assistant_text: assistant reply text to parse
+        :param expected: expected parsed outcome
+        """
+        # Run test.
+        actual = dshaccli._parse_rule_outcome(assistant_text)
+        # Check outputs.
+        self.assertEqual(actual, expected)
+
+    def test1(self) -> None:
+        """
+        Test that a bare NO-OP reply is parsed as NO-OP.
+        """
+        # Prepare inputs.
+        assistant_text = "LLM> NO-OP"
+        # Prepare outputs.
+        expected = "NO-OP"
+        # Run test.
+        self.helper(assistant_text, expected)
+
+    def test2(self) -> None:
+        """
+        Test that a CHANGED reply is parsed together with its summary.
+        """
+        # Prepare inputs.
+        assistant_text = "LLM> CHANGED: renamed foo to _foo"
+        # Prepare outputs.
+        expected = "CHANGED: renamed foo to _foo"
+        # Run test.
+        self.helper(assistant_text, expected)
+
+    def test3(self) -> None:
+        """
+        Test that surrounding prose does not prevent the contract from
+        being found.
+        """
+        # Prepare inputs.
+        assistant_text = """
+        I re-read the file and applied the rule.
+
+        LLM> CHANGED: added docstring
+        """
+        assistant_text = hprint.dedent(assistant_text)
+        # Prepare outputs.
+        expected = "CHANGED: added docstring"
+        # Run test.
+        self.helper(assistant_text, expected)
+
+    def test4(self) -> None:
+        """
+        Test that a reply without the contract markers is UNKNOWN.
+        """
+        # Prepare inputs.
+        assistant_text = "I made some changes but forgot the format."
+        # Prepare outputs.
+        expected = "UNKNOWN"
+        # Run test.
+        self.helper(assistant_text, expected)
+
+    def test5(self) -> None:
+        """
+        Test that an empty reply is UNKNOWN.
+        """
+        # Prepare inputs.
+        assistant_text = ""
+        # Prepare outputs.
+        expected = "UNKNOWN"
+        # Run test.
+        self.helper(assistant_text, expected)
+
 
 # #############################################################################
 # Test_PromptSequencer_execute_end_to_end
 # #############################################################################
 
 
+@pytest.mark.skip(
+    reason="Run manually: makes a real Claude Agent SDK call and costs tokens"
+)
 class Test_PromptSequencer_execute_end_to_end(hunitest.TestCase):
     """
     Exercise `PromptSequencer.execute()` against the real Claude Agent SDK.
 
     Unlike `Test_PromptSequencer_execute`, nothing here is mocked: each test
     makes a real `claude_agent_sdk.ClaudeSDKClient` call, requires the local
-    `claude` CLI to be authenticated, and spends real API tokens. Tests are
-    skipped by default; remove the `@pytest.mark.skip` decorator to run one
-    manually. The cheapest available model is used to keep manual runs
-    inexpensive.
+    `claude` CLI to be authenticated, and spends real API tokens.
     """
 
+    # The cheapest available model is used to keep manual runs inexpensive.
     _MODEL = "claude-haiku-4-5-20251001"
     # Block every tool so plain Q&A prompts cannot trigger tool use.
     _NO_TOOLS = [
@@ -292,9 +518,7 @@ class Test_PromptSequencer_execute_end_to_end(hunitest.TestCase):
         "Task",
     ]
 
-    @pytest.mark.skip(
-        reason="Run manually: makes a real Claude Agent SDK call and costs tokens"
-    )
+    # TODO(ai_gp): Factor out common code in helper.
     def test1(self) -> None:
         """
         Test that a real single-prompt session returns the expected reply.
@@ -317,9 +541,6 @@ class Test_PromptSequencer_execute_end_to_end(hunitest.TestCase):
         self.assertEqual(sequencer.get_execution_stats()["prompts_executed"], 1)
         self.assertIn("PONG", sequencer.get_last_response())
 
-    @pytest.mark.skip(
-        reason="Run manually: makes real Claude Agent SDK calls and costs tokens"
-    )
     def test2(self) -> None:
         """
         Test that conversation context is preserved across sequential prompts.
@@ -343,9 +564,6 @@ class Test_PromptSequencer_execute_end_to_end(hunitest.TestCase):
         self.assertEqual(sequencer.get_execution_stats()["prompts_executed"], 2)
         self.assertIn("84210", sequencer.get_last_response())
 
-    @pytest.mark.skip(
-        reason="Run manually: makes a real Claude Agent SDK call and costs tokens"
-    )
     def test3(self) -> None:
         """
         Test that the real SDK enforces the file-scope guard end-to-end.
@@ -358,9 +576,10 @@ class Test_PromptSequencer_execute_end_to_end(hunitest.TestCase):
         # Prepare inputs.
         scratch_dir = self.get_scratch_space()
         target_file = os.path.join(scratch_dir, "target.txt")
-        other_file = os.path.join(scratch_dir, "other.txt")
         hio.to_file(target_file, "target\n")
+        other_file = os.path.join(scratch_dir, "other.txt")
         hio.to_file(other_file, "other\n")
+        #
         sequencer = dshaccli.PromptSequencer(
             allowed_tools=["Edit", "Write"],
             disallowed_tools=["Bash", "Task", "WebFetch"],
@@ -408,6 +627,7 @@ class Test_save_session_log(hunitest.TestCase):
         # Check outputs.
         self.assertTrue(os.path.exists(output_file))
         actual = hio.from_file(output_file)
+        expected_output = hprint.dedent(expected_output)
         self.assert_equal(actual, expected_output)
 
     def test1(self) -> None:
@@ -429,7 +649,6 @@ class Test_save_session_log(hunitest.TestCase):
           ],
           "total_prompts": 1
         }"""
-        expected = hprint.dedent(expected)
         # Run test.
         self.helper(prompts, responses, expected)
 
@@ -462,6 +681,5 @@ class Test_save_session_log(hunitest.TestCase):
           ],
           "total_prompts": 3
         }"""
-        expected = hprint.dedent(expected)
         # Run test.
         self.helper(prompts, responses, expected)

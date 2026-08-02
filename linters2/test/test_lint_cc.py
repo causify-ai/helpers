@@ -484,6 +484,150 @@ Line 4
 
 
 # #############################################################################
+# Test_build_incremental_system_prompt
+# #############################################################################
+
+
+class Test_build_incremental_system_prompt(hunitest.TestCase):
+    """
+    Tests for `lint_cc._build_incremental_system_prompt()` function.
+    """
+
+    # TODO(ai_gp): Factor out common code and do the checking inside.
+    def test1(self) -> None:
+        """
+        Test that the role content and the "do not change behavior"
+        instruction are both included.
+        """
+        # Prepare inputs.
+        topic_info = llincc._get_rules_for_topic("coding")
+        # Run test.
+        system_prompt = llincc._build_incremental_system_prompt(topic_info)
+        # Check outputs.
+        role_content = hio.from_file(topic_info["role"])
+        # TODO(ai_gp): Use expected and assert_equal
+        self.assertIn(role_content, system_prompt)
+        self.assertIn(
+            "You MUST make sure not to change the behavior or the intent "
+            "of the passed file",
+            system_prompt,
+        )
+
+    def test2(self) -> None:
+        """
+        Test that templates are listed when the topic defines any.
+        """
+        # Prepare inputs.
+        topic_info = llincc._get_rules_for_topic("coding")
+        # Run test.
+        system_prompt = llincc._build_incremental_system_prompt(topic_info)
+        # Check outputs.
+        # TODO(ai_gp): Use expected and assert_equal
+        self.assertIn("You MUST follow the templates below:", system_prompt)
+        for template_file in topic_info["templates"]:
+            self.assertIn(template_file, system_prompt)
+
+    def test3(self) -> None:
+        """
+        Test that no template section is added when the topic has none.
+        """
+        # Prepare inputs.
+        topic_info = llincc._get_rules_for_topic("bash")
+        # Run test.
+        system_prompt = llincc._build_incremental_system_prompt(topic_info)
+        # Check outputs.
+        # TODO(ai_gp): Use expected and assert_equal
+        self.assertNotIn("You MUST follow the templates below", system_prompt)
+
+
+# #############################################################################
+# Test_build_rule_message
+# #############################################################################
+
+
+class Test_build_rule_message(hunitest.TestCase):
+    """
+    Tests for `lint_cc._build_rule_message()` function.
+    """
+
+    # TODO(ai_gp): Factor out common code and check string with
+    # self.assert_equal.
+    def test1(self) -> None:
+        """
+        Test that the file path is named in every instruction line.
+        """
+        # Prepare inputs.
+        file_path = "linters2/test/test_lint_cc.py"
+        rule_content = "# Some Rule\nDo the thing."
+        # Run test.
+        msg = llincc._build_rule_message(file_path, rule_content)
+        # Check outputs.
+        self.assertEqual(msg.count(file_path), 2)
+        self.assertIn(rule_content, msg)
+
+    def test2(self) -> None:
+        """
+        Test that the message requires the no-op contract reply.
+        """
+        # Prepare inputs.
+        file_path = "example.py"
+        rule_content = "# Rule\nContent"
+        # Run test.
+        msg = llincc._build_rule_message(file_path, rule_content)
+        # Check outputs.
+        self.assertIn("LLM> NO-OP", msg)
+        self.assertIn("LLM> CHANGED:", msg)
+
+
+# #############################################################################
+# Test_build_incremental_messages
+# #############################################################################
+
+
+class Test_build_incremental_messages(hunitest.TestCase):
+    """
+    Tests for `lint_cc._build_incremental_messages()` function.
+    """
+
+    def test1(self) -> None:
+        """
+        Test that one message is built per H1 rule section, each naming the
+        file, and that the role content is not repeated in any message.
+        """
+        # Prepare inputs.
+        scratch_dir = self.get_scratch_space()
+        rules_content = """
+            # Rule One
+            Content one
+
+            # Rule Two
+            Content two
+            """
+        rules_content = hprint.dedent(rules_content)
+        rule_file = os.path.join(scratch_dir, "test.rules.md")
+        hio.to_file(rule_file, rules_content)
+        file_path = os.path.join(scratch_dir, "example.py")
+        hio.to_file(file_path, "x = 1\n")
+        topic_info = {
+            "role": ".claude/skills/role.coding.md",
+            "rules": [rule_file],
+            "templates": [],
+        }
+        # Run test.
+        messages = llincc._build_incremental_messages(file_path, topic_info)
+        # Check outputs.
+        # TODO(ai_gp): Check output with expected and self.assert_equal
+        self.assertEqual(len(messages), 2)
+        for msg in messages:
+            self.assertIn(file_path, msg)
+        self.assertIn("Rule One", messages[0])
+        self.assertIn("Rule Two", messages[1])
+        role_content = hio.from_file(topic_info["role"])
+        for msg in messages:
+            self.assertNotIn(role_content, msg)
+
+
+# #############################################################################
 # Test_process_file_apply_incrementally
 # #############################################################################
 
@@ -508,6 +652,7 @@ class Test_process_file_apply_incrementally(hunitest.TestCase):
             topic="",
             dry_run=True,
             model="",
+            incremental_mode="stateless",
         )
         # Prepare outputs.
         expected_rc = 0
@@ -524,3 +669,38 @@ class Test_process_file_apply_incrementally(hunitest.TestCase):
         self.assertEqual(rc, expected_rc)
         actual_topic_info = pprint.pformat(topic_info)
         self.assert_equal(actual_topic_info, expected_topic_info, dedent=True)
+
+
+# #############################################################################
+# Test_parse
+# #############################################################################
+
+
+class Test_parse(hunitest.TestCase):
+    """
+    Tests for `lint_cc._parse()` function.
+    """
+
+    # TODO(ai_gp): Factor out common code and do the checking inside.
+    def test1(self) -> None:
+        """
+        Test that `--incremental_mode` defaults to `stateless`.
+        """
+        # Prepare inputs.
+        parser = llincc._parse()
+        argv: list = []
+        # Run test.
+        args = parser.parse_args(argv)
+        # Check outputs.
+        self.assertEqual(args.incremental_mode, "stateless")
+
+    def test2(self) -> None:
+        """
+        Test that `--incremental_mode` rejects values outside the choice set.
+        """
+        # Prepare inputs.
+        parser = llincc._parse()
+        argv = ["--incremental_mode", "bogus"]
+        # Run test and check outputs.
+        with self.assertRaises(SystemExit):
+            parser.parse_args(argv)

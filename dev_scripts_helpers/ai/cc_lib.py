@@ -14,6 +14,7 @@ import dev_scripts_helpers.ai.cc_lib as dshaccli
 import json
 import logging
 import os
+import re
 from typing import Any, Awaitable, Callable, Dict, List, Optional
 
 import claude_agent_sdk
@@ -35,6 +36,7 @@ CanUseToolFn = Callable[
 # #############################################################################
 
 
+# TODO(ai_gp): message_to_str and return str
 def print_message(message: Any) -> None:
     """
     Print the content of a Claude message to stdout.
@@ -64,6 +66,66 @@ def print_message(message: Any) -> None:
         else:
             continue
         print(f"\n{header}\n{body}", flush=True)
+
+
+def _extract_assistant_text(message: Any) -> str:
+    """
+    Extract the concatenated `TextBlock` content from an assistant message.
+
+    :param message: message received from the Claude SDK
+    :return: joined text blocks, or `""` for non-assistant messages
+    """
+    if not isinstance(message, claude_agent_sdk.AssistantMessage):
+        return ""
+    parts = [
+        block.text
+        for block in message.content
+        if isinstance(block, claude_agent_sdk.TextBlock)
+    ]
+    return "\n".join(parts)
+
+
+# #############################################################################
+# No-Op Contract Parsing
+# #############################################################################
+
+
+# TODO(gp): Generalize or move it to lint_cc.py since it's specific of that
+# Match a structured no-op contract reply; `lint_cc.py`'s
+# `_build_rule_message()` asks every rule prompt to end with one of these.
+_NO_OP_RE = re.compile(r"^LLM>\s*NO-OP\s*$", re.MULTILINE)
+_CHANGED_RE = re.compile(r"^LLM>\s*CHANGED:\s*(.+)$", re.MULTILINE)
+
+
+def _parse_rule_outcome(assistant_text: str) -> str:
+    """
+    Parse the no-op contract reply for a single rule prompt.
+
+    :param assistant_text: concatenated text blocks from the assistant's
+        reply to one rule prompt
+    :return: `"NO-OP"`, `"CHANGED: <summary>"`, or `"UNKNOWN"` when
+        `assistant_text` does not follow the contract
+        Example:
+        ```
+        "LLM> NO-OP" -> "NO-OP"
+        "LLM> CHANGED: renamed foo to _foo" -> "CHANGED: renamed foo to _foo"
+        "I did something" -> "UNKNOWN"
+        ```
+    """
+    changed_match = _CHANGED_RE.search(assistant_text)
+    if changed_match:
+        outcome = "CHANGED: " + changed_match.group(1).strip()
+    elif _NO_OP_RE.search(assistant_text):
+        outcome = "NO-OP"
+    else:
+        outcome = "UNKNOWN"
+    _LOG.debug("return=%s", outcome)
+    return outcome
+
+
+# #############################################################################
+# Permission Guards
+# #############################################################################
 
 
 def _make_file_scope_guard(target_file: str) -> CanUseToolFn:
@@ -128,6 +190,8 @@ class PromptSequencer:
         cwd: str = "",
         print_output: bool = True,
         model: str = "",
+        system_prompt: str = "",
+        context_strategy: str = "session",
         setting_sources: Optional[List[str]] = None,
         target_file: str = "",
         can_use_tool: Optional[CanUseToolFn] = None,
@@ -149,6 +213,13 @@ class PromptSequencer:
             they are received
         :param model: Model name to use for the session
             - "" means the SDK default
+        :param system_prompt: System prompt sent once per session
+            - "" means no system prompt
+        :param context_strategy: How sessions are managed across prompts
+            - "session": one `ClaudeSDKClient` shared by all prompts,
+              preserving context across them
+            - "stateless": a fresh `ClaudeSDKClient` per prompt, giving
+              each prompt uniform cost and full attention
         :param setting_sources: Which settings sources to load
             (`"user"`, `"project"`, `"local"`)
             - None defaults to `[]` so the session does not pick up user
@@ -163,8 +234,13 @@ class PromptSequencer:
         _LOG.debug(
             hprint.to_str(
                 "allowed_tools disallowed_tools permission_mode cwd model "
-                "setting_sources target_file"
+                "context_strategy setting_sources target_file"
             )
+        )
+        hdbg.dassert_in(
+            context_strategy,
+            ("session", "stateless"),
+            "Unknown context strategy",
         )
         self.allowed_tools = allowed_tools or []
         self.disallowed_tools = disallowed_tools or []
@@ -172,6 +248,8 @@ class PromptSequencer:
         self.cwd = cwd
         self.print_output = print_output
         self.model = model
+        self.system_prompt = system_prompt
+        self.context_strategy = context_strategy
         self.setting_sources = (
             [] if setting_sources is None else setting_sources
         )
@@ -188,6 +266,10 @@ class PromptSequencer:
         self._prompts_executed = 0
         # Last response from Claude.
         self._last_response = ""
+        # Raw response text per executed prompt, in order.
+        self._responses: List[str] = []
+        # Parsed no-op contract outcome per executed prompt, in order.
+        self._outcomes: List[str] = []
 
     async def execute(self, prompts: List[str]) -> None:
         """
@@ -203,7 +285,10 @@ class PromptSequencer:
         _LOG.debug("execute() called with %d prompts", len(prompts))
         hdbg.dassert_lt(0, len(prompts), "Must provide at least one prompt")
         _LOG.info(
-            "Starting prompt sequence execution with %d prompts", len(prompts)
+            "Starting prompt sequence execution with %d prompts using '%s' "
+            "context strategy",
+            len(prompts),
+            self.context_strategy,
         )
         # Create options for Claude SDK.
         options = claude_agent_sdk.ClaudeAgentOptions(
@@ -212,37 +297,74 @@ class PromptSequencer:
             permission_mode=self.permission_mode,  # type: ignore
             cwd=self.cwd or None,
             model=self.model or None,
+            system_prompt=self.system_prompt or None,
             setting_sources=self.setting_sources,  # type: ignore
             can_use_tool=self.can_use_tool,
         )
-        # Execute prompts in session with context preservation.
-        async with claude_agent_sdk.ClaudeSDKClient(options=options) as client:
-            self._session_started = True
+        if self.context_strategy == "session":
+            # Single session: preserve context across all prompts.
+            async with claude_agent_sdk.ClaudeSDKClient(
+                options=options
+            ) as client:
+                self._session_started = True
+                for prompt_idx, prompt in enumerate(prompts, 1):
+                    await self._execute_one_prompt(
+                        client, prompt, prompt_idx, len(prompts)
+                    )
+        else:
+            # Stateless: fresh session per prompt, no cross-prompt context.
             for prompt_idx, prompt in enumerate(prompts, 1):
-                _LOG.info(
-                    "%s",
-                    hprint.color_highlight(
-                        hprint.frame(
-                            f"Executing prompt {prompt_idx}/{len(prompts)}"
-                        ),
-                        "blue",
-                    ),
-                )
-                _LOG.debug("Prompt content:\n%s ...", prompt[:200])
-                # Query Claude with prompt and collect response asynchronously.
-                await client.query(prompt)
-                # Collect response messages from stream.
-                response_parts: List[str] = []
-                async for message in client.receive_response():
-                    if self.print_output:
-                        print_message(message)
-                    response_parts.append(str(message))
-                response_text = "".join(response_parts)
-                self._last_response = response_text
-                self._prompts_executed += 1
-                # Log prompt completion with response metrics.
-                _LOG.info("Prompt %d completed successfully", prompt_idx)
-                _LOG.debug("Response length: %d chars", len(response_text))
+                async with claude_agent_sdk.ClaudeSDKClient(
+                    options=options
+                ) as client:
+                    self._session_started = True
+                    await self._execute_one_prompt(
+                        client, prompt, prompt_idx, len(prompts)
+                    )
+
+    async def _execute_one_prompt(
+        self,
+        client: Any,
+        prompt: str,
+        prompt_idx: int,
+        total_prompts: int,
+    ) -> None:
+        """
+        Query `client` with a single `prompt` and record its outcome.
+
+        :param client: active `ClaudeSDKClient` session
+        :param prompt: prompt text to send
+        :param prompt_idx: 1-based index of `prompt` in the overall sequence
+        :param total_prompts: total number of prompts in the sequence
+        """
+        _LOG.info(
+            "%s",
+            hprint.color_highlight(
+                hprint.frame(f"Executing prompt {prompt_idx}/{total_prompts}"),
+                "blue",
+            ),
+        )
+        _LOG.debug("Prompt content:\n%s ...", prompt[:200])
+        # Query Claude with prompt and collect response asynchronously.
+        await client.query(prompt)
+        # Collect response messages from stream.
+        response_parts: List[str] = []
+        text_parts: List[str] = []
+        async for message in client.receive_response():
+            if self.print_output:
+                print_message(message)
+            response_parts.append(str(message))
+            text = _extract_assistant_text(message)
+            if text:
+                text_parts.append(text)
+        response_text = "".join(response_parts)
+        self._last_response = response_text
+        self._responses.append(response_text)
+        self._outcomes.append(_parse_rule_outcome("\n".join(text_parts)))
+        self._prompts_executed += 1
+        # Log prompt completion with response metrics.
+        _LOG.info("Prompt %d completed successfully", prompt_idx)
+        _LOG.debug("Response length: %d chars", len(response_text))
 
     def get_last_response(self) -> str:
         """
@@ -254,6 +376,28 @@ class PromptSequencer:
             "get_last_response() returning %d chars", len(self._last_response)
         )
         return self._last_response
+
+    def get_responses(self) -> List[str]:
+        """
+        Get the raw response text for every executed prompt, in order.
+
+        :return: one entry per executed prompt
+        """
+        _LOG.debug(
+            "get_responses() returning %d responses", len(self._responses)
+        )
+        return self._responses
+
+    def get_outcomes(self) -> List[str]:
+        """
+        Get the parsed no-op contract outcome for every executed prompt.
+
+        :return: one entry per executed prompt, each `"NO-OP"`, `"CHANGED:
+            <summary>"`, or `"UNKNOWN"` when the reply did not follow the
+            contract (see `_parse_rule_outcome()`)
+        """
+        _LOG.debug("get_outcomes() returning %d outcomes", len(self._outcomes))
+        return self._outcomes
 
     def get_execution_stats(self) -> Dict[str, Any]:
         """

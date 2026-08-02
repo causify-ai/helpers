@@ -358,60 +358,100 @@ def _run_claude_code(
 # #############################################################################
 
 
-def _build_incremental_messages(file_path: str) -> List[str]:
+def _build_incremental_system_prompt(topic_info: Dict) -> str:
     """
-    Build a sequence of messages for incremental rule application.
+    Build the system prompt for incremental rule application.
 
-    :param file_path: Path to the file to process
-    :return: List of messages to send sequentially
+    The role and the "do not change behavior" instruction are sent once as
+    the system prompt instead of being repeated in a message, since they
+    apply to every rule turn.
+
+    :param topic_info: topic configuration dict from `_get_rules_for_topic()`
+    :return: system prompt text combining the role, the templates to
+        follow, and the "do not change behavior" instruction
     """
-    _LOG.debug("Building incremental messages for: '%s'", file_path)
-    hdbg.dassert_file_exists(file_path)
-    inferred_topic = _infer_topic_from_filename(file_path)
-    topic_info = _get_rules_for_topic(inferred_topic)
-    rule_files = topic_info["rules"]
     role = topic_info["role"]
     templates = topic_info["templates"]
     hdbg.dassert_file_exists(role, "Role file not found")
-    # Build the initial template message.
     role_content = hio.from_file(role)
-    template_message = role_content
+    system_prompt = role_content
     msg = """
 
     You MUST make sure not to change the behavior or the intent of the passed file
     """
-    msg = hprint.dedent(msg)
-    template_message += msg
+    system_prompt += hprint.dedent(msg)
     if templates:
         msg = """
 
         You MUST follow the templates below:
         """
-        msg = hprint.dedent(msg)
-        template_message += msg
+        system_prompt += hprint.dedent(msg)
         for template_file in templates:
-            template_message += f"\n- {template_file}"
-    _LOG.info("Incremental processing of %s", file_path)
+            system_prompt += f"\n- {template_file}"
+    _LOG.debug("return=system_prompt_length=%d", len(system_prompt))
+    return system_prompt
+
+
+def _build_rule_message(file_path: str, rule_content: str) -> str:
+    """
+    Build one rule message re-anchored on `file_path` with the no-op contract.
+
+    Naming `file_path` in every message keeps its referent from drifting
+    once the context holds several rule sections; the no-op contract lets a
+    compliant rule produce zero edits instead of forced churn.
+
+    :param file_path: path of the file the rule applies to
+    :param rule_content: H1 rule section content to apply
+    :return: prompt text requiring a structured `LLM> NO-OP` or `LLM>
+        CHANGED: <summary>` reply
+    """
+    header = f"""
+    Re-read `{file_path}` from disk
+    Apply ONLY the rule below to `{file_path}`
+    Do not revisit rules applied earlier
+    """
+    header = hprint.dedent(header)
+    footer = """
+    Reply with exactly one line:
+    - `LLM> NO-OP` if the file already complies with the rule
+    - `LLM> CHANGED: <one-line summary>` if you made an edit
+    """
+    footer = hprint.dedent(footer)
+    msg = f"{header}\n{rule_content}\n\n{footer}"
+    return msg
+
+
+def _build_incremental_messages(
+    file_path: str, topic_info: Dict
+) -> List[str]:
+    """
+    Build a sequence of rule messages for incremental rule application.
+
+    :param file_path: path of the file to process, interpolated into every
+        rule message
+    :param topic_info: topic configuration dict from `_get_rules_for_topic()`
+    :return: one message per H1 rule section; the role and the "do not
+        change behavior" instruction live in the system prompt instead (see
+        `_build_incremental_system_prompt()`)
+    """
+    _LOG.debug(hprint.to_str("file_path"))
+    hdbg.dassert_file_exists(file_path)
+    rule_files = topic_info["rules"]
     _LOG.info("Number of rule files: %d", len(rule_files))
-    # Extract all H1 sections from all rule files
+    # Extract all H1 sections from all rule files.
     all_sections = []
     for rule_file in rule_files:
         hdbg.dassert_file_exists(rule_file, "Rule file not found")
         sections = _extract_h1_sections(rule_file)
-        _LOG.info("Extracted %d H1 sections from %s", len(sections), rule_file)
+        _LOG.info(
+            "Extracted %d H1 sections from '%s'", len(sections), rule_file
+        )
         all_sections.extend(sections)
     _LOG.info("Total H1 sections: %d", len(all_sections))
-    # Build messages
-    messages: List[str] = []
-    # First message: template
-    messages.append(template_message)
-    # Second message: target file specification
-    target_message = f"You will apply the rules that I will give you to {file_path}"
-    messages.append(target_message)
-    # Subsequent messages: one per H1 section.
-    for _, section_content in all_sections:
-        section_message = f"Apply the following rule to the file:\n\n{section_content}"
-        messages.append(section_message)
+    messages = [
+        _build_rule_message(file_path, section_content)
+        for _, section_content in all_sections
+    ]
     _LOG.debug("return=%d messages", len(messages))
     return messages
 
@@ -420,6 +460,7 @@ async def _process_file_incrementally(
     file_path: str,
     dry_run: bool,
     model: str,
+    incremental_mode: str,
 ) -> int:
     """
     Apply rules incrementally, one H1 section per Claude Code interaction.
@@ -427,15 +468,21 @@ async def _process_file_incrementally(
     :param file_path: Path to the file to process
     :param dry_run: If True, print messages without executing
     :param model: Model to use for Claude invocation (used via SDK configuration)
+    :param incremental_mode: `"stateless"` for a fresh session per rule
+        chunk, or `"session"` for a single session shared across all rule
+        chunks
     :return: Return code (0 on success)
     """
-    _LOG.debug(
-        hprint.to_str("file_path dry_run model")
-    )
-    messages = _build_incremental_messages(file_path)
+    _LOG.debug(hprint.to_str("file_path dry_run model incremental_mode"))
+    hdbg.dassert_file_exists(file_path)
+    inferred_topic = _infer_topic_from_filename(file_path)
+    topic_info = _get_rules_for_topic(inferred_topic)
+    system_prompt = _build_incremental_system_prompt(topic_info)
+    messages = _build_incremental_messages(file_path, topic_info)
     # Handle dry run.
     if dry_run:
-        _LOG.warning("Dry Run - Messages to be sent:")
+        _LOG.warning("Dry Run - System prompt and messages to be sent:")
+        _LOG.info("\n%s\n%s", hprint.frame("System prompt:"), system_prompt)
         for idx, msg in enumerate(messages, 1):
             msg_preview = msg[:200] + "..." if len(msg) > 200 else msg
             _LOG.info(
@@ -445,8 +492,12 @@ async def _process_file_incrementally(
             )
         _LOG.debug("return=0 (dry_run)")
         return 0
-    # Execute messages sequentially using PromptSequencer.
-    _LOG.info("Executing %d messages sequentially", len(messages))
+    # Execute messages using PromptSequencer.
+    _LOG.info(
+        "Executing %d messages with '%s' context strategy",
+        len(messages),
+        incremental_mode,
+    )
     try:
         sequencer = dshaccli.PromptSequencer(
             allowed_tools=["Read", "Edit", "Grep", "Glob"],
@@ -454,11 +505,15 @@ async def _process_file_incrementally(
             permission_mode="acceptEdits",
             cwd=os.getcwd(),
             model=model,
+            system_prompt=system_prompt,
+            context_strategy=incremental_mode,
             target_file=file_path,
         )
         await sequencer.execute(messages)
         stats = sequencer.get_execution_stats()
         _LOG.info("Execution completed: %s", stats)
+        for idx, outcome in enumerate(sequencer.get_outcomes(), 1):
+            _LOG.info("Rule %d/%d outcome: %s", idx, len(messages), outcome)
         _LOG.debug("return=0")
         return 0
     except Exception as e:
@@ -489,6 +544,7 @@ def _process_file(
                 file_path,
                 args.dry_run,
                 args.model,
+                args.incremental_mode,
             )
         )
     elif args.skill:
@@ -583,6 +639,14 @@ def _parse() -> argparse.ArgumentParser:
         "--apply_incrementally",
         action="store_true",
         help="Apply rules incrementally, one H1 section per Claude Code interaction",
+    )
+    parser.add_argument(
+        "--incremental_mode",
+        type=str,
+        default="stateless",
+        choices=["stateless", "session"],
+        help="Context strategy for --apply_incrementally: fresh session "
+        "per rule chunk, or one session shared across all chunks",
     )
     parser.add_argument(
         "--dry_run",

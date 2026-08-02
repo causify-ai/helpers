@@ -1,9 +1,3 @@
-<!-- toc -->
-
-- [Common abbreviations](#common-abbreviations)
-
-<!-- tocstop -->
-
 # Common abbreviations
 
 - -> room, -> = "let's go to the conference room" (typically the one pinned in
