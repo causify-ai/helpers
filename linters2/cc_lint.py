@@ -234,6 +234,15 @@ def _infer_topic_from_filename(file_path: str) -> str:
     return topic
 
 
+# #############################################################################
+# Rule Chunking and Filtering
+# #############################################################################
+
+# TODO(ai_gp): Move the following code (and its unit tests) to ./helpers/hmarkdown_*.py
+# depending on where it's best
+# TODO(ai_gp): Add comments for each block of code in the functions.
+
+
 def _extract_h1_sections_from_lines(lines: List[str]) -> List[Tuple[str, str]]:
     """
     Extract all H1 (level 1) sections from markdown lines already in memory.
@@ -259,7 +268,7 @@ def _extract_h1_sections_from_lines(lines: List[str]) -> List[Tuple[str, str]]:
     return sections
 
 
-# TODO(ai_gp): Thin, inline
+# TODO(ai_gp): Inline it in the callers and remove unit tests for it.
 def _extract_h1_sections(rule_file: str) -> List[Tuple[str, str]]:
     """
     Extract all H1 (level 1) sections from a rule file on disk.
@@ -273,13 +282,6 @@ def _extract_h1_sections(rule_file: str) -> List[Tuple[str, str]]:
     sections = _extract_h1_sections_from_lines(lines)
     return sections
 
-
-# #############################################################################
-# Rule Chunking and Filtering
-# #############################################################################
-
-# TODO(ai_gp): Move this (and unit tests) to ./helpers/hmarkdown_rules.py
-# TODO(ai_gp): Add comments for each block of code in the functions.
 
 @dataclasses.dataclass
 class RuleChunk:

@@ -26,7 +26,7 @@ configuration to ensure they run only when appropriate.
 
 Tests that depend on specific operating systems or host configurations:
 
-// TODO(ai_gp): Remove example in all the tables
+// TODO(ai_gp): Remove Example in all the tables
 
 | Condition | Effect | Example |
 | :------- | :------- | :------- |

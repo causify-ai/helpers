@@ -1,6 +1,6 @@
 # AI Tools
 
-// TODO(ai_gp): dev_scripts_helpers/ai/ -> dev_scripts_helpers/agents or merge
+// TODO(gp): dev_scripts_helpers/ai/ -> dev_scripts_helpers/agents or merge
 // into dev_scripts_helpers/llms
 
 Claude Code CLI wrapper scripts for development workflows. Provides convenient

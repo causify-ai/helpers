@@ -70,7 +70,7 @@ def message_to_str(message: Any) -> str:
     return "".join(chunks)
 
 
-# TODO(ai_gp): Consider inlining.
+# TODO(ai_gp): Consider inlining, if it's used only once.
 def print_message(message: Any) -> None:
     """
     Print the content of a Claude message to stdout.
@@ -223,8 +223,8 @@ class PromptSequencer:
             - "bypassPermissions" (bypass all permission checks)
         :param cwd: Working directory for Claude Code execution
             - "" means current directory
-        :param print_output: If True, print Claude messages to stdout as
-            they are received
+        :param print_output: If True, print Claude messages to stdout as they
+            are received
         :param model: Model name to use for the session
             - "" means the SDK default
         :param system_prompt: System prompt sent once per session
@@ -232,16 +232,15 @@ class PromptSequencer:
         :param context_strategy: How sessions are managed across prompts
             - "session": one `ClaudeSDKClient` shared by all prompts,
               preserving context across them
-            - "stateless": a fresh `ClaudeSDKClient` per prompt, giving
-              each prompt uniform cost and full attention
-        :param setting_sources: Which settings sources to load
-            (`"user"`, `"project"`, `"local"`)
-            - None defaults to `[]` so the session does not pick up user
-              global instructions or project hooks, keeping runs
-              reproducible
-        :param target_file: if non-empty and `can_use_tool` is not passed,
-            a default guard is installed that denies edits to any file
-            other than this one
+            - "stateless": a fresh `ClaudeSDKClient` per prompt, giving each
+              prompt uniform cost and full attention
+        :param setting_sources: Which settings sources to load (`"user"`,
+            `"project"`, `"local"`)
+            - None defaults to `[]` so the session does not pick up user global
+              instructions or project hooks, keeping runs reproducible
+        :param target_file: if non-empty and `can_use_tool` is not passed, a
+            default guard is installed that denies edits to any file other than
+            this one
         :param can_use_tool: explicit permission callback, overrides the
             `target_file` guard when provided
         """
