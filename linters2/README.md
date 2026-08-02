@@ -19,7 +19,7 @@ Claude Code integration for intelligent formatting.
   - Convert single-line docstrings to multi-line format
 - `lint.py`
   - Unified linter for Python, Jupyter, and Markdown with multiple backends
-- `lint_cc.py`
+- `cc_lint.py`
   - Claude Code integration for topic-based intelligent formatting
 - `linter_utils.py`
   - Shared utilities for linting operations and file filtering
@@ -138,7 +138,7 @@ Claude Code integration for intelligent formatting.
   > lint.py --modified --dry_run
   ```
 
-## lint_cc.py
+## cc_lint.py
 
 ### What It Does
 
@@ -151,32 +151,32 @@ Claude Code integration for intelligent formatting.
 
 - Format specific Python files:
   ```bash
-  > lint_cc.py --files "file1.py file2.py"
+  > cc_lint.py --files "file1.py file2.py"
   ```
 
 - Apply a specific coding rule to a file:
   ```bash
-  > lint_cc.py --topic coding --files "file.py"
+  > cc_lint.py --topic coding --files "file.py"
   ```
 
 - Lint modified files in the repository:
   ```bash
-  > lint_cc.py --modified
+  > cc_lint.py --modified
   ```
 
 - Preview command without executing (dry-run):
   ```bash
-  > lint_cc.py --dry_run --files "*.md"
+  > cc_lint.py --dry_run --files "*.md"
   ```
 
 - Process multiple files with progress feedback:
   ```bash
-  > lint_cc.py --files "src/*.py" --topic coding
+  > cc_lint.py --files "src/*.py" --topic coding
   ```
 
 - Use a different model
   ```
-  linters2/lint_cc.py --files dev_scripts_helpers/scraping/download_link_articles.py --skill "coding.add_comments" --model deepseek/deepseek-v4-flash
+  linters2/cc_lint.py --files dev_scripts_helpers/scraping/download_link_articles.py --skill "coding.add_comments" --model deepseek/deepseek-v4-flash
   ```
 
 ## normalize_import.py

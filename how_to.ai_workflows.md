@@ -1,7 +1,7 @@
 # AI Workflows: Topics, Skills, and Rules
 - This document explains the conventions and tools used to organize AI-assisted
   work via Claude Code in this repo (e.g., **topics**, **skills**, **rules**) and
-  the command-line tools that operate on them (`mdm`, `lint_cc.py`, `rig`)
+  the command-line tools that operate on them (`mdm`, `cc_lint.py`, `rig`)
 
 - See `.claude/skills/skill.rules.md` for the full authoring conventions
 
@@ -41,7 +41,7 @@
 - Each skill lives in `.claude/skills/<TOPIC>.<ACTION>/SKILL.md` and contains
   step-by-step instructions, examples, and verification steps
 - Skills are invoked directly (e.g., `/coding.fix_comments`) or executed on
-  files via `lint_cc.py --skill <TOPIC>.<ACTION>`
+  files via `cc_lint.py --skill <TOPIC>.<ACTION>`
 - See `.claude/skills/skill.rules.md` for the required frontmatter, naming
   convention, and content structure (`Goal`, `Workflow`, `Conventions`,
   `Constraints`, `Examples`, `Verification`)
@@ -100,7 +100,7 @@
   `describe`, `edit`, `directory`, `types`) both support prefix matching, so
   `mdm sk l` is equivalent to `mdm skill list`
 
-### `lint_cc.py`: Apply Rules/skills to Files Via Claude Code
+### `cc_lint.py`: Apply Rules/skills to Files Via Claude Code
 - Detects file types, builds a prompt from the matching rules or skill, and
   invokes Claude Code on the selected files
 - Select files with `--files`, `--from_file`, `--modified`, `--branch`,
@@ -108,18 +108,18 @@
 - Select what to apply with `--topic`, `--skill`, or `--rule`:
   ```bash
   # Apply the default rules for the file's topic (e.g., coding.rules.md)
-  > lint_cc.py --files "file.py" --topic coding
+  > cc_lint.py --files "file.py" --topic coding
 
   # Execute a specific skill on a file
-  > lint_cc.py --files "file.py" --skill coding.fix_inline
+  > cc_lint.py --files "file.py" --skill coding.fix_inline
 
   # Apply one specific rule section, identified three ways:
   # - Full path with header (validated against the file)
-  > lint_cc.py --rule ".claude/skills/coding.rules.md:58:## Mark Private Functions" --files "file.py"
+  > cc_lint.py --rule ".claude/skills/coding.rules.md:58:## Mark Private Functions" --files "file.py"
   # - Line number only (extracts the section starting there)
-  > lint_cc.py --rule ".claude/skills/coding.rules.md:58" --files "file.py"
+  > cc_lint.py --rule ".claude/skills/coding.rules.md:58" --files "file.py"
   # - Keyword search (resolved to a unique rule via `rig --rule`)
-  > lint_cc.py --rule "dassert" --files "file.py"
+  > cc_lint.py --rule "dassert" --files "file.py"
   ```
 - Use `--dry_run` to print the command without executing it
 
@@ -127,7 +127,7 @@
 - `rig <pattern> [<dir>] [<ext>] [--options]`, with mode flags that change the
   search target instead of the pattern:
   - `--rule`: search Markdown headers in `.claude/skills/*.rules.md` (used by
-    `lint_cc.py --rule` to resolve a keyword to a specific rule section)
+    `cc_lint.py --rule` to resolve a keyword to a specific rule section)
   - `--todo`: search for `TODO(ai_gp)`-style patterns
   - `--def`: search for Python `class`/`def` definitions
 - `rigrule` is a shortcut for `rig --rule "$@"`
@@ -139,15 +139,15 @@
 ### Find and Apply a Specific Rule to a File
 1. Locate the rule with `rigrule "<keyword>"` or by browsing
    `.claude/skills/<TOPIC>.rules.md`
-2. Apply it with `lint_cc.py --rule "<keyword or path:line>" --files "<file>"`
+2. Apply it with `cc_lint.py --rule "<keyword or path:line>" --files "<file>"`
 
 ### Lint Files by Topic Instead of a Single Rule
-- Use `lint_cc.py --files "<files>" --topic <topic>` to apply the topic's full
+- Use `cc_lint.py --files "<files>" --topic <topic>` to apply the topic's full
   rules file, or `--modified` / `--branch` / `--last_commit` / `--all` instead
   of `--files` to select files by git state rather than by name
 
 ### Run a Skill on a File
-- Use `lint_cc.py --files "<file>" --skill <topic>.<action>` to execute one
+- Use `cc_lint.py --files "<file>" --skill <topic>.<action>` to execute one
   skill (as opposed to a whole rules file) on a file
 
 ### Create or Browse a Skill
@@ -172,6 +172,6 @@
    `.py` -> `.claude/templates/coding.template.py`)
 2. Copy the template to the new file's path and fill in the `<VAR>`
    placeholders
-3. Apply the corresponding rules with `lint_cc.py --files "<file>" --topic
+3. Apply the corresponding rules with `cc_lint.py --files "<file>" --topic
    <topic>` to check the new file follows conventions the template doesn't
    already encode (e.g., naming, docstring content)

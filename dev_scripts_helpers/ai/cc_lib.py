@@ -104,8 +104,8 @@ def _extract_assistant_text(message: Any) -> str:
 # #############################################################################
 
 
-# TODO(gp): Generalize or move it to lint_cc.py since it's specific of that
-# Match a structured no-op contract reply; `lint_cc.py`'s
+# TODO(gp): Generalize or move it to cc_lint.py since it's specific of that
+# Match a structured no-op contract reply; `cc_lint.py`'s
 # `_build_rule_message()` asks every rule prompt to end with one of these.
 _NO_OP_RE = re.compile(r"^LLM>\s*NO-OP\s*$", re.MULTILINE)
 _CHANGED_RE = re.compile(r"^LLM>\s*CHANGED:\s*(.+)$", re.MULTILINE)
@@ -516,7 +516,7 @@ def save_session_log(
     :param prompts: List of executed prompts
     :param responses: List of corresponding responses
     """
-    _LOG.debug(output_file=%s num_pairs=%d", output_file, len(prompts))
+    _LOG.debug("output_file=%s num_pairs=%d", output_file, len(prompts))
     hdbg.dassert_eq(
         len(prompts), len(responses), "Mismatched prompt/response counts"
     )

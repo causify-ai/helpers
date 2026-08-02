@@ -8,7 +8,7 @@
 Format or lint files using Claude Code.
 
 For detailed documentation, usage examples, and command-line options, see:
-`linters2/lint_cc.README.md`
+`linters2/cc_lint.README.md`
 
 This script:
 - Detects file types by extension and path pattern
@@ -17,19 +17,19 @@ This script:
 
 Quick examples:
 # Lint specific Python files:
-> lint_cc.py --files "file1.py file2.py"
+> cc_lint.py --files "file1.py file2.py"
 
 # Lint modified files:
-> lint_cc.py --modified
+> cc_lint.py --modified
 
 # Apply specific topic rules:
-> lint_cc.py --files "file.py" --topic coding
+> cc_lint.py --files "file.py" --topic coding
 
 # Execute a skill:
-> lint_cc.py --files "file.py" --skill coding.fix_inline
+> cc_lint.py --files "file.py" --skill coding.fix_inline
 
 # Print command without executing:
-> lint_cc.py --files "*.md" --dry_run
+> cc_lint.py --files "*.md" --dry_run
 """
 
 import argparse
@@ -324,7 +324,7 @@ def _run_claude_code(
     hdbg.dassert_file_exists(file_path)
     _LOG.info("Using model: %s", model)
     _LOG.info("\n%s\n%s", hprint.frame("Prompt (%s):") % topic, prompt)
-    prompt_file = "tmp.lint_cc.prompt.txt"
+    prompt_file = "tmp.cc_lint.prompt.txt"
     hio.to_file(prompt_file, prompt)
     # Call the cc wrapper which handles model routing and env setup.
     _CC_WRAPPER = hgit.find_file(
@@ -460,7 +460,7 @@ async def _process_file_incrementally(
     file_path: str,
     dry_run: bool,
     model: str,
-    incremental_mode: str,
+    context_strategy: str,
 ) -> int:
     """
     Apply rules incrementally, one H1 section per Claude Code interaction.
@@ -468,12 +468,12 @@ async def _process_file_incrementally(
     :param file_path: Path to the file to process
     :param dry_run: If True, print messages without executing
     :param model: Model to use for Claude invocation (used via SDK configuration)
-    :param incremental_mode: `"stateless"` for a fresh session per rule
+    :param context_strategy: `"stateless"` for a fresh session per rule
         chunk, or `"session"` for a single session shared across all rule
-        chunks
+        chunks (i.e., `--mode` when it is not `"one_shot"`)
     :return: Return code (0 on success)
     """
-    _LOG.debug(hprint.to_str("file_path dry_run model incremental_mode"))
+    _LOG.debug(hprint.to_str("file_path dry_run model context_strategy"))
     hdbg.dassert_file_exists(file_path)
     inferred_topic = _infer_topic_from_filename(file_path)
     topic_info = _get_rules_for_topic(inferred_topic)
@@ -496,7 +496,7 @@ async def _process_file_incrementally(
     _LOG.info(
         "Executing %d messages with '%s' context strategy",
         len(messages),
-        incremental_mode,
+        context_strategy,
     )
     try:
         sequencer = dshaccli.PromptSequencer(
@@ -506,7 +506,7 @@ async def _process_file_incrementally(
             cwd=os.getcwd(),
             model=model,
             system_prompt=system_prompt,
-            context_strategy=incremental_mode,
+            context_strategy=context_strategy,
             target_file=file_path,
         )
         await sequencer.execute(messages)
@@ -535,8 +535,9 @@ def _process_file(
     """
     _LOG.debug("Processing file: '%s'", file_path)
     topic_info = {}
-    if args.apply_incrementally:
-        # Apply rules incrementally via async processor.
+    if args.mode != "one_shot":
+        # Apply rules incrementally via async processor, with `args.mode`
+        # ("session" or "stateless") selecting the context strategy.
         inferred_topic = _infer_topic_from_filename(file_path)
         topic_info = _get_rules_for_topic(inferred_topic)
         rc = asyncio.run(
@@ -544,7 +545,7 @@ def _process_file(
                 file_path,
                 args.dry_run,
                 args.model,
-                args.incremental_mode,
+                args.mode,
             )
         )
     elif args.skill:
@@ -636,17 +637,17 @@ def _parse() -> argparse.ArgumentParser:
     )
     hmarsele.add_rule_cli_arg(action_group)
     parser.add_argument(
-        "--apply_incrementally",
-        action="store_true",
-        help="Apply rules incrementally, one H1 section per Claude Code interaction",
-    )
-    parser.add_argument(
-        "--incremental_mode",
+        "--mode",
         type=str,
-        default="stateless",
-        choices=["stateless", "session"],
-        help="Context strategy for --apply_incrementally: fresh session "
-        "per rule chunk, or one session shared across all chunks",
+        default="one_shot",
+        choices=["one_shot", "session", "stateless"],
+        help=hprint.dedent("""
+        Execution mode:
+        - 'one_shot' applies all rules in a single "Claude Code invocation
+        - 'session' and 'stateless' apply rules incrementally, one H1 section
+          per Claude Code interaction, sharing one session across all chunks
+          ('session') or opening a fresh session per chunk ('stateless')
+        """)
     )
     parser.add_argument(
         "--dry_run",
@@ -675,13 +676,14 @@ def _main(parser: argparse.ArgumentParser) -> int:
             bool(args.topic),
             bool(args.skill),
             bool(args.rule),
-            bool(args.apply_incrementally),
+            args.mode != "one_shot",
         ]
     )
     hdbg.dassert_lte(
         num_exclusive,
         1,
-        "Only one of --topic, --skill, --rule, or --apply_incrementally can be used simultaneously",
+        "Only one of --topic, --skill, --rule, or --mode "
+        "(session/stateless) can be used simultaneously",
     )
     files = hseinout.parse_file_selection_args(args, remove_dirs=False)
     files = hseinout.parse_file_type_filter_args(args, files)

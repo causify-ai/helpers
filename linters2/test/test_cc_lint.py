@@ -1,9 +1,9 @@
 import argparse
 import os
 import pprint
-from typing import Any, Dict, Tuple
+from typing import Any, Dict, List, Tuple
 
-import linters2.lint_cc as llincc
+import linters2.cc_lint as lcclint
 import helpers.hio as hio
 import helpers.hprint as hprint
 import helpers.hunit_test as hunitest
@@ -16,7 +16,7 @@ import helpers.hunit_test as hunitest
 
 class Test_infer_topic_from_filename(hunitest.TestCase):
     """
-    Tests for `lint_cc._infer_topic_from_filename()` function.
+    Tests for `cc_lint._infer_topic_from_filename()` function.
     """
 
     def helper(self, filename: str, expected: str) -> None:
@@ -27,7 +27,7 @@ class Test_infer_topic_from_filename(hunitest.TestCase):
         :param expected: Expected topic result
         """
         # Run test.
-        topic = llincc._infer_topic_from_filename(filename)
+        topic = lcclint._infer_topic_from_filename(filename)
         # Check outputs.
         self.assertEqual(topic, expected)
 
@@ -160,7 +160,7 @@ class Test_infer_topic_from_filename(hunitest.TestCase):
         filename = "unsupported.xyz"
         # Run test and check outputs.
         with self.assertRaises(ValueError):
-            llincc._infer_topic_from_filename(filename)
+            lcclint._infer_topic_from_filename(filename)
 
     def test13(self) -> None:
         """
@@ -192,7 +192,7 @@ class Test_infer_topic_from_filename(hunitest.TestCase):
 
 class Test_get_rules_for_topic(hunitest.TestCase):
     """
-    Tests for `lint_cc._get_rules_for_topic()` function.
+    Tests for `cc_lint._get_rules_for_topic()` function.
     """
 
     def helper(self, topic: str, expected: str) -> Dict[str, Any]:
@@ -204,7 +204,7 @@ class Test_get_rules_for_topic(hunitest.TestCase):
         :return: `topic_info` dict, for tests that need additional checks
         """
         # Run test.
-        topic_info = llincc._get_rules_for_topic(topic)
+        topic_info = lcclint._get_rules_for_topic(topic)
         # Check outputs.
         actual = pprint.pformat(topic_info)
         self.assert_equal(actual, expected, dedent=True)
@@ -332,7 +332,7 @@ class Test_get_rules_for_topic(hunitest.TestCase):
         topic = "invalid_topic"
         # Run test and check outputs.
         with self.assertRaises(AssertionError):
-            llincc._get_rules_for_topic(topic)
+            lcclint._get_rules_for_topic(topic)
 
     def test8(self) -> None:
         """
@@ -379,7 +379,7 @@ class Test_get_rules_for_topic(hunitest.TestCase):
         ]
         # Run test and check outputs.
         for topic in topics:
-            topic_info = llincc._get_rules_for_topic(topic)
+            topic_info = lcclint._get_rules_for_topic(topic)
             self.assertIsNotNone(topic_info)
 
 
@@ -390,7 +390,7 @@ class Test_get_rules_for_topic(hunitest.TestCase):
 
 class Test_extract_h1_sections(hunitest.TestCase):
     """
-    Tests for `lint_cc._extract_h1_sections()` function.
+    Tests for `cc_lint._extract_h1_sections()` function.
     """
 
     def test1(self) -> None:
@@ -429,7 +429,7 @@ class Test_extract_h1_sections(hunitest.TestCase):
         # Prepare inputs.
         rule_file = "./.claude/skills/testing.rules.md"
         # Run test.
-        sections = llincc._extract_h1_sections(rule_file)
+        sections = lcclint._extract_h1_sections(rule_file)
         # Check outputs.
         self.assertGreater(len(sections), 0)
         # Verify we have expected H1 sections.
@@ -477,7 +477,7 @@ Line 4
         file_path = os.path.join(scratch_dir, "test.md")
         hio.to_file(file_path, content)
         # Run test.
-        sections = llincc._extract_h1_sections(file_path)
+        sections = lcclint._extract_h1_sections(file_path)
         # Check outputs.
         actual = pprint.pformat(sections)
         self.assert_equal(actual, expected, dedent=True)
@@ -490,7 +490,7 @@ Line 4
 
 class Test_build_incremental_system_prompt(hunitest.TestCase):
     """
-    Tests for `lint_cc._build_incremental_system_prompt()` function.
+    Tests for `cc_lint._build_incremental_system_prompt()` function.
     """
 
     def helper(self, topic: str) -> Tuple[Dict[str, Any], str]:
@@ -500,8 +500,8 @@ class Test_build_incremental_system_prompt(hunitest.TestCase):
         :param topic: topic name passed to `_get_rules_for_topic()`
         :return: `(topic_info, system_prompt)`
         """
-        topic_info = llincc._get_rules_for_topic(topic)
-        system_prompt = llincc._build_incremental_system_prompt(topic_info)
+        topic_info = lcclint._get_rules_for_topic(topic)
+        system_prompt = lcclint._build_incremental_system_prompt(topic_info)
         return topic_info, system_prompt
 
     def test1(self) -> None:
@@ -569,7 +569,7 @@ class Test_build_incremental_system_prompt(hunitest.TestCase):
 
 class Test_build_rule_message(hunitest.TestCase):
     """
-    Tests for `lint_cc._build_rule_message()` function.
+    Tests for `cc_lint._build_rule_message()` function.
     """
 
     def helper(
@@ -583,7 +583,7 @@ class Test_build_rule_message(hunitest.TestCase):
         :param expected: expected rule message
         """
         # Run test.
-        actual = llincc._build_rule_message(file_path, rule_content)
+        actual = lcclint._build_rule_message(file_path, rule_content)
         # Check outputs.
         self.assert_equal(actual, expected)
 
@@ -592,7 +592,7 @@ class Test_build_rule_message(hunitest.TestCase):
         Test that the file path is named in every instruction line.
         """
         # Prepare inputs.
-        file_path = "linters2/test/test_lint_cc.py"
+        file_path = "linters2/test/test_cc_lint.py"
         rule_content = "# Some Rule\nDo the thing."
         # Prepare outputs.
         # TODO(ai_gp): Use """ and dedent
@@ -637,7 +637,7 @@ class Test_build_rule_message(hunitest.TestCase):
 
 class Test_build_incremental_messages(hunitest.TestCase):
     """
-    Tests for `lint_cc._build_incremental_messages()` function.
+    Tests for `cc_lint._build_incremental_messages()` function.
     """
 
     def test1(self) -> None:
@@ -682,7 +682,7 @@ class Test_build_incremental_messages(hunitest.TestCase):
             _expected_message("# Rule Two\nContent two"),
         ]
         # Run test.
-        messages = llincc._build_incremental_messages(file_path, topic_info)
+        messages = lcclint._build_incremental_messages(file_path, topic_info)
         # Check outputs.
         self.assert_equal(str(messages), str(expected))
         role_content = hio.from_file(topic_info["role"])
@@ -691,13 +691,14 @@ class Test_build_incremental_messages(hunitest.TestCase):
 
 
 # #############################################################################
-# Test_process_file_apply_incrementally
+# Test_process_file_incremental_mode
 # #############################################################################
 
 
-class Test_process_file_apply_incrementally(hunitest.TestCase):
+class Test_process_file_incremental_mode(hunitest.TestCase):
     """
-    Tests for `lint_cc._process_file()` on the `--apply_incrementally` branch.
+    Tests for `cc_lint._process_file()` on the `--mode stateless`/`session`
+    branch.
     """
 
     def test1(self) -> None:
@@ -709,13 +710,12 @@ class Test_process_file_apply_incrementally(hunitest.TestCase):
         file_path = os.path.join(scratch_dir, "example.py")
         hio.to_file(file_path, "x = 1\n")
         args = argparse.Namespace(
-            apply_incrementally=True,
+            mode="stateless",
             skill="",
             rule="",
             topic="",
             dry_run=True,
             model="",
-            incremental_mode="stateless",
         )
         # Prepare outputs.
         expected_rc = 0
@@ -727,7 +727,7 @@ class Test_process_file_apply_incrementally(hunitest.TestCase):
          'templates': ['.claude/templates/coding.template.py']}
         """
         # Run test.
-        rc, topic_info = llincc._process_file(file_path, args)
+        rc, topic_info = lcclint._process_file(file_path, args)
         # Check outputs.
         self.assertEqual(rc, expected_rc)
         actual_topic_info = pprint.pformat(topic_info)
@@ -741,36 +741,63 @@ class Test_process_file_apply_incrementally(hunitest.TestCase):
 
 class Test_parse(hunitest.TestCase):
     """
-    Tests for `lint_cc._parse()` function.
+    Tests for `cc_lint._parse()` function.
     """
 
-    def helper(self) -> argparse.ArgumentParser:
+    def helper(self, argv: List[str], expected_mode: str) -> None:
         """
-        Build the `lint_cc` argument parser.
+        Parse `argv` with the `cc_lint` argument parser and check `--mode`.
 
-        :return: parser under test
-        """
-        return llincc._parse()
-
-    def test1(self) -> None:
-        """
-        Test that `--incremental_mode` defaults to `stateless`.
+        :param argv: command-line arguments to parse
+        :param expected_mode: expected value of `args.mode`
         """
         # Prepare inputs.
-        parser = self.helper()
-        argv: list = []
+        parser = lcclint._parse()
         # Run test.
         args = parser.parse_args(argv)
         # Check outputs.
-        self.assertEqual(args.incremental_mode, "stateless")
+        self.assertEqual(args.mode, expected_mode)
+
+    def test1(self) -> None:
+        """
+        Test that `--mode` defaults to `one_shot`.
+        """
+        # Prepare inputs.
+        argv: List[str] = []
+        # Prepare outputs.
+        expected_mode = "one_shot"
+        # Run test.
+        self.helper(argv, expected_mode)
 
     def test2(self) -> None:
         """
-        Test that `--incremental_mode` rejects values outside the choice set.
+        Test that `--mode` accepts `session`.
         """
         # Prepare inputs.
-        parser = self.helper()
-        argv = ["--incremental_mode", "bogus"]
+        argv = ["--mode", "session"]
+        # Prepare outputs.
+        expected_mode = "session"
+        # Run test.
+        self.helper(argv, expected_mode)
+
+    def test3(self) -> None:
+        """
+        Test that `--mode` accepts `stateless`.
+        """
+        # Prepare inputs.
+        argv = ["--mode", "stateless"]
+        # Prepare outputs.
+        expected_mode = "stateless"
+        # Run test.
+        self.helper(argv, expected_mode)
+
+    def test4(self) -> None:
+        """
+        Test that `--mode` rejects values outside the choice set.
+        """
+        # Prepare inputs.
+        parser = lcclint._parse()
+        argv = ["--mode", "bogus"]
         # Run test and check outputs.
         with self.assertRaises(SystemExit):
             parser.parse_args(argv)

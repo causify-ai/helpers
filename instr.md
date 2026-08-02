@@ -1,4 +1,10 @@
-Implement phase 2 from plan.md and update the tests
+1) In cc_lint.py 
+
+`--topic`, `--skill`, `--rule`, and `--mode` are orthogonal now since what to
+process and how to process
+
+2) Create unit tests to test `--mode` in all 3 ways (both with fake and with real
+workload)
 
 # Conventions
 - When writing code you must always follow the instructions in

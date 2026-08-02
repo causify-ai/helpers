@@ -1030,20 +1030,20 @@
 
 - **Bad**: File paths without enclosure
   ```
-  Incremental processing of linters2/test/test_lint_cc.py
+  Incremental processing of linters2/test/test_cc_lint.py
   ```
 - **Good**: File paths enclosed in single quotes
   ```
-  Incremental processing of 'linters2/test/test_lint_cc.py'
+  Incremental processing of 'linters2/test/test_cc_lint.py'
   ```
 
 - **Bad**: Mixed formatting
   ```
-  Working on file `src/main.py` and linters2/test/test_lint_cc.py
+  Working on file `src/main.py` and linters2/test/test_cc_lint.py
   ```
 - **Good**: Consistent single quote enclosure for all file paths
   ```
-  Working on file 'src/main.py' and 'linters2/test/test_lint_cc.py'
+  Working on file 'src/main.py' and 'linters2/test/test_cc_lint.py'
   ```
 
 # Logging
@@ -1473,7 +1473,7 @@
 - Treat the README as being as out-of-sync-prone as a docstring; apply the
   same discipline as `## Update Docstrings If Out-of-sync`
 
-- **Bad**: Add a new `--dry_run` CLI option to `lint_cc.py` but leave
-  `lint_cc.README.md`'s argument table and examples unchanged
-- **Good**: Add a new `--dry_run` CLI option to `lint_cc.py`, add it to the
+- **Bad**: Add a new `--dry_run` CLI option to `cc_lint.py` but leave
+  `cc_lint.README.md`'s argument table and examples unchanged
+- **Good**: Add a new `--dry_run` CLI option to `cc_lint.py`, add it to the
   README's argument table, and add a usage example demonstrating it
