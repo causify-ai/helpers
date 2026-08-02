@@ -369,6 +369,7 @@ def _run_claude_code(
             "Dry run: command not executed",
         ]
         hio.to_file(_DRY_RUN_FILE, "\n".join(dry_run_output))
+        _LOG.warning("Saved dry-run output to '%s'", _DRY_RUN_FILE)
         _LOG.debug("return=0")
         return 0
     _LOG.info("Using model: %s", model)
@@ -411,7 +412,7 @@ def _build_incremental_system_prompt(topic_info: Dict) -> str:
         msg = "You MUST follow the templates below:"
         system_prompt.append(msg)
         for template_file in templates:
-            system_prompt.append(f"\n- {template_file}")
+            system_prompt.append(f"- {template_file}")
     #
     system_prompt_as_str = "\n".join(system_prompt)
     _LOG.debug(hprint.to_str("system_prompt_as_str"))
@@ -439,7 +440,9 @@ def _build_rule_message(file_path: str, rule_content: str) -> str:
     """
     rule_message.append(hprint.dedent(header))
     #
+    rule_message.append("```")
     rule_message.append(rule_content)
+    rule_message.append("```")
     #
     footer = """
     - Reply with exactly one line:
@@ -587,6 +590,7 @@ async def _process_file_incrementally(
                 % (hprint.frame(f"Message {idx}/{len(messages)}:"), msg)
             )
         hio.to_file(_DRY_RUN_FILE, "\n".join(dry_run_output))
+        _LOG.warning("Saved dry-run output to '%s'", _DRY_RUN_FILE)
         _LOG.debug("return=0 (dry_run)")
         return 0
     # Execute messages using PromptSequencer.
@@ -671,10 +675,12 @@ def _process_file(
         # Execute a specific rule on the file.
         _LOG.debug("Executing rule: %s", args.rule)
         rule_content = hmarsele.extract_rule_from_file(args.rule)
-        prompt = f"Execute the rule below on file {file_path}:\n\n{rule_content}"
+        prompt = f"Execute the rule below on file {file_path}:\n{rule_content}"
+        #
         topic_str = "rule"
         inferred_topic = _infer_topic_from_filename(file_path)
         topic_info = _get_rules_for_topic(inferred_topic)
+        #
         rc = _run_claude_code(
             prompt,
             topic_str,

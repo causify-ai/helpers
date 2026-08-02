@@ -351,14 +351,11 @@ class PromptSequencer:
         :param prompt_idx: 1-based index of `prompt` in the overall sequence
         :param total_prompts: total number of prompts in the sequence
         """
-        _LOG.info(
-            "%s",
-            hprint.color_highlight(
-                hprint.frame(f"Executing prompt {prompt_idx}/{total_prompts}"),
-                "blue",
-            ),
-        )
-        _LOG.debug("Prompt content:\n%s ...", prompt[:200])
+        msg = []
+        msg.append(hprint.frame(f"Executing prompt {prompt_idx}/{total_prompts}"))
+        msg.append("Prompt content:\n%s", prompt)
+        msg = hprint.color_highlight(msg, "blue")
+        _LOG.info("\n%s", msg)
         # Query Claude with prompt and collect response asynchronously.
         await client.query(prompt)
         # Collect response messages from stream.

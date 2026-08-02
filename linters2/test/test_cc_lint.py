@@ -388,8 +388,9 @@ class Test_get_rules_for_topic(hunitest.TestCase):
         ]
         # Run test and check outputs.
         for topic in topics:
-            topic_info = lcclint._get_rules_for_topic(topic)
-            self.assertIsNotNone(topic_info)
+            with self.subTest(topic=topic):
+                topic_info = lcclint._get_rules_for_topic(topic)
+                self.assertIsNotNone(topic_info)
 
 
 # #############################################################################
@@ -519,7 +520,8 @@ class Test_build_incremental_system_prompt(hunitest.TestCase):
         are both included.
         """
         # Prepare inputs.
-        topic_info, system_prompt = self.helper("coding")
+        topic = "coding"
+        topic_info, system_prompt = self.helper(topic)
         role_content = hio.from_file(topic_info["role"])
         #
         instruction = (
@@ -538,7 +540,8 @@ class Test_build_incremental_system_prompt(hunitest.TestCase):
         Test that templates are listed when the topic defines any.
         """
         # Prepare inputs.
-        topic_info, system_prompt = self.helper("coding")
+        topic = "coding"
+        topic_info, system_prompt = self.helper(topic)
         role_content = hio.from_file(topic_info["role"])
         instruction = (
             "You MUST make sure not to change the behavior or the intent "
@@ -560,7 +563,8 @@ class Test_build_incremental_system_prompt(hunitest.TestCase):
         Test that no template section is added when the topic has none.
         """
         # Prepare inputs.
-        topic_info, system_prompt = self.helper("bash")
+        topic = "bash"
+        topic_info, system_prompt = self.helper(topic)
         role_content = hio.from_file(topic_info["role"])
         # Prepare outputs.
         expected = role_content + (
