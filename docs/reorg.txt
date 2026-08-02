@@ -1,21 +1,20 @@
-docs/general_background/all.common_abbreviations.reference.md
+- [.] docs/general_background/all.common_abbreviations.reference.md
+  docs/general_background/all.glossary.reference.md
+- merge with abbrev
 
 docs/general_background/all.literature_review.reference.md
 - Remove or move
-
-docs/general_background/all.glossary.reference.md
-- merge with abbrev
 
 docs/general_background/all.reading_list.reference.md
 
 docs/tools/documentation_toolchain/all.latex_toolchain.how_to_guide.md
 -> ?
 
-docs/tools/documentation_toolchain/all.notes_to_pdf.explanation.md
--> Merge into ./dev_scripts_helpers/documentation/notes_to_pdf.README.md
+- [x] docs/tools/documentation_toolchain/all.notes_to_pdf.explanation.md
+-> Merge into ./dev_scripts_helpers/documentation/notes_to_pdf.README.md (done)
 
-docs/tools/documentation_toolchain/all.render_images.explanation.md
--> ./dev_scripts_helpers/documentation/render_images.README.md
+- [x] docs/tools/documentation_toolchain/all.render_images.explanation.md
+-> ./dev_scripts_helpers/documentation/render_images.README.md (done)
 
 docs/tools/documentation_toolchain/all.extract_notes.reference.md
 -> ./dev_scripts_helpers/notebooks/extract_notebook_images.README.md

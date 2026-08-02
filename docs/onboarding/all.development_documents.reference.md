@@ -93,7 +93,7 @@ This contains a set of resources that over time will make 10x more productive
 
 - [Email](/docs/onboarding/all.organize_email.how_to_guide.md)
 
-- [Glossary](/docs/general_background/all.glossary.reference.md)
+- [Glossary and Common Abbreviations](/docs/general_background/all.common_abbreviations.reference.md)
 
 - [Type Hints](/docs/code_guidelines/all.type_hints.how_to_guide.md)
 
