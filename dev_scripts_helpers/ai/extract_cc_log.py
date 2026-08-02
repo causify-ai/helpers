@@ -7,11 +7,19 @@ Parses `log.txt` and produces a chronological transcript interleaving
 thinking blocks, tool calls, results, and cost per request.
 
 Usage:
-# TODO(ai_gp): Add a comment explaining each command below
+# Print the full narrative (thinking, tool calls, cost) to stdout:
 > ./extract_cc_log.py --input log.txt
+
+# Write the full narrative to `cc_log_narrative.txt` under /tmp:
 > ./extract_cc_log.py --input log.txt --output_dir /tmp
+
+# Write only the assistant text to `cc_log_assistant_text.txt` under /tmp:
 > ./extract_cc_log.py --input log.txt --output_dir /tmp --text_only
+
+# Read the log from stdin and print the assistant text to stdout:
 > ./extract_cc_log.py --input - --output - < log.txt
+
+# Read the log from a file and print the assistant text to stdout:
 > ./extract_cc_log.py --input log.txt --output -
 """
 

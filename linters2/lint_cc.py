@@ -64,11 +64,18 @@ _LOG = logging.getLogger(__name__)
 def _get_rules_for_topic(topic: str) -> Dict[str, Dict]:
     """
     Get rules and templates for a given topic.
-    // TODO(ai_gp): Add an example
 
     :param topic: Topic name (e.g., 'coding', 'testing')
     :return: Dict with role, rules list, templates list, and other config
-    // TODO(ai_gp): Add an example
+        ```
+        {
+            "role": ".claude/skills/role.coding.md",
+            "rules": [".claude/skills/coding.rules.md"],
+            "templates": [".claude/templates/coding.template.py"],
+            "run_jupytext": False,
+            "run_lint": False,
+        }
+        ```
     """
     _LOG.debug("Looking up rules for topic: '%s'", topic)
     TOPIC_TO_INFO = {
@@ -153,7 +160,12 @@ def _get_rules_for_topic(topic: str) -> Dict[str, Dict]:
         TOPIC_TO_INFO,
         "Topic not found in rules",
     )
-    # TODO(ai_gp): Add an example of how topic_info look like.
+    # E.g., for topic="coding":
+    # ```
+    # {"role": "role.coding.md",
+    #  "rules": ["coding.rules.md"],
+    #  "templates": ["coding.template.py"]}
+    # ```
     topic_info = TOPIC_TO_INFO[topic]
     topic_info["role"] = ".claude/skills/%s" % topic_info["role"]
     topic_info["rules"] = [f".claude/skills/{r}" for r in topic_info["rules"]]
@@ -174,10 +186,13 @@ def _get_rules_for_topic(topic: str) -> Dict[str, Dict]:
 def _infer_topic_from_filename(file_path: str) -> str:
     """
     Detect the file type and return the corresponding topic.
-    // TODO(ai_gp): Make an example
+
+    E.g.,
+    - "test_example.py" -> "testing"
+    - "hdebug.py" -> "coding"
 
     :param file_path: Path to the file
-    :return: topic (e.g., 'coding.format')
+    :return: topic (e.g., 'coding', 'testing', 'markdown')
     """
     _LOG.debug("Inferring topic from file: '%s'", file_path)
     basename = os.path.basename(file_path)
@@ -438,7 +453,7 @@ async def _process_file_incrementally(
             disallowed_tools=["Bash", "Task", "WebFetch"],
             permission_mode="acceptEdits",
             cwd=os.getcwd(),
-            model=model or None,
+            model=model,
             target_file=file_path,
         )
         await sequencer.execute(messages)

@@ -2406,8 +2406,6 @@ class Test_notes_to_pdf_latex_cancel(hunitest.TestCase):
         self.check_string(output_txt, fuzzy_match=True)
         self.assertIn(r"\cancel{", output_txt)
         self.assertIn(r"\underbrace{", output_txt)
-        # TODO(ai_gp): Also freeze output checking the presence of strings
-        # with self.assert_equal
 
 
 # #############################################################################

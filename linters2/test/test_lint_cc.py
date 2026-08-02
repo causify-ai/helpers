@@ -193,6 +193,9 @@ class Test_get_rules_for_topic(hunitest.TestCase):
     Tests for `lint_cc._get_rules_for_topic()` function.
     """
 
+    # TODO(ai_gp): pass an expected and do self.assert_equal
+    # return the output for more checks if needed
+    # TODO(ai_gp): Rename to helper and use it for all the test methods.
     def helper_check_run_lint(self, topic: str) -> None:
         """
         Test helper that verifies `run_lint` is set for a given topic.
@@ -213,12 +216,16 @@ class Test_get_rules_for_topic(hunitest.TestCase):
         # Run test.
         topic_info = llincc._get_rules_for_topic(topic)
         # Check outputs.
-        # TODO(ai_gp): Compare topic_info to an expected string with self.assert_equal.
-        self.assertIn("role", topic_info)
-        self.assertIn("rules", topic_info)
-        self.assertIn("templates", topic_info)
-        self.assertTrue(topic_info["role"].endswith("role.coding.md"))
-        self.assertGreater(len(topic_info["rules"]), 0)
+        # TODO(ai_gp): Use pprint instead of repr
+        actual = repr(topic_info)
+        # TODO(ai_gp): Use """ and dedent
+        expected = (
+            "{'role': '.claude/skills/role.coding.md', "
+            "'rules': ['.claude/skills/coding.rules.md'], "
+            "'templates': ['.claude/templates/coding.template.py'], "
+            "'run_jupytext': False, 'run_lint': False}"
+        )
+        self.assert_equal(actual, expected)
 
     def test2(self) -> None:
         """
@@ -338,18 +345,21 @@ class Test_extract_h1_sections(hunitest.TestCase):
         Test extraction of H1 sections from a simple markdown file.
         """
         # Prepare inputs.
-        content = """# Section 1
-Content for section 1
+        content = """
+            # Section 1
+            Content for section 1
 
-## Subsection 1.1
-More content
+            ## Subsection 1.1
+            More content
 
-# Section 2
-Content for section 2
+            # Section 2
+            Content for section 2
 
-## Subsection 2.1
-More content
-"""
+            ## Subsection 2.1
+            More content
+            """
+        content = self.dedent(content)
+        # TODO(ai_gp): Use selg.get_scratch_space.
         with tempfile.NamedTemporaryFile(
             mode="w", suffix=".md", delete=False
         ) as f:
@@ -359,6 +369,7 @@ More content
         try:
             sections = llincc._extract_h1_sections(temp_file)
             # Check outputs.
+            # TODO(ai_gp): Use an expected = """, dedent and assert_equal
             self.assertEqual(len(sections), 2)
             self.assertEqual(sections[0][0], "Section 1")
             self.assertEqual(sections[1][0], "Section 2")
@@ -367,6 +378,7 @@ More content
         finally:
             os.unlink(temp_file)
 
+    # TODO(ai_gp): Same TODOs as test1
     def test2(self) -> None:
         """
         Test extraction of H1 sections from testing.rules.md.
@@ -382,6 +394,7 @@ More content
         self.assertIn("Testing Philosophy", titles)
         self.assertIn("Test Coverage", titles)
 
+    # TODO(ai_gp): Same TODOs as test1
     def test3(self) -> None:
         """
         Test that H1 sections include their content.
@@ -444,6 +457,7 @@ class Test_process_file_apply_incrementally(hunitest.TestCase):
         # Run test.
         rc, topic_info = llincc._process_file(file_path, args)
         # Check outputs.
+        # TODO(ai_gp): Use expected = """ and self.assert_equal
         self.assertEqual(rc, 0)
         self.assertIn("role", topic_info)
         self.assertIn("rules", topic_info)

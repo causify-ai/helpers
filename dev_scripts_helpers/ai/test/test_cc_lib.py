@@ -8,8 +8,7 @@ import dev_scripts_helpers.ai.test.test_cc_lib as daiattccl
 
 import asyncio
 import os
-# TODO(ai_gp): Use import and not from import
-from unittest import mock
+import unittest.mock as umock
 
 import helpers.hio as hio
 import helpers.hprint as hprint
@@ -34,18 +33,23 @@ class Test_make_file_scope_guard(hunitest.TestCase):
     Test `_make_file_scope_guard()` permission callback factory.
     """
 
-    def helper(self, target_file: str, tool_name: str, tool_input: dict):
+    def helper(
+        self, target_file: str, tool_name: str, tool_input: dict, expected_type: type
+    ):
         """
-        Build a guard for `target_file` and invoke it with `tool_name`/`tool_input`.
+        Build a guard for `target_file`, invoke it, and check the result type.
 
         :param target_file: file passed to `_make_file_scope_guard()`
         :param tool_name: tool name passed to the guard callback
         :param tool_input: tool input dict passed to the guard callback
+        :param expected_type: expected type of the permission result
         :return: permission result returned by the guard callback
         """
         guard = dshaccli._make_file_scope_guard(target_file)
-        # TODO(ai_gp): Assign None to a var and then use that.
-        return asyncio.run(guard(tool_name, tool_input, None))  # type: ignore
+        context = None
+        result = asyncio.run(guard(tool_name, tool_input, context))  # type: ignore
+        self.assertIsInstance(result, expected_type)
+        return result
 
     def test1(self) -> None:
         """
@@ -53,14 +57,14 @@ class Test_make_file_scope_guard(hunitest.TestCase):
         """
         # Prepare inputs.
         target_file = "/tmp/target.py"
+        tool_name = "Edit"
         tool_input = {"file_path": "/tmp/target.py"}
-        # Run test.
-        # TODO(ai_gp): Assign "Edit" to a var and then use that.
-        result = self.helper(target_file, "Edit", tool_input)
-        # Check outputs.
-        # TODO(ai_gp): Move the checking to the helper.
-        self.assertIsInstance(
-            result, claude_agent_sdk.types.PermissionResultAllow
+        # Run test and check outputs.
+        self.helper(
+            target_file,
+            tool_name,
+            tool_input,
+            claude_agent_sdk.types.PermissionResultAllow,
         )
 
     def test2(self) -> None:
@@ -71,11 +75,13 @@ class Test_make_file_scope_guard(hunitest.TestCase):
         target_file = "/tmp/target.py"
         tool_input = {"file_path": "/tmp/other.py"}
         # Run test.
-        result = self.helper(target_file, "Edit", tool_input)
-        # Check outputs.
-        self.assertIsInstance(
-            result, claude_agent_sdk.types.PermissionResultDeny
+        result = self.helper(
+            target_file,
+            "Edit",
+            tool_input,
+            claude_agent_sdk.types.PermissionResultDeny,
         )
+        # Check outputs.
         self.assertIn(target_file, result.message)
 
     def test3(self) -> None:
@@ -85,11 +91,14 @@ class Test_make_file_scope_guard(hunitest.TestCase):
         # Prepare inputs.
         target_file = "/tmp/target.py"
         tool_input = {"file_path": "/tmp/other.py"}
+        file_modifying_tools = ("Edit", "Write", "NotebookEdit", "MultiEdit")
         # Run test and check outputs.
-        for tool_name in dshaccli._FILE_MODIFYING_TOOLS:
-            result = self.helper(target_file, tool_name, tool_input)
-            self.assertIsInstance(
-                result, claude_agent_sdk.types.PermissionResultDeny
+        for tool_name in file_modifying_tools:
+            self.helper(
+                target_file,
+                tool_name,
+                tool_input,
+                claude_agent_sdk.types.PermissionResultDeny,
             )
 
     def test4(self) -> None:
@@ -101,9 +110,11 @@ class Test_make_file_scope_guard(hunitest.TestCase):
         tool_input = {"file_path": "/tmp/other.py"}
         # Run test and check outputs.
         for tool_name in ("Read", "Bash"):
-            result = self.helper(target_file, tool_name, tool_input)
-            self.assertIsInstance(
-                result, claude_agent_sdk.types.PermissionResultAllow
+            self.helper(
+                target_file,
+                tool_name,
+                tool_input,
+                claude_agent_sdk.types.PermissionResultAllow,
             )
 
     def test5(self) -> None:
@@ -113,11 +124,12 @@ class Test_make_file_scope_guard(hunitest.TestCase):
         # Prepare inputs.
         target_file = "/tmp/target.py"
         tool_input: dict = {}
-        # Run test.
-        result = self.helper(target_file, "Bash", tool_input)
-        # Check outputs.
-        self.assertIsInstance(
-            result, claude_agent_sdk.types.PermissionResultAllow
+        # Run test and check outputs.
+        self.helper(
+            target_file,
+            "Bash",
+            tool_input,
+            claude_agent_sdk.types.PermissionResultAllow,
         )
 
     def test6(self) -> None:
@@ -127,11 +139,12 @@ class Test_make_file_scope_guard(hunitest.TestCase):
         # Prepare inputs.
         target_file = "/tmp/target.py"
         tool_input: dict = {}
-        # Run test.
-        result = self.helper(target_file, "Edit", tool_input)
-        # Check outputs.
-        self.assertIsInstance(
-            result, claude_agent_sdk.types.PermissionResultAllow
+        # Run test and check outputs.
+        self.helper(
+            target_file,
+            "Edit",
+            tool_input,
+            claude_agent_sdk.types.PermissionResultAllow,
         )
 
     def test7(self) -> None:
@@ -141,11 +154,12 @@ class Test_make_file_scope_guard(hunitest.TestCase):
         # Prepare inputs.
         target_file = "/tmp/target.py"
         tool_input = {"file_path": ""}
-        # Run test.
-        result = self.helper(target_file, "Edit", tool_input)
-        # Check outputs.
-        self.assertIsInstance(
-            result, claude_agent_sdk.types.PermissionResultAllow
+        # Run test and check outputs.
+        self.helper(
+            target_file,
+            "Edit",
+            tool_input,
+            claude_agent_sdk.types.PermissionResultAllow,
         )
 
     def test8(self) -> None:
@@ -155,11 +169,12 @@ class Test_make_file_scope_guard(hunitest.TestCase):
         # Prepare inputs.
         target_file = "target.py"
         tool_input = {"file_path": os.path.abspath("target.py")}
-        # Run test.
-        result = self.helper(target_file, "Edit", tool_input)
-        # Check outputs.
-        self.assertIsInstance(
-            result, claude_agent_sdk.types.PermissionResultAllow
+        # Run test and check outputs.
+        self.helper(
+            target_file,
+            "Edit",
+            tool_input,
+            claude_agent_sdk.types.PermissionResultAllow,
         )
 
 
@@ -168,42 +183,29 @@ class Test_make_file_scope_guard(hunitest.TestCase):
 # #############################################################################
 
 
-# TODO(ai_gp): move this to cc_lib.py
-class _FakeClaudeSDKClient:
-    """
-    Minimal stand-in for `claude_agent_sdk.ClaudeSDKClient`.
-
-    A plain `AsyncMock` cannot cleanly emulate an async-generator method
-    like `receive_response()`, so a small hand-written fake is used instead.
-    """
-
-    def __init__(self, responses_by_call: list) -> None:
-        self._responses_by_call = responses_by_call
-        self.queried_prompts: list = []
-        self.aenter_called = False
-        self.aexit_called = False
-
-    async def __aenter__(self) -> "_FakeClaudeSDKClient":
-        self.aenter_called = True
-        return self
-
-    async def __aexit__(self, *_exc_info) -> bool:
-        self.aexit_called = True
-        return False
-
-    async def query(self, prompt: str) -> None:
-        self.queried_prompts.append(prompt)
-
-    async def receive_response(self):
-        idx = len(self.queried_prompts) - 1
-        for message in self._responses_by_call[idx]:
-            yield message
-
-
 class Test_PromptSequencer_execute(hunitest.TestCase):
     """
     Test `PromptSequencer.execute()` against a fake SDK client (no network).
     """
+
+    def _options_to_str(self, mock_client_cls: umock.Mock) -> str:
+        """
+        Build a string representation of the `options` passed to the mocked
+        `ClaudeSDKClient`.
+
+        :param mock_client_cls: mock replacing `claude_agent_sdk.ClaudeSDKClient`
+        :return: string with the relevant `options` fields
+        """
+        _, kwargs = mock_client_cls.call_args
+        options = kwargs["options"]
+        fields = (
+            options.allowed_tools,
+            options.disallowed_tools,
+            options.permission_mode,
+            options.model,
+            options.setting_sources,
+        )
+        return repr(fields)
 
     def test1(self) -> None:
         """
@@ -218,7 +220,9 @@ class Test_PromptSequencer_execute(hunitest.TestCase):
             content=[claude_agent_sdk.TextBlock(text="response B")],
             model="claude-test",
         )
-        fake_client = _FakeClaudeSDKClient(responses_by_call=[[msg1], [msg2]])
+        fake_client = dshaccli._FakeClaudeSDKClient(
+            responses_by_call=[[msg1], [msg2]]
+        )
         sequencer = dshaccli.PromptSequencer(
             allowed_tools=["Read", "Edit"],
             disallowed_tools=["Bash"],
@@ -230,23 +234,21 @@ class Test_PromptSequencer_execute(hunitest.TestCase):
             print_output=False,
         )
         # Run test.
-        with mock.patch(
+        with umock.patch(
             "claude_agent_sdk.ClaudeSDKClient"
         ) as mock_client_cls:
             mock_client_cls.return_value = fake_client
             asyncio.run(sequencer.execute(["prompt A", "prompt B"]))
         # Check outputs.
-        # TODO(ai_gp): Create a function that generates a str representation
-        # from the mock_client_cls and then compare the string to an
-        # expected one with self.assert_equal
         mock_client_cls.assert_called_once()
+        actual = self._options_to_str(mock_client_cls)
+        expected = (
+            "(['Read', 'Edit'], ['Bash'], 'acceptEdits', "
+            "'claude-test-model', ['project'])"
+        )
+        self.assert_equal(actual, expected)
         _, kwargs = mock_client_cls.call_args
         options = kwargs["options"]
-        self.assertEqual(options.allowed_tools, ["Read", "Edit"])
-        self.assertEqual(options.disallowed_tools, ["Bash"])
-        self.assertEqual(options.permission_mode, "acceptEdits")
-        self.assertEqual(options.model, "claude-test-model")
-        self.assertEqual(options.setting_sources, ["project"])
         self.assertIs(options.can_use_tool, sequencer.can_use_tool)
         self.assertTrue(fake_client.aenter_called)
         self.assertTrue(fake_client.aexit_called)

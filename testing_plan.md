@@ -50,8 +50,8 @@ Test methods:
 - Same file, modifying tool (`"Edit"`) → `PermissionResultAllow`.
 - Different file, modifying tool → `PermissionResultDeny`; assert the target
   filename appears in `result.message`.
-- Loop over `dshaccli._FILE_MODIFYING_TOOLS` (`"Edit"`, `"Write"`,
-  `"NotebookEdit"`, `"MultiEdit"`) with a mismatched path → deny for each.
+- Loop over the file-modifying tools (`"Edit"`, `"Write"`, `"NotebookEdit"`,
+  `"MultiEdit"`) with a mismatched path → deny for each.
 - Non-modifying tool (`"Read"` or `"Bash"`) on a different/absent file →
   always allow.
 - `tool_input` missing `"file_path"` entirely, and `tool_input["file_path"]

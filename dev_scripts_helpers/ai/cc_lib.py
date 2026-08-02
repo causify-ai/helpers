@@ -24,11 +24,6 @@ import helpers.hprint as hprint
 
 _LOG = logging.getLogger(__name__)
 
-# Tools that can modify file content, and therefore must be scoped to the
-# target file by `_make_file_scope_guard()`.
-# TODO(ai_gp): Move this in _make_file_scope_guard
-_FILE_MODIFYING_TOOLS = ("Edit", "Write", "NotebookEdit", "MultiEdit")
-
 CanUseToolFn = Callable[
     [str, Dict[str, Any], Any],
     Awaitable[Any],
@@ -75,12 +70,15 @@ def _make_file_scope_guard(target_file: str) -> CanUseToolFn:
     """
     Build a `can_use_tool` callback that restricts edits to `target_file`.
 
-    Any file-modifying tool (see `_FILE_MODIFYING_TOOLS`) whose `file_path`
-    input resolves to a different file is denied.
+    Any file-modifying tool (`Edit`, `Write`, `NotebookEdit`, `MultiEdit`)
+    whose `file_path` input resolves to a different file is denied.
 
     :param target_file: the only file that file-modifying tools may target
     :return: async callback usable as `ClaudeAgentOptions.can_use_tool`
     """
+    # Tools that can modify file content, and therefore must be scoped to
+    # `target_file` below.
+    file_modifying_tools = ("Edit", "Write", "NotebookEdit", "MultiEdit")
     target_abspath = os.path.abspath(target_file)
 
     async def can_use_tool(
@@ -88,7 +86,7 @@ def _make_file_scope_guard(target_file: str) -> CanUseToolFn:
         tool_input: Dict[str, Any],
         _context: Any,
     ) -> Any:
-        if tool_name in _FILE_MODIFYING_TOOLS:
+        if tool_name in file_modifying_tools:
             file_path = tool_input.get("file_path", "")
             if file_path and os.path.abspath(file_path) != target_abspath:
                 _LOG.warning(
@@ -129,8 +127,7 @@ class PromptSequencer:
         permission_mode: str = "ask",
         cwd: str = "",
         print_output: bool = True,
-        # TODO(ai_gp): Use "" as default
-        model: Optional[str] = None,
+        model: str = "",
         setting_sources: Optional[List[str]] = None,
         target_file: str = "",
         can_use_tool: Optional[CanUseToolFn] = None,
@@ -151,7 +148,7 @@ class PromptSequencer:
         :param print_output: If True, print Claude messages to stdout as
             they are received
         :param model: Model name to use for the session
-            - None means the SDK default
+            - "" means the SDK default
         :param setting_sources: Which settings sources to load
             (`"user"`, `"project"`, `"local"`)
             - None defaults to `[]` so the session does not pick up user
@@ -222,10 +219,14 @@ class PromptSequencer:
         async with claude_agent_sdk.ClaudeSDKClient(options=options) as client:
             self._session_started = True
             for prompt_idx, prompt in enumerate(prompts, 1):
-                # TODO(ai_gp): Make it blue
                 _LOG.info(
                     "%s",
-                    hprint.frame(f"Executing prompt {prompt_idx}/{len(prompts)}")
+                    hprint.color_highlight(
+                        hprint.frame(
+                            f"Executing prompt {prompt_idx}/{len(prompts)}"
+                        ),
+                        "blue",
+                    ),
                 )
                 _LOG.debug("Prompt content:\n%s ...", prompt[:200])
                 # Query Claude with prompt and collect response asynchronously.
@@ -269,6 +270,42 @@ class PromptSequencer:
         }
         _LOG.debug("return=%s", hprint.to_str("stats"))
         return stats
+
+
+# #############################################################################
+# Testing Utilities
+# #############################################################################
+
+
+class _FakeClaudeSDKClient:
+    """
+    Minimal stand-in for `claude_agent_sdk.ClaudeSDKClient`.
+
+    A plain `AsyncMock` cannot cleanly emulate an async-generator method
+    like `receive_response()`, so a small hand-written fake is used instead.
+    """
+
+    def __init__(self, responses_by_call: list) -> None:
+        self._responses_by_call = responses_by_call
+        self.queried_prompts: list = []
+        self.aenter_called = False
+        self.aexit_called = False
+
+    async def __aenter__(self) -> "_FakeClaudeSDKClient":
+        self.aenter_called = True
+        return self
+
+    async def __aexit__(self, *_exc_info) -> bool:
+        self.aexit_called = True
+        return False
+
+    async def query(self, prompt: str) -> None:
+        self.queried_prompts.append(prompt)
+
+    async def receive_response(self):
+        idx = len(self.queried_prompts) - 1
+        for message in self._responses_by_call[idx]:
+            yield message
 
 
 # #############################################################################
