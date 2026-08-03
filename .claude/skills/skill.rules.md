@@ -199,13 +199,13 @@
 - E.g., if a skill says:
   ```
   - Write comments using the style from `.claude/skills/coding.rules.md`
-    `# Documentation and Comments`
+    `# Comments`
   ```
   then the file `.claude/skills/coding.rules.md` must contain the header
-  `# Documentation and Comments`
+  `# Comments`
   - Verify that exists with:
     ```bash
-    > grep -q '^# Documentation and Comments$' .claude/skills/coding.rules.md
+    > grep -q '^# Comments$' .claude/skills/coding.rules.md
     ```
 
 # Guidelines and Decisions

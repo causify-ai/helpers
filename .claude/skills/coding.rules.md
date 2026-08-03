@@ -6,7 +6,7 @@
 
 - Assume the script needs to run only on Linux and MacOS
 
-# Code Style and Structure
+# Code Style
 
 ## Follow the Coding Style From the Template
 
@@ -64,9 +64,10 @@
 
 - For multi-line strings in code (test fixtures, expected outputs, scripts,
   documentation examples), use assignment with `"""` and `hprint.dedent()` instead
-  of escaped `\n` in string literals
+  of escaped `\n` in string literals or `textwrap.dedent`
 - This improves readability, maintainability, and makes the string structure
   immediately visible
+- Always use `hprint.dedent()` from helpers, not `textwrap.dedent`
 - Assign the indented string to a variable, then call `hprint.dedent()` on it
 
 - **Bad**: Escaped newlines (hard to read and modify)
@@ -76,29 +77,51 @@
   config = "key1: value1\nkey2: value2\nkey3: value3"
   ```
 
+- **Bad**: Using `textwrap.dedent` instead of `hprint.dedent`
+  ```python
+  from textwrap import dedent
+
+  template_message += dedent("""
+      You MUST make sure not to change the behavior or the intent of the passed file""")
+  ```
+
 - **Good**: Triple-quote assignment with `hprint.dedent`
   ```python
+  import helpers.hprint as hprint
+
   content = """
-  #!/bin/bash
-  pytest helpers/test/test_module.py
-  echo 'done'
-  """
+    #!/bin/bash
+    pytest helpers/test/test_module.py
+    echo 'done'
+    """
   content = hprint.dedent(content)
 
   bash_script = """
-  set -e
-  echo 'start'
-  pytest test.py
-  """
+    set -e
+    echo 'start'
+    pytest test.py
+    """
   bash_script = hprint.dedent(bash_script)
 
   config = """
-  key1: value1
-  key2: value2
-  key3: value3
-  """
+    key1: value1
+    key2: value2
+    key3: value3
+    """
   config = hprint.dedent(config)
+
+  template_message = """
+    You MUST make sure not to change the behavior or the intent of the passed file
+    """
+  template_message = hprint.dedent(template_message)
   ```
+
+## Use Progress Bar
+
+- When there are expensive for loop, use a progress bar using `tqdm` to track
+  the progress
+
+# Code Organization
 
 ## Mark Private Functions
 
@@ -115,12 +138,6 @@
     ```
 
 - Only do this for functions that are not part of the module's public interface
-
-## Remove Empty Lines
-
-- If empty lines are used to separate chunks of code, convert empty lines into
-  comments for the chunk of code
-- Remove empty lines inside functions so that the code is compact
 
 ## Organize Functions Into Logical Layers
 
@@ -272,6 +289,136 @@
     # Generate predictions for each (features, treatment) combination.
     test_cf = test_cf.assign(**{y_hat_col: lambda d: s_learner.predict(d[X + [T]])})
     ```
+
+# Function Design
+
+## Minimize Default Values of None in Function Interfaces
+
+- In function signatures and class constructors, avoid `None` as default values to
+  minimize `Optional` types in type hints
+- Use meaningful default values of the same type instead to keep interfaces
+  simpler and reduce the need for `Optional`
+
+- **Bad**: Using `None` defaults creates `Optional` type requirements
+  ```python
+  def process(
+      data: Dict[str, str],
+      *,
+      timeout: Optional[int] = None,
+      name: Optional[str] = None,
+  ) -> str:
+      if timeout is None:
+          timeout = 30
+      if name is None:
+          name = "default"
+      ...
+  ```
+- **Good**: Use meaningful type-matching defaults
+  ```python
+  def process(
+      data: Dict[str, str],
+      *,
+      timeout: int = 30,
+      name: str = "",
+  ) -> str:
+      ...
+  ```
+
+- This pattern applies to:
+  - Function parameters and return types
+  - Class constructor arguments
+  - Dataclass field definitions
+  - Any interface that accepts arguments with defaults
+
+- Choose meaningful defaults based on the parameter type:
+  - For strings: use `""` (empty string)
+  - For integers: use `0`, `-1`, or another sentinel that makes semantic sense
+  - For booleans: use `False` or `True` based on intended semantics
+  - For paths: use `""` or consider making the parameter required
+
+## Use Default Values Rarely and Force Keyword-Only via `*`
+
+- Default values should be rare exceptions: only provide a default when the
+  parameter is truly optional and the default applies to 99.9% of all calls
+- For optional parameters:
+  - Always use a default value
+  - Use `*` to force keyword argument passing (parameters with a default must be
+    keyword-only, after a `*`)
+- This makes the API more explicit and prevents silent surprises when defaults
+  change
+
+- **Bad**: Optional parameters with defaults are too convenient to ignore
+  ```python
+  def analyze(
+      data: List[str],
+      verbose: bool = False,
+      timeout: int = 30,
+      output_format: str = "json",
+  ) -> Dict[str, Any]:
+      ...
+  ```
+- **Good**: Force keyword arguments for optional parameters using `*`
+  ```python
+  def analyze(
+      data: List[str],
+      *,
+      verbose: bool = False,
+      timeout: int = 30,
+      output_format: str = "json",
+  ) -> Dict[str, Any]:
+      ...
+  ```
+
+- **Good**: Almost all calls use the same value, so it stays a keyword-only
+  default rather than a required parameter
+  ```python
+  def connect(
+      host: str,
+      port: int,
+      *,
+      ssl: bool = True,  # Almost all connections use SSL
+      timeout: int = 30, # timeout is required to be explicit
+  ) -> Connection:
+      ...
+  ```
+
+- Benefits of using `*`:
+  - Callers must explicitly state their intention via keyword arguments
+  - Reduces brittleness when adding new parameters to existing functions
+  - Makes APIs more discoverable and self-documenting
+  - Prevents accidental reliance on defaults that may change in maintenance
+
+## Call Functions With Position Arguments for Required, Keywords for Optional
+
+- When calling functions, follow this convention:
+  - Use positional arguments for mandatory parameters only
+  - Use keyword arguments (by name) for all parameters that have default values
+- This makes calls explicit and self-documenting, matching the function definition style
+
+- **Bad**: Using positional arguments for optional parameters hides intent
+  ```python
+  # Define
+  def analyze(data: List[str], *, verbose: bool = False, timeout: int = 30) -> Dict:
+      ...
+  
+  # Call - implicit about which parameters have defaults
+  result = analyze(data_list, False, 60)
+  ```
+- **Good**: Use position for required, keywords for optional
+  ```python
+  # Define
+  def analyze(data: List[str], *, verbose: bool = False, timeout: int = 30) -> Dict:
+      ...
+  
+  # Call - explicit about optional parameters
+  result = analyze(data_list, verbose=False, timeout=60)
+  ```
+
+- Apply this pattern consistently:
+  - Mandatory parameters (no default): use position
+  - Optional parameters (has default): use keyword argument with name
+  - If a function uses `*` to force keywords, the call naturally follows this
+    pattern
 
 # Error Handling and Assertions
 
@@ -625,6 +772,8 @@
   ````
 
 
+# Comments
+
 ## Use Verbatim to Refer to Python Objects
 
 - When referring to Python objects (e.g., variables, classes, and functions) in
@@ -706,118 +855,15 @@
   # Run `grep` to find matching lines.
   ```
 
-# Comments
-
 ## Add Comments Liberally
 - You must override any minimalist comment defaults add explanatory comments
   liberally
+
+## Do Not Remove Existing Comments
+
+- Do not remove any comment, only add new ones when needed
   - Leave existing comments unless they are incorrect, even if they explain
     WHAT code does and they are redundant
-
-## Add Comments for Code Blocks
-- Add comments for every cohesive code block that is at least 3-5 lines long
-  explaining what the code block does
-  - **Bad** (different chunks of code without comments)
-    ```python
-    num_passed = info.get("log_num_passed", 0) or 0
-    num_failed = info.get("log_num_failed", 0) or 0
-    duration = f"{info['pytest_duration_in_secs']}s"
-    res = {
-        "passed": num_passed,
-        "failed": num_failed,
-        "duration": duration,
-    }
-    ```
-  - **Good** (add comments to chunks)
-    ```python
-    # Extract info.
-    num_passed = info.get("log_num_passed", 0) or 0
-    num_failed = info.get("log_num_failed", 0) or 0
-    duration = f"{info['pytest_duration_in_secs']}s"
-    # Assemble result.
-    res = {
-        "passed": num_passed,
-        "failed": num_failed,
-        "duration": duration,
-    }
-    ```
-
-## Comment Explains Why, Not What
-- Add comments that explain _why_ rather than _what_
-  - Add comments describing important invariants, assumptions, or guarantees
-    maintained by the code
-  - Keep all comments as short and precise as possible
-  - Avoid obvious line-by-line comments
-  - Do not restate the code in English
-
-## Replace Empty Lines with Comments
-- If there are empty comments separating chunks of code, add a comment
-  - **Bad** (empty comment)
-    ```python
-    #
-    stacktraces_file = hpytest.get_output_file_path(
-        "stacktraces.txt", build_name=build_name
-    )
-    hpytest.write_test_stacktraces(info, stacktraces_file)
-    _LOG.info("Created '%s'", stacktraces_file)
-    ```
-  - **Good**
-    ```python
-    # Stacktraces.
-    stacktraces_file = hpytest.get_output_file_path(
-        "stacktraces.txt", build_name=build_name
-    )
-    hpytest.write_test_stacktraces(info, stacktraces_file)
-    _LOG.info("Created '%s'", stacktraces_file)
-    ```
-
-## Do Not Remove Comments
-- Do not remove any comment, only add new ones when needed
-
-## Comment Chunk of Code
-- Use comments to separate logical chunks of code
-- Explain the logic and intent of code sections, especially for:
-  - Complex algorithms or multi-step processes
-  - Conditional branches and why they're needed
-  - Non-obvious variable assignments or transformations
-  - Implementation choices and workarounds
-  - Algorithm steps in a sequence
-
-- Comments should explain the WHY and the algorithm flow, not only the WHAT
-  - **Bad**: (obvious from the code)
-    ```python
-    # Iterate over lines.
-    for line in lines:
-      ...
-    ```
-  - **Good**: (explains intent)
-    ```python
-    # Process imports in two passes: first collect, then validate.
-    ```
-
-## Commenting Style
-- Prefer single-line comments over multi-line comment blocks when possible
-
-- Use periods at the end of all comments
-
-- In comments always use `: ` instead of ` - `
-  - **Bad**
-    ```
-    # Check outputs - Result verification
-    ```
-  - **Good**
-    ```
-    # Check outputs: Result verification
-    ```
-
-## Convert Empty Lines and Empty Comments in Block Comments
-- Do not use empty lines within functions but use comments to separate chunks of
-  code
-
-- If there are empty lines or empty comments `# ` separating chunks of code
-  replace them with comments explaining the block
-
-## Leave Existing Comments Untouched
 
 - Leave untouched comments that represent examples of input-output relationships
   - E.g.,
@@ -851,140 +897,164 @@
     def colorize_bullet_points_in_slide(
     ```
 
-# Function Design
+## Comment Chunks of Code to Explain Why
 
-## Minimize Default Values of None in Function Interfaces
+- Add comments that explain _why_ rather than _what_
+  - Add comments describing important invariants, assumptions, or guarantees
+    maintained by the code
+  - Keep all comments as short and precise as possible
+  - Avoid obvious line-by-line comments
+  - Do not restate the code in English
 
-- In function signatures and class constructors, avoid `None` as default values to
-  minimize `Optional` types in type hints
-- Use meaningful default values of the same type instead to keep interfaces
-  simpler and reduce the need for `Optional`
+- Add comments for every cohesive code block that is at least 3-5 lines long
+  explaining what the code block does
+  - **Bad** (different chunks of code without comments)
+    ```python
+    num_passed = info.get("log_num_passed", 0) or 0
+    num_failed = info.get("log_num_failed", 0) or 0
+    duration = f"{info['pytest_duration_in_secs']}s"
+    res = {
+        "passed": num_passed,
+        "failed": num_failed,
+        "duration": duration,
+    }
+    ```
+  - **Good** (add comments to chunks)
+    ```python
+    # Extract info.
+    num_passed = info.get("log_num_passed", 0) or 0
+    num_failed = info.get("log_num_failed", 0) or 0
+    duration = f"{info['pytest_duration_in_secs']}s"
+    # Assemble result.
+    res = {
+        "passed": num_passed,
+        "failed": num_failed,
+        "duration": duration,
+    }
+    ```
 
-- **Bad**: Using `None` defaults creates `Optional` type requirements
-  ```python
-  def process(
-      data: Dict[str, str],
-      *,
-      timeout: Optional[int] = None,
-      name: Optional[str] = None,
-  ) -> str:
-      if timeout is None:
-          timeout = 30
-      if name is None:
-          name = "default"
+- Use comments to separate logical chunks of code and explain the logic and
+  intent of code sections, especially for:
+  - Complex algorithms or multi-step processes
+  - Conditional branches and why they're needed
+  - Non-obvious variable assignments or transformations
+  - Implementation choices and workarounds
+  - Algorithm steps in a sequence
+
+- Comments should explain the WHY and the algorithm flow, not only the WHAT
+  - **Bad**: (obvious from the code)
+    ```python
+    # Iterate over lines.
+    for line in lines:
       ...
+    ```
+  - **Good**: (explains intent)
+    ```python
+    # Process imports in two passes: first collect, then validate.
+    ```
+
+## Replace Empty Lines With Comments
+
+- Do not use empty lines within functions to separate chunks of code; use
+  comments instead so that the code stays compact
+- If there are empty lines or empty comments (`#`) separating chunks of code,
+  replace them with a comment explaining the block
+
+- **Bad** (empty comment)
+  ```python
+  #
+  stacktraces_file = hpytest.get_output_file_path(
+      "stacktraces.txt", build_name=build_name
+  )
+  hpytest.write_test_stacktraces(info, stacktraces_file)
+  _LOG.info("Created '%s'", stacktraces_file)
   ```
-- **Good**: Use meaningful type-matching defaults
+- **Good**
   ```python
-  def process(
-      data: Dict[str, str],
-      *,
-      timeout: int = 30,
-      name: str = "",
-  ) -> str:
-      ...
-  ```
-
-- This pattern applies to:
-  - Function parameters and return types
-  - Class constructor arguments
-  - Dataclass field definitions
-  - Any interface that accepts arguments with defaults
-
-- Choose meaningful defaults based on the parameter type:
-  - For strings: use `""` (empty string)
-  - For integers: use `0`, `-1`, or another sentinel that makes semantic sense
-  - For booleans: use `False` or `True` based on intended semantics
-  - For paths: use `""` or consider making the parameter required
-
-## Use `*` to Force Keyword Arguments for Optional Parameters
-
-- Default values should be rare exceptions: only use them when 99.9% of all calls
-  need the same value
-- For optional parameters
-  - always use a default value
-  - use `*` to force keyword argument passing
-- This makes the API more explicit and prevents silent surprises when defaults
-  change
-
-- **Bad**: Optional parameters with defaults are too convenient to ignore
-  ```python
-  def analyze(
-      data: List[str],
-      verbose: bool = False,
-      timeout: int = 30,
-      output_format: str = "json",
-  ) -> Dict[str, Any]:
-      ...
-  ```
-- **Good**: Force keyword arguments for optional parameters using `*`
-  ```python
-  def analyze(
-      data: List[str],
-      *,
-      verbose: bool = False,
-      timeout: int = 30,
-      output_format: str = "json",
-  ) -> Dict[str, Any]:
-      ...
-  ```
-
-## Use Default Values Very Rarely in Interfaces
-
-- Only provide defaults when the parameter is truly optional and the default
-  applies to 99.9% of use cases and make them 
-  ```python
-  def connect(
-      host: str,
-      port: int,
-      *,
-      ssl: bool = True,  # Almost all connections use SSL
-      timeout: int = 30, # timeout is required to be explicit
-  ) -> Connection:
-      ...
+  # Stacktraces.
+  stacktraces_file = hpytest.get_output_file_path(
+      "stacktraces.txt", build_name=build_name
+  )
+  hpytest.write_test_stacktraces(info, stacktraces_file)
+  _LOG.info("Created '%s'", stacktraces_file)
   ```
 
-- Parameters with default must be keyword-only parameters (after a `*`)
+## Commenting Style
+- Prefer single-line comments over multi-line comment blocks when possible
 
-- Benefits of using `*`:
-  - Callers must explicitly state their intention via keyword arguments
-  - Reduces brittleness when adding new parameters to existing functions
-  - Makes APIs more discoverable and self-documenting
-  - Prevents accidental reliance on defaults that may change in maintenance
+- Use periods at the end of all comments
 
-## Call Functions With Position Arguments for Required, Keywords for Optional
+- In comments always use `: ` instead of ` - `
+  - **Bad**
+    ```
+    # Check outputs - Result verification
+    ```
+  - **Good**
+    ```
+    # Check outputs: Result verification
+    ```
 
-- When calling functions, follow this convention:
-  - Use positional arguments for mandatory parameters only
-  - Use keyword arguments (by name) for all parameters that have default values
-- This makes calls explicit and self-documenting, matching the function definition style
+## Explain Complex Regex
 
-- **Bad**: Using positional arguments for optional parameters hides intent
-  ```python
-  # Define
-  def analyze(data: List[str], *, verbose: bool = False, timeout: int = 30) -> Dict:
-      ...
-  
-  # Call - implicit about which parameters have defaults
-  result = analyze(data_list, False, 60)
+- When using complex regex, use comments and `re.VERBOSE`
+  - **Bad**
+    ```python
+    quote_pattern = r"(`[^`]*`|(?<!\w)'[^']*'(?!\w)|\"[^\"]*\")"
+    ```
+  - **Good**
+    ```python
+    quote_pattern = r"""
+    (
+        `[^`]*`          # backtick quotes: `anything except backtick`
+
+      |                 # OR
+
+        (?<!\w)         # left side is NOT a word character
+        '[^']*'         # single quoted text
+        (?!\w)          # right side is NOT a word character
+
+      |                 # OR
+
+        "[^"]*"         # double quoted text
+    )
+    """
+
+    pattern = re.compile(quote_pattern, re.VERBOSE)
+    ```
+
+## Enclose File Paths in Single Quotes
+
+- When referring to file paths in messages and responses during coding tasks, enclose
+  them in single quotes to make them visually distinct and easier to identify
+- This applies to all file references in user-facing text and comments
+
+- **Bad**: File paths without enclosure
   ```
-- **Good**: Use position for required, keywords for optional
-  ```python
-  # Define
-  def analyze(data: List[str], *, verbose: bool = False, timeout: int = 30) -> Dict:
-      ...
-  
-  # Call - explicit about optional parameters
-  result = analyze(data_list, verbose=False, timeout=60)
+  Incremental processing of linters2/test/test_cc_lint.py
+  ```
+- **Good**: File paths enclosed in single quotes
+  ```
+  Incremental processing of 'linters2/test/test_cc_lint.py'
   ```
 
-- Apply this pattern consistently:
-  - Mandatory parameters (no default): use position
-  - Optional parameters (has default): use keyword argument with name
-  - If a function uses `*` to force keywords, the call naturally follows this
-    pattern
+- **Bad**: Mixed formatting
+  ```
+  Working on file `src/main.py` and linters2/test/test_cc_lint.py
+  ```
+- **Good**: Consistent single quote enclosure for all file paths
+  ```
+  Working on file 'src/main.py' and 'linters2/test/test_cc_lint.py'
+  ```
 
 # Logging
+
+## Debug Logging Conventions
+
+- Use `_LOG.debug(hprint.to_str("a b c")` when possible
+- Do not print large objects, e.g.:
+  - If there is an array of objects print only the first element
+  - If there is a dictionary print only the first key
+- Do not change the behavior of the code in any way
 
 ## Use _LOG
 
@@ -1014,14 +1084,6 @@
   _LOG.debug("return=%s", ...)
   ```
 
-## Debug Logging Conventions
-
-- Use `_LOG.debug(hprint.to_str("a b c")` when possible
-- Do not print large objects, e.g.:
-  - If there is an array of objects print only the first element
-  - If there is a dictionary print only the first key
-- Do not change the behavior of the code in any way
-
 ## Enclose Variables in Single Quotes in Log Messages
 
 - When logging messages that include variable values for user display, enclose
@@ -1037,7 +1099,7 @@
   _LOG.info("Downloading '%s' from '%s'", book_name, url)
   ```
 
-# Script Development
+# Script Structure
 
 ## Use Script Template
 
@@ -1106,25 +1168,13 @@
   - For bash scripts: `#!/bin/bash`
 - This allows scripts to be executed directly (e.g., `./script.py`) without
   prepending `python`
-- In the README and comments, always refer to scripts as `script.py`, never as
-  `python script.py`
-  - **Bad**: Documentation refers to the script as needing Python
-    ```
-    # Run the script: python standardize_book_filename.py
-    # Usage: python ./convert_epub_to_md.py input.epub output.md
-    ```
-  - **Good**: Documentation refers to the script as executable with shebang
-    ```
-    #!/usr/bin/env python3
-    # Run the script: standardize_book_filename.py
-    # Usage: convert_epub_to_md.py input.epub output.md
-    ```
 
 ## Script Docstring Usage Examples
 
 - When writing docstrings or comments to explain how to use a script, do not use
   the entire file path and do not prepend with `python`
-- Refer to scripts using their simple filename or relative path with `./`
+- Refer to scripts using their simple filename or relative path with `./`, both
+  in the README/comments and in docstring usage examples
 
 - **Bad**: Uses full path and `python` prefix
   ```python
@@ -1132,12 +1182,35 @@
   > python dev_scripts_helpers/llms/llm_cli.py -i some.md ...
   """
   ```
+  ```
+  # Run the script: python standardize_book_filename.py
+  # Usage: python ./convert_epub_to_md.py input.epub output.md
+  ```
 - **Good**: Uses simple script name
   ```python
   """
   > extract_from_md.py -i some.md ...
   """
   ```
+  ```
+  #!/usr/bin/env python3
+  # Run the script: standardize_book_filename.py
+  # Usage: convert_epub_to_md.py input.epub output.md
+  ```
+
+## Create Dirs
+
+- If directory doesn't exist create it using `hio.create_dir`
+  - If a `--from_scratch` option is requested, create the directory from scratch
+
+## Temporary Files
+
+- When using temporary files use files named
+  `tmp.${name_of_script}.{function}.txt` to increase debuggability by inspecting
+  files
+  - No need to clean up files
+
+# Command-Line Argument Parsing
 
 ## Use Standard Argument Helpers From `hparser`
 
@@ -1152,18 +1225,16 @@
   # In _main(): hdbg.init_logger(verbosity=args.log_level, use_exec_path=True)
   ```
 
-## Use Action Idiom
-
-- When using actions in a script use the code and idiom from
-  `./helpers/hselect_action.py`
-
-## Use Limit Range Idiom
-
 - For limit range arguments:
   ```python
   hparser.add_limit_range_arg(parser)
   # In _main(): limit_range = hparser.parse_limit_range_args(args)
   ```
+
+## Use Action Idiom
+
+- When using actions in a script use the code and idiom from
+  `./helpers/hselect_action.py`
 
 ## Command Line Argument Naming
 
@@ -1254,90 +1325,6 @@
   - For strings: use `""` (empty string)
   - For integers: use `0` (or another sentinel like `-1`)
   - For paths: use `""` (empty string) or handle validation in the parser
-
-## Create Dirs
-
-- If directory doesn't exist create it using `hio.create_dir`
-  - If a `--from_scratch` option is requested, create the directory from scratch
-
-## Temporary Files
-
-- When using temporary files use files named
-  `tmp.${name_of_script}.{function}.txt` to increase debuggability by inspecting
-  files
-  - No need to clean up files
-
-# File Organization and Naming
-
-## Use `<module>.README.md` Naming Convention for Documentation Files
-
-- All README files documenting a specific module or component must follow the
-  naming convention `<module>.README.md`
-- The corresponding Python module (e.g., `<module>.py`) should have a docstring
-  that references this README file
-- This convention makes it clear which README file documents which module and
-  improves discoverability
-
-- **Bad**: Inconsistent README naming
-  ```
-  README.llm_cli.md
-  download_link_articles.README.py.md
-  README.link_flow.md
-  README.hllm_decorator.md
-  ```
-
-- **Good**: Consistent `<module>.README.md` format
-  ```
-  llm_cli.README.md
-  download_link_articles.README.md
-  link_flow.README.md
-  hllm_decorator.README.md
-  ```
-
-- **Good**: Docstring in corresponding module references the README
-  ```python
-  """
-  Declarative LLM decorator for transforming Python functions into LLM calls.
-
-  For detailed documentation, architecture diagrams, and usage examples, see:
-  `hllm_decorator.README.md`
-  """
-  ```
-
-# Code Quality and Performance
-
-## Use Progress Bar
-
-- When there are expensive for loop, use a progress bar using `tqdm` to track
-  the progress
-
-## Explain Complex Regex
-
-- When using complex regex, use comments and `re.VERBOSE`
-  - **Bad**
-    ```python
-    quote_pattern = r"(`[^`]*`|(?<!\w)'[^']*'(?!\w)|\"[^\"]*\")"
-    ```
-  - **Good**
-    ```python
-    quote_pattern = r"""
-    (
-        `[^`]*`          # backtick quotes: `anything except backtick`
-
-      |                 # OR
-
-        (?<!\w)         # left side is NOT a word character
-        '[^']*'         # single quoted text
-        (?!\w)          # right side is NOT a word character
-
-      |                 # OR
-
-        "[^"]*"         # double quoted text
-    )
-    """
-
-    pattern = re.compile(quote_pattern, re.VERBOSE)
-    ```
 
 # System Integration
 
@@ -1435,3 +1422,58 @@
         "--warn_on_malformed",
     ]
     ```
+
+# File Organization and Naming
+
+## Use `<module>.README.md` Naming Convention for Documentation Files
+
+- All README files documenting a specific module or component must follow the
+  naming convention `<module>.README.md`
+- The corresponding Python module (e.g., `<module>.py`) should have a docstring
+  that references this README file
+- This convention makes it clear which README file documents which module and
+  improves discoverability
+
+- **Bad**: Inconsistent README naming
+  ```
+  README.llm_cli.md
+  download_link_articles.README.py.md
+  README.link_flow.md
+  README.hllm_decorator.md
+  ```
+
+- **Good**: Consistent `<module>.README.md` format
+  ```
+  llm_cli.README.md
+  download_link_articles.README.md
+  link_flow.README.md
+  hllm_decorator.README.md
+  ```
+
+- **Good**: Docstring in corresponding module references the README
+  ```python
+  """
+  Declarative LLM decorator for transforming Python functions into LLM calls.
+
+  For detailed documentation, architecture diagrams, and usage examples, see:
+  `hllm_decorator.README.md`
+  """
+  ```
+
+## Keep `<module>.README.md` in Sync With the Module
+
+- When a Python file's docstring references a companion `<module>.README.md`
+  (see `## Use `<module>.README.md` Naming Convention for Documentation
+  Files`), update that README whenever the module's code changes
+- Reflect the change in every affected part of the README, not just one
+  section:
+  - **Interface**: function signatures, CLI options, parameters
+  - **Architecture**: data flow, key functions, design patterns
+  - **Use cases**: examples and workflows
+- Treat the README as being as out-of-sync-prone as a docstring; apply the
+  same discipline as `## Update Docstrings If Out-of-sync`
+
+- **Bad**: Add a new `--dry_run` CLI option to `cc_lint.py` but leave
+  `cc_lint.README.md`'s argument table and examples unchanged
+- **Good**: Add a new `--dry_run` CLI option to `cc_lint.py`, add it to the
+  README's argument table, and add a usage example demonstrating it

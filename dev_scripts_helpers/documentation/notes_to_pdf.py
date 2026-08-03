@@ -61,7 +61,7 @@ _DEFAULT_ACTIONS = [
     "render_images",
     "run_pandoc",
     # "compress_pdf",
-    "open",
+    # "open",
     # "cleanup_after",
 ]
 
@@ -88,6 +88,10 @@ def _run_all(args: argparse.Namespace) -> None:
     #
     file_name = args.input
     hdbg.dassert_path_exists(file_name)
+    # Resolve `--slides_engine auto` into a concrete engine by looking at the
+    # `// slides_engine=...` metadata directive at the top of the input file.
+    slides_engine = dshdlntpd.resolve_slides_engine(file_name, args.slides_engine)
+    _LOG.info(hprint.to_str("slides_engine"))
     # E.g., prefix='/app/helpers_root/tmp.notes_to_pdf'
     out_dir = os.path.abspath(os.path.dirname(args.output))
     hio.create_dir(out_dir, incremental=True)
@@ -136,7 +140,7 @@ def _run_all(args: argparse.Namespace) -> None:
     action = "preprocess_notes"
     to_execute, actions = dshdlntpd.mark_action(action, actions)
     if to_execute:
-        output_format = "typst" if args.slides_engine == "typst" else "latex"
+        output_format = "typst" if slides_engine == "typst" else "latex"
         file_name = dshdlntpd.preprocess_notes(
             file_name, prefix, args.type, args.toc_type, output_format
         )
@@ -176,7 +180,7 @@ def _run_all(args: argparse.Namespace) -> None:
                 use_pandoc_ast_transform=args.use_pandoc_ast_transform,
             )
         elif args.type == "slides":
-            if args.slides_engine == "typst":
+            if slides_engine == "typst":
                 file_out = dshdlntpd.run_pandoc_to_typst_slides(
                     curr_path,
                     file_name,
@@ -314,12 +318,17 @@ def _parse() -> argparse.ArgumentParser:
     parser.add_argument(
         "--slides_engine",
         action="store",
-        default="beamer",
-        choices=["beamer", "typst"],
-        help=(
-            "Engine used to render slides (only for `--type slides`):\n"
-            "- 'beamer': pandoc -> LaTeX/beamer -> pdflatex (default)\n"
-            "- 'typst': pandoc -> Typst/Touying -> typst compile\n"
+        # TODO(ai_gp): Use latex instead of beamer
+        default="auto",
+        choices=["beamer", "typst", "auto"],
+        help=hprint.dedent("""
+            Engine used to render slides (only for `--type slides`):
+            - 'auto': use the engine required by the `// slides_engine=...`
+               metadata directive at the top of the input file, or 'beamer'
+               if no such directive is present
+            - 'beamer': pandoc -> LaTeX/beamer -> pdflatex (default)
+            - 'typst': pandoc -> Typst/Touying -> typst compile
+        """
         ),
     )
     parser.add_argument(

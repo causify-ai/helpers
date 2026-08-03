@@ -1,6 +1,6 @@
 # AI Tools
 
-// TODO(ai_gp): dev_scripts_helpers/ai/ -> dev_scripts_helpers/agents or merge
+// TODO(gp): dev_scripts_helpers/ai/ -> dev_scripts_helpers/agents or merge
 // into dev_scripts_helpers/llms
 
 Claude Code CLI wrapper scripts for development workflows. Provides convenient
@@ -30,7 +30,7 @@ This directory has no subdirectories.
   - Runs an LLM
 - `llm_transform.py`: apply a transform to a file and / or stdin
   - TODO(gp): This is going to be merged / folded into `llm_cli.py`
-- `linters2/lint_cc.py`: apply a set of transformations using Claude Code
+- `linters2/cc_lint.py`: apply a set of transformations using Claude Code
 - `cc`: wrapper
 - `batch_cc.py` 
 
@@ -142,7 +142,7 @@ This directory has no subdirectories.
 
 > apply_cc_skill.py --skill ... or --rule ... --files ...
 
-- Is there anything already? linters2/lint_cc.py?
+- Is there anything already? linters2/cc_lint.py?
 
 - Sometimes we need to dialogue with an agent, other times we just need an LLM
 

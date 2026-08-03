@@ -2406,3 +2406,103 @@ class Test_notes_to_pdf_latex_cancel(hunitest.TestCase):
         self.check_string(output_txt, fuzzy_match=True)
         self.assertIn(r"\cancel{", output_txt)
         self.assertIn(r"\underbrace{", output_txt)
+
+
+# #############################################################################
+# Test_small_font_code_typst
+# #############################################################################
+
+
+class Test_small_font_code_typst(hunitest.TestCase):
+    """
+    Test LaTeX small font markers in code blocks render correctly to typst.
+    """
+
+    def helper_pdf_render(self, in_file: str) -> str:
+        """
+        Helper to run notes_to_pdf.py with typst slides and PDF compilation.
+
+        Generates PDF output through full typst pipeline.
+
+        :param in_file: Path to input markdown file
+        :return: Path to generated typst file
+        """
+        # Prepare inputs.
+        exec_path = hgit.find_file_in_git_tree("notes_to_pdf.py")
+        hdbg.dassert_path_exists(exec_path)
+        out_dir = self.get_scratch_space()
+        script_file = os.path.join(out_dir, "script.sh")
+        pdf_file = os.path.join(out_dir, "output.pdf")
+        # Construct command - compile to PDF.
+        cmd = [
+            exec_path,
+            f"--input {in_file}",
+            "--type slides",
+            "--use_pandoc_ast_transform",
+            "--slides_engine typst",
+            f"--script {script_file}",
+            f"--output {pdf_file}",
+            "--skip_action open",
+        ]
+        cmd = " ".join(cmd)
+        _LOG.debug("cmd=%s", cmd)
+        # Execute the command.
+        hsystem.system(cmd)
+        # Verify PDF was created.
+        hdbg.dassert_path_exists(pdf_file, "PDF file was not created")
+        # Find the typst file generated during pipeline.
+        typ_files = glob.glob(os.path.join(out_dir, "*.typ"))
+        hdbg.dassert_eq(
+            len(typ_files),
+            1,
+            "Expected 1 .typ file, found:\n%s",
+            "\n".join(typ_files),
+        )
+        typst_file = typ_files[0]
+        return typst_file
+
+    @pytest.mark.superslow
+    def test1(self) -> None:
+        r"""
+        Test small font code renders to PDF via full typst pipeline.
+
+        Verifies that markdown with `\begingroup \scriptfont ... \endgroup`
+        successfully compiles to PDF through the complete typst pipeline.
+        PDF output is generated for manual visual inspection to verify font
+        sizing is applied correctly. Typst output frozen in test1 for
+        regression testing.
+        """
+        # Prepare inputs.
+        txt = r"""
+        * CATE Model Estimation
+        - Normal
+          ```python
+          regr_model = smf.ols("sales ~ discounts*(month + weekday + ...)",
+                               data=train).fit()
+          ```
+
+        - Small
+
+          ::: small-code
+          ```python
+          regr_model = smf.ols("sales ~ discounts*(month + weekday + ...)",
+                               data=train).fit()
+          ```
+          :::
+        """
+        txt = hprint.dedent(txt, remove_lead_trail_empty_lines_=True)
+        in_file = os.path.join(self.get_scratch_space(), "input.md")
+        hio.to_file(in_file, txt)
+        # Run test.
+        typst_file = self.helper_pdf_render(in_file)
+        # Check outputs.
+        # Verify typst file was created.
+        self.assertTrue(os.path.exists(typst_file), "Typst file was not created")
+        # Verify typst file is not empty (has content).
+        file_size = os.path.getsize(typst_file)
+        self.assertGreater(file_size, 0, "Typst file is empty")
+        # Report typst file name and freeze output.
+        typst_filename = os.path.basename(typst_file)
+        _LOG.info("Typst file generated: %s", typst_filename)
+        typst_content = hio.from_file(typst_file)
+        self.check_string(typst_content, purify_text=True)

@@ -31,14 +31,26 @@ _LOG.setLevel(logging.INFO)
 
 _COLOR_MAP = {
     "bold": 1,
+    "underline": 4,
     # Colors.
+    "black": 30,
     "blue": 94,
     "green": 92,
     "white": 0,
+    "gray": 90,
+    "dark_gray": 90,
+    "light_gray": 37,
+    "bright_white": 97,
     "purple": 95,
+    "magenta": 35,
     "red": 91,
+    "bright_red": 91,
+    "dark_red": 31,
     "yellow": 33,
-    # Blue.
+    "bright_yellow": 93,
+    "cyan": 36,
+    "bright_cyan": 96,
+    # Log level colors.
     "DEBUG": 34,
     # Cyan.
     "INFO": 36,

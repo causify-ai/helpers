@@ -9,6 +9,6 @@ model: haiku
 - After this skill, Python functions should have no empty line
 
 - Write comments using the style from `.claude/skills/coding.rules.md`
-  `# Documentation and Comments`
+  `# Comments`
 
 - Do not change the behavior of the code

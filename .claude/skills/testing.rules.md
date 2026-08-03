@@ -81,6 +81,48 @@
   | `get_s3_scratch_dir()` | S3 path for large temporary data, unique per user/server/test    |
   | `get_s3_input_dir()`   | S3 path for fixtures too large to commit to git                  |
 
+## Use Input and Scratch Space from `hunittest`
+
+- When the inputs are too big (e.g., more than 2000 characters) use a file in
+  the input directory:
+  ```python
+  # Prepare inputs.
+  input_file = os.path.join(self.get_input_dir(), "test_data.json")
+  data = hio.from_json(input_file)
+  ```
+
+- When the unit test needs some intermediate file, use the scratch space:
+  ```python
+  # Prepare inputs.
+  scratch_dir = self.get_scratch_space()
+  test_file = os.path.join(scratch_dir, "test.txt")
+  hio.to_file(test_file, "content")
+  ```
+
+## Do Not Use /tmp in Tests
+
+- Always use `self.get_scratch_space()` instead of hardcoding `/tmp` paths for
+  test files
+- Reason: `/tmp` is not managed by the test framework and won't be automatically
+  cleaned up; this leaves stray test files on the system and makes tests less
+  portable across environments
+
+- **Bad** (hardcoding `/tmp`)
+  ```python
+  # Prepare inputs.
+  cwd = "/tmp/test"
+  test_file = os.path.join(cwd, "data.txt")
+  hio.to_file(test_file, "content")
+  ```
+
+- **Good** (using `self.get_scratch_space()`)
+  ```python
+  # Prepare inputs.
+  scratch_dir = self.get_scratch_space()
+  test_file = os.path.join(scratch_dir, "data.txt")
+  hio.to_file(test_file, "content")
+  ```
+
 ## Use Text Files, Not Pickle
 - Use human readable files (e.g., CSV, JSOn, plain input files) over pickle
   - Pickle is not stable across library versions and not human-readable
@@ -277,6 +319,20 @@
         content = hprint.dedent(content)
     ```
 
+- Alternative: dedent at comparison time instead of at assignment, with
+  `self.assert_equal(actual, expected, dedent=True)`
+  - **Good**: Using dedent in assertion (convenient for comparisons)
+    ```python
+    # Prepare outputs.
+    expected = """
+    line1
+    line2
+    line3
+    """
+    # Check outputs.
+    self.assert_equal(actual, expected, dedent=True)
+    ```
+
 ### Avoid Replicated Assignment
 
 - If a variable `var` and `expected` need to always be the same (e.g., to show
@@ -322,6 +378,10 @@
 
 - Always use assignment with `"""` and `hprint.dedent()`, never use escaped `\n`
   in string literals
+  - **Bad**: Escaped newlines (hard to read)
+    ```python
+    text = "# Chapter 1\n\n## Section 1.1\nContent 1.1\n## Section 1.2\nContent 1.2"
+    ```
 - For test input or expected output strings, follow the rule in
   `.claude/skills/coding.rules.md` under
   `## Use Triple-Quote Assignment with `hprint.dedent` for Multi-line Strings`
@@ -624,48 +684,6 @@
           # ... assertions ...
   ```
 
-## Use Input and Scratch Space from `hunittest`
-
-- When the inputs are too big (e.g., more than 2000 characters) use a file in
-  the input directory:
-  ```python
-  # Prepare inputs.
-  input_file = os.path.join(self.get_input_dir(), "test_data.json")
-  data = hio.from_json(input_file)
-  ```
-
-- When the unit test needs some intermediate file, use the scratch space:
-  ```python
-  # Prepare inputs.
-  scratch_dir = self.get_scratch_space()
-  test_file = os.path.join(scratch_dir, "test.txt")
-  hio.to_file(test_file, "content")
-  ```
-
-## Do Not Use /tmp in Tests
-
-- Always use `self.get_scratch_space()` instead of hardcoding `/tmp` paths for
-  test files
-- Reason: `/tmp` is not managed by the test framework and won't be automatically
-  cleaned up; this leaves stray test files on the system and makes tests less
-  portable across environments
-
-- **Bad** (hardcoding `/tmp`)
-  ```python
-  # Prepare inputs.
-  cwd = "/tmp/test"
-  test_file = os.path.join(cwd, "data.txt")
-  hio.to_file(test_file, "content")
-  ```
-
-- **Good** (using `self.get_scratch_space()`)
-  ```python
-  # Prepare inputs.
-  scratch_dir = self.get_scratch_space()
-  test_file = os.path.join(scratch_dir, "data.txt")
-  hio.to_file(test_file, "content")
-  ```
-
 ## Setup and Teardown
 
 - Use `set_up_test()` and `tear_down_test()` via `@pytest.fixture(autouse=True)`
@@ -716,59 +734,13 @@
 
 # Test Input and Output Handling
 
-## String Formatting for Test Inputs and Assertions
+## Compare Whole Output with `assert_equal`, Not Piecewise
 
-- Use multi-line strings with `hprint.dedent()` instead of escaped newline
-  strings for improved readability and maintainability
-- Always align multi-line strings to the variable indentation, then call
-  `hprint.dedent()` to remove the indentation
-- Alternative: use `self.assert_equal(actual, expected, dedent=True)` to dedent
-  during comparison
-
-- Examples:
-  - **Bad**: Escaped newlines (hard to read)
-    ```python
-    text = "# Chapter 1\n\n## Section 1.1\nContent 1.1\n## Section 1.2\nContent 1.2"
-    ```
-  - **Bad**: Text not aligned to variable indentation
-    ```python
-    # Prepare inputs.
-    text = """
-line1
-line2
-line3
-    """
-    ```
-  - **Good**: Multi-line string aligned and dedented (readable and maintainable)
-    ```python
-    # Prepare inputs.
-    text = """
-    # Chapter 1
-
-    ## Section 1.1
-    Content 1.1
-    ## Section 1.2
-    Content 1.2
-    """
-    text = hprint.dedent(text)
-    ```
-  - **Good**: Using dedent in assertion (convenient for comparisons)
-    ```python
-    # Prepare outputs.
-    expected = """
-    line1
-    line2
-    line3
-    """
-    # Check outputs.
-    self.assert_equal(actual, expected, dedent=True)
-    ```
-
-## Use an Expected Output and `assert_equal`
-
-- Do not use assertion to check each part of the output, but convert the output
-  in a human-readable representation (e.g., with `pprint.pformat`) and then
-  compare it to a string representing the expected value
+- Do not use assertion to check each part of the output, and do not use
+  multiple `assertIn()` calls to check individual pieces of a string output;
+  instead convert the output into a human-readable representation (e.g., with
+  `pprint.pformat`) and compare it as a whole to a string representing the
+  expected value with `assert_equal()`
 
   - **Bad** (check each component of the actual output to its expected value)
     ```python
@@ -819,6 +791,53 @@ line3
     """
     self.assert_equal(actual, expected, dedent=True)
     ```
+  - **Bad** (multiple assertIn checks on parts of the output)
+    ```python
+    actual = <function_that_returns_string>()
+    # Check outputs.
+    self.assertIn('"A"', actual)
+    self.assertIn('"B"', actual)
+    self.assertIn('"C"', actual)
+    self.assertIn('"A" -> "B"', actual)
+    self.assertIn('"B" -> "C"', actual)
+    ```
+  - **Good** (single assert_equal with full expected output)
+    ```python
+    actual = <function_that_returns_string>()
+    # Prepare outputs.
+    expected = """
+    digraph {
+        rankdir=TB;
+        "A" [fillcolor="#A6C8F4"];
+        "B" [fillcolor="#A6C8F4"];
+        "C" [fillcolor="#A6C8F4"];
+        "A" -> "B" [color="#555555"];
+        "B" -> "C" [color="#555555"];
+    }
+    """
+    # Check outputs.
+    self.assert_equal(actual, expected, dedent=True, fuzzy_match=True)
+    ```
+  - **Bad**
+    ```python
+    # Check outputs.
+    # Expected: contains the output from the command (paths are variable)
+    # Invariant: output contains expected sections and key values
+    self.assertIn("Processing complete", actual)
+    self.assertIn("Files: ", actual)
+    self.assertIn("Status: SUCCESS", actual)
+    ```
+  - **Good** (with fuzzy matching and explanatory comment)
+    ```python
+    # Check outputs.
+    # Expected from command: "Processed /path/to/file.txt in 0.123s"
+    # Invariant: message format is consistent and success status is present
+    expected = """
+    Processed .*/path/to/file.txt in [0-9.]+s
+    Status: SUCCESS
+    """
+    self.assert_equal(actual, expected, dedent=True, fuzzy_match=True)
+    ```
 
 ## Assertion Patterns
 
@@ -868,57 +887,6 @@ line3
 - Do not use `hdbg.dassert` since it guards production invariants and is not a
   substitute for test assertions
   - Always use `self.assert*` family instead
-
-## Only use `assert_equal`
-- Do not use multiple `assertIn()` calls to check individual pieces of a string
-  output; instead compare the entire output with `assert_equal()`
-  - **Bad** (multiple assertIn checks on parts of the output)
-    ```python
-    actual = <function_that_returns_string>()
-    # Check outputs.
-    self.assertIn('"A"', actual)
-    self.assertIn('"B"', actual)
-    self.assertIn('"C"', actual)
-    self.assertIn('"A" -> "B"', actual)
-    self.assertIn('"B" -> "C"', actual)
-    ```
-  - **Good** (single assert_equal with full expected output)
-    ```python
-    actual = <function_that_returns_string>()
-    # Prepare outputs.
-    expected = """
-    digraph {
-        rankdir=TB;
-        "A" [fillcolor="#A6C8F4"];
-        "B" [fillcolor="#A6C8F4"];
-        "C" [fillcolor="#A6C8F4"];
-        "A" -> "B" [color="#555555"];
-        "B" -> "C" [color="#555555"];
-    }
-    """
-    # Check outputs.
-    self.assert_equal(actual, expected, dedent=True, fuzzy_match=True)
-    ```
-  - **Bad**
-    ```python
-    # Check outputs.
-    # Expected: contains the output from the command (paths are variable)
-    # Invariant: output contains expected sections and key values
-    self.assertIn("Processing complete", actual)
-    self.assertIn("Files: ", actual)
-    self.assertIn("Status: SUCCESS", actual)
-    ```
-  - **Good** (with fuzzy matching and explanatory comment)
-    ```python
-    # Check outputs.
-    # Expected from command: "Processed /path/to/file.txt in 0.123s"
-    # Invariant: message format is consistent and success status is present
-    expected = """
-    Processed .*/path/to/file.txt in [0-9.]+s
-    Status: SUCCESS
-    """
-    self.assert_equal(actual, expected, dedent=True, fuzzy_match=True)
-    ```
 
 ## Testing Exceptions
 
@@ -1095,6 +1063,59 @@ line3
 - Follow the command line building conventions in
   `.claude/skills/coding.rules.md` under `## How to Build Command Lines`
 
+# Mocking
+
+## Mock Only External Dependencies
+- Mock only 3rd-party providers, cloud infra (AWS/S3), databases, and external
+  APIs, never internal helpers
+- Mock the external library, not our internal wrapper on top of it
+
+## Mock at the Call Site
+- Patch where the symbol is looked up, not where it is defined:
+  `@umock.patch.object(calling_module.dep, "method")`
+
+## Class-Level Patches
+- Declare `umock.patch.object(...)` as a class attribute; `start()` / `stop()`
+  in `set_up_test()` / `tear_down_test()` so the same patch is reused per test
+
+## Use Context Manager Syntax for Multiple Mocks
+- For multiple mocks in a test, use `with (...)` syntax to combine context
+  managers on a single line instead of nested `with` statements or stacked
+  decorators
+- This keeps test code flat, readable, and avoids decorator ordering issues
+
+- **Bad** (nested with statements)
+  ```python
+  with mock.patch("module.function1", return_value="val1"):
+      with mock.patch("module.function2", return_value="val2"):
+          with mock.patch("module.function3", return_value="val3"):
+              function_under_test()
+  ```
+
+- **Bad** (stacked decorators: hard to follow reverse order)
+  ```python
+  @mock.patch("module.function3", return_value="val3")
+  @mock.patch("module.function2", return_value="val2")
+  @mock.patch("module.function1", return_value="val1")
+  def test_main(self, *mocks):
+      function_under_test()
+  ```
+
+- **Good** (combined context managers)
+  ```python
+  with (
+      mock.patch("module.function1", return_value="val1"),
+      mock.patch("module.function2", return_value="val2"),
+      mock.patch("module.function3", return_value="val3"),
+  ):
+      function_under_test()
+  ```
+
+## Mock AWS / S3 via `S3Mock_TestCase`
+- Inherit from `hmoto.S3Mock_TestCase` for in-process S3 mocking via `moto`
+- `moto` must be imported before `boto3`; `hmoto.py` enforces this
+- Each test gets a fresh bucket named `self.bucket_name`
+
 ## Use the SysCall Mocking Infrastructure
 - For testing executables use end-to-end tests that:
   1. Use `capture_system_calls()` from `./helpers/hunit_test_utils.py` to mock
@@ -1155,7 +1176,7 @@ line3
           # `token_stats` will be TokenStats() with zeros.
   ```
 
-## Via `--backend mock`
+### Via `--backend mock`
 
 - **From the command line**: pass `--backend mock` as a CLI argument to skip
   real LLM API calls:
@@ -1163,66 +1184,11 @@ line3
   > script.py --backend mock
   ```
 
-# Mocking
-
-// TODO(gp): Review
-
-## Mock Only External Dependencies
-- Mock only 3rd-party providers, cloud infra (AWS/S3), databases, and external
-  APIs, never internal helpers
-- Mock the external library, not our internal wrapper on top of it
-
-## Mock at the Call Site
-- Patch where the symbol is looked up, not where it is defined:
-  `@umock.patch.object(calling_module.dep, "method")`
-
-## Class-Level Patches
-- Declare `umock.patch.object(...)` as a class attribute; `start()` / `stop()`
-  in `set_up_test()` / `tear_down_test()` so the same patch is reused per test
-
-## Use Context Manager Syntax for Multiple Mocks
-- For multiple mocks in a test, use `with (...)` syntax to combine context
-  managers on a single line instead of nested `with` statements or stacked
-  decorators
-- This keeps test code flat, readable, and avoids decorator ordering issues
-
-- **Bad** (nested with statements)
-  ```python
-  with mock.patch("module.function1", return_value="val1"):
-      with mock.patch("module.function2", return_value="val2"):
-          with mock.patch("module.function3", return_value="val3"):
-              function_under_test()
-  ```
-
-- **Bad** (stacked decorators: hard to follow reverse order)
-  ```python
-  @mock.patch("module.function3", return_value="val3")
-  @mock.patch("module.function2", return_value="val2")
-  @mock.patch("module.function1", return_value="val1")
-  def test_main(self, *mocks):
-      function_under_test()
-  ```
-
-- **Good** (combined context managers)
-  ```python
-  with (
-      mock.patch("module.function1", return_value="val1"),
-      mock.patch("module.function2", return_value="val2"),
-      mock.patch("module.function3", return_value="val3"),
-  ):
-      function_under_test()
-  ```
-
-## Mock AWS / S3 via `S3Mock_TestCase`
-- Inherit from `hmoto.S3Mock_TestCase` for in-process S3 mocking via `moto`
-- `moto` must be imported before `boto3`; `hmoto.py` enforces this
-- Each test gets a fresh bucket named `self.bucket_name`
-
 # Verification
 - [ ] No use of `self.check_string`
   - Follow `## Never Use self.check_string()`
 - [ ] No `self.assertIn` but check the entire output value with an assert_equal
-  - Follow `## Only use assert_equal`
+  - Follow `## Compare Whole Output with assert_equal, Not Piecewise`
 - [ ] No function is called with hardwired parameters, but they are assigned to a
   variable and then used
   - Follow `## Assign Variables and Then Call Functions`

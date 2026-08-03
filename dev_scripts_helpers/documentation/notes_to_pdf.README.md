@@ -2,6 +2,9 @@
 - `notes_to_pdf.py` is a comprehensive document conversion orchestrator that
   transforms markdown/text files into multiple output formats (PDF, HTML,
   presentation slides) using Pandoc/LaTeX/Typst toolchains
+- Honors rich Markdown features and custom shorthand, inlining auto-rendered
+  diagrams (PlantUML, Mermaid, TikZ, Graphviz, and raw LaTeX such as tables)
+  before conversion
 - Manages a complete multi-stage pipeline including
   - Preprocessing
   - Image rendering
@@ -13,246 +16,67 @@
 - Users can selectively enable/disable pipeline stages for iterative development
   and debugging
 
+## Features
+- Support to create technical lecture slides and books from enhanced pandoc
+  markdown
+  - Slides
+  - Comments (// and /* ... */)
+  - TOC
+  - Templating
+  - Semantic tags
+  - Rendering of pictures with different tools (Tikz, graphviz, mermaid, ...)
+  - Testing
+  - LLM integration (check correctness, formatting, shrink text, ...)
+- Supports typst and Latex backend
+  - Several fixes for creating typst from pandoc markdown AST (colors, tables)
+  - Make typst look similar to Latex (which is golden standard, e.g., Computer
+    Modern)
+- Utilities
+  - Stats
+  - Conversion to book
+  - Conversion to commentary
+  - Create questions and summaries
+
+# Pipeline Scripts
+
+- Before invoking Pandoc, `notes_to_pdf.py` orchestrates two sibling scripts
+  and one shared LaTeX style, in this order: `preprocess_notes.py` cleans and
+  augments the raw notes, `render_images.py` renders inline diagrams to
+  images, and `latex_abbrevs.sty` supplies the LaTeX macros used by the
+  LaTeX/Beamer output paths
+
+## `preprocess_notes.py`
+
+- **Input:** Raw notes (`.txt`/`.md`)
+- **Output:** Pandoc-ready Markdown
+- Handles:
+  - Banners around chapters
+  - Comments
+  - Pandoc directives (YAML front-matter)
+  - Abbreviation expansion
+  - Question formatting
+  - Empty-line cleanup
+  - TOC / navigation-slide injection
+
+## `render_images.py`
+
+- Docker-wrapped renderer that replaces PlantUML, Mermaid, TikZ, Graphviz, and
+  raw LaTeX (e.g., tables) code blocks with rendered
+  `![](figs/<basename>.<index>.png)` images, commenting out the original
+  source block
+- Caches rendered images to skip re-rendering unchanged diagrams on re-runs
+- See `render_images.README.md` for full usage details
+
+## `latex_abbrevs.sty`
+
+- Custom LaTeX style providing bold-underlined vectors (`\vv{x}`), matrices,
+  colour presets, 9-level `enumitem` lists, and symbol shorthands
+- Copied next to the generated `.tex` file automatically; rarely touched
+  unless new macros are needed
+- Mined by `_extract_latex_math_defs()` for the Typst slide path (see C4 Code
+  section below)
+
 # Architecture (C4 Model)
-
-## C1 (Context)
-- This section describes how the system fits in the world
-
-<!--  rendered_images:begin -->
-<!--  ```mermaid -->
-<!--  graph TB -->
-<!--      User["User / CLI"] -->
-<!--      InputFile["Input File<br/>(markdown/txt)"] -->
-<!--      Pandoc["Pandoc<br/>(conversion engine)"] -->
-<!--      LaTeX["LaTeX / pdflatex<br/>(PDF rendering)"] -->
-<!--      Typst["Typst<br/>(slide rendering)"] -->
-<!--      Docker["Docker<br/>(optional isolation)"] -->
-<!--      OutputPDF["PDF Output"] -->
-<!--      OutputHTML["HTML Output"] -->
-<!--      OutputSlides["Slides Output"] -->
-<!--      GoogleDrive["Google Drive<br/>(archive)"] -->
-<!--       -->
-<!--      User -->|"provides input file"| InputFile -->
-<!--      InputFile -->|"notes_to_pdf.py"| Pandoc -->
-<!--      Pandoc -->|"for PDF"| LaTeX -->
-<!--      Pandoc -->|"for slides-typst"| Typst -->
-<!--      LaTeX -->|"via Docker"| Docker -->
-<!--      Typst -->|"via Docker"| Docker -->
-<!--      LaTeX -->|"generates"| OutputPDF -->
-<!--      Pandoc -->|"generates"| OutputHTML -->
-<!--      Pandoc -->|"generates"| OutputSlides -->
-<!--      OutputPDF -->|"optional copy"| GoogleDrive -->
-<!--      OutputHTML -->|"optional copy"| GoogleDrive -->
-<!--      OutputSlides -->|"optional copy"| GoogleDrive -->
-<!--  ``` -->
-<!--  rendered_images:end -->
-<!--  render_images:begin -->
-![](notes_to_pdf.README.md.figs/README.notes_to_pdf.1.png)
-<!--  render_images:end -->
-
-- `notes_to_pdf.py` acts as a central orchestrator, coordinating multiple
-  external tools (Pandoc, LaTeX, Typst, Ghostscript) and optional Docker
-  containers for tool execution
-
-- Users interact with the CLI, providing input files and output specifications,
-  and the module manages the complete workflow including preprocessing,
-  rendering, conversion, and post-processing
-
-## C2 (Container)
-
-- This section describes the high-level technical blocks
-
-### C2.1: CLI & Orchestration
-
-<!--  rendered_images:begin -->
-<!--  ```mermaid -->
-<!--  graph TB -->
-<!--      subgraph CLI["CLI Interface"] -->
-<!--          Parse["_parse()"] -->
-<!--          Main["_main()"] -->
-<!--      end -->
-<!--       -->
-<!--      subgraph Pipeline["Pipeline Orchestration"] -->
-<!--          RunAll["_run_all()"] -->
-<!--          MarkAction["_mark_action()"] -->
-<!--          Cleanup["_cleanup_before()/<br/>_cleanup_after()"] -->
-<!--      end -->
-<!--       -->
-<!--      Parse -->|"parsed args"| Main -->
-<!--      Main -->|"execute pipeline"| RunAll -->
-<!--      RunAll -->|"orchestrate actions"| MarkAction -->
-<!--      RunAll -->|"cleanup state"| Cleanup -->
-<!--  ``` -->
-<!--  rendered_images:end -->
-<!--  render_images:begin -->
-![](notes_to_pdf.README.md.figs/README.notes_to_pdf.2.png)
-<!--  render_images:end -->
-
-### C2.2: Processing & Conversion Pipeline
-
-<!--  rendered_images:begin -->
-<!--  ```mermaid -->
-<!--  graph TB -->
-<!--      subgraph Processing["Processing Stages"] -->
-<!--          Preprocess["_preprocess_notes()"] -->
-<!--          RenderImg["_render_images()"] -->
-<!--      end -->
-<!--       -->
-<!--      subgraph Conversion["Format Converters"] -->
-<!--          ToPDF["_run_pandoc_to_pdf()"] -->
-<!--          ToHTML["_run_pandoc_to_html()"] -->
-<!--          ToSlides["_run_pandoc_to_latex_slides()"] -->
-<!--          ToTypstSlides["_run_pandoc_to_typst_slides()"] -->
-<!--      end -->
-<!--       -->
-<!--      Preprocess -->|"execute stages"| RenderImg -->
-<!--      RenderImg -->|"convert format"| ToPDF -->
-<!--      RenderImg -->|"convert format"| ToHTML -->
-<!--      RenderImg -->|"convert format"| ToSlides -->
-<!--      RenderImg -->|"convert format"| ToTypstSlides -->
-<!--  ``` -->
-<!--  rendered_images:end -->
-<!--  render_images:begin -->
-![](notes_to_pdf.README.md.figs/README.notes_to_pdf.3.png)
-<!--  render_images:end -->
-
-### C2.3: Post-Processing & System Operations
-
-<!--  rendered_images:begin -->
-<!--  ```mermaid -->
-<!--  graph TB -->
-<!--      subgraph PostProc["Post-Processing"] -->
-<!--          Compress["_compress_pdf()"] -->
-<!--          CopyOut["_copy_to_output()"] -->
-<!--          CopyGDrive["_copy_to_gdrive()"] -->
-<!--      end -->
-<!--       -->
-<!--      subgraph SystemOps["System Operations"] -->
-<!--          System["_system()"] -->
-<!--          SystemStr["_system_to_string()"] -->
-<!--          Report["_report_phase()"] -->
-<!--          Script["_append_script()"] -->
-<!--      end -->
-<!--       -->
-<!--      Compress -->|"post-process"| CopyOut -->
-<!--      CopyOut -->|"post-process"| CopyGDrive -->
-<!--      System -->|"system calls"| Compress -->
-<!--      SystemStr -->|"system calls"| CopyOut -->
-<!--      Report -->|"logging"| Compress -->
-<!--      Script -->|"script tracking"| System -->
-<!--  ``` -->
-<!--  rendered_images:end -->
-<!--  render_images:begin -->
-![](notes_to_pdf.README.md.figs/README.notes_to_pdf.4.png)
-<!--  render_images:end -->
-![](notes_to_pdf.README.md.figs/README.notes_to_pdf.2.png)
-
-- **Responsibilities:**
-  - _CLI Interface_: Argument parsing and main entry point
-  - _Pipeline Orchestration_: Manages action selection, sequencing, and phase
-    reporting
-  - _Processing Stages_: External preprocessing and image rendering via
-    subprocess calls
-  - _Format Converters_: Format-specific Pandoc command builders and execution
-    logic for PDF, HTML, and two slide engines
-  - _Post-Processing_: Output finalization, compression, copying, and archival
-  - _System Operations_: Wrapper functions for command execution, logging, and
-    optional script generation
-
-## C3 (Component)
-
-- Shows the components inside a container
-
-<!--  rendered_images:begin -->
-<!--  ```mermaid -->
-<!--  graph TD -->
-<!--      Start["User invokes CLI<br/>_parse() receives args"] -->
-<!--      Main["_main() → _run_all()"] -->
-<!--      -->
-<!--      CleanBefore{"Mark<br/>cleanup_before?"}--> -->
-<!--      CleanBeforeExec["_cleanup_before(prefix)"] -->
-<!--      -->
-<!--      FilterContent["Filter content<br/>(if requested)"] -->
-<!--      -->
-<!--      PreprocessMark{"Mark<br/>preprocess_notes?"}--> -->
-<!--      PreprocessExec["_preprocess_notes()<br/>→ processed file"] -->
-<!--      -->
-<!--      RenderImagesMark{"Mark<br/>render_images?"}--> -->
-<!--      RenderImagesExec["_render_images()<br/>→ rendered file"] -->
-<!--      -->
-<!--      MarkPandoc{"Mark<br/>run_pandoc?"}--> -->
-<!--      ConvertType{"Output<br/>type?"}--> -->
-<!--      ConvertPDF["_run_pandoc_to_pdf()<br/>→ PDF path"] -->
-<!--      ConvertHTML["_run_pandoc_to_html()<br/>→ HTML path"] -->
-<!--      ConvertSlides["_run_pandoc_to_latex_slides()<br/>or _run_pandoc_to_typst_slides()<br/>→ Slides path"] -->
-<!--      -->
-<!--      CompressMark{"Mark<br/>compress_pdf?"}--> -->
-<!--      CompressExec["_compress_pdf()<br/>→ compressed file"] -->
-<!--      -->
-<!--      CopyOutput["_copy_to_output()<br/>→ final output path"] -->
-<!--      -->
-<!--      CopyGDriveMark{"Mark<br/>copy_gdrive?"}--> -->
-<!--      CopyGDriveExec["_copy_to_gdrive()"] -->
-<!--      -->
-<!--      CleanAfterMark{"Mark<br/>cleanup_after?"}--> -->
-<!--      CleanAfterExec["_cleanup_after(prefix)"] -->
-<!--      -->
-<!--      Success["Success<br/>Return to User"] -->
-<!--      -->
-<!--      Start --> Main -->
-<!--      Main --> CleanBefore -->
-<!--      CleanBefore -->|yes| CleanBeforeExec -->
-<!--      CleanBefore -->|no| FilterContent -->
-<!--      CleanBeforeExec --> FilterContent -->
-<!--      -->
-<!--      FilterContent --> PreprocessMark -->
-<!--      PreprocessMark -->|yes| PreprocessExec -->
-<!--      PreprocessMark -->|no| RenderImagesMark -->
-<!--      PreprocessExec --> RenderImagesMark -->
-<!--      -->
-<!--      RenderImagesMark -->|yes| RenderImagesExec -->
-<!--      RenderImagesMark -->|no| MarkPandoc -->
-<!--      RenderImagesExec --> MarkPandoc -->
-<!--      -->
-<!--      MarkPandoc -->|yes| ConvertType -->
-<!--      MarkPandoc -->|no| CompressMark -->
-<!--      -->
-<!--      ConvertType -->|pdf| ConvertPDF -->
-<!--      ConvertType -->|html| ConvertHTML -->
-<!--      ConvertType -->|slides| ConvertSlides -->
-<!--      ConvertPDF --> CompressMark -->
-<!--      ConvertHTML --> CompressMark -->
-<!--      ConvertSlides --> CompressMark -->
-<!--      -->
-<!--      CompressMark -->|yes| CompressExec -->
-<!--      CompressMark -->|no| CopyOutput -->
-<!--      CompressExec --> CopyOutput -->
-<!--      -->
-<!--      CopyOutput --> CopyGDriveMark -->
-<!--      CopyGDriveMark -->|yes| CopyGDriveExec -->
-<!--      CopyGDriveMark -->|no| CleanAfterMark -->
-<!--      CopyGDriveExec --> CleanAfterMark -->
-<!--      -->
-<!--      CleanAfterMark -->|yes| CleanAfterExec -->
-<!--      CleanAfterMark -->|no| Success -->
-<!--      CleanAfterExec --> Success -->
-<!--  ``` -->
-<!--  rendered_images:end -->
-<!--  render_images:begin -->
-![](notes_to_pdf.README.md.figs/README.notes_to_pdf.5.png)
-<!--  render_images:end -->
-
-- **Key Component Interactions:**
-  1. _Action Selection_: `_mark_action()` returns whether an action should
-     execute, managing state across the pipeline
-  2. _File Threading_: Each processing stage receives an input file path and
-     returns an output path for the next stage
-  3. _System Command Wrapping_: All external tools invoked through `_system()`
-     and `_system_to_string()` for consistent logging
-  4. _Script Logging_: Commands optionally appended to a bash script via global
-     `_SCRIPT` list
-
-## C4 (Code)
 
 - This section shows how components are implemented
 
@@ -387,54 +211,3 @@
 | `pandoc_touying.typ` | Pandoc Typst template producing Touying slides |
 | `typst_abbrevs_example.md` | Runnable example exercising the abbreviation expansion, with the mechanism documented in its header comment |
 | External CLI tools | `pandoc`, `pdflatex`, `typst`, `/opt/homebrew/bin/gs` (ghostscript) |
-
-# Critique and Improvements
-
-## Strengths
-
-- **Modular Pipeline Design**: Action-based architecture allows users to
-  selectively enable/disable stages for iterative development and debugging
-  without re-running expensive operations.
-- **Dual-Engine Slide Support**: Supports both Beamer (LaTeX-based) and
-  Typst/Touying engines (single Typst pass vs two LaTeX passes).
-- **Optional Containerization**: Docker support with `use_host_tools` flag
-  enables tool isolation while remaining optional for faster development on local
-  machines.
-- **Script Logging**: Optional `--script` flag generates reproducible bash script
-  from executed commands for debugging and documentation.
-- **Comprehensive Filtering**: Supports filtering by header, line range, slide
-  range, and slide name before processing, enabling partial document generation
-  for testing.
-- **Rich CLI Interface**: Well-structured argparse with action flags, docker
-  options, and format-specific parameters (e.g., `toc_type`, `slides_engine`).
-
-## Weaknesses & Assumptions
-
-1. **Hardcoded Ghostscript Path**: `/opt/homebrew/bin/gs` is hardcoded
-   for macOS homebrew. This fails on Linux or different macOS installations.
-   - **Fact**: Line 604 has hardcoded path
-   - **Impact**: `_compress_pdf()` will crash if ghostscript is not at this exact location
-
-2. **Global Mutable State**: `_SCRIPT = None` used as global
-   accumulator. This is fragile if the module is imported or called multiple
-   times in the same process.
-   - **Assumption**: Assumed single execution per process
-
-3. **Silent LaTeX Failures on Comment Processing**:
-   `_render_images()` silently removes commented lines from `render_images.py`
-   output but doesn't validate that images were actually rendered. If image
-   rendering fails, the pipeline continues with incomplete content.
-   - **Fact**: No validation of image existence after `_render_images()`
-
-4. **No Retry Logic for External Tools**: If `pdflatex` fails intermittently
-   (e.g., due to temporary Docker issues), there's no retry mechanism. Users must
-   manually re-run the entire pipeline.
-
-5. **File Path Assumptions**: Code assumes `os.path.basename()` and simple
-   `.replace('.tex', '.pdf')` work correctly. Edge case: files with multiple dots
-   in names (e.g., `file.v1.2.txt`) may fail.
-   - **Assumption**: Filenames follow simple naming convention
-
-6. **Hardcoded Google Drive Directory**: Default path
-   `/Users/saggese/GoogleDrive/pdf_notes` is user-specific and won't work on
-   other systems.

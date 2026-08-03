@@ -36,6 +36,6 @@ model: haiku
 
 ## Step 3: Write Output
 - Format the output text wrapping it in 100 columns
-- Print the explanation on the screen
-- Write a file `<FILE>` `explanation.<tag>.md` with the explanation 
+- Do not print the explanation on the screen
+- Write a file `explanation.<tag>.md` in the current dir with the explanation 
   - If the file already exists, don't read it but just overwrite it

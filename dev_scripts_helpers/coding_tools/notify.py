@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 """
 Notify the user that the last command is completed through different channels:
@@ -18,12 +18,16 @@ By default both the blink and the notification are enabled.
 
 # Blink for at most 10 seconds instead of forever.
 > notify.py --timeout 10
+
+# Send notification in background and return immediately.
+> notify.py --background
 """
 
 import argparse
 import logging
 import os
 import platform
+import shlex
 import time
 
 import dev_scripts_helpers.coding_tools.last_cmd as dshctlacm
@@ -53,11 +57,11 @@ def _get_iterm2_name() -> str:
 
     :return: iTerm2 session name
     """
-    cmd = (
-        'osascript -e \'tell application "iTerm2" to name of current '
-        "session of current window'"
+    script = (
+        'tell application "iTerm2" to name of current session of current window'
     )
-    _, name = hsystem.system_to_one_line(cmd)
+    cmd = ["osascript", "-e", shlex.quote(script)]
+    _, name = hsystem.system_to_one_line(" ".join(cmd))
     return name
 
 
@@ -74,11 +78,12 @@ def _send_notification(message: str, *, sound_name: str = "Glass") -> None:
     hdbg.dassert_eq(
         platform.system(), "Darwin", "Notifications are only supported on macOS"
     )
-    cmd = (
-        f'osascript -e \'display notification "{message}" '
-        f'with title "" sound name "{sound_name}"\''
+    script = (
+        f'display notification "{message}" with title "" '
+        f'sound name "{sound_name}"'
     )
-    hsystem.system(cmd)
+    cmd = ["osascript", "-e", shlex.quote(script)]
+    hsystem.system(" ".join(cmd))
 
 
 def _blink_pane(timeout: int) -> None:
@@ -143,8 +148,7 @@ def _parse() -> argparse.ArgumentParser:
         action="store",
         type=int,
         default=-1,
-        help="Number of seconds to blink for; -1 means blink forever "
-        "until Ctrl-C",
+        help="Number of seconds to blink for (blink forever if not set)",
     )
     parser.add_argument(
         "--title",
@@ -158,6 +162,12 @@ def _parse() -> argparse.ArgumentParser:
         default="Glass",
         help="Name of the macOS sound to play with the notification",
     )
+    hparser.add_bool_arg(
+        parser,
+        "background",
+        default_value=False,
+        help_="Run notification in background and return immediately",
+    )
     hparser.add_verbosity_arg(parser)
     return parser
 
@@ -165,18 +175,25 @@ def _parse() -> argparse.ArgumentParser:
 def _main(parser: argparse.ArgumentParser) -> None:
     args = parser.parse_args()
     hdbg.init_logger(verbosity=args.log_level, use_exec_path=True)
+    # Fork into background if requested: parent returns immediately, child
+    # continues.
+    if args.background:
+        pid = os.fork()
+        if pid != 0:
+            return
+        os.setsid()
     #
     hdbg.dassert_in("bash", os.environ.get("SHELL", ""))
     message = []
+    # current_dir = os.getcwd()
+    # message.append(f"dir={current_dir}")
+    current_iterm2_name = _get_iterm2_name()
+    message.append(current_iterm2_name)
     if args.title == "":
         last_command = _get_last_command()
         message.append(last_command)
     else:
         message.append(args.title)
-    current_dir = os.getcwd()
-    message.append(f"dir={current_dir}")
-    current_iterm2_name = _get_iterm2_name()
-    message.append(f"term={current_iterm2_name}")
     message = "\n".join(message)
     if args.notify:
         _send_notification(message, sound_name=args.sound)

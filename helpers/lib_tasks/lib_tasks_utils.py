@@ -207,6 +207,8 @@ def to_multi_line_cmd(docker_cmd_: List[str]) -> str:
 use_one_line_cmd = False
 
 
+# TODO(ai_gp): print_cmd is not useful since there is a corresponding option
+# in system.
 def run(
     ctx: Any,
     cmd: str,
@@ -222,18 +224,20 @@ def run(
         cmd = _to_single_line_cmd(cmd)
     _LOG.debug("cmd=%s", cmd)
     if dry_run:
-        print(f"Dry-run: > {cmd}")
         _LOG.warning("Skipping execution of '%s'", cmd)
         res = None
     else:
+        # TODO(ai_gp): Remove this
         if print_cmd:
-            print(f"> {cmd}")
+            print(hprint.color_highlight(f"> {cmd}", color="green"))
         if use_system:
             # TODO(gp): Consider using only `hsystem.system()` since it's more
             # reliable.
             res = hsystem.system(cmd, suppress_output=False)
         else:
-            result = ctx.run(cmd, *args, **ctx_run_kwargs)
+            result = ctx.run(cmd, echo=False, *args, **ctx_run_kwargs)
+            if not ctx.config.run.dry:
+                print(hprint.color_highlight(f"> {cmd}", color="green"))
             res = result.return_code
     return res
 
@@ -241,6 +245,7 @@ def run(
 # Copied from helpers.datetime_ to avoid dependency from pandas.
 
 
+# TODO(ai_gp): Can this be eliminated?
 def get_ET_timestamp() -> str:
     # The timezone depends on how the shell is configured.
     timestamp = datetime.datetime.now()

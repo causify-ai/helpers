@@ -17,7 +17,7 @@
     "deny": [
     ]
   },
-  "model": "haiku",
+  "model": "sonnet",
   "hooks": {
     "Notification": [
       {
@@ -25,7 +25,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "source notify2.sh --timeout 10 --title 'CC idle'"
+            "command": "source notify.sh --timeout 0 --title 'CC idle' --background"
           }
         ]
       },
@@ -34,7 +34,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "source notify2.sh --timeout 10 --title 'CC needs input'"
+            "command": "source notify.sh --timeout 0 --title 'CC needs input' --background"
           }
         ]
       }
@@ -45,7 +45,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "source notify2.sh --timeout 10 --title 'CC is stopped'"
+            "command": "source notify.sh --timeout 0 --title 'CC is stopped' --background"
           }
         ]
       }
@@ -55,13 +55,14 @@
     "type": "command",
     "command": ".claude/statusline.sh"
   },
-  "spinnerTipsEnabled": true,
   "enabledPlugins": {
     "pyright-lsp@claude-plugins-official": true
   },
+  "spinnerTipsEnabled": true,
   "effortLevel": "xhigh",
   "skipDangerousModePermissionPrompt": true,
   "theme": "auto",
   "editorMode": "vim",
-  "verbose": true
+  "verbose": true,
+  "autoCompactEnabled": true
 }
