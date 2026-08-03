@@ -1030,8 +1030,7 @@ async def _process_file_incrementally(
       chunk (see `_build_incremental_messages_for_rule()`)
     - neither: one `RuleChunk` per section across `topic_info["rules"]`,
       shaped by `rule_level`/`max_chunk_tokens`/`merge_small_rules`/
-      `filter_rules_by_relevance`/`order_rules_by_dependency` (see
-      `_build_incremental_messages()`)
+      `filter_rules_by_relevance`/`order_rules_by_dependency`
 
     Every chunk's outcome is journaled to `journal_file` as it completes
     (see `_append_journal_entries()`), so a run killed partway through can

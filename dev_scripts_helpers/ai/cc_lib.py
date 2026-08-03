@@ -63,7 +63,7 @@ def message_to_str(message: Any) -> str:
             header = hprint.color_highlight(
                 f"=== TOOL: {block.name} ===", "yellow"
             )
-            body = hprint.color_highlight(block.input, "gray")
+            body = hprint.color_highlight(block.input, "yellow")
         else:
             continue
         chunks.append(f"\n{header}\n{body}")
@@ -212,8 +212,8 @@ class PromptSequencer:
             - "bypassPermissions" (bypass all permission checks)
         :param cwd: Working directory for Claude Code execution
             - "" means current directory
-        :param print_output: If True, print Claude messages to stdout as they
-            are received
+        :param print_output: If True, log Claude messages via `_LOG.debug` as
+            they are received
         :param model: Model name to use for the session
             - "" means the SDK default
         :param system_prompt: System prompt sent once per session
@@ -305,7 +305,7 @@ class PromptSequencer:
         )
         msg.append("Prompt content:\n%s" % prompt)
         msg_as_str = hprint.color_highlight("\n".join(msg), "blue")
-        _LOG.info("\n%s", msg_as_str)
+        _LOG.debug("\n%s", msg_as_str)
         # Query Claude with prompt and collect response asynchronously.
         await client.query(prompt)
         # Collect response messages from stream.
@@ -318,7 +318,7 @@ class PromptSequencer:
             if self.print_output:
                 text = message_to_str(message)
                 if text:
-                    print(text, flush=True)
+                    _LOG.debug("\n%s", text)
             response_parts.append(str(message))
             text = _extract_assistant_text(message)
             if text:
