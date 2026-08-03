@@ -25,165 +25,6 @@ import dev_scripts_helpers.ai.cc_lib as dshaccli
 
 
 # #############################################################################
-# Test_make_file_scope_guard
-# #############################################################################
-
-
-class Test_make_file_scope_guard(hunitest.TestCase):
-    """
-    Test `_make_file_scope_guard()` permission callback factory.
-    """
-
-    def helper(
-        self,
-        target_file: str,
-        tool_name: str,
-        tool_input: dict,
-        expected_type: type,
-    ):
-        """
-        Build a guard for `target_file`, invoke it, and check the result type.
-
-        :param target_file: file passed to `_make_file_scope_guard()`
-        :param tool_name: tool name passed to the guard callback
-        :param tool_input: tool input dict passed to the guard callback
-        :param expected_type: expected type of the permission result
-        :return: permission result returned by the guard callback
-        """
-        guard = dshaccli._make_file_scope_guard(target_file)
-        context = None
-        result = asyncio.run(guard(tool_name, tool_input, context))  # type: ignore
-        self.assertIsInstance(result, expected_type)
-        return result
-
-    def test1(self) -> None:
-        """
-        Test that editing the target file itself is allowed.
-        """
-        # Prepare inputs.
-        target_file = "/tmp/target.py"
-        tool_name = "Edit"
-        tool_input = {"file_path": "/tmp/target.py"}
-        # Run test and check outputs.
-        self.helper(
-            target_file,
-            tool_name,
-            tool_input,
-            claude_agent_sdk.types.PermissionResultAllow,
-        )
-
-    def test2(self) -> None:
-        """
-        Test that editing a different file is denied with target filename in message.
-        """
-        # Prepare inputs.
-        target_file = "/tmp/target.py"
-        tool_input = {"file_path": "/tmp/other.py"}
-        # Run test.
-        result = self.helper(
-            target_file,
-            "Edit",
-            tool_input,
-            claude_agent_sdk.types.PermissionResultDeny,
-        )
-        # Check outputs.
-        self.assertIn(target_file, result.message)
-
-    def test3(self) -> None:
-        """
-        Test that all file-modifying tools are denied on a mismatched path.
-        """
-        # Prepare inputs.
-        target_file = "/tmp/target.py"
-        tool_input = {"file_path": "/tmp/other.py"}
-        file_modifying_tools = ("Edit", "Write", "NotebookEdit", "MultiEdit")
-        # Run test and check outputs.
-        for tool_name in file_modifying_tools:
-            self.helper(
-                target_file,
-                tool_name,
-                tool_input,
-                claude_agent_sdk.types.PermissionResultDeny,
-            )
-
-    def test4(self) -> None:
-        """
-        Test that non-modifying tools are always allowed on a different file.
-        """
-        # Prepare inputs.
-        target_file = "/tmp/target.py"
-        tool_input = {"file_path": "/tmp/other.py"}
-        # Run test and check outputs.
-        for tool_name in ("Read", "Bash"):
-            self.helper(
-                target_file,
-                tool_name,
-                tool_input,
-                claude_agent_sdk.types.PermissionResultAllow,
-            )
-
-    def test5(self) -> None:
-        """
-        Test that non-modifying tools are allowed when file_path is absent.
-        """
-        # Prepare inputs.
-        target_file = "/tmp/target.py"
-        tool_input: dict = {}
-        # Run test and check outputs.
-        self.helper(
-            target_file,
-            "Bash",
-            tool_input,
-            claude_agent_sdk.types.PermissionResultAllow,
-        )
-
-    def test6(self) -> None:
-        """
-        Test that a missing file_path is allowed for a modifying tool.
-        """
-        # Prepare inputs.
-        target_file = "/tmp/target.py"
-        tool_input: dict = {}
-        # Run test and check outputs.
-        self.helper(
-            target_file,
-            "Edit",
-            tool_input,
-            claude_agent_sdk.types.PermissionResultAllow,
-        )
-
-    def test7(self) -> None:
-        """
-        Test that an empty file_path is allowed for a modifying tool.
-        """
-        # Prepare inputs.
-        target_file = "/tmp/target.py"
-        tool_input = {"file_path": ""}
-        # Run test and check outputs.
-        self.helper(
-            target_file,
-            "Edit",
-            tool_input,
-            claude_agent_sdk.types.PermissionResultAllow,
-        )
-
-    def test8(self) -> None:
-        """
-        Test that a relative target_file matching an absolute file_path is allowed.
-        """
-        # Prepare inputs.
-        target_file = "target.py"
-        tool_input = {"file_path": os.path.abspath("target.py")}
-        # Run test and check outputs.
-        self.helper(
-            target_file,
-            "Edit",
-            tool_input,
-            claude_agent_sdk.types.PermissionResultAllow,
-        )
-
-
-# #############################################################################
 # Test_PromptSequencer_execute
 # #############################################################################
 
@@ -601,90 +442,6 @@ class Test_PromptSequencer_context_strategy(hunitest.TestCase):
 
 
 # #############################################################################
-# Test_parse_rule_outcome
-# #############################################################################
-
-
-class Test_parse_rule_outcome(hunitest.TestCase):
-    """
-    Test `_parse_rule_outcome()` no-op contract parser.
-    """
-
-    def helper(self, assistant_text: str, expected: str) -> None:
-        """
-        Parse `assistant_text` and check the result against `expected`.
-
-        :param assistant_text: assistant reply text to parse
-        :param expected: expected parsed outcome
-        """
-        # Run test.
-        actual = dshaccli._parse_rule_outcome(assistant_text)
-        # Check outputs.
-        self.assertEqual(actual, expected)
-
-    def test1(self) -> None:
-        """
-        Test that a bare NO-OP reply is parsed as NO-OP.
-        """
-        # Prepare inputs.
-        assistant_text = "LLM> NO-OP"
-        # Prepare outputs.
-        expected = "NO-OP"
-        # Run test.
-        self.helper(assistant_text, expected)
-
-    def test2(self) -> None:
-        """
-        Test that a CHANGED reply is parsed together with its summary.
-        """
-        # Prepare inputs.
-        assistant_text = "LLM> CHANGED: renamed foo to _foo"
-        # Prepare outputs.
-        expected = "CHANGED: renamed foo to _foo"
-        # Run test.
-        self.helper(assistant_text, expected)
-
-    def test3(self) -> None:
-        """
-        Test that surrounding prose does not prevent the contract from
-        being found.
-        """
-        # Prepare inputs.
-        assistant_text = """
-        I re-read the file and applied the rule.
-
-        LLM> CHANGED: added docstring
-        """
-        assistant_text = hprint.dedent(assistant_text)
-        # Prepare outputs.
-        expected = "CHANGED: added docstring"
-        # Run test.
-        self.helper(assistant_text, expected)
-
-    def test4(self) -> None:
-        """
-        Test that a reply without the contract markers is UNKNOWN.
-        """
-        # Prepare inputs.
-        assistant_text = "I made some changes but forgot the format."
-        # Prepare outputs.
-        expected = "UNKNOWN"
-        # Run test.
-        self.helper(assistant_text, expected)
-
-    def test5(self) -> None:
-        """
-        Test that an empty reply is UNKNOWN.
-        """
-        # Prepare inputs.
-        assistant_text = ""
-        # Prepare outputs.
-        expected = "UNKNOWN"
-        # Run test.
-        self.helper(assistant_text, expected)
-
-
-# #############################################################################
 # Test_PromptSequencer_execute_end_to_end
 # #############################################################################
 
@@ -889,3 +646,246 @@ class Test_save_session_log(hunitest.TestCase):
         }"""
         # Run test.
         self.helper(prompts, responses, expected)
+
+
+# #############################################################################
+# Test_make_file_scope_guard
+# #############################################################################
+
+
+class Test_make_file_scope_guard(hunitest.TestCase):
+    """
+    Test `_make_file_scope_guard()` permission callback factory.
+    """
+
+    def helper(
+        self,
+        target_file: str,
+        tool_name: str,
+        tool_input: dict,
+        expected_type: type,
+    ):
+        """
+        Build a guard for `target_file`, invoke it, and check the result type.
+
+        :param target_file: file passed to `_make_file_scope_guard()`
+        :param tool_name: tool name passed to the guard callback
+        :param tool_input: tool input dict passed to the guard callback
+        :param expected_type: expected type of the permission result
+        :return: permission result returned by the guard callback
+        """
+        guard = dshaccli._make_file_scope_guard(target_file)
+        context = None
+        result = asyncio.run(guard(tool_name, tool_input, context))  # type: ignore
+        self.assertIsInstance(result, expected_type)
+        return result
+
+    def test1(self) -> None:
+        """
+        Test that editing the target file itself is allowed.
+        """
+        # Prepare inputs.
+        target_file = "/tmp/target.py"
+        tool_name = "Edit"
+        tool_input = {"file_path": "/tmp/target.py"}
+        # Run test and check outputs.
+        self.helper(
+            target_file,
+            tool_name,
+            tool_input,
+            claude_agent_sdk.types.PermissionResultAllow,
+        )
+
+    def test2(self) -> None:
+        """
+        Test that editing a different file is denied with target filename in message.
+        """
+        # Prepare inputs.
+        target_file = "/tmp/target.py"
+        tool_input = {"file_path": "/tmp/other.py"}
+        # Run test.
+        result = self.helper(
+            target_file,
+            "Edit",
+            tool_input,
+            claude_agent_sdk.types.PermissionResultDeny,
+        )
+        # Check outputs.
+        self.assertIn(target_file, result.message)
+
+    def test3(self) -> None:
+        """
+        Test that all file-modifying tools are denied on a mismatched path.
+        """
+        # Prepare inputs.
+        target_file = "/tmp/target.py"
+        tool_input = {"file_path": "/tmp/other.py"}
+        file_modifying_tools = ("Edit", "Write", "NotebookEdit", "MultiEdit")
+        # Run test and check outputs.
+        for tool_name in file_modifying_tools:
+            self.helper(
+                target_file,
+                tool_name,
+                tool_input,
+                claude_agent_sdk.types.PermissionResultDeny,
+            )
+
+    def test4(self) -> None:
+        """
+        Test that non-modifying tools are always allowed on a different file.
+        """
+        # Prepare inputs.
+        target_file = "/tmp/target.py"
+        tool_input = {"file_path": "/tmp/other.py"}
+        # Run test and check outputs.
+        for tool_name in ("Read", "Bash"):
+            self.helper(
+                target_file,
+                tool_name,
+                tool_input,
+                claude_agent_sdk.types.PermissionResultAllow,
+            )
+
+    def test5(self) -> None:
+        """
+        Test that non-modifying tools are allowed when file_path is absent.
+        """
+        # Prepare inputs.
+        target_file = "/tmp/target.py"
+        tool_input: dict = {}
+        # Run test and check outputs.
+        self.helper(
+            target_file,
+            "Bash",
+            tool_input,
+            claude_agent_sdk.types.PermissionResultAllow,
+        )
+
+    def test6(self) -> None:
+        """
+        Test that a missing file_path is allowed for a modifying tool.
+        """
+        # Prepare inputs.
+        target_file = "/tmp/target.py"
+        tool_input: dict = {}
+        # Run test and check outputs.
+        self.helper(
+            target_file,
+            "Edit",
+            tool_input,
+            claude_agent_sdk.types.PermissionResultAllow,
+        )
+
+    def test7(self) -> None:
+        """
+        Test that an empty file_path is allowed for a modifying tool.
+        """
+        # Prepare inputs.
+        target_file = "/tmp/target.py"
+        tool_input = {"file_path": ""}
+        # Run test and check outputs.
+        self.helper(
+            target_file,
+            "Edit",
+            tool_input,
+            claude_agent_sdk.types.PermissionResultAllow,
+        )
+
+    def test8(self) -> None:
+        """
+        Test that a relative target_file matching an absolute file_path is allowed.
+        """
+        # Prepare inputs.
+        target_file = "target.py"
+        tool_input = {"file_path": os.path.abspath("target.py")}
+        # Run test and check outputs.
+        self.helper(
+            target_file,
+            "Edit",
+            tool_input,
+            claude_agent_sdk.types.PermissionResultAllow,
+        )
+
+
+# #############################################################################
+# Test_parse_rule_outcome
+# #############################################################################
+
+
+class Test_parse_rule_outcome(hunitest.TestCase):
+    """
+    Test `_parse_rule_outcome()` no-op contract parser.
+    """
+
+    def helper(self, assistant_text: str, expected: str) -> None:
+        """
+        Parse `assistant_text` and check the result against `expected`.
+
+        :param assistant_text: assistant reply text to parse
+        :param expected: expected parsed outcome
+        """
+        # Run test.
+        actual = dshaccli._parse_rule_outcome(assistant_text)
+        # Check outputs.
+        self.assertEqual(actual, expected)
+
+    def test1(self) -> None:
+        """
+        Test that a bare NO-OP reply is parsed as NO-OP.
+        """
+        # Prepare inputs.
+        assistant_text = "LLM> NO-OP"
+        # Prepare outputs.
+        expected = "NO-OP"
+        # Run test.
+        self.helper(assistant_text, expected)
+
+    def test2(self) -> None:
+        """
+        Test that a CHANGED reply is parsed together with its summary.
+        """
+        # Prepare inputs.
+        assistant_text = "LLM> CHANGED: renamed foo to _foo"
+        # Prepare outputs.
+        expected = "CHANGED: renamed foo to _foo"
+        # Run test.
+        self.helper(assistant_text, expected)
+
+    def test3(self) -> None:
+        """
+        Test that surrounding prose does not prevent the contract from
+        being found.
+        """
+        # Prepare inputs.
+        assistant_text = """
+        I re-read the file and applied the rule.
+
+        LLM> CHANGED: added docstring
+        """
+        assistant_text = hprint.dedent(assistant_text)
+        # Prepare outputs.
+        expected = "CHANGED: added docstring"
+        # Run test.
+        self.helper(assistant_text, expected)
+
+    def test4(self) -> None:
+        """
+        Test that a reply without the contract markers is UNKNOWN.
+        """
+        # Prepare inputs.
+        assistant_text = "I made some changes but forgot the format."
+        # Prepare outputs.
+        expected = "UNKNOWN"
+        # Run test.
+        self.helper(assistant_text, expected)
+
+    def test5(self) -> None:
+        """
+        Test that an empty reply is UNKNOWN.
+        """
+        # Prepare inputs.
+        assistant_text = ""
+        # Prepare outputs.
+        expected = "UNKNOWN"
+        # Run test.
+        self.helper(assistant_text, expected)

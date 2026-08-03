@@ -820,7 +820,7 @@ def _run_claude_code(
         _LOG.debug("return=0")
         return 0
     _LOG.info("Using model: %s", model)
-    _LOG.info("\n%s\n%s", hprint.frame("Prompt (%s):") % topic, prompt)
+    _LOG.debug("\n%s\n%s", hprint.frame("Prompt (%s):") % topic, prompt)
     _LOG.info("Claude command: %s", cmd)
     hsystem.system(cmd)
     _LOG.debug("return=0")
@@ -1079,6 +1079,7 @@ async def _process_file_incrementally(
     )
     hdbg.dassert_file_exists(file_path)
     system_prompt = _build_incremental_system_prompt(topic_info)
+    _LOG.debug("\n%s\n%s", hprint.frame("System prompt:"), system_prompt)
     if skill:
         # A skill invocation is a single command for Claude Code's own skill
         # loader, kept as-is instead of being split into rule chunks.
@@ -1147,8 +1148,10 @@ async def _process_file_incrementally(
     )
     titles = [title for title, _ in titled_messages]
     messages = [msg for _, msg in titled_messages]
+    pbar = tqdm(total=len(messages), desc="Executing messages")
 
     def _on_chunk_done(prompt_idx: int, stats: Dict[str, Any]) -> None:
+        pbar.update(1)
         if not journal_file:
             return
         entry = {
@@ -1175,15 +1178,17 @@ async def _process_file_incrementally(
         )
         await sequencer.execute(messages)
         stats = sequencer.get_execution_stats()
-        _LOG.info("Execution completed: %s", stats)
+        _LOG.debug("Execution completed: %s", stats)
         for idx, outcome in enumerate(sequencer.get_outcomes(), 1):
-            _LOG.info("Rule %d/%d outcome: %s", idx, len(messages), outcome)
+            _LOG.debug("Rule %d/%d outcome: %s", idx, len(messages), outcome)
         _LOG.debug("return=0")
         return 0
     except Exception as e:
         _LOG.error("Sequential execution failed: %s", str(e))
         _LOG.debug("return=1")
         return 1
+    finally:
+        pbar.close()
 
 
 def _process_file(
@@ -1395,8 +1400,8 @@ def _parse() -> argparse.ArgumentParser:
     parser.add_argument(
         "--model",
         type=str,
-        default="",
-        help="Optional model name to use using cc conventions",
+        default="claude-haiku-4-5-20251001",
+        help="Model name to use using cc conventions",
     )
     hparser.add_verbosity_arg(parser)
     return parser
