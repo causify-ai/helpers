@@ -1026,7 +1026,7 @@ class Test_build_incremental_system_prompt(hunitest.TestCase):
             "of the passed file"
         )
         # Prepare outputs.
-        expected = role_content + instruction
+        expected = role_content + "\n" + instruction
         # Run test.
         actual = system_prompt[: len(expected)]
         # Check outputs.
@@ -1044,7 +1044,7 @@ class Test_build_incremental_system_prompt(hunitest.TestCase):
             "You MUST make sure not to change the behavior or the intent "
             "of the passed file"
         )
-        prefix_len = len(role_content) + len(instruction)
+        prefix_len = len(role_content) + 1 + len(instruction) + 1
         # Prepare outputs.
         expected = (
             "You MUST follow the templates below:\n"
@@ -1064,7 +1064,7 @@ class Test_build_incremental_system_prompt(hunitest.TestCase):
         topic_info, system_prompt = self.helper(topic)
         role_content = hio.from_file(topic_info["role"])
         # Prepare outputs.
-        expected = role_content + (
+        expected = role_content + "\n" + (
             "You MUST make sure not to change the behavior or the intent "
             "of the passed file"
         )

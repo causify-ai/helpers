@@ -27,6 +27,7 @@ import argparse
 import logging
 import os
 import platform
+import shlex
 import time
 
 import dev_scripts_helpers.coding_tools.last_cmd as dshctlacm
@@ -56,11 +57,10 @@ def _get_iterm2_name() -> str:
 
     :return: iTerm2 session name
     """
-    cmd = [
-        "osascript",
-        "-e",
-        'tell application "iTerm2" to name of current session of current window',
-    ]
+    script = (
+        'tell application "iTerm2" to name of current session of current window'
+    )
+    cmd = ["osascript", "-e", shlex.quote(script)]
     _, name = hsystem.system_to_one_line(" ".join(cmd))
     return name
 
@@ -78,11 +78,11 @@ def _send_notification(message: str, *, sound_name: str = "Glass") -> None:
     hdbg.dassert_eq(
         platform.system(), "Darwin", "Notifications are only supported on macOS"
     )
-    cmd = [
-        "osascript",
-        "-e",
-        f'display notification "{message}" with title "" sound name "{sound_name}"',
-    ]
+    script = (
+        f'display notification "{message}" with title "" '
+        f'sound name "{sound_name}"'
+    )
+    cmd = ["osascript", "-e", shlex.quote(script)]
     hsystem.system(" ".join(cmd))
 
 

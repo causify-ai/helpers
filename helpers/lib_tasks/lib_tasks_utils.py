@@ -236,7 +236,8 @@ def run(
             res = hsystem.system(cmd, suppress_output=False)
         else:
             result = ctx.run(cmd, echo=False, *args, **ctx_run_kwargs)
-            print(hprint.color_highlight(f"> {cmd}", color="green"))
+            if not ctx.config.run.dry:
+                print(hprint.color_highlight(f"> {cmd}", color="green"))
             res = result.return_code
     return res
 
