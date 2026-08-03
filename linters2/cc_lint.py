@@ -63,6 +63,10 @@ _LOG = logging.getLogger(__name__)
 # screen.
 _DRY_RUN_FILE = "tmp.cc_lint_dry_run.txt"
 
+# Default JSON journal recording each chunk's outcome in `--mode
+# session`/`stateless`, used by `--resume` to skip completed chunks.
+_DEFAULT_JOURNAL_FILE = "tmp.cc_lint_journal.json"
+
 
 # #############################################################################
 # Low-level Utility Functions
@@ -581,6 +585,149 @@ def _order_chunks_by_dependency(
 
 
 # #############################################################################
+# Journal handling
+# #############################################################################
+
+
+def _load_journal(journal_file: str) -> List[Dict[str, Any]]:
+    """
+    Load the chunk journal, or return an empty list if it does not exist yet.
+
+    :param journal_file: path to the JSON journal file
+    :return: list of journal entries, in the order they were appended
+    """
+    if not os.path.exists(journal_file):
+        return []
+    content = hio.from_file(journal_file)
+    entries = cast(List[Dict[str, Any]], json.loads(content))
+    _LOG.debug(
+        "Loaded %d journal entries from '%s'", len(entries), journal_file
+    )
+    return entries
+
+
+def _append_journal_entries(
+    journal_file: str, entries: List[Dict[str, Any]]
+) -> None:
+    """
+    Append `entries` to the journal at `journal_file`.
+
+    Read-modify-write so each chunk's outcome is durable on disk as soon as
+    it completes, surviving a run that is killed partway through.
+
+    :param journal_file: path to the JSON journal file
+    :param entries: journal entries to append, each with `file_path`,
+        `chunk_title`, `status`, `cost_usd`, and `num_turns`
+    """
+    if not entries:
+        return
+    journal = _load_journal(journal_file)
+    journal.extend(entries)
+    hio.to_file(journal_file, json.dumps(journal, indent=2))
+    _LOG.debug(
+        "Appended %d entries to journal '%s' (%d total)",
+        len(entries),
+        journal_file,
+        len(journal),
+    )
+
+
+# TODO(ai_gp): Return "" instead of None
+def _latest_journal_status(
+    journal: List[Dict[str, Any]], file_path: str, chunk_title: str
+) -> Optional[str]:
+    """
+    Get the most recently appended status for `(file_path, chunk_title)`.
+
+    :param journal: journal entries, in append order (see `_load_journal()`)
+    :param file_path: file the chunk applies to
+    :param chunk_title: chunk title, as journaled
+    :return: the `status` of the last matching entry, or `None` if the pair
+        has no entry
+    """
+    status = None
+    for entry in journal:
+        if (
+            entry["file_path"] == file_path
+            and entry["chunk_title"] == chunk_title
+        ):
+            status = entry["status"]
+    return status
+
+
+def _status_from_chunk_stats(stats: Dict[str, Any]) -> str:
+    """
+    Map a `PromptSequencer` chunk stats dict to a journal status.
+
+    :param stats: one entry from `PromptSequencer.get_chunk_stats()` (or the
+        `on_chunk_done` callback), with `outcome` and `is_error`
+    :return: `"failed"` when `is_error` or the reply did not follow the
+        no-op contract (`outcome == "UNKNOWN"`), else `"no_op"` or `"done"`
+        derived from `outcome`
+    """
+    if stats["is_error"]:
+        return "failed"
+    outcome = stats["outcome"]
+    if outcome == "NO-OP":
+        return "no_op"
+    if outcome.startswith("CHANGED"):
+        return "done"
+    # "UNKNOWN": the reply did not follow the no-op contract, so the
+    # chunk's actual effect on the file is untrusted.
+    return "failed"
+
+
+def _filter_resumable(
+    file_path: str,
+    titled_messages: List[Tuple[str, str]],
+    journal: List[Dict[str, Any]],
+    journal_file: str,
+) -> List[Tuple[str, str]]:
+    """
+    Drop chunks already `done`/`no_op` for `file_path` in `journal`.
+
+    Journals a `"skipped"` entry for each dropped chunk, so every run's
+    outcome for every chunk is recorded, not just the first run that
+    actually executed it.
+
+    :param file_path: file the chunks apply to
+    :param titled_messages: `(chunk_title, message)` pairs to filter
+    :param journal: journal entries loaded via `_load_journal()`
+    :param journal_file: path to append `"skipped"` entries to
+    :return: `titled_messages` with already-`done`/`no_op` chunks removed
+    """
+    kept: List[Tuple[str, str]] = []
+    skipped_entries: List[Dict[str, Any]] = []
+    for title, message in titled_messages:
+        status = _latest_journal_status(journal, file_path, title)
+        if status in ("done", "no_op"):
+            _LOG.info(
+                "Skipping chunk '%s' for '%s': already '%s'",
+                title,
+                file_path,
+                status,
+            )
+            skipped_entries.append(
+                {
+                    "file_path": file_path,
+                    "chunk_title": title,
+                    "status": "skipped",
+                    "cost_usd": None,
+                    "num_turns": None,
+                }
+            )
+        else:
+            kept.append((title, message))
+    _append_journal_entries(journal_file, skipped_entries)
+    _LOG.debug(
+        "return=%d of %d chunk(s) kept after --resume filtering",
+        len(kept),
+        len(titled_messages),
+    )
+    return kept
+
+
+# #############################################################################
 # Prompt Building
 # #############################################################################
 
@@ -775,7 +922,7 @@ def _build_incremental_messages(
     filter_rules_by_relevance: bool = False,
     order_rules_by_dependency: bool = False,
     model: str = "",
-) -> List[str]:
+) -> List[Tuple[str, str]]:
     """
     Build a sequence of rule messages for incremental rule application.
 
@@ -795,9 +942,9 @@ def _build_incremental_messages(
         `# Verification` lands last
     :param model: model to use for the `filter_rules_by_relevance` and
         `order_rules_by_dependency` pre-passes
-    :return: one message per rule chunk; the role and the "do not change
-        behavior" instruction live in the system prompt instead (see
-        `_build_incremental_system_prompt()`)
+    :return: one `(chunk_title, message)` pair per rule chunk; the role and
+        the "do not change behavior" instruction live in the system prompt
+        instead (see `_build_incremental_system_prompt()`)
     """
     _LOG.debug(
         hprint.to_str(
@@ -818,16 +965,17 @@ def _build_incremental_messages(
     if order_rules_by_dependency:
         chunks = _order_chunks_by_dependency(chunks, model=model)
     #
-    messages = [
-        _build_rule_message(file_path, chunk.content) for chunk in chunks
+    titled_messages = [
+        (chunk.title, _build_rule_message(file_path, chunk.content))
+        for chunk in chunks
     ]
-    _LOG.debug("return=%d messages", len(messages))
-    return messages
+    _LOG.debug("return=%d messages", len(titled_messages))
+    return titled_messages
 
 
 def _build_incremental_messages_for_rule(
-    file_path: str, rule_content: str
-) -> List[str]:
+    file_path: str, rule_content: str, rule_spec: str
+) -> List[Tuple[str, str]]:
     """
     Build incremental rule messages for a `--rule` specification.
 
@@ -839,19 +987,26 @@ def _build_incremental_messages_for_rule(
 
     :param file_path: path of the file to apply the rule to
     :param rule_content: rule text from `hmarsele.extract_rule_from_file()`
-    :return: one message per H1 section in `rule_content`, or a single
-        message when it has zero or one H1 section
+    :param rule_spec: the `--rule` value as passed on the command line, used
+        as the chunk title when `rule_content` has no H1 section of its own
+        to name it
+    :return: one `(chunk_title, message)` pair per H1 section in
+        `rule_content`, or a single pair titled `rule_spec` when it has zero
+        or one H1 section
     """
-    _LOG.debug(hprint.to_str("file_path"))
+    _LOG.debug(hprint.to_str("file_path rule_spec"))
     lines = rule_content.split("\n")
     sections = hmarhead.extract_h1_sections_from_lines(lines)
     if len(sections) > 1:
-        contents = [section_content for _, section_content in sections]
+        titled_contents = sections
     else:
-        contents = [rule_content]
-    messages = [_build_rule_message(file_path, content) for content in contents]
-    _LOG.debug("return=%d messages", len(messages))
-    return messages
+        titled_contents = [(rule_spec, rule_content)]
+    titled_messages = [
+        (title, _build_rule_message(file_path, content))
+        for title, content in titled_contents
+    ]
+    _LOG.debug("return=%d messages", len(titled_messages))
+    return titled_messages
 
 
 async def _process_file_incrementally(
@@ -868,6 +1023,9 @@ async def _process_file_incrementally(
     merge_small_rules: bool = False,
     filter_rules_by_relevance: bool = False,
     order_rules_by_dependency: bool = False,
+    resume: bool = False,
+    journal_file: str = "",
+    max_turns_per_chunk: Optional[int] = None,
 ) -> int:
     """
     Apply rules incrementally, one chunk per Claude Code interaction.
@@ -884,6 +1042,11 @@ async def _process_file_incrementally(
       shaped by `rule_level`/`max_chunk_tokens`/`merge_small_rules`/
       `filter_rules_by_relevance`/`order_rules_by_dependency` (see
       `_build_incremental_messages()`)
+
+    Every chunk's outcome is journaled to `journal_file` as it completes
+    (see `_append_journal_entries()`), so a run killed partway through can
+    be resumed with `resume=True`, which skips chunks already `done`/
+    `no_op` for `file_path` (see `_filter_resumable()`).
 
     :param file_path: Path to the file to process
     :param dry_run: If True, print messages without executing
@@ -908,13 +1071,20 @@ async def _process_file_incrementally(
         pre-pass finds inapplicable to `file_path`
     :param order_rules_by_dependency: if `True`, reorder chunks via an LLM
         pre-pass so semantic rules apply first and `# Verification` last
+    :param resume: if `True`, skip chunks already `done`/`no_op` for
+        `file_path` in `journal_file`
+    :param journal_file: path to the JSON chunk journal; journaling is
+        skipped when `""`
+    :param max_turns_per_chunk: per-chunk turn limit forwarded to
+        `PromptSequencer(max_turns=...)`, or `None` for no limit
     :return: Return code (0 on success)
     """
     _LOG.debug(
         hprint.to_str(
             "file_path dry_run model context_strategy skill rule "
             "rule_level max_chunk_tokens merge_small_rules "
-            "filter_rules_by_relevance order_rules_by_dependency"
+            "filter_rules_by_relevance order_rules_by_dependency "
+            "resume journal_file max_turns_per_chunk"
         )
     )
     hdbg.dassert_file_exists(file_path)
@@ -923,14 +1093,16 @@ async def _process_file_incrementally(
         # A skill invocation is a single command for Claude Code's own skill
         # loader, kept as-is instead of being split into rule chunks.
         full_skill_name = hmarsele.find_skill(skill)
-        messages = [f"/{full_skill_name} {file_path}"]
+        titled_messages = [
+            (f"skill:{full_skill_name}", f"/{full_skill_name} {file_path}")
+        ]
     elif rule:
         rule_content = hmarsele.extract_rule_from_file(rule)
-        messages = _build_incremental_messages_for_rule(
-            file_path, rule_content
+        titled_messages = _build_incremental_messages_for_rule(
+            file_path, rule_content, rule
         )
     else:
-        messages = _build_incremental_messages(
+        titled_messages = _build_incremental_messages(
             file_path,
             topic_info,
             level=rule_level,
@@ -940,6 +1112,11 @@ async def _process_file_incrementally(
             order_rules_by_dependency=order_rules_by_dependency,
             model=model,
         )
+    if resume and journal_file:
+        journal = _load_journal(journal_file)
+        titled_messages = _filter_resumable(
+            file_path, titled_messages, journal, journal_file
+        )
     # Handle dry run.
     if dry_run:
         # Save the full, untrimmed dry-run output to a file instead of
@@ -948,21 +1125,51 @@ async def _process_file_incrementally(
         dry_run_output.append(
             "\n%s\n%s" % (hprint.frame("System prompt:"), system_prompt)
         )
-        for idx, msg in enumerate(messages, 1):
+        for idx, (title, msg) in enumerate(titled_messages, 1):
             dry_run_output.append(
                 "\n%s\n%s"
-                % (hprint.frame(f"Message {idx}/{len(messages)}:"), msg)
+                % (
+                    hprint.frame(
+                        f"Message {idx}/{len(titled_messages)} ({title}):"
+                    ),
+                    msg,
+                )
             )
         hio.to_file(_DRY_RUN_FILE, "\n".join(dry_run_output))
         _LOG.warning("Saved dry-run output to '%s'", _DRY_RUN_FILE)
         _LOG.debug("return=0 (dry_run)")
         return 0
+    if not titled_messages:
+        # `--resume` found every chunk already `done`/`no_op`, so there is
+        # nothing left to send to `PromptSequencer` (which requires at
+        # least one prompt).
+        _LOG.info(
+            "Nothing to do for '%s': every chunk is already resolved",
+            file_path,
+        )
+        _LOG.debug("return=0 (nothing to resume)")
+        return 0
     # Execute messages using PromptSequencer.
     _LOG.info(
         "Executing %d messages with '%s' context strategy",
-        len(messages),
+        len(titled_messages),
         context_strategy,
     )
+    titles = [title for title, _ in titled_messages]
+    messages = [msg for _, msg in titled_messages]
+
+    def _on_chunk_done(prompt_idx: int, stats: Dict[str, Any]) -> None:
+        if not journal_file:
+            return
+        entry = {
+            "file_path": file_path,
+            "chunk_title": titles[prompt_idx - 1],
+            "status": _status_from_chunk_stats(stats),
+            "cost_usd": stats["cost_usd"],
+            "num_turns": stats["num_turns"],
+        }
+        _append_journal_entries(journal_file, [entry])
+
     try:
         sequencer = dshaccli.PromptSequencer(
             allowed_tools=["Read", "Edit", "Grep", "Glob"],
@@ -973,6 +1180,8 @@ async def _process_file_incrementally(
             system_prompt=system_prompt,
             context_strategy=context_strategy,
             target_file=file_path,
+            max_turns=max_turns_per_chunk,
+            on_chunk_done=_on_chunk_done,
         )
         await sequencer.execute(messages)
         stats = sequencer.get_execution_stats()
@@ -1010,6 +1219,8 @@ def _process_file(
         else:
             topic_str = _infer_topic_from_filename(file_path)
         topic_info = _get_rules_for_topic(topic_str)
+        # `0` means "no limit" on the CLI; `PromptSequencer` expects `None`.
+        max_turns_per_chunk = args.max_turns_per_chunk or None
         rc = asyncio.run(
             _process_file_incrementally(
                 file_path,
@@ -1024,6 +1235,9 @@ def _process_file(
                 merge_small_rules=args.merge_small_rules,
                 filter_rules_by_relevance=args.filter_rules_by_relevance,
                 order_rules_by_dependency=args.order_rules_by_dependency,
+                resume=args.resume,
+                journal_file=args.journal_file,
+                max_turns_per_chunk=max_turns_per_chunk,
             )
         )
     elif args.skill:
@@ -1162,6 +1376,26 @@ def _parse() -> argparse.ArgumentParser:
         help="Reorder rule chunks via an LLM pre-pass so semantic rules "
         "apply before structural and formatting rules, with the "
         "Verification checklist always last",
+    )
+    parser.add_argument(
+        "--resume",
+        action="store_true",
+        help="Skip chunks in --mode session/stateless already marked "
+        "'done' or 'no_op' for the file in --journal_file",
+    )
+    parser.add_argument(
+        "--journal_file",
+        type=str,
+        default=_DEFAULT_JOURNAL_FILE,
+        help="JSON journal recording each chunk's outcome in --mode "
+        "session/stateless, read by --resume",
+    )
+    parser.add_argument(
+        "--max_turns_per_chunk",
+        type=int,
+        default=15,
+        help="Per-chunk turn limit in --mode session/stateless, passed as "
+        "ClaudeAgentOptions.max_turns; pass 0 for no limit",
     )
     parser.add_argument(
         "--dry_run",

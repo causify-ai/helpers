@@ -829,6 +829,173 @@ class Test_order_chunks_by_dependency(hunitest.TestCase):
 
 
 # #############################################################################
+# Test_journal
+# #############################################################################
+
+
+class Test_journal(hunitest.TestCase):
+    """
+    Tests for `cc_lint`'s chunk journal helpers.
+    """
+
+    def test_load_journal_missing_file(self) -> None:
+        """
+        Test that loading a journal that does not exist yet returns `[]`.
+        """
+        # Prepare inputs.
+        journal_file = os.path.join(self.get_scratch_space(), "journal.json")
+        # Run test and check outputs.
+        self.assertEqual(lcclint._load_journal(journal_file), [])
+
+    def test_append_and_load_round_trip(self) -> None:
+        """
+        Test that entries appended across two calls round-trip through
+        `_load_journal()` in append order.
+        """
+        # Prepare inputs.
+        journal_file = os.path.join(self.get_scratch_space(), "journal.json")
+        entry1 = {
+            "file_path": "a.py",
+            "chunk_title": "Rule One",
+            "status": "done",
+            "cost_usd": 0.01,
+            "num_turns": 2,
+        }
+        entry2 = {
+            "file_path": "a.py",
+            "chunk_title": "Rule Two",
+            "status": "no_op",
+            "cost_usd": 0.02,
+            "num_turns": 1,
+        }
+        # Run test.
+        lcclint._append_journal_entries(journal_file, [entry1])
+        lcclint._append_journal_entries(journal_file, [entry2])
+        # Check outputs.
+        self.assertEqual(
+            lcclint._load_journal(journal_file), [entry1, entry2]
+        )
+
+    def test_append_empty_is_a_no_op(self) -> None:
+        """
+        Test that appending an empty entry list does not create a file.
+        """
+        # Prepare inputs.
+        journal_file = os.path.join(self.get_scratch_space(), "journal.json")
+        # Run test.
+        lcclint._append_journal_entries(journal_file, [])
+        # Check outputs.
+        self.assertFalse(os.path.exists(journal_file))
+
+    def test_latest_status_uses_the_most_recent_entry(self) -> None:
+        """
+        Test that `_latest_journal_status()` returns the last entry when the
+        same `(file_path, chunk_title)` appears more than once.
+        """
+        # Prepare inputs.
+        journal = [
+            {
+                "file_path": "a.py",
+                "chunk_title": "Rule One",
+                "status": "failed",
+                "cost_usd": None,
+                "num_turns": 15,
+            },
+            {
+                "file_path": "a.py",
+                "chunk_title": "Rule One",
+                "status": "done",
+                "cost_usd": 0.01,
+                "num_turns": 2,
+            },
+        ]
+        # Run test and check outputs.
+        self.assertEqual(
+            lcclint._latest_journal_status(journal, "a.py", "Rule One"),
+            "done",
+        )
+
+    def test_latest_status_missing_pair(self) -> None:
+        """
+        Test that `_latest_journal_status()` returns `None` for a pair with
+        no entry.
+        """
+        # Run test and check outputs.
+        self.assertIsNone(
+            lcclint._latest_journal_status([], "a.py", "Rule One")
+        )
+
+    def test_status_from_chunk_stats(self) -> None:
+        """
+        Test that `_status_from_chunk_stats()` covers all four outcomes.
+        """
+        # Prepare inputs/outputs and run test.
+        cases = [
+            ({"is_error": True, "outcome": "NO-OP"}, "failed"),
+            ({"is_error": False, "outcome": "NO-OP"}, "no_op"),
+            (
+                {"is_error": False, "outcome": "CHANGED: fixed x"},
+                "done",
+            ),
+            ({"is_error": False, "outcome": "UNKNOWN"}, "failed"),
+        ]
+        for stats, expected_status in cases:
+            actual_status = lcclint._status_from_chunk_stats(stats)
+            self.assertEqual(actual_status, expected_status)
+
+    def test_filter_resumable_drops_done_and_no_op(self) -> None:
+        """
+        Test that `_filter_resumable()` drops `done`/`no_op` chunks, keeps
+        `failed`/unseen chunks, and journals a `"skipped"` entry for each
+        dropped chunk.
+        """
+        # Prepare inputs.
+        journal_file = os.path.join(self.get_scratch_space(), "journal.json")
+        journal = [
+            {
+                "file_path": "a.py",
+                "chunk_title": "Rule One",
+                "status": "done",
+                "cost_usd": 0.01,
+                "num_turns": 2,
+            },
+            {
+                "file_path": "a.py",
+                "chunk_title": "Rule Two",
+                "status": "no_op",
+                "cost_usd": 0.0,
+                "num_turns": 1,
+            },
+            {
+                "file_path": "a.py",
+                "chunk_title": "Rule Three",
+                "status": "failed",
+                "cost_usd": None,
+                "num_turns": 15,
+            },
+        ]
+        titled_messages = [
+            ("Rule One", "msg one"),
+            ("Rule Two", "msg two"),
+            ("Rule Three", "msg three"),
+            ("Rule Four", "msg four"),
+        ]
+        # Run test.
+        kept = lcclint._filter_resumable(
+            "a.py", titled_messages, journal, journal_file
+        )
+        # Check outputs.
+        self.assertEqual(
+            kept, [("Rule Three", "msg three"), ("Rule Four", "msg four")]
+        )
+        skipped = [
+            entry["chunk_title"]
+            for entry in lcclint._load_journal(journal_file)
+        ]
+        self.assertEqual(skipped, ["Rule One", "Rule Two"])
+
+
+# #############################################################################
 # Test_build_incremental_system_prompt
 # #############################################################################
 
@@ -991,7 +1158,7 @@ class Test_build_rule_message(hunitest.TestCase):
 # #############################################################################
 
 
-def _expected_message(section_content: str) -> str:
+def _expected_message(file_path: str, section_content: str) -> str:
     msg = []
     header = f"""
     - Re-read `{file_path}` from disk
@@ -1048,15 +1215,23 @@ class Test_build_incremental_messages(hunitest.TestCase):
         }
         # Prepare outputs.
         expected = [
-            _expected_message("# Rule One\nContent one"),
-            _expected_message("# Rule Two\nContent two"),
+            (
+                "Rule One",
+                _expected_message(file_path, "# Rule One\nContent one"),
+            ),
+            (
+                "Rule Two",
+                _expected_message(file_path, "# Rule Two\nContent two"),
+            ),
         ]
         # Run test.
-        messages = lcclint._build_incremental_messages(file_path, topic_info)
+        titled_messages = lcclint._build_incremental_messages(
+            file_path, topic_info
+        )
         # Check outputs.
-        self.assert_equal(str(messages), str(expected))
+        self.assert_equal(str(titled_messages), str(expected))
         role_content = hio.from_file(topic_info["role"])
-        for msg in messages:
+        for _, msg in titled_messages:
             self.assertNotIn(role_content, msg)
 
 
@@ -1071,7 +1246,11 @@ class Test_build_incremental_messages_for_rule(hunitest.TestCase):
     """
 
     def helper(
-        self, file_path: str, rule_content: str, expected: List[str]
+        self,
+        file_path: str,
+        rule_content: str,
+        rule_spec: str,
+        expected: List[Tuple[str, str]],
     ) -> None:
         """
         Build messages for `rule_content` and check them against `expected`.
@@ -1079,11 +1258,12 @@ class Test_build_incremental_messages_for_rule(hunitest.TestCase):
         :param file_path: path of the file the rule applies to
         :param rule_content: rule text as returned by
             `hmarsele.extract_rule_from_file()`
-        :param expected: expected list of messages
+        :param rule_spec: `--rule` value the messages are built for
+        :param expected: expected list of `(chunk_title, message)` pairs
         """
         # Run test.
         actual = lcclint._build_incremental_messages_for_rule(
-            file_path, rule_content
+            file_path, rule_content, rule_spec
         )
         # Check outputs.
         self.assert_equal(str(actual), str(expected))
@@ -1091,10 +1271,11 @@ class Test_build_incremental_messages_for_rule(hunitest.TestCase):
     def test1(self) -> None:
         """
         Test that a whole-file rule spec with two H1 sections is split into
-        one message per section.
+        one message per section, titled by its own H1.
         """
         # Prepare inputs.
         file_path = "example.py"
+        rule_spec = "test.rules.md"
         rule_content = """
             # Rule One
             Content one
@@ -1105,41 +1286,54 @@ class Test_build_incremental_messages_for_rule(hunitest.TestCase):
         rule_content = hprint.dedent(rule_content)
         # Prepare outputs.
         expected = [
-            lcclint._build_rule_message(
-                file_path, "# Rule One\nContent one"
+            (
+                "Rule One",
+                lcclint._build_rule_message(
+                    file_path, "# Rule One\nContent one"
+                ),
             ),
-            lcclint._build_rule_message(
-                file_path, "# Rule Two\nContent two"
+            (
+                "Rule Two",
+                lcclint._build_rule_message(
+                    file_path, "# Rule Two\nContent two"
+                ),
             ),
         ]
         # Run test.
-        self.helper(file_path, rule_content, expected)
+        self.helper(file_path, rule_content, rule_spec, expected)
 
     def test2(self) -> None:
         """
         Test that a rule spec with zero H1 sections (a line-anchored extract
-        starting below H1 level) is kept as a single message.
+        starting below H1 level) is kept as a single message titled by
+        `rule_spec`.
         """
         # Prepare inputs.
         file_path = "example.py"
+        rule_spec = "test.rules.md:5"
         rule_content = "## Mark Private Functions\nSome content here."
         # Prepare outputs.
-        expected = [lcclint._build_rule_message(file_path, rule_content)]
+        expected = [
+            (rule_spec, lcclint._build_rule_message(file_path, rule_content))
+        ]
         # Run test.
-        self.helper(file_path, rule_content, expected)
+        self.helper(file_path, rule_content, rule_spec, expected)
 
     def test3(self) -> None:
         """
         Test that a whole-file rule spec with a single H1 section is kept as
-        a single message.
+        a single message titled by `rule_spec`.
         """
         # Prepare inputs.
         file_path = "example.py"
+        rule_spec = "test.rules.md"
         rule_content = "# Only Rule\nSome content."
         # Prepare outputs.
-        expected = [lcclint._build_rule_message(file_path, rule_content)]
+        expected = [
+            (rule_spec, lcclint._build_rule_message(file_path, rule_content))
+        ]
         # Run test.
-        self.helper(file_path, rule_content, expected)
+        self.helper(file_path, rule_content, rule_spec, expected)
 
 
 # #############################################################################
@@ -1173,6 +1367,9 @@ class Test_process_file_incremental_mode(hunitest.TestCase):
             merge_small_rules=False,
             filter_rules_by_relevance=False,
             order_rules_by_dependency=False,
+            resume=False,
+            journal_file=os.path.join(scratch_dir, "journal.json"),
+            max_turns_per_chunk=15,
         )
         # Prepare outputs.
         expected_rc = 0
@@ -1346,6 +1543,8 @@ class Test_process_file_incremental(hunitest.TestCase):
         skill: str,
         rule: str,
         expected_num_messages: int,
+        resume: bool = False,
+        journal_file: str = "",
     ) -> List[str]:
         """
         Run `_process_file()` incrementally and check the dispatched
@@ -1356,6 +1555,9 @@ class Test_process_file_incremental(hunitest.TestCase):
         :param skill: `--skill` value, or `""`
         :param rule: `--rule` value, or `""`
         :param expected_num_messages: expected number of prompts queried
+        :param resume: `--resume` value
+        :param journal_file: `--journal_file` value, or `""` for a fresh
+            scratch-space journal
         :return: prompts queried against the fake SDK client, for tests that
             need additional checks
         """
@@ -1363,6 +1565,8 @@ class Test_process_file_incremental(hunitest.TestCase):
         scratch_dir = self.get_scratch_space()
         file_path = os.path.join(scratch_dir, "example.py")
         hio.to_file(file_path, "x = 1\n")
+        if not journal_file:
+            journal_file = os.path.join(scratch_dir, "journal.json")
         args = argparse.Namespace(
             mode=mode,
             topic=topic,
@@ -1375,6 +1579,9 @@ class Test_process_file_incremental(hunitest.TestCase):
             merge_small_rules=False,
             filter_rules_by_relevance=False,
             order_rules_by_dependency=False,
+            resume=resume,
+            journal_file=journal_file,
+            max_turns_per_chunk=15,
         )
         msg = claude_agent_sdk.AssistantMessage(
             content=[claude_agent_sdk.TextBlock(text="LLM> NO-OP")],
@@ -1607,6 +1814,138 @@ class Test_process_file_incremental(hunitest.TestCase):
             rule=rule,
             expected_num_messages=expected_num_messages,
         )
+
+    def test9(self) -> None:
+        """
+        Test that a `--mode session` run journals each chunk's outcome,
+        recording `NO-OP` replies as `"no_op"`.
+        """
+        # Prepare inputs.
+        mode = "session"
+        scratch_dir = self.get_scratch_space()
+        rule_file = os.path.join(scratch_dir, "test.rules.md")
+        rule_content = """
+            # Rule One
+            Content one
+
+            # Rule Two
+            Content two
+            """
+        rule_content = hprint.dedent(rule_content)
+        hio.to_file(rule_file, rule_content)
+        journal_file = os.path.join(scratch_dir, "journal.json")
+        # Run test.
+        self.helper(
+            mode=mode,
+            topic="",
+            skill="",
+            rule=rule_file,
+            expected_num_messages=2,
+            journal_file=journal_file,
+        )
+        # Check outputs.
+        journal = lcclint._load_journal(journal_file)
+        statuses = {
+            entry["chunk_title"]: entry["status"] for entry in journal
+        }
+        self.assertEqual(statuses, {"Rule One": "no_op", "Rule Two": "no_op"})
+
+    def test10(self) -> None:
+        """
+        Test that a second `--mode session --resume` run against the same
+        journal skips every chunk already `no_op` and queries nothing.
+        """
+        # Prepare inputs.
+        mode = "session"
+        scratch_dir = self.get_scratch_space()
+        rule_file = os.path.join(scratch_dir, "test.rules.md")
+        rule_content = """
+            # Rule One
+            Content one
+
+            # Rule Two
+            Content two
+            """
+        rule_content = hprint.dedent(rule_content)
+        hio.to_file(rule_file, rule_content)
+        journal_file = os.path.join(scratch_dir, "journal.json")
+        self.helper(
+            mode=mode,
+            topic="",
+            skill="",
+            rule=rule_file,
+            expected_num_messages=2,
+            journal_file=journal_file,
+        )
+        # Run test.
+        prompts = self.helper(
+            mode=mode,
+            topic="",
+            skill="",
+            rule=rule_file,
+            expected_num_messages=0,
+            resume=True,
+            journal_file=journal_file,
+        )
+        # Check outputs.
+        self.assertEqual(prompts, [])
+        # The resumed run journals a `"skipped"` entry for each chunk it
+        # didn't re-send, on top of the first run's two `"no_op"` entries.
+        journal = lcclint._load_journal(journal_file)
+        skipped_titles = [
+            entry["chunk_title"]
+            for entry in journal
+            if entry["status"] == "skipped"
+        ]
+        self.assertEqual(sorted(skipped_titles), ["Rule One", "Rule Two"])
+
+    def test11(self) -> None:
+        """
+        Test that `--max_turns_per_chunk` is forwarded into
+        `ClaudeAgentOptions.max_turns`.
+        """
+        # Prepare inputs.
+        scratch_dir = self.get_scratch_space()
+        file_path = os.path.join(scratch_dir, "example.py")
+        hio.to_file(file_path, "x = 1\n")
+        journal_file = os.path.join(scratch_dir, "journal.json")
+        args = argparse.Namespace(
+            mode="session",
+            topic="",
+            skill="coding.fix_inline",
+            rule="",
+            dry_run=False,
+            model="",
+            rule_level=2,
+            max_chunk_tokens=1500,
+            merge_small_rules=False,
+            filter_rules_by_relevance=False,
+            order_rules_by_dependency=False,
+            resume=False,
+            journal_file=journal_file,
+            max_turns_per_chunk=3,
+        )
+        msg = claude_agent_sdk.AssistantMessage(
+            content=[claude_agent_sdk.TextBlock(text="LLM> NO-OP")],
+            model="claude-test",
+        )
+        fake_client = dshaccli.FakeClaudeSDKClient(responses_by_call=[[msg]])
+        # Run test.
+        with (
+            umock.patch(
+                "claude_agent_sdk.ClaudeSDKClient"
+            ) as mock_client_cls,
+            umock.patch.object(
+                lcclint.hmarsele,
+                "find_skill",
+                return_value=".claude/skills/coding.fix_inline.md",
+            ),
+        ):
+            mock_client_cls.return_value = fake_client
+            lcclint._process_file(file_path, args)
+        # Check outputs.
+        _, kwargs = mock_client_cls.call_args
+        self.assertEqual(kwargs["options"].max_turns, 3)
 
 
 # #############################################################################

@@ -310,6 +310,225 @@ class Test_PromptSequencer_execute(hunitest.TestCase):
         self.assertEqual(str(sequencer.get_outcomes()), expected)
         self.assertEqual(len(sequencer.get_responses()), 2)
 
+    def test4(self) -> None:
+        """
+        Test that `max_turns` is forwarded to `ClaudeAgentOptions`.
+        """
+        # Prepare inputs.
+        msg1 = claude_agent_sdk.AssistantMessage(
+            content=[claude_agent_sdk.TextBlock(text="LLM> NO-OP")],
+            model="claude-test",
+        )
+        # TODO(ai_gp): Use self.get_scratch_space instead of /tmp
+        sequencer = dshaccli.PromptSequencer(
+            cwd=self.get_scratch_space(),
+            target_file="/tmp/target.py",
+            print_output=False,
+            max_turns=7,
+        )
+        fake_client = dshaccli.FakeClaudeSDKClient(responses_by_call=[[msg1]])
+        # Run test.
+        mock_client_cls = self.helper(sequencer, ["prompt A"], fake_client)
+        # Check outputs.
+        _, kwargs = mock_client_cls.call_args
+        self.assertEqual(kwargs["options"].max_turns, 7)
+
+
+# #############################################################################
+# Test_PromptSequencer_chunk_stats
+# #############################################################################
+
+
+class Test_PromptSequencer_chunk_stats(hunitest.TestCase):
+    """
+    Test `PromptSequencer`'s `ResultMessage` capture and `on_chunk_done`.
+    """
+
+    def helper(
+        self,
+        sequencer: dshaccli.PromptSequencer,
+        prompts: List[str],
+        fake_client: dshaccli.FakeClaudeSDKClient,
+    ) -> None:
+        """
+        Run `sequencer.execute(prompts)` against a mocked SDK client.
+
+        :param sequencer: sequencer under test
+        :param prompts: prompts passed to `sequencer.execute()`
+        :param fake_client: fake client returned by the mocked
+            `claude_agent_sdk.ClaudeSDKClient` constructor
+        """
+        with umock.patch(
+            "claude_agent_sdk.ClaudeSDKClient"
+        ) as mock_client_cls:
+            mock_client_cls.return_value = fake_client
+            asyncio.run(sequencer.execute(prompts))
+
+    def test1(self) -> None:
+        """
+        Test that `get_chunk_stats()` captures cost/turns/is_error from a
+        `ResultMessage` at the end of a prompt's stream.
+        """
+        # Prepare inputs.
+        msg1 = claude_agent_sdk.AssistantMessage(
+            content=[claude_agent_sdk.TextBlock(text="LLM> NO-OP")],
+            model="claude-test",
+        )
+        result1 = claude_agent_sdk.ResultMessage(
+            subtype="success",
+            duration_ms=100,
+            duration_api_ms=90,
+            is_error=False,
+            num_turns=3,
+            session_id="s1",
+            total_cost_usd=0.05,
+        )
+        # TODO(ai_gp): Use self.get_scratch_space instead of /tmp
+        sequencer = dshaccli.PromptSequencer(
+            cwd=self.get_scratch_space(),
+            target_file="/tmp/target.py",
+            print_output=False,
+        )
+        fake_client = dshaccli.FakeClaudeSDKClient(
+            responses_by_call=[[msg1, result1]]
+        )
+        # Run test.
+        self.helper(sequencer, ["prompt A"], fake_client)
+        # Check outputs.
+        # TODO(ai_gp): Pass this to helper and move the check inside.
+        expected = (
+            "[{'outcome': 'NO-OP', 'cost_usd': 0.05, 'num_turns': 3, "
+            "'is_error': False}]"
+        )
+        self.assertEqual(str(sequencer.get_chunk_stats()), expected)
+
+    def test2(self) -> None:
+        """
+        Test that `get_chunk_stats()` degrades gracefully when a prompt's
+        stream carries no `ResultMessage` (e.g., a bare fake-client test).
+        """
+        # Prepare inputs.
+        msg1 = claude_agent_sdk.AssistantMessage(
+            content=[claude_agent_sdk.TextBlock(text="LLM> NO-OP")],
+            model="claude-test",
+        )
+        sequencer = dshaccli.PromptSequencer(
+            cwd=self.get_scratch_space(),
+            target_file="/tmp/target.py",
+            print_output=False,
+        )
+        fake_client = dshaccli.FakeClaudeSDKClient(responses_by_call=[[msg1]])
+        # Run test.
+        self.helper(sequencer, ["prompt A"], fake_client)
+        # Check outputs.
+        expected = (
+            "[{'outcome': 'NO-OP', 'cost_usd': None, 'num_turns': 0, "
+            "'is_error': False}]"
+        )
+        self.assertEqual(str(sequencer.get_chunk_stats()), expected)
+
+    def test3(self) -> None:
+        """
+        Test that `is_error` on the `ResultMessage` maps into the stats
+        even when the reply otherwise looks like a normal `CHANGED` outcome.
+        """
+        # Prepare inputs.
+        msg1 = claude_agent_sdk.AssistantMessage(
+            content=[
+                claude_agent_sdk.TextBlock(text="LLM> CHANGED: fixed x")
+            ],
+            model="claude-test",
+        )
+        result1 = claude_agent_sdk.ResultMessage(
+            subtype="error_max_turns",
+            duration_ms=100,
+            duration_api_ms=90,
+            is_error=True,
+            num_turns=15,
+            session_id="s1",
+            total_cost_usd=0.5,
+        )
+        sequencer = dshaccli.PromptSequencer(
+            cwd=self.get_scratch_space(),
+            target_file="/tmp/target.py",
+            print_output=False,
+        )
+        fake_client = dshaccli.FakeClaudeSDKClient(
+            responses_by_call=[[msg1, result1]]
+        )
+        # Run test.
+        self.helper(sequencer, ["prompt A"], fake_client)
+        # Check outputs.
+        stats = sequencer.get_chunk_stats()
+        self.assertTrue(stats[0]["is_error"])
+        self.assertEqual(stats[0]["num_turns"], 15)
+
+    def test4(self) -> None:
+        """
+        Test that `on_chunk_done` is invoked once per prompt, in order,
+        with the matching stats, under the `"session"` context strategy.
+        """
+        # Prepare inputs.
+        msg1 = claude_agent_sdk.AssistantMessage(
+            content=[claude_agent_sdk.TextBlock(text="LLM> NO-OP")],
+            model="claude-test",
+        )
+        msg2 = claude_agent_sdk.AssistantMessage(
+            content=[
+                claude_agent_sdk.TextBlock(text="LLM> CHANGED: fixed x")
+            ],
+            model="claude-test",
+        )
+        calls: List = []
+        sequencer = dshaccli.PromptSequencer(
+            cwd=self.get_scratch_space(),
+            context_strategy="session",
+            target_file="/tmp/target.py",
+            print_output=False,
+            on_chunk_done=lambda idx, stats: calls.append((idx, stats)),
+        )
+        fake_client = dshaccli.FakeClaudeSDKClient(
+            responses_by_call=[[msg1], [msg2]]
+        )
+        # Run test.
+        self.helper(sequencer, ["prompt A", "prompt B"], fake_client)
+        # Check outputs.
+        self.assertEqual(len(calls), 2)
+        self.assertEqual(calls[0][0], 1)
+        self.assertEqual(calls[0][1]["outcome"], "NO-OP")
+        self.assertEqual(calls[1][0], 2)
+        self.assertEqual(calls[1][1]["outcome"], "CHANGED: fixed x")
+
+    def test5(self) -> None:
+        """
+        Test that `on_chunk_done` is invoked once per prompt under the
+        `"stateless"` context strategy too (fresh client per prompt).
+        """
+        # Prepare inputs.
+        msg1 = claude_agent_sdk.AssistantMessage(
+            content=[claude_agent_sdk.TextBlock(text="LLM> NO-OP")],
+            model="claude-test",
+        )
+        msg2 = claude_agent_sdk.AssistantMessage(
+            content=[claude_agent_sdk.TextBlock(text="LLM> NO-OP")],
+            model="claude-test",
+        )
+        calls: List = []
+        sequencer = dshaccli.PromptSequencer(
+            cwd=self.get_scratch_space(),
+            context_strategy="stateless",
+            target_file="/tmp/target.py",
+            print_output=False,
+            on_chunk_done=lambda idx, stats: calls.append((idx, stats)),
+        )
+        fake_client = dshaccli.FakeClaudeSDKClient(
+            responses_by_call=[[msg1], [msg2]]
+        )
+        # Run test.
+        self.helper(sequencer, ["prompt A", "prompt B"], fake_client)
+        # Check outputs.
+        self.assertEqual([idx for idx, _ in calls], [1, 2])
+
 
 # #############################################################################
 # Test_PromptSequencer_context_strategy

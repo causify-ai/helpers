@@ -197,6 +197,8 @@ class PromptSequencer:
         setting_sources: Optional[List[str]] = None,
         target_file: str = "",
         can_use_tool: Optional[CanUseToolFn] = None,
+        max_turns: Optional[int] = None,
+        on_chunk_done: Optional[Callable[[int, Dict[str, Any]], None]] = None,
     ) -> None:
         """
         Initialize PromptSequencer with Claude Code options.
@@ -231,6 +233,11 @@ class PromptSequencer:
             this one
         :param can_use_tool: explicit permission callback, overrides the
             `target_file` guard when provided
+        :param max_turns: per-prompt turn limit forwarded or `None` for the SDK
+            default (no limit)
+        :param on_chunk_done: if set, called after each prompt completes with
+            `(prompt_idx, stats)`, where `stats` has `outcome`, `cost_usd`,
+            `num_turns`, and `is_error`
         """
         _LOG.debug(
             hprint.to_str(
@@ -261,6 +268,8 @@ class PromptSequencer:
             self.can_use_tool = _make_file_scope_guard(target_file)
         else:
             self.can_use_tool = None
+        self.max_turns = max_turns
+        self.on_chunk_done = on_chunk_done
         # Tracks if async session has started.
         self._session_started = False
         # Count of executed prompts.
@@ -271,6 +280,12 @@ class PromptSequencer:
         self._responses: List[str] = []
         # Parsed no-op contract outcome per executed prompt, in order.
         self._outcomes: List[str] = []
+        # `ResultMessage` fields per executed prompt, in order (`None`/`0`/
+        # `False` when a prompt's stream carried no `ResultMessage`, e.g. in
+        # fake-client tests).
+        self._cost_usd: List[Optional[float]] = []
+        self._num_turns: List[int] = []
+        self._is_error: List[bool] = []
 
     async def execute(self, prompts: List[str]) -> None:
         """
@@ -301,6 +316,7 @@ class PromptSequencer:
             system_prompt=self.system_prompt or None,
             setting_sources=self.setting_sources,  # type: ignore
             can_use_tool=self.can_use_tool,
+            max_turns=self.max_turns,
         )
         if self.context_strategy == "session":
             # Single session: preserve context across all prompts.
@@ -348,6 +364,9 @@ class PromptSequencer:
         # Collect response messages from stream.
         response_parts: List[str] = []
         text_parts: List[str] = []
+        cost_usd: Optional[float] = None
+        num_turns = 0
+        is_error = False
         async for message in client.receive_response():
             if self.print_output:
                 text = message_to_str(message)
@@ -357,14 +376,30 @@ class PromptSequencer:
             text = _extract_assistant_text(message)
             if text:
                 text_parts.append(text)
+            if isinstance(message, claude_agent_sdk.ResultMessage):
+                cost_usd = message.total_cost_usd
+                num_turns = message.num_turns
+                is_error = message.is_error
         response_text = "".join(response_parts)
         self._last_response = response_text
         self._responses.append(response_text)
-        self._outcomes.append(_parse_rule_outcome("\n".join(text_parts)))
+        outcome = _parse_rule_outcome("\n".join(text_parts))
+        self._outcomes.append(outcome)
+        self._cost_usd.append(cost_usd)
+        self._num_turns.append(num_turns)
+        self._is_error.append(is_error)
         self._prompts_executed += 1
         # Log prompt completion with response metrics.
         _LOG.info("Prompt %d completed successfully", prompt_idx)
         _LOG.debug("Response length: %d chars", len(response_text))
+        if self.on_chunk_done is not None:
+            stats = {
+                "outcome": outcome,
+                "cost_usd": cost_usd,
+                "num_turns": num_turns,
+                "is_error": is_error,
+            }
+            self.on_chunk_done(prompt_idx, stats)
 
     def get_last_response(self) -> str:
         """
@@ -398,6 +433,27 @@ class PromptSequencer:
         """
         _LOG.debug("get_outcomes() returning %d outcomes", len(self._outcomes))
         return self._outcomes
+
+    def get_chunk_stats(self) -> List[Dict[str, Any]]:
+        """
+        Get the per-prompt outcome and `ResultMessage` stats.
+
+        :return: one dict per executed prompt, each with `outcome`,
+            `cost_usd`, `num_turns`, and `is_error`
+        """
+        stats = [
+            {
+                "outcome": outcome,
+                "cost_usd": cost_usd,
+                "num_turns": num_turns,
+                "is_error": is_error,
+            }
+            for outcome, cost_usd, num_turns, is_error in zip(
+                self._outcomes, self._cost_usd, self._num_turns, self._is_error
+            )
+        ]
+        _LOG.debug("get_chunk_stats() returning %d entries", len(stats))
+        return stats
 
     def get_execution_stats(self) -> Dict[str, Any]:
         """
