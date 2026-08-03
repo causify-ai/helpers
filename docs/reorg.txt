@@ -1,0 +1,179 @@
+docs/general_background/all.literature_review.reference.md
+- Remove or move
+docs/general_background/all.reading_list.reference.md
+
+docs/tools/all.pycharm.how_to_guide.md
+
+docs/tools/all.imports_and_packages.how_to_guide.md
+- Useful
+
+docs/tools/docker/all.develop_in_helpers.how_to_guide.md
+docs/tools/docker/all.dind_and_sibling_containers.how_to_guide.md
+docs/tools/docker/all.docker.tutorial.md
+docs/tools/docker/all.dockerhub.how_to_guide.md
+docs/tools/docker/all.dockerized_flow.explanation.md
+- Update
+
+docs/tools/all.ssh.how_to_guide.md
+- Thin
+
+docs/blogging/all.ghost_platform.how_to_guide.md
+docs/blogging/all.publish_causify_blogs.how_to_guide.md
+docs/blogging/all.publish_mkdocs.how_to_guide.md
+docs/blogging/all.write_blog.how_to_guide.md
+
+docs/build_system/all.gitleaks_workflow.explanation.md
+docs/build_system/all.linter_gh_workflow.explanation.md
+docs/build_system/all.pytest_allure.explanation.md
+docs/build_system/all.pytest_allure.how_to_guide.md
+docs/build_system/all.semgrep_workflow.explanation.md
+
+### -> docs/coding?
+docs/code_guidelines/all.code_review.how_to_guide.md
+docs/code_guidelines/all.submit_code_for_review.how_to_guide.md
+
+docs/code_guidelines/all.code_like_pragmatic_programmer.how_to_guide.md
+docs/code_guidelines/all.code_design.how_to_guide.md
+docs/code_guidelines/all.coding_style_guidelines.reference.md
+docs/code_guidelines/all.coding_style.how_to_guide.md
+
+docs/code_guidelines/all.type_hints.how_to_guide.md
+
+### -> docs/documenting?
+docs/documentation_meta/all.architecture_diagrams.explanation.md
+docs/documentation_meta/all.diataxis.explanation.md
+docs/documentation_meta/all.gdocs.how_to_guide.md
+docs/documentation_meta/all.google_technical_writing.how_to_guide.md
+docs/documentation_meta/all.markdown_tools.explanation.md
+docs/documentation_meta/all.plotting_in_latex.how_to_guide.md
+docs/documentation_meta/all.writing_docs.how_to_guide.md
+
+### Needs cleanup and move to docs/documenting
+docs/tools/all.tutorial_template.md
+- Diataxis template? Need clean up and move to documentation_meta/
+docs/tools/all.explanation_template.md
+docs/tools/all.how_to_guide_template.md
+docs/tools/all.reference_template.md
+
+### [ ] Review merge
+docs/onboarding/all.dev_must_read_checklist.reference.md
+docs/onboarding/all.development_documents.reference.md
+docs/onboarding/all.development_setup.how_to_guide.md
+docs/onboarding/all.development.how_to_guide.md
+docs/onboarding/all.hiring_process.how_to_guide.md
+docs/onboarding/all.onboarding_checklist.reference.md
+docs/onboarding/all.organize_email.how_to_guide.md
+docs/onboarding/all.receive_crypto_payment.how_to_guide.md
+docs/onboarding/all.track_time_with_hubstaff.how_to_guide.md
+docs/onboarding/bounty.onboarding_checklist.reference.md
+docs/onboarding/intern.onboarding_checklist.reference.md
+docs/onboarding/intern.prepare_for_development.how_to_guide.md
+docs/onboarding/intern.running_causify_on_virtual_machine.how_to_guide.md
+docs/onboarding/intern.set_up_development_on_laptop.how_to_guide.md
+docs/onboarding/intern.signing_up.how_to_guide.md
+
+docs/tools/all.ai_review.how_to_guide.md
+docs/tools/all.bfg_repo_cleaner.how_to_guide.md
+docs/tools/all.code_coverage_subprocess.how_to_guide.md
+docs/tools/all.code_coverage_subprocess.reference.md
+docs/tools/all.code_review_tools.reference.md
+docs/tools/all.codebase_clean_up.how_to_guide.md
+docs/tools/all.codecov.how_to_guide.md
+docs/tools/all.evaluating_external_tools.how_to_guide.md
+docs/tools/all.import_check.reference.md
+docs/tools/all.integrate_repos.how_to_guide.md
+docs/tools/all.invoke_bash_print_tree.how_to_guide.md
+docs/tools/all.invoke_git_branch_copy.how_to_guide.md
+docs/tools/all.invoke_workflows.how_to_guide.md
+docs/tools/all.parquet.explanation.md
+docs/tools/all.profiling.how_to_guide.md
+docs/tools/all.selenium.how_to_guide.md
+docs/tools/all.sync_gh_projects.how_to_guide.md
+docs/tools/all.veracrypt.how_to_guide.md
+docs/tools/all.visual_studio_code.how_to_guide.md
+
+docs/tools/dev_system/all.conda_environment_obsolete.how_to_guide.md
+docs/tools/dev_system/all.create_a_runnable_dir.how_to_guide.md
+docs/tools/dev_system/all.create_a_super_repo_with_helpers.how_to_guide.md
+docs/tools/dev_system/all.dealing_with_missing_dependencies.how_to_guide.md
+docs/tools/dev_system/all.devops_docker_auto_release.explanation.md
+docs/tools/dev_system/all.devops_docker.how_to_guide.md
+docs/tools/dev_system/all.devops_docker.reference.md
+docs/tools/dev_system/all.docker_optimizer_container.how_to_guide.md
+docs/tools/dev_system/all.python_package_upgrade_and_troubleshooting.how_to_guide.md
+docs/tools/dev_system/all.replace_common_files_with_script_links.md
+docs/tools/dev_system/all.runnable_repo.reference.md
+docs/tools/dev_system/all.synchronize_gh_issue_labels.how_to_guide.md
+docs/tools/dev_system/all.synchronize_gh_settings.how_to_guide.md
+docs/tools/dev_system/all.transition_to_cmamp2.how_to_guide.md
+docs/tools/dev_system/all.transition_to_repo_config_yml.how_to_guide.md
+
+### [ ] Move to ./dev_scripts_helpers/git/
+docs/tools/git/all.git_hooks.how_to_guide.md
+docs/tools/git/all.git_hooks.reference.md
+docs/tools/git/all.git.how_to_guide.md
+docs/tools/git/all.gitleaks.how_to_guide.md
+docs/tools/git/all.gitleaks.reference.md
+docs/tools/git/all.integrate_helpers.how_to_guide.md
+docs/tools/git/all.invite_gh_contributors.explanation.md
+docs/tools/git/all.invite_gh_contributors.how_to_guide.md
+
+### [ ] Move to helpers to the corresponding package
+docs/tools/helpers/all.asyncio.explanation.md
+docs/tools/helpers/all.hcache_simple.explanation.md
+docs/tools/helpers/all.hllm.explanation.md
+docs/tools/helpers/all.hplayback.explanation.md
+docs/tools/helpers/all.qgrid.how_to_guide.md
+docs/tools/helpers/all.str_to_df.how_to_guide.md
+
+docs/tools/linter/all.amp_fix_md_links.explanation.md
+docs/tools/linter/all.developing_linter.how_to_guide.md
+
+docs/tools/notebooks/all.add_toc_to_notebook.how_to_guide.md
+docs/tools/notebooks/all.gsheet_into_pandas.how_to_guide.md
+docs/tools/notebooks/all.jupyter_notebook.how_to_guide.md
+docs/tools/notebooks/all.jupytext.how_to_guide.md
+docs/tools/notebooks/all.plotting.how_to_guide.md
+docs/tools/notebooks/all.publish_notebook.how_to_guide.md
+docs/tools/notebooks/all.run_jupyter_notebook.how_to_guide.md
+
+### [ ] Move to ./dev_scripts_helpers/thin_client
+docs/tools/thin_environment/all.gh_and_thin_env_requirements.reference.md
+docs/tools/thin_environment/all.gh_thin_env_dependencies.how_to_guide.md
+docs/tools/thin_environment/all.thin_environment.reference.md
+
+docs/work_evaluation/all.asana_utiuls_guide.md
+
+docs/work_organization/all.buildmeister.how_to_guide.md
+docs/work_organization/all.contributor_feedback.how_to_guide.md
+docs/work_organization/all.datapull_DAGmeister.how_to_guide.md
+docs/work_organization/all.github_projects_process.reference.md
+docs/work_organization/all.inframeister.how_to_guide.md
+docs/work_organization/all.issue_workflow.explanation.md
+docs/work_organization/all.organize_your_work.how_to_guide.md
+docs/work_organization/all.rollout.how_to_guide.md
+docs/work_organization/all.scrum.explanation.md
+docs/work_organization/all.team_collaboration.how_to_guide.md
+docs/work_organization/all.use_github.how_to_guide.md
+
+docs/README.md
+
+# DONE
+
+- [x] docs/general_background/all.common_abbreviations.reference.md
+  docs/general_background/all.glossary.reference.md
+- merge with abbrev
+
+- [x] docs/tools/documentation_toolchain/all.latex_toolchain.how_to_guide.md
+
+- [x] docs/tools/documentation_toolchain/all.notes_to_pdf.explanation.md
+  -> Merge into ./dev_scripts_helpers/documentation/notes_to_pdf.README.md (done)
+
+- [x] docs/tools/documentation_toolchain/all.render_images.explanation.md
+  -> ./dev_scripts_helpers/documentation/render_images.README.md (done)
+
+- [x] docs/tools/documentation_toolchain/all.extract_notes.reference.md
+  -> ./dev_scripts_helpers/notebooks/extract_notebook_images.README.md
+
+[x] docs/tools/all.precommit.how_to_guide.md
+-> linters2/lint.README.md

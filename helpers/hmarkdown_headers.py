@@ -611,6 +611,109 @@ def header_list_to_markdown(header_list: HeaderList, mode: str) -> List[str]:
 
 
 # #############################################################################
+# Section chunking.
+# #############################################################################
+
+
+def extract_h1_sections_from_lines(lines: List[str]) -> List[Tuple[str, str]]:
+    """
+    Extract all H1 (level 1) sections from markdown lines already in memory.
+
+    :param lines: markdown content split into lines
+    :return: list of tuples (title, content) for each H1 section
+    """
+    headers = extract_headers_from_markdown(lines, max_level=1)
+    # Filter only level-1 headers.
+    h1_headers = [h for h in headers if h.level == 1]
+    sections = []
+    for idx, header in enumerate(h1_headers):
+        start_line = header.line_number - 1
+        # Find the next H1 header (or end of file).
+        if idx + 1 < len(h1_headers):
+            end_line = h1_headers[idx + 1].line_number - 1
+        else:
+            end_line = len(lines)
+        section_lines = lines[start_line:end_line]
+        section_content = "\n".join(section_lines).strip()
+        sections.append((header.description, section_content))
+    _LOG.debug("return=%d sections", len(sections))
+    return sections
+
+
+def split_h1_section_at_level(
+    h1_title: str, h1_lines: List[str], *, level: int
+) -> List[Tuple[str, str]]:
+    """
+    Split one H1 section's lines into chunks at `level`.
+
+    Falls back to keeping the whole H1 section as a single chunk when it
+    has no header at `level` (e.g., a flat rule file with only H1
+    sections), so callers get one chunk per topic instead of zero.
+
+    :param h1_title: title of the enclosing H1 section
+    :param h1_lines: the H1 section's lines, starting at its own `# <h1_title>`
+        header line
+    :param level: header level to split at
+        - `1` returns the whole section unsplit
+    :return: list of (title, content) tuples
+        - Every `content` starts with the `# <h1_title>` line so the
+          parent H1 stays visible as context
+        - Any preamble between the H1 header and the first sub-header is
+          folded into the first chunk instead of being dropped
+    """
+    hdbg.dassert_lte(1, level, "Header level must be at least 1")
+    if level <= 1:
+        return [(h1_title, "\n".join(h1_lines).strip())]
+    sub_headers = extract_headers_from_markdown(h1_lines, max_level=level)
+    target_headers = [h for h in sub_headers if h.level == level]
+    if not target_headers:
+        # No sub-header at `level`: keep the H1 section whole.
+        return [(h1_title, "\n".join(h1_lines).strip())]
+    h1_header_line = f"# {h1_title}"
+    sections = []
+    for idx, header in enumerate(target_headers):
+        # The first chunk absorbs the H1 header line and any preamble
+        # before the first sub-header; later chunks start at their own
+        # sub-header line.
+        start_line = 0 if idx == 0 else header.line_number - 1
+        if idx + 1 < len(target_headers):
+            end_line = target_headers[idx + 1].line_number - 1
+        else:
+            end_line = len(h1_lines)
+        section_content = "\n".join(h1_lines[start_line:end_line]).strip()
+        if not section_content.startswith(h1_header_line):
+            section_content = f"{h1_header_line}\n\n{section_content}"
+        sections.append((header.description, section_content))
+    _LOG.debug("return=%d sections", len(sections))
+    return sections
+
+
+def extract_sections_at_level(
+    lines: List[str], *, level: int
+) -> List[Tuple[str, str]]:
+    """
+    Extract chunk sections from markdown lines.
+
+    Splits every H1 section at `level`, carrying the parent H1 title into
+    each chunk (see `split_h1_section_at_level()`).
+
+    :param lines: markdown content split into lines
+    :param level: header level to split rule sections at
+        - E.g., `1`=H1, `2`=H2, ...
+    :return: list of (title, content) tuples, in file order
+    """
+    h1_sections = extract_h1_sections_from_lines(lines)
+    all_sections: List[Tuple[str, str]] = []
+    for h1_title, h1_content in h1_sections:
+        h1_lines = h1_content.split("\n")
+        all_sections.extend(
+            split_h1_section_at_level(h1_title, h1_lines, level=level)
+        )
+    _LOG.debug("return=%d sections", len(all_sections))
+    return all_sections
+
+
+# #############################################################################
 # Process headers.
 # #############################################################################
 

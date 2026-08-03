@@ -1,6 +1,7 @@
 import json
 import os
 import pprint
+from io import StringIO
 from typing import Any, Dict, List
 from unittest import mock
 
@@ -20,13 +21,25 @@ class Test_extract_statistics(hunitest.TestCase):
     Test `extract_cc_log._extract_statistics()` function.
     """
 
+    def _get_sample_input_file(self) -> str:
+        """
+        Get path to sample CC log file.
+        """
+        return os.path.join(self.get_input_dir(), "sample_cc_log.txt")
+
+    def _parse_sample_records(self, input_file: str) -> List[Dict[str, Any]]:
+        """
+        Parse records from sample input file.
+        """
+        return dshaecclo._parse_records(input_file)
+
     def test1(self) -> None:
         """
         Extract statistics from sample CC log.
         """
         # Prepare inputs.
-        input_file = os.path.join(self.get_input_dir(), "sample_cc_log.txt")
-        records = dshaecclo._parse_records(input_file)
+        input_file = self._get_sample_input_file()
+        records = self._parse_sample_records(input_file)
         # Run test.
         actual = dshaecclo._extract_statistics(records)
         # Check outputs.
@@ -53,14 +66,26 @@ class Test_parse_records(hunitest.TestCase):
     Test `extract_cc_log._parse_records()` function.
     """
 
+    def _get_sample_input_file(self) -> str:
+        """
+        Get path to sample CC log file.
+        """
+        return os.path.join(self.get_input_dir(), "sample_cc_log.txt")
+
+    def _parse_sample_records(self, input_file: str) -> List[Dict[str, Any]]:
+        """
+        Parse records from sample input file.
+        """
+        return dshaecclo._parse_records(input_file)
+
     def test1(self) -> None:
         """
         Parse records from sample CC log file.
         """
         # Prepare inputs.
-        input_file = os.path.join(self.get_input_dir(), "sample_cc_log.txt")
+        input_file = self._get_sample_input_file()
         # Run test.
-        records = dshaecclo._parse_records(input_file)
+        records = self._parse_sample_records(input_file)
         # Prepare outputs.
         has_system = any(r.get("type") == "system" for r in records)
         has_stream = any(r.get("type") == "stream_event" for r in records)
@@ -99,13 +124,25 @@ class Test_extract_requests(hunitest.TestCase):
     Test `extract_cc_log._extract_requests()` function.
     """
 
+    def _get_sample_input_file(self) -> str:
+        """
+        Get path to sample CC log file.
+        """
+        return os.path.join(self.get_input_dir(), "sample_cc_log.txt")
+
+    def _parse_sample_records(self, input_file: str) -> List[Dict[str, Any]]:
+        """
+        Parse records from sample input file.
+        """
+        return dshaecclo._parse_records(input_file)
+
     def test1(self) -> None:
         """
         Extract request metadata from sample CC log.
         """
         # Prepare inputs.
-        input_file = os.path.join(self.get_input_dir(), "sample_cc_log.txt")
-        records = dshaecclo._parse_records(input_file)
+        input_file = self._get_sample_input_file()
+        records = self._parse_sample_records(input_file)
         # Run test.
         requests = dshaecclo._extract_requests(records)
         # Check outputs.
@@ -134,13 +171,25 @@ class Test_extract_assistant_text_blocks(hunitest.TestCase):
     Test `extract_cc_log._extract_assistant_text_blocks()` function.
     """
 
+    def _get_sample_input_file(self) -> str:
+        """
+        Get path to sample CC log file.
+        """
+        return os.path.join(self.get_input_dir(), "sample_cc_log.txt")
+
+    def _parse_sample_records(self, input_file: str) -> List[Dict[str, Any]]:
+        """
+        Parse records from sample input file.
+        """
+        return dshaecclo._parse_records(input_file)
+
     def test1(self) -> None:
         """
         Extract assistant text blocks from sample CC log.
         """
         # Prepare inputs.
-        input_file = os.path.join(self.get_input_dir(), "sample_cc_log.txt")
-        records = dshaecclo._parse_records(input_file)
+        input_file = self._get_sample_input_file()
+        records = self._parse_sample_records(input_file)
         # Run test.
         text_blocks = dshaecclo._extract_assistant_text_blocks(records)
         # Check outputs.
@@ -167,13 +216,25 @@ class Test_extract_thinking_blocks(hunitest.TestCase):
     Test `extract_cc_log._extract_thinking_blocks()` function.
     """
 
+    def _get_sample_input_file(self) -> str:
+        """
+        Get path to sample CC log file.
+        """
+        return os.path.join(self.get_input_dir(), "sample_cc_log.txt")
+
+    def _parse_sample_records(self, input_file: str) -> List[Dict[str, Any]]:
+        """
+        Parse records from sample input file.
+        """
+        return dshaecclo._parse_records(input_file)
+
     def test1(self) -> None:
         """
         Extract thinking blocks from sample CC log.
         """
         # Prepare inputs.
-        input_file = os.path.join(self.get_input_dir(), "sample_cc_log.txt")
-        records = dshaecclo._parse_records(input_file)
+        input_file = self._get_sample_input_file()
+        records = self._parse_sample_records(input_file)
         # Run test.
         thinking_blocks = dshaecclo._extract_thinking_blocks(records)
         # Check outputs.
@@ -211,6 +272,28 @@ class Test_extract_cc_log_py(hunitest.TestCase):
         "num_messages_assistant": 2
     }
     """
+
+    def _get_sample_input_file(self) -> str:
+        """
+        Get path to sample CC log file.
+        """
+        return os.path.join(self.get_input_dir(), "sample_cc_log.txt")
+
+    def _setup_test_input_file(
+        self, source_filename: str = "sample_cc_log.txt"
+    ) -> str:
+        """
+        Setup test input file by copying from fixture directory.
+
+        :param source_filename: Name of source file in main input directory
+        :return: Path to copied test input file
+        """
+        test_input_dir = self.get_input_dir()
+        main_input_dir = os.path.dirname(__file__) + "/input"
+        main_input_file = os.path.join(main_input_dir, source_filename)
+        test_input_file = os.path.join(test_input_dir, source_filename)
+        hio.to_file(test_input_file, hio.from_file(main_input_file))
+        return test_input_file
 
     def _helper_check_stats_file(self, stats_file: str) -> None:
         """
@@ -255,7 +338,7 @@ class Test_extract_cc_log_py(hunitest.TestCase):
         Extract log and generate statistics output file.
         """
         # Prepare inputs.
-        input_file = os.path.join(self.get_input_dir(), "sample_cc_log.txt")
+        input_file = self._get_sample_input_file()
         scratch_dir = self.get_scratch_space()
         stats_file = os.path.join(scratch_dir, "stats.json")
         # Run test.
@@ -268,7 +351,7 @@ class Test_extract_cc_log_py(hunitest.TestCase):
         Extract log and generate output narrative file.
         """
         # Prepare inputs.
-        input_file = os.path.join(self.get_input_dir(), "sample_cc_log.txt")
+        input_file = self._get_sample_input_file()
         scratch_dir = self.get_scratch_space()
         output_file = os.path.join(scratch_dir, "narrative.txt")
         # Run test.
@@ -289,11 +372,10 @@ class Test_extract_cc_log_py(hunitest.TestCase):
         Extract multiple logs and verify statistics across batch.
         """
         # Prepare inputs: copy fixture multiple times to simulate batch processing.
-        input_dir = self.get_input_dir()
         scratch_dir = self.get_scratch_space()
         batch_input_dir = os.path.join(scratch_dir, "batch_logs")
         os.makedirs(batch_input_dir, exist_ok=True)
-        log_file1 = os.path.join(input_dir, "sample_cc_log.txt")
+        log_file1 = self._get_sample_input_file()
         batch_log1 = os.path.join(batch_input_dir, "log1.txt")
         batch_log2 = os.path.join(batch_input_dir, "log2.txt")
         hio.to_file(batch_log1, hio.from_file(log_file1))
@@ -335,7 +417,7 @@ class Test_extract_cc_log_py(hunitest.TestCase):
         Test statistics extraction with output directory (narrative output).
         """
         # Prepare inputs.
-        input_file = os.path.join(self.get_input_dir(), "sample_cc_log.txt")
+        input_file = self._get_sample_input_file()
         scratch_dir = self.get_scratch_space()
         output_dir = os.path.join(scratch_dir, "narrative_output")
         stats_file = os.path.join(scratch_dir, "stats.json")
@@ -345,3 +427,44 @@ class Test_extract_cc_log_py(hunitest.TestCase):
         )
         # Check outputs.
         self._helper_check_stats_file(stats_file)
+
+    def test5(self) -> None:
+        """
+        Test reading from stdin using `--input -`.
+        """
+        # Prepare inputs: copy sample log to test-specific input directory.
+        test_input_file = self._setup_test_input_file()
+        input_content = hio.from_file(test_input_file)
+        scratch_dir = self.get_scratch_space()
+        stats_file = os.path.join(scratch_dir, "stats.json")
+        # Run test: mock stdin with log content.
+        argv = ["extract_cc_log.py", "--input", "-", "--stats", stats_file]
+        parser = dshaecclo._parse()
+        with mock.patch("sys.argv", argv):
+            with mock.patch("sys.stdin", StringIO(input_content)):
+                dshaecclo._main(parser)
+        # Check outputs.
+        self._helper_check_stats_file(stats_file)
+
+    def test6(self) -> None:
+        """
+        Test writing to stdout using `--output -`.
+        """
+        # Prepare inputs: copy sample log to test-specific input directory.
+        test_input_file = self._setup_test_input_file()
+        # Run test: capture stdout.
+        argv = ["extract_cc_log.py", "--input", test_input_file, "--output", "-"]
+        parser = dshaecclo._parse()
+        captured_output = StringIO()
+        with mock.patch("sys.argv", argv):
+            with mock.patch("sys.stdout", new=captured_output):
+                dshaecclo._main(parser)
+        # Check outputs: verify both narrative and output file content are in stdout.
+        actual = captured_output.getvalue()
+        # Check for key narrative elements.
+        self.assertIn("NARRATIVE", actual)
+        # Check for output file content (ASSISTANT TEXT appears twice: once from
+        # narrative, once from --output -).
+        self.assertIn("ASSISTANT TEXT", actual)
+        # Check for recursion content appears.
+        self.assertIn("Recursion is when a function calls itself", actual)

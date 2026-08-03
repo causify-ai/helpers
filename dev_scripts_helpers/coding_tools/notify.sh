@@ -1,7 +1,7 @@
 # Wrapper for `notify.py` that:
-# - flushes the current shell's history to disk
-# - dumps the last few commands to a tmp file for `notify.py` to read
-# - calls notify.py
+# - Flushes the current shell's history to disk
+# - Dumps the last few commands to a tmp file for `notify.py` to read
+# - Calls notify.py
 #
 # A Python (or any child) process can't call the shell's `history` builtin
 # itself: it runs in its own process and can't reach into the parent shell's

@@ -8,5 +8,5 @@ model: haiku
 - Use the proper dasserts following instructions in
   `.claude/skills/coding.rules.md` in section
   ```
-  ## Use Assertions From `helpers/hdbg.py`
+  ## Use Specialized `dassert_*`
   ```

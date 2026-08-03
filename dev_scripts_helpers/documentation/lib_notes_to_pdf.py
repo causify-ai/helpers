@@ -35,6 +35,7 @@ import helpers.hsystem as hsystem
 import dev_scripts_helpers.dockerize.lib_latex as dshdlila
 import dev_scripts_helpers.dockerize.lib_pandoc as dshdlipa
 import dev_scripts_helpers.dockerize.lib_typst as dshdlity
+import dev_scripts_helpers.documentation.preprocess_notes as dsdoprno
 
 _LOG = logging.getLogger(__name__)
 
@@ -104,6 +105,44 @@ def cleanup_before(prefix: str) -> None:
     # Remove cache files that may have been created by render_images.py.
     cmd = "rm -f tmp.cache_simple.*.json tmp.*.pkl"
     _ = _system(cmd)
+
+
+# #############################################################################
+
+
+def resolve_slides_engine(file_name: str, slides_engine: str) -> str:
+    """
+    Resolve `slides_engine="auto"` into a concrete engine.
+
+    When `slides_engine` is `auto`
+    - Scan the top of `file_name` for a `// slides_engine=...` metadata
+      directive
+    - Use the engine it specifies;
+    - If no metadata directive is present, default to `beamer`
+    - Any other value of `slides_engine` is returned unchanged.
+
+    :param file_name: input file to scan for metadata directives
+    :param slides_engine: value of `--slides_engine` (e.g., `beamer`, `typst`,
+        `auto`)
+    :return: concrete slides engine (`beamer` or `typst`)
+    """
+    if slides_engine != "auto":
+        return slides_engine
+    # Read file.
+    txt = hio.from_file(file_name)
+    lines = txt.split("\n")
+    # Process file .
+    metadata, _ = dsdoprno.extract_slide_metadata(lines)
+    resolved_engine = metadata.get("slides_engine", "beamer")
+    #
+    hdbg.dassert_in(
+        resolved_engine,
+        ["beamer", "typst"],
+        "Invalid 'slides_engine' metadata in '%s'",
+        file_name,
+    )
+    _LOG.debug("resolved_engine=%s", resolved_engine)
+    return resolved_engine
 
 
 # #############################################################################
@@ -817,7 +856,8 @@ def run_pandoc_to_typst_slides(
         fail_on_warnings=fail_on_warnings,
     )
     ast_file = f"{file_with_defs}.ast.json"
-    # Step 2: transform Div[columns] -> RawBlock[typst #grid()] for multi-column layouts.
+    # Step 2: Process AST to implement certain transformations not natively
+    # supported by pandoc typst backend.
     transformed_ast_file = f"{file_name}.divved.ast.json"
     convert_script = hgit.find_file("transform_pandoc_ast_to_typst.py")
     cmd = f"{convert_script} -i {ast_file} -o {transformed_ast_file}"

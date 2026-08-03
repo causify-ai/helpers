@@ -4,18 +4,18 @@
 Replace sections of image code with rendered images, commenting out the
 original code, if needed.
 
-Supports diagram types:
+Supports the following diagram types:
 - mermaid
 - tikz
 - graphviz
 - latex
-- AI-generated images (image blocks)
 - plantuml
+- AI-generated images (image blocks)
 
 Note: TikZ and LaTeX diagrams only support PNG format. Other diagram types
 (PlantUML, Mermaid, Graphviz, SVG input) support both PNG and SVG formats.
 
-See `docs/tools/documentation_toolchain/all.render_images.explanation.md`.
+See `dev_scripts_helpers/documentation/render_images.README.md`.
 
 Usage:
 

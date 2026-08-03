@@ -19,6 +19,107 @@ import dev_scripts_helpers.documentation.lib_notes_to_pdf as dshdlntpd
 
 
 # #############################################################################
+# Test_resolve_slides_engine
+# #############################################################################
+
+
+class Test_resolve_slides_engine(hunitest.TestCase):
+    """
+    Test `resolve_slides_engine()` function.
+    """
+
+    def helper(self, file_content: str, slides_engine: str, expected: str) -> None:
+        """
+        Test helper for `resolve_slides_engine()`.
+
+        :param file_content: content written to the scanned input file
+        :param slides_engine: value of `--slides_engine` passed in
+        :param expected: expected resolved engine
+        """
+        # Prepare inputs.
+        scratch_dir = self.get_scratch_space()
+        file_name = os.path.join(scratch_dir, "notes.txt")
+        hio.to_file(file_name, file_content)
+        # Run test.
+        actual = dshdlntpd.resolve_slides_engine(file_name, slides_engine)
+        # Check outputs.
+        self.assert_equal(actual, expected)
+
+    def test1(self) -> None:
+        """
+        Test `auto` resolves to the engine in the `slides_engine` metadata
+        directive.
+        """
+        # Prepare inputs.
+        file_content = hprint.dedent(
+            """
+            // type=UMD_slides
+            // slides_engine=typst
+            // course_title=DATA605
+
+            * Slide 1
+            """
+        )
+        slides_engine = "auto"
+        # Prepare outputs.
+        expected = "typst"
+        # Run test.
+        self.helper(file_content, slides_engine, expected)
+
+    def test2(self) -> None:
+        """
+        Test `auto` defaults to `beamer` when there is no metadata.
+        """
+        # Prepare inputs.
+        file_content = hprint.dedent(
+            """
+            * Slide 1
+            No metadata here.
+            """
+        )
+        slides_engine = "auto"
+        # Prepare outputs.
+        expected = "beamer"
+        # Run test.
+        self.helper(file_content, slides_engine, expected)
+
+    def test3(self) -> None:
+        """
+        Test `auto` defaults to `beamer` when metadata is present but does
+        not specify `slides_engine`.
+        """
+        # Prepare inputs.
+        file_content = hprint.dedent(
+            """
+            // type=UMD_slides
+            // course_title=DATA605
+
+            * Slide 1
+            """
+        )
+        slides_engine = "auto"
+        # Prepare outputs.
+        expected = "beamer"
+        # Run test.
+        self.helper(file_content, slides_engine, expected)
+
+    def test4(self) -> None:
+        """
+        Test a non-`auto` value is returned unchanged without reading the
+        input file.
+        """
+        # Prepare inputs.
+        scratch_dir = self.get_scratch_space()
+        file_name = os.path.join(scratch_dir, "does_not_exist.txt")
+        slides_engine = "typst"
+        # Run test.
+        actual = dshdlntpd.resolve_slides_engine(file_name, slides_engine)
+        # Check outputs.
+        expected = slides_engine
+        self.assert_equal(actual, expected)
+
+
+# #############################################################################
 # Test_preprocess_notes
 # #############################################################################
 

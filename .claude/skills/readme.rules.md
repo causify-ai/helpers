@@ -3,12 +3,11 @@ Conventions for writing a README for a directory with executables.
 # Overall Structure
 
 - READMEs should follow this hierarchical organization:
-
-1. **Summary**: One paragraph describing the directory's purpose
-2. **Structure of the Dir**: List subdirectories with <20-word descriptions
-3. **Description of Files**: Alphabetical list of all files with 1-line descriptions
-4. **Description of Executables**: Detailed docs for each script/tool
-5. **Description of Workflows** (optional): How executables combine for complex features
+  1. **Summary**: One paragraph describing the directory's purpose
+  2. **Structure of the Dir**: List subdirectories with <20-word descriptions
+  3. **Description of Files**: Alphabetical list of all files with 1-line descriptions
+  4. **Description of Executables**: Detailed docs for each script/tool
+  5. **Description of Workflows** (optional): How executables combine for complex features
 
 # Writing Conventions
 
