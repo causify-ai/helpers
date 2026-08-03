@@ -1173,8 +1173,8 @@ def init_logger(
     hloggin.shutup_chatty_modules(verbose=False)  # type: ignore[attr-defined]
     if report_command_line:
         cmd = get_command_line()
-        cmd_blue = f"\033[94m{cmd}\033[0m"
-        _LOG.info("> cmd='%s'", cmd_blue)
+        cmd = f"\033[94m> {cmd}\033[0m"
+        _LOG.info("%s", cmd)
     #
     # test_logger()
 

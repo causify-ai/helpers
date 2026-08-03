@@ -12,6 +12,13 @@ import helpers.hio as hio
 import helpers.hprint as hprint
 import helpers.hunit_test as hunitest
 
+# TODO(ai_gp): replace assertEqual with self.assert_equal
+# TODO(ai_gp): Add self.assert_equal or self.check_string everywhere needed
+
+# #############################################################################
+# Helper Functions
+# #############################################################################
+
 
 # #############################################################################
 # Helper Functions

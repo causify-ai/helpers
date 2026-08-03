@@ -164,7 +164,10 @@ This directory has no subdirectories.
 
 ### What It Does
 
-Unifies management of research ideas, blog posts, and Claude Code skills across multiple repositories into one powerful command-line tool. Replaces separate command families (`skill*`, `blog*`, `res*`, `story*`) with a consistent interface.
+- Unifies management of research ideas, blog posts, and Claude Code skills across
+  multiple repositories into one powerful command-line tool. Replaces separate
+  command families (`skill*`, `blog*`, `res*`, `story*`) with a consistent
+  interface.
 
 ### Content Types Managed
 
