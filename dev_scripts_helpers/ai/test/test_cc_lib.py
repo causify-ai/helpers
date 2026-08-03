@@ -35,7 +35,11 @@ class Test_make_file_scope_guard(hunitest.TestCase):
     """
 
     def helper(
-        self, target_file: str, tool_name: str, tool_input: dict, expected_type: type
+        self,
+        target_file: str,
+        tool_name: str,
+        tool_input: dict,
+        expected_type: type,
     ):
         """
         Build a guard for `target_file`, invoke it, and check the result type.
@@ -205,9 +209,7 @@ class Test_PromptSequencer_execute(hunitest.TestCase):
         :return: the mock replacing `claude_agent_sdk.ClaudeSDKClient`, for
             tests that need to inspect its `call_args`
         """
-        with umock.patch(
-            "claude_agent_sdk.ClaudeSDKClient"
-        ) as mock_client_cls:
+        with umock.patch("claude_agent_sdk.ClaudeSDKClient") as mock_client_cls:
             mock_client_cls.return_value = fake_client
             asyncio.run(sequencer.execute(prompts))
         return mock_client_cls
@@ -290,9 +292,7 @@ class Test_PromptSequencer_execute(hunitest.TestCase):
             model="claude-test",
         )
         msg2 = claude_agent_sdk.AssistantMessage(
-            content=[
-                claude_agent_sdk.TextBlock(text="LLM> CHANGED: fixed x")
-            ],
+            content=[claude_agent_sdk.TextBlock(text="LLM> CHANGED: fixed x")],
             model="claude-test",
         )
         sequencer = dshaccli.PromptSequencer(
@@ -358,9 +358,7 @@ class Test_PromptSequencer_chunk_stats(hunitest.TestCase):
         :param fake_client: fake client returned by the mocked
             `claude_agent_sdk.ClaudeSDKClient` constructor
         """
-        with umock.patch(
-            "claude_agent_sdk.ClaudeSDKClient"
-        ) as mock_client_cls:
+        with umock.patch("claude_agent_sdk.ClaudeSDKClient") as mock_client_cls:
             mock_client_cls.return_value = fake_client
             asyncio.run(sequencer.execute(prompts))
 
@@ -434,9 +432,7 @@ class Test_PromptSequencer_chunk_stats(hunitest.TestCase):
         """
         # Prepare inputs.
         msg1 = claude_agent_sdk.AssistantMessage(
-            content=[
-                claude_agent_sdk.TextBlock(text="LLM> CHANGED: fixed x")
-            ],
+            content=[claude_agent_sdk.TextBlock(text="LLM> CHANGED: fixed x")],
             model="claude-test",
         )
         result1 = claude_agent_sdk.ResultMessage(
@@ -474,9 +470,7 @@ class Test_PromptSequencer_chunk_stats(hunitest.TestCase):
             model="claude-test",
         )
         msg2 = claude_agent_sdk.AssistantMessage(
-            content=[
-                claude_agent_sdk.TextBlock(text="LLM> CHANGED: fixed x")
-            ],
+            content=[claude_agent_sdk.TextBlock(text="LLM> CHANGED: fixed x")],
             model="claude-test",
         )
         calls: List = []
@@ -540,9 +534,7 @@ class Test_PromptSequencer_context_strategy(hunitest.TestCase):
     Test `PromptSequencer.execute()` client construction per context strategy.
     """
 
-    def helper(
-        self, context_strategy: str, expected_call_count: int
-    ) -> None:
+    def helper(self, context_strategy: str, expected_call_count: int) -> None:
         """
         Run two prompts under `context_strategy` and check how many times
         `ClaudeSDKClient` was constructed.
@@ -570,9 +562,7 @@ class Test_PromptSequencer_context_strategy(hunitest.TestCase):
             responses_by_call=[[msg1], [msg2]]
         )
         # Run test.
-        with umock.patch(
-            "claude_agent_sdk.ClaudeSDKClient"
-        ) as mock_client_cls:
+        with umock.patch("claude_agent_sdk.ClaudeSDKClient") as mock_client_cls:
             mock_client_cls.return_value = fake_client
             asyncio.run(sequencer.execute(["prompt A", "prompt B"]))
         # Check outputs.

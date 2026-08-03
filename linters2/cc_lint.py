@@ -189,9 +189,7 @@ def _get_rules_for_topic(topic: str) -> Dict[str, Dict]:
         "readme",
         "markdown",
     )
-    _LOG.debug(
-        "topic_info=%s", topic_info
-    )
+    _LOG.debug("topic_info=%s", topic_info)
     return topic_info
 
 
@@ -239,7 +237,7 @@ def _infer_topic_from_filename(file_path: str) -> str:
 
 
 # #############################################################################
-# Rule Chunking and Filtering
+# RuleChunk
 # #############################################################################
 
 
@@ -369,9 +367,7 @@ def _build_rule_chunks(
     :return: one `RuleChunk` per section across every rule file in
         `topic_info["rules"]`, in file order, `order` set to position
     """
-    _LOG.debug(
-        hprint.to_str("level max_tokens merge_small_rules")
-    )
+    _LOG.debug(hprint.to_str("level max_tokens merge_small_rules"))
     # Split every rule file's H1 sections into chunks at `level`.
     rule_files = topic_info["rules"]
     all_sections: List[Tuple[str, str]] = []
@@ -498,14 +494,12 @@ def _filter_relevant_chunks(
     # Fail open (keep every chunk) when the reply would discard all of them.
     if not kept:
         _LOG.warning(
-            "Relevance filter selected zero chunks; keeping all %d "
-            "chunk(s)",
+            "Relevance filter selected zero chunks; keeping all %d chunk(s)",
             len(chunks),
         )
         return chunks
     kept = [
-        dataclasses.replace(chunk, order=idx)
-        for idx, chunk in enumerate(kept)
+        dataclasses.replace(chunk, order=idx) for idx, chunk in enumerate(kept)
     ]
     _LOG.debug("return=%d chunks", len(kept))
     return kept
@@ -600,9 +594,7 @@ def _load_journal(journal_file: str) -> List[Dict[str, Any]]:
         return []
     content = hio.from_file(journal_file)
     entries = cast(List[Dict[str, Any]], json.loads(content))
-    _LOG.debug(
-        "Loaded %d journal entries from '%s'", len(entries), journal_file
-    )
+    _LOG.debug("Loaded %d journal entries from '%s'", len(entries), journal_file)
     return entries
 
 
@@ -792,9 +784,7 @@ def _run_claude_code(
     :param model: Model to use for Claude invocation
     :return: Return code (0 on success, or subprocess return code)
     """
-    _LOG.debug(
-        hprint.to_str("prompt topic file_path dry_run model")
-    )
+    _LOG.debug(hprint.to_str("prompt topic file_path dry_run model"))
     hdbg.dassert_file_exists(file_path)
     prompt_file = "tmp.cc_lint.prompt.txt"
     hio.to_file(prompt_file, prompt)
@@ -1341,7 +1331,7 @@ def _parse() -> argparse.ArgumentParser:
         - 'session' and 'stateless' apply rules incrementally, one H1 section
           per Claude Code interaction, sharing one session across all chunks
           ('session') or opening a fresh session per chunk ('stateless')
-        """)
+        """),
     )
     parser.add_argument(
         "--rule_level",

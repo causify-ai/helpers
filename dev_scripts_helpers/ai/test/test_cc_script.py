@@ -148,11 +148,10 @@ class Test_load_prompts_from_file(hunitest.TestCase):
         Test loading multiple prompts from file.
         """
         content = """
-        First prompt here
-        Second prompt here
-        Third prompt here
-        """
-        )
+            First prompt here
+            Second prompt here
+            Third prompt here
+            """
         content = hprint.dedent(content)
         expected = [
             "First prompt here",
@@ -166,12 +165,11 @@ class Test_load_prompts_from_file(hunitest.TestCase):
         Test loading prompts with empty lines and whitespace.
         """
         content = """
-        Prompt 1
+            Prompt 1
 
-        Prompt 2
+            Prompt 2
 
-          Prompt 3  """
-        )
+              Prompt 3  """
         content = hprint.dedent(content)
         expected = ["Prompt 1", "Prompt 2", "Prompt 3"]
         self._load_and_parse_prompts("whitespace_prompts.txt", content, expected)

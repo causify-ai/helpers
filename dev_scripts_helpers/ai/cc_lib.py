@@ -161,8 +161,7 @@ def _make_file_scope_guard(target_file: str) -> CanUseToolFn:
                 )
                 return claude_agent_sdk.types.PermissionResultDeny(
                     message=(
-                        f"Only '{target_file}' may be modified in this "
-                        "session"
+                        f"Only '{target_file}' may be modified in this session"
                     ),
                 )
         return claude_agent_sdk.types.PermissionResultAllow()
@@ -258,9 +257,7 @@ class PromptSequencer:
         self.model = model
         self.system_prompt = system_prompt
         self.context_strategy = context_strategy
-        self.setting_sources = (
-            [] if setting_sources is None else setting_sources
-        )
+        self.setting_sources = [] if setting_sources is None else setting_sources
         self.target_file = target_file
         if can_use_tool is not None:
             self.can_use_tool = can_use_tool
@@ -286,6 +283,70 @@ class PromptSequencer:
         self._cost_usd: List[Optional[float]] = []
         self._num_turns: List[int] = []
         self._is_error: List[bool] = []
+
+    async def _execute_one_prompt(
+        self,
+        client: Any,
+        prompt: str,
+        prompt_idx: int,
+        total_prompts: int,
+    ) -> None:
+        """
+        Query `client` with a single `prompt` and record its outcome.
+
+        :param client: active `ClaudeSDKClient` session
+        :param prompt: prompt text to send
+        :param prompt_idx: 1-based index of `prompt` in the overall sequence
+        :param total_prompts: total number of prompts in the sequence
+        """
+        msg = []
+        msg.append(
+            hprint.frame(f"Executing prompt {prompt_idx}/{total_prompts}")
+        )
+        msg.append("Prompt content:\n%s" % prompt)
+        msg_as_str = hprint.color_highlight("\n".join(msg), "blue")
+        _LOG.info("\n%s", msg_as_str)
+        # Query Claude with prompt and collect response asynchronously.
+        await client.query(prompt)
+        # Collect response messages from stream.
+        response_parts: List[str] = []
+        text_parts: List[str] = []
+        cost_usd: Optional[float] = None
+        num_turns = 0
+        is_error = False
+        async for message in client.receive_response():
+            if self.print_output:
+                text = message_to_str(message)
+                if text:
+                    print(text, flush=True)
+            response_parts.append(str(message))
+            text = _extract_assistant_text(message)
+            if text:
+                text_parts.append(text)
+            if isinstance(message, claude_agent_sdk.ResultMessage):
+                cost_usd = message.total_cost_usd
+                num_turns = message.num_turns
+                is_error = message.is_error
+        response_text = "".join(response_parts)
+        self._last_response = response_text
+        self._responses.append(response_text)
+        outcome = _parse_rule_outcome("\n".join(text_parts))
+        self._outcomes.append(outcome)
+        self._cost_usd.append(cost_usd)
+        self._num_turns.append(num_turns)
+        self._is_error.append(is_error)
+        self._prompts_executed += 1
+        # Log prompt completion with response metrics.
+        _LOG.info("Prompt %d completed successfully", prompt_idx)
+        _LOG.debug("Response length: %d chars", len(response_text))
+        if self.on_chunk_done is not None:
+            stats = {
+                "outcome": outcome,
+                "cost_usd": cost_usd,
+                "num_turns": num_turns,
+                "is_error": is_error,
+            }
+            self.on_chunk_done(prompt_idx, stats)
 
     async def execute(self, prompts: List[str]) -> None:
         """
@@ -338,68 +399,6 @@ class PromptSequencer:
                     await self._execute_one_prompt(
                         client, prompt, prompt_idx, len(prompts)
                     )
-
-    async def _execute_one_prompt(
-        self,
-        client: Any,
-        prompt: str,
-        prompt_idx: int,
-        total_prompts: int,
-    ) -> None:
-        """
-        Query `client` with a single `prompt` and record its outcome.
-
-        :param client: active `ClaudeSDKClient` session
-        :param prompt: prompt text to send
-        :param prompt_idx: 1-based index of `prompt` in the overall sequence
-        :param total_prompts: total number of prompts in the sequence
-        """
-        msg = []
-        msg.append(hprint.frame(f"Executing prompt {prompt_idx}/{total_prompts}"))
-        msg.append("Prompt content:\n%s" % prompt)
-        msg_as_str = hprint.color_highlight("\n".join(msg), "blue")
-        _LOG.info("\n%s", msg_as_str)
-        # Query Claude with prompt and collect response asynchronously.
-        await client.query(prompt)
-        # Collect response messages from stream.
-        response_parts: List[str] = []
-        text_parts: List[str] = []
-        cost_usd: Optional[float] = None
-        num_turns = 0
-        is_error = False
-        async for message in client.receive_response():
-            if self.print_output:
-                text = message_to_str(message)
-                if text:
-                    print(text, flush=True)
-            response_parts.append(str(message))
-            text = _extract_assistant_text(message)
-            if text:
-                text_parts.append(text)
-            if isinstance(message, claude_agent_sdk.ResultMessage):
-                cost_usd = message.total_cost_usd
-                num_turns = message.num_turns
-                is_error = message.is_error
-        response_text = "".join(response_parts)
-        self._last_response = response_text
-        self._responses.append(response_text)
-        outcome = _parse_rule_outcome("\n".join(text_parts))
-        self._outcomes.append(outcome)
-        self._cost_usd.append(cost_usd)
-        self._num_turns.append(num_turns)
-        self._is_error.append(is_error)
-        self._prompts_executed += 1
-        # Log prompt completion with response metrics.
-        _LOG.info("Prompt %d completed successfully", prompt_idx)
-        _LOG.debug("Response length: %d chars", len(response_text))
-        if self.on_chunk_done is not None:
-            stats = {
-                "outcome": outcome,
-                "cost_usd": cost_usd,
-                "num_turns": num_turns,
-                "is_error": is_error,
-            }
-            self.on_chunk_done(prompt_idx, stats)
 
     def get_last_response(self) -> str:
         """
@@ -473,7 +472,7 @@ class PromptSequencer:
 
 
 # #############################################################################
-# Testing Utilities
+# FakeClaudeSDKClient
 # #############################################################################
 
 
@@ -495,14 +494,6 @@ class FakeClaudeSDKClient:
         # since this fake is not actually built with those kwargs.
         self.options: Any = None
 
-    async def __aenter__(self) -> "FakeClaudeSDKClient":
-        self.aenter_called = True
-        return self
-
-    async def __aexit__(self, *_exc_info) -> bool:
-        self.aexit_called = True
-        return False
-
     async def query(self, prompt: str) -> None:
         self.queried_prompts.append(prompt)
 
@@ -510,6 +501,14 @@ class FakeClaudeSDKClient:
         idx = len(self.queried_prompts) - 1
         for message in self._responses_by_call[idx]:
             yield message
+
+    async def __aenter__(self) -> "FakeClaudeSDKClient":
+        self.aenter_called = True
+        return self
+
+    async def __aexit__(self, *_exc_info) -> bool:
+        self.aexit_called = True
+        return False
 
     # TODO(gp): Maybe better to just print all the values.
     def __str__(self) -> str:

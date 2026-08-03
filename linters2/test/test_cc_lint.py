@@ -359,7 +359,7 @@ class Test_get_rules_for_topic(hunitest.TestCase):
          'templates': ['.claude/templates/coding.template.py']}
         """
         # Run test.
-        topic_info = self.helper(topic, expected)
+        self.helper(topic, expected)
 
     def test9(self) -> None:
         """
@@ -872,9 +872,7 @@ class Test_journal(hunitest.TestCase):
         lcclint._append_journal_entries(journal_file, [entry1])
         lcclint._append_journal_entries(journal_file, [entry2])
         # Check outputs.
-        self.assertEqual(
-            lcclint._load_journal(journal_file), [entry1, entry2]
-        )
+        self.assertEqual(lcclint._load_journal(journal_file), [entry1, entry2])
 
     def test_append_empty_is_a_no_op(self) -> None:
         """
@@ -921,9 +919,7 @@ class Test_journal(hunitest.TestCase):
         no entry.
         """
         # Run test and check outputs.
-        self.assertIsNone(
-            lcclint._latest_journal_status([], "a.py", "Rule One")
-        )
+        self.assertIsNone(lcclint._latest_journal_status([], "a.py", "Rule One"))
 
     def test_status_from_chunk_stats(self) -> None:
         """
@@ -989,8 +985,7 @@ class Test_journal(hunitest.TestCase):
             kept, [("Rule Three", "msg three"), ("Rule Four", "msg four")]
         )
         skipped = [
-            entry["chunk_title"]
-            for entry in lcclint._load_journal(journal_file)
+            entry["chunk_title"] for entry in lcclint._load_journal(journal_file)
         ]
         self.assertEqual(skipped, ["Rule One", "Rule Two"])
 
@@ -1087,9 +1082,7 @@ class Test_build_rule_message(hunitest.TestCase):
     Tests for `cc_lint._build_rule_message()` function.
     """
 
-    def helper(
-        self, file_path: str, rule_content: str, expected: str
-    ) -> None:
+    def helper(self, file_path: str, rule_content: str, expected: str) -> None:
         """
         Build the rule message and check it against `expected`.
 
@@ -1182,6 +1175,11 @@ def _expected_message(file_path: str, section_content: str) -> str:
     #
     msg_as_str = "\n".join(msg)
     return msg_as_str
+
+
+# #############################################################################
+# Test_build_incremental_messages
+# #############################################################################
 
 
 class Test_build_incremental_messages(hunitest.TestCase):
@@ -1592,9 +1590,7 @@ class Test_process_file_incremental(hunitest.TestCase):
         )
         # Run test.
         with (
-            umock.patch(
-                "claude_agent_sdk.ClaudeSDKClient"
-            ) as mock_client_cls,
+            umock.patch("claude_agent_sdk.ClaudeSDKClient") as mock_client_cls,
             umock.patch.object(
                 lcclint.hmarsele,
                 "find_skill",
@@ -1605,9 +1601,7 @@ class Test_process_file_incremental(hunitest.TestCase):
             rc, topic_info = lcclint._process_file(file_path, args)
         # Check outputs.
         self.assertEqual(rc, 0)
-        self.assertEqual(
-            len(fake_client.queried_prompts), expected_num_messages
-        )
+        self.assertEqual(len(fake_client.queried_prompts), expected_num_messages)
         for prompt in fake_client.queried_prompts:
             self.assertIn(file_path, prompt)
         self.assertTrue(topic_info)
@@ -1845,9 +1839,7 @@ class Test_process_file_incremental(hunitest.TestCase):
         )
         # Check outputs.
         journal = lcclint._load_journal(journal_file)
-        statuses = {
-            entry["chunk_title"]: entry["status"] for entry in journal
-        }
+        statuses = {entry["chunk_title"]: entry["status"] for entry in journal}
         self.assertEqual(statuses, {"Rule One": "no_op", "Rule Two": "no_op"})
 
     def test10(self) -> None:
@@ -1932,9 +1924,7 @@ class Test_process_file_incremental(hunitest.TestCase):
         fake_client = dshaccli.FakeClaudeSDKClient(responses_by_call=[[msg]])
         # Run test.
         with (
-            umock.patch(
-                "claude_agent_sdk.ClaudeSDKClient"
-            ) as mock_client_cls,
+            umock.patch("claude_agent_sdk.ClaudeSDKClient") as mock_client_cls,
             umock.patch.object(
                 lcclint.hmarsele,
                 "find_skill",
@@ -1955,8 +1945,7 @@ class Test_process_file_incremental(hunitest.TestCase):
 
 @pytest.mark.skip(
     reason=(
-        "Run manually: makes a real Claude Agent SDK/CLI call and costs "
-        "tokens"
+        "Run manually: makes a real Claude Agent SDK/CLI call and costs tokens"
     )
 )
 class Test_process_file_end_to_end(hunitest.TestCase):
@@ -2073,9 +2062,9 @@ class Test_process_file_end_to_end(hunitest.TestCase):
         # Prepare inputs.
         scratch_dir = self.get_scratch_space()
         rule_file = os.path.join(scratch_dir, "test.rules.md")
-        hio.to_file(
-            rule_file, "# My Rule\nReply with exactly the word OK.\n"
-        )
+        hio.to_file(rule_file, 
+                    # TODO(ai_gp): Use """
+                    "# My Rule\nReply with exactly the word OK.\n")
         topic = ""
         skill = ""
         rule = rule_file

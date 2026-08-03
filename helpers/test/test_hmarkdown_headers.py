@@ -835,9 +835,7 @@ class Test_extract_h1_sections_from_lines(hunitest.TestCase):
         rule_file = "./.claude/skills/testing.rules.md"
         content = hio.from_file(rule_file)
         # Run test.
-        sections = hmarkdo.extract_h1_sections_from_lines(
-            content.split("\n")
-        )
+        sections = hmarkdo.extract_h1_sections_from_lines(content.split("\n"))
         # Check outputs.
         self.assertGreater(len(sections), 0)
         # Verify we have expected H1 sections.
