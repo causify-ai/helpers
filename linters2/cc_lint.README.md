@@ -13,28 +13,28 @@ Claude Code integration for topic-based formatting.
 
 - Format specific Python files based on their types:
   ```bash
-  > cc_lint.py --files "file1.py file2.py"
+  > cc_lint.py --files "file1.py file2.py" ...
   ```
 
 - Apply a specific coding rule to a file, isntead of the default
   ```bash
-  > cc_lint.py --files "file.py" --topic coding
+  > cc_lint.py --files "file.py" --topic coding ...
   ```
 
 - Lint modified files in the repository:
   ```bash
-  > cc_lint.py --modified
+  > cc_lint.py --modified ...
   ```
 
 - Preview command without executing (dry-run), saved to
   `tmp.cc_lint_dry_run.txt` instead of printed to screen:
   ```bash
-  > cc_lint.py --dry_run --files "*.md"
+  > cc_lint.py --files "*.md" --dry_run ...
   ```
 
 - Process multiple files with progress feedback:
   ```bash
-  > cc_lint.py --files "src/*.py" --topic coding
+  > cc_lint.py --files "src/*.py" --topic coding ...
   ```
 
 - Use a different model:
@@ -42,17 +42,18 @@ Claude Code integration for topic-based formatting.
   > cc_lint.py \
     --files dev_scripts_helpers/scraping/download_link_articles.py \
     --skill "coding.add_comments" \
+    --mode one_shot_with_cc \
     --model deepseek/deepseek-v4-flash
   ```
 
 - Apply a rule to a file
   ```bash
-  > cc_lint.py --files "file.py" --rule <RULE>
+  > cc_lint.py --files "file.py" --rule <RULE> ...
   ```
 
 - Only create TODOs instead of applying the transforms
   ```bash
-  > cc_lint.py --files "file.py" --add_todos
+  > cc_lint.py --files "file.py" --add_todos ...
   ```
 
 ## Rule Application Mechanisms
@@ -71,9 +72,9 @@ Claude Code integration for topic-based formatting.
     --rule "dassert"
     ```
 
-- `--mode` controls how rules are applied
-  - `one_shot_with_cc` (the default) applies all rules in a single
-    Claude Code invocation instead
+- `--mode` controls how rules are applied and is required (no default, to
+  force an explicit choice)
+  - `one_shot_with_cc` applies all rules in a single Claude Code invocation
   - `one_shot`: same prompt as `one_shot_with_cc` but using API instead
     of executable
   - `session`: one session shared across all chunks, for rules that depend on

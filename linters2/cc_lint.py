@@ -17,19 +17,19 @@ This script:
 
 Quick examples:
 # Lint specific Python files:
-> cc_lint.py --files "file1.py file2.py"
+> cc_lint.py --files "file1.py file2.py" ...
 
 # Lint modified files:
-> cc_lint.py --modified
+> cc_lint.py --modified ...
 
 # Apply specific topic rules:
-> cc_lint.py --files "file.py" --topic coding
+> cc_lint.py --files "file.py" --topic coding ...
 
 # Execute a skill:
-> cc_lint.py --files "file.py" --skill coding.fix_inline
+> cc_lint.py --files "file.py" --skill coding.fix_inline ...
 
 # Save command to `tmp.cc_lint_dry_run.txt` without executing:
-> cc_lint.py --files "*.md" --dry_run
+> cc_lint.py --files "*.md" --dry_run ...
 """
 
 import argparse
@@ -762,11 +762,11 @@ def _build_add_todos_instructions(rule_file: str = "") -> str:
           ```
           # TODO(...): Do this and that (testing.rules.md:## Use Context Manager Syntax for Multiple Mocks)
           ```
-        - Look up {rule_file_descr} to find the `<rule header line>` (the
-          header line text, including its leading `#`s) that the violated rule
-          came from
-        - Do not otherwise change the file: do not fix the violation, only add
-          the TODO comment
+          - Look up {rule_file_descr} to find the `<rule header line>` (the
+            header line text, including its leading `#`s) that the violated rule
+            came from
+          - Do not otherwise change the file: do not fix the violation, only add
+            the TODO comment
         """
     instructions = hprint.dedent(instructions)
     return instructions
@@ -795,19 +795,19 @@ def _build_prompt(topic: str, *, add_todos: bool = False) -> Tuple[str, Dict]:
     prompt_parts.append(role_content)
     if rules:
         if add_todos:
-            prompt_parts.append(
-                "You MUST look for each rule below that is not followed:"
-            )
+            header = "You MUST look for each rule below that is not followed:"
         else:
-            prompt_parts.append(
-                "You MUST look for each rule below that is not followed and apply them:"
+            header = (
+                "You MUST look for each rule below that is not followed "
+                "and apply them:"
             )
+        prompt_parts.append(f"- {header}")
         for rule_file in rules:
-            prompt_parts.append(f"- {rule_file}")
+            prompt_parts.append(f"  - `{rule_file}`")
     if templates:
-        prompt_parts.append("You MUST follow the templates below:")
+        prompt_parts.append("- You MUST follow the templates below:")
         for template_file in templates:
-            prompt_parts.append(f"- {template_file}")
+            prompt_parts.append(f"  - `{template_file}`")
     if add_todos:
         prompt_parts.append(_build_add_todos_instructions())
     else:
@@ -924,10 +924,10 @@ def _build_incremental_system_prompt(
     #
     templates = topic_info["templates"]
     if templates:
-        msg = "You MUST follow the templates below:"
+        msg = "- You MUST follow the templates below:"
         system_prompt.append(msg)
         for template_file in templates:
-            system_prompt.append(f"- {template_file}")
+            system_prompt.append(f"  - `{template_file}`")
     #
     system_prompt_as_str = "\n".join(system_prompt)
     _LOG.debug(hprint.to_str("system_prompt_as_str"))
@@ -973,13 +973,8 @@ def _build_rule_message(
     - Do not revisit rules applied earlier
     """
     rule_message.append(hprint.dedent(header))
-    rule_message.append(hprint.dedent(
-        rf"""
-        ```
-        {rule_content}
-        ```
-        """
-    ))
+    fence_block = f"```\n{rule_content}\n```"
+    rule_message.append(hprint.indent(fence_block, num_spaces=2))
     #
     if add_todos:
         footer = """
@@ -1376,15 +1371,18 @@ def _build_one_shot_prompt(
         prompt, topic_info = _build_prompt(topic_str, add_todos=add_todos)
         if add_todos:
             prompt += (
-                f"\n\nCheck the file {file_path} against the rules and "
-                "conventions above and add TODO comments for violations "
-                "without asking questions to the user"
+                "\n\n- Check the files below against the rules and "
+                "conventions above and add TODO\n"
+                "  comments for violations without asking questions to the "
+                "user\n"
+                f"  - `{file_path}`"
             )
         else:
             prompt += (
-                f"\n\nProcess the file {file_path} and make the changes "
-                "according to the rules and conventions without asking "
-                "questions to the user"
+                "\n\n- Process the files below according to the rules and "
+                "conventions above and make the changes without asking "
+                "questions to the user\n"
+                f"  - `{file_path}`"
             )
     return prompt, topic_str, topic_info
 

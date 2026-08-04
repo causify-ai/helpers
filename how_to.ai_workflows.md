@@ -105,21 +105,23 @@
   invokes Claude Code on the selected files
 - Select files with `--files`, `--from_file`, `--modified`, `--branch`,
   `--last_commit`, or `--all`
-- Select what to apply with `--topic`, `--skill`, or `--rule`:
+- Select what to apply with `--topic`, `--skill`, or `--rule`
+- `--mode` is required (no default): pick `one_shot_with_cc`, `one_shot`,
+  `session`, or `stateless`
   ```bash
   # Apply the default rules for the file's topic (e.g., coding.rules.md)
-  > cc_lint.py --files "file.py" --topic coding
+  > cc_lint.py --files "file.py" --topic coding --mode one_shot_with_cc
 
   # Execute a specific skill on a file
-  > cc_lint.py --files "file.py" --skill coding.fix_inline
+  > cc_lint.py --files "file.py" --skill coding.fix_inline --mode one_shot_with_cc
 
   # Apply one specific rule section, identified three ways:
   # - Full path with header (validated against the file)
-  > cc_lint.py --rule ".claude/skills/coding.rules.md:58:## Mark Private Functions" --files "file.py"
+  > cc_lint.py --rule ".claude/skills/coding.rules.md:58:## Mark Private Functions" --files "file.py" --mode one_shot_with_cc
   # - Line number only (extracts the section starting there)
-  > cc_lint.py --rule ".claude/skills/coding.rules.md:58" --files "file.py"
+  > cc_lint.py --rule ".claude/skills/coding.rules.md:58" --files "file.py" --mode one_shot_with_cc
   # - Keyword search (resolved to a unique rule via `rig --rule`)
-  > cc_lint.py --rule "dassert" --files "file.py"
+  > cc_lint.py --rule "dassert" --files "file.py" --mode one_shot_with_cc
   ```
 - Use `--dry_run` to print the command without executing it
 
@@ -139,16 +141,17 @@
 ### Find and Apply a Specific Rule to a File
 1. Locate the rule with `rigrule "<keyword>"` or by browsing
    `.claude/skills/<TOPIC>.rules.md`
-2. Apply it with `cc_lint.py --rule "<keyword or path:line>" --files "<file>"`
+2. Apply it with `cc_lint.py --rule "<keyword or path:line>" --files "<file>" --mode one_shot_with_cc`
 
 ### Lint Files by Topic Instead of a Single Rule
-- Use `cc_lint.py --files "<files>" --topic <topic>` to apply the topic's full
-  rules file, or `--modified` / `--branch` / `--last_commit` / `--all` instead
-  of `--files` to select files by git state rather than by name
+- Use `cc_lint.py --files "<files>" --topic <topic> --mode one_shot_with_cc`
+  to apply the topic's full rules file, or `--modified` / `--branch` /
+  `--last_commit` / `--all` instead of `--files` to select files by git state
+  rather than by name
 
 ### Run a Skill on a File
-- Use `cc_lint.py --files "<file>" --skill <topic>.<action>` to execute one
-  skill (as opposed to a whole rules file) on a file
+- Use `cc_lint.py --files "<file>" --skill <topic>.<action> --mode one_shot_with_cc`
+  to execute one skill (as opposed to a whole rules file) on a file
 
 ### Create or Browse a Skill
 1. `mdm skill list` (or `mdm skill list <pattern>`) to see what already exists
@@ -173,5 +176,5 @@
 2. Copy the template to the new file's path and fill in the `<VAR>`
    placeholders
 3. Apply the corresponding rules with `cc_lint.py --files "<file>" --topic
-   <topic>` to check the new file follows conventions the template doesn't
-   already encode (e.g., naming, docstring content)
+   <topic> --mode one_shot_with_cc` to check the new file follows conventions
+   the template doesn't already encode (e.g., naming, docstring content)

@@ -6,6 +6,7 @@ from typing import Any, Dict, List, Tuple
 
 import helpers.hio as hio
 import helpers.hmarkdown_headers as hmarhead
+import helpers.hparser as hparser
 import helpers.hprint as hprint
 import helpers.hunit_test as hunitest
 
@@ -1171,8 +1172,8 @@ class Test_build_incremental_system_prompt(hunitest.TestCase):
         prefix_len = len(role_content) + 1 + len(instruction) + 1
         # Prepare outputs.
         expected = (
-            "You MUST follow the templates below:\n"
-            f"- {topic_info['templates'][0]}"
+            "- You MUST follow the templates below:\n"
+            f"  - `{topic_info['templates'][0]}`"
         )
         # Run test.
         actual = system_prompt[prefix_len:]
@@ -1325,9 +1326,8 @@ def _expected_message(
     header = hprint.dedent(header)
     msg.append(header)
     #
-    msg.append("```")
-    msg.append(section_content)
-    msg.append("```")
+    fence_block = f"```\n{section_content}\n```"
+    msg.append(hprint.indent(fence_block, num_spaces=2))
     #
     if add_todos:
         footer = """
@@ -2347,6 +2347,203 @@ class Test_process_file_incremental(hunitest.TestCase):
 
 
 # #############################################################################
+# Test_process_file_dry_run_output
+# #############################################################################
+
+
+class Test_process_file_dry_run_output(hunitest.TestCase):
+    """
+    Tests for the `--dry_run` tmp-file content saved by
+    `cc_lint._process_file()`, across every `--mode` / `--add_todos`
+    combination.
+
+    Uses a mocked-up scratch rule file passed via `--rule` (not the real
+    project rules), so the rule text under test is fully controlled, while
+    the role/template text still comes from the real (filename-inferred)
+    topic, like production usage.
+    """
+
+    _RULE_CONTENT = "# Mock Rule\n- Do the mock thing\n"
+
+    def helper(self, mode: str, add_todos: bool) -> None:
+        """
+        Run `_process_file()` in `dry_run` mode and check the tmp-file
+        content saved to `cc_lint._DRY_RUN_FILE`.
+
+        :param mode: `--mode` value
+        :param add_todos: `--add_todos` value
+        """
+        # Prepare inputs.
+        scratch_dir = self.get_scratch_space()
+        file_path = os.path.join(scratch_dir, "example.py")
+        hio.to_file(file_path, "x = 1\n")
+        rule_file = os.path.join(scratch_dir, "mock.rules.md")
+        hio.to_file(rule_file, self._RULE_CONTENT)
+        args = argparse.Namespace(
+            mode=mode,
+            topic="",
+            skill="",
+            rule=rule_file,
+            dry_run=True,
+            model="mock-model",
+            rule_level=2,
+            max_chunk_tokens=1500,
+            merge_small_rules=False,
+            filter_rules_by_relevance=False,
+            order_rules_by_dependency=False,
+            resume=False,
+            journal_file=os.path.join(scratch_dir, "journal.json"),
+            max_turns_per_chunk=15,
+            add_todos=add_todos,
+        )
+        topic_info = lcclint._get_rules_for_topic(
+            lcclint._infer_topic_from_filename(file_path)
+        )
+        # Prepare outputs.
+        expected = self._build_expected(
+            mode, add_todos, file_path, rule_file, topic_info
+        )
+        # Run test.
+        rc, actual_topic_info = lcclint._process_file(file_path, args)
+        actual = hio.from_file(lcclint._DRY_RUN_FILE)
+        # Check outputs.
+        self.assertEqual(rc, 0)
+        self.assertEqual(actual_topic_info, topic_info)
+        self.assert_equal(actual, expected)
+
+    def _build_expected(
+        self,
+        mode: str,
+        add_todos: bool,
+        file_path: str,
+        rule_file: str,
+        topic_info: Dict[str, Any],
+    ) -> str:
+        """
+        Build the expected `--dry_run` tmp-file content for `mode`, composed
+        from the same builder functions `_process_file()` dispatches to.
+        """
+        if mode in ("stateless", "session"):
+            system_prompt = lcclint._build_incremental_system_prompt(
+                topic_info, add_todos=add_todos
+            )
+            titled_messages = lcclint._build_incremental_messages_for_rule(
+                file_path, self._RULE_CONTENT, rule_file, add_todos=add_todos
+            )
+            out = ["Dry Run - System prompt and messages to be sent:"]
+            out.append(
+                "\n%s\n%s" % (hprint.frame("System prompt:"), system_prompt)
+            )
+            for idx, (title, msg) in enumerate(titled_messages, 1):
+                out.append(
+                    "\n%s\n%s"
+                    % (
+                        hprint.frame(
+                            f"Message {idx}/{len(titled_messages)} ({title}):"
+                        ),
+                        msg,
+                    )
+                )
+            expected = "\n".join(out)
+        else:
+            rule_content = lcclint.hmarsele.extract_rule_from_file(rule_file)
+            if add_todos:
+                prompt = (
+                    f"Check the rule below against file {file_path} for "
+                    f"violations (do not fix them):\n{rule_content}\n\n"
+                    + lcclint._build_add_todos_instructions(rule_file)
+                )
+            else:
+                prompt = (
+                    f"Execute the rule below on file {file_path}:\n"
+                    f"{rule_content}"
+                )
+            if mode == "one_shot_with_cc":
+                cc_wrapper = lcclint.hgit.find_file(
+                    "cc",
+                    dir_path=os.path.join(
+                        os.path.dirname(lcclint.__file__), ".."
+                    ),
+                )
+                extract_log = lcclint.hgit.find_file(
+                    "extract_cc_log2.py",
+                    dir_path=os.path.join(
+                        os.path.dirname(lcclint.__file__),
+                        "..",
+                        "dev_scripts_helpers",
+                        "ai",
+                    ),
+                )
+                cmd = " ".join(
+                    [cc_wrapper, "-p", "Execute the file tmp.cc_lint.prompt.txt"]
+                ) + f" | {extract_log}"
+                out = [
+                    "Using model: mock-model",
+                    hprint.frame("Prompt (rule):"),
+                    prompt,
+                    "Claude command: %s" % cmd,
+                    "Dry run: command not executed",
+                ]
+            else:
+                out = [
+                    "Using model: mock-model",
+                    hprint.frame("Message:"),
+                    prompt,
+                    "Dry run: command not executed",
+                ]
+            expected = "\n".join(out)
+        return expected
+
+    def test1(self) -> None:
+        """
+        Test `--mode stateless` with `--add_todos False`.
+        """
+        self.helper("stateless", False)
+
+    def test2(self) -> None:
+        """
+        Test `--mode stateless` with `--add_todos True`.
+        """
+        self.helper("stateless", True)
+
+    def test3(self) -> None:
+        """
+        Test `--mode session` with `--add_todos False`.
+        """
+        self.helper("session", False)
+
+    def test4(self) -> None:
+        """
+        Test `--mode session` with `--add_todos True`.
+        """
+        self.helper("session", True)
+
+    def test5(self) -> None:
+        """
+        Test `--mode one_shot` with `--add_todos False`.
+        """
+        self.helper("one_shot", False)
+
+    def test6(self) -> None:
+        """
+        Test `--mode one_shot` with `--add_todos True`.
+        """
+        self.helper("one_shot", True)
+
+    def test7(self) -> None:
+        """
+        Test `--mode one_shot_with_cc` with `--add_todos False`.
+        """
+        self.helper("one_shot_with_cc", False)
+
+    def test8(self) -> None:
+        """
+        Test `--mode one_shot_with_cc` with `--add_todos True`.
+        """
+        self.helper("one_shot_with_cc", True)
+
+
+# #############################################################################
 # Test_process_file_end_to_end
 # #############################################################################
 
@@ -2536,14 +2733,14 @@ class Test_parse(hunitest.TestCase):
 
     def test1(self) -> None:
         """
-        Test that `--mode` defaults to `one_shot_with_cc`.
+        Test that `--mode` is required and has no default.
         """
         # Prepare inputs.
+        parser = lcclint._parse()
         argv: List[str] = []
-        # Prepare outputs.
-        expected_mode = "one_shot_with_cc"
-        # Run test.
-        self.helper(argv, expected_mode)
+        # Run test and check outputs.
+        with self.assertRaises(SystemExit):
+            parser.parse_args(argv)
 
     def test2(self) -> None:
         """
@@ -2595,7 +2792,7 @@ class Test_parse(hunitest.TestCase):
         Test the default values of the rule-chunking args.
         """
         # Prepare inputs.
-        argv: List[str] = []
+        argv = ["--mode", "one_shot_with_cc"]
         # Prepare outputs.
         expected = {
             "rule_level": 2,
@@ -2612,7 +2809,14 @@ class Test_parse(hunitest.TestCase):
         Test that `--rule_level` and `--max_chunk_tokens` parse as `int`.
         """
         # Prepare inputs.
-        argv = ["--rule_level", "1", "--max_chunk_tokens", "500"]
+        argv = [
+            "--mode",
+            "one_shot_with_cc",
+            "--rule_level",
+            "1",
+            "--max_chunk_tokens",
+            "500",
+        ]
         # Prepare outputs.
         expected = {"rule_level": 1, "max_chunk_tokens": 500}
         # Run test.
@@ -2625,6 +2829,8 @@ class Test_parse(hunitest.TestCase):
         """
         # Prepare inputs.
         argv = [
+            "--mode",
+            "one_shot_with_cc",
             "--merge_small_rules",
             "--filter_rules_by_relevance",
             "--order_rules_by_dependency",
@@ -2637,3 +2843,31 @@ class Test_parse(hunitest.TestCase):
         }
         # Run test.
         self.helper2(argv, expected)
+
+    def test8(self) -> None:
+        """
+        Test that the parser uses `hparser.CustomHelpFormatter`, so
+        `--rule`/`--mode`'s hand-built bullet lists render without being
+        collapsed into a single wrapped paragraph.
+        """
+        # Prepare inputs.
+        parser = lcclint._parse()
+        # Run test.
+        actual = parser.formatter_class
+        # Check outputs.
+        expected = hparser.CustomHelpFormatter
+        self.assertEqual(actual, expected)
+
+    def test9(self) -> None:
+        """
+        Test that `--help` doesn't render a useless "(default: None)" for
+        the required `--mode` option, while an optional with a real
+        default still shows its "(default: ...)".
+        """
+        # Prepare inputs.
+        parser = lcclint._parse()
+        # Run test.
+        actual = parser.format_help()
+        # Check outputs.
+        self.assertNotIn("default: None", actual)
+        self.assertIn("(default: 1500)", actual)
