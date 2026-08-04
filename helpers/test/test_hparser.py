@@ -87,6 +87,7 @@ class Test_CustomHelpFormatter_split_lines(hunitest.TestCase):
             "- 'session' applies incrementally",
         ]
         # Run test.
+        # TODO(ai_gp): Assign width=40 and pass width in all tests.
         self.helper(text, 40, expected)
 
     def test2(self) -> None:
@@ -533,11 +534,23 @@ class Test_CustomHelpFormatter_format_help(hunitest.TestCase):
         """
         # Prepare inputs.
         parser = self._build_parser(_ForceNoColorFormatter)
+        # Prepare outputs.
+        expected = """
+        usage: myprog [-h] [--files FILES] [--max_chunk_tokens MAX_CHUNK_TOKENS] --mode {a,b,c}
+
+        options:
+          -h, --help            show this help message and exit
+          --files FILES         Select specific files
+          --max_chunk_tokens MAX_CHUNK_TOKENS
+                                Token budget per merged rule chunk (default: 1500)
+          --mode {a,b,c}        Execution mode:
+                                - 'a' does one thing with more detail here
+                                - 'b' does another
+        """
         # Run test.
         actual = parser.format_help()
         # Check outputs.
-        self.assertNotIn("default: None", actual)
-        self.assertIn("(default: 1500)", actual)
+        self.assert_equal(actual, expected, dedent=True)
 
     def test3(self) -> None:
         """
@@ -546,11 +559,23 @@ class Test_CustomHelpFormatter_format_help(hunitest.TestCase):
         """
         # Prepare inputs.
         parser = self._build_parser(_ForceNoColorFormatter)
+        # Prepare outputs.
+        expected = """
+        usage: myprog [-h] [--files FILES] [--max_chunk_tokens MAX_CHUNK_TOKENS] --mode {a,b,c}
+
+        options:
+          -h, --help            show this help message and exit
+          --files FILES         Select specific files
+          --max_chunk_tokens MAX_CHUNK_TOKENS
+                                Token budget per merged rule chunk (default: 1500)
+          --mode {a,b,c}        Execution mode:
+                                - 'a' does one thing with more detail here
+                                - 'b' does another
+        """
         # Run test.
         actual = parser.format_help()
         # Check outputs.
-        self.assertIn("- 'a' does one thing with more detail here", actual)
-        self.assertIn("- 'b' does another", actual)
+        self.assert_equal(actual, expected, dedent=True)
 
     def test4(self) -> None:
         """

@@ -9,7 +9,7 @@ import dev_scripts_helpers.ai.test.test_cc_lib as daiattccl
 import asyncio
 import os
 import unittest.mock as umock
-from typing import List
+from typing import Any, Dict, List
 
 import helpers.hio as hio
 import helpers.hprint as hprint
@@ -609,7 +609,6 @@ class Test_save_session_log(hunitest.TestCase):
         prompts = ["What is 2+2?"]
         responses = ["2+2 equals 4"]
         # Prepare outputs.
-        # TODO(...): Move closing """ to own line and properly indent (.claude/skills/testing.rules.md:## Dedent Strings to the Code)
         expected = """
         {
           "prompts_and_responses": [
@@ -620,7 +619,8 @@ class Test_save_session_log(hunitest.TestCase):
             }
           ],
           "total_prompts": 1
-        }"""
+        }
+        """
         # Run test.
         self.helper(prompts, responses, expected)
 
@@ -632,7 +632,6 @@ class Test_save_session_log(hunitest.TestCase):
         prompts = ["First prompt", "Second prompt", "Third prompt"]
         responses = ["Response 1", "Response 2", "Response 3"]
         # Prepare outputs.
-        # TODO(...): Move closing """ to own line and properly indent (.claude/skills/testing.rules.md:## Dedent Strings to the Code)
         expected = """
         {
           "prompts_and_responses": [
@@ -653,7 +652,8 @@ class Test_save_session_log(hunitest.TestCase):
             }
           ],
           "total_prompts": 3
-        }"""
+        }
+        """
         # Run test.
         self.helper(prompts, responses, expected)
 
@@ -672,7 +672,7 @@ class Test_make_file_scope_guard(hunitest.TestCase):
         self,
         target_file: str,
         tool_name: str,
-        tool_input: dict,
+        tool_input: Dict[str, Any],
         expected_type: type,
     ):
         """
@@ -768,7 +768,7 @@ class Test_make_file_scope_guard(hunitest.TestCase):
         """
         # Prepare inputs.
         target_file = os.path.join(self.get_scratch_space(), "target.py")
-        tool_input: dict = {}
+        tool_input: Dict[str, Any] = {}
         # Run test and check outputs.
         self.helper(
             target_file,
@@ -783,8 +783,7 @@ class Test_make_file_scope_guard(hunitest.TestCase):
         """
         # Prepare inputs.
         target_file = os.path.join(self.get_scratch_space(), "target.py")
-        # TODO(ai_gp): Use Dict[...] in all instances.
-        tool_input: dict = {}
+        tool_input: Dict[str, Any] = {}
         # Run test and check outputs.
         self.helper(
             target_file,
@@ -799,12 +798,12 @@ class Test_make_file_scope_guard(hunitest.TestCase):
         """
         # Prepare inputs.
         target_file = os.path.join(self.get_scratch_space(), "target.py")
+        tool_name = "Edit"
         tool_input = {"file_path": ""}
         # Run test and check outputs.
         self.helper(
             target_file,
-            # TODO(ai_gp): Use a var instead of using directly in the function.
-            "Edit",
+            tool_name,
             tool_input,
             claude_agent_sdk.types.PermissionResultAllow,
         )

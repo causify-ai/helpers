@@ -8,14 +8,14 @@ import asyncio
 import functools
 import logging
 import time
-from typing import Any, Tuple
+from typing import Any, Callable, Optional, Tuple
 
 _LOG = logging.getLogger(__name__)
 
 
 def sync_retry(
     num_attempts: int, exceptions: Tuple[Any], retry_delay_in_sec: int = 0
-) -> object:
+) -> Callable[[Callable[..., Any]], Callable[..., Any]]:
     """
     Decorator retrying the wrapped function/method num_attempts times if the
     `exceptions` listed in exceptions are thrown.
@@ -27,11 +27,11 @@ def sync_retry(
     :return: the result of the wrapped function/method
     """
 
-    def decorator(func) -> object:
+    def decorator(func: Callable[..., Any]) -> Callable[..., Any]:
         @functools.wraps(func)
         def retry_wrapper(*args, **kwargs):
             attempts_count = 1
-            last_exception = None
+            last_exception: Optional[BaseException] = None
             while attempts_count < num_attempts + 1:
                 try:
                     return func(*args, **kwargs)
@@ -50,6 +50,7 @@ def sync_retry(
             _LOG.error(
                 "Function %s failed after %d attempts", func, num_attempts
             )
+            hdbg.dassert_is_not(last_expection, None)
             raise last_exception
 
         return retry_wrapper
@@ -59,16 +60,16 @@ def sync_retry(
 
 def async_retry(
     num_attempts: int, exceptions: Tuple[Any], retry_delay_in_sec: int = 0
-) -> object:
+) -> Callable[[Callable[..., Any]], Callable[..., Any]]:
     """
     Same as `sync_retry` decorator but for `async` functions.
     """
 
-    def decorator(func) -> object:
+    def decorator(func: Callable[..., Any]) -> Callable[..., Any]:
         @functools.wraps(func)
         async def retry_wrapper(*args, **kwargs):
             attempts_count = 1
-            last_exception = None
+            last_exception: Optional[BaseException] = None
             while attempts_count < num_attempts + 1:
                 try:
                     return await func(*args, **kwargs)
@@ -87,6 +88,7 @@ def async_retry(
             _LOG.error(
                 "Function %s failed after %d attempts", func, num_attempts
             )
+            hdbg.dassert_is_not(last_expection, None)
             raise last_exception
 
         return retry_wrapper
