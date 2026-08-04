@@ -400,7 +400,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
     cmd_line = " ".join(map(str, sys.argv))
     args = parser.parse_args()
     hdbg.init_logger(verbosity=args.log_level, use_exec_path=True)
-    _LOG.info("cmd line=%s", cmd_line)
+    _LOG.info("%s", hprint.color_highlight(f"> {cmd_line}", "green"))
     if args.daemon:
         # Skip "open" action on watch runs (viewer auto-reloads).
         hdaemon.run_daemon_mode(

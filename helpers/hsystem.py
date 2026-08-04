@@ -221,7 +221,7 @@ def _system(
         hdbg.dassert_in(print_command, ("ON_DEBUG_LEVEL", True, False))
         if isinstance(print_command, bool):
             if print_command is True:
-                _LOG.info("> %s", hprint.color_highlight(cmd, "green"))
+                _LOG.info("%s", hprint.color_highlight(f"> {cmd}", "green"))
         with subprocess.Popen(
             cmd,
             shell=True,

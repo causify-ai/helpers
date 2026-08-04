@@ -931,7 +931,9 @@ def _main(parser: argparse.ArgumentParser) -> None:
     """
     args = parser.parse_args()
     hdbg.init_logger(verbosity=args.log_level, use_exec_path=True)
-    _LOG.info("cmd line=%s", hdbg.get_command_line())
+    _LOG.info(
+        "%s", hprint.color_highlight(f"> {hdbg.get_command_line()}", "green")
+    )
     # Get the selected actions.
     actions = hselacti.select_actions(args, _VALID_ACTIONS, _DEFAULT_ACTIONS)
     _LOG.info("Selected actions: %s", actions)
