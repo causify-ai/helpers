@@ -5,12 +5,11 @@
 
 ## File selection options
 
-- Code: `helpers.hselect_input_output.add_file_selection_args(parser)`
+- Code: `helpers.hselect_input_output.add_file_selection_args()`
 
 - The output is:
   ```verbatim
     -i, --input FILE      Select a single file
-
     --files FILES
                           Select specific files (space-separated list in a single argument)
     --from_file FROM_FILE
@@ -32,19 +31,24 @@
 
 ## File type filtering options
 
-- Code: `helpers.hselect_input_output.add_file_type_filter_args(parser, file_types_default="py,ipynb,md")`
+- Code: `helpers.hselect_input_output.add_file_type_filter_args()`
 
 - The output is:
   ```verbatim
     --file_types FILE_TYPES
-                          Comma-separated list of file extensions to process (e.g., 'py,ipynb,md,txt') Available: py (Python), ipynb (Jupyter), md (Markdown), txt (Text) Default: 'py,ipynb,md'
+                          Comma-separated list of file extensions to process.
+                          - Available: py (Python), ipynb (Jupyter), md
+                            (Markdown), txt (Text)
+                          - Default: 'py,ipynb,md'
     --skip_file_types SKIP_FILE_TYPES
-                          Comma-separated list of file extensions to skip (e.g., 'txt') Empty string means skip no extensions
+                          Comma-separated list of file extensions to skip (e.g.,
+                          'txt')
+                          - Empty string means skip no extensions
   ```
 
 ## Boolean on/off options
 
-- Code: `helpers.hparser.add_bool_arg(parser, "run_diff_script", default_value=True)`
+- Code: `helpers.hparser.add_bool_arg()`
 
 - The output is:
   ```verbatim
@@ -54,7 +58,7 @@
 
 ## Verbosity options
 
-- Code: `helpers.hparser.add_verbosity_arg(parser)`
+- Code: `helpers.hparser.add_verbosity_arg()`
 
 - The output is:
   ```verbatim
@@ -66,31 +70,36 @@
 
 ## Output metadata options
 
-- Code: `helpers.hparser.add_json_output_metadata_args(parser)`
+- Code: `helpers.hparser.add_json_output_metadata_args()`
 
 - The output is:
   ```verbatim
     --json_output_metadata JSON_OUTPUT_METADATA
-                          File storing the output metadata of this script in JSON format
+                          File storing the output metadata of this script in JSON
+                          format
   ```
 
 ## Input/output options
 
-- Code: `helpers.hselect_input_output.add_input_output_args(parser)`
+- Code: `helpers.hselect_input_output.add_input_output_args()`
 
 - The output is:
   ```verbatim
     -i, --input INPUT     Input file or `-` for stdin
     -o, --output OUTPUT   Output file or `-` for stdout
     --input_files INPUT_FILES [INPUT_FILES ...]
-                          One or more files (space-separated, shell globs supported) or comma-separated list
+                          One or more files (space-separated, shell globs
+                          supported) or comma-separated list
     --from_file FROM_FILE
-                          Path to a file containing a list of files to process (one per line)
+                          Path to a file containing a list of files to process
+                          (one per line)
   ```
+
+// TODO(ai_gp): Rename --input_files to --files
 
 ## Destination directory options
 
-- Code: `helpers.hselect_input_output.add_dst_dir_arg(parser, dst_dir_required=False, dst_dir_default=".")`
+- Code: `helpers.hselect_input_output.add_dst_dir_arg()`
 
 - The output is:
   ```verbatim
@@ -100,7 +109,7 @@
 
 ## Limit range options
 
-- Code: `helpers.hselect_input_output.add_limit_range_arg(parser)`
+- Code: `helpers.hselect_input_output.add_limit_range_arg()`
 
 - The output is:
   ```verbatim
@@ -109,11 +118,12 @@
 
 ## Multi-file selection options
 
-- Code: `helpers.hselect_input_output.add_multi_file_args(parser)`
+- Code: `helpers.hselect_input_output.add_multi_file_args()`
 
 - The output is:
   ```verbatim
-    --files FILES         Comma-separated list of files to process (e.g., 'file1.txt,file2.txt,file3.txt')
+    --files FILES         Comma-separated list of files to process (e.g.,
+                          'file1.txt,file2.txt,file3.txt')
     --from_files FROM_FILES
                           Path to file containing one file path per line
     -i, --input INPUT     File to process (can be specified multiple times)
@@ -121,15 +131,17 @@
 
 ## Action selection options
 
-- Code: `helpers.hselect_action.add_action_arg(parser, valid_actions=["a", "b", "c"], default_actions=["a", "b"])`
+- Code: `helpers.hselect_action.add_action_arg()`
 
 - The output is:
   ```verbatim
     -a, --action ACTION   Actions to execute (see available actions below)
     -sa, --skip_action SKIP_ACTION
-                          Actions to skip from default set (see available actions below)
+                          Actions to skip from default set (see available actions
+                          below)
     -e, --enable ENABLE_ACTION
-                          Enable additional actions on top of defaults (see available actions below)
+                          Enable additional actions on top of defaults (see
+                          available actions below)
     --all                 Run all the actions (a b)
 
     Available actions:
@@ -144,7 +156,7 @@
 
 ## Markdown select options
 
-- Code: `helpers.hmarkdown_select.add_select_arg(parser, required=False)`
+- Code: `helpers.hmarkdown_select.add_select_arg()`
 
 - The output is:
   ```verbatim
@@ -164,7 +176,7 @@
 
 ## Rule options
 
-- Code: `helpers.hmarkdown_select.add_rule_cli_arg(group)`
+- Code: `helpers.hmarkdown_select.add_rule_cli_arg()`
 
 - The output is:
   ```verbatim
@@ -177,7 +189,7 @@
 
 ## Cache control options
 
-- Code: `helpers.hcache_simple.add_cache_control_arg(parser)`
+- Code: `helpers.hcache_simple.add_cache_control_arg()`
 
 - The output is:
   ```verbatim
@@ -190,7 +202,7 @@
 
 ## Daemon options
 
-- Code: `helpers.hdaemon.add_daemon_arg(parser)`
+- Code: `helpers.hdaemon.add_daemon_arg()`
 
 - The output is:
   ```verbatim
@@ -199,7 +211,7 @@
 
 ## Open options
 
-- Code: `helpers.hdocker.add_open_arg(parser)`
+- Code: `helpers.hdocker.add_open_arg()`
 
 - The output is:
   ```verbatim
@@ -208,7 +220,7 @@
 
 ## Dockerized script options
 
-- Code: `helpers.hdocker.add_dockerized_script_arg(parser)`
+- Code: `helpers.hdocker.add_dockerized_script_arg()`
 
 - The output is:
   ```verbatim
@@ -220,7 +232,7 @@
 
 ## Parallel processing options
 
-- Code: `helpers.hjoblib.add_parallel_processing_arg(parser, num_threads_default="1")`
+- Code: `helpers.hjoblib.add_parallel_processing_arg()`
 
 - The output is:
   ```verbatim
@@ -245,7 +257,7 @@
 
 ## LLM prompt options
 
-- Code: `helpers.hllm_cli.add_llm_prompt_arg(parser)`
+- Code: `helpers.hllm_cli.add_llm_prompt_arg()`
 
 - The output is:
   ```verbatim
@@ -256,7 +268,7 @@
 
 ## LLM options
 
-- Code: `helpers.hllm_cli.add_llm_args(parser)`
+- Code: `helpers.hllm_cli.add_llm_args()`
 
 - The output is:
   ```verbatim
@@ -276,12 +288,13 @@
                           LLM backend to use: 'executable' (CLI), 'library' (Python), or 'mock' (testing)
     -b, --progress_bar    Enable progress bar with automatic estimation (input length * 1.0)
     --expected_num_chars EXPECTED_NUM_CHARS
-                          Expected number of characters in output (enables progress bar with explicit size)
+                          Expected number of characters in output (enables
+                          progress bar with explicit size)
   ```
 
 ## S3 options
 
-- Code: `helpers.hs3.add_s3_args(parser)`
+- Code: `helpers.hs3.add_s3_args()`
 
 - The output is:
   ```verbatim
@@ -293,7 +306,7 @@
 
 ## Config override options
 
-- Code: `config_root.config.config_utils.add_config_override_args(parser)`
+- Code: `config_root.config.config_utils.add_config_override_args()`
 
 - The output is:
   ```verbatim
@@ -303,7 +316,7 @@
 
 ## Pandoc backend options
 
-- Code: `dev_scripts_helpers.dockerize.lib_pandoc.add_pandoc_backend_arg(parser, default="auto")`
+- Code: `dev_scripts_helpers.dockerize.lib_pandoc.add_pandoc_backend_arg()`
 
 - The output is:
   ```verbatim
@@ -312,3 +325,10 @@
                           Docker otherwise, `dockerized` always runs pandoc in Docker, `host`
                           always runs the host binary
   ```
+
+## Mix
+
+  ```
+  --no_fail_on_warnings
+  ```
+
