@@ -187,8 +187,10 @@ def to_multi_line_cmd(docker_cmd_: List[str]) -> str:
     # Expand all strings into single lines.
     _LOG.debug("docker_cmd=%s", docker_cmd_)
     docker_cmd_tmp = []
+    # TODO(ai_gp): dc -> docker_cmd_tmp
     for dc in docker_cmd_:
         # Add a `\` at the end of each string.
+        # TODO(ai_gp): Use r'\' instead of "\\"
         hdbg.dassert(not dc.endswith("\\"), "dc='%s'", dc)
         dc += " \\"
         docker_cmd_tmp.extend(dc.split("\n"))

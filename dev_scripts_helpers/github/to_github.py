@@ -7,15 +7,18 @@ This script takes a file or directory path and generates a GitHub URL
 by combining the repository's remote URL with the current (or master)
 branch and the relative file path.
 
-Simple usage:
+Usage
 
-> ./dev_scripts_helpers/github/to_github.py --input helpers/hdbg.py
+# TODO(ai_gp): Add a short description for each command
+> to_github.py --input helpers/hdbg.py
 
-> ./dev_scripts_helpers/github/to_github.py --input helpers/hdbg.py --use_master
+> to_github.py --input helpers/hdbg.py --use_master
 
-> ./dev_scripts_helpers/github/to_github.py --input helpers/hdbg.py --open
+> to_github.py --input helpers/hdbg.py --open
 
-> ./dev_scripts_helpers/github/to_github.py --input helpers/hdbg.py --copy
+> to_github.py --input helpers/hdbg.py --copy
+
+> to_github.py --input helpers/hdbg.py --check_exists
 
 Import as:
 
@@ -27,23 +30,50 @@ import logging
 import os
 import webbrowser
 
+import requests
+
 import helpers.hdbg as hdbg
 import helpers.hparser as hparser
 import helpers.hsystem as hsystem
 
 _LOG = logging.getLogger(__name__)
 
+# Timeout (in seconds) for the HTTP request used to check if a GitHub URL
+# resolves.
+_CHECK_URL_TIMEOUT_IN_SECS = 10
+
+
+def _check_url_exists(url: str) -> bool:
+    """
+    Check whether a URL resolves with a successful HTTP status.
+
+    :param url: URL to check
+    :return: `True` if the URL returns a successful (200) HTTP status,
+        `False` otherwise
+    """
+    _LOG.debug("Checking URL='%s'", url)
+    response = requests.get(url, timeout=_CHECK_URL_TIMEOUT_IN_SECS)
+    exists = response.status_code == 200
+    _LOG.debug(
+        "URL='%s' status_code=%s exists=%s", url, response.status_code, exists
+    )
+    return exists
+
 
 def _get_github_url(
     *,
     file_path: str,
     use_master: bool,
+    check_exists: bool = False,
 ) -> str:
     """
     Generate GitHub URL for a given file path.
 
     :param file_path: path to file or directory
     :param use_master: use master branch instead of current branch
+    :param check_exists: if `True`, verify that the generated URL
+        resolves and raise if it doesn't
+        - Default: `False`
     :return: GitHub URL for the file
     """
     # Check if file or directory exists.
@@ -88,6 +118,11 @@ def _get_github_url(
     _LOG.debug("Branch name: %s", branch_name)
     # Construct GitHub URL.
     github_url = f"{repo_url}/blob/{branch_name}/{relative_path}"
+    if check_exists:
+        # Verify that the URL actually resolves, e.g., catching a branch
+        # that hasn't been pushed yet or a file that isn't tracked by git.
+        exists = _check_url_exists(github_url)
+        hdbg.dassert(exists, "GitHub URL does not resolve: '%s'", github_url)
     return github_url
 
 
@@ -118,6 +153,11 @@ def _parse() -> argparse.ArgumentParser:
         action="store_true",
         help="Copy the URL to system clipboard",
     )
+    parser.add_argument(
+        "--check_exists",
+        action="store_true",
+        help="Verify that the generated URL resolves and error out if it doesn't",
+    )
     hparser.add_verbosity_arg(parser)
     return parser
 
@@ -129,6 +169,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
     github_url = _get_github_url(
         file_path=args.input,
         use_master=args.use_master,
+        check_exists=args.check_exists,
     )
     # Print the URL.
     _LOG.info("GitHub URL: %s", github_url)

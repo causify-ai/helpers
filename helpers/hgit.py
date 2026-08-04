@@ -2087,7 +2087,7 @@ def get_merged_branches(mode: str) -> List[str]:
         )
     else:
         raise ValueError(f"Invalid mode='{mode}'")
-    _, branches = hsystem.system_to_lines(find_cmd, abort_on_error=False)
+    _, branches = hsystem.system_to_lines(cmd, abort_on_error=False)
     return branches
 
 

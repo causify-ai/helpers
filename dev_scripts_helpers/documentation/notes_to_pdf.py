@@ -318,7 +318,7 @@ def _parse() -> argparse.ArgumentParser:
     parser.add_argument(
         "--slides_engine",
         action="store",
-        # TODO(ai_gp): Use latex instead of beamer
+        # TODO(ai_gp2): Use latex instead of beamer
         default="auto",
         choices=["beamer", "typst", "auto"],
         help=hprint.dedent("""

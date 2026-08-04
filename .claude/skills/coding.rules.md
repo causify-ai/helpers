@@ -60,6 +60,24 @@
           content = f.read()
   ```
 
+## Use Raw Strings Instead of Escaping
+
+- Prefer a raw string `r'...'` over a regular string with backslash escaping
+- This avoids double-escaping and makes the literal content easier to read
+
+- **Bad**: Escaped backslashes
+  ```python
+  pattern = "\\d+\\.\\d+"
+  win_path = "C:\\Users\\test"
+  ```
+- **Good**: Raw string
+  ```python
+  pattern = r"\d+\.\d+"
+  win_path = r"C:\Users\test"
+  ```
+- Note: a raw string cannot end in a single backslash (e.g., `r'\'` is a
+  syntax error), so a lone trailing backslash still needs `"\\"`
+
 ## Use Triple-Quote Assignment with `hprint.dedent` for Multi-line Strings
 
 - For multi-line strings in code (test fixtures, expected outputs, scripts,
@@ -1171,10 +1189,14 @@
 
 ## Script Docstring Usage Examples
 
-- When writing docstrings or comments to explain how to use a script, do not use
-  the entire file path and do not prepend with `python`
-- Refer to scripts using their simple filename or relative path with `./`, both
-  in the README/comments and in docstring usage examples
+- When writing docstrings or comments to explain how to use a script
+  - Do not use the entire file path and do not prepend with `python`
+  - Do not prepend the script name with `./`: scripts are always executable and
+    `PATH` resolution is handled automatically, so the leading `./` is redundant
+  - Refer to scripts using their simple filename, both in the README/comments and
+    in docstring usage examples
+  - Precede each usage example with a `#` comment line explaining what that
+    specific example does
 
 - **Bad**: Uses full path and `python` prefix
   ```python
@@ -1186,16 +1208,39 @@
   # Run the script: python standardize_book_filename.py
   # Usage: python ./convert_epub_to_md.py input.epub output.md
   ```
-- **Good**: Uses simple script name
+- **Bad**: Uses `./` prefix or full relative path
+  ```
+  > ./manage_cache.py --action test
+  > dev_scripts_helpers/cache/manage_cache.py --action test
+  ```
+- **Bad**: Usage examples with no comment explaining each one
   ```python
   """
-  > extract_from_md.py -i some.md ...
+  Usage examples:
+  > manage_cache.py --action print_info
+  > manage_cache.py --action clear_all
+  > manage_cache.py --action clear_mem
   """
   ```
-  ```
-  #!/usr/bin/env python3
-  # Run the script: standardize_book_filename.py
-  # Usage: convert_epub_to_md.py input.epub output.md
+- **Good**: Uses simple script name, with a comment describing each example
+  ```python
+  """
+  Usage examples:
+  # Print stats for all cached functions.
+  > manage_cache.py --action print_info
+
+  # Clear everything (memory + disk).
+  > manage_cache.py --action clear_all
+
+  # Clear only the in-process memory layer.
+  > manage_cache.py --action clear_mem
+
+  # Clear only disk files.
+  > manage_cache.py --action clear_disk
+
+  # Run a self-contained smoke test.
+  > manage_cache.py --action test
+  """
   ```
 
 ## Create Dirs
@@ -1392,7 +1437,7 @@
   cmd = " ".join(cmd)
   ```
 
-## Use `hgit.find_file_in_git_tree()` for Script Paths
+## Use `hgit.find_file_in_git_tree()` to Locate Files
 
 - When calling scripts, use `hgit.find_file_in_git_tree()` to locate the script
   instead of hardwiring the path
@@ -1421,6 +1466,23 @@
         f"--max_level={max_level}",
         "--warn_on_malformed",
     ]
+    ```
+
+- The same rule applies to locating non-script resource files (e.g., CSS,
+  templates, data files) that live next to a module: use
+  `hgit.find_file_in_git_tree()` instead of deriving the path from `__file__`
+- Deriving the path from `__file__` breaks when the file is moved, or when the
+  module is imported from a different repo layout (e.g., a symlinked
+  `helpers_root`)
+
+  - **Bad**: Deriving the path from `__file__`
+    ```python
+    _SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+    _CSS_FILE_PATH = os.path.join(_SCRIPT_DIR, "link-page-style.css")
+    ```
+  - **Good**: Use `hgit.find_file_in_git_tree()` to locate the resource file
+    ```python
+    _CSS_FILE_PATH = hgit.find_file_in_git_tree("link-page-style.css")
     ```
 
 # File Organization and Naming

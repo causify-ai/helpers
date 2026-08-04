@@ -6,7 +6,7 @@ the CLI interface.
 
 Import as:
 
-import dev_scripts_helpers.llms.lib_llm_cli as dshlibllmcli
+import dev_scripts_helpers.llms.lib_llm_cli as dshllllcl
 """
 
 import logging
