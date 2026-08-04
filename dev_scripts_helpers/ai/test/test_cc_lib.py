@@ -189,8 +189,7 @@ class Test_PromptSequencer_chunk_stats(hunitest.TestCase):
         sequencer: dshaccli.PromptSequencer,
         prompts: List[str],
         fake_client: dshaccli.FakeClaudeSDKClient,
-        # TODO(ai_gp): Make mandatory without default
-        expected_chunk_stats: str = "",
+        expected_chunk_stats: str,
     ) -> None:
         """
         Run `sequencer.execute(prompts)` against a mocked SDK client.
@@ -199,16 +198,13 @@ class Test_PromptSequencer_chunk_stats(hunitest.TestCase):
         :param prompts: prompts passed to `sequencer.execute()`
         :param fake_client: fake client returned by the mocked
             `claude_agent_sdk.ClaudeSDKClient` constructor
-        :param expected_chunk_stats: if non-empty, expected
+        :param expected_chunk_stats: expected
             `str(sequencer.get_chunk_stats())` after execution
         """
         with umock.patch("claude_agent_sdk.ClaudeSDKClient") as mock_client_cls:
             mock_client_cls.return_value = fake_client
             asyncio.run(sequencer.execute(prompts))
-        if expected_chunk_stats:
-            self.assertEqual(
-                str(sequencer.get_chunk_stats()), expected_chunk_stats
-            )
+        self.assertEqual(str(sequencer.get_chunk_stats()), expected_chunk_stats)
 
     def test1(self) -> None:
         """
@@ -296,12 +292,14 @@ class Test_PromptSequencer_chunk_stats(hunitest.TestCase):
         fake_client = dshaccli.FakeClaudeSDKClient(
             responses_by_call=[[msg1, result1]]
         )
+        # Prepare outputs.
+        # TODO(ai_gp): Use r"""
+        expected = (
+            "[{'outcome': 'CHANGED: fixed x', 'cost_usd': 0.5, "
+            "'num_turns': 15, 'is_error': True}]"
+        )
         # Run test.
-        self.helper(sequencer, ["prompt A"], fake_client)
-        # Check outputs.
-        stats = sequencer.get_chunk_stats()
-        self.assertTrue(stats[0]["is_error"])
-        self.assertEqual(stats[0]["num_turns"], 15)
+        self.helper(sequencer, ["prompt A"], fake_client, expected)
 
     def test4(self) -> None:
         """
@@ -328,8 +326,15 @@ class Test_PromptSequencer_chunk_stats(hunitest.TestCase):
         fake_client = dshaccli.FakeClaudeSDKClient(
             responses_by_call=[[msg1], [msg2]]
         )
+        # Prepare outputs.
+        # TODO(ai_gp): Use r"""
+        expected = (
+            "[{'outcome': 'NO-OP', 'cost_usd': None, 'num_turns': 0, "
+            "'is_error': False}, {'outcome': 'CHANGED: fixed x', "
+            "'cost_usd': None, 'num_turns': 0, 'is_error': False}]"
+        )
         # Run test.
-        self.helper(sequencer, ["prompt A", "prompt B"], fake_client)
+        self.helper(sequencer, ["prompt A", "prompt B"], fake_client, expected)
         # Check outputs.
         self.assertEqual(len(calls), 2)
         self.assertEqual(calls[0][0], 1)
@@ -362,8 +367,15 @@ class Test_PromptSequencer_chunk_stats(hunitest.TestCase):
         fake_client = dshaccli.FakeClaudeSDKClient(
             responses_by_call=[[msg1], [msg2]]
         )
+        # Prepare outputs.
+        # TODO(ai_gp): Use r"""
+        expected = (
+            "[{'outcome': 'NO-OP', 'cost_usd': None, 'num_turns': 0, "
+            "'is_error': False}, {'outcome': 'NO-OP', 'cost_usd': None, "
+            "'num_turns': 0, 'is_error': False}]"
+        )
         # Run test.
-        self.helper(sequencer, ["prompt A", "prompt B"], fake_client)
+        self.helper(sequencer, ["prompt A", "prompt B"], fake_client, expected)
         # Check outputs.
         self.assertEqual([idx for idx, _ in calls], [1, 2])
 

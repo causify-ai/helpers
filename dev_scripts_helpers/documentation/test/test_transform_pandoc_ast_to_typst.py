@@ -12,10 +12,6 @@ import helpers.hio as hio
 import helpers.hprint as hprint
 import helpers.hunit_test as hunitest
 
-# TODO(ai_gp): replace assertEqual with self.assert_equal
-# TODO(ai_gp): Add self.assert_equal or self.check_string everywhere needed
-
-
 # #############################################################################
 # Helper Functions
 # #############################################################################
@@ -197,6 +193,7 @@ class Test__extract_columns(hunitest.TestCase):
         """
         Test extraction of two columns with explicit widths.
         """
+        # Prepare inputs.
         markdown_input = """
         ::: {.columns}
 
@@ -210,16 +207,120 @@ class Test__extract_columns(hunitest.TestCase):
 
         :::
         """
+        # Prepare outputs.
+        expected = r"""
+        ################################################################################
+        1. markdown_input
+        ################################################################################
+        ::: {.columns}
+
+        ::: {.column width="55%"}
+        Left
+        :::
+
+        ::: {.column width="45%"}
+        Right
+        :::
+
+        :::
+        ################################################################################
+        2. ast_input
+        ################################################################################
+        {
+          "pandoc-api-version": [
+            1,
+            23,
+            1
+          ],
+          "meta": {},
+          "blocks": [
+            {
+              "t": "Div",
+              "c": [
+                [
+                  "",
+                  [
+                    "columns"
+                  ],
+                  []
+                ],
+                [
+                  {
+                    "t": "Div",
+                    "c": [
+                      [
+                        "",
+                        [
+                          "column"
+                        ],
+                        [
+                          [
+                            "width",
+                            "55%"
+                          ]
+                        ]
+                      ],
+                      [
+                        {
+                          "t": "Para",
+                          "c": [
+                            {
+                              "t": "Str",
+                              "c": "Left"
+                            }
+                          ]
+                        }
+                      ]
+                    ]
+                  },
+                  {
+                    "t": "Div",
+                    "c": [
+                      [
+                        "",
+                        [
+                          "column"
+                        ],
+                        [
+                          [
+                            "width",
+                            "45%"
+                          ]
+                        ]
+                      ],
+                      [
+                        {
+                          "t": "Para",
+                          "c": [
+                            {
+                              "t": "Str",
+                              "c": "Right"
+                            }
+                          ]
+                        }
+                      ]
+                    ]
+                  }
+                ]
+              ]
+            }
+          ]
+        }
+        ################################################################################
+        3. extracted_columns
+        ################################################################################
+        [('55%', [{'t': 'Para', 'c': [{'t': 'Str', 'c': 'Left'}]}]), ('45%', [{'t': 'Para', 'c': [{'t': 'Str', 'c': 'Right'}]}])]
+        """
         # Run test.
         actual = self.helper(markdown_input)
-        # Check outputs: verify extraction completed and has content.
-        self.assertIsNotNone(actual)
-        self.assertIn("extracted_columns", actual)
+        # Check outputs.
+        self.assert_equal(actual, expected, dedent=True)
 
     def test2(self) -> None:
         """
         Test that missing width defaults to '1fr'.
         """
+        # Prepare inputs.
         markdown_input = """
         ::: {.columns}
 
@@ -229,16 +330,90 @@ class Test__extract_columns(hunitest.TestCase):
 
         :::
         """
+        # Prepare outputs.
+        expected = r"""
+        ################################################################################
+        1. markdown_input
+        ################################################################################
+        ::: {.columns}
+
+        ::: {.column}
+        Default width
+        :::
+
+        :::
+        ################################################################################
+        2. ast_input
+        ################################################################################
+        {
+          "pandoc-api-version": [
+            1,
+            23,
+            1
+          ],
+          "meta": {},
+          "blocks": [
+            {
+              "t": "Div",
+              "c": [
+                [
+                  "",
+                  [
+                    "columns"
+                  ],
+                  []
+                ],
+                [
+                  {
+                    "t": "Div",
+                    "c": [
+                      [
+                        "",
+                        [
+                          "column"
+                        ],
+                        []
+                      ],
+                      [
+                        {
+                          "t": "Para",
+                          "c": [
+                            {
+                              "t": "Str",
+                              "c": "Default"
+                            },
+                            {
+                              "t": "Space"
+                            },
+                            {
+                              "t": "Str",
+                              "c": "width"
+                            }
+                          ]
+                        }
+                      ]
+                    ]
+                  }
+                ]
+              ]
+            }
+          ]
+        }
+        ################################################################################
+        3. extracted_columns
+        ################################################################################
+        [('1fr', [{'t': 'Para', 'c': [{'t': 'Str', 'c': 'Default'}, {'t': 'Space'}, {'t': 'Str', 'c': 'width'}]}])]
+        """
         # Run test.
         actual = self.helper(markdown_input)
-        # Check outputs: verify extraction completed and has content.
-        self.assertIsNotNone(actual)
-        self.assertIn("extracted_columns", actual)
+        # Check outputs.
+        self.assert_equal(actual, expected, dedent=True)
 
     def test3(self) -> None:
         """
         Test that non-column child divs are skipped.
         """
+        # Prepare inputs.
         markdown_input = """
         ::: {.columns}
 
@@ -252,11 +427,109 @@ class Test__extract_columns(hunitest.TestCase):
 
         :::
         """
+        # Prepare outputs.
+        expected = r"""
+        ################################################################################
+        1. markdown_input
+        ################################################################################
+        ::: {.columns}
+
+        ::: {.other}
+        Ignored
+        :::
+
+        ::: {.column width="50%"}
+        Included
+        :::
+
+        :::
+        ################################################################################
+        2. ast_input
+        ################################################################################
+        {
+          "pandoc-api-version": [
+            1,
+            23,
+            1
+          ],
+          "meta": {},
+          "blocks": [
+            {
+              "t": "Div",
+              "c": [
+                [
+                  "",
+                  [
+                    "columns"
+                  ],
+                  []
+                ],
+                [
+                  {
+                    "t": "Div",
+                    "c": [
+                      [
+                        "",
+                        [
+                          "other"
+                        ],
+                        []
+                      ],
+                      [
+                        {
+                          "t": "Para",
+                          "c": [
+                            {
+                              "t": "Str",
+                              "c": "Ignored"
+                            }
+                          ]
+                        }
+                      ]
+                    ]
+                  },
+                  {
+                    "t": "Div",
+                    "c": [
+                      [
+                        "",
+                        [
+                          "column"
+                        ],
+                        [
+                          [
+                            "width",
+                            "50%"
+                          ]
+                        ]
+                      ],
+                      [
+                        {
+                          "t": "Para",
+                          "c": [
+                            {
+                              "t": "Str",
+                              "c": "Included"
+                            }
+                          ]
+                        }
+                      ]
+                    ]
+                  }
+                ]
+              ]
+            }
+          ]
+        }
+        ################################################################################
+        3. extracted_columns
+        ################################################################################
+        [('50%', [{'t': 'Para', 'c': [{'t': 'Str', 'c': 'Included'}]}])]
+        """
         # Run test.
         actual = self.helper(markdown_input)
-        # Check outputs: verify extraction completed and has content.
-        self.assertIsNotNone(actual)
-        self.assertIn("extracted_columns", actual)
+        # Check outputs.
+        self.assert_equal(actual, expected, dedent=True)
 
 
 # #############################################################################
@@ -289,10 +562,10 @@ class Test__format_grid_code(hunitest.TestCase):
         Markdown input:
         ```
         :::columns
-        ::: column {width="55%"}
+        ::: {.column width="55%"}
         Content 1
         :::
-        ::: column {width="45%"}
+        ::: {.column width="45%"}
         Content 2
         :::
         :::
@@ -382,10 +655,9 @@ class Test__transform_elem(hunitest.TestCase):
         ast, _, _ = dshdtpatt.convert_markdown_to_pandoc_ast(
             markdown_input, scratch_dir
         )
-        outcome["2. ast_input"] = dshdtpatt.ast_to_str(ast)
         # Transform AST.
         actual_ast = dshdtpatt._transform_ast_divved_fence(ast)
-        outcome["3. ast_output"] = dshdtpatt.ast_to_str(actual_ast)
+        outcome["2. ast_output"] = dshdtpatt.ast_to_str(actual_ast)
         actual_outcome = outcome_to_str(outcome)
         return actual_outcome
 
@@ -396,65 +668,176 @@ class Test__transform_elem(hunitest.TestCase):
         Markdown input:
         ```markdown
         :::columns
-        ::: column {width="50%"}
+        ::: {.column width="50%"}
         col1
         :::
-        ::: column {width="50%"}
+        ::: {.column width="50%"}
         col2
         :::
         :::
         ```
         """
+        # Prepare inputs.
         markdown_input = """
         :::columns
-        ::: column {width="50%"}
+        ::: {.column width="50%"}
         col1
         :::
-        ::: column {width="50%"}
+        ::: {.column width="50%"}
         col2
         :::
         :::
         """
+        # Prepare outputs.
+        expected = r"""
+        ################################################################################
+        1. markdown_input
+        ################################################################################
+        :::columns
+        ::: {.column width="50%"}
+        col1
+        :::
+        ::: {.column width="50%"}
+        col2
+        :::
+        :::
+        ################################################################################
+        2. ast_output
+        ################################################################################
+        {
+          "pandoc-api-version": [
+            1,
+            23,
+            1
+          ],
+          "meta": {},
+          "blocks": [
+            {
+              "t": "RawBlock",
+              "c": [
+                "typst",
+                "#grid(\n  columns: (50%, 50%),\n  gutter: 0.5em,\n  [\n  col1\n  ],\n  [\n  col2\n  ]\n)"
+              ]
+            }
+          ]
+        }
+        """
         # Run test.
         actual = self.helper(markdown_input)
-        # Check outputs: verify transformation completed and has content.
-        self.assertIsNotNone(actual)
-        self.assertIn("ast_output", actual)
+        # Check outputs.
+        self.assert_equal(actual, expected, dedent=True)
 
     def test2(self) -> None:
         """
         Test that non-columns Div children are recursively transformed.
         """
+        # Prepare inputs.
         markdown_input = """
         ::: {#id1}
         :::columns
-        ::: column {width="50%"}
+        ::: {.column width="50%"}
         nested
         :::
-        ::: column {width="50%"}
+        ::: {.column width="50%"}
         col
         :::
         :::
         :::
         """
+        # Prepare outputs.
+        expected = r"""
+        ################################################################################
+        1. markdown_input
+        ################################################################################
+        ::: {#id1}
+        :::columns
+        ::: {.column width="50%"}
+        nested
+        :::
+        ::: {.column width="50%"}
+        col
+        :::
+        :::
+        :::
+        ################################################################################
+        2. ast_output
+        ################################################################################
+        {
+          "pandoc-api-version": [
+            1,
+            23,
+            1
+          ],
+          "meta": {},
+          "blocks": [
+            {
+              "t": "Div",
+              "c": [
+                [
+                  "id1",
+                  [],
+                  []
+                ],
+                [
+                  {
+                    "t": "RawBlock",
+                    "c": [
+                      "typst",
+                      "#grid(\n  columns: (50%, 50%),\n  gutter: 0.5em,\n  [\n  nested\n  ],\n  [\n  col\n  ]\n)"
+                    ]
+                  }
+                ]
+              ]
+            }
+          ]
+        }
+        """
         # Run test.
         actual = self.helper(markdown_input)
-        # Check outputs: verify transformation completed and has content.
-        self.assertIsNotNone(actual)
-        self.assertIn("ast_output", actual)
+        # Check outputs.
+        self.assert_equal(actual, expected, dedent=True)
 
     def test3(self) -> None:
         """
         Test that Para elements pass through unchanged.
         """
+        # Prepare inputs.
         markdown_input = """
         text
         """
+        # Prepare outputs.
+        expected = r"""
+        ################################################################################
+        1. markdown_input
+        ################################################################################
+        text
+        ################################################################################
+        2. ast_output
+        ################################################################################
+        {
+          "pandoc-api-version": [
+            1,
+            23,
+            1
+          ],
+          "meta": {},
+          "blocks": [
+            {
+              "t": "Para",
+              "c": [
+                {
+                  "t": "Str",
+                  "c": "text"
+                }
+              ]
+            }
+          ]
+        }
+        """
         # Run test.
         actual = self.helper(markdown_input)
-        # Check outputs: verify transformation completed and has content.
-        self.assertIsNotNone(actual)
-        self.assertIn("ast_output", actual)
+        # Check outputs.
+        self.assert_equal(actual, expected, dedent=True)
 
     def test4(self) -> None:
         """
@@ -463,20 +846,96 @@ class Test__transform_elem(hunitest.TestCase):
         Verifies that _transform_elem recursively processes items in a
         BulletList, transforming any Divs containing columns within the items.
         """
+        # Prepare inputs.
         markdown_input = """
         - Item 1
         - Item 2:
+
           :::columns
-          ::: column
+          ::: {.column}
           content
           :::
           :::
         """
+        # Prepare outputs.
+        expected = r"""
+        ################################################################################
+        1. markdown_input
+        ################################################################################
+        - Item 1
+        - Item 2:
+
+          :::columns
+          ::: {.column}
+          content
+          :::
+          :::
+        ################################################################################
+        2. ast_output
+        ################################################################################
+        {
+          "pandoc-api-version": [
+            1,
+            23,
+            1
+          ],
+          "meta": {},
+          "blocks": [
+            {
+              "t": "BulletList",
+              "c": [
+                [
+                  {
+                    "t": "Para",
+                    "c": [
+                      {
+                        "t": "Str",
+                        "c": "Item"
+                      },
+                      {
+                        "t": "Space"
+                      },
+                      {
+                        "t": "Str",
+                        "c": "1"
+                      }
+                    ]
+                  }
+                ],
+                [
+                  {
+                    "t": "Para",
+                    "c": [
+                      {
+                        "t": "Str",
+                        "c": "Item"
+                      },
+                      {
+                        "t": "Space"
+                      },
+                      {
+                        "t": "Str",
+                        "c": "2:"
+                      }
+                    ]
+                  },
+                  {
+                    "t": "RawBlock",
+                    "c": [
+                      "typst",
+                      "#grid(\n  columns: (1fr),\n  gutter: 0.5em,\n  [\n  content\n  ]\n)"
+                    ]
+                  }
+                ]
+              ]
+            }
+          ]
+        }
+        """
         # Run test.
         actual = self.helper(markdown_input)
-        # Check outputs: verify transformation completed and has content.
-        self.assertIsNotNone(actual)
-        self.assertIn("ast_output", actual)
+        # Check outputs.
+        self.assert_equal(actual, expected, dedent=True)
 
 
 # #############################################################################
@@ -504,10 +963,9 @@ class Test__transform_ast(hunitest.TestCase):
         ast, _, _ = dshdtpatt.convert_markdown_to_pandoc_ast(
             markdown_input, scratch_dir
         )
-        outcome["2. ast_input"] = dshdtpatt.ast_to_str(ast)
         # Transform AST.
         actual_ast = dshdtpatt._transform_ast_divved_fence(ast)
-        outcome["3. ast_output"] = dshdtpatt.ast_to_str(actual_ast)
+        outcome["2. ast_output"] = dshdtpatt.ast_to_str(actual_ast)
         actual_outcome = outcome_to_str(outcome)
         return actual_outcome
 
@@ -515,36 +973,118 @@ class Test__transform_ast(hunitest.TestCase):
         """
         Test full AST transformation with one columns Div.
         """
+        # Prepare inputs.
         markdown_input = """
         # Title
 
         :::columns
-        ::: column {width="50%"}
+        ::: {.column width="50%"}
         left
         :::
-        ::: column {width="50%"}
+        ::: {.column width="50%"}
         right
         :::
         :::
         """
+        # Prepare outputs.
+        expected = r"""
+        ################################################################################
+        1. markdown_input
+        ################################################################################
+        # Title
+
+        :::columns
+        ::: {.column width="50%"}
+        left
+        :::
+        ::: {.column width="50%"}
+        right
+        :::
+        :::
+        ################################################################################
+        2. ast_output
+        ################################################################################
+        {
+          "pandoc-api-version": [
+            1,
+            23,
+            1
+          ],
+          "meta": {},
+          "blocks": [
+            {
+              "t": "Header",
+              "c": [
+                1,
+                [
+                  "title",
+                  [],
+                  []
+                ],
+                [
+                  {
+                    "t": "Str",
+                    "c": "Title"
+                  }
+                ]
+              ]
+            },
+            {
+              "t": "RawBlock",
+              "c": [
+                "typst",
+                "#grid(\n  columns: (50%, 50%),\n  gutter: 0.5em,\n  [\n  left\n  ],\n  [\n  right\n  ]\n)"
+              ]
+            }
+          ]
+        }
+        """
         # Run test.
         actual = self.helper(markdown_input)
-        # Check outputs: verify transformation completed and has content.
-        self.assertIsNotNone(actual)
-        self.assertIn("ast_output", actual)
+        # Check outputs.
+        self.assert_equal(actual, expected, dedent=True)
 
     def test2(self) -> None:
         """
         Test AST with no columns remains unchanged.
         """
+        # Prepare inputs.
         markdown_input = """
         text
         """
+        # Prepare outputs.
+        expected = r"""
+        ################################################################################
+        1. markdown_input
+        ################################################################################
+        text
+        ################################################################################
+        2. ast_output
+        ################################################################################
+        {
+          "pandoc-api-version": [
+            1,
+            23,
+            1
+          ],
+          "meta": {},
+          "blocks": [
+            {
+              "t": "Para",
+              "c": [
+                {
+                  "t": "Str",
+                  "c": "text"
+                }
+              ]
+            }
+          ]
+        }
+        """
         # Run test.
         actual = self.helper(markdown_input)
-        # Check outputs: verify transformation completed and has content.
-        self.assertIsNotNone(actual)
-        self.assertIn("ast_output", actual)
+        # Check outputs.
+        self.assert_equal(actual, expected, dedent=True)
 
 
 # #############################################################################
@@ -572,10 +1112,8 @@ class Test_end_to_end(hunitest.TestCase):
         ast, _, _ = dshdtpatt.convert_markdown_to_pandoc_ast(
             markdown_input, scratch_dir
         )
-        outcome["2. ast_input"] = dshdtpatt.ast_to_str(ast)
         # Transform AST.
         actual_ast = dshdtpatt._transform_ast_divved_fence(ast)
-        outcome["3. ast_output"] = dshdtpatt.ast_to_str(actual_ast)
         # Convert transformed AST back to typst.
         transformed_ast_file = os.path.join(scratch_dir, "transformed_ast.json")
         actual_str = dshdtpatt.ast_to_str(actual_ast)
@@ -583,7 +1121,7 @@ class Test_end_to_end(hunitest.TestCase):
         actual_typst, _ = dshdtpatt.convert_pandoc_ast_to_typst(
             transformed_ast_file, scratch_dir
         )
-        outcome["4. typst_output"] = actual_typst
+        outcome["2. typst_output"] = actual_typst
         actual_outcome = outcome_to_str(outcome)
         return actual_outcome
 
@@ -598,6 +1136,7 @@ class Test_end_to_end(hunitest.TestCase):
         - transform
         - typst
         """
+        # Prepare inputs.
         markdown_input = """
         # Title
 
@@ -611,11 +1150,42 @@ class Test_end_to_end(hunitest.TestCase):
         :::
         :::
         """
+        # Prepare outputs.
+        expected = r"""
+        ################################################################################
+        1. markdown_input
+        ################################################################################
+        # Title
+
+        :::columns
+        ::: column
+        Left content
+        :::
+
+        ::: column
+        Right content
+        :::
+        :::
+        ################################################################################
+        2. typst_output
+        ################################################################################
+        = Title
+        <title>
+        #grid(
+          columns: (1fr, 1fr),
+          gutter: 0.5em,
+          [
+          Left content
+          ],
+          [
+          Right content
+          ]
+        )
+        """
         # Run test.
         actual = self.helper(markdown_input)
-        # Check outputs: verify full pipeline completed and generated typst output.
-        self.assertIsNotNone(actual)
-        self.assertIn("typst_output", actual)
+        # Check outputs.
+        self.assert_equal(actual, expected, dedent=True)
 
     def test2(self) -> None:
         """
@@ -630,25 +1200,60 @@ class Test_end_to_end(hunitest.TestCase):
         - Columns are correctly extracted with content preserved
         - Transformation produces valid typst grid code
         """
+        # Prepare inputs.
         markdown_input = """
         * Search Over Reasoning
 
         :::columns
-        ::: column {width="50%"}
+        ::: {.column width="50%"}
         - **Problem**: self-consistency samples _independent_ chains and cannot revisit
         - **Solution**: treat reasoning as _search_ over structure
         :::
 
-        ::: column {width="45%"}
+        ::: {.column width="45%"}
         Text in second column
         :::
         :::
         """
+        # Prepare outputs.
+        expected = r"""
+        ################################################################################
+        1. markdown_input
+        ################################################################################
+        * Search Over Reasoning
+
+        :::columns
+        ::: {.column width="50%"}
+        - **Problem**: self-consistency samples _independent_ chains and cannot revisit
+        - **Solution**: treat reasoning as _search_ over structure
+        :::
+
+        ::: {.column width="45%"}
+        Text in second column
+        :::
+        :::
+        ################################################################################
+        2. typst_output
+        ################################################################################
+        - Search Over Reasoning
+
+        #grid(
+          columns: (50%, 45%),
+          gutter: 0.5em,
+          [
+          - #strong[Problem];: self-consistency samples #emph[independent] chains
+            and cannot revisit
+          - #strong[Solution];: treat reasoning as #emph[search] over structure
+          ],
+          [
+          Text in second column
+          ]
+        )
+        """
         # Run test.
         actual = self.helper(markdown_input)
-        # Check outputs: verify full pipeline completed and generated typst output.
-        self.assertIsNotNone(actual)
-        self.assertIn("typst_output", actual)
+        # Check outputs.
+        self.assert_equal(actual, expected, dedent=True)
 
 
 # #############################################################################
@@ -665,13 +1270,16 @@ class Test__find_textcolor_calls(hunitest.TestCase):
         r"""
         Test extraction of a single call with no nested braces.
         """
+        # Prepare inputs.
         latex_string = r"\textcolor{red}{hello}"
+        # Run test.
         calls = dshdtpatt._find_textcolor_calls(latex_string)
+        # Check outputs.
         self.assertEqual(len(calls), 1)
         start, end, color, content = calls[0]
-        self.assertEqual(latex_string[start:end], latex_string)
-        self.assertEqual(color, "red")
-        self.assertEqual(content, "hello")
+        self.assert_equal(latex_string[start:end], latex_string)
+        self.assert_equal(color, "red")
+        self.assert_equal(content, "hello")
 
     def test_nested_braces(self) -> None:
         r"""
@@ -681,30 +1289,42 @@ class Test__find_textcolor_calls(hunitest.TestCase):
         A naive `[^}]*` regex stops at the first `}` and truncates
         `content`; this must capture it whole.
         """
+        # Prepare inputs.
         latex_string = r"\textcolor{blue}{x_1, ..., x_{n-1}}"
+        # Run test.
         calls = dshdtpatt._find_textcolor_calls(latex_string)
+        # Check outputs.
         self.assertEqual(len(calls), 1)
         _, end, color, content = calls[0]
-        self.assertEqual(color, "blue")
-        self.assertEqual(content, "x_1, ..., x_{n-1}")
+        self.assert_equal(color, "blue")
+        self.assert_equal(content, "x_1, ..., x_{n-1}")
         self.assertEqual(end, len(latex_string))
 
     def test_multiple_calls(self) -> None:
         r"""
         Test extraction of multiple `\textcolor` calls in one formula.
         """
+        # Prepare inputs.
         latex_string = r"\Pr(\textcolor{blue}{x}, \textcolor{red}{y})"
+        # Run test.
         calls = dshdtpatt._find_textcolor_calls(latex_string)
+        # Check outputs.
         self.assertEqual(len(calls), 2)
-        self.assertEqual((calls[0][2], calls[0][3]), ("blue", "x"))
-        self.assertEqual((calls[1][2], calls[1][3]), ("red", "y"))
+        self.assert_equal(
+            str((calls[0][2], calls[0][3])), str(("blue", "x"))
+        )
+        self.assert_equal(
+            str((calls[1][2], calls[1][3])), str(("red", "y"))
+        )
 
     def test_no_textcolor(self) -> None:
         r"""
         Test that a formula without `\textcolor` yields no calls.
         """
+        # Run test.
         calls = dshdtpatt._find_textcolor_calls("x + y")
-        self.assertEqual(calls, [])
+        # Check outputs.
+        self.assert_equal(str(calls), str([]))
 
 
 # #############################################################################
@@ -717,31 +1337,43 @@ class Test_ColorTransformer(hunitest.TestCase):
         r"""
         Test basic \textcolor transformation.
         """
+        # Prepare inputs.
         transformer = dshdtpatt.ColorTransformer()
         latex_string = r"\textcolor{red}{hello}"
-        result = transformer.textcolor_to_typst(latex_string)
+        # Prepare outputs.
         expected = r"#text(fill: red)[hello]"
-        self.assertEqual(result, expected)
+        # Run test.
+        result = transformer.textcolor_to_typst(latex_string)
+        # Check outputs.
+        self.assert_equal(result, expected)
 
     def test_textcolor_with_special_chars(self) -> None:
         r"""
         Test \textcolor with special characters.
         """
+        # Prepare inputs.
         transformer = dshdtpatt.ColorTransformer()
         latex_string = r"\textcolor{blue}{test [content]}"
-        result = transformer.textcolor_to_typst(latex_string)
+        # Prepare outputs.
         expected = r"#text(fill: blue)[test \[content\]]"
-        self.assertEqual(result, expected)
+        # Run test.
+        result = transformer.textcolor_to_typst(latex_string)
+        # Check outputs.
+        self.assert_equal(result, expected)
 
     def test_color_command(self) -> None:
         r"""
         Test \color command (placeholder behavior).
         """
+        # Prepare inputs.
         transformer = dshdtpatt.ColorTransformer()
         latex_string = r"\color{green}"
-        result = transformer.color_to_typst(latex_string)
+        # Prepare outputs.
         expected = r"\color{green}"
-        self.assertEqual(result, expected)
+        # Run test.
+        result = transformer.color_to_typst(latex_string)
+        # Check outputs.
+        self.assert_equal(result, expected)
 
     @pytest.mark.skipif(
         shutil.which("pandoc") is None, reason="pandoc is not installed"
@@ -755,16 +1387,21 @@ class Test_ColorTransformer(hunitest.TestCase):
         ...)[...]`, the string is Typst syntax, not LaTeX, so it must not be
         re-parsed as TeX math again downstream.
         """
+        # Prepare inputs.
         transformer = dshdtpatt.ColorTransformer()
         node = {
             "t": "Math",
             "c": ["DisplayMath", r"\textcolor{red}{x + y}"],
         }
+        # Prepare outputs.
+        expected = {
+            "t": "RawInline",
+            "c": ["typst", "$ #text(fill: red)[$x + y$] $"],
+        }
+        # Run test.
         result = transformer.process_math_node(node)
-        self.assertEqual(result["t"], "RawInline")
-        self.assertEqual(result["c"][0], "typst")
-        self.assertIn("red", result["c"][1])
-        self.assertNotIn(r"\textcolor", result["c"][1])
+        # Check outputs.
+        self.assert_equal(str(result), str(expected))
         self.assertEqual(transformer.stats["math_nodes_processed"], 1)
         self.assertEqual(transformer.stats["formulas_transformed"], 1)
 
@@ -772,13 +1409,18 @@ class Test_ColorTransformer(hunitest.TestCase):
         r"""
         Test Math node without color commands remains unchanged.
         """
+        # Prepare inputs.
         transformer = dshdtpatt.ColorTransformer()
         node = {
             "t": "Math",
             "c": ["DisplayMath", "x + y"],
         }
+        # Prepare outputs.
+        expected = node
+        # Run test.
         result = transformer.process_math_node(node)
-        self.assertEqual(result, node)
+        # Check outputs.
+        self.assert_equal(str(result), str(expected))
         self.assertEqual(transformer.stats["math_nodes_processed"], 1)
         self.assertEqual(transformer.stats["formulas_transformed"], 0)
 
@@ -789,6 +1431,7 @@ class Test_ColorTransformer(hunitest.TestCase):
         """
         Test walking full AST and transforming Math nodes.
         """
+        # Prepare inputs.
         transformer = dshdtpatt.ColorTransformer()
         ast = {
             "t": "Para",
@@ -797,8 +1440,21 @@ class Test_ColorTransformer(hunitest.TestCase):
                 {"t": "Str", "c": "text"},
             ],
         }
+        # Prepare outputs.
+        expected = {
+            "t": "Para",
+            "c": [
+                {
+                    "t": "RawInline",
+                    "c": ["typst", "$#text(fill: red)[$a$]$"],
+                },
+                {"t": "Str", "c": "text"},
+            ],
+        }
+        # Run test.
         result = transformer.walk(ast)
-        self.assertIn("red", str(result))
+        # Check outputs.
+        self.assert_equal(str(result), str(expected))
 
     def test_textcolor_nested_braces(self) -> None:
         r"""
@@ -810,21 +1466,28 @@ class Test_ColorTransformer(hunitest.TestCase):
         leaving a dangling `}` in the output, e.g.
         `#text(fill: blue)[x_1, ..., x_{n-1]}`.
         """
+        # Prepare inputs.
         transformer = dshdtpatt.ColorTransformer()
         latex_string = r"\textcolor{blue}{x_1, ..., x_{n-1}}"
-        result = transformer.textcolor_to_typst(latex_string)
+        # Prepare outputs.
         expected = r"#text(fill: blue)[x_1, ..., x_{n-1}]"
-        self.assertEqual(result, expected)
+        # Run test.
+        result = transformer.textcolor_to_typst(latex_string)
+        # Check outputs.
+        self.assert_equal(result, expected)
 
     def test_stats_collection(self) -> None:
         """
         Test that stats are properly collected.
         """
+        # Prepare inputs.
         transformer = dshdtpatt.ColorTransformer()
+        # Run test.
         transformer.textcolor_to_typst(r"\textcolor{red}{a}")
         transformer.textcolor_to_typst(r"\textcolor{blue}{b}")
         transformer.color_to_typst(r"\color{green}")
         stats = transformer.get_stats()
+        # Check outputs.
         self.assertEqual(stats["textcolor_count"], 2)
         self.assertEqual(stats["color_count"], 1)
 
@@ -900,30 +1563,43 @@ class Test_colorized_math(hunitest.TestCase):
             """
         )
         scratch_dir = self.get_scratch_space()
-        outcome = {}
-        outcome["1. markdown_input"] = markdown_input
+        # Prepare outputs.
+        expected = r"""
+        = Chain Rule for a Joint Distribution
+        <chain-rule-for-a-joint-distribution>
+        - #strong[Theorem];: A joint distribution can always be expressed using
+          the chain rule for any:
+          - Subset of its random variables
+          - Ordering of the random variables
+        - #strong[Proof]
+          + #strong[Express one variable] conditionally to the remaining ones
+            $ Pr \( #text(fill: blue)[$x_1 \, . . . \, x_(n - 1)$] \, #text(fill: red)[$x_n$] \) = Pr \( #text(fill: red)[$x_n$] \| #text(fill: blue)[$x_(n - 1) \, . . . \, x_1$] \) Pr \( #text(fill: blue)[$x_(n - 1) \, . . . \, x_1$] \) $
+
+          + Apply the same formula #strong[recursively];, until you get an
+            unconditional probability
+            $  & Pr \( #text(fill: gray)[$x_1$] \, #text(fill: violet)[$x_2$] \, . . . \, #text(fill: teal)[$x_(n - 2)$] \, #text(fill: olive)[$x_(n - 1)$] \, #text(fill: orange)[$x_n$] \)\
+             & = Pr \( #text(fill: orange)[$x_n$] \| x_(n - 1) \, . . . \, x_1 \) Pr \( x_(n - 1) \, . . . \, x_1 \)\
+             & = Pr \( #text(fill: orange)[$x_n$] \| x_(n - 1) \, . . . \, x_1 \) Pr \( #text(fill: olive)[$x_(n - 1)$] \| x_(n - 2) \, . . . \, x_1 \) Pr \( x_(n - 2) \, . . . \, x_1 \)\
+             & . . .\
+             & = Pr \( #text(fill: orange)[$x_n$] \| x_(n - 1) \, . . . \, x_1 \) Pr \( #text(fill: olive)[$x_(n - 1)$] \| x_(n - 2) \, . . . \, x_1 \) Pr \( #text(fill: teal)[$x_(n - 2)$] \| x_(n - 3) \, . . . \, x_1 \) . . . Pr \( #text(fill: violet)[$x_2$] \| x_1 \) Pr \( #text(fill: gray)[$x_1$] \)\
+             & = product_(i = 1)^n Pr \( x_i \| x_(i - 1) \, . . . \, x_1 \) $
+        """
         # Convert markdown to AST.
         ast, _, _ = dshdtpatt.convert_markdown_to_pandoc_ast(
             markdown_input, scratch_dir
         )
-        outcome["2. ast_generated"] = "AST generated successfully"
         # Transform AST: apply color transformation.
         transformed_ast = dshdtpatt._transform_ast_color_text(ast)
-        outcome["3. color_transform_applied"] = "Color transformation applied"
         # Convert transformed AST to typst.
         transformed_ast_file = os.path.join(scratch_dir, "transformed_ast.json")
         ast_str = dshdtpatt.ast_to_str(transformed_ast)
         hio.to_file(transformed_ast_file, ast_str)
+        # Run test.
         typst_output, _ = dshdtpatt.convert_pandoc_ast_to_typst(
             transformed_ast_file, scratch_dir
         )
-        outcome["4. typst_output_length"] = f"{len(typst_output)} characters"
-        outcome["5. typst_output_preview"] = typst_output[:500] + "..."
-        # Run test.
-        actual_outcome = outcome_to_str(outcome)
-        # Check outputs: verify transformation completed and produced output.
-        self.assertIsNotNone(actual_outcome)
-        self.assertIn("typst_output_length", actual_outcome)
+        # Check outputs.
+        self.assert_equal(typst_output, expected, dedent=True)
 
     def test2(self) -> None:
         r"""
@@ -932,24 +1608,23 @@ class Test_colorized_math(hunitest.TestCase):
         Verifies that \textcolor commands in $$ ... $$ equations are
         properly transformed to #text(fill: color)[...] syntax.
         """
+        # Prepare inputs.
         transformer = dshdtpatt.ColorTransformer()
         latex_formula = (
             r"\Pr(\textcolor{blue}{x_1, ..., x_{n-1}}, "
             r"\textcolor{red}{x_n}) = \Pr(\textcolor{red}{x_n} | "
             r"\textcolor{blue}{x_{n-1}, ..., x_1})"
         )
-        result = transformer.transform_formula(latex_formula)
-        # Verify all colors were transformed.
-        self.assertIn("blue", result)
-        self.assertIn("red", result)
-        self.assertNotIn(r"\textcolor", result)
-        self.assertIn("#text(fill:", result)
+        # Prepare outputs.
         expected = (
             r"\Pr(#text(fill: blue)[x_1, ..., x_{n-1}], "
             r"#text(fill: red)[x_n]) = \Pr(#text(fill: red)[x_n] | "
             r"#text(fill: blue)[x_{n-1}, ..., x_1])"
         )
-        self.assertEqual(result, expected)
+        # Run test.
+        result = transformer.transform_formula(latex_formula)
+        # Check outputs.
+        self.assert_equal(result, expected)
 
     def test_multiple_colors_in_formula(self) -> None:
         """
@@ -958,25 +1633,23 @@ class Test_colorized_math(hunitest.TestCase):
         Input uses 6 different colors (gray, violet, teal, olive, orange)
         to highlight different random variables.
         """
+        # Prepare inputs.
         transformer = dshdtpatt.ColorTransformer()
         latex_formula = (
             r"\Pr(\textcolor{gray}{x_1}, \textcolor{violet}{x_2}, "
             r"\textcolor{teal}{x_{n-2}}, \textcolor{olive}{x_{n-1}}, "
             r"\textcolor{orange}{x_n})"
         )
-        result = transformer.transform_formula(latex_formula)
-        # Verify all colors present in result.
-        expected_colors = ["gray", "violet", "teal", "olive", "orange"]
-        for color in expected_colors:
-            self.assertIn(color, result)
-        # Verify all \textcolor removed.
-        self.assertNotIn(r"\textcolor", result)
+        # Prepare outputs.
         expected = (
             r"\Pr(#text(fill: gray)[x_1], #text(fill: violet)[x_2], "
             r"#text(fill: teal)[x_{n-2}], #text(fill: olive)[x_{n-1}], "
             r"#text(fill: orange)[x_n])"
         )
-        self.assertEqual(result, expected)
+        # Run test.
+        result = transformer.transform_formula(latex_formula)
+        # Check outputs.
+        self.assert_equal(result, expected)
 
 
 # #############################################################################
@@ -1076,12 +1749,15 @@ class Test__transform_small_code_div(hunitest.TestCase):
             "t": "Div",
             "c": [["", ["small-code"], []], [{"t": "Para", "c": []}]],
         }
+        # Prepare outputs.
+        expected = {
+            "t": "RawBlock",
+            "c": ["typst", "#text(size: 0.8em)[\n\n]"],
+        }
         # Run test.
         result = dshdtpatt._transform_small_code_div(elem)
         # Check outputs.
-        self.assertEqual(result["t"], "RawBlock")
-        self.assertEqual(result["c"][0], "typst")
-        self.assertIn("#text(size: 0.8em)", result["c"][1])
+        self.assert_equal(str(result), str(expected))
 
     def test2(self) -> None:
         """
@@ -1092,10 +1768,12 @@ class Test__transform_small_code_div(hunitest.TestCase):
             "t": "Div",
             "c": [["", ["other-class"], []], [{"t": "Para", "c": []}]],
         }
+        # Prepare outputs.
+        expected = elem
         # Run test.
         result = dshdtpatt._transform_small_code_div(elem)
         # Check outputs.
-        self.assertEqual(result, elem)
+        self.assert_equal(str(result), str(expected))
 
     def test3(self) -> None:
         """
@@ -1106,10 +1784,12 @@ class Test__transform_small_code_div(hunitest.TestCase):
             "t": "Div",
             "c": [["", ["small-code"], []], []],
         }
+        # Prepare outputs.
+        expected = elem
         # Run test.
         result = dshdtpatt._transform_small_code_div(elem)
         # Check outputs.
-        self.assertEqual(result, elem)
+        self.assert_equal(str(result), str(expected))
 
 
 # #############################################################################
@@ -1131,10 +1811,12 @@ class Test__walk_transform_small_code(hunitest.TestCase):
             "t": "Div",
             "c": [["", ["small-code"], []], [{"t": "Para", "c": []}]],
         }
+        # Prepare outputs.
+        expected = "RawBlock"
         # Run test.
         result = dshdtpatt._walk_transform_small_code(elem)
         # Check outputs.
-        self.assertEqual(result["t"], "RawBlock")
+        self.assert_equal(result["t"], expected)
 
     def test2(self) -> None:
         """
@@ -1156,10 +1838,12 @@ class Test__walk_transform_small_code(hunitest.TestCase):
                 ],
             ],
         }
+        # Prepare outputs.
+        expected = "RawBlock"
         # Run test.
         result = dshdtpatt._walk_transform_small_code(elem)
         # Check outputs.
-        self.assertEqual(result["c"][1][0]["t"], "RawBlock")
+        self.assert_equal(result["c"][1][0]["t"], expected)
 
     def test3(self) -> None:
         """
@@ -1189,11 +1873,13 @@ class Test__walk_transform_small_code(hunitest.TestCase):
                 ],
             ],
         }
+        # Prepare outputs.
+        expected = "RawBlock"
         # Run test.
         result = dshdtpatt._walk_transform_small_code(elem)
         # Check outputs.
-        self.assertEqual(result["c"][0][0]["t"], "RawBlock")
-        self.assertEqual(result["c"][1][0]["t"], "RawBlock")
+        self.assert_equal(result["c"][0][0]["t"], expected)
+        self.assert_equal(result["c"][1][0]["t"], expected)
 
     def test4(self) -> None:
         """
@@ -1204,10 +1890,12 @@ class Test__walk_transform_small_code(hunitest.TestCase):
             "t": "Para",
             "c": [{"t": "Str", "c": "text"}],
         }
+        # Prepare outputs.
+        expected = elem
         # Run test.
         result = dshdtpatt._walk_transform_small_code(elem)
         # Check outputs.
-        self.assertEqual(result, elem)
+        self.assert_equal(str(result), str(expected))
 
 
 # #############################################################################
@@ -1235,10 +1923,12 @@ class Test__transform_ast_small_code(hunitest.TestCase):
                 }
             ],
         }
+        # Prepare outputs.
+        expected = "RawBlock"
         # Run test.
         result = dshdtpatt._transform_ast_small_code(ast)
         # Check outputs.
-        self.assertEqual(result["blocks"][0]["t"], "RawBlock")
+        self.assert_equal(result["blocks"][0]["t"], expected)
 
     def test2(self) -> None:
         """
@@ -1255,11 +1945,16 @@ class Test__transform_ast_small_code(hunitest.TestCase):
                 }
             ],
         }
+        # Prepare outputs.
+        expected_api_version = [1, 23, 1]
+        expected_meta = {"title": "Test"}
         # Run test.
         result = dshdtpatt._transform_ast_small_code(ast)
         # Check outputs.
-        self.assertEqual(result["pandoc-api-version"], [1, 23, 1])
-        self.assertEqual(result["meta"], {"title": "Test"})
+        self.assert_equal(
+            str(result["pandoc-api-version"]), str(expected_api_version)
+        )
+        self.assert_equal(str(result["meta"]), str(expected_meta))
 
     def test3(self) -> None:
         """
@@ -1278,12 +1973,13 @@ class Test__transform_ast_small_code(hunitest.TestCase):
                 {"t": "Para", "c": []},
             ],
         }
+        # Prepare outputs.
+        expected_types = ["Para", "RawBlock", "Para"]
         # Run test.
         result = dshdtpatt._transform_ast_small_code(ast)
         # Check outputs.
-        self.assertEqual(result["blocks"][0]["t"], "Para")
-        self.assertEqual(result["blocks"][1]["t"], "RawBlock")
-        self.assertEqual(result["blocks"][2]["t"], "Para")
+        actual_types = [block["t"] for block in result["blocks"]]
+        self.assert_equal(str(actual_types), str(expected_types))
 
     def test4(self) -> None:
         """
@@ -1295,10 +1991,12 @@ class Test__transform_ast_small_code(hunitest.TestCase):
             "meta": {},
             "blocks": [],
         }
+        # Prepare outputs.
+        expected = []
         # Run test.
         result = dshdtpatt._transform_ast_small_code(ast)
         # Check outputs.
-        self.assertEqual(result["blocks"], [])
+        self.assert_equal(str(result["blocks"]), str(expected))
 
     def test5(self) -> None:
         """
@@ -1312,11 +2010,16 @@ class Test__transform_ast_small_code(hunitest.TestCase):
                 {"t": "Div", "c": [["", ["other-class"], []], []]},
             ],
         }
+        # Prepare outputs.
+        expected_type = "Div"
+        expected_classes = ["other-class"]
         # Run test.
         result = dshdtpatt._transform_ast_small_code(ast)
         # Check outputs.
-        self.assertEqual(result["blocks"][0]["t"], "Div")
-        self.assertEqual(result["blocks"][0]["c"][0][1], ["other-class"])
+        self.assert_equal(result["blocks"][0]["t"], expected_type)
+        self.assert_equal(
+            str(result["blocks"][0]["c"][0][1]), str(expected_classes)
+        )
 
 
 # #############################################################################
@@ -1346,11 +2049,15 @@ class Test_small_code_end_to_end(hunitest.TestCase):
                 ],
             ],
         }
+        # Prepare outputs.
+        expected = {
+            "t": "RawBlock",
+            "c": ["typst", "#text(size: 0.8em)[\n```python\nx = 1 + 2\n```\n]"],
+        }
         # Run test.
         result = dshdtpatt._transform_small_code_div(elem)
         # Check outputs.
-        self.assertEqual(result["t"], "RawBlock")
-        self.assertIn("#text(size: 0.8em)", result["c"][1])
+        self.assert_equal(str(result), str(expected))
 
     def test2(self) -> None:
         """
@@ -1367,14 +2074,23 @@ class Test_small_code_end_to_end(hunitest.TestCase):
                 }
             ],
         }
+        # Prepare outputs.
+        expected = {
+            "pandoc-api-version": [1, 23, 1],
+            "meta": {},
+            "blocks": [
+                {
+                    "t": "RawBlock",
+                    "c": ["typst", "#text(size: 0.8em)[\n\n]"],
+                }
+            ],
+        }
         # Run test.
         result = dshdtpatt._transform_ast_small_code(ast)
         json_str = json.dumps(result)
         restored = json.loads(json_str)
         # Check outputs.
-        self.assertEqual(restored["blocks"][0]["t"], "RawBlock")
-        self.assertEqual(restored["blocks"][0]["c"][0], "typst")
-        self.assertIn("#text(size: 0.8em)", restored["blocks"][0]["c"][1])
+        self.assert_equal(str(restored), str(expected))
 
     @pytest.mark.skipif(
         shutil.which("pandoc") is None, reason="pandoc is not installed"
@@ -1435,43 +2151,54 @@ class Test_small_code_end_to_end(hunitest.TestCase):
             """
         )
         scratch_dir = self.get_scratch_space()
-        outcome = {}
-        outcome["1. markdown_input"] = markdown_input
+        # Prepare outputs.
+        expected = r"""
+        = Small Code Examples
+        <small-code-examples>
+        == Python Code
+        <python-code>
+        #text(size: 0.8em)[
+        ```python
+        def fibonacci(n):
+            if n <= 1:
+                return n
+            return fibonacci(n-1) + fibonacci(n-2)
+        ```
+        ]
+        == JavaScript Code
+        <javascript-code>
+        #text(size: 0.8em)[
+        ```javascript
+        const sum = (a, b) => a + b;
+        const result = sum(5, 3);
+        ```
+        ]
+        Normal text between code blocks.
+
+        == Mixed Content
+        <mixed-content>
+        #text(size: 0.8em)[
+        This is small text explaining a complex formula:
+
+        $x = frac(- b plus.minus sqrt(b^2 - 4 a c), 2 a)$
+        ]
+        """
         # Convert markdown to AST.
         ast, _, _ = dshdtpatt.convert_markdown_to_pandoc_ast(
             markdown_input, scratch_dir
         )
-        outcome["2. ast_generated"] = "AST generated successfully"
         # Transform AST: apply small-code transformation.
         transformed_ast = dshdtpatt._transform_ast_small_code(ast)
-        outcome["3. small_code_transform_applied"] = (
-            "Small-code transformation applied"
-        )
         # Convert transformed AST to typst.
         transformed_ast_file = os.path.join(scratch_dir, "transformed_ast.json")
         ast_str = dshdtpatt.ast_to_str(transformed_ast)
         hio.to_file(transformed_ast_file, ast_str)
+        # Run test.
         typst_output, _ = dshdtpatt.convert_pandoc_ast_to_typst(
             transformed_ast_file, scratch_dir
         )
-        outcome["4. typst_output_length"] = f"{len(typst_output)} characters"
-        outcome["5. typst_output_preview"] = typst_output[:500] + "..."
-        # Run test.
-        actual_outcome = outcome_to_str(outcome)
-        # Check outputs: verify transformation completed and produced typst output.
-        self.assertIsNotNone(actual_outcome)
-        self.assertIn("typst_output_length", actual_outcome)
-        self.assertIn("small_code_transform_applied", actual_outcome)
-        # Verify typst output contains formatting and content.
-        self.assertGreater(
-            len(typst_output), 0, "Typst output should not be empty"
-        )
-        # Verify code block language is in the output.
-        typst_lower = typst_output.lower()
-        self.assertTrue(
-            "python" in typst_lower or "javascript" in typst_lower,
-            "Code block language should be present in output",
-        )
+        # Check outputs.
+        self.assert_equal(typst_output, expected, dedent=True)
 
 
 # #############################################################################
