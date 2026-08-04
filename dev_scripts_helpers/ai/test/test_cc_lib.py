@@ -293,11 +293,10 @@ class Test_PromptSequencer_chunk_stats(hunitest.TestCase):
             responses_by_call=[[msg1, result1]]
         )
         # Prepare outputs.
-        # TODO(ai_gp): Use r"""
-        expected = (
-            "[{'outcome': 'CHANGED: fixed x', 'cost_usd': 0.5, "
-            "'num_turns': 15, 'is_error': True}]"
-        )
+        expected = r"""
+        [{'outcome': 'CHANGED: fixed x', 'cost_usd': 0.5, 'num_turns': 15, 'is_error': True}]
+        """
+        expected = hprint.dedent(expected)
         # Run test.
         self.helper(sequencer, ["prompt A"], fake_client, expected)
 
@@ -327,12 +326,10 @@ class Test_PromptSequencer_chunk_stats(hunitest.TestCase):
             responses_by_call=[[msg1], [msg2]]
         )
         # Prepare outputs.
-        # TODO(ai_gp): Use r"""
-        expected = (
-            "[{'outcome': 'NO-OP', 'cost_usd': None, 'num_turns': 0, "
-            "'is_error': False}, {'outcome': 'CHANGED: fixed x', "
-            "'cost_usd': None, 'num_turns': 0, 'is_error': False}]"
-        )
+        expected = r"""
+        [{'outcome': 'NO-OP', 'cost_usd': None, 'num_turns': 0, 'is_error': False}, {'outcome': 'CHANGED: fixed x', 'cost_usd': None, 'num_turns': 0, 'is_error': False}]
+        """
+        expected = hprint.dedent(expected)
         # Run test.
         self.helper(sequencer, ["prompt A", "prompt B"], fake_client, expected)
         # Check outputs.
@@ -368,12 +365,10 @@ class Test_PromptSequencer_chunk_stats(hunitest.TestCase):
             responses_by_call=[[msg1], [msg2]]
         )
         # Prepare outputs.
-        # TODO(ai_gp): Use r"""
-        expected = (
-            "[{'outcome': 'NO-OP', 'cost_usd': None, 'num_turns': 0, "
-            "'is_error': False}, {'outcome': 'NO-OP', 'cost_usd': None, "
-            "'num_turns': 0, 'is_error': False}]"
-        )
+        expected = r"""
+        [{'outcome': 'NO-OP', 'cost_usd': None, 'num_turns': 0, 'is_error': False}, {'outcome': 'NO-OP', 'cost_usd': None, 'num_turns': 0, 'is_error': False}]
+        """
+        expected = hprint.dedent(expected)
         # Run test.
         self.helper(sequencer, ["prompt A", "prompt B"], fake_client, expected)
         # Check outputs.

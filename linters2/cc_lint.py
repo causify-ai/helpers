@@ -961,12 +961,10 @@ def _build_rule_message(
     rule_message: List[str] = []
     if add_todos:
         rule_file_descr = f"(from `{rule_file}`) " if rule_file else ""
-        # TODO(ai_gp): Use rf""" and dedent
-        action = (
-            f"Check ONLY the rule below {rule_file_descr}against "
-            f"`{file_path}` for violations and add a TODO(...) comment "
-            "for each one, per the system prompt's TODO format"
-        )
+        action = rf"""
+        Check ONLY the rule below {rule_file_descr}against `{file_path}` for violations and add a TODO(...) comment for each one, per the system prompt's TODO format
+        """
+        action = hprint.dedent(action)
     else:
         action = f"Apply ONLY the rule below to `{file_path}`"
     header = f"""
@@ -975,10 +973,13 @@ def _build_rule_message(
     - Do not revisit rules applied earlier
     """
     rule_message.append(hprint.dedent(header))
-    # TODO(ai_gp): Use a single append with rf"""
-    rule_message.append("```")
-    rule_message.append(rule_content)
-    rule_message.append("```")
+    rule_message.append(hprint.dedent(
+        rf"""
+        ```
+        {rule_content}
+        ```
+        """
+    )
     #
     if add_todos:
         footer = """
