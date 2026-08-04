@@ -47,7 +47,7 @@ DEFAULT_ACTIONS = [
 def _parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         description=__doc__,
-        formatter_class=argparse.RawDescriptionHelpFormatter,
+        formatter_class=hparser.CustomHelpFormatter,
     )
     hseinout.add_input_output_args(parser, in_required=False, out_required=False)
     parser.add_argument(

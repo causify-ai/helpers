@@ -328,7 +328,7 @@ def _humanize_from_file(
 def _parse() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         description=__doc__,
-        formatter_class=argparse.RawDescriptionHelpFormatter,
+        formatter_class=hparser.CustomHelpFormatter,
     )
     hseinout.add_input_output_args(parser, in_required=True, out_required=False)
     hselacti.add_action_arg(parser, _VALID_ACTIONS, _DEFAULT_ACTIONS)

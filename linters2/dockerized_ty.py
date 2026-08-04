@@ -99,7 +99,7 @@ def _parse() -> argparse.ArgumentParser:
     # Create an ArgumentParser instance with the provided docstring.
     parser = argparse.ArgumentParser(
         description=__doc__,
-        formatter_class=argparse.RawDescriptionHelpFormatter,
+        formatter_class=hparser.CustomHelpFormatter,
     )
     parser.add_argument(
         "--no_use_standard_ty_args",

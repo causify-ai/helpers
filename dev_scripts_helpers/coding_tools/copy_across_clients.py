@@ -151,7 +151,7 @@ def _copy_files(
 def _parse() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         description=__doc__,
-        formatter_class=argparse.RawDescriptionHelpFormatter,
+        formatter_class=hparser.CustomHelpFormatter,
     )
     # Required arguments.
     parser.add_argument(

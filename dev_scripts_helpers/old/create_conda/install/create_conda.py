@@ -290,7 +290,7 @@ def _test_conda_env(conda_env_name: str) -> None:
 def _parse() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         description=__doc__,
-        formatter_class=argparse.RawDescriptionHelpFormatter,
+        formatter_class=hparser.CustomHelpFormatter,
     )
     parser.add_argument("--delete_env_if_exists", action="store_true")
     parser.add_argument(

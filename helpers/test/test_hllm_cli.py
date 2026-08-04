@@ -12,6 +12,7 @@ import helpers.hdbg as hdbg
 import helpers.hcache_simple as hcacsimp
 import helpers.hio as hio
 import helpers.hllm_cli as hllmcli
+import helpers.hparser as hparser
 import helpers.hprint as hprint
 import helpers.hsystem as hsystem
 import helpers.hunit_test as hunitest
@@ -1800,7 +1801,7 @@ class Test_add_llm_prompt_arg(hunitest.TestCase):
         """
         # Prepare inputs.
         parser = argparse.ArgumentParser(
-            formatter_class=argparse.RawDescriptionHelpFormatter
+            formatter_class=hparser.CustomHelpFormatter
         )
         is_required = True
         default_prompt = ""
@@ -1826,7 +1827,7 @@ class Test_add_llm_prompt_arg(hunitest.TestCase):
         """
         # Prepare inputs.
         parser = argparse.ArgumentParser(
-            formatter_class=argparse.RawDescriptionHelpFormatter
+            formatter_class=hparser.CustomHelpFormatter
         )
         default_prompt = "default test prompt"
         is_required = True
@@ -1846,7 +1847,7 @@ class Test_add_llm_prompt_arg(hunitest.TestCase):
         """
         # Prepare inputs.
         parser = argparse.ArgumentParser(
-            formatter_class=argparse.RawDescriptionHelpFormatter
+            formatter_class=hparser.CustomHelpFormatter
         )
         # Run test.
         hllmcli.add_llm_prompt_arg(parser)
@@ -1863,7 +1864,7 @@ class Test_add_llm_prompt_arg(hunitest.TestCase):
         """
         # Prepare inputs.
         parser = argparse.ArgumentParser(
-            formatter_class=argparse.RawDescriptionHelpFormatter
+            formatter_class=hparser.CustomHelpFormatter
         )
         # Run test.
         hllmcli.add_llm_prompt_arg(
@@ -1894,7 +1895,7 @@ class Test_add_llm_args(hunitest.TestCase):
         """
         # Prepare inputs.
         parser = argparse.ArgumentParser(
-            formatter_class=argparse.RawDescriptionHelpFormatter
+            formatter_class=hparser.CustomHelpFormatter
         )
         # Run test.
         result_parser = hllmcli.add_llm_args(parser)
@@ -1912,7 +1913,7 @@ class Test_add_llm_args(hunitest.TestCase):
         """
         # Prepare inputs.
         parser = argparse.ArgumentParser(
-            formatter_class=argparse.RawDescriptionHelpFormatter
+            formatter_class=hparser.CustomHelpFormatter
         )
         hllmcli.add_llm_args(parser)
         # Parse with input_text instead of input file.
@@ -1926,7 +1927,7 @@ class Test_add_llm_args(hunitest.TestCase):
         """
         # Prepare inputs.
         parser = argparse.ArgumentParser(
-            formatter_class=argparse.RawDescriptionHelpFormatter
+            formatter_class=hparser.CustomHelpFormatter
         )
         hllmcli.add_llm_args(parser, input_required=False)
         # Parse with output option.
@@ -1939,7 +1940,7 @@ class Test_add_llm_args(hunitest.TestCase):
         """
         # Prepare inputs.
         parser = argparse.ArgumentParser(
-            formatter_class=argparse.RawDescriptionHelpFormatter
+            formatter_class=hparser.CustomHelpFormatter
         )
         hllmcli.add_llm_args(parser, input_required=False)
         # Parse with system_prompt.
@@ -1953,7 +1954,7 @@ class Test_add_llm_args(hunitest.TestCase):
         """
         # Prepare inputs.
         parser = argparse.ArgumentParser(
-            formatter_class=argparse.RawDescriptionHelpFormatter
+            formatter_class=hparser.CustomHelpFormatter
         )
         hllmcli.add_llm_args(parser, input_required=False)
         # Parse with mock backend.
@@ -1966,7 +1967,7 @@ class Test_add_llm_args(hunitest.TestCase):
         """
         # Prepare inputs.
         parser = argparse.ArgumentParser(
-            formatter_class=argparse.RawDescriptionHelpFormatter
+            formatter_class=hparser.CustomHelpFormatter
         )
         hllmcli.add_llm_args(
             parser,
@@ -1986,7 +1987,7 @@ class Test_add_llm_args(hunitest.TestCase):
         """
         # Prepare inputs.
         parser = argparse.ArgumentParser(
-            formatter_class=argparse.RawDescriptionHelpFormatter
+            formatter_class=hparser.CustomHelpFormatter
         )
         custom_model = "gpt-5-nano"
         hllmcli.add_llm_args(

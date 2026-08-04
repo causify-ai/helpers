@@ -616,7 +616,7 @@ def _process_headers_for_summarization(
 def _parse() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         description=__doc__,
-        formatter_class=argparse.RawDescriptionHelpFormatter,
+        formatter_class=hparser.CustomHelpFormatter,
     )
     hselacti.add_action_arg(parser, _VALID_ACTIONS, _DEFAULT_ACTIONS)
     hseinout.add_input_output_args(parser, out_required=False)

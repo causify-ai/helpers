@@ -31,6 +31,7 @@ import helpers.hdbg as hdbg
 import helpers.hcache_simple as hcacsimp
 import helpers.hgit as hgit
 import helpers.hio as hio
+import helpers.hparser as hparser
 import helpers.hselect_action as hselacti
 import helpers.hsystem as hsystem
 
@@ -280,7 +281,7 @@ def _parse() -> argparse.ArgumentParser:
     :return: ArgumentParser instance
     """
     parser = argparse.ArgumentParser(
-        formatter_class=argparse.RawDescriptionHelpFormatter,
+        formatter_class=hparser.CustomHelpFormatter,
         description=__doc__,
     )
     parser.add_argument(

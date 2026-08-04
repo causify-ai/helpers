@@ -625,7 +625,7 @@ def _parse() -> argparse.ArgumentParser:
     """
     parser = argparse.ArgumentParser(
         description=__doc__,
-        formatter_class=argparse.RawDescriptionHelpFormatter,
+        formatter_class=hparser.CustomHelpFormatter,
     )
     # File selection arguments using hparser helper.
     hseinout.add_file_selection_args(parser)

@@ -713,7 +713,7 @@ def _parse() -> argparse.ArgumentParser:
     _LOG.debug(hprint.func_signature_to_str())
     parser = argparse.ArgumentParser(
         description=__doc__,
-        formatter_class=argparse.RawDescriptionHelpFormatter,
+        formatter_class=hparser.CustomHelpFormatter,
     )
     # Required: URL of the Google Sheets document containing article links.
     parser.add_argument(

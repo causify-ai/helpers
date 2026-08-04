@@ -213,7 +213,7 @@ def _get_workload(args: argparse.Namespace) -> hjoblib.Workload:
 def _parse() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         description=__doc__,
-        formatter_class=argparse.RawDescriptionHelpFormatter,
+        formatter_class=hparser.CustomHelpFormatter,
     )
     # Add common experiment options.
     parser = dtfbdtfbaut.add_run_experiment_args(parser, dst_dir_required=True)

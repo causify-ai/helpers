@@ -70,7 +70,7 @@ def _parse() -> argparse.ArgumentParser:
     """
     parser = argparse.ArgumentParser(
         description=__doc__,
-        formatter_class=argparse.RawDescriptionHelpFormatter,
+        formatter_class=hparser.CustomHelpFormatter,
     )
     out_default = "-"
     hseinout.add_input_output_args(parser, out_default=out_default)

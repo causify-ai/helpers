@@ -315,7 +315,7 @@ def convert_file_name_to_local_path(
 def _parse() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         description=__doc__,
-        formatter_class=argparse.RawDescriptionHelpFormatter,
+        formatter_class=hparser.CustomHelpFormatter,
     )
     # Either URL or file_name must be provided
     group = parser.add_mutually_exclusive_group(required=True)

@@ -47,7 +47,7 @@ def _get_docstring(file_name: str) -> str:
 def _parse() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         description=__doc__,
-        formatter_class=argparse.RawDescriptionHelpFormatter,
+        formatter_class=hparser.CustomHelpFormatter,
     )
     parser.add_argument("--src_dir", action="store", default=".")
     parser.add_argument("--src_file", action="store", default="")

@@ -186,7 +186,7 @@ def get_credentials() -> Dict[str, Any]:
 def _parse() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         description=__doc__,
-        formatter_class=argparse.RawDescriptionHelpFormatter,
+        formatter_class=hparser.CustomHelpFormatter,
     )
     parser.add_argument(
         "--user", action="store", default=None, help="Impersonate a user"

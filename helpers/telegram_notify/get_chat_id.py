@@ -13,6 +13,7 @@ from typing import Dict, cast
 
 import requests
 
+import helpers.hparser as hparser
 import helpers.telegram_notify.config as htenocon
 import helpers.telegram_notify.telegram_notify as htnoteno
 
@@ -57,7 +58,7 @@ def send_chat_id(token: str, username: str) -> str:
 def _main() -> None:
     parser = argparse.ArgumentParser(
         description=__doc__,
-        formatter_class=argparse.RawDescriptionHelpFormatter,
+        formatter_class=hparser.CustomHelpFormatter,
     )
     parser.add_argument("--username", required=True, action="store", type=str)
     parser.add_argument("--token", required=False, action="store", type=str)
