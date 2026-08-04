@@ -96,6 +96,7 @@ class Test_PromptSequencer_execute(hunitest.TestCase):
             "A', 'prompt B'], aenter_called=True, aexit_called=True"
         )
         self.assert_equal(actual, expected)
+        # TODO(...): Split multiple assertions testing different aspects (callback wiring, execution count, response capture) into separate test methods (.claude/skills/testing.rules.md:## Test One Thing)
         self.assertIs(fake_client.options.can_use_tool, sequencer.can_use_tool)
         self.assertEqual(sequencer._prompts_executed, 2)
         self.assertNotEqual(sequencer.get_last_response(), "")
@@ -736,6 +737,7 @@ class Test_make_file_scope_guard(hunitest.TestCase):
         }
         file_modifying_tools = ("Edit", "Write", "NotebookEdit", "MultiEdit")
         # Run test and check outputs.
+        # TODO(...): Split into separate test methods for each tool (Edit, Write, NotebookEdit, MultiEdit) (.claude/skills/testing.rules.md:## Test One Thing)
         for tool_name in file_modifying_tools:
             self.helper(
                 target_file,
@@ -754,6 +756,7 @@ class Test_make_file_scope_guard(hunitest.TestCase):
             "file_path": os.path.join(self.get_scratch_space(), "other.py")
         }
         # Run test and check outputs.
+        # TODO(...): Split into separate test methods for each tool (Read, Bash) (.claude/skills/testing.rules.md:## Test One Thing)
         for tool_name in ("Read", "Bash"):
             self.helper(
                 target_file,

@@ -388,7 +388,7 @@
 
 ## Use Three Sections in Testing Methods
 
-- Every test method must have three sections with standard comments:
+- Every test method should have sections with standard comments:
   - `# Prepare inputs.`: Input data
   - `# Prepare outputs.`: Expected output
   - `# Run test.`: Test execution
@@ -409,8 +409,6 @@
       <verify results>
   ```
 
-- You must preserve test structure comments that organize test logic into
-  sections to provide consistent structure for unit tests and improve readability
   - **Good**: (test structure is clear)
     ```python
     def test1(self) -> None:
@@ -427,6 +425,30 @@
         # Check outputs.
         self.assertEqual(actual_dir, expected_dir)
         self.assertEqual(actual_lesson, expected_lesson)
+    ```
+
+- You must preserve test structure comments that organize test logic into
+  sections to provide consistent structure for unit tests and improve readability
+
+- Sections can be optional, if they don't apply
+  - E.g., if the checking is done by an helper function, the section becomes:
+    ```
+    # Run test and check outputs.
+    ```
+
+  - **Good**: (test structure is clear)
+    ```python
+    def test1(self) -> None:
+        """
+        Test extraction from valid file path.
+        """
+        # Prepare inputs.
+        file_path = "msml610/lectures_source/Lesson10-Name.md"
+        # Prepare outputs.
+        expected_dir = "msml610"
+        expected_lesson = "10"
+        # Run test.
+        helper(file_path, expected_dir, expected_lesson)
     ```
 
 ## Use Helper Methods When You Have Repetitive Tests

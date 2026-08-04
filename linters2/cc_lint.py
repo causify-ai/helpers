@@ -968,7 +968,6 @@ def _build_rule_message(
     else:
         action = f"Apply ONLY the rule below to `{file_path}`"
     header = f"""
-    - Re-read `{file_path}` from disk
     - {action}
     - Do not revisit rules applied earlier
     """
