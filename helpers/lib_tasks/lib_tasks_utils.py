@@ -209,8 +209,8 @@ def to_multi_line_cmd(docker_cmd_: List[str]) -> str:
 use_one_line_cmd = False
 
 
-# TODO(ai_gp): print_cmd is not useful since there is a corresponding option
-# in system.
+# TODO(ai_gp2): remove print_cmd since there is a corresponding option in
+# system.
 def run(
     ctx: Any,
     cmd: str,
@@ -247,7 +247,7 @@ def run(
 # Copied from helpers.datetime_ to avoid dependency from pandas.
 
 
-# TODO(ai_gp): Can this be eliminated?
+# TODO(ai_gp): Is it used? If not can it be eliminated?
 def get_ET_timestamp() -> str:
     # The timezone depends on how the shell is configured.
     timestamp = datetime.datetime.now()

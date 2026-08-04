@@ -1103,7 +1103,7 @@ class Test_build_rule_message(hunitest.TestCase):
         file_path = "linters2/test/test_cc_lint.py"
         rule_content = "# Some Rule\nDo the thing."
         # Prepare outputs.
-        # TODO(ai_gp): Use _expected_message
+        # TODO(ai_gp): Use _expected_message()
         header = f"""
         - Re-read `{file_path}` from disk
         - Apply ONLY the rule below to `{file_path}`
@@ -1128,7 +1128,7 @@ class Test_build_rule_message(hunitest.TestCase):
         file_path = "example.py"
         rule_content = "# Rule\nContent"
         # Prepare outputs.
-        # TODO(ai_gp): Use _expected_message
+        # TODO(ai_gp): Use _expected_message()
         header = f"""
         - Re-read `{file_path}` from disk
         - Apply ONLY the rule below to `{file_path}`

@@ -9,15 +9,19 @@ branch and the relative file path.
 
 Usage
 
-# TODO(ai_gp): Add a short description for each command
+# Print the GitHub URL for a file on the current branch.
 > to_github.py --input helpers/hdbg.py
 
+# Print the GitHub URL for a file on the master branch.
 > to_github.py --input helpers/hdbg.py --use_master
 
+# Print the GitHub URL and open it in the default web browser.
 > to_github.py --input helpers/hdbg.py --open
 
-> to_github.py --input helpers/hdbg.py --copy
+# Print the GitHub URL and copy it to the system clipboard.
+> to_github.py --input helpers/hdbg.py --pbcopy
 
+# Print the GitHub URL after verifying that it resolves.
 > to_github.py --input helpers/hdbg.py --check_exists
 
 Import as:
