@@ -590,13 +590,12 @@ def add_rule_cli_arg(
     :return: the same group with the argument added
     """
     group.add_argument(
-        "-r",
         "--rule",
         type=str,
         default="",
         dest="rule",
         help=(
-            hprint.dedent("""
+            hprint.dedent(r"""
             Rule specification used as system prompt. Formats:
             - 'path/to/rules.md': whole file
             - 'path/to/rules.md:LINE': header section at LINE

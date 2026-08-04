@@ -979,7 +979,7 @@ def _build_rule_message(
         {rule_content}
         ```
         """
-    )
+    ))
     #
     if add_todos:
         footer = """
@@ -1524,7 +1524,7 @@ def _parse() -> argparse.ArgumentParser:
     """
     parser = argparse.ArgumentParser(
         description=__doc__,
-        formatter_class=argparse.RawDescriptionHelpFormatter,
+        formatter_class=hparser.CustomHelpFormatter,
     )
     # File selection options (--files, --from_file, --branch, --modified, etc.).
     hseinout.add_file_selection_args(parser)
@@ -1548,7 +1548,7 @@ def _parse() -> argparse.ArgumentParser:
     parser.add_argument(
         "--mode",
         type=str,
-        default="one_shot_with_cc",
+        required=True,
         choices=["one_shot_with_cc", "one_shot", "session", "stateless"],
         help=hprint.dedent("""
         Execution mode:

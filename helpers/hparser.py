@@ -6,7 +6,7 @@ import helpers.hparser as hparser
 
 import argparse
 import logging
-from typing import Any, Dict, Optional
+from typing import Any, Dict, List, Optional
 
 import helpers.hdbg as hdbg
 import helpers.hio as hio
@@ -14,6 +14,33 @@ import helpers.hio as hio
 _LOG = logging.getLogger(__name__)
 
 # TODO(gp): arg -> args
+
+
+# #############################################################################
+# CustomHelpFormatter
+# #############################################################################
+
+
+class CustomHelpFormatter(argparse.RawDescriptionHelpFormatter):
+    """
+    Format `--help` like `RawDescriptionHelpFormatter`, but also preserve
+    explicit newlines inside individual argument `help=` strings.
+
+    `RawDescriptionHelpFormatter` only keeps raw formatting for the
+    parser-level `description`/`epilog`: per-argument `help=` text is still
+    collapsed by `argparse` into a single wrapped paragraph, so a hand-built
+    bullet list (e.g., via `hprint.dedent()`) loses its line breaks and "-"
+    markers run together. This formatter prints such help text exactly as
+    authored (one output line per source line, already hand-wrapped/indented
+    by the caller), like `RawTextHelpFormatter`. Argument help with no
+    embedded newline still wraps like the base formatter, since it was
+    written to rely on that wrapping.
+    """
+
+    def _split_lines(self, text: str, width: int) -> List[str]:
+        if "\n" in text:
+            return text.splitlines()
+        return super()._split_lines(text, width)
 
 
 # #############################################################################
