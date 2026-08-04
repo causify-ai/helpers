@@ -1725,6 +1725,7 @@ class Test_mock_apply_llm(hunitest.TestCase):
         with hllmcli.mock_apply_llm():
             actual_response, actual_token_stats = hllmcli.apply_llm(
                 input_str,
+                "gpt-5-nano",
                 system_prompt=system_prompt,
             )
         # Check outputs.
@@ -1742,7 +1743,9 @@ class Test_mock_apply_llm(hunitest.TestCase):
         expected_hash = hashlib.md5(input_str.encode()).hexdigest()
         # Run test.
         with hllmcli.mock_apply_llm():
-            actual_response, actual_token_stats = hllmcli.apply_llm(input_str)
+            actual_response, actual_token_stats = hllmcli.apply_llm(
+                input_str, "gpt-5-nano"
+            )
         # Check outputs.
         self.assertEqual(actual_response, expected_hash)
         self.assertIsInstance(actual_token_stats, hllmcli.TokenStats)
@@ -1757,7 +1760,7 @@ class Test_mock_apply_llm(hunitest.TestCase):
         input_str = "test"
         # Run test.
         with hllmcli.mock_apply_llm():
-            response1, _ = hllmcli.apply_llm(input_str)
+            response1, _ = hllmcli.apply_llm(input_str, "gpt-5-nano")
         # Outside context, apply_llm should work normally (may skip if no backend).
         # For this test, just verify the mock context exited successfully.
         self.assertIsNotNone(response1)
@@ -1773,8 +1776,8 @@ class Test_mock_apply_llm(hunitest.TestCase):
         expected_hash2 = hashlib.md5(input2.encode()).hexdigest()
         # Run test.
         with hllmcli.mock_apply_llm():
-            response1, _ = hllmcli.apply_llm(input1)
-            response2, _ = hllmcli.apply_llm(input2)
+            response1, _ = hllmcli.apply_llm(input1, "gpt-5-nano")
+            response2, _ = hllmcli.apply_llm(input2, "gpt-5-nano")
         # Check outputs.
         self.assertEqual(response1, expected_hash1)
         self.assertEqual(response2, expected_hash2)

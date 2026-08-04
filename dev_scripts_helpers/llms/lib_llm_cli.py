@@ -1,16 +1,3 @@
-#!/usr/bin/env -S uv run
-
-# /// script
-# dependencies = [
-#   "llm",
-#   "flowmark",
-#   "mdformat",
-#   "pyyaml",
-#   "tokencost",
-#   "tqdm",
-# ]
-# ///
-
 r"""
 Library functions for LLM CLI script.
 

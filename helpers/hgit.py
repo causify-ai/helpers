@@ -5,6 +5,7 @@ import helpers.hgit as hgit
 """
 
 import collections
+import datetime
 import functools
 import glob
 import logging
@@ -1080,6 +1081,22 @@ def get_head_hash(dir_name: str = ".", short_hash: bool = False) -> str:
         )
         output = output + "-" + random_string
     return output
+
+
+def get_generation_tag(dir_name: str = ".") -> str:
+    """
+    Return a tag with the current git hash and timestamp.
+
+    Used to stamp generated files (e.g., as an HTML comment) so that one can
+    later tell from which commit and when a file was generated.
+
+    :param dir_name: directory containing the git repository
+    :return: tag string (e.g., "git_hash=4759b36 timestamp=20231003_080000")
+    """
+    git_hash = get_head_hash(dir_name, short_hash=True)
+    timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+    tag = f"git_hash={git_hash} timestamp={timestamp}"
+    return tag
 
 
 def get_remote_head_hash(dir_name: str) -> str:
