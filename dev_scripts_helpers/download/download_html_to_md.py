@@ -1,17 +1,17 @@
 #!/usr/bin/env -S uv run
 
 # /// script
-# dependencies = ["readability-lxml", "markdownify", "requests", "beautifulsoup4"]
+# dependencies = ["readability-lxml", "markdownify", "requests", "beautifulsoup4", "tqdm"]
 # ///
 
 r"""
-Download an HTML page and convert it to markdown.
-
-Supports multiple converters:
-  1. pandoc: Uses `pandoc` command (must be installed separately)
-  2. bs: Uses BeautifulSoup to find main content, then markdownify to convert
-  3. readability: Uses readability library for article extraction
-  4. auto: Tries BeautifulSoup first, falls back to readability
+- Download an HTML page
+- Convert it to markdown with multiple converters:
+  - auto: Tries BeautifulSoup first, falls back to readability
+  - pandoc: Uses `pandoc` command (must be installed separately)
+  - bs: Uses BeautifulSoup to find main content, then markdownify to convert
+  - readability: Uses readability library for article extraction
+- Summarize the content
 
 Examples:
 # TODO(ai_gp): Add a comment for each command line
@@ -20,6 +20,13 @@ Examples:
 > download_html_to_md.py --input https://example.com --output output.md --converter pandoc
 
 > download_html_to_md.py --input https://example.com --output output.md --converter bs
+
+# If --output is omitted, the page title is used to generate the filename.
+> download_html_to_md.py --input https://example.com
+
+# Enable the `summarize` action on top of the default actions to also
+# generate `<output>.summary.md`.
+> download_html_to_md.py --input https://example.com --output output.md -e summarize
 """
 
 import argparse
@@ -32,8 +39,10 @@ import helpers.hcache_simple as hcacsimp
 import helpers.hgit as hgit
 import helpers.hio as hio
 import helpers.hparser as hparser
+import helpers.hprint as hprint
 import helpers.hselect_action as hselacti
 import helpers.hsystem as hsystem
+import dev_scripts_helpers.download.download_utils as dsdlut
 
 _LOG = logging.getLogger(__name__)
 
@@ -50,6 +59,7 @@ def _download_html(input_url: str, output_html_file: str) -> None:
     :param input_url: URL to download from or local file path
     :param output_html_file: Path to save the HTML file
     """
+    _LOG.debug(hprint.to_str("input_url output_html_file"))
     # Lazy imports to run unit tests.
     import requests
 
@@ -59,6 +69,8 @@ def _download_html(input_url: str, output_html_file: str) -> None:
         html_content = hio.from_file(input_url)
         _LOG.info("Read local HTML file from '%s'", input_url)
     else:
+        # Spoof a common desktop browser user agent to avoid sites blocking
+        # bot-like requests.
         headers = {
             "User-Agent": (
                 "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
@@ -71,9 +83,13 @@ def _download_html(input_url: str, output_html_file: str) -> None:
             ),
             "Accept-Language": "en-US,en;q=0.9",
         }
+        _LOG.debug("Sending HTTP GET request to '%s'", input_url)
         response = requests.get(input_url, headers=headers, timeout=30)
         response.raise_for_status()
         html_content = response.text
+        _LOG.debug(
+            "Received response: status_code=%s", response.status_code
+        )
     hio.to_file(output_html_file, html_content)
     _LOG.info("Saved HTML to '%s'", output_html_file)
 
@@ -93,6 +109,7 @@ def _convert_using_pandoc(
     :param input_html_file: Path to input HTML file
     :param output_md_file: Path to output markdown file
     """
+    _LOG.debug(hprint.to_str("input_html_file output_md_file"))
     _LOG.info("Converting HTML to markdown using pandoc...")
     cmd = [
         "pandoc",
@@ -102,8 +119,10 @@ def _convert_using_pandoc(
         f"-o {output_md_file}",
     ]
     cmd = " ".join(cmd)
+    _LOG.debug("Running pandoc command: '%s'", cmd)
     hsystem.system(cmd)
     article_html = hio.from_file(output_md_file)
+    _LOG.debug("return: len(article_html)=%d", len(article_html))
     return article_html
 
 
@@ -116,9 +135,11 @@ def _convert_using_bs(
     :param html_content: HTML content as string
     :return: Extracted HTML content
     """
+    _LOG.debug(hprint.to_str("len(html_content)"))
     from bs4 import BeautifulSoup  # type: ignore
 
     soup = BeautifulSoup(html_content, "html.parser")
+    # Try common content container selectors, in order of specificity.
     content_selectors = [
         "main",
         "[data-content]",
@@ -133,8 +154,10 @@ def _convert_using_bs(
         element = soup.select_one(selector)
         if element:
             _LOG.info("Found content using selector: '%s'", selector)
+            _LOG.debug("return: len(element)=%d", len(str(element)))
             return str(element)
     _LOG.info("No content container found with BeautifulSoup")
+    _LOG.debug("return=''")
     return ""
 
 
@@ -147,11 +170,13 @@ def _convert_using_readability(
     :param html_content: HTML content as string
     :return: Extracted HTML content
     """
+    _LOG.debug(hprint.to_str("len(html_content)"))
     import readability  # type: ignore
 
     doc = readability.Document(html_content)
     article_html = doc.summary()
     _LOG.info("Extracted content using readability")
+    _LOG.debug("return: len(article_html)=%d", len(article_html))
     return article_html
 
 
@@ -172,6 +197,7 @@ def _convert_html(
         - If "bs": use BeautifulSoup with smart selectors only
         - If "auto": try BeautifulSoup first, fall back to readability
     """
+    _LOG.debug(hprint.to_str("input_html_file output_md_file converter"))
     import markdownify  # type: ignore
 
     _LOG.info("Converting HTML to markdown using python libraries...")
@@ -181,6 +207,7 @@ def _convert_html(
         ["readability", "bs", "auto"],
         "Invalid python converter specified",
     )
+    # Dispatch to the selected converter.
     if converter == "auto":
         article_html = _convert_using_bs(html_content)
         if not article_html:
@@ -193,11 +220,13 @@ def _convert_html(
         article_html = _convert_using_readability(html_content)
     else:
         raise ValueError(f"Unknown python converter: '{converter}'")
+    _LOG.debug("len(article_html)=%d", len(article_html))
     markdown_content = markdownify.markdownify(
         article_html,
         heading_style="atx",
         escape_misc=False,
     )
+    _LOG.debug("len(markdown_content)=%d", len(markdown_content))
     hio.to_file(output_md_file, markdown_content)
     _LOG.info("Saved markdown to '%s'", output_md_file)
 
@@ -217,12 +246,14 @@ def _remove_data_uri_images(content: str) -> str:
     :param content: Markdown content to clean
     :return: Markdown content with data URI images removed
     """
+    _LOG.debug(hprint.to_str("len(content)"))
     # Remove image syntax with data URI sources: ![...](data:...) including
     # optional attributes.
     pattern = r"!\[[^\]]*\]\(data:[^)]*\)(?:{[^}]*})?"
     cleaned = re.sub(pattern, "", content)
     # Remove excess blank lines from image removal.
     cleaned = cleaned.strip()
+    _LOG.debug("return: len(cleaned)=%d", len(cleaned))
     return cleaned
 
 
@@ -235,11 +266,13 @@ def _cleanup_markdown_file(md_file: str) -> None:
 
     :param md_file: Path to markdown file to clean
     """
+    _LOG.debug(hprint.to_str("md_file"))
     _LOG.info("Cleaning up markdown file: '%s'...", md_file)
     # Read markdown content.
     content = hio.from_file(md_file)
     # Remove data URI images.
     cleaned = _remove_data_uri_images(content)
+    _LOG.debug("len(content)=%d len(cleaned)=%d", len(content), len(cleaned))
     # Write cleaned content back.
     hio.to_file(md_file, cleaned)
     _LOG.info("Markdown file cleaned: '%s'", md_file)
@@ -251,6 +284,7 @@ def _cleanup(md_file: str) -> None:
 
     :param md_file: Path to markdown file to clean
     """
+    _LOG.debug(hprint.to_str("md_file"))
     _cleanup_markdown_file(md_file)
 
 
@@ -265,13 +299,79 @@ def _lint(output_md_file: str) -> None:
 
     :param output_md_file: Path to markdown file to lint
     """
+    _LOG.debug(hprint.to_str("output_md_file"))
     _LOG.info("Linting markdown file: '%s'...", output_md_file)
     # Find lint_txt.py in the git tree.
     script_path = None
     script_path = hgit.find_file_in_git_tree("lint_txt.py")
+    _LOG.debug("script_path='%s'", script_path)
     cmd = f"{script_path} --input {output_md_file} --output {output_md_file}"
+    _LOG.debug("Running command: '%s'", cmd)
     hsystem.system(cmd, abort_on_error=False)
     _LOG.info("Linting completed for '%s'", output_md_file)
+
+
+# #############################################################################
+# Summarize action
+# #############################################################################
+
+# Prompt and model used to summarize the downloaded markdown content.
+# TODO(ai_gp): Improve this referring to .claude/markdown.rules.md
+_SUMMARY_PROMPT = (
+    "Summarize the main article in 5 bullet points. "
+    "Format as plain text without markdown."
+)
+# TODO(ai_gp): Is this openrouter?
+_SUMMARY_MODEL = "gpt-4o-mini"
+
+
+def _summarize(output_md_file: str) -> None:
+    """
+    Summarize the markdown content using an LLM.
+
+    :param output_md_file: Path to markdown file to summarize
+    """
+    _LOG.debug(hprint.to_str("output_md_file"))
+    summary_file = f"{output_md_file}.summary.md"
+    _LOG.info("Summarizing markdown file: '%s'...", output_md_file)
+    _LOG.debug("Calling summarize_text_with_llm with model='%s'", _SUMMARY_MODEL)
+    dsdlut.summarize_text_with_llm(
+        output_md_file,
+        summary_file,
+        _SUMMARY_PROMPT,
+        _SUMMARY_MODEL,
+    )
+    _LOG.info("Summary saved to: '%s'", summary_file)
+
+
+# #############################################################################
+# Output filename
+# #############################################################################
+
+
+def _get_output_md_file(input_arg: str) -> str:
+    """
+    Derive an output markdown filename from the page title.
+
+    Fetches the page title for the given URL and sanitizes it for use as a
+    filename. Falls back to the input's basename if the title can't be
+    fetched (e.g., local file input, request failure).
+
+    :param input_arg: URL or local file path used as input
+    :return: Output markdown filename, e.g. `The_Page_Title.md`
+    """
+    _LOG.debug(hprint.to_str("input_arg"))
+    title = dsdlut.fetch_article_title(input_arg)
+    if not title:
+        _LOG.warning(
+            "Could not extract title from '%s', using input name instead",
+            input_arg,
+        )
+        title = os.path.splitext(os.path.basename(input_arg))[0]
+    sanitized_title = dsdlut.sanitize_title_for_filename(title)
+    output_md_file = f"{sanitized_title}.md"
+    _LOG.debug(hprint.to_str("output_md_file"))
+    return output_md_file
 
 
 # #############################################################################
@@ -282,7 +382,7 @@ def _lint(output_md_file: str) -> None:
 _CONVERTERS = ["pandoc", "bs", "readability", "auto"]
 
 # Available and default actions.
-_VALID_ACTIONS = ["download", "convert", "cleanup", "lint"]
+_VALID_ACTIONS = ["download", "convert", "cleanup", "lint", "summarize"]
 _DEFAULT_ACTIONS = ["download", "convert", "cleanup", "lint"]
 
 
@@ -292,6 +392,7 @@ def _parse() -> argparse.ArgumentParser:
 
     :return: ArgumentParser instance
     """
+    _LOG.debug("Building CLI argument parser")
     parser = argparse.ArgumentParser(
         formatter_class=hparser.CustomHelpFormatter,
         description=__doc__,
@@ -307,8 +408,11 @@ def _parse() -> argparse.ArgumentParser:
         "-o",
         "--output",
         type=str,
-        required=True,
-        help="Output markdown file path",
+        default=None,
+        help=(
+            "Output markdown file path. If not specified, the page title "
+            "is used to generate the filename"
+        ),
     )
     parser.add_argument(
         "--converter",
@@ -318,6 +422,7 @@ def _parse() -> argparse.ArgumentParser:
         help="Converter to use for HTML to markdown conversion",
     )
     hselacti.add_action_arg(parser, _VALID_ACTIONS, _DEFAULT_ACTIONS)
+    _LOG.debug("return: parser built")
     return parser
 
 
@@ -327,16 +432,31 @@ def _main(parser: argparse.ArgumentParser) -> None:
 
     :param parser: ArgumentParser instance
     """
+    _LOG.debug("Starting main workflow")
     args = parser.parse_args()
+    _LOG.debug(hprint.to_str("args"))
+    # Determine the output markdown file path.
+    if args.output:
+        output_md_file = args.output
+    else:
+        output_md_file = _get_output_md_file(args.input)
+        _LOG.info(
+            "No --output specified, using derived filename: '%s'",
+            output_md_file,
+        )
+    _LOG.debug(hprint.to_str("output_md_file"))
     # Determine HTML file path.
-    html_file = args.output.replace(".md", ".html")
-    if html_file == args.output:
+    html_file = output_md_file.replace(".md", ".html")
+    # If the output path doesn't end in .md, replace() above is a no-op, so
+    # guard against the HTML and markdown files colliding.
+    if html_file == output_md_file:
         # Add a tmp prefix before the basename.
-        html_dir = os.path.dirname(args.output) or "."
-        html_basename = os.path.basename(args.output)
+        html_dir = os.path.dirname(output_md_file) or "."
+        html_basename = os.path.basename(output_md_file)
         html_file = os.path.join(
             html_dir, f"tmp_{html_basename.replace('.md', '.html')}"
         )
+    _LOG.debug(hprint.to_str("html_file"))
     # Get selected actions.
     actions = hselacti.select_actions(args, _VALID_ACTIONS, _DEFAULT_ACTIONS)
     _LOG.info(
