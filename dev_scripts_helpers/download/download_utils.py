@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 """
 Shared utilities for downloading and summarizing article content.
 
@@ -90,11 +88,13 @@ def sanitize_title_for_filename(title: str) -> str:
     return sanitized
 
 
+# TODO(ai_gp): Use _SUMMARY_MODEL = "gpt-4o-mini" as default value for model
 def summarize_text_with_llm(
     input_file: str,
     output_file: str,
     prompt: str,
     model: str,
+    *,
     dry_run: bool = False,
 ) -> None:
     """
@@ -163,6 +163,7 @@ def download_website_article(url: str, output_file: str) -> None:
     :param output_file: Path to save the article text to
     """
     _LOG.debug(hprint.to_str("url output_file"))
+    # TODO(ai_gp): Use hgit.find_in_repo
     script = "dev_scripts_helpers/download/download_html_to_md.py"
     cmd = f'{script} --input "{url}" --output "{output_file}"'
     hsystem.system(cmd)
@@ -184,6 +185,7 @@ def download_arxiv_article(url: str, output_file: str) -> None:
     _LOG.debug(hprint.to_str("url output_file"))
     # Base path (no extension) shared by the generated .pdf/.md files.
     base_path = re.sub(r"\.txt$", "", output_file)
+    # TODO(ai_gp): Use hgit.find_in_repo
     script = "dev_scripts_helpers/download/download_academic_paper_to_md.py"
     # Only download + convert here: skip the script's own summarize action
     # since callers summarize the resulting article text themselves.
@@ -221,6 +223,9 @@ def download_article(url: str, output_file: str) -> None:
 # Hacker News comments
 # #############################################################################
 
+# TODO(ai_gp): Move all the functions for hackernews that are used only by
+# ./dev_scripts_helpers/download/download_hn_article_to_md.py to that file
+# and make them private
 
 @hcacsimp.simple_cache(cache_type="json", write_through=True)
 def fetch_hn_item(item_id: str) -> Optional[Dict[str, Any]]:

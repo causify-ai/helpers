@@ -9,32 +9,19 @@
 # ///
 
 r"""
-Download a single Hacker News submission: its comments, the article it
-points to, and summaries of both.
+- Download an Hacker News link (both comments, the article it points to)
+- Save the files
+- Summarize both
 
-Extracted from `download_link_articles.py`'s single-URL `--hn_url` mode so
-it can be used standalone, without a Google Sheets document.
+Output filenames share a base name, with
 
-## Supported Actions
+- `{base}.1.article_url.txt`: Article content
+- `{base}.2.article_url.summary.txt`: Summarized article
+- `{base}.3.hn_url.txt`: Raw HN comments
+- `{base}.4.hn_url.summary.txt`: Summarized HN comments
 
-- **download_hn_url**: Fetch HN comments from the submission URL and save to a file
-- **download_article_url**: Download the linked article content (skipped if the
-  submission has no linked article, e.g. Show HN / Ask HN / text posts)
-- **summarize_hn_url**: Summarize HN comments using an LLM (requires prior download)
-- **summarize_article_url**: Summarize article content using an LLM (requires prior download)
-
-## Output Files
-
-Output filenames share a base name, with `{base}.1.article_url.txt`,
-`{base}.2.article_url.summary.txt`, `{base}.3.hn_url.txt`,
-`{base}.4.hn_url.summary.txt`. `{base}` is `--output` if specified, otherwise
-the submission title with bash-unfriendly characters replaced with
-underscores:
-
-- `{base}.1.article_url.txt` - Article content (from download_article_url)
-- `{base}.2.article_url.summary.txt` - Summarized article (from summarize_article_url)
-- `{base}.3.hn_url.txt` - Raw HN comments (from download_hn_url)
-- `{base}.4.hn_url.summary.txt` - Summarized HN comments (from summarize_hn_url)
+where `{base}` is `--output` if specified, otherwise the submission title with
+bash-unfriendly characters replaced with underscores.
 
 ## Example Usage
 
@@ -44,7 +31,8 @@ Download and summarize everything for a submission (default actions):
 Only fetch HN comments, skip the linked article:
 > download_hn_article_to_md.py \
     --hn_url "https://news.ycombinator.com/item?id=12345" \
-    --action download_hn_url --action summarize_hn_url
+    --action download_hn_url \
+    --action summarize_hn_url
 
 Download without summarizing:
 > download_hn_article_to_md.py \
@@ -180,25 +168,32 @@ def _download_article_url(
 # Summarize actions
 # #############################################################################
 
-_HN_COMMENTS_PROMPT = hprint.dedent(
+_HN_COMMENTS_PROMPT = hprint.dedent("""
+    - Analyze the Hacker News comment section.
+    - From all comments, summarize the 5-10 most interesting comments based on:
+      1. Thought-provoking or insightful content
+      2. Unique perspective or uncommon knowledge
+      3. Sparks discussion or debate
+      4. Technically informative or educational
+      5. Controversial but well-argued
+    - Avoid comments that are: simple jokes, memes, very short reactions,
+      repetitive or low-effort
+    - Do not include commenter names
+
+    - Format as plain text without markdown following the conventions in:
+      - @.claude/skills/markdown.rules.txt
+      - @.claude/skills/text.rules.txt
+    """)
+
+# TODO(ai_gp): Move this to the utils and use it instead of repeated 
+_ARTICLE_PROMPT = hprint.dedent("""
+    - Summarize the main article in 5 bullet points
+    - Format as plain text without markdown following the conventions in:
+      - @.claude/skills/markdown.rules.txt
+      - @.claude/skills/text.rules.txt
     """
-    Analyze the Hacker News comment section.
-    From all comments, summarize the 5 most interesting ones based on:
-    1. Thought-provoking or insightful content
-    2. Unique perspective or uncommon knowledge
-    3. Sparks discussion or debate
-    4. Technically informative or educational
-    5. Controversial but well-argued.
-    Avoid comments that are: simple jokes, memes, very short reactions,
-    repetitive or low-effort.
-    Do not include commenter names.
-    Format as plain text without markdown.
-    """
-)
-_ARTICLE_PROMPT = (
-    "Summarize the main article in 5 bullet points. "
-    "Format as plain text without markdown."
-)
+    )
+
 _SUMMARY_MODEL = "gpt-4o-mini"
 
 
@@ -282,10 +277,8 @@ def _parse() -> argparse.ArgumentParser:
         type=str,
         default="",
         help=(
-            "Output base name (no extension), shared by the generated "
-            "<output>.1.article_url.txt, <output>.2.article_url.summary.txt, "
-            "<output>.3.hn_url.txt, <output>.4.hn_url.summary.txt files. If "
-            "not specified, the sanitized submission title is used"
+            "Output base name (no extension) shared by the generated files. "
+            "If not specified, the sanitized submission title is used"
         ),
     )
     # Add action selection arguments (download_hn_url, download_article_url, etc).

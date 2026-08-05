@@ -632,6 +632,8 @@ def _main(parser: argparse.ArgumentParser) -> None:
                 _convert(pdf_path)
             elif action == "summarize":
                 _summarize(base_path)
+            else:
+                raise ValueError("Invalid action='{action}'")
 
 
 if __name__ == "__main__":
