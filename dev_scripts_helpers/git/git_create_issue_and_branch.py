@@ -1,18 +1,27 @@
 #!/usr/bin/env python3
 
 """
-Create a GitHub issue and corresponding git worktree.
+Create a GitHub issue and corresponding git worktree for a repo.
 
 Workflow:
 1. Creates a GitHub issue with the provided title and body (or uses existing
-   issue ID)
-2. Creates a git branch and worktree based on the issue ID
+   issue ID) in one repo
+2. Creates a git branch (and worktree) based on the issue ID, symmetrically
+   in the outer repo and, if present, every submodule (e.g., `helpers_root`)
+   unless `--no_submodules` is passed
 3. Commits workflow template files to the branch
 4. Prints instructions for using the worktree
 
+The GH issue is always created/read against the outer repo's tracker: a
+submodule (e.g., `helpers_root`) is a shared library reused by many parent
+projects and has its own, disjoint issue numbering. The branch name is computed
+once from the outer repo's issue and reused verbatim in every submodule.
+
 Uses invoke tasks for issue and branch creation:
 - `invoke gh_issue_create` to create issues
-- `invoke git_branch_create --issue-id` to create branches
+- `invoke git_branch_create --issue-id` to create the outer repo's branch
+- `invoke git_branch_create --branch-name` to create the same branch, by
+  name, in every submodule
 
 Import as:
 
@@ -24,6 +33,7 @@ import logging
 import os
 import re
 import shlex
+from typing import List, Optional
 
 import helpers.hdbg as hdbg
 import helpers.hgit as hgit
@@ -34,6 +44,79 @@ import helpers.hsystem as hsystem
 import helpers.lib_tasks.lib_tasks_gh as hltltagh
 
 _LOG = logging.getLogger(__name__)
+
+# #############################################################################
+# Repo targets
+# #############################################################################
+
+
+# TODO(gp): This is general enough that it could go in hgit.py
+def _get_repo_targets(no_submodules: bool) -> List[str]:
+    """
+    Return the repo directories to operate on symmetrically.
+
+    The outer repo (".") always comes first, so callers can rely on
+    `repo_targets[0]` being the outer repo and `repo_targets[1:]` being the
+    submodules.
+
+    :param no_submodules: if True, disable symmetric submodule handling and
+        always return the outer repo only, even if submodules are present
+    :return: `["."]`, or `["."] + <submodule paths>` when submodules are
+        present and `no_submodules` is False
+    """
+    repo_targets = ["."]
+    if not no_submodules and hgit.has_submodules():
+        repo_targets.extend(hgit.get_submodule_paths())
+    _LOG.debug("repo_targets=%s", repo_targets)
+    return repo_targets
+
+
+def _dassert_all_targets_clean(repo_targets: List[str]) -> None:
+    """
+    Assert that every repo target is clean, before mutating any of them.
+
+    :param repo_targets: repo directories to check
+    """
+    dirty_targets = [
+        target
+        for target in repo_targets
+        if not hgit.is_client_clean(dir_name=target, abort_if_not_clean=False)
+    ]
+    hdbg.dassert(
+        not dirty_targets,
+        "The following repo(s) are not clean: %s",
+        ", ".join(dirty_targets),
+    )
+
+
+def _dassert_all_targets_on_master(
+    repo_targets: List[str], original_branch: str
+) -> None:
+    """
+    Assert that every repo target is on `master`, before creating a branch in
+    any of them.
+
+    Reuses `original_branch` (already captured by the caller) for the outer
+    repo instead of issuing a redundant `hgit.get_branch_name()` call.
+
+    :param repo_targets: repo directories to check (outer repo first)
+    :param original_branch: current branch name of the outer repo
+    """
+    non_master_targets = []
+    for target in repo_targets:
+        branch = (
+            original_branch
+            if target == "."
+            else hgit.get_branch_name(dir_name=target)
+        )
+        if branch != "master":
+            non_master_targets.append(f"{target} (on '{branch}')")
+    hdbg.dassert(
+        not non_master_targets,
+        "The following repo(s) are not on 'master': %s",
+        ", ".join(non_master_targets),
+    )
+
 
 # #############################################################################
 # Core workflow
@@ -131,15 +214,59 @@ def _create_branch_and_pr(
     return branch_name
 
 
+def _create_branch_in_submodule(
+    submodule_path: str, branch_name: str, *, create_pr: bool = True
+) -> None:
+    """
+    Create (or check out) `branch_name` inside a submodule.
+
+    There is only one GH issue, in the outer repo's tracker, so `branch_name`
+    is reused verbatim (as a literal `--branch-name`, not `--issue-id`):
+    re-resolving an issue ID from inside the submodule would look it up
+    against the submodule's own, disjoint GitHub repo.
+
+    :param submodule_path: path to the submodule (e.g., "helpers_root")
+    :param branch_name: literal branch name, already computed from the outer
+        repo's GH issue
+    :param create_pr: whether to create a draft PR (default: True)
+    """
+    if hgit.does_branch_exist(branch_name, mode="all", dir_name=submodule_path):
+        _LOG.info(
+            "Branch '%s' already exists in '%s', checking it out",
+            branch_name,
+            submodule_path,
+        )
+        cmd = f"cd {submodule_path} && git checkout {shlex.quote(branch_name)}"
+        hsystem.system(cmd, log_level=logging.INFO)
+        return
+    cmd = (
+        f"cd {submodule_path} && invoke git_branch_create "
+        f"--branch-name {shlex.quote(branch_name)}"
+    )
+    if not create_pr:
+        cmd += " --create-pr=False"
+    _LOG.info("Creating branch in '%s' via invoke: %s", submodule_path, cmd)
+    hsystem.system(cmd, log_level=logging.INFO)
+
+
 def _create_worktree(
-    branch_name: str, issue_id: int, original_branch: str
+    branch_name: str,
+    issue_id: int,
+    original_branch: str,
+    submodule_paths: Optional[List[str]] = None,
 ) -> str:
     """
     Create a git worktree for the given branch.
 
+    When `submodule_paths` is passed, the submodules are initialized inside
+    the new worktree and checked out on `branch_name` too (matching the outer
+    repo), instead of being left uninitialized / on a detached HEAD.
+
     :param branch_name: Name of the branch to create worktree for
     :param issue_id: GitHub issue number (for path naming)
     :param original_branch: Original branch to checkout before creating worktree
+    :param submodule_paths: paths of submodules (relative to the outer repo)
+        to initialize and check out on `branch_name` inside the worktree
     :return: Path to the created worktree
     """
     # Checkout original branch first to free up the new branch.
@@ -158,16 +285,52 @@ def _create_worktree(
     # Create worktree.
     cmd = f"git worktree add {worktree_path} {branch_name}"
     hsystem.system(cmd, log_level=logging.INFO)
+    if submodule_paths:
+        # Initialize the submodules inside the new worktree and land each of
+        # them on `branch_name` (not a detached HEAD), matching the outer repo.
+        cmd = f"git -C {worktree_path} submodule update --init --recursive"
+        hsystem.system(cmd, log_level=logging.INFO)
+        for submodule_path in submodule_paths:
+            submodule_worktree_path = os.path.join(worktree_path, submodule_path)
+            cmd = (
+                f"git -C {submodule_worktree_path} checkout "
+                f"{shlex.quote(branch_name)}"
+            )
+            hsystem.system(cmd, log_level=logging.INFO)
     return worktree_path
 
 
-def _print_usage_instructions(worktree_path: str, issue_id: int) -> None:
+def _print_usage_instructions(
+    worktree_path: str,
+    issue_id: int,
+    branch_name: str,
+    repo_targets: List[str],
+) -> None:
     """
     Print instructions on how to use the created worktree.
 
+    Also reports, for every repo target, whether the branch was created there
+    and whether that repo is currently clean (e.g., after the "Draft PR" empty
+    commit / push).
+
     :param worktree_path: Path to the created worktree
     :param issue_id: GitHub issue number
+    :param branch_name: name of the branch created in every repo target
+    :param repo_targets: repo directories the branch was created in (outer
+        repo first)
     """
+    # Build the per-repo summary (branch name is identical everywhere).
+    summary_lines = []
+    for target in repo_targets:
+        is_clean = hgit.is_client_clean(
+            dir_name=target, abort_if_not_clean=False
+        )
+        status = "clean" if is_clean else "dirty"
+        repo_label = "outer repo" if target == "." else f"submodule '{target}'"
+        summary_lines.append(
+            f"    - {repo_label}: branch '{branch_name}' ({status})"
+        )
+    summary = "\n".join(summary_lines)
     # Extract worktree suffix (e.g., "1_worktree_1325" from "helpers1_worktree_1325").
     worktree_dir = os.path.basename(worktree_path)
     # TODO(ai_gp2): We should get the basename of the repo from the config.
@@ -178,7 +341,9 @@ def _print_usage_instructions(worktree_path: str, issue_id: int) -> None:
         else worktree_dir
     )
     msg = f"""
-    Worktree created successfully!
+    Worktree created successfully for issue #{issue_id}!
+
+    {summary}
 
     To open tmux session:
     > cd {worktree_path}; dev_scripts_helpers/thin_client/tmux.py --index {worktree_suffix}
@@ -189,97 +354,8 @@ def _print_usage_instructions(worktree_path: str, issue_id: int) -> None:
 
 
 # #############################################################################
-# Entry point
+# CLI
 # #############################################################################
-
-
-def _main_workflow(args: argparse.Namespace, original_branch: str) -> None:
-    """
-    Main workflow implementation.
-
-    :param args: Parsed command-line arguments
-    :param original_branch: Original git branch name for restoration
-    """
-    # Load issue body from file or use provided text.
-    gh_issue_body = _get_issue_body(args.gh_issue_body, args.gh_issue_body_file)
-    _LOG.debug(
-        "gh_issue_id=%s gh_issue_title=%s gh_issue_body=%s gh_issue_body_file=%s "
-        "gh_assignee=%s create_worktree=%s create_pr=%s",
-        args.gh_issue_id,
-        args.gh_issue_title,
-        gh_issue_body,
-        args.gh_issue_body_file,
-        args.gh_assignee,
-        args.create_worktree,
-        args.create_pr,
-    )
-    # Assert that the repository does not have any submodules, since
-    # worktrees are not supported with subrepos yet.
-    hdbg.dassert(
-        not hgit.has_submodules(),
-        "Repository has submodules; worktree not supported yet",
-    )
-    # Determine issue ID.
-    if args.gh_issue_id:
-        # Skip GitHub issue creation if ID is provided.
-        issue_id = args.gh_issue_id
-        _LOG.info("Using existing GitHub issue: %s", issue_id)
-    else:
-        # Create new GitHub issue via invoke.
-        hdbg.dassert(
-            args.gh_issue_title,
-            "Issue title is required when creating a new issue",
-        )
-        cmd = "invoke gh_issue_create"
-        cmd += f" --title {shlex.quote(args.gh_issue_title)}"
-        if gh_issue_body:
-            cmd += f" --body {shlex.quote(gh_issue_body)}"
-        if args.gh_assignee:
-            cmd += f" --assignees {shlex.quote(args.gh_assignee)}"
-        _LOG.info("Creating GitHub issue via invoke: %s", cmd)
-        _, output = hsystem.system_to_string(cmd)
-        _LOG.debug("Invoke output:\n%s", output)
-        # Parse issue ID from output.
-        match = re.search(r"Created issue #(\d+)", output)
-        match = hdbg.dassert_re_match(
-            match, "Could not extract issue ID from output: %s", output
-        )
-        issue_id = int(match.group(1))
-        _LOG.info("Created issue #%s", issue_id)
-    # Create branch and PR via invoke.
-    branch_name = _create_branch_and_pr(
-        issue_id,
-        original_branch,
-        create_pr=args.create_pr,
-        gh_issue_id_provided=bool(args.gh_issue_id),
-    )
-    _LOG.info("Branch name: '%s'", branch_name)
-    # Create worktree, if requested.
-    if args.create_worktree:
-        worktree_path = _create_worktree(branch_name, issue_id, original_branch)
-        # Print usage instructions.
-        _print_usage_instructions(worktree_path, issue_id)
-
-
-def _main(parser: argparse.ArgumentParser) -> None:
-    """
-    Main entry point for the script.
-    """
-    args = parser.parse_args()
-    hdbg.init_logger(verbosity=args.log_level)
-    # Assert that the client is clean (no uncommitted changes).
-    hgit.is_client_clean(abort_if_not_clean=True)
-    # Capture original branch to restore on failure.
-    original_branch = hgit.get_branch_name()
-    try:
-        _main_workflow(args, original_branch)
-    finally:
-        # Return to original branch if we switched away.
-        current_branch = hgit.get_branch_name()
-        if current_branch != original_branch:
-            _LOG.info("Returning to original branch: '%s'", original_branch)
-            cmd = f"git checkout {shlex.quote(original_branch)}"
-            hsystem.system(cmd)
 
 
 def _parse() -> argparse.ArgumentParser:
@@ -339,8 +415,123 @@ def _parse() -> argparse.ArgumentParser:
         default=True,
         help="Skip creating a draft PR for the branch (default: create a draft PR)",
     )
+    parser.add_argument(
+        "--no_submodules",
+        action="store_true",
+        default=False,
+        help=(
+            "Disable symmetric submodule handling and only operate on the "
+            "outer repo, even if submodules are present"
+        ),
+    )
     hparser.add_verbosity_arg(parser)
     return parser
+
+
+def _main_workflow(
+    args: argparse.Namespace, original_branch: str, repo_targets: List[str]
+) -> None:
+    """
+    Main workflow implementation.
+
+    :param args: Parsed command-line arguments
+    :param original_branch: Original git branch name for restoration
+    :param repo_targets: repo directories to operate on symmetrically (outer
+        repo first, then every submodule, unless `--no_submodules` was passed)
+    """
+    # Load issue body from file or use provided text.
+    gh_issue_body = _get_issue_body(args.gh_issue_body, args.gh_issue_body_file)
+    _LOG.debug(
+        "gh_issue_id=%s gh_issue_title=%s gh_issue_body=%s gh_issue_body_file=%s "
+        "gh_assignee=%s create_worktree=%s create_pr=%s repo_targets=%s",
+        args.gh_issue_id,
+        args.gh_issue_title,
+        gh_issue_body,
+        args.gh_issue_body_file,
+        args.gh_assignee,
+        args.create_worktree,
+        args.create_pr,
+        repo_targets,
+    )
+    # Determine issue ID.
+    if args.gh_issue_id:
+        # Skip GitHub issue creation if ID is provided.
+        issue_id = args.gh_issue_id
+        _LOG.info("Using existing GitHub issue: %s", issue_id)
+    else:
+        # Create new GitHub issue via invoke.
+        hdbg.dassert(
+            args.gh_issue_title,
+            "Issue title is required when creating a new issue",
+        )
+        cmd = "invoke gh_issue_create"
+        cmd += f" --title {shlex.quote(args.gh_issue_title)}"
+        if gh_issue_body:
+            cmd += f" --body {shlex.quote(gh_issue_body)}"
+        if args.gh_assignee:
+            cmd += f" --assignees {shlex.quote(args.gh_assignee)}"
+        _LOG.info("Creating GitHub issue via invoke: %s", cmd)
+        _, output = hsystem.system_to_string(cmd)
+        _LOG.debug("Invoke output:\n%s", output)
+        # Parse issue ID from output.
+        match = re.search(r"Created issue #(\d+)", output)
+        match = hdbg.dassert_re_match(
+            match, "Could not extract issue ID from output: %s", output
+        )
+        issue_id = int(match.group(1))
+        _LOG.info("Created issue #%s", issue_id)
+    # Create branch and PR via invoke, in the outer repo.
+    branch_name = _create_branch_and_pr(
+        issue_id,
+        original_branch,
+        create_pr=args.create_pr,
+        gh_issue_id_provided=bool(args.gh_issue_id),
+    )
+    _LOG.info("Branch name: '%s'", branch_name)
+    # Symmetrically create the same branch (by name) in every submodule.
+    submodule_targets = repo_targets[1:]
+    for submodule_path in submodule_targets:
+        _create_branch_in_submodule(
+            submodule_path, branch_name, create_pr=args.create_pr
+        )
+    # Create worktree, if requested.
+    if args.create_worktree:
+        worktree_path = _create_worktree(
+            branch_name, issue_id, original_branch, submodule_targets
+        )
+        # Print usage instructions.
+        _print_usage_instructions(
+            worktree_path, issue_id, branch_name, repo_targets
+        )
+
+
+def _main(parser: argparse.ArgumentParser) -> None:
+    """
+    Main entry point for the script.
+    """
+    args = parser.parse_args()
+    hdbg.init_logger(verbosity=args.log_level)
+    # Determine which repos to operate on symmetrically (outer + submodules,
+    # unless `--no_submodules` was passed).
+    repo_targets = _get_repo_targets(args.no_submodules)
+    # Assert that every repo target is clean (no uncommitted changes), before
+    # mutating any of them.
+    _dassert_all_targets_clean(repo_targets)
+    # Capture original branch to restore on failure.
+    original_branch = hgit.get_branch_name()
+    if len(repo_targets) > 1:
+        # Assert that every repo target is on 'master' before creating a
+        # branch in any of them, to avoid a half-done state across repos.
+        _dassert_all_targets_on_master(repo_targets, original_branch)
+    try:
+        _main_workflow(args, original_branch, repo_targets)
+    finally:
+        # Return to original branch if we switched away.
+        current_branch = hgit.get_branch_name()
+        if current_branch != original_branch:
+            _LOG.info("Returning to original branch: '%s'", original_branch)
+            cmd = f"git checkout {shlex.quote(original_branch)}"
+            hsystem.system(cmd)
 
 
 if __name__ == "__main__":
