@@ -1,4 +1,5 @@
 import logging
+import re
 
 import helpers.hprint as hprint
 import helpers.htable as htable
@@ -11,9 +12,14 @@ _LOG = logging.getLogger(__name__)
 # TestTable1
 # #############################################################################
 
+# TODO(ai_gp): Rename the testing methods -> test1, test2, ...
 
+# TODO(ai_gp): Use vars with """, with text aligned and dedent
+
+# TODO(ai_gp): Split in multiple classes, each testing a single method
 class TestTable1(hunitest.TestCase):
-    # #########################################################################
+
+    # TODO(ai_gp): Factor out a helper with an assert_equal inside
 
     @staticmethod
     def _get_table() -> htable.Table:
@@ -92,6 +98,33 @@ completed | failure | Lint  | Run_linter |
 completed | success | Lint  | Fast_tests |
 completed | success | Lint  | Slow_tests |
 """
+        expected = expected.rstrip().lstrip()
+        self.assert_equal(actual, expected, fuzzy_match=False)
+
+    def test_str_color1(self) -> None:
+        """
+        Test that cells colored with `hprint.color_highlight()` do not throw
+        off the column alignment (the invisible ANSI escape bytes should not
+        count towards the column width).
+        """
+        # Prepare inputs.
+        table_data = [
+            ["docker", hprint.color_highlight("NOT STARTED", "white"), "0"],
+            ["apple", hprint.color_highlight("PASS", "green"), "3754"],
+        ]
+        table = htable.Table(table_data, ["Build", "Status", "Passed"])
+        # Run test.
+        actual = str(table)
+        # Strip ANSI escape codes before comparing, since the color codes
+        # themselves are environment-specific (see `_visible_len()`).
+        actual = re.sub(r"\x1b\[[0-9;]*m", "", actual)
+        # Check outputs.
+        expected = r"""
+        Build  | Status      | Passed |
+        ------ | ----------- | ------ |
+        docker | NOT STARTED | 0      |
+        apple  | PASS        | 3754   |
+        """
         expected = expected.rstrip().lstrip()
         self.assert_equal(actual, expected, fuzzy_match=False)
 
