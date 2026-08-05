@@ -127,7 +127,7 @@ def _parse() -> argparse.ArgumentParser:
     # Create the parser.
     parser = argparse.ArgumentParser(
         description=__doc__,
-        formatter_class=argparse.RawDescriptionHelpFormatter,
+        formatter_class=hparser.CustomHelpFormatter,
     )
     hparser.add_verbosity_arg(parser)
     parser.add_argument(

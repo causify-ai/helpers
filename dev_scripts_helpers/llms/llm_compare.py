@@ -346,7 +346,7 @@ def _parse() -> argparse.ArgumentParser:
     _LOG.debug("\n%s", hprint.func_signature_to_str())
     parser = argparse.ArgumentParser(
         description=__doc__,
-        formatter_class=argparse.RawDescriptionHelpFormatter,
+        formatter_class=hparser.CustomHelpFormatter,
     )
     models_group = parser.add_mutually_exclusive_group(required=True)
     models_group.add_argument(

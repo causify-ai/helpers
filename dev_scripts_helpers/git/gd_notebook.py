@@ -133,7 +133,7 @@ def _get_files(args: argparse.Namespace) -> List[str]:
 def _parse() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         description=__doc__,
-        formatter_class=argparse.RawDescriptionHelpFormatter,
+        formatter_class=hparser.CustomHelpFormatter,
     )
     parser.add_argument("-f", "--files", nargs="+", help="Files to process")
     parser.add_argument(

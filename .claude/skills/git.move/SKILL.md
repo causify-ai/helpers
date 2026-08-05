@@ -21,6 +21,11 @@ model: haiku
   - E.g., `cd helpers_root && git mv <SRC> <DST>` adjusting the paths
     accordingly
 
+## Move the Corresponding Python Tests
+- If `<SRC>` is a Python file and it has a corresponding test file (e.g.,
+  `<DIR>/<FILE>.py` -> `<DIR>/test/test_<FILE>.py`), then move also the test
+  file to the proper destination (e.g., `<DST>/test/test_<FILE>.py`)
+
 ## Update All References
 - Search the entire repository for any occurrences of `<SRC>`
   ```

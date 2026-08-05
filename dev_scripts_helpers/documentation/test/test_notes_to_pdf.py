@@ -2174,6 +2174,217 @@ class Test_notes_to_pdf_latex_colors(hunitest.TestCase):
 
 
 # #############################################################################
+# Test_notes_to_pdf_color_abbrevs_in_math
+# #############################################################################
+
+
+@pytest.mark.slow
+class Test_notes_to_pdf_color_abbrevs_in_math(hunitest.TestCase):
+    r"""
+    Test `notes_to_pdf.py` with LaTeX color abbreviation macros (`\red{}`,
+    `\teal{}`, `\blue{}`, `\violet{}`) used inside LaTeX math (`$$...$$` and
+    `$...$`) for the beamer and Typst slide engines.
+    """
+
+    def _create_markdown_input(self) -> str:
+        r"""
+        Create a slides markdown file with a Bayes' theorem formula that
+        colorizes each term with a LaTeX color abbreviation macro inside both
+        display math (`$$...$$`) and inline math (`$...$`).
+
+        :return: path to the created markdown file
+        """
+        txt = r"""
+        * Bayes' Theorem: Recap
+        - @Definition@: **Bayes' theorem** posits that for model parameters $\theta$ and
+          data $X$
+          $$
+          \red{\Pr(\theta | X)}
+          = \frac{\teal{\Pr(X | \theta)} \cdot \blue{\Pr(\theta)}}{\violet{\Pr(X)}}
+          $$
+          where:
+          - $\red{\Pr(\theta | X)}$
+            - **Posterior**: probability for parameters $\theta$ after seeing
+              data $X$
+          - $\teal{\Pr(X | \theta)}$
+            - **Likelihood** (aka "statistical model"): plausibility of data
+              $X$ given parameters $\theta$
+          - $\blue{\Pr(\theta)}$
+            - **Prior**: knowledge about parameter $\theta$ before any data
+          - $\violet{\Pr(X)}$
+            - **Evidence** ("marginal likelihood"): probability of observing data $X$
+            - "Marginal" as it averages over all possible parameter values
+          - In other words:
+            $$
+            \red{Posterior}
+            = \frac{\teal{Likelihood} \cdot \blue{Prior}}{\violet{Evidence}}
+            $$
+        """
+        txt = hprint.dedent(txt, remove_lead_trail_empty_lines_=True)
+        in_file = os.path.join(self.get_scratch_space(), "bayes.md")
+        hio.to_file(in_file, txt)
+        return in_file
+
+    def helper(self, slides_engine: str) -> Tuple[int, str]:
+        r"""
+        Run `notes_to_pdf.py --type slides --no_pdf` on the Bayes' theorem
+        markdown using the host `pandoc` / `typst` tools and return the exit
+        code and captured output.
+
+        This test runs the real toolchain on the host, so it requires both
+        `pandoc` and `typst` to be installed.
+
+        :param slides_engine: value for `--slides_engine` (`beamer` or
+            `typst`)
+        :return: tuple of (exit code, combined stdout/stderr)
+        """
+        _LOG.debug(hprint.to_str("slides_engine"))
+        for tool in ("pandoc", "typst"):
+            if shutil.which(tool) is None:
+                pytest.skip(f"'{tool}' is not available on the host")
+        # Prepare inputs.
+        in_file = self._create_markdown_input()
+        exec_path = hgit.find_file_in_git_tree("notes_to_pdf.py")
+        hdbg.dassert_path_exists(exec_path)
+        out_ext = "typ" if slides_engine == "typst" else "tex"
+        out_dir = self.get_scratch_space()
+        out_file = os.path.join(out_dir, f"output.{out_ext}")
+        script_file = os.path.join(out_dir, "script.sh")
+        # Construct command.
+        cmd = [
+            exec_path,
+            f"--input {in_file}",
+            f"--output {out_file}",
+            f"--script {script_file}",
+            "--type slides",
+            f"--slides_engine {slides_engine}",
+            "--use_pandoc_ast_transform",
+            "--use_host_tools",
+            "--no_pdf",
+            "--skip_action open",
+        ]
+        cmd = " ".join(cmd)
+        _LOG.debug("cmd=%s", cmd)
+        # Run test.
+        rc, output = hsystem.system_to_string(cmd, abort_on_error=False)
+        _LOG.debug("rc=%s output=\n%s", rc, output)
+        return rc, output
+
+    def test1(self) -> None:
+        r"""
+        Test `--slides_engine beamer`.
+
+        The color abbreviation macros compile correctly since the real
+        `\red`/`\teal`/`\blue`/`\violet` LaTeX macros from
+        `latex_abbrevs.sty` are loaded via `--include-in-header` and
+        `\textcolor{}` is valid inside LaTeX math mode.
+        """
+        # Prepare inputs.
+        slides_engine = "beamer"
+        # Run test.
+        rc, output = self.helper(slides_engine)
+        # Check outputs.
+        self.assertEqual(rc, 0, msg=f"notes_to_pdf.py failed:\n{output}")
+        out_file = os.path.join(self.get_scratch_space(), "output.tex")
+        out_txt = hio.from_file(out_file)
+        # Extract the generated frame for the slide under test since the rest
+        # of the file is a large, unrelated LaTeX preamble. `str.index()`
+        # raises `ValueError` (with a clear message) if a marker is missing,
+        # instead of requiring a separate not-None check on a regex match.
+        start_marker = r"\begin{frame}{Bayes' Theorem: Recap}"
+        end_marker = r"\end{frame}"
+        start_idx = out_txt.index(start_marker)
+        end_idx = out_txt.index(end_marker, start_idx) + len(end_marker)
+        actual = out_txt[start_idx:end_idx]
+        expected = r"""
+        \begin{frame}{Bayes' Theorem: Recap}
+        \protect\phantomsection\label{bayes-theorem-recap}
+        \begin{itemize}
+        \tightlist
+        \item
+          \textbf{\textcolor{red}{Definition}}: \textbf{Bayes' theorem} posits
+          that for model parameters \(\theta\) and data \(X\) \[
+          \textcolor{red}{\Pr(\theta | X)}
+          = \frac{\textcolor{teal}{\Pr(X | \theta)} \cdot \textcolor{blue}{\Pr(\theta)}}{\textcolor{violet}{\Pr(X)}}
+          \] where:
+
+          \begin{itemize}
+          \tightlist
+          \item
+            \(\textcolor{red}{\Pr(\theta | X)}\)
+
+            \begin{itemize}
+            \tightlist
+            \item
+              \textbf{Posterior}: probability for parameters \(\theta\) after
+              seeing data \(X\)
+            \end{itemize}
+          \item
+            \(\textcolor{teal}{\Pr(X | \theta)}\)
+
+            \begin{itemize}
+            \tightlist
+            \item
+              \textbf{Likelihood} (aka ``statistical model''): plausibility of
+              data \(X\) given parameters \(\theta\)
+            \end{itemize}
+          \item
+            \(\textcolor{blue}{\Pr(\theta)}\)
+
+            \begin{itemize}
+            \tightlist
+            \item
+              \textbf{Prior}: knowledge about parameter \(\theta\) before any
+              data
+            \end{itemize}
+          \item
+            \(\textcolor{violet}{\Pr(X)}\)
+
+            \begin{itemize}
+            \tightlist
+            \item
+              \textbf{Evidence} (``marginal likelihood''): probability of
+              observing data \(X\)
+            \item
+              ``Marginal'' as it averages over all possible parameter values
+            \end{itemize}
+          \item
+            In other words: \[
+            \textcolor{red}{\text{Posterior}}
+            = \frac{\textcolor{teal}{\text{Likelihood}} \cdot \textcolor{blue}{\text{Prior}}}{\textcolor{violet}{\text{Evidence}}}
+            \]
+          \end{itemize}
+        \end{itemize}
+        \end{frame}
+        """
+        self.assert_equal(actual, expected, dedent=True, fuzzy_match=True)
+
+    def test2(self) -> None:
+        r"""
+        Test `--slides_engine typst`.
+
+        The pipeline fails. For Typst output,
+        `hmarkdo.process_color_commands()` (the pre-pandoc, line-based
+        `\red{}`/`\teal{}`/`\blue{}`/`\violet{}` -> Typst substitution)
+        explicitly skips lines with math delimiters, and the AST-based Typst
+        color transform in `transform_pandoc_ast_to_typst.py` only recognizes
+        literal `\textcolor{...}{...}`, not the abbreviation macros. Neither
+        mechanism expands the abbreviation macros inside `$$...$$` / `$...$`,
+        so pandoc's math parser sees an unknown control sequence and, with
+        `--fail-if-warnings` (the default), the pipeline aborts.
+        """
+        # Prepare inputs.
+        slides_engine = "typst"
+        # Run test.
+        rc, output = self.helper(slides_engine)
+        # Check outputs: the pipeline aborts because pandoc cannot convert
+        # the raw `\red{...}` control sequence inside math to Typst.
+        self.assertEqual(rc, 1, msg=f"Expected failure but got:\n{output}")
+        expected = r"unexpected control sequence \red"
+        self.assertIn(expected, output)
+
+
+# #############################################################################
 # Test_notes_to_pdf_tilde_in_code
 # #############################################################################
 

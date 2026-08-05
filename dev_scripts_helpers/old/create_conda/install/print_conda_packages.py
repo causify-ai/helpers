@@ -19,7 +19,7 @@ _LOG = logging.getLogger(__name__)
 def _main() -> None:
     parser = argparse.ArgumentParser(
         description=__doc__,
-        formatter_class=argparse.RawDescriptionHelpFormatter,
+        formatter_class=hparser.CustomHelpFormatter,
     )
     hparser.add_verbosity_arg(parser)
     parser.add_argument(

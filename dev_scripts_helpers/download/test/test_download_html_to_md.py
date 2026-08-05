@@ -8,7 +8,7 @@ import helpers.hio as hio
 import helpers.hprint as hprint
 import helpers.hsystem as hsystem
 import helpers.hunit_test as hunitest
-import dev_scripts_helpers.documentation.download_html_to_md as dshddhtmd
+import dev_scripts_helpers.download.download_html_to_md as dshsdhtmd
 
 
 def _run_script(
@@ -77,7 +77,7 @@ class Test_remove_data_uri_images(hunitest.TestCase):
         :param expected: Expected output after cleanup
         """
         # Run test.
-        actual = dshddhtmd._remove_data_uri_images(input_content)
+        actual = dshsdhtmd._remove_data_uri_images(input_content)
         # Check outputs.
         self.assert_equal(actual, expected)
 

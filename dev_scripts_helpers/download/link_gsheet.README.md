@@ -1,15 +1,15 @@
-# Hacker News Links Processor
+# Gsheet Links Processor
 
 ## Overview
 
-This directory contains scripts for managing, processing, and enriching links
-(from Hacker News and other sources) stored in Google Sheets.
+- This directory contains scripts for managing, processing, and enriching links
+  (from Hacker News and other sources) stored in Google Sheets.
 
-The workflow involves:
-- Downloading links from various sources (Google Sheets, Raindrop.io)
-- Enriching them with article metadata and AI-generated tags
-- Syncing the processed data back to Google Sheets
-- Downloading and summarizing articles
+- The workflow involves:
+  - Downloading links from various sources (Google Sheets, Raindrop.io)
+  - Enriching them with article metadata and AI-generated tags
+  - Syncing the processed data back to Google Sheets
+  - Downloading and summarizing articles
 
 ## Link Gsheet Schema
 

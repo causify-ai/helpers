@@ -189,47 +189,16 @@
   - Skipping stages (e.g., `--skip_action cleanup`)
   - Enabling optional stages (e.g., `--enable debug_export`)
 
-- Pipeline with action selection pattern:
+- See `helpers/hselect_action.py` for complete usage patterns and examples
+- E.g., pipeline with action selection pattern is executed
   ```python
   import helpers.hselect_action as hselacti
   import helpers.hparser as hparser
 
-  def _parse() -> argparse.ArgumentParser:
-      parser = argparse.ArgumentParser(...)
-      # Define valid and default actions.
-      valid_actions = ["download", "process", "upload", "cleanup"]
-      default_actions = ["download", "process", "upload"]
-      hselacti.add_action_arg(parser, valid_actions, default_actions)
-      hparser.add_verbosity_arg(parser)
-      return parser
-
-  def _main(args: argparse.Namespace) -> None:
-      # Select which actions to execute.
-      actions = hselacti.select_actions(
-          args,
-          valid_actions=["download", "process", "upload", "cleanup"],
-          default_actions=["download", "process", "upload"],
-      )
-      print(hselacti.actions_to_string(actions, valid_actions, add_frame=True))
-
-      # Execute selected actions.
-      data: Any = None
-      while actions:
-          action = actions[0]
-          to_execute, actions = hselacti.mark_action(action, actions)
-
-          if to_execute:
-              if action == "download":
-                  data = _download()
-              elif action == "process":
-                  data = _process(data)
-              elif action == "upload":
-                  _upload(data)
-              elif action == "cleanup":
-                  _cleanup()
+  _VALID_ACTIONS = ["download", "process", "upload", "cleanup"]
+  _DEFAULT_ACTIONS = ["download", "process", "upload"]
+  ...
   ```
-
-- See `helpers/hselect_action.py` for complete usage patterns and examples
 
 ## Organize Pipeline in Scripts
 

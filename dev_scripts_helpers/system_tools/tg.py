@@ -29,7 +29,7 @@ _LOG = logging.getLogger(__name__)
 def _parse() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         description=__doc__,
-        formatter_class=argparse.RawDescriptionHelpFormatter,
+        formatter_class=hparser.CustomHelpFormatter,
     )
     parser.add_argument("-m", "--msg", action="store", default="done", type=str)
     parser.add_argument(

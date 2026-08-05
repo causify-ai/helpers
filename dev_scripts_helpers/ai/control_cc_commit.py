@@ -17,6 +17,7 @@ import os
 from typing import Dict, List, Tuple
 
 import helpers.hdbg as hdbg
+import helpers.hparser as hparser
 
 _LOG = logging.getLogger(__name__)
 
@@ -156,7 +157,7 @@ def _parse() -> argparse.ArgumentParser:
     :return: Configured argument parser
     """
     parser = argparse.ArgumentParser(
-        formatter_class=argparse.RawDescriptionHelpFormatter,
+        formatter_class=hparser.CustomHelpFormatter,
         description=__doc__,
     )
     parser.add_argument(

@@ -12,6 +12,7 @@ import helpers.hdbg as hdbg
 import helpers.hcache_simple as hcacsimp
 import helpers.hio as hio
 import helpers.hllm_cli as hllmcli
+import helpers.hparser as hparser
 import helpers.hprint as hprint
 import helpers.hsystem as hsystem
 import helpers.hunit_test as hunitest
@@ -25,6 +26,9 @@ _LOG = logging.getLogger(__name__)
 # non-deterministic).
 _RUN_REAL_LLM_BACKEND = False
 # _RUN_REAL_LLM_BACKEND = True
+
+
+_DEFAULT_TEST_MODEL = "gpt-5-nano"
 
 
 # #############################################################################
@@ -165,6 +169,9 @@ class TestApplyLlmBase(_BaseCacheTest):
                 backend,
             )
             output_file = os.path.join(scratch_dir, f"output_{idx}.txt")
+            # Ensure `model` is always passed since it is a required arg.
+            kwargs = dict(kwargs)
+            kwargs.setdefault("model", _DEFAULT_TEST_MODEL)
             # Run test.
             hllmcli.apply_llm_with_files(
                 input_file=input_file,
@@ -209,6 +216,8 @@ class TestApplyLlmBase(_BaseCacheTest):
             )
             kwargs_copy = kwargs.copy()
             input_text = kwargs_copy.pop("input_text")
+            # Ensure `model` is always passed since it is a required arg.
+            kwargs_copy.setdefault("model", _DEFAULT_TEST_MODEL)
             response, _ = hllmcli.apply_llm(
                 input_text,
                 backend=backend,
@@ -373,8 +382,11 @@ class Test_apply_llm_with_files2(TestApplyLlmBase):
             # Extract parameters from kwargs.
             kwargs_copy = kwargs.copy()
             input_text = kwargs_copy.pop("input_text")
-            kwargs_copy.pop("print_only")  # Not needed for apply_llm
-            # Run test using apply_llm directly - this should print to stdout.
+            # Not needed for apply_llm.
+            kwargs_copy.pop("print_only")
+            # Ensure `model` is always passed since it is a required arg.
+            kwargs_copy.setdefault("model", _DEFAULT_TEST_MODEL)
+            # Run test using apply_llm directly, this should print to stdout.
             response, _ = hllmcli.apply_llm(
                 input_text,
                 backend=backend,
@@ -1711,6 +1723,7 @@ class Test_mock_apply_llm(hunitest.TestCase):
     Test mock_apply_llm context manager.
     """
 
+    # TODO(ai_gp): Use an helper and assert_equal.
     def test1(self) -> None:
         """
         Test mock_apply_llm with input and system_prompt.
@@ -1725,6 +1738,7 @@ class Test_mock_apply_llm(hunitest.TestCase):
         with hllmcli.mock_apply_llm():
             actual_response, actual_token_stats = hllmcli.apply_llm(
                 input_str,
+                "gpt-5-nano",
                 system_prompt=system_prompt,
             )
         # Check outputs.
@@ -1742,7 +1756,9 @@ class Test_mock_apply_llm(hunitest.TestCase):
         expected_hash = hashlib.md5(input_str.encode()).hexdigest()
         # Run test.
         with hllmcli.mock_apply_llm():
-            actual_response, actual_token_stats = hllmcli.apply_llm(input_str)
+            actual_response, actual_token_stats = hllmcli.apply_llm(
+                input_str, "gpt-5-nano"
+            )
         # Check outputs.
         self.assertEqual(actual_response, expected_hash)
         self.assertIsInstance(actual_token_stats, hllmcli.TokenStats)
@@ -1757,7 +1773,7 @@ class Test_mock_apply_llm(hunitest.TestCase):
         input_str = "test"
         # Run test.
         with hllmcli.mock_apply_llm():
-            response1, _ = hllmcli.apply_llm(input_str)
+            response1, _ = hllmcli.apply_llm(input_str, "gpt-5-nano")
         # Outside context, apply_llm should work normally (may skip if no backend).
         # For this test, just verify the mock context exited successfully.
         self.assertIsNotNone(response1)
@@ -1773,8 +1789,8 @@ class Test_mock_apply_llm(hunitest.TestCase):
         expected_hash2 = hashlib.md5(input2.encode()).hexdigest()
         # Run test.
         with hllmcli.mock_apply_llm():
-            response1, _ = hllmcli.apply_llm(input1)
-            response2, _ = hllmcli.apply_llm(input2)
+            response1, _ = hllmcli.apply_llm(input1, "gpt-5-nano")
+            response2, _ = hllmcli.apply_llm(input2, "gpt-5-nano")
         # Check outputs.
         self.assertEqual(response1, expected_hash1)
         self.assertEqual(response2, expected_hash2)
@@ -1791,13 +1807,14 @@ class Test_add_llm_prompt_arg(hunitest.TestCase):
     Test add_llm_prompt_arg function.
     """
 
+    # TODO(ai_gp): Use an helper and assert_equal.
     def test1(self) -> None:
         """
         Test basic argument addition with is_required=True.
         """
         # Prepare inputs.
         parser = argparse.ArgumentParser(
-            formatter_class=argparse.RawDescriptionHelpFormatter
+            formatter_class=hparser.CustomHelpFormatter
         )
         is_required = True
         default_prompt = ""
@@ -1823,7 +1840,7 @@ class Test_add_llm_prompt_arg(hunitest.TestCase):
         """
         # Prepare inputs.
         parser = argparse.ArgumentParser(
-            formatter_class=argparse.RawDescriptionHelpFormatter
+            formatter_class=hparser.CustomHelpFormatter
         )
         default_prompt = "default test prompt"
         is_required = True
@@ -1843,7 +1860,7 @@ class Test_add_llm_prompt_arg(hunitest.TestCase):
         """
         # Prepare inputs.
         parser = argparse.ArgumentParser(
-            formatter_class=argparse.RawDescriptionHelpFormatter
+            formatter_class=hparser.CustomHelpFormatter
         )
         # Run test.
         hllmcli.add_llm_prompt_arg(parser)
@@ -1860,7 +1877,7 @@ class Test_add_llm_prompt_arg(hunitest.TestCase):
         """
         # Prepare inputs.
         parser = argparse.ArgumentParser(
-            formatter_class=argparse.RawDescriptionHelpFormatter
+            formatter_class=hparser.CustomHelpFormatter
         )
         # Run test.
         hllmcli.add_llm_prompt_arg(
@@ -1885,13 +1902,14 @@ class Test_add_llm_args(hunitest.TestCase):
     Test add_llm_args function.
     """
 
+    # TODO(ai_gp): Use an helper and assert_equal.
     def test1(self) -> None:
         """
         Test basic LLM arguments with defaults.
         """
         # Prepare inputs.
         parser = argparse.ArgumentParser(
-            formatter_class=argparse.RawDescriptionHelpFormatter
+            formatter_class=hparser.CustomHelpFormatter
         )
         # Run test.
         result_parser = hllmcli.add_llm_args(parser)
@@ -1909,7 +1927,7 @@ class Test_add_llm_args(hunitest.TestCase):
         """
         # Prepare inputs.
         parser = argparse.ArgumentParser(
-            formatter_class=argparse.RawDescriptionHelpFormatter
+            formatter_class=hparser.CustomHelpFormatter
         )
         hllmcli.add_llm_args(parser)
         # Parse with input_text instead of input file.
@@ -1923,7 +1941,7 @@ class Test_add_llm_args(hunitest.TestCase):
         """
         # Prepare inputs.
         parser = argparse.ArgumentParser(
-            formatter_class=argparse.RawDescriptionHelpFormatter
+            formatter_class=hparser.CustomHelpFormatter
         )
         hllmcli.add_llm_args(parser, input_required=False)
         # Parse with output option.
@@ -1936,7 +1954,7 @@ class Test_add_llm_args(hunitest.TestCase):
         """
         # Prepare inputs.
         parser = argparse.ArgumentParser(
-            formatter_class=argparse.RawDescriptionHelpFormatter
+            formatter_class=hparser.CustomHelpFormatter
         )
         hllmcli.add_llm_args(parser, input_required=False)
         # Parse with system_prompt.
@@ -1950,7 +1968,7 @@ class Test_add_llm_args(hunitest.TestCase):
         """
         # Prepare inputs.
         parser = argparse.ArgumentParser(
-            formatter_class=argparse.RawDescriptionHelpFormatter
+            formatter_class=hparser.CustomHelpFormatter
         )
         hllmcli.add_llm_args(parser, input_required=False)
         # Parse with mock backend.
@@ -1963,7 +1981,7 @@ class Test_add_llm_args(hunitest.TestCase):
         """
         # Prepare inputs.
         parser = argparse.ArgumentParser(
-            formatter_class=argparse.RawDescriptionHelpFormatter
+            formatter_class=hparser.CustomHelpFormatter
         )
         hllmcli.add_llm_args(
             parser,
@@ -1983,7 +2001,7 @@ class Test_add_llm_args(hunitest.TestCase):
         """
         # Prepare inputs.
         parser = argparse.ArgumentParser(
-            formatter_class=argparse.RawDescriptionHelpFormatter
+            formatter_class=hparser.CustomHelpFormatter
         )
         custom_model = "gpt-5-nano"
         hllmcli.add_llm_args(
@@ -1995,3 +2013,120 @@ class Test_add_llm_args(hunitest.TestCase):
         args = parser.parse_args([])
         # Check outputs.
         self.assertEqual(args.model, custom_model)
+
+
+# #############################################################################
+# Test_expand_referenced_files
+# #############################################################################
+
+
+class Test_expand_referenced_files(hunitest.TestCase):
+    """
+    Test expand_referenced_files function.
+    """
+
+    def helper(self, prompt: str, expected: str) -> None:
+        """
+        Helper for testing expand_referenced_files.
+
+        Creates `file.md` and `other.txt` fixtures in the scratch space and
+        expands `@file` references in `prompt` against that directory.
+
+        :param prompt: input prompt containing `@file` references
+        :param expected: expected prompt after expansion
+        """
+        # Prepare inputs.
+        repo_dir = self.get_scratch_space()
+        hio.to_file(os.path.join(repo_dir, "file.md"), "file content")
+        hio.to_file(os.path.join(repo_dir, "other.txt"), "other content")
+        # Run test.
+        actual = hllmcli.expand_referenced_files(prompt, repo_dir=repo_dir)
+        # Check outputs.
+        self.assert_equal(actual, expected)
+
+    def test1(self) -> None:
+        """
+        Test expanding a bare `@file.md` reference.
+        """
+        # Prepare inputs.
+        prompt = "Follow the rules in @file.md"
+        # Prepare outputs.
+        expected = "Follow the rules in <!-- From file.md -->\nfile content"
+        # Run test.
+        self.helper(prompt, expected)
+
+    def test2(self) -> None:
+        """
+        Test expanding a backtick-wrapped `` `@file.md` `` reference.
+        """
+        # Prepare inputs.
+        prompt = "Follow `@file.md`"
+        # Prepare outputs.
+        expected = "Follow <!-- From file.md -->\nfile content"
+        # Run test.
+        self.helper(prompt, expected)
+
+    def test3(self) -> None:
+        """
+        Test expanding multiple references in the same prompt.
+        """
+        # Prepare inputs.
+        prompt = "See @file.md and @other.txt"
+        # Prepare outputs.
+        expected = (
+            "See <!-- From file.md -->\nfile content"
+            " and <!-- From other.txt -->\nother content"
+        )
+        # Run test.
+        self.helper(prompt, expected)
+
+    def test4(self) -> None:
+        """
+        Test a prompt with no file references is returned unchanged.
+        """
+        # Prepare inputs.
+        prompt = "Hi @gp, please check @channel"
+        # Prepare outputs.
+        expected = prompt
+        # Run test.
+        self.helper(prompt, expected)
+
+    # TODO(ai_gp): Can we use self.helper
+    def test5(self) -> None:
+        """
+        Test expanding a reference that contains a directory path.
+        """
+        # Prepare inputs.
+        repo_dir = self.get_scratch_space()
+        hio.to_file(os.path.join(repo_dir, "sub", "nested.md"), "nested content")
+        prompt = "See @sub/nested.md"
+        # Prepare outputs.
+        expected = "See <!-- From sub/nested.md -->\nnested content"
+        # Run test.
+        actual = hllmcli.expand_referenced_files(prompt, repo_dir=repo_dir)
+        # Check outputs.
+        self.assert_equal(actual, expected)
+
+    def test6(self) -> None:
+        """
+        Test that a reference to a missing file raises an assertion.
+        """
+        # Prepare inputs.
+        repo_dir = self.get_scratch_space()
+        prompt = "See @missing.md"
+        # Run test and check outputs.
+        with self.assertRaises(AssertionError):
+            hllmcli.expand_referenced_files(prompt, repo_dir=repo_dir)
+
+    def test7(self) -> None:
+        """
+        Test that an ambiguous reference (2+ matches) raises an assertion.
+        """
+        # Prepare inputs.
+        repo_dir = self.get_scratch_space()
+        hio.to_file(os.path.join(repo_dir, "dir1", "dup.md"), "content1")
+        hio.to_file(os.path.join(repo_dir, "dir2", "dup.md"), "content2")
+        prompt = "See @dup.md"
+        # Run test and check outputs.
+        with self.assertRaises(AssertionError):
+            hllmcli.expand_referenced_files(prompt, repo_dir=repo_dir)

@@ -21,12 +21,14 @@ from typing import Optional, Tuple
 
 import boto3
 
+import helpers.hparser as hparser
+
 _LOG = logging.getLogger(__name__)
 
 
 def _parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
-        formatter_class=argparse.RawDescriptionHelpFormatter
+        formatter_class=hparser.CustomHelpFormatter
     )
     parser.add_argument(
         "lang",

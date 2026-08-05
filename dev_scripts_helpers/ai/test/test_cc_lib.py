@@ -9,7 +9,7 @@ import dev_scripts_helpers.ai.test.test_cc_lib as daiattccl
 import asyncio
 import os
 import unittest.mock as umock
-from typing import List
+from typing import Any, Dict, List
 
 import helpers.hio as hio
 import helpers.hprint as hprint
@@ -75,15 +75,17 @@ class Test_PromptSequencer_execute(hunitest.TestCase):
             cwd=self.get_scratch_space(),
             model="claude-test-model",
             setting_sources=["project"],
-            target_file="/tmp/target.py",
+            target_file=os.path.join(self.get_scratch_space(), "target.py"),
             print_output=False,
         )
         fake_client = dshaccli.FakeClaudeSDKClient(
             responses_by_call=[[msg1], [msg2]]
         )
+        # Prepare outputs.
+        prompts = ["prompt A", "prompt B"]
         # Run test.
         mock_client_cls = self.helper(
-            sequencer, ["prompt A", "prompt B"], fake_client
+            sequencer, prompts, fake_client
         )
         # Check outputs.
         mock_client_cls.assert_called_once()
@@ -96,6 +98,7 @@ class Test_PromptSequencer_execute(hunitest.TestCase):
             "A', 'prompt B'], aenter_called=True, aexit_called=True"
         )
         self.assert_equal(actual, expected)
+        # Check.
         self.assertIs(fake_client.options.can_use_tool, sequencer.can_use_tool)
         self.assertEqual(sequencer._prompts_executed, 2)
         self.assertNotEqual(sequencer.get_last_response(), "")
@@ -112,7 +115,7 @@ class Test_PromptSequencer_execute(hunitest.TestCase):
         sequencer = dshaccli.PromptSequencer(
             cwd=self.get_scratch_space(),
             system_prompt="Follow the rules.",
-            target_file="/tmp/target.py",
+            target_file=os.path.join(self.get_scratch_space(), "target.py"),
             print_output=False,
         )
         fake_client = dshaccli.FakeClaudeSDKClient(responses_by_call=[[msg1]])
@@ -138,7 +141,7 @@ class Test_PromptSequencer_execute(hunitest.TestCase):
         )
         sequencer = dshaccli.PromptSequencer(
             cwd=self.get_scratch_space(),
-            target_file="/tmp/target.py",
+            target_file=os.path.join(self.get_scratch_space(), "target.py"),
             print_output=False,
         )
         fake_client = dshaccli.FakeClaudeSDKClient(
@@ -160,10 +163,9 @@ class Test_PromptSequencer_execute(hunitest.TestCase):
             content=[claude_agent_sdk.TextBlock(text="LLM> NO-OP")],
             model="claude-test",
         )
-        # TODO(ai_gp): Use self.get_scratch_space instead of /tmp
         sequencer = dshaccli.PromptSequencer(
             cwd=self.get_scratch_space(),
-            target_file="/tmp/target.py",
+            target_file=os.path.join(self.get_scratch_space(), "target.py"),
             print_output=False,
             max_turns=7,
         )
@@ -190,6 +192,7 @@ class Test_PromptSequencer_chunk_stats(hunitest.TestCase):
         sequencer: dshaccli.PromptSequencer,
         prompts: List[str],
         fake_client: dshaccli.FakeClaudeSDKClient,
+        expected_chunk_stats: str,
     ) -> None:
         """
         Run `sequencer.execute(prompts)` against a mocked SDK client.
@@ -198,10 +201,13 @@ class Test_PromptSequencer_chunk_stats(hunitest.TestCase):
         :param prompts: prompts passed to `sequencer.execute()`
         :param fake_client: fake client returned by the mocked
             `claude_agent_sdk.ClaudeSDKClient` constructor
+        :param expected_chunk_stats: expected
+            `str(sequencer.get_chunk_stats())` after execution
         """
         with umock.patch("claude_agent_sdk.ClaudeSDKClient") as mock_client_cls:
             mock_client_cls.return_value = fake_client
             asyncio.run(sequencer.execute(prompts))
+        self.assertEqual(str(sequencer.get_chunk_stats()), expected_chunk_stats)
 
     def test1(self) -> None:
         """
@@ -222,24 +228,21 @@ class Test_PromptSequencer_chunk_stats(hunitest.TestCase):
             session_id="s1",
             total_cost_usd=0.05,
         )
-        # TODO(ai_gp): Use self.get_scratch_space instead of /tmp
         sequencer = dshaccli.PromptSequencer(
             cwd=self.get_scratch_space(),
-            target_file="/tmp/target.py",
+            target_file=os.path.join(self.get_scratch_space(), "target.py"),
             print_output=False,
         )
         fake_client = dshaccli.FakeClaudeSDKClient(
             responses_by_call=[[msg1, result1]]
         )
-        # Run test.
-        self.helper(sequencer, ["prompt A"], fake_client)
-        # Check outputs.
-        # TODO(ai_gp): Pass this to helper and move the check inside.
+        # Prepare outputs.
         expected = (
             "[{'outcome': 'NO-OP', 'cost_usd': 0.05, 'num_turns': 3, "
             "'is_error': False}]"
         )
-        self.assertEqual(str(sequencer.get_chunk_stats()), expected)
+        # Run test.
+        self.helper(sequencer, ["prompt A"], fake_client, expected)
 
     def test2(self) -> None:
         """
@@ -253,18 +256,17 @@ class Test_PromptSequencer_chunk_stats(hunitest.TestCase):
         )
         sequencer = dshaccli.PromptSequencer(
             cwd=self.get_scratch_space(),
-            target_file="/tmp/target.py",
+            target_file=os.path.join(self.get_scratch_space(), "target.py"),
             print_output=False,
         )
         fake_client = dshaccli.FakeClaudeSDKClient(responses_by_call=[[msg1]])
-        # Run test.
-        self.helper(sequencer, ["prompt A"], fake_client)
-        # Check outputs.
+        # Prepare outputs.
         expected = (
             "[{'outcome': 'NO-OP', 'cost_usd': None, 'num_turns': 0, "
             "'is_error': False}]"
         )
-        self.assertEqual(str(sequencer.get_chunk_stats()), expected)
+        # Run test.
+        self.helper(sequencer, ["prompt A"], fake_client, expected)
 
     def test3(self) -> None:
         """
@@ -287,18 +289,19 @@ class Test_PromptSequencer_chunk_stats(hunitest.TestCase):
         )
         sequencer = dshaccli.PromptSequencer(
             cwd=self.get_scratch_space(),
-            target_file="/tmp/target.py",
+            target_file=os.path.join(self.get_scratch_space(), "target.py"),
             print_output=False,
         )
         fake_client = dshaccli.FakeClaudeSDKClient(
             responses_by_call=[[msg1, result1]]
         )
+        # Prepare outputs.
+        expected = r"""
+        [{'outcome': 'CHANGED: fixed x', 'cost_usd': 0.5, 'num_turns': 15, 'is_error': True}]
+        """
+        expected = hprint.dedent(expected)
         # Run test.
-        self.helper(sequencer, ["prompt A"], fake_client)
-        # Check outputs.
-        stats = sequencer.get_chunk_stats()
-        self.assertTrue(stats[0]["is_error"])
-        self.assertEqual(stats[0]["num_turns"], 15)
+        self.helper(sequencer, ["prompt A"], fake_client, expected)
 
     def test4(self) -> None:
         """
@@ -318,21 +321,20 @@ class Test_PromptSequencer_chunk_stats(hunitest.TestCase):
         sequencer = dshaccli.PromptSequencer(
             cwd=self.get_scratch_space(),
             context_strategy="session",
-            target_file="/tmp/target.py",
+            target_file=os.path.join(self.get_scratch_space(), "target.py"),
             print_output=False,
             on_chunk_done=lambda idx, stats: calls.append((idx, stats)),
         )
         fake_client = dshaccli.FakeClaudeSDKClient(
             responses_by_call=[[msg1], [msg2]]
         )
+        # Prepare outputs.
+        expected = r"""
+        [{'outcome': 'NO-OP', 'cost_usd': None, 'num_turns': 0, 'is_error': False}, {'outcome': 'CHANGED: fixed x', 'cost_usd': None, 'num_turns': 0, 'is_error': False}]
+        """
+        expected = hprint.dedent(expected)
         # Run test.
-        self.helper(sequencer, ["prompt A", "prompt B"], fake_client)
-        # Check outputs.
-        self.assertEqual(len(calls), 2)
-        self.assertEqual(calls[0][0], 1)
-        self.assertEqual(calls[0][1]["outcome"], "NO-OP")
-        self.assertEqual(calls[1][0], 2)
-        self.assertEqual(calls[1][1]["outcome"], "CHANGED: fixed x")
+        self.helper(sequencer, ["prompt A", "prompt B"], fake_client, expected)
 
     def test5(self) -> None:
         """
@@ -352,15 +354,20 @@ class Test_PromptSequencer_chunk_stats(hunitest.TestCase):
         sequencer = dshaccli.PromptSequencer(
             cwd=self.get_scratch_space(),
             context_strategy="stateless",
-            target_file="/tmp/target.py",
+            target_file=os.path.join(self.get_scratch_space(), "target.py"),
             print_output=False,
             on_chunk_done=lambda idx, stats: calls.append((idx, stats)),
         )
         fake_client = dshaccli.FakeClaudeSDKClient(
             responses_by_call=[[msg1], [msg2]]
         )
+        # Prepare outputs.
+        expected = r"""
+        [{'outcome': 'NO-OP', 'cost_usd': None, 'num_turns': 0, 'is_error': False}, {'outcome': 'NO-OP', 'cost_usd': None, 'num_turns': 0, 'is_error': False}]
+        """
+        expected = hprint.dedent(expected)
         # Run test.
-        self.helper(sequencer, ["prompt A", "prompt B"], fake_client)
+        self.helper(sequencer, ["prompt A", "prompt B"], fake_client, expected)
         # Check outputs.
         self.assertEqual([idx for idx, _ in calls], [1, 2])
 
@@ -396,7 +403,7 @@ class Test_PromptSequencer_context_strategy(hunitest.TestCase):
         sequencer = dshaccli.PromptSequencer(
             cwd=self.get_scratch_space(),
             context_strategy=context_strategy,
-            target_file="/tmp/target.py",
+            target_file=os.path.join(self.get_scratch_space(), "target.py"),
             print_output=False,
         )
         fake_client = dshaccli.FakeClaudeSDKClient(
@@ -572,6 +579,7 @@ class Test_save_session_log(hunitest.TestCase):
     Test save_session_log function.
     """
 
+
     def helper(
         self, prompts: list, responses: list, expected_output: str
     ) -> None:
@@ -611,7 +619,8 @@ class Test_save_session_log(hunitest.TestCase):
             }
           ],
           "total_prompts": 1
-        }"""
+        }
+        """
         # Run test.
         self.helper(prompts, responses, expected)
 
@@ -643,7 +652,8 @@ class Test_save_session_log(hunitest.TestCase):
             }
           ],
           "total_prompts": 3
-        }"""
+        }
+        """
         # Run test.
         self.helper(prompts, responses, expected)
 
@@ -662,7 +672,7 @@ class Test_make_file_scope_guard(hunitest.TestCase):
         self,
         target_file: str,
         tool_name: str,
-        tool_input: dict,
+        tool_input: Dict[str, Any],
         expected_type: type,
     ):
         """
@@ -685,9 +695,9 @@ class Test_make_file_scope_guard(hunitest.TestCase):
         Test that editing the target file itself is allowed.
         """
         # Prepare inputs.
-        target_file = "/tmp/target.py"
+        target_file = os.path.join(self.get_scratch_space(), "target.py")
         tool_name = "Edit"
-        tool_input = {"file_path": "/tmp/target.py"}
+        tool_input = {"file_path": target_file}
         # Run test and check outputs.
         self.helper(
             target_file,
@@ -701,8 +711,10 @@ class Test_make_file_scope_guard(hunitest.TestCase):
         Test that editing a different file is denied with target filename in message.
         """
         # Prepare inputs.
-        target_file = "/tmp/target.py"
-        tool_input = {"file_path": "/tmp/other.py"}
+        target_file = os.path.join(self.get_scratch_space(), "target.py")
+        tool_input = {
+            "file_path": os.path.join(self.get_scratch_space(), "other.py")
+        }
         # Run test.
         result = self.helper(
             target_file,
@@ -718,8 +730,10 @@ class Test_make_file_scope_guard(hunitest.TestCase):
         Test that all file-modifying tools are denied on a mismatched path.
         """
         # Prepare inputs.
-        target_file = "/tmp/target.py"
-        tool_input = {"file_path": "/tmp/other.py"}
+        target_file = os.path.join(self.get_scratch_space(), "target.py")
+        tool_input = {
+            "file_path": os.path.join(self.get_scratch_space(), "other.py")
+        }
         file_modifying_tools = ("Edit", "Write", "NotebookEdit", "MultiEdit")
         # Run test and check outputs.
         for tool_name in file_modifying_tools:
@@ -735,8 +749,10 @@ class Test_make_file_scope_guard(hunitest.TestCase):
         Test that non-modifying tools are always allowed on a different file.
         """
         # Prepare inputs.
-        target_file = "/tmp/target.py"
-        tool_input = {"file_path": "/tmp/other.py"}
+        target_file = os.path.join(self.get_scratch_space(), "target.py")
+        tool_input = {
+            "file_path": os.path.join(self.get_scratch_space(), "other.py")
+        }
         # Run test and check outputs.
         for tool_name in ("Read", "Bash"):
             self.helper(
@@ -751,8 +767,8 @@ class Test_make_file_scope_guard(hunitest.TestCase):
         Test that non-modifying tools are allowed when file_path is absent.
         """
         # Prepare inputs.
-        target_file = "/tmp/target.py"
-        tool_input: dict = {}
+        target_file = os.path.join(self.get_scratch_space(), "target.py")
+        tool_input: Dict[str, Any] = {}
         # Run test and check outputs.
         self.helper(
             target_file,
@@ -766,8 +782,8 @@ class Test_make_file_scope_guard(hunitest.TestCase):
         Test that a missing file_path is allowed for a modifying tool.
         """
         # Prepare inputs.
-        target_file = "/tmp/target.py"
-        tool_input: dict = {}
+        target_file = os.path.join(self.get_scratch_space(), "target.py")
+        tool_input: Dict[str, Any] = {}
         # Run test and check outputs.
         self.helper(
             target_file,
@@ -781,12 +797,13 @@ class Test_make_file_scope_guard(hunitest.TestCase):
         Test that an empty file_path is allowed for a modifying tool.
         """
         # Prepare inputs.
-        target_file = "/tmp/target.py"
+        target_file = os.path.join(self.get_scratch_space(), "target.py")
+        tool_name = "Edit"
         tool_input = {"file_path": ""}
         # Run test and check outputs.
         self.helper(
             target_file,
-            "Edit",
+            tool_name,
             tool_input,
             claude_agent_sdk.types.PermissionResultAllow,
         )

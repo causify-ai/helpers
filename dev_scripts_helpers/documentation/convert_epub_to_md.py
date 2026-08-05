@@ -91,7 +91,7 @@ def _parse() -> argparse.ArgumentParser:
     """
     parser = argparse.ArgumentParser(
         description=__doc__,
-        formatter_class=argparse.RawDescriptionHelpFormatter,
+        formatter_class=hparser.CustomHelpFormatter,
     )
     parser.add_argument(
         "--input",
@@ -206,19 +206,25 @@ def _main(parser: argparse.ArgumentParser) -> None:
     if not skip_figures:
         _LOG.info("Images saved to: %s", images_dir)
     # Execute selected actions.
-    # Remove junk from markdown.
-    to_execute, actions = hselacti.mark_action("remove_junk", actions)
-    if to_execute:
-        _LOG.info("Removing junk from markdown...")
-        content = hio.from_file(md_file)
-        content = dshddout.remove_junk(content)
-        hio.to_file(md_file, content)
-        _LOG.info("Junk removed successfully")
-    # Lint the markdown file.
-    to_execute, actions = hselacti.mark_action("lint", actions)
-    if to_execute:
-        _LOG.info("Linting markdown file...")
-        hlint.lint_file(md_file)
+    while actions:
+        action = actions[0]
+        to_execute, actions = hselacti.mark_action(action, actions)
+        if not to_execute:
+            continue
+        if action == "remove_junk":
+            _LOG.info("Removing junk from markdown...")
+            content = hio.from_file(md_file)
+            content = dshddout.remove_junk(content)
+            hio.to_file(md_file, content)
+            _LOG.info("Junk removed successfully")
+        elif action == "lint":
+            _LOG.info("Linting markdown file...")
+            hlint.lint_file(md_file)
+        else:
+            raise ValueError(f"Invalid action='{action}'")
+    hdbg.dassert_eq(
+        len(actions), 0, "There are unprocessed actions: %s", str(actions)
+    )
 
 
 if __name__ == "__main__":

@@ -722,7 +722,7 @@ def _parse() -> argparse.ArgumentParser:
     """
     parser = argparse.ArgumentParser(
         description=__doc__,
-        formatter_class=argparse.RawDescriptionHelpFormatter,
+        formatter_class=hparser.CustomHelpFormatter,
     )
     parser.add_argument(
         "-i",
@@ -761,24 +761,28 @@ def _main(parser: argparse.ArgumentParser) -> None:
     while actions:
         action = actions[0]
         to_execute, actions = hselacti.mark_action(action, actions)
-        if to_execute:
-            if action == "divved_fence":
-                _LOG.info(
-                    "Transforming AST: Div[columns] -> RawBlock[typst #grid()]"
-                )
-                ast = _transform_ast_divved_fence(
-                    ast, pandoc_backend=args.pandoc_backend
-                )
-            elif action == "color_text":
-                _LOG.info("Transforming AST: LaTeX colors -> Typst colors")
-                ast = _transform_ast_color_text(ast, args.pandoc_backend)
-            elif action == "small_code":
-                _LOG.info(
-                    "Transforming AST: Div[small-code] -> wrapped with font sizing"
-                )
-                ast = _transform_ast_small_code(ast)
-            else:
-                raise ValueError("Invalid action='%s'" % action)
+        if not to_execute:
+            continue
+        if action == "divved_fence":
+            _LOG.info(
+                "Transforming AST: Div[columns] -> RawBlock[typst #grid()]"
+            )
+            ast = _transform_ast_divved_fence(
+                ast, pandoc_backend=args.pandoc_backend
+            )
+        elif action == "color_text":
+            _LOG.info("Transforming AST: LaTeX colors -> Typst colors")
+            ast = _transform_ast_color_text(ast, args.pandoc_backend)
+        elif action == "small_code":
+            _LOG.info(
+                "Transforming AST: Div[small-code] -> wrapped with font sizing"
+            )
+            ast = _transform_ast_small_code(ast)
+        else:
+            raise ValueError(f"Invalid action='{action}'")
+    hdbg.dassert_eq(
+        len(actions), 0, "There are unprocessed actions: %s", str(actions)
+    )
     _LOG.info("Saving transformed AST to '%s'", args.out_file)
     _save_ast(ast, args.out_file)
     _LOG.info("Done")

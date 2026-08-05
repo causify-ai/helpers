@@ -99,8 +99,6 @@ class Test_lint_txt1(hunitest.TestCase):
 
         _helper_process_lines(self, txt, expected, preprocess_wrapper)
 
-    # //////////////////////////////////////////////////////////////////////////
-
     def test_preprocess1(self) -> None:
         txt = r"""$$E_{in} = \frac{1}{N} \sum_i e(h(\vx_i), y_i)$$"""
         expected = r"""
@@ -1915,8 +1913,7 @@ class Test_lint_txt2(hunitest.TestCase):
         :param txt: The text to be processed.
         :param expected: The expected output after processing the text.
             If empty string, no comparison is made.
-        :param file_name: The name of the file to be used for
-            processing.
+        :param file_name: The name of the file to be used for processing.
         :return: The processed text.
         """
         # Prepare inputs.

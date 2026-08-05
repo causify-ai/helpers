@@ -15,36 +15,49 @@ import helpers.hprint as hprint
 
 _LOG = logging.getLogger(__name__)
 
-# Use the following idiom:
-# ```python
-# # Define valid and default actions.
-# valid_actions = ["download", "process", "upload", "cleanup"]
-# default_actions = ["download", "process"]
-# # Create parser and add action arguments.
-# parser = argparse.ArgumentParser(
-formatter_class=argparse.RawDescriptionHelpFormatter,...
-# hparser.add_action_arg(parser, valid_actions, default_actions)
-# args = parser.parse_args()
-# # Select which actions to execute based on CLI arguments.
-# actions = hparser.select_actions(args, valid_actions, default_actions)
-# # Display the selected actions in a formatted table.
-# print(hparser.actions_to_string(actions, valid_actions, add_frame=True))
-# # mark_action() handles tracking which actions remain and logs skipped ones.
-# while actions:
-#     # Current action to check
-#     action = actions[0]
-#     # Determine if this action should execute and get remaining actions
-#     # to_execute: True if action is in the list, False otherwise
-#     # actions: updated list with current action removed if to_execute=True
-#     to_execute, actions = hparser.mark_action(action, actions)
-#     if to_execute:
-#         # Execute the action
-#         if action == "download":
-#             print("Downloading data...")
-#         elif action == "process":
-# ...
-# ```
-
+# Use the following idiom to process actions:
+#
+#  ```
+#  import helpers.hselect_action as hselacti
+#  import helpers.hparser as hparser
+#
+#  _VALID_ACTIONS = ["download", "process", "upload", "cleanup"]
+#  _DEFAULT_ACTIONS = ["download", "process", "upload"]
+#
+#  def _parse() -> argparse.ArgumentParser:
+#      parser = argparse.ArgumentParser(...)
+#      # Define valid and default actions.
+#      hselacti.add_action_arg(parser, VALID_ACTIONS, _DEFAULT_ACTIONS)
+#      hparser.add_verbosity_arg(parser)
+#      return parser
+#
+#  def _main(args: argparse.Namespace) -> None:
+#      # Select which actions to execute.
+#      actions = hselacti.select_actions(
+#          args,
+#          valid_actions=VALID_ACTIONS,
+#          default_actions=_DEFAULT_ACTIONS,
+#      )
+#      print(hselacti.actions_to_string(actions, VALID_ACTIONS, add_frame=True))
+#      # Execute selected actions.
+#      while actions:
+#          action = actions[0]
+#          to_execute, actions = hselacti.mark_action(action, actions)
+#          if not to_execute:
+#            continue
+#          if action == "download":
+#              data = _download()
+#          elif action == "process":
+#              data = _process(...)
+#          elif action == "upload":
+#              _upload(...)
+#          elif action == "cleanup":
+#              _cleanup()
+#          else:
+#              raise ValueError(f"Invalid action='{action}'")
+#       hdbg.dassert_eq(len(actions), 0,
+#         "There are unprocessed actions: %s", str(actions))
+#   ```
 
 def add_action_arg(
     parser: argparse.ArgumentParser,

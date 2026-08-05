@@ -179,7 +179,7 @@ def _process_comments(comments: List[str], log_filepath: str) -> None:
 def _parse() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         description=__doc__,
-        formatter_class=argparse.RawDescriptionHelpFormatter,
+        formatter_class=hparser.CustomHelpFormatter,
     )
     # File selection.
     parser.add_argument("-i", "--in_file_path", type=str, help="File to review")

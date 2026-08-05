@@ -16,11 +16,11 @@
 # ]
 # ///
 
-"""
+r"""
 Process links and articles from a Google Sheets document.
 
 For detailed documentation on the link workflow, see:
-`dev_scripts_helpers/scraping/link_flow.README.md`
+`dev_scripts_helpers/download/link_flow.README.md`
 
 This script manages the following actions:
 1. download_link_gsheet: Download data from Google Sheets to CSV (alias)
@@ -43,7 +43,7 @@ Example usage:
 
 Import as:
 
-import dev_scripts_helpers.scraping.process_link_gsheet as dslg
+import dev_scripts_helpers.download.process_link_gsheet as dslg
 """
 
 import argparse
@@ -58,9 +58,10 @@ import helpers.hdbg as hdbg
 import helpers.hllm_cli as hllmcli
 import helpers.hlogging as hloggin
 import helpers.hparser as hparser
+import helpers.hprint as hprint
 import helpers.hselect_action as hselacti
 import helpers.hcache_simple as hcacsimp
-import dev_scripts_helpers.scraping.link_gsheet_utils as dshslgsut
+import dev_scripts_helpers.download.link_gsheet_utils as dshslgsut
 
 _LOG = logging.getLogger(__name__)
 
@@ -132,6 +133,7 @@ def _extract_article_url(hn_url: str) -> str:
     :param hn_url: Hacker News item URL
     :return: Article URL or the HN URL if no article URL exists
     """
+    _LOG.debug(hprint.to_str("hn_url"))
     hdbg.dassert_isinstance(hn_url, str)
     hdbg.dassert(
         dshslgsut.is_hackernews_url(hn_url), "Not a Hacker News URL: %s", hn_url
@@ -167,8 +169,10 @@ def _download_from_gsheet(url: str) -> str:
     :param url: URL of the Google Sheets document
     :return: Path to the saved CSV file
     """
+    _LOG.debug(hprint.to_str("url"))
     output_file = dshslgsut.get_tmp_file_path(HN_CSV_FILE, "process_link_gsheet")
     dshslgsut.download_from_gsheet(url, output_file)
+    _LOG.debug("return=%s", output_file)
     return output_file
 
 
@@ -182,6 +186,7 @@ def _update_article_urls() -> str:
 
     :return: Path to the updated CSV file
     """
+    _LOG.debug(hprint.func_signature_to_str())
     # Load and validate the HN CSV from the previous download step.
     hn_csv = dshslgsut.get_tmp_file_path(HN_CSV_FILE, "process_link_gsheet")
     hdbg.dassert_path_exists(hn_csv, "Must download from gsheet first")
@@ -232,6 +237,7 @@ def _update_article_urls() -> str:
         len(columns),
         urls_csv,
     )
+    _LOG.debug("return=%s", urls_csv)
     return urls_csv
 
 
@@ -250,6 +256,7 @@ def _update_article_tags(
     :param model: Optional LLM model name to use
     :return: Path to the updated CSV file
     """
+    _LOG.debug(hprint.to_str("model batch_size"))
     hdbg.dassert_lt(0, batch_size)
     urls_csv = dshslgsut.get_tmp_file_path(URLS_CSV_FILE, "process_link_gsheet")
     hdbg.dassert_path_exists(urls_csv, "Must update article URLs first")
@@ -292,6 +299,7 @@ def _update_article_tags(
     )
     if not valid_items:
         _LOG.warning("No valid items to tag")
+        _LOG.debug("return=%s", urls_csv)
         return urls_csv
     # Process items in batches with progress bar for entire workload.
     num_batches = (len(valid_items) + batch_size - 1) // batch_size
@@ -320,13 +328,15 @@ def _update_article_tags(
         batch_tags, _ = hllmcli.apply_llm_batch_with_shared_prompt(
             prompt=prompt, input_list=batch_items, model=model
         )
+        _LOG.debug("Received %d tags from LLM", len(batch_tags))
         # Update dataframe with batch results.
         for idx, tag in zip(batch_indices, batch_tags):
             df.at[idx, "Article_tag"] = tag.strip()
         # Update output file after each batch.
-        _LOG.info("Writing batch results to: %s", tags_csv)
+        _LOG.info("Writing batch results to: '%s'", tags_csv)
         df.to_csv(tags_csv, index=False)
     _LOG.info("Finished tagging and wrote %d rows to '%s'", len(df), tags_csv)
+    _LOG.debug("return=%s", tags_csv)
     return tags_csv
 
 
@@ -338,10 +348,11 @@ def _update_article_clusters() -> str:
 
     :return: Path to the updated CSV file
     """
+    _LOG.debug(hprint.func_signature_to_str())
     # Load the CSV from the previous tagging step.
     tags_csv = dshslgsut.get_tmp_file_path(TAGS_CSV_FILE, "process_link_gsheet")
     hdbg.dassert_path_exists(tags_csv, "Must update article tags first")
-    _LOG.info("Loading CSV to assign clusters from: %s", tags_csv)
+    _LOG.info("Loading CSV to assign clusters from: '%s'", tags_csv)
     rows = dshslgsut.read_csv(tags_csv)
     hdbg.dassert(rows, "No rows in CSV: %s", tags_csv)
     columns = list(rows[0].keys()) if rows else []
@@ -393,6 +404,7 @@ def _update_article_clusters() -> str:
         len(columns),
         clusters_csv,
     )
+    _LOG.debug("return=%s", clusters_csv)
     return clusters_csv
 
 
@@ -402,6 +414,9 @@ def _upload_to_gsheet(url: str) -> None:
 
     :param url: URL of the Google Sheets document
     """
+    _LOG.debug(hprint.to_str("url"))
+    # Name the destination tab after today's date so repeated uploads don't
+    # clobber previous runs.
     tabname = "process_link_gsheet." + datetime.datetime.now().strftime(
         "%Y-%m-%d"
     )
@@ -409,24 +424,31 @@ def _upload_to_gsheet(url: str) -> None:
         CLUSTERS_CSV_FILE, "process_link_gsheet"
     )
     hdbg.dassert_path_exists(clusters_csv, "clusters CSV file not found")
+    _LOG.debug("Uploading '%s' to tab '%s'", clusters_csv, tabname)
     dshslgsut.upload_to_gsheet(url, clusters_csv, tabname)
 
 
+# #############################################################################
+# CLI
+# #############################################################################
+
+
 # List of available pipeline actions; executed in order when --all is used.
-VALID_ACTIONS = [
+_VALID_ACTIONS = [
     "download_link_gsheet",
     "update_article_url",
     "update_article_tag",
     "update_article_cluster",
     "upload_link_gsheet",
 ]
-DEFAULT_ACTIONS = VALID_ACTIONS[:]
+_DEFAULT_ACTIONS = _VALID_ACTIONS[:]
 
 
 def _parse() -> argparse.ArgumentParser:
+    _LOG.debug(hprint.func_signature_to_str())
     parser = argparse.ArgumentParser(
         description=__doc__,
-        formatter_class=argparse.RawDescriptionHelpFormatter,
+        formatter_class=hparser.CustomHelpFormatter,
     )
     parser.add_argument(
         "--url",
@@ -440,35 +462,36 @@ def _parse() -> argparse.ArgumentParser:
         default="gpt-4o-mini",
         help="LLM model name to use for tagging (default: gpt-4o-mini)",
     )
-    hselacti.add_action_arg(parser, VALID_ACTIONS, DEFAULT_ACTIONS)
+    hselacti.add_action_arg(parser, _VALID_ACTIONS, _DEFAULT_ACTIONS)
     hcacsimp.add_cache_control_arg(parser)
     hparser.add_verbosity_arg(parser)
     return parser
 
 
 def _main(parser: argparse.ArgumentParser) -> None:
+    _LOG.debug(hprint.func_signature_to_str())
     args = parser.parse_args()
     hdbg.init_logger(verbosity=args.log_level, use_exec_path=True)
     hloggin.shutup_chatty_modules(verbosity=logging.ERROR)
+    # Silence noisy third-party HTTP and LLM client loggers so INFO output
+    # stays readable.
     for module_name in ["httpcore", "httpx", "_base_client", "_trace", "openai"]:
         logger = logging.getLogger(module_name)
         logger.setLevel(logging.CRITICAL)
     hcacsimp.parse_cache_control_args(args)
     # Resolve which actions to run based on command-line flags (--action, --all, --skip-action).
-    actions = hselacti.select_actions(args, VALID_ACTIONS, DEFAULT_ACTIONS)
+    actions = hselacti.select_actions(args, _VALID_ACTIONS, _DEFAULT_ACTIONS)
     _LOG.info(
         "Actions to execute:\n%s",
-        hselacti.actions_to_string(actions, VALID_ACTIONS, add_frame=True),
+        hselacti.actions_to_string(actions, _VALID_ACTIONS, add_frame=True),
     )
     # Execute actions in sequence: each action depends on outputs from previous stages.
-    actions_remaining = actions
-    while actions_remaining:
-        action = actions_remaining[0]
-        to_execute, actions_remaining = hselacti.mark_action(
-            action, actions_remaining
-        )
+    while actions:
+        action = actions[0]
+        to_execute, actions = hselacti.mark_action(action, actions)
         if not to_execute:
             continue
+        _LOG.debug("Executing action: '%s'", action)
         # Dispatch to the appropriate handler based on the current action.
         if action == "download_link_gsheet":
             hdbg.dassert_is_not(
@@ -490,6 +513,11 @@ def _main(parser: argparse.ArgumentParser) -> None:
                 f"--url is required for {action} action",
             )
             _upload_to_gsheet(args.url)
+        else:
+            raise ValueError(f"Invalid action='{action}'")
+    hdbg.dassert_eq(
+        len(actions), 0, "There are unprocessed actions: %s", str(actions)
+    )
 
 
 if __name__ == "__main__":

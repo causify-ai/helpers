@@ -77,7 +77,7 @@ def _merge_toml(pyprojs: List[_DepDict]) -> _DepDict:
 def _parse() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         description=__doc__,
-        formatter_class=argparse.RawDescriptionHelpFormatter,
+        formatter_class=hparser.CustomHelpFormatter,
     )
     parser.add_argument(
         "--in_file", action="append", help="Files to read", required=True

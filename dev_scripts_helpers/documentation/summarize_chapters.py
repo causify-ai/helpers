@@ -146,7 +146,7 @@ def _parse() -> argparse.ArgumentParser:
     :return: argument parser
     """
     parser = argparse.ArgumentParser(
-        description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
+        description=__doc__, formatter_class=hparser.CustomHelpFormatter
     )
     hseinout.add_input_output_args(parser, in_required=False, out_required=False)
     # TODO(gp): Use the factored out parser code.

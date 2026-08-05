@@ -70,7 +70,7 @@ with Dockerized execution for dependency isolation.
 
 - Copy URL to clipboard:
   ```bash
-  > to_github.py --input helpers/hdbg.py --copy
+  > to_github.py --input helpers/hdbg.py --pbcopy
   ```
 
 ## `set_secrets_and_variables.py`

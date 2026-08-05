@@ -597,18 +597,16 @@ def _lint_all_files(
 # #############################################################################
 
 
-_VALID_ACTIONS = set(
-    [
-        "add_class_frames",
-        "coverage",
-        "fix_comments",
-        "fix_pyright",
-        "normalize_import",
-        "pre-commit",
-        "pyright",
-        "sync_jupytext",
-    ]
-)
+_VALID_ACTIONS = [
+    "add_class_frames",
+    "coverage",
+    "fix_comments",
+    "fix_pyright",
+    "normalize_import",
+    "pre-commit",
+    "pyright",
+    "sync_jupytext",
+]
 
 # The actions are executed in the order given by the list.
 _DEFAULT_ACTIONS = [
@@ -625,27 +623,14 @@ def _parse() -> argparse.ArgumentParser:
     """
     parser = argparse.ArgumentParser(
         description=__doc__,
-        formatter_class=argparse.RawDescriptionHelpFormatter,
+        formatter_class=hparser.CustomHelpFormatter,
     )
     # File selection arguments using hparser helper.
     hseinout.add_file_selection_args(parser)
     # File type filters using hparser helper.
     hseinout.add_file_type_filter_args(parser, file_types_default="py,ipynb")
     # Other options.
-    parser.add_argument(
-        "--action",
-        nargs="+",
-        type=str,
-        choices=_VALID_ACTIONS,
-        help="Specific actions to perform (default: all applicable actions).\n"
-        "- pre-commit: Run pre-commit linters\n"
-        "- normalize_import: Normalize import statements\n"
-        "- add_class_frames: Add class frame decorators\n"
-        "- fix_comments: Convert single-line docstrings to multi-line format\n"
-        "- sync_jupytext: Sync Jupyter notebooks with paired Python files\n"
-        "- pyright: Run pyright type checker\n"
-        "- coverage: Run pytest coverage for test files",
-    )
+    hselacti.add_action_arg(parser, _VALID_ACTIONS, _DEFAULT_ACTIONS)
     parser.add_argument(
         "--abort_on_error",
         action="store_true",
@@ -665,12 +650,10 @@ if __name__ == "__main__":
     args_ = parser_.parse_args()
     hdbg.init_logger(args_.log_level)
     #
-    actions = args_.action if args_.action else list(_DEFAULT_ACTIONS)
+    actions = hselacti.select_actions(args_, _VALID_ACTIONS, _DEFAULT_ACTIONS)
     _LOG.info(
         "\n%s",
-        hselacti.actions_to_string(
-            actions, list(_VALID_ACTIONS), add_frame=True
-        ),
+        hselacti.actions_to_string(actions, _VALID_ACTIONS, add_frame=True),
     )
     # Get files based on selection mode using hparser helper.
     file_paths_ = hseinout.parse_file_selection_args(args_, remove_dirs=False)

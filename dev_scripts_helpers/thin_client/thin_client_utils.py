@@ -88,7 +88,7 @@ def create_parser(docstring: str) -> argparse.ArgumentParser:
     # Create the parser.
     parser = argparse.ArgumentParser(
         description=docstring,
-        formatter_class=argparse.RawDescriptionHelpFormatter,
+        formatter_class=hparser.CustomHelpFormatter,
     )
     hparser.add_verbosity_arg(parser)
     parser.add_argument(

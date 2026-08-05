@@ -19,6 +19,7 @@ import helpers.hdbg as hdbg
 import helpers.hdocker as hdocker
 import helpers.hgit as hgit
 import helpers.hio as hio
+import helpers.hparser as hparser
 import helpers.hprint as hprint
 import helpers.hsystem as hsystem
 
@@ -302,7 +303,7 @@ def _convert_pandoc_cmd_to_arguments(cmd: str) -> Dict[str, Any]:
     _LOG.debug(hprint.to_str("cmd"))
     # Parse arguments.
     parser = argparse.ArgumentParser(
-        formatter_class=argparse.RawDescriptionHelpFormatter
+        formatter_class=hparser.CustomHelpFormatter
     )
     parser.add_argument("-o", "--output", required=True)
     parser.add_argument("--data-dir", default=None)

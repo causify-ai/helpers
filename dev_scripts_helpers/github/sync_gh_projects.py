@@ -266,7 +266,7 @@ def _parse() -> argparse.ArgumentParser:
     """
     p = argparse.ArgumentParser(
         description=__doc__,
-        formatter_class=argparse.RawDescriptionHelpFormatter,
+        formatter_class=hparser.CustomHelpFormatter,
     )
     p.add_argument(
         "--owner",

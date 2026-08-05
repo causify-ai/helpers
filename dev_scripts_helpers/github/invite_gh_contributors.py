@@ -150,7 +150,7 @@ def _run_dockerized_invite(args: argparse.Namespace) -> None:  # noqa: D401
 def _parse() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description=__doc__,
-        formatter_class=argparse.RawDescriptionHelpFormatter,
+        formatter_class=hparser.CustomHelpFormatter,
     )
     # Set `--drive_url` and `--csv_file` to be mutually exclusive.
     input_group = parser.add_mutually_exclusive_group(required=True)

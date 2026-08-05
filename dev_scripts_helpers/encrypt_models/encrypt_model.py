@@ -230,7 +230,7 @@ def _test_models_in_dir(input_dir: str, model_dag_builder: str) -> None:
 def _parse() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         description=__doc__,
-        formatter_class=argparse.RawDescriptionHelpFormatter,
+        formatter_class=hparser.CustomHelpFormatter,
     )
     parser.add_argument(
         "--input_dir", required=True, type=str, help="Source model directory"
