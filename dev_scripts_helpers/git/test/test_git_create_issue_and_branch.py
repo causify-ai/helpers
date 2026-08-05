@@ -7,11 +7,31 @@ import dev_scripts_helpers.git.test.test_git_create_issue_and_branch as dsggtgia
 """
 
 import unittest.mock as mock
+from typing import List, Optional
 
 import helpers.hprint as hprint
 import helpers.hunit_test as hunitest
 import helpers.hunit_test_utils as hunteuti
 import dev_scripts_helpers.git.git_create_issue_and_branch as dshggciab
+
+
+def _make_is_clean_side_effect(clean_dir_name: str):
+    """
+    Build a `hgit.is_client_clean()` side effect where only `clean_dir_name`
+    is reported as clean.
+
+    :param clean_dir_name: the only repo target considered clean
+    :return: side effect function suitable for `mock.patch(...,
+        side_effect=...)`
+    """
+
+    def is_clean_side_effect(
+        dir_name: str = ".", abort_if_not_clean: bool = False
+    ):
+        _ = abort_if_not_clean
+        return dir_name == clean_dir_name
+
+    return is_clean_side_effect
 
 
 # #############################################################################
@@ -23,6 +43,26 @@ class Test__get_repo_targets(hunitest.TestCase):
     """
     Test `git_create_issue_and_branch._get_repo_targets()`.
     """
+
+    def _helper(self, no_submodules: bool, expected: List[str]) -> None:
+        """
+        Run `_get_repo_targets()` with a submodule present and check the
+        result.
+
+        :param no_submodules: value passed to `no_submodules` param
+        :param expected: expected repo targets
+        """
+        # Run test.
+        with (
+            mock.patch("helpers.hgit.has_submodules", return_value=True),
+            mock.patch(
+                "helpers.hgit.get_submodule_paths",
+                return_value=["helpers_root"],
+            ),
+        ):
+            repo_targets = dshggciab._get_repo_targets(no_submodules)
+        # Check outputs.
+        self.assertEqual(repo_targets, expected)
 
     def test1(self) -> None:
         """
@@ -44,18 +84,10 @@ class Test__get_repo_targets(hunitest.TestCase):
         """
         # Prepare inputs.
         no_submodules = False
-        # Run test.
-        with (
-            mock.patch("helpers.hgit.has_submodules", return_value=True),
-            mock.patch(
-                "helpers.hgit.get_submodule_paths",
-                return_value=["helpers_root"],
-            ),
-        ):
-            repo_targets = dshggciab._get_repo_targets(no_submodules)
-        # Check outputs.
+        # Prepare outputs.
         expected = [".", "helpers_root"]
-        self.assertEqual(repo_targets, expected)
+        # Run test.
+        self._helper(no_submodules, expected)
 
     def test3(self) -> None:
         """
@@ -64,18 +96,10 @@ class Test__get_repo_targets(hunitest.TestCase):
         """
         # Prepare inputs.
         no_submodules = True
-        # Run test.
-        with (
-            mock.patch("helpers.hgit.has_submodules", return_value=True),
-            mock.patch(
-                "helpers.hgit.get_submodule_paths",
-                return_value=["helpers_root"],
-            ),
-        ):
-            repo_targets = dshggciab._get_repo_targets(no_submodules)
-        # Check outputs.
+        # Prepare outputs.
         expected = ["."]
-        self.assertEqual(repo_targets, expected)
+        # Run test.
+        self._helper(no_submodules, expected)
 
 
 # #############################################################################
@@ -87,6 +111,23 @@ class Test__dassert_all_targets_clean(hunitest.TestCase):
     """
     Test `git_create_issue_and_branch._dassert_all_targets_clean()`.
     """
+
+    def _helper(self, clean_dir_name: str) -> None:
+        """
+        Run `_dassert_all_targets_clean()` when every target but
+        `clean_dir_name` is dirty and check that it aborts.
+
+        :param clean_dir_name: the only repo target that is clean
+        """
+        # Prepare inputs.
+        repo_targets = [".", "helpers_root"]
+        is_clean_side_effect = _make_is_clean_side_effect(clean_dir_name)
+        # Run test and check outputs.
+        with mock.patch(
+            "helpers.hgit.is_client_clean", side_effect=is_clean_side_effect
+        ):
+            with self.assertRaises(AssertionError):
+                dshggciab._dassert_all_targets_clean(repo_targets)
 
     def test1(self) -> None:
         """
@@ -103,36 +144,18 @@ class Test__dassert_all_targets_clean(hunitest.TestCase):
         Test that a dirty outer repo aborts.
         """
         # Prepare inputs.
-        repo_targets = [".", "helpers_root"]
-
-        def is_clean_side_effect(dir_name=".", abort_if_not_clean=False):
-            _ = abort_if_not_clean
-            return dir_name != "."
-
-        # Run test and check outputs.
-        with mock.patch(
-            "helpers.hgit.is_client_clean", side_effect=is_clean_side_effect
-        ):
-            with self.assertRaises(AssertionError):
-                dshggciab._dassert_all_targets_clean(repo_targets)
+        clean_dir_name = "helpers_root"
+        # Run test.
+        self._helper(clean_dir_name)
 
     def test3(self) -> None:
         """
         Test that a dirty submodule aborts.
         """
         # Prepare inputs.
-        repo_targets = [".", "helpers_root"]
-
-        def is_clean_side_effect(dir_name=".", abort_if_not_clean=False):
-            _ = abort_if_not_clean
-            return dir_name == "."
-
-        # Run test and check outputs.
-        with mock.patch(
-            "helpers.hgit.is_client_clean", side_effect=is_clean_side_effect
-        ):
-            with self.assertRaises(AssertionError):
-                dshggciab._dassert_all_targets_clean(repo_targets)
+        clean_dir_name = "."
+        # Run test.
+        self._helper(clean_dir_name)
 
 
 # #############################################################################
@@ -144,6 +167,25 @@ class Test__dassert_all_targets_on_master(hunitest.TestCase):
     """
     Test `git_create_issue_and_branch._dassert_all_targets_on_master()`.
     """
+
+    def _helper(self, original_branch: str, mocked_branch_name: str) -> None:
+        """
+        Run `_dassert_all_targets_on_master()` and check that it aborts.
+
+        :param original_branch: outer repo branch passed to the function
+        :param mocked_branch_name: value returned by mocked
+            `hgit.get_branch_name()` for the submodule
+        """
+        # Prepare inputs.
+        repo_targets = [".", "helpers_root"]
+        # Run test and check outputs.
+        with mock.patch(
+            "helpers.hgit.get_branch_name", return_value=mocked_branch_name
+        ):
+            with self.assertRaises(AssertionError):
+                dshggciab._dassert_all_targets_on_master(
+                    repo_targets, original_branch
+                )
 
     def test1(self) -> None:
         """
@@ -164,31 +206,20 @@ class Test__dassert_all_targets_on_master(hunitest.TestCase):
         Test that the outer repo not being on `master` aborts.
         """
         # Prepare inputs.
-        repo_targets = [".", "helpers_root"]
         original_branch = "HelpersTask1290_Test"
-        # Run test and check outputs.
-        with mock.patch("helpers.hgit.get_branch_name", return_value="master"):
-            with self.assertRaises(AssertionError):
-                dshggciab._dassert_all_targets_on_master(
-                    repo_targets, original_branch
-                )
+        mocked_branch_name = "master"
+        # Run test.
+        self._helper(original_branch, mocked_branch_name)
 
     def test3(self) -> None:
         """
         Test that a submodule not being on `master` aborts.
         """
         # Prepare inputs.
-        repo_targets = [".", "helpers_root"]
         original_branch = "master"
-        # Run test and check outputs.
-        with mock.patch(
-            "helpers.hgit.get_branch_name",
-            return_value="HelpersTask1290_Test",
-        ):
-            with self.assertRaises(AssertionError):
-                dshggciab._dassert_all_targets_on_master(
-                    repo_targets, original_branch
-                )
+        mocked_branch_name = "HelpersTask1290_Test"
+        # Run test.
+        self._helper(original_branch, mocked_branch_name)
 
 
 # #############################################################################
@@ -201,9 +232,21 @@ class Test__create_branch_in_submodule(hunitest.TestCase):
     Test `git_create_issue_and_branch._create_branch_in_submodule()`.
     """
 
-    def test1(self) -> None:
+    def _helper(
+        self,
+        does_branch_exist: bool,
+        expected: str,
+        *,
+        create_pr: bool = True,
+    ) -> None:
         """
-        Test creating a new branch (by name) in a submodule.
+        Run `_create_branch_in_submodule()` and check the captured system
+        calls.
+
+        :param does_branch_exist: value returned by mocked
+            `hgit.does_branch_exist()`
+        :param expected: expected system calls
+        :param create_pr: value passed to `create_pr` param
         """
         # Prepare inputs.
         submodule_path = "helpers_root"
@@ -211,43 +254,51 @@ class Test__create_branch_in_submodule(hunitest.TestCase):
         # Run test and capture system calls.
         with (
             hunteuti.capture_sys_calls() as invocations,
-            mock.patch("helpers.hgit.does_branch_exist", return_value=False),
+            mock.patch(
+                "helpers.hgit.does_branch_exist",
+                return_value=does_branch_exist,
+            ),
         ):
-            dshggciab._create_branch_in_submodule(submodule_path, branch_name)
+            dshggciab._create_branch_in_submodule(
+                submodule_path, branch_name, create_pr=create_pr
+            )
         # Check outputs.
-        expected_str = r"""[
+        expected = hprint.dedent(expected)
+        hunteuti.assert_sys_calls(self, invocations, expected)
+
+    def test1(self) -> None:
+        """
+        Test creating a new branch (by name) in a submodule.
+        """
+        # Prepare inputs.
+        does_branch_exist = False
+        # Prepare outputs.
+        expected = r"""[
         {
         'function': hsystem.system,
         'args': ('cd helpers_root && invoke git_branch_create --branch-name HelpersTask1290_Test_Branch',),
         'kwargs': {'log_level': 20},
         },
         ]"""
-        expected_str = hprint.dedent(expected_str)
-        hunteuti.assert_sys_calls(self, invocations, expected_str)
+        # Run test.
+        self._helper(does_branch_exist, expected)
 
     def test2(self) -> None:
         """
         Test checking out a branch that already exists in the submodule.
         """
         # Prepare inputs.
-        submodule_path = "helpers_root"
-        branch_name = "HelpersTask1290_Test_Branch"
-        # Run test and capture system calls.
-        with (
-            hunteuti.capture_sys_calls() as invocations,
-            mock.patch("helpers.hgit.does_branch_exist", return_value=True),
-        ):
-            dshggciab._create_branch_in_submodule(submodule_path, branch_name)
-        # Check outputs.
-        expected_str = r"""[
+        does_branch_exist = True
+        # Prepare outputs.
+        expected = r"""[
         {
         'function': hsystem.system,
         'args': ('cd helpers_root && git checkout HelpersTask1290_Test_Branch',),
         'kwargs': {'log_level': 20},
         },
         ]"""
-        expected_str = hprint.dedent(expected_str)
-        hunteuti.assert_sys_calls(self, invocations, expected_str)
+        # Run test.
+        self._helper(does_branch_exist, expected)
 
     def test3(self) -> None:
         """
@@ -255,26 +306,18 @@ class Test__create_branch_in_submodule(hunitest.TestCase):
         submodule.
         """
         # Prepare inputs.
-        submodule_path = "helpers_root"
-        branch_name = "HelpersTask1290_Test_Branch"
-        # Run test and capture system calls.
-        with (
-            hunteuti.capture_sys_calls() as invocations,
-            mock.patch("helpers.hgit.does_branch_exist", return_value=False),
-        ):
-            dshggciab._create_branch_in_submodule(
-                submodule_path, branch_name, create_pr=False
-            )
-        # Check outputs.
-        expected_str = r"""[
+        does_branch_exist = False
+        create_pr = False
+        # Prepare outputs.
+        expected = r"""[
         {
         'function': hsystem.system,
         'args': ('cd helpers_root && invoke git_branch_create --branch-name HelpersTask1290_Test_Branch --create-pr=False',),
         'kwargs': {'log_level': 20},
         },
         ]"""
-        expected_str = hprint.dedent(expected_str)
-        hunteuti.assert_sys_calls(self, invocations, expected_str)
+        # Run test.
+        self._helper(does_branch_exist, expected, create_pr=create_pr)
 
 
 # #############################################################################
@@ -287,9 +330,15 @@ class Test_create_worktree(hunitest.TestCase):
     Tests for `_create_worktree()` function.
     """
 
-    def test1(self) -> None:
+    def _helper(
+        self, submodule_paths: Optional[List[str]], expected: str
+    ) -> None:
         """
-        Test creating a worktree.
+        Run `_create_worktree()` and check the captured system calls and the
+        returned worktree path.
+
+        :param submodule_paths: value passed to `submodule_paths` param
+        :param expected: expected system calls
         """
         # Prepare inputs.
         branch_name = "HelpersTask1290_Test_Branch"
@@ -301,10 +350,23 @@ class Test_create_worktree(hunitest.TestCase):
             mock.patch("os.getcwd", return_value="/home/user/helpers1"),
         ):
             worktree_path = dshggciab._create_worktree(
-                branch_name, issue_id, original_branch
+                branch_name, issue_id, original_branch, submodule_paths
             )
         # Check outputs.
-        expected_str = r"""[
+        expected = hprint.dedent(expected)
+        hunteuti.assert_sys_calls(self, invocations, expected)
+        # Verify returned worktree path.
+        expected_path = "/home/user/helpers1_worktree_1290"
+        self.assertEqual(worktree_path, expected_path)
+
+    def test1(self) -> None:
+        """
+        Test creating a worktree.
+        """
+        # Prepare inputs.
+        submodule_paths = None
+        # Prepare outputs.
+        expected = r"""[
         {
         'function': hsystem.system,
         'args': ('git checkout master',),
@@ -316,11 +378,8 @@ class Test_create_worktree(hunitest.TestCase):
         'kwargs': {'log_level': 20},
         },
         ]"""
-        expected_str = hprint.dedent(expected_str)
-        hunteuti.assert_sys_calls(self, invocations, expected_str)
-        # Verify returned worktree path.
-        expected_path = "/home/user/helpers1_worktree_1290"
-        self.assertEqual(worktree_path, expected_path)
+        # Run test.
+        self._helper(submodule_paths, expected)
 
     def test2(self) -> None:
         """
@@ -329,20 +388,9 @@ class Test_create_worktree(hunitest.TestCase):
         detached HEAD.
         """
         # Prepare inputs.
-        branch_name = "HelpersTask1290_Test_Branch"
-        issue_id = 1290
-        original_branch = "master"
         submodule_paths = ["helpers_root"]
-        # Run test and capture system calls.
-        with (
-            hunteuti.capture_sys_calls() as invocations,
-            mock.patch("os.getcwd", return_value="/home/user/helpers1"),
-        ):
-            worktree_path = dshggciab._create_worktree(
-                branch_name, issue_id, original_branch, submodule_paths
-            )
-        # Check outputs.
-        expected_str = r"""[
+        # Prepare outputs.
+        expected = r"""[
         {
         'function': hsystem.system,
         'args': ('git checkout master',),
@@ -364,11 +412,8 @@ class Test_create_worktree(hunitest.TestCase):
         'kwargs': {'log_level': 20},
         },
         ]"""
-        expected_str = hprint.dedent(expected_str)
-        hunteuti.assert_sys_calls(self, invocations, expected_str)
-        # Verify returned worktree path.
-        expected_path = "/home/user/helpers1_worktree_1290"
-        self.assertEqual(worktree_path, expected_path)
+        # Run test.
+        self._helper(submodule_paths, expected)
 
 
 # #############################################################################
@@ -381,6 +426,17 @@ class Test_git_create_issue_and_branch_py(hunitest.TestCase):
     End-to-end tests for the `git_create_issue_and_branch.py` executable.
     """
 
+    def _run_main(self, argv: List[str]) -> None:
+        """
+        Run `_main()` with a mocked `sys.argv`.
+
+        :param argv: command-line argument list to inject via
+            `mock.patch("sys.argv", ...)`
+        """
+        parser = dshggciab._parse()
+        with mock.patch("sys.argv", argv):
+            dshggciab._main(parser)
+
     def test1(self) -> None:
         """
         Test that script validates title is provided when creating new issue.
@@ -390,10 +446,8 @@ class Test_git_create_issue_and_branch_py(hunitest.TestCase):
             "git_create_issue_and_branch.py",
         ]
         # Run test and check for error.
-        parser = dshggciab._parse()
-        with mock.patch("sys.argv", argv):
-            with self.assertRaises(AssertionError):
-                dshggciab._main(parser)
+        with self.assertRaises(AssertionError):
+            self._run_main(argv)
 
     def test2(self) -> None:
         """
@@ -408,9 +462,7 @@ class Test_git_create_issue_and_branch_py(hunitest.TestCase):
             "Test body text",
         ]
         # Run test with mocked system calls.
-        parser = dshggciab._parse()
         with (
-            mock.patch("sys.argv", argv),
             hunteuti.capture_sys_calls() as invocations,
             mock.patch(
                 "helpers.hsystem.system_to_string",
@@ -425,7 +477,7 @@ class Test_git_create_issue_and_branch_py(hunitest.TestCase):
                 "dev_scripts_helpers.git.git_create_issue_and_branch._commit_issue_files"
             ),
         ):
-            dshggciab._main(parser)
+            self._run_main(argv)
         # Check outputs.
         expected = r"""[
         {
@@ -447,9 +499,7 @@ class Test_git_create_issue_and_branch_py(hunitest.TestCase):
             "1290",
         ]
         # Run test with mocked system calls.
-        parser = dshggciab._parse()
         with (
-            mock.patch("sys.argv", argv),
             hunteuti.capture_sys_calls() as invocations,
             mock.patch(
                 "helpers.hgit.get_branch_name",
@@ -468,7 +518,7 @@ class Test_git_create_issue_and_branch_py(hunitest.TestCase):
                 "dev_scripts_helpers.git.git_create_issue_and_branch._commit_issue_files"
             ),
         ):
-            dshggciab._main(parser)
+            self._run_main(argv)
         # Check outputs.
         expected = r"""[
         {
@@ -497,9 +547,7 @@ class Test_git_create_issue_and_branch_py(hunitest.TestCase):
             "--create_worktree",
         ]
         # Run test with mocked system calls.
-        parser = dshggciab._parse()
         with (
-            mock.patch("sys.argv", argv),
             hunteuti.capture_sys_calls() as invocations,
             mock.patch("helpers.hgit.is_client_clean", return_value=True),
             mock.patch(
@@ -526,7 +574,7 @@ class Test_git_create_issue_and_branch_py(hunitest.TestCase):
             mock.patch("shutil.copy"),
             mock.patch("builtins.print"),
         ):
-            dshggciab._main(parser)
+            self._run_main(argv)
         # Check outputs.
         expected = r"""[
         {
@@ -568,9 +616,7 @@ class Test_git_create_issue_and_branch_py(hunitest.TestCase):
             "--create_worktree",
         ]
         # Run test with mocked system calls.
-        parser = dshggciab._parse()
         with (
-            mock.patch("sys.argv", argv),
             hunteuti.capture_sys_calls() as invocations,
             mock.patch("helpers.hgit.is_client_clean", return_value=True),
             mock.patch("helpers.hgit.has_submodules", return_value=True),
@@ -602,7 +648,7 @@ class Test_git_create_issue_and_branch_py(hunitest.TestCase):
             mock.patch("shutil.copy"),
             mock.patch("builtins.print"),
         ):
-            dshggciab._main(parser)
+            self._run_main(argv)
         # Check outputs.
         expected = r"""[
         {
@@ -654,15 +700,9 @@ class Test_git_create_issue_and_branch_py(hunitest.TestCase):
             "--gh_issue_id",
             "1290",
         ]
-
-        def is_clean_side_effect(dir_name=".", abort_if_not_clean=False):
-            _ = abort_if_not_clean
-            return dir_name != "."
-
+        is_clean_side_effect = _make_is_clean_side_effect("helpers_root")
         # Run test with mocked system calls.
-        parser = dshggciab._parse()
         with (
-            mock.patch("sys.argv", argv),
             hunteuti.capture_sys_calls() as invocations,
             mock.patch("helpers.hgit.has_submodules", return_value=True),
             mock.patch(
@@ -675,7 +715,7 @@ class Test_git_create_issue_and_branch_py(hunitest.TestCase):
             ),
         ):
             with self.assertRaises(AssertionError):
-                dshggciab._main(parser)
+                self._run_main(argv)
         # Check outputs: nothing should have been created anywhere.
         expected = "[]"
         hunteuti.assert_sys_calls(self, invocations, expected)
@@ -690,15 +730,9 @@ class Test_git_create_issue_and_branch_py(hunitest.TestCase):
             "--gh_issue_id",
             "1290",
         ]
-
-        def is_clean_side_effect(dir_name=".", abort_if_not_clean=False):
-            _ = abort_if_not_clean
-            return dir_name == "."
-
+        is_clean_side_effect = _make_is_clean_side_effect(".")
         # Run test with mocked system calls.
-        parser = dshggciab._parse()
         with (
-            mock.patch("sys.argv", argv),
             hunteuti.capture_sys_calls() as invocations,
             mock.patch("helpers.hgit.has_submodules", return_value=True),
             mock.patch(
@@ -711,7 +745,7 @@ class Test_git_create_issue_and_branch_py(hunitest.TestCase):
             ),
         ):
             with self.assertRaises(AssertionError):
-                dshggciab._main(parser)
+                self._run_main(argv)
         # Check outputs: nothing should have been created anywhere.
         expected = "[]"
         hunteuti.assert_sys_calls(self, invocations, expected)
@@ -728,9 +762,7 @@ class Test_git_create_issue_and_branch_py(hunitest.TestCase):
             "1290",
         ]
         # Run test with mocked system calls.
-        parser = dshggciab._parse()
         with (
-            mock.patch("sys.argv", argv),
             hunteuti.capture_sys_calls() as invocations,
             mock.patch("helpers.hgit.is_client_clean", return_value=True),
             mock.patch("helpers.hgit.has_submodules", return_value=True),
@@ -744,7 +776,7 @@ class Test_git_create_issue_and_branch_py(hunitest.TestCase):
             ),
         ):
             with self.assertRaises(AssertionError):
-                dshggciab._main(parser)
+                self._run_main(argv)
         # Check outputs: nothing should have been created anywhere.
         expected = "[]"
         hunteuti.assert_sys_calls(self, invocations, expected)
@@ -761,9 +793,7 @@ class Test_git_create_issue_and_branch_py(hunitest.TestCase):
             "1290",
         ]
         # Run test with mocked system calls.
-        parser = dshggciab._parse()
         with (
-            mock.patch("sys.argv", argv),
             hunteuti.capture_sys_calls() as invocations,
             mock.patch("helpers.hgit.is_client_clean", return_value=True),
             mock.patch("helpers.hgit.has_submodules", return_value=True),
@@ -777,7 +807,7 @@ class Test_git_create_issue_and_branch_py(hunitest.TestCase):
             ),
         ):
             with self.assertRaises(AssertionError):
-                dshggciab._main(parser)
+                self._run_main(argv)
         # Check outputs: nothing should have been created anywhere.
         expected = "[]"
         hunteuti.assert_sys_calls(self, invocations, expected)
@@ -796,9 +826,7 @@ class Test_git_create_issue_and_branch_py(hunitest.TestCase):
             "--no_submodules",
         ]
         # Run test with mocked system calls.
-        parser = dshggciab._parse()
         with (
-            mock.patch("sys.argv", argv),
             hunteuti.capture_sys_calls() as invocations,
             mock.patch("helpers.hgit.is_client_clean", return_value=True),
             mock.patch(
@@ -824,7 +852,7 @@ class Test_git_create_issue_and_branch_py(hunitest.TestCase):
                 "dev_scripts_helpers.git.git_create_issue_and_branch._commit_issue_files"
             ),
         ):
-            dshggciab._main(parser)
+            self._run_main(argv)
         # Check outputs: only the outer repo is touched.
         expected = r"""[
         {

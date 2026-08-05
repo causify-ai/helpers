@@ -1622,7 +1622,9 @@ def gh_watch(ctx, *, interval=60):  # type: ignore
         )
         _LOG.info("Original window name: %s", old_pane_title)
         # Rename window to indicate we're watching workflows.
-        hsystem.system("tmux rename-window '*GH_WATCH*'")
+        # Use `--` so `tmux` does not misinterpret a name starting with
+        # `-` as an option flag.
+        hsystem.system("tmux rename-window -- '*GH_WATCH*'")
     try:
         # Watch workflows by repeatedly running gh_workflow_list.
         while True:
@@ -1634,7 +1636,9 @@ def gh_watch(ctx, *, interval=60):  # type: ignore
         # Restore original tmux window name if it was changed.
         if old_pane_title is not None:
             _LOG.info("Restoring window name: %s", old_pane_title)
-            hsystem.system(f"tmux rename-window '{old_pane_title}'")
+            # Use `--` so `tmux` does not misinterpret a name starting with `-`
+            # as an option flag. E.g., `tmux rename-window '---helpers1---'`
+            hsystem.system(f"tmux rename-window -- '{old_pane_title}'")
 
 
 # #############################################################################
