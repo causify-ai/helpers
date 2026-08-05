@@ -1249,7 +1249,11 @@ def _main(parser: argparse.ArgumentParser) -> None:
     # Track which step was last executed for finalization
     last_step = 0
     # Execute each selected action in sequence.
-    for action in actions:
+    while actions:
+        action = actions[0]
+        to_execute, actions = hselacti.mark_action(action, actions)
+        if not to_execute:
+            continue
         if action == "download":
             _run_download(args)
             last_step = 1
@@ -1259,7 +1263,11 @@ def _main(parser: argparse.ArgumentParser) -> None:
         elif action == "lint":
             _run_lint(args)
             last_step = 3
-    _LOG.debug(hprint.to_str("last_step"))
+        else:
+            raise ValueError(f"Invalid action='{action}'")
+    hdbg.dassert_eq(
+        len(actions), 0, "There are unprocessed actions: %s", str(actions)
+    )
     # Copy the final output file
     if last_step > 0:
         _finalize_output(args, last_step)

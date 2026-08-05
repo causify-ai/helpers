@@ -297,14 +297,14 @@ def _upload_to_gsheet(url: str) -> None:
 # #############################################################################
 
 # Define the four-step pipeline: download gsheet, download raindrop, combine, and upload.
-VALID_ACTIONS = [
+_VALID_ACTIONS = [
     "download_link_gsheet",
     "download_raindrop_data",
     "combine",
     "upload_link_gsheet",
 ]
 # By default, execute all actions in order.
-DEFAULT_ACTIONS = VALID_ACTIONS[:]
+_DEFAULT_ACTIONS = _VALID_ACTIONS[:]
 
 
 def _parse() -> argparse.ArgumentParser:
@@ -320,7 +320,7 @@ def _parse() -> argparse.ArgumentParser:
         help="URL of the Google Sheets document (required for "
         "download_link_gsheet and upload_link_gsheet actions)",
     )
-    hselacti.add_action_arg(parser, VALID_ACTIONS, DEFAULT_ACTIONS)
+    hselacti.add_action_arg(parser, _VALID_ACTIONS, _DEFAULT_ACTIONS)
     hparser.add_verbosity_arg(parser)
     return parser
 
@@ -335,18 +335,15 @@ def _main(parser: argparse.ArgumentParser) -> None:
     args = parser.parse_args()
     hdbg.init_logger(verbosity=args.log_level, use_exec_path=True)
     # Determine which actions to execute based on command-line arguments.
-    actions = hselacti.select_actions(args, VALID_ACTIONS, DEFAULT_ACTIONS)
+    actions = hselacti.select_actions(args, _VALID_ACTIONS, _DEFAULT_ACTIONS)
     _LOG.info(
         "Actions to execute:\n%s",
-        hselacti.actions_to_string(actions, VALID_ACTIONS, add_frame=True),
+        hselacti.actions_to_string(actions, _VALID_ACTIONS, add_frame=True),
     )
     # Execute actions sequentially in the order specified by the user.
-    actions_remaining = actions
-    while actions_remaining:
-        action = actions_remaining[0]
-        to_execute, actions_remaining = hselacti.mark_action(
-            action, actions_remaining
-        )
+    while actions:
+        action = actions[0]
+        to_execute, actions = hselacti.mark_action(action, actions)
         if not to_execute:
             continue
         _LOG.debug("Executing action: '%s'", action)
@@ -369,6 +366,11 @@ def _main(parser: argparse.ArgumentParser) -> None:
                 "--url is required for upload_link_gsheet action",
             )
             _upload_to_gsheet(args.url)
+        else:
+            raise ValueError(f"Invalid action='{action}'")
+    hdbg.dassert_eq(
+        len(actions), 0, "There are unprocessed actions: %s", str(actions)
+    )
 
 
 if __name__ == "__main__":

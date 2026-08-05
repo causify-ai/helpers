@@ -434,14 +434,14 @@ def _upload_to_gsheet(url: str) -> None:
 
 
 # List of available pipeline actions; executed in order when --all is used.
-VALID_ACTIONS = [
+_VALID_ACTIONS = [
     "download_link_gsheet",
     "update_article_url",
     "update_article_tag",
     "update_article_cluster",
     "upload_link_gsheet",
 ]
-DEFAULT_ACTIONS = VALID_ACTIONS[:]
+_DEFAULT_ACTIONS = _VALID_ACTIONS[:]
 
 
 def _parse() -> argparse.ArgumentParser:
@@ -462,7 +462,7 @@ def _parse() -> argparse.ArgumentParser:
         default="gpt-4o-mini",
         help="LLM model name to use for tagging (default: gpt-4o-mini)",
     )
-    hselacti.add_action_arg(parser, VALID_ACTIONS, DEFAULT_ACTIONS)
+    hselacti.add_action_arg(parser, _VALID_ACTIONS, _DEFAULT_ACTIONS)
     hcacsimp.add_cache_control_arg(parser)
     hparser.add_verbosity_arg(parser)
     return parser
@@ -480,18 +480,15 @@ def _main(parser: argparse.ArgumentParser) -> None:
         logger.setLevel(logging.CRITICAL)
     hcacsimp.parse_cache_control_args(args)
     # Resolve which actions to run based on command-line flags (--action, --all, --skip-action).
-    actions = hselacti.select_actions(args, VALID_ACTIONS, DEFAULT_ACTIONS)
+    actions = hselacti.select_actions(args, _VALID_ACTIONS, _DEFAULT_ACTIONS)
     _LOG.info(
         "Actions to execute:\n%s",
-        hselacti.actions_to_string(actions, VALID_ACTIONS, add_frame=True),
+        hselacti.actions_to_string(actions, _VALID_ACTIONS, add_frame=True),
     )
     # Execute actions in sequence: each action depends on outputs from previous stages.
-    actions_remaining = actions
-    while actions_remaining:
-        action = actions_remaining[0]
-        to_execute, actions_remaining = hselacti.mark_action(
-            action, actions_remaining
-        )
+    while actions:
+        action = actions[0]
+        to_execute, actions = hselacti.mark_action(action, actions)
         if not to_execute:
             continue
         _LOG.debug("Executing action: '%s'", action)
@@ -516,6 +513,11 @@ def _main(parser: argparse.ArgumentParser) -> None:
                 f"--url is required for {action} action",
             )
             _upload_to_gsheet(args.url)
+        else:
+            raise ValueError(f"Invalid action='{action}'")
+    hdbg.dassert_eq(
+        len(actions), 0, "There are unprocessed actions: %s", str(actions)
+    )
 
 
 if __name__ == "__main__":

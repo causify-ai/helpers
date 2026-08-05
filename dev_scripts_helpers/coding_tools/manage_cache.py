@@ -121,24 +121,35 @@ def _main(parser: argparse.ArgumentParser) -> None:
     args = parser.parse_args()
     hdbg.init_logger(verbosity=args.log_level, use_exec_path=True)
     actions = hselacti.select_actions(args, _VALID_ACTIONS, _DEFAULT_ACTIONS)
+    print(hselacti.actions_to_string(actions, _VALID_ACTIONS, add_frame=True))
     # Execute selected actions.
-    if hselacti.mark_action("clear_all", actions):
-        _LOG.info("Clearing all caches (memory + disk)...")
-        hcacsimp.reset_cache(interactive=False)
-    if hselacti.mark_action("clear_mem", actions):
-        _LOG.info("Clearing memory cache...")
-        hcacsimp.reset_mem_cache()
-    if hselacti.mark_action("clear_disk", actions):
-        _LOG.info("Clearing disk cache...")
-        hcacsimp.reset_disk_cache(interactive=False)
-    if hselacti.mark_action("print_info", actions):
-        txt = hcacsimp.cache_stats_to_str()
-        if txt is not None:
-            print(txt.to_string())
+    while actions:
+        action = actions[0]
+        to_execute, actions = hselacti.mark_action(action, actions)
+        if not to_execute:
+            continue
+        if action == "clear_all":
+            _LOG.info("Clearing all caches (memory + disk)...")
+            hcacsimp.reset_cache(interactive=False)
+        elif action == "clear_mem":
+            _LOG.info("Clearing memory cache...")
+            hcacsimp.reset_mem_cache()
+        elif action == "clear_disk":
+            _LOG.info("Clearing disk cache...")
+            hcacsimp.reset_disk_cache(interactive=False)
+        elif action == "print_info":
+            txt = hcacsimp.cache_stats_to_str()
+            if txt is not None:
+                print(txt.to_string())
+            else:
+                _LOG.info("No cached functions found.")
+        elif action == "test":
+            _run_smoke_test()
         else:
-            _LOG.info("No cached functions found.")
-    if hselacti.mark_action("test", actions):
-        _run_smoke_test()
+            raise ValueError(f"Invalid action='{action}'")
+    hdbg.dassert_eq(
+        len(actions), 0, "There are unprocessed actions: %s", str(actions)
+    )
 
 
 if __name__ == "__main__":
