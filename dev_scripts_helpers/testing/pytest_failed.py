@@ -6,15 +6,15 @@ and copy the test names to the clipboard.
 
 For architecture overview, see `pytest_testing_system.README.md`.
 
-Examples
+# Usage Example
 
-# Parse failed tests from `tmp.pytest_log.txt`.
+- Parse failed tests from `tmp.pytest_log.txt`:
 > pytest_failed.py
 
-# Parse failed tests from a specific log file, keeping only the file names.
+- Parse failed tests from a specific log file, keeping only the file names:
 > pytest_failed.py --input tmp.log --only_file
 
-# Parse failed tests from a specific log with build name.
+- Parse failed tests from a specific log with build name:
 > pytest_failed.py --input tmp.log --build_name apple
 
 Creates the following files (with optional `build_name` subdirectory):

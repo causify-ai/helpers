@@ -2,9 +2,10 @@
 """
 Simple replacement of AWS env variables.
 
-Simple usage:
+# Usage Example
 
-> ./dev_scripts/cleanup_scripts/CmTask1292_Rename_old_aws_env_vars.py
+- Replace old AWS environment variable names in all repo files:
+> CmTask1292_Rename_old_aws_env_vars.py
 """
 
 import argparse

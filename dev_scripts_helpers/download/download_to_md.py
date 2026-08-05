@@ -14,18 +14,18 @@ script.
   otherwise dispatched script derives its own output name from the input
   otherwise (see their docstrings for the exact naming convention).
 
-## Example Usage
+# Usage Example
 
-# Download a generic web page (auto-detected as html).
+- Download a generic web page (auto-detected as html):
 > download_to_md.py --input "https://example.com/article"
 
-# Download an arXiv paper (auto-detected as academic_paper).
+- Download an arXiv paper (auto-detected as academic_paper):
 > download_to_md.py --input "https://arxiv.org/abs/1706.03762"
 
-# Download a Hacker News submission (auto-detected as hn).
+- Download a Hacker News submission (auto-detected as hn):
 > download_to_md.py --input "https://news.ycombinator.com/item?id=12345"
 
-# Specify an explicit output path/base name, forwarded to the dispatched script.
+- Specify an explicit output path/base name, forwarded to the dispatched script:
 > download_to_md.py --input "https://arxiv.org/abs/1706.03762" --output ./papers/attention
 
 Import as:

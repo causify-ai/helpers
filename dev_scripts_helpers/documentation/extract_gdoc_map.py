@@ -6,12 +6,13 @@ Extract Google Doc links from .gdoc files in a directory.
 This script searches for all `.gdoc` files in a given directory and extracts
 their Google Doc IDs to generate markdown-formatted links.
 
-Usage:
-    extract_gdoc_map.py --input_dir INPUT_DIR [--output_file OUTPUT_FILE] [--style {full_path,default}]
+# Usage Example
 
-Example:
-    extract_gdoc_map.py --input_dir "/path/to/google/drive"
-    extract_gdoc_map.py --input_dir "/path/to/google/drive" --output_file "doc_links.md" --style full_path
+- Extract Google Doc links from a directory and print them:
+> extract_gdoc_map.py --input_dir "/path/to/google/drive"
+
+- Extract Google Doc links and save them to a file using full-path style:
+> extract_gdoc_map.py --input_dir "/path/to/google/drive" --output_file "doc_links.md" --style full_path
 
 Import as:
 

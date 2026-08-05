@@ -2,11 +2,12 @@
 """
 Control git commit and git push permissions in .claude/settings.local.json.
 
-Usage:
-# Remove git commit/push from deny list:
+# Usage Example
+
+- Remove git commit/push from deny list:
 > control_cc_commit.py --enable
 
-# Restore git commit/push to deny list:
+- Restore git commit/push to deny list:
 > control_cc_commit.py --disable
 """
 

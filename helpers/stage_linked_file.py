@@ -1,4 +1,11 @@
 """
+Stage symbolic links for modification.
+
+# Usage Example
+
+- Stage all symbolic links under a destination directory for modification:
+> stage_linked_file.py --dst_dir /path/to/dst
+
 Import as:
 
 import helpers.stage_linked_file as hstlifil
@@ -60,8 +67,8 @@ def stage_links(symlinks: List[str]) -> None:
 
 def main():
     parser = argparse.ArgumentParser(
+        description=__doc__,
         formatter_class=hparser.CustomHelpFormatter,
-        description="Stage symbolic links for modification."
     )
     parser.add_argument(
         "--dst_dir", required=True, help="Destination directory."
@@ -77,10 +84,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
-"""
-Usage
-
-    - python3 stage_linked_file.py --dst_dir /path/to/dst
-
-"""

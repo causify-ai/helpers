@@ -37,46 +37,46 @@ characters replaced with underscores:
 - `{title}.3.article_url.summary.txt` - Summarized article (from summarize_article_url)
 - `{title}.4.hn_url.summary.txt` - Summarized HN comments (from summarize_hn_url)
 
-## Example Usage
+# Usage Example
 
-Download HN comments for a single submission directly, bypassing Google
-Sheets:
+- Download HN comments for a single submission directly, bypassing Google
+  Sheets:
 > download_link_articles.py \
     --hn_url "https://news.ycombinator.com/item?id=12345"
 
-Download a single article directly, bypassing Google Sheets; the title is
-extracted from the page's <title> tag:
+- Download a single article directly, bypassing Google Sheets; the title is
+  extracted from the page's <title> tag:
 > download_link_articles.py \
     --article_url "https://queue.acm.org/detail.cfm?id=3807963"
 
-Download HN comments for rows 0-9 where the "Hn_url" column is not empty:
+- Download HN comments for rows 0-9 where the "Hn_url" column is not empty:
 > download_link_articles.py \
     --url "https://docs.google.com/spreadsheets/d/..." \
     --row_idx "0:10" \
     --action download_hn_url
 
-Download all actions (both HN comments and articles):
+- Download all actions (both HN comments and articles):
 > download_link_articles.py \
     --url "https://docs.google.com/spreadsheets/d/..." \
     --all
 
-Download article content only:
+- Download article content only:
 > download_link_articles.py \
     --url "https://docs.google.com/spreadsheets/d/..." \
     --action download_article_url
 
-Download from rows 0-4, skip article downloads:
+- Download from rows 0-4, skip article downloads:
 > download_link_articles.py \
     --url "https://docs.google.com/spreadsheets/d/..." \
     --row_idx "0:5" \
     --skip_action download_article_url
 
-Summarize articles (requires prior download_article_url):
+- Summarize articles (requires prior download_article_url):
 > download_link_articles.py \
     --url "https://docs.google.com/spreadsheets/d/..." \
     --action summarize_article_url
 
-Summarize HN comments (requires prior download_hn_url):
+- Summarize HN comments (requires prior download_hn_url):
 > download_link_articles.py \
     --url "https://docs.google.com/spreadsheets/d/..." \
     --action summarize_hn_url

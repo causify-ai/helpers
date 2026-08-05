@@ -5,15 +5,13 @@ Print a formatted release message for Docker image releases.
 This script generates a Slack-formatted message containing the latest
 changelog entry from a specified container directory.
 
-Print release message for the root repo:
-```bash
-> dev_scripts_helpers/docker/print_release_message.py --container_dir_name .
-```
+# Usage Example
 
-Print release message for a submodule:
-```bash
-> dev_scripts_helpers/docker/print_release_message.py --container_dir_name amp
-```
+- Print release message for the root repo:
+> print_release_message.py --container_dir_name .
+
+- Print release message for a submodule:
+> print_release_message.py --container_dir_name amp
 """
 
 import argparse

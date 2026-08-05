@@ -2,6 +2,9 @@
 r"""
 Wrapper for black.
 
+# Usage Example
+
+- Run black on one or more files:
 > amp_black.py sample_file1.py sample_file2.py
 
 Import as:

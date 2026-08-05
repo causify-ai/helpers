@@ -4,8 +4,10 @@
 The script checks if a GH user is already a collaborator of a specific
 repository, sends an invitation if not, and reports any pending invitations.
 
-Example:
-> github_permission.py \
+# Usage Example
+
+- Invite a user as a collaborator, or report pending/existing collaborator status:
+> invite_github_collaborator.py \
     --github_username GITHUB_USERNAME \
     --owner_username OWNER_USERNAME \
     --repo_name REPO_NAME \
@@ -144,7 +146,8 @@ def _invite_collaborator(
 
 def _parse() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
-        formatter_class=hparser.CustomHelpFormatter
+        description=__doc__,
+        formatter_class=hparser.CustomHelpFormatter,
     )
     parser.add_argument(
         "--github_username",

@@ -2,7 +2,9 @@
 """
 Generate ElevenLabs voice files from markdown slides.
 
-# Generate voice files for slides:
+# Usage Example
+
+- Generate voice files for slides:
 > generate_elevenlabs_voice.py \
     --in_file slides.md \
     --out_dir output_voices \

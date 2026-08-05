@@ -5,32 +5,41 @@ Reformat and lint python and ipynb files.
 This script uses the version of the files present on the disk and not what is
 staged for commit by git, thus you need to stage again after running it.
 
-E.g.,
-# Lint all modified files in git client.
+# Usage Example
+
+- Lint all modified files in git client:
 > linter.py
 
-# Lint current files.
+- Lint current git-client files, listing them without processing:
 > linter.py -c --collect_only
+
+- Lint all current git-client files:
 > linter.py -c --all
 
-# Lint previous commit files.
+- Lint files modified in the previous commit, listing them without processing:
 > linter.py -p --collect_only
 
-# Lint a certain number of previous commits
+- Lint files modified in the previous 3 commits, listing them without
+  processing:
 > linter.py -p 3 --collect_only
+
+- Lint specific files with yapf and isort formatting at DEBUG verbosity:
 > linter.py --files event_study/*.py linter_v2.py --yapf --isort -v DEBUG
 
-# Lint the changes in the branch:
+- Lint files modified in the current branch relative to master:
 > linter.py -b
+
+- Lint files modified relative to master by passing the file list explicitly:
 > linter.py -f $(git diff --name-only master...)
 
-# Lint all python files, but not the notebooks.
+- Lint all python files in the current directory, excluding notebooks:
 > linter.py -d . --only_py --collect
 
-# To jump to all the warnings to fix:
+- Open the linter warnings log in vim, jumping to each entry as a quickfix
+  location:
 > vim -c "cfile linter.log"
 
-# Check all jupytext files.
+- Check that all jupytext-paired notebooks are in sync:
 > linter.py -d . --action sync_jupytext
 
 Import as:

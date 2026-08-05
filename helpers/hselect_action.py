@@ -83,28 +83,25 @@ def add_action_arg(
     actions_list = "\n".join([f"- {action}" for action in valid_actions])
     if parser.epilog:
         parser.epilog += "\n\n"
-    epilog = f"Available actions:\n{actions_list}"
+    epilog = f"## Available actions:\n{actions_list}"
     default_list = "\n".join([f"- {action}" for action in default_actions])
-    epilog += f"\n\nDefault actions:\n{default_list}"
+    epilog += f"\n\n## Default actions:\n{default_list}"
     parser.epilog = epilog
     # Create mutually exclusive group for action selection.
     group = parser.add_mutually_exclusive_group(required=False)
     group.add_argument(
-        "-a",
         "--action",
         action="append",
         dest="action",
         help="Actions to execute (see available actions below)",
     )
     group.add_argument(
-        "-sa",
         "--skip_action",
         action="append",
         dest="skip_action",
         help="Actions to skip from default set (see available actions below)",
     )
     group.add_argument(
-        "-e",
         "--enable",
         action="append",
         dest="enable_action",

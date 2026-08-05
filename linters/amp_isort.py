@@ -2,6 +2,9 @@
 r"""
 Wrapper for isort.
 
+# Usage Example
+
+- Run isort on one or more files:
 > amp_isort.py sample_file1.py sample_file2.py
 
 Import as:

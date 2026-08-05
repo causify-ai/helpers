@@ -4,12 +4,12 @@
 List every pytest test under a file or directory together with its pytest
 marks and whether it is statically marked as skipped.
 
-Examples
+# Usage Example
 
-# Scan the whole repo.
+- Scan the whole repo:
 > pytest_marks.py
 
-# Scan only `helpers/`.
+- Scan only `helpers/`:
 > pytest_marks.py --dir helpers
 
 Creates the following file:

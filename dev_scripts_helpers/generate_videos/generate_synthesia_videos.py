@@ -2,13 +2,15 @@
 """
 Create a video from a text script and a chosen avatar using the Synthesia API.
 
-# Do a dry-run:
+# Usage Example
+
+- Do a dry run without generating videos:
 > generate_synthesia_videos.py \
     --in_dir videos \
     --limit "1:3" \
     --dry_run
 
-# Do a real run:
+- Do a real run that generates videos:
 > generate_synthesia_videos.py \
     --in_dir videos \
     --limit "1:3"

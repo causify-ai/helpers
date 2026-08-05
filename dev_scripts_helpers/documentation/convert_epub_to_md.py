@@ -4,7 +4,10 @@
 Convert EPUB file to markdown using Dockerized `pandoc` and save images.
 The script removes junk content and lints the output.
 
-Usage:
+# Usage Example
+
+- Convert an EPUB file to markdown, removing junk content and linting the
+  output:
 > convert_epub_to_md.py --input document.epub --output document.md
 
 The output will contain:

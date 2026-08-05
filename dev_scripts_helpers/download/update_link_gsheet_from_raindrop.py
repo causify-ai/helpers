@@ -16,22 +16,22 @@ This script manages four actions:
 3. combine: Transform and combine Raindrop data with gsheet structure
 4. upload_link_gsheet: Upload the combined CSV to a new tab in Google Sheets
 
-Example usage:
+# Usage Example
 
-# Download data from Google Sheets
+- Download data from Google Sheets:
 > update_link_gsheet_from_raindrop.py \
     --url "https://docs.google.com/spreadsheets/d/1i6Z7v2..." \
-    -a download_link_gsheet
+    --action download_link_gsheet
 
-# Run all actions
+- Run all actions:
 > update_link_gsheet_from_raindrop.py \
     --url "https://docs.google.com/spreadsheets/d/1i6Z7v2..." \
     --all
 
-# Skip upload action
+- Skip the upload action:
 > update_link_gsheet_from_raindrop.py \
     --url "https://docs.google.com/spreadsheets/d/1i6Z7v2..." \
-    -sa upload_link_gsheet
+    --skip_action upload_link_gsheet
 
 Import as:
 

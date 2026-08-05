@@ -19,29 +19,30 @@ Results are appended to the output file incrementally.
 
 The output preserves the markdown header structure with summaries or digests.
 
-Examples:
-# Summarize all level-1 chapters (default: 10% compression)
+# Usage Example
+
+- Summarize all level-1 chapters (default: 10% compression):
 > summarize_md.py -i book.md -o book.summary.md --md_level 1
 
-# Summarize entire file in one shot (default: 10% compression)
+- Summarize entire file in one shot (default: 10% compression):
 > summarize_md.py -i book.md -o out.md --md_level 0
 
-# Summarize with max words per chunk (disable default compression)
+- Summarize with max words per chunk (disable default compression):
 > summarize_md.py -i book.md -o out.md --md_level 1 --max_words 500
 
-# Summarize to 5% of original size (custom compression)
+- Summarize to 5% of original size (custom compression):
 > summarize_md.py -i book.md -o out.md --md_level 1 --pct_words 0.05
 
-# Summarize level-2 sections in a range (default: 10% compression)
+- Summarize level-2 sections in a range (default: 10% compression):
 > summarize_md.py -i book.md -o out.md --md_level 2 --md_start "Chapter 1" --md_end "Chapter 2"
 
-# Dry run: test with the first section only (default: 10% compression)
+- Dry run: test with the first section only (default: 10% compression):
 > summarize_md.py -i book.md -o out.md --md_level 1 --dry_run
 
-# Use a different LLM model (default: 10% compression)
+- Use a different LLM model (default: 10% compression):
 > summarize_md.py -i book.md -o out.md --md_level 1 --model "claude-3-opus"
 
-# Compute SHA1 digests instead of LLM summaries (for testing)
+- Compute SHA1 digests instead of LLM summaries (for testing):
 > summarize_md.py -i book.md -o book.digest.md --md_level 1 --test
 """
 

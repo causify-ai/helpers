@@ -5,7 +5,10 @@ Modify Python code to:
 - Use the canonical import docstring
 - Use canonical short imports
 
-> amp_normalize_import.py sample_file1.py sample_file2.py
+# Usage Example
+
+- Normalize imports in one or more Python files:
+> normalize_import.py sample_file1.py sample_file2.py
 
 Import as:
 

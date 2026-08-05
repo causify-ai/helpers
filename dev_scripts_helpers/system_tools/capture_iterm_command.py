@@ -7,16 +7,21 @@ By default:
 - captures only iTerm window
 - opens the captured screenshot
 
-Usage:
+# Usage Example
+
+- Run a command in iTerm and save a screenshot of the window:
 > capture_iterm_command.py \
     --command "glow TODO.convert_slides_into_book.md" \
     --output_file screenshot.png
 
+- Run a command in iTerm, waiting 3 seconds before capturing the screenshot:
 > capture_iterm_command.py \
     --command "echo Hello" \
     --output_file hello.png \
-    --delay_seconds 3 \
+    --delay_seconds 3
 
+- Run a command in iTerm, capturing the full screen (including background)
+  without opening the screenshot afterward:
 > capture_iterm_command.py \
         --command "ls" \
         --output_file ls.png \

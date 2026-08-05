@@ -2,6 +2,9 @@
 r"""
 Wrapper for process_jupytext.
 
+# Usage Example
+
+- Run process_jupytext on one or more files:
 > amp_processjupytext.py sample_file1.py sample_file2.py
 
 Import as:

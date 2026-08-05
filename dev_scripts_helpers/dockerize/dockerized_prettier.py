@@ -6,9 +6,9 @@ different environments.
 This script builds the container dynamically if necessary and formats the
 specified file using the provided `prettier` options.
 
-Examples
+# Usage Example
 
-# Process a file:
+- Process a file:
 > cat test.md
 - a
   - b
@@ -19,12 +19,12 @@ Examples
     --tab-width 2 \
     test.md
 
-# Use sudo for Docker commands:
+- Use sudo for Docker commands:
 > dockerized_prettier.py \
     --use_sudo \
     ...
 
-# Set logging verbosity:
+- Set logging verbosity:
 > dockerized_prettier.py \
     -v DEBUG \
     ...

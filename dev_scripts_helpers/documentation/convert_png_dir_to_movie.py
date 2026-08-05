@@ -3,18 +3,19 @@
 """
 Convert a directory of PNG frame images into a video (MP4) or GIF.
 
-Usage:
-# Create an MP4 video with default output file (video.mp4 in input_dir).
-> convert_to_movie.py --input_dir video_frames
+# Usage Example
 
-# Create an MP4 video from frames in a directory with custom output.
-> convert_to_movie.py --input_dir video_frames --output_file output.mp4
+- Create an MP4 video with default output file (video.mp4 in input_dir):
+> convert_png_dir_to_movie.py --input_dir video_frames
 
-# Create a GIF from frames in a directory.
-> convert_to_movie.py --input_dir video_frames --output_file output.gif
+- Create an MP4 video from frames in a directory with custom output:
+> convert_png_dir_to_movie.py --input_dir video_frames --output_file output.mp4
 
-# Specify custom frame rate (default is 2 fps).
-> convert_to_movie.py --input_dir video_frames --output_file output.mp4 --fps 5
+- Create a GIF from frames in a directory:
+> convert_png_dir_to_movie.py --input_dir video_frames --output_file output.gif
+
+- Specify custom frame rate (default is 2 fps):
+> convert_png_dir_to_movie.py --input_dir video_frames --output_file output.mp4 --fps 5
 """
 
 import argparse

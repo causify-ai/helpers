@@ -1,12 +1,18 @@
 #!/usr/bin/env python
 
 """
-- Rsync a git dir against a pycharm deploy dir
+# Usage Example
+
+- Preview an rsync of a git dir against a pycharm deploy dir, without executing it:
 > grsync.py --src_dir $HOME/src/.../... --config amp --action rsync -v DEBUG --preview
 
-- Diff
+- Diff a git dir against a pycharm deploy dir:
 > grsync.py --src_dir $HOME/src/.../... --config amp --action diff
+
+- Diff a git dir against a pycharm deploy dir, verbosely:
 > grsync.py --src_dir $HOME/src/.../... --config amp --action diff_verb
+
+- Diff a subdirectory of a git dir against a pycharm deploy dir, verbosely:
 > grsync.py --src_dir $HOME/src/.../.../tr --config amp --action diff_verb
 
 Import as:

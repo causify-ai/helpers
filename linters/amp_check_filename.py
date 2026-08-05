@@ -2,6 +2,9 @@
 r"""
 Check if filenames are correct according to our standard.
 
+# Usage Example
+
+- Check the filenames of one or more files:
 > amp_check_filename.py sample_file1.py sample_file2.py
 
 Import as:

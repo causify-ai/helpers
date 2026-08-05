@@ -4,26 +4,28 @@ r"""
 Diff content of two directories using vimdiff, by transform the output of `diff -r
 --brief dir1 dir2` into a script using vimdiff.
 
-# To clean up the crap in the dirs:
+# Usage Example
+
+- Clean up the crap in the dirs before diffing:
 > git status --ignored
 > git clean -fdx --dry-run
 
-# Diff content of dirs using vimdiff:
+- Diff content of dirs using vimdiff:
 > diff_to_vimdiff.py \
     --dir1 /Users/saggese/src/...2/amp \
     --dir2 /Users/saggese/src/...3/amp
 
-# Diff only files that are present in both dirs but have different content:
+- Diff only files that are present in both dirs but have different content:
 > diff_to_vimdiff.py \
     --dir1 ... --dir2 ... \
     --only_different_file_content
 
-# Diff only files that are not present in both dirs
+- Diff only files that are not present in both dirs:
 > diff_to_vimdiff.py \
     --dir1 ... --dir2 ... \
     --only_different_files
 
-# Compare the list of files in the two dirs, instead of the content of the files:
+- Compare the list of files in the two dirs, instead of the content of the files:
 > diff_to_vimdiff.py \
     --dir1 ... --dir2 ... \
     --compare_file_list

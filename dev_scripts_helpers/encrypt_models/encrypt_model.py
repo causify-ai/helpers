@@ -5,16 +5,17 @@ Encrypt and release a directory containing models
 See docs/dataflow/ck.release_encrypted_models.explanation.md and
 docs/dataflow/ck.release_encrypted_models.how_to_guide.md for details.
 
-Usage:
-# Encrypt models with the normal encryption flow.
-> dev_scripts/encrypt_model.py \
+# Usage Example
+
+- Encrypt models with the normal encryption flow:
+> encrypt_model.py \
     --input_dir dataflow_lemonade/pipelines \
     --model_dag_builder "C5a_DagBuilder" \
     --model_dag_builder_file "C5/C5a_pipeline.py" \
     -v DEBUG
 
-# Encrypt models with cross-compile options.
-> dev_scripts/encrypt_model.py \
+- Encrypt models with cross-compile options:
+> encrypt_model.py \
     --input_dir dataflow_lemonade/pipelines \
     --build_target "linux/amd64" \
     --model_dag_builder "C5a_DagBuilder" \

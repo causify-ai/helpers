@@ -3,23 +3,39 @@
 """
 Automate some common workflows with jupytext.
 
-# Pair
+# Usage Example
+
+- Pair the given notebooks with a Python file:
 > jupytext.py --action pair --files <notebook.ipynb> [<notebook2.ipynb> ...]
+
+- Pair all notebooks in the repo:
 > jupytext.py --action pair --all
+
+- Pair notebooks modified in the client:
 > jupytext.py --action pair --modified
+
+- Pair notebooks modified with respect to the branch point:
 > jupytext.py --action pair --branch
 
-# Test
+- Test that the given notebooks are in sync with their paired Python file:
 > jupytext.py --action test --files <notebook.{py,ipynb}> [<notebook2.{py,ipynb}> ...]
+
+- Test that all notebooks are in sync:
 > jupytext.py --action test --all
+
+- Test that notebooks modified in the client are in sync:
 > jupytext.py --action test --modified
 
-# Sync
+- Sync the given notebooks with their paired Python file:
 > jupytext.py --action sync --files <notebook.{py,ipynb}> [<notebook2.{py,ipynb}> ...]
+
+- Sync all notebooks:
 > jupytext.py --action sync --all
+
+- Sync notebooks modified in the client:
 > jupytext.py --action sync --modified
 
-# Diff (compare notebook with paired Python file using vimdiff)
+- Compare a notebook with its paired Python file using vimdiff:
 > jupytext.py --action diff --files <notebook.{py,ipynb}> [<notebook2.{py,ipynb}> ...]
 
 Import as:

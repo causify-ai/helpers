@@ -29,14 +29,14 @@ This script manages the following actions:
 4. update_article_cluster: Map topics to clusters
 5. upload_link_gsheet: Upload the processed CSV back to Google Sheets
 
-Example usage:
+# Usage Example
 
-# Download data from Google Sheets
+- Download data from Google Sheets:
 > process_link_gsheet.py \
     --url "https://docs.google.com/spreadsheets/d/1i6Z7v2..." \
     --action download_link_gsheet
 
-# Run all actions
+- Run all actions:
 > process_link_gsheet.py \
     --url "https://docs.google.com/spreadsheets/d/1i6Z7v2..." \
     --all

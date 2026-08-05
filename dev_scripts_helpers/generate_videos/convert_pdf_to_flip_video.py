@@ -10,8 +10,12 @@ Requirements (macOS):
 2) Python packages:
    pip install pdf2image moviepy pillow
 
-Usage:
+# Usage Example
+
+- Create a crossfade-style flip video with custom fps, page duration, and transition:
 > convert_pdf_to_flip_video.py /path/to/file.pdf --out out.mp4 --fps 30 --page-duration 2.0 --transition 0.5 --style crossfade
+
+- Create a slide-style flip video with a custom transition duration:
 > convert_pdf_to_flip_video.py /path/to/file.pdf --out out.mp4 --style slide --transition 0.6
 
 Notes:

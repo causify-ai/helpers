@@ -17,30 +17,30 @@ Note: TikZ and LaTeX diagrams only support PNG format. Other diagram types
 
 See `dev_scripts_helpers/documentation/render_images.README.md`.
 
-Usage:
+# Usage Example
 
-# Create a new Markdown file with rendered images:
+- Create a new Markdown file with rendered images:
 > render_images.py -i ABC.md -o XYZ.md --action render
 
-# Render images in place in the original Markdown file:
+- Render images in place in the original Markdown file:
 > render_images.py -i ABC.md --action render
 
-# Render images in place in the original LaTeX file:
+- Render images in place in the original LaTeX file:
 > render_images.py -i ABC.tex --action render
 
-# Render a standalone typst file to PDF:
+- Render a standalone typst file to PDF:
 > render_images.py -i ABC.typ -o ABC.pdf --action render
 
-# Render a standalone typst file to PNG:
+- Render a standalone typst file to PNG:
 > render_images.py -i ABC.typ -o ABC.png --action render
 
-# Open rendered images from a Markdown file in HTML to preview:
+- Open rendered images from a Markdown file in HTML to preview:
 > render_images.py -i ABC.md --action open
 
-# Render images in SVG format (diagrams only):
+- Render images in SVG format (diagrams only):
 > render_images.py -i ABC.md --action render --output_format svg
 
-# Render images in PNG format (default):
+- Render images in PNG format (default):
 > render_images.py -i ABC.md --action render --output_format png
 """
 

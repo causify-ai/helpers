@@ -13,32 +13,31 @@
 
 - The output file name is shared across the `.pdf`, `.md`, and `.summary.md` outputs
 
-# Examples
-```
-# Download from arXiv URL (runs download, convert, summarize by default)
+# Usage Example
+
+- Download from arXiv URL (runs download, convert, summarize by default):
 > download_academic_paper_to_md.py --input "https://arxiv.org/abs/1706.03762"
 
-# Download from DOI URL
+- Download from DOI URL:
 > download_academic_paper_to_md.py --input "https://doi.org/10.1038/nature12373"
 
-# Download from bare DOI
+- Download from bare DOI:
 > download_academic_paper_to_md.py --input "10.1038/nature12373"
 
-# Download from generic PDF URL
+- Download from generic PDF URL:
 > download_academic_paper_to_md.py --input "https://example.com/paper.pdf"
 
-# Save under a custom directory when --output is not passed, via $PAPERS_DIR
+- Save under a custom directory when --output is not passed, via $PAPERS_DIR:
 > PAPERS_DIR=./my_papers download_academic_paper_to_md.py --input "https://arxiv.org/abs/1706.03762"
 
-# Specify an explicit output base name (produces mypaper.pdf, mypaper.md, ...)
+- Specify an explicit output base name (produces mypaper.pdf, mypaper.md, ...):
 > download_academic_paper_to_md.py --input "https://arxiv.org/abs/1706.03762" --output ./my_papers/mypaper
 
-# Overwrite existing files
+- Overwrite existing files:
 > download_academic_paper_to_md.py --input "10.1038/nature12373" --no_incremental
 
-# Only download and convert, skip summarization
-> download_academic_paper_to_md.py --input "10.1038/nature12373" -sa summarize
-```
+- Only download and convert, skip summarization:
+> download_academic_paper_to_md.py --input "10.1038/nature12373" --skip_action summarize
 
 Import as:
 

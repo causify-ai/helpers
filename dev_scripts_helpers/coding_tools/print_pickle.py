@@ -6,11 +6,13 @@ Read a pickle file and pretty print its contents.
 This script loads a pickle file and displays its contents in a readable format
 using pprint.
 
-# Print contents of a pickle file:
-> ./print_pickle.py --input file.pkl
+# Usage Example
 
-# Print contents with increased depth:
-> ./print_pickle.py --input file.pkl --depth 5
+- Print contents of a pickle file:
+> print_pickle.py --input file.pkl
+
+- Print contents with increased depth:
+> print_pickle.py --input file.pkl --depth 5
 
 Import as:
 

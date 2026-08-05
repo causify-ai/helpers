@@ -3,6 +3,9 @@
 """
 Standardize book filenames to a consistent format.
 
+# Usage Example
+
+- Standardize the filename of a book, optionally renaming it in place with `--mv`:
 > standardize_book_filename.py --input INPUT_FILE [--mv]
 """
 

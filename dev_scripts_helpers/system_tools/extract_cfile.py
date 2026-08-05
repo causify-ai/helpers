@@ -3,7 +3,10 @@
 """
 This script extracts the file name from a cfile.
 
-Example:
+# Usage Example
+
+- Extract file names from a cfile piped in from `jackmd`, reading from and
+  writing to stdin/stdout:
 > jackmd DataPull | extract_cfile.py -i - -o -
 """
 

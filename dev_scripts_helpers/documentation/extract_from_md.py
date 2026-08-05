@@ -26,28 +26,28 @@ For `.md` files, headers can be specified as:
 - "START" (no colon) - extract from START until next same-level header
 - "START:END" (where END is "END") - extract from START to EOF
 
-# Examples:
+# Usage Example
 
-- Extract text between two headers (full format)
-  > extract_from_md.py -i input.md --select "## Section 1:## Section 2" -o output.txt
+- Extract text between two headers (full format):
+> extract_from_md.py -i input.md --select "## Section 1:## Section 2" -o output.txt
 
-- Extract text using substring match
-  > extract_from_md.py -i input.md --select "Section 1:Section 2" -o output.txt
+- Extract text using substring match:
+> extract_from_md.py -i input.md --select "Section 1:Section 2" -o output.txt
 
-- Extract text from "## Section 1" until next same-level header
-  > extract_from_md.py -i input.md --select "## Section 1:" -o output.txt
+- Extract text from "## Section 1" until next same-level header:
+> extract_from_md.py -i input.md --select "## Section 1:" -o output.txt
 
-- Extract from beginning until "Section 2"
-  > extract_from_md.py -i input.md --select ":Section 2" -o output.txt
+- Extract from beginning until "Section 2":
+> extract_from_md.py -i input.md --select ":Section 2" -o output.txt
 
-- Extract text to EOF
-  > extract_from_md.py -i input.md --select "Chapter 1" -o -
+- Extract text to EOF:
+> extract_from_md.py -i input.md --select "Chapter 1" -o -
 
-- Extract text between slides in a .txt file (using slide notation)
-  > extract_from_md.py -i input.txt --select "* Slide 1:* Slide 2" -o output.txt
+- Extract text between slides in a .txt file (using slide notation):
+> extract_from_md.py -i input.txt --select "* Slide 1:* Slide 2" -o output.txt
 
-- Extract text from a slide using substring match
-  > extract_from_md.py -i input.txt --select "Introduction" -o output.txt
+- Extract text from a slide using substring match:
+> extract_from_md.py -i input.txt --select "Introduction" -o output.txt
 """
 
 import argparse

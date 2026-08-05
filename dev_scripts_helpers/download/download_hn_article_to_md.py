@@ -23,23 +23,24 @@ Output filenames share a base name, with
 where `{base}` is `--output` if specified, otherwise the submission title with
 bash-unfriendly characters replaced with underscores.
 
-## Example Usage
+# Usage Example
 
-Download and summarize everything for a submission (default actions):
+- Download and summarize everything for a submission (default actions):
 > download_hn_article_to_md.py --hn_url "https://news.ycombinator.com/item?id=12345"
 
-Only fetch HN comments, skip the linked article:
+- Only fetch HN comments, skip the linked article:
 > download_hn_article_to_md.py \
     --hn_url "https://news.ycombinator.com/item?id=12345" \
     --action download_hn_url \
     --action summarize_hn_url
 
-Download without summarizing:
+- Download without summarizing:
 > download_hn_article_to_md.py \
     --hn_url "https://news.ycombinator.com/item?id=12345" \
-    -sa summarize_hn_url -sa summarize_article_url
+    --skip_action summarize_hn_url \
+    --skip_action summarize_article_url
 
-Use an explicit output base name instead of the derived title:
+- Use an explicit output base name instead of the derived title:
 > download_hn_article_to_md.py \
     --hn_url "https://news.ycombinator.com/item?id=12345" \
     --output my_submission

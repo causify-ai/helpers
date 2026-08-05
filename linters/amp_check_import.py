@@ -2,6 +2,9 @@
 r"""
 Check if imports use our standard.
 
+# Usage Example
+
+- Check the imports of one or more files:
 > amp_check_import.py sample-file1.py sample-file2.py
 
 Import as:

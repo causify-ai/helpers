@@ -9,9 +9,12 @@ Consolidate failed tests across multiple build configurations.
 
 For architecture overview, see `pytest_testing_system.README.md`.
 
-Examples:
+# Usage Example
+
+- Consolidate failed tests across all build configurations:
 > pytest_failed_multi_build.py
 
+- Consolidate failed tests across specific build configurations:
 > pytest_failed_multi_build.py --build_names docker apple dev_container
 """
 

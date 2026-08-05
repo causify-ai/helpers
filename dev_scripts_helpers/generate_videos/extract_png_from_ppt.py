@@ -2,7 +2,9 @@
 """
 Extract images, text content, and notes from PowerPoint presentations.
 
-Usage:
+# Usage Example
+
+- Extract content from a PowerPoint presentation into an output directory:
 > extract_png_from_ppt.py --in_file presentation.pptx --out_dir extracted
 
 Options:

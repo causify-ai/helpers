@@ -7,10 +7,18 @@
 r"""
 Count words in a file and estimate reading time.
 
-Examples:
+# Usage Example
+
+- Count words in a single input file:
 > count_words.py -i input.txt
+
+- Count words in a markdown file:
 > count_words.py -i document.md
+
+- Count words across multiple files passed as separate arguments:
 > count_words.py --input_files file1.md file2.md file3.md
+
+- Count words across multiple files passed as a comma-separated list:
 > count_words.py --input_files "file1.md,file2.md,file3.md"
 """
 

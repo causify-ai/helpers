@@ -2,15 +2,13 @@
 """
 Lint files.
 
-E.g.,
+# Usage Example
 
-```bash
-# Lint all the files modified in the git client.
+- Lint all the files modified in the git client:
 > base.py --modified
 
-# Lint specific files.
+- Lint specific files:
 > base.py -f "foo.py bar.md"
-```
 """
 
 import argparse

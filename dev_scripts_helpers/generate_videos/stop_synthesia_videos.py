@@ -5,9 +5,13 @@ Stop Synthesia video generation.
 This script cancels video generation jobs from the Synthesia API using their
 Cancel Video Generation endpoint.
 
-Usage:
-> python stop_synthesia_videos.py --ids "id1 id2 id3"
-> python stop_synthesia_videos.py --delete-all
+# Usage Example
+
+- Cancel specific video generation jobs by ID:
+> stop_synthesia_videos.py --ids "id1 id2 id3"
+
+- Delete all completed and in-progress videos:
+> stop_synthesia_videos.py --delete-all
 
 Environment:
   SYNTHESIA_API_KEY  Your Synthesia API key (Creator plan or above).

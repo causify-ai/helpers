@@ -10,14 +10,15 @@ Executes the same command or pytest target in 3 different build configurations:
 
 For architecture overview, see `pytest_testing_system.README.md`.
 
-Examples:
-# Run pytest on a specific test file across all builds:
+# Usage Example
+
+- Run pytest on a specific test file across all builds:
 > pytest_multi_build.py --target "helpers/test/test_hunit_test.py"
 
-# Run pytest on all tests in current directory, skipping cache clear:
+- Run pytest on all tests in current directory, skipping cache clear:
 > pytest_multi_build.py --target "." --no_delete_cache
 
-# Run a custom script across all builds:
+- Run a custom script across all builds:
 > pytest_multi_build.py --script ./pr_test.sh
 """
 

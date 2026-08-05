@@ -10,21 +10,21 @@ Copies files and directories from `dir1` to `dir2`:
 
 Files and directories are interpreted as relative to `dir1` and `dir2`.
 
-Examples:
+# Usage Example
 
-Copy specific files:
+- Copy specific files:
 > copy_across_clients.py \
     --dir1 /path/to/client1 \
     --dir2 /path/to/client2 \
     --files file1.txt file2.py
 
-Copy files and directories from a list file:
+- Copy files and directories from a list file:
 > copy_across_clients.py \
     --dir1 /path/to/client1 \
     --dir2 /path/to/client2 \
     --from_file files.txt
 
-Dry run to see what would be done:
+- Dry run to see what would be done:
 > copy_across_clients.py \
     --dir1 /path/to/client1 \
     --dir2 /path/to/client2 \

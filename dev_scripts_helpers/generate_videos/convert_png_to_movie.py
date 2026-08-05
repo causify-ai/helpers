@@ -7,11 +7,12 @@ This script takes a directory containing PNG files and creates individual movies
 from each PNG file, with each movie displaying the single image for a specified
 duration.
 
-Examples:
-# Convert all PNG files in a directory to individual movies
+# Usage Example
+
+- Convert all PNG files in a directory to individual movies:
 > convert_png_to_movie.py --in_dir ./slides --duration 3.0
 
-# Convert specific PNG files
+- Convert specific PNG files:
 > convert_png_to_movie.py --in_dir ./images --files "image1.png,image2.png"
 """
 

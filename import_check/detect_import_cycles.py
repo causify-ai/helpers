@@ -6,6 +6,9 @@
 """
 Detect cyclic imports.
 
+# Usage Example
+
+- Detect cyclic imports in a module:
 > detect_import_cycles.py <module_name>
 """
 

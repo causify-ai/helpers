@@ -206,7 +206,7 @@ def download_arxiv_article(url: str, output_file: str) -> None:
     # since callers summarize the resulting article text themselves.
     cmd = (
         f'{script} --input "{url}" --output "{base_path}" '
-        f'--no_incremental -sa summarize'
+        f'--no_incremental --skip_action summarize'
     )
     hsystem.system(cmd)
     pdf_output_file = f"{base_path}.pdf"

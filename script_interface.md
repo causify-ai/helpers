@@ -135,21 +135,21 @@
 
 - The output is:
   ```verbatim
-    -a, --action ACTION   Actions to execute (see available actions below)
-    -sa, --skip_action SKIP_ACTION
+    --action ACTION       Actions to execute (see available actions below)
+    --skip_action SKIP_ACTION
                           Actions to skip from default set (see available actions
                           below)
-    -e, --enable ENABLE_ACTION
+    --enable ENABLE_ACTION
                           Enable additional actions on top of defaults (see
                           available actions below)
     --all                 Run all the actions (a b)
 
-    Available actions:
+    ## Available actions:
     - a
     - b
     - c
 
-    Default actions:
+    ## Default actions:
     - a
     - b
   ```

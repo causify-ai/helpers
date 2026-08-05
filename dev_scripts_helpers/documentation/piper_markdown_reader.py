@@ -7,11 +7,20 @@
 """
 Read a markdown file and play it using Piper text-to-speech with playback controls.
 
-Examples:
-> ./piper_markdown_reader.py --input README.md
-> ./piper_markdown_reader.py --input README.md --speed 1.5 --voice en_US-joe-medium
-> ./piper_markdown_reader.py --input README.md --speed 0.8 --voice en_US-amy-medium
-> ./piper_markdown_reader.py --input README.md --md_start "Section 5" --md_end "END" --dry_run
+# Usage Example
+
+- Read and play a markdown file with default speed and voice:
+> piper_markdown_reader.py --input README.md
+
+- Read and play a markdown file faster, using the "joe" voice:
+> piper_markdown_reader.py --input README.md --speed 1.5 --voice en_US-joe-medium
+
+- Read and play a markdown file slower, using the "amy" voice:
+> piper_markdown_reader.py --input README.md --speed 0.8 --voice en_US-amy-medium
+
+- Generate audio for a section of the file, from "Section 5" to the end,
+  without playing it:
+> piper_markdown_reader.py --input README.md --md_start "Section 5" --md_end "END" --dry_run
 """
 
 import argparse

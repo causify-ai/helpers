@@ -7,12 +7,13 @@ This script runs gitleaks security checks using Docker to scan for potential
 secrets in the git repository. It uses the gitleaks configuration from
 dev_scripts_helpers/git/gitleaks/gitleaks-rules.toml.
 
-Examples:
-# Run gitleaks check on staged files
-> dev_scripts_helpers/git/git_hooks/gitleaks.py
+# Usage Example
 
-# Run gitleaks check without aborting on error
-> dev_scripts_helpers/git/git_hooks/gitleaks.py --no-abort-on-error
+- Run gitleaks check on staged files:
+> gitleaks.py
+
+- Run gitleaks check without aborting on error:
+> gitleaks.py --no-abort-on-error
 
 Import as:
 

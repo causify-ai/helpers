@@ -4,7 +4,12 @@ Run `typst` inside a Docker container.
 
 This script builds the container dynamically if necessary.
 
+# Usage Example
+
+- Convert a Typst document to PDF:
 > dockerized_typst.py --input document.typ --output document.pdf
+
+- Convert a Typst document to PDF, passing extra options through to `typst`:
 > dockerized_typst.py \
         --input document.typ \
         --output document.pdf \

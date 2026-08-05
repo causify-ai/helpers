@@ -13,22 +13,23 @@ r"""
   - readability: Uses readability library for article extraction
 - Summarize the content
 
-Examples:
-# Download a page and convert it using the default "auto" converter (tries
-# BeautifulSoup first, falls back to readability).
+# Usage Example
+
+- Download a page and convert it using the default "auto" converter (tries
+  BeautifulSoup first, falls back to readability):
 > download_html_to_md.py --input https://example.com --output output.md
 
-# Convert using the `pandoc` command-line tool instead.
+- Convert using the `pandoc` command-line tool instead:
 > download_html_to_md.py --input https://example.com --output output.md --converter pandoc
 
-# Convert using BeautifulSoup with common content selectors only.
+- Convert using BeautifulSoup with common content selectors only:
 > download_html_to_md.py --input https://example.com --output output.md --converter bs
 
-# If --output is omitted, the page title is used to generate the filename.
+- If --output is omitted, the page title is used to generate the filename:
 > download_html_to_md.py --input https://example.com
 
-# Enable the `summarize` action on top of the default actions to also
-# generate `<output>.summary.md`.
+- Enable the `summarize` action on top of the default actions to also
+  generate `<output>.summary.md`:
 > download_html_to_md.py --input https://example.com --output output.md -e summarize
 """
 

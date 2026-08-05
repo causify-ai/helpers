@@ -6,9 +6,15 @@ Split a markdown file into individual chapters based on level-1 headers.
 Each chapter is saved to a separate file in the output directory with a
 filename derived from the chapter title (with special characters removed).
 
-Usage:
+# Usage Example
+
+- Split a markdown file into chapters:
 > extract_chapters_from_text.py -i book.md -o book_chapters
+
+- Split a markdown file into chapters with numbered filename prefixes:
 > extract_chapters_from_text.py -i book.md -o book_chapters --add_numbers
+
+- Split a markdown file into chapters, overwriting existing chapter files:
 > extract_chapters_from_text.py -i book.md -o book_chapters --overwrite
 """
 

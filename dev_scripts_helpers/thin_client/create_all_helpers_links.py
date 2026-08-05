@@ -7,14 +7,15 @@ This script creates symbolic links for configuration files and directories from
 helpers_root to the current repository, enabling thin client repositories to
 share common configuration.
 
-Example usage:
-# Create all missing links
+# Usage Example
+
+- Create all missing links:
 > create_all_helpers_links.py
 
-# Force recreate all links (even if they exist)
+- Force recreate all links (even if they exist):
 > create_all_helpers_links.py --force
 
-# Preview what would be done without making changes
+- Preview what would be done without making changes:
 > create_all_helpers_links.py --dry_run
 
 Import as:

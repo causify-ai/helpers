@@ -8,9 +8,15 @@ and aggregated across all repos for a specific author and date range.
 
 If --author is not specified, uses the current git user (git config user.email).
 
-Usage:
+# Usage Example
+
+- Compute metrics for the current git user over a specific date range:
 > git_productivity_metrics.py --since "2026-01-01" --until "2026-12-31"
+
+- Compute metrics for today across repos found under a given directory:
 > git_productivity_metrics.py --since "today" --repo-dir /path/to/repos
+
+- Compute metrics for a specific author over the last 7 days in the current directory:
 > git_productivity_metrics.py --author email@example.com --since "7 days ago" --repo-dir .
 """
 
