@@ -93,8 +93,11 @@ def _colorize_backticks(
         """
         matched_text = m.group(1)
         if output_format == "latex":
-            # Escape underscores for LaTeX.
-            escaped_text = matched_text.replace("_", r"\_")
+            # Escape underscores and carets for LaTeX (`^` is a special
+            # character that triggers math mode otherwise).
+            escaped_text = matched_text.replace("_", r"\_").replace(
+                "^", r"\^{}"
+            )
             txt = rf"\textcolor{{{color}}}{{\texttt{{{escaped_text}}}}}"
         else:  # typst
             # For Typst, use #text with the content directly (no inner backticks).
