@@ -22,7 +22,7 @@ deepseek/deepseek-v4-pro
 > openrouter_models_table.py --models_from_file models.txt -v DEBUG
 
 - Compare models listed in a file, running only the AA benchmarks and OpenRouter throughput actions:
-> openrouter_models_table.py --models_from_file models.txt --action fetch_aa_benchmarks --action fetch_openrouter_throughput
+> openrouter_models_table.py --models_from_file models.txt --clear_actions --action aa_benchmarks --action openrouter_throughput
 
 - Compare models given as an inline space-separated list:
 > openrouter_models_table.py --models_list "google/gemini-3.1-pro-preview deepseek/deepseek-v4-pro"
@@ -40,10 +40,10 @@ Available data sources:
   rankings API
 
 Use action selection flags to control which data sources are queried:
-- `--action`: Select specific actions to run
-- `--skip_action`: Skip specific actions from the default set
-- `--enable`: Enable additional actions beyond defaults
-- `--all_actions`: Run all available actions (default behavior)
+- `--action`: Add an action to the default set
+- `--skip_action`: Remove an action from the default set
+- `--all_actions`: Run all available actions
+- `--clear_actions`: Start from no actions, then add via `--action`
 """
 
 import argparse

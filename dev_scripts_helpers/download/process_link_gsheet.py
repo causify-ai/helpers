@@ -31,10 +31,10 @@ This script manages the following actions:
 
 # Usage Example
 
-- Download data from Google Sheets:
+- Download data from Google Sheets (only that action):
 > process_link_gsheet.py \
     --url "https://docs.google.com/spreadsheets/d/1i6Z7v2..." \
-    --action download_link_gsheet
+    --clear_actions --action download_link_gsheet
 
 - Run all actions:
 > process_link_gsheet.py \

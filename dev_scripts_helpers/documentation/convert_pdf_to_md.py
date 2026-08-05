@@ -15,20 +15,20 @@ Automatically installs dependencies via `uv` if missing.
 # Usage Example
 
 - Convert PDF to markdown with images:
-> convert_pdf_to_md.py --input document.pdf --action convert --output output_dir
+> convert_pdf_to_md.py --input document.pdf --clear_actions --action convert --output output_dir
 
 - Convert PDF to markdown without images:
 > convert_pdf_to_md.py \
     --input document.pdf \
-    --action convert \
+    --clear_actions --action convert \
     --output output_dir \
     --skip_figures
 
 - Clean an existing markdown file (remove PDF conversion artifacts):
-> convert_pdf_to_md.py --input document.pdf --action remove_junk
+> convert_pdf_to_md.py --input document.pdf --clear_actions --action remove_junk
 
 - Run prettier formatter on the markdown file:
-> convert_pdf_to_md.py --input document.pdf --action lint
+> convert_pdf_to_md.py --input document.pdf --clear_actions --action lint
 
 - Run all actions in sequence (convert, remove_junk, lint):
 > convert_pdf_to_md.py --input document.pdf --output output_dir

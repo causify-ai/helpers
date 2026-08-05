@@ -32,7 +32,7 @@ bash-unfriendly characters replaced with underscores.
 - Only fetch HN comments, skip the linked article:
 > download_hn_article_to_md.py \
     --input "https://news.ycombinator.com/item?id=12345" \
-    --action download_hn_url \
+    --clear_actions --action download_hn_url \
     --action summarize_hn_url
 
 - Download without summarizing:
@@ -530,7 +530,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
     _LOG.debug(hprint.to_str("item_id title article_url"))
     # Restrict the defaults to HN-only actions when the submission has no
     # linked article (e.g., Show HN / Ask HN / text posts); overridable
-    # explicitly via --action/--skip_action/--enable.
+    # explicitly via --action/--skip_action.
     default_actions = DEFAULT_ACTIONS
     if not article_url:
         _LOG.info(

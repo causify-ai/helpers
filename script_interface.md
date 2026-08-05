@@ -135,14 +135,11 @@
 
 - The output is:
   ```verbatim
-    --action ACTION       Actions to execute (see available actions below)
+    --action ACTION       Add an action to the list of actions to execute
     --skip_action SKIP_ACTION
-                          Actions to skip from default set (see available actions
-                          below)
-    --enable ENABLE_ACTION
-                          Enable additional actions on top of defaults (see
-                          available actions below)
-    --all_actions          Run all the actions (a b)
+                          Remove an action from the list of actions to execute
+    --all_actions         Run all the valid actions (a b c)
+    --clear_actions       Start from an empty list of actions
 
     ## Available actions:
     - a

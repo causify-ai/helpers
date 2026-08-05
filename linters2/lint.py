@@ -32,25 +32,25 @@ then applies appropriate linting tools per file type.
 > lint.py --modified --file_types "md,txt"
 
 - Run only specific actions on modified files (pre-commit and normalize_import):
-> lint.py --modified --action pre-commit normalize_import
+> lint.py --modified --clear_actions --action pre-commit --action normalize_import
 
 - Run only jupytext sync on Jupyter notebooks:
-> lint.py --modified --file_types "ipynb" --action sync_jupytext
+> lint.py --modified --file_types "ipynb" --clear_actions --action sync_jupytext
 
 - Run add_class_frames only on Python files:
-> lint.py --modified --file_types "py" --action add_class_frames
+> lint.py --modified --file_types "py" --clear_actions --action add_class_frames
 
 - Run fix_comments only on Python files to convert single-line docstrings:
-> lint.py --modified --file_types "py" --action fix_comments
+> lint.py --modified --file_types "py" --clear_actions --action fix_comments
 
 - Run pyright type-checker on modified Python files (including paired jupytext):
-> lint.py --modified --file_types "py" --action pyright
+> lint.py --modified --file_types "py" --clear_actions --action pyright
 
 - Run fix_pyright via Claude Code to fix pyright errors:
-> lint.py --modified --file_types "py" --action fix_pyright
+> lint.py --modified --file_types "py" --clear_actions --action fix_pyright
 
 - Run coverage for test files corresponding to modified Python files:
-> lint.py --modified --file_types "py" --action coverage
+> lint.py --modified --file_types "py" --clear_actions --action coverage
 """
 
 import argparse

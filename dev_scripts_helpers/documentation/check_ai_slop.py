@@ -13,10 +13,10 @@ This script provides two actions:
 > check_ai_slop.py -i input.txt --action detect
 
 - Humanize AI content and save to output file:
-> check_ai_slop.py -i input.txt -o output.txt --action fix
+> check_ai_slop.py -i input.txt -o output.txt --clear_actions --action fix
 
 - Process with specific humanization settings:
-> check_ai_slop.py -i input.txt -o output.txt --action fix --readability "University" --purpose "Essay"
+> check_ai_slop.py -i input.txt -o output.txt --clear_actions --action fix --readability "University" --purpose "Essay"
 
 Import as:
 
