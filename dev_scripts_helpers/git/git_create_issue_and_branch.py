@@ -424,6 +424,12 @@ def _parse() -> argparse.ArgumentParser:
             "outer repo, even if submodules are present"
         ),
     )
+    parser.add_argument(
+        "--no_master_check",
+        action="store_true",
+        default=False,
+        help="Skip checking that every repo target is on 'master'",
+    )
     hparser.add_verbosity_arg(parser)
     return parser
 
@@ -519,7 +525,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
     _dassert_all_targets_clean(repo_targets)
     # Capture original branch to restore on failure.
     original_branch = hgit.get_branch_name()
-    if len(repo_targets) > 1:
+    if len(repo_targets) > 1 and not args.no_master_check:
         # Assert that every repo target is on 'master' before creating a
         # branch in any of them, to avoid a half-done state across repos.
         _dassert_all_targets_on_master(repo_targets, original_branch)

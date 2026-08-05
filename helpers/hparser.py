@@ -46,18 +46,18 @@ class CustomHelpFormatter(argparse.RawDescriptionHelpFormatter):
 
     - Preserve explicit newlines inside individual argument `help=` strings
       (see `_split_lines()`): `RawDescriptionHelpFormatter` only keeps raw
-      formatting for the parser-level `description`/`epilog`, so a
-      hand-built bullet list (e.g., via `hprint.dedent()`) in a `help=`
-      string would otherwise be collapsed by `argparse` into a single
-      wrapped paragraph, losing its line breaks and "-" markers.
-    - Wrap to a fixed `width` (default `_HELP_WIDTH`) instead of the
-      terminal's width.
-    - Append "(default: ...)" to every optional argument that has a
-      meaningful default, like `argparse.ArgumentDefaultsHelpFormatter`,
-      but skip arguments with no default (`None`, `""`, or `required=True`)
-      instead of printing a useless "(default: None)".
-    - Colorize section headings, option strings, and default annotations
-      when stdout is a terminal and `NO_COLOR` is unset. Colored text is
+      formatting for the parser-level `description`/`epilog`, so a hand-built
+      bullet list (e.g., via `hprint.dedent()`) in a `help=` string would
+      otherwise be collapsed by `argparse` into a single wrapped paragraph,
+      losing its line breaks and "-" markers.
+    - Wrap to a fixed `width` (default `_HELP_WIDTH`) instead of the terminal's
+      width.
+    - Append "(default: ...)" to every optional argument that has a meaningful
+      default, like `argparse.ArgumentDefaultsHelpFormatter`, but skip
+      arguments with no default (`None`, `""`, or `required=True`) instead of
+      printing a useless "(default: None)".
+    - Colorize section headings, option strings, and default annotations when
+      stdout is a terminal and `NO_COLOR` is unset. Colored text is
       measured/padded by its visible length so column alignment matches the
       uncolored output exactly
     """
@@ -287,7 +287,7 @@ def add_bool_arg(
     E.g., `add_bool_arg(parser, "run_diff_script", default_value=True)` adds
     two options:
     ```
-      --run_diff_script     Run the diffing script or not
+      --run_diff_script             Run the diffing script or not
       --no_run_diff_script
     ```
     corresponding to `args.run_diff_script`, where the default behavior is to have
@@ -304,6 +304,11 @@ def add_verbosity_arg(
     parser: argparse.ArgumentParser, *, log_level: str = "INFO"
 ) -> argparse.ArgumentParser:
     parser.add_argument(
+        "--no_report_command_line",
+        action="store_true",
+        help="Disable printing of executed commands",
+    )
+    parser.add_argument(
         "-v",
         dest="log_level",
         default=log_level,
@@ -314,11 +319,6 @@ def add_verbosity_arg(
         # CRITICAL=50
         choices=["TRACE", "DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"],
         help="Set the logging level",
-    )
-    parser.add_argument(
-        "--no_report_command_line",
-        action="store_true",
-        help="Disable printing of executed commands",
     )
     return parser
 
@@ -348,8 +348,8 @@ def add_json_output_metadata_args(
     """
     Add arguments related to storing the output metadata from a script.
 
-    This data can be read / used by other scripts to post-process a
-    script results.
+    This data can be read / used by other scripts to post-process a script
+    results.
     """
     parser.add_argument(
         "--json_output_metadata",
