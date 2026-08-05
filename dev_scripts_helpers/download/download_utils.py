@@ -6,7 +6,7 @@ titles for use in filenames, and summarizing text via an LLM.
 
 Import as:
 
-import dev_scripts_helpers.download.download_utils as dsdlut
+import dev_scripts_helpers.download.download_utils as dshddut
 """
 
 import logging
@@ -217,7 +217,7 @@ def download_arxiv_article(url: str, output_file: str) -> None:
     # figures too, since only the text is consumed downstream.
     cmd = (
         f'{script} --input "{url}" --output "{base_path}" '
-        f'--no_incremental --skip_action summarize --skip_figures'
+        f"--no_incremental --skip_action summarize --skip_figures"
     )
     hsystem.system(cmd, print_command=True)
     pdf_output_file = f"{base_path}.pdf"

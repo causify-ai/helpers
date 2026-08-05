@@ -84,9 +84,7 @@ class Test_PromptSequencer_execute(hunitest.TestCase):
         # Prepare outputs.
         prompts = ["prompt A", "prompt B"]
         # Run test.
-        mock_client_cls = self.helper(
-            sequencer, prompts, fake_client
-        )
+        mock_client_cls = self.helper(sequencer, prompts, fake_client)
         # Check outputs.
         mock_client_cls.assert_called_once()
         _, kwargs = mock_client_cls.call_args
@@ -578,7 +576,6 @@ class Test_save_session_log(hunitest.TestCase):
     """
     Test save_session_log function.
     """
-
 
     def helper(
         self, prompts: list, responses: list, expected_output: str

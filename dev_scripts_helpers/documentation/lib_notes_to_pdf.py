@@ -35,7 +35,7 @@ import helpers.hsystem as hsystem
 import dev_scripts_helpers.dockerize.lib_latex as dshdlila
 import dev_scripts_helpers.dockerize.lib_pandoc as dshdlipa
 import dev_scripts_helpers.dockerize.lib_typst as dshdlity
-import dev_scripts_helpers.documentation.preprocess_notes as dsdoprno
+import dev_scripts_helpers.documentation.preprocess_notes as dshdprno
 
 _LOG = logging.getLogger(__name__)
 
@@ -132,7 +132,7 @@ def resolve_slides_engine(file_name: str, slides_engine: str) -> str:
     txt = hio.from_file(file_name)
     lines = txt.split("\n")
     # Process file .
-    metadata, _ = dsdoprno.extract_slide_metadata(lines)
+    metadata, _ = dshdprno.extract_slide_metadata(lines)
     resolved_engine = metadata.get("slides_engine", "beamer")
     #
     hdbg.dassert_in(

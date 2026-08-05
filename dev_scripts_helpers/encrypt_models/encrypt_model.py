@@ -39,6 +39,23 @@ import helpers.hsystem as hsystem
 _LOG = logging.getLogger(__name__)
 
 
+# TODO(gp): Add a function to check that everything is encrypted.
+# find dataflow_lemonade/encrypted_pipelines -name "*.py" | grep -v pytransform | xargs -n 1 cat | grep -v "\x"
+
+
+def _get_python_version_in_docker() -> str:
+    """
+    Get the Python version used in Docker.
+    """
+    cmd = "invoke docker_cmd -c 'python -V'"
+    _, output = hsystem.system_to_string(cmd)
+    pattern = r"Python (\d+\.\d+\.\d+)"
+    match = re.search(pattern, output)
+    hdbg.dassert_is_not(match, None, f"Can't parse '{output}'")
+    python_version = match.group(1)
+    return python_version
+
+
 def _encrypt_input_dir(
     input_dir: str,
     output_dir: str,
@@ -137,23 +154,6 @@ def _encrypt_input_dir(
         output_dir,
     )
     return output_dir
-
-
-# TODO(gp): Add a function to check that everything is encrypted.
-# find dataflow_lemonade/encrypted_pipelines -name "*.py" | grep -v pytransform | xargs -n 1 cat | grep -v "\x"
-
-
-def _get_python_version_in_docker() -> str:
-    """
-    Get the Python version used in Docker.
-    """
-    cmd = "invoke docker_cmd -c 'python -V'"
-    _, output = hsystem.system_to_string(cmd)
-    pattern = r"Python (\d+\.\d+\.\d+)"
-    match = re.search(pattern, output)
-    hdbg.dassert_is_not(match, None, f"Can't parse '{output}'")
-    python_version = match.group(1)
-    return python_version
 
 
 def _tweak_init(encrypted_dir: str) -> None:

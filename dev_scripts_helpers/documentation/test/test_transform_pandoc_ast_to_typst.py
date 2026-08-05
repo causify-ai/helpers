@@ -164,6 +164,7 @@ class Test__extract_columns(hunitest.TestCase):
                     return result
         return None
 
+    # TODO(ai_gp): Move the self.assert_equal check inside helper
     def helper(self, markdown_input: str) -> str:
         """
         Run full pipeline from markdown to extracted columns.
@@ -640,6 +641,7 @@ class Test__transform_elem(hunitest.TestCase):
     Test the `_transform_elem()` function.
     """
 
+    # TODO(ai_gp): Move the self.assert_equal check inside helper
     def helper(self, markdown_input: str) -> str:
         """
         Run full pipeline from markdown to transformed elem.
@@ -948,6 +950,7 @@ class Test__transform_ast(hunitest.TestCase):
     Test the `_transform_ast()` function.
     """
 
+    # TODO(ai_gp): Move the self.assert_equal check inside helper
     def helper(self, markdown_input: str) -> str:
         """
         Run full pipeline from markdown to transformed AST.
@@ -1097,6 +1100,7 @@ class Test_end_to_end(hunitest.TestCase):
     End-to-end test using pandoc to convert markdown with columns to typst.
     """
 
+    # TODO(ai_gp): Move the self.assert_equal check inside helper
     def helper(self, markdown_input: str) -> str:
         """
         Run full pipeline from markdown to transformed AST and typst.
@@ -1266,7 +1270,8 @@ class Test__find_textcolor_calls(hunitest.TestCase):
     Test the `_find_textcolor_calls()` brace-aware parser.
     """
 
-    def test_flat_content(self) -> None:
+    # TODO(ai_gp): Create an helper
+    def test1(self) -> None:
         r"""
         Test extraction of a single call with no nested braces.
         """
@@ -1281,7 +1286,7 @@ class Test__find_textcolor_calls(hunitest.TestCase):
         self.assert_equal(color, "red")
         self.assert_equal(content, "hello")
 
-    def test_nested_braces(self) -> None:
+    def test2(self) -> None:
         r"""
         Test extraction when `content` contains a nested brace group, e.g. a
         subscript `x_{n-1}`.
@@ -1300,7 +1305,7 @@ class Test__find_textcolor_calls(hunitest.TestCase):
         self.assert_equal(content, "x_1, ..., x_{n-1}")
         self.assertEqual(end, len(latex_string))
 
-    def test_multiple_calls(self) -> None:
+    def test3(self) -> None:
         r"""
         Test extraction of multiple `\textcolor` calls in one formula.
         """
@@ -1310,14 +1315,10 @@ class Test__find_textcolor_calls(hunitest.TestCase):
         calls = dshdtpatt._find_textcolor_calls(latex_string)
         # Check outputs.
         self.assertEqual(len(calls), 2)
-        self.assert_equal(
-            str((calls[0][2], calls[0][3])), str(("blue", "x"))
-        )
-        self.assert_equal(
-            str((calls[1][2], calls[1][3])), str(("red", "y"))
-        )
+        self.assert_equal(str((calls[0][2], calls[0][3])), str(("blue", "x")))
+        self.assert_equal(str((calls[1][2], calls[1][3])), str(("red", "y")))
 
-    def test_no_textcolor(self) -> None:
+    def test4(self) -> None:
         r"""
         Test that a formula without `\textcolor` yields no calls.
         """

@@ -155,10 +155,7 @@ def _get_document_name(doc_id: str) -> str:
     }
     params_json = json.dumps(params)
     # Use gws drive files get to fetch metadata.
-    cmd = (
-        f"gws drive files get "
-        f"--params '{params_json}'"
-    )
+    cmd = f"gws drive files get --params '{params_json}'"
     _LOG.debug("Running command: %s", cmd)
     _, output = hsystem.system_to_string(cmd, abort_on_error=True)
     # Parse JSON output to extract name.
@@ -183,12 +180,8 @@ def _check_gws_authentication() -> None:
         hsystem.system("gws auth status", suppress_output=True)
         _LOG.debug("gws authentication verified")
     except Exception as e:
-        _LOG.error(
-            "gws authentication check failed; please run: gws auth login"
-        )
-        hdbg.dfatal(
-            f"gws is not authenticated; cannot proceed: {e}"
-        )
+        _LOG.error("gws authentication check failed; please run: gws auth login")
+        hdbg.dfatal(f"gws is not authenticated; cannot proceed: {e}")
 
 
 def _download_doc(doc_id: str, mime_type: str, output_file: str) -> None:
@@ -208,9 +201,7 @@ def _download_doc(doc_id: str, mime_type: str, output_file: str) -> None:
     params_json = json.dumps(params)
     # Build gws command.
     cmd = (
-        f"gws drive files export "
-        f"--params '{params_json}' "
-        f"--output {output_file}"
+        f"gws drive files export --params '{params_json}' --output {output_file}"
     )
     _LOG.debug("Running command: %s", cmd)
     # Execute command (abort_on_error=True will raise exception if command fails).

@@ -69,7 +69,7 @@ import helpers.hretry as hretry
 import helpers.hselect_action as hselacti
 import helpers.hstring as hstring
 import helpers.hsystem as hsystem
-import dev_scripts_helpers.download.download_utils as dsdlut
+import dev_scripts_helpers.download.download_utils as dshddut
 
 _LOG = logging.getLogger(__name__)
 
@@ -521,9 +521,7 @@ def _convert(
     _LOG.info("Converting PDF to markdown: %s", pdf_path)
     script_path = hgit.find_file_in_git_tree("convert_pdf_to_md.py")
     output_dir = os.path.dirname(pdf_path) or "."
-    cmd = (
-        f"{script_path} --input {pdf_path} --output {output_dir} --overwrite"
-    )
+    cmd = f"{script_path} --input {pdf_path} --output {output_dir} --overwrite"
     if skip_figures:
         cmd += " --skip_figures"
     _LOG.debug("Running command: %s", cmd)
@@ -551,10 +549,10 @@ def _summarize(base_path: str, *, dry_run: bool = False) -> None:
     if not dry_run:
         hdbg.dassert_file_exists(md_path)
     _LOG.info("Summarizing markdown file: '%s'...", md_path)
-    dsdlut.summarize_text_with_llm(
+    dshddut.summarize_text_with_llm(
         md_path,
         summary_path,
-        dsdlut.ARTICLE_SUMMARY_PROMPT,
+        dshddut.ARTICLE_SUMMARY_PROMPT,
         dry_run=dry_run,
     )
     if not dry_run:

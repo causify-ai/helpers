@@ -25,6 +25,11 @@ from helpers.htimer import Timer
 _LOG = logging.getLogger(__name__)
 
 
+# #############################################################################
+# ImportTimeChecker
+# #############################################################################
+
+
 class ImportTimeChecker:
     """
     Class for measure execution time for imports.
@@ -113,6 +118,16 @@ class ImportTimeChecker:
         for module in tqdm(modules):
             self.measure_time(module)
 
+    def _sort_by_time(self) -> None:
+        """
+        Sort time in descending order in self.checked_modules
+        :return: None
+        """
+        output = sorted(
+            self.checked_modules.items(), reverse=True, key=lambda x: x[1]
+        )
+        self.checked_modules = dict(output)
+
     def output_modules_time(self, sort: bool = False) -> None:
         """
         Print and save to a files all measured modules.
@@ -156,16 +171,6 @@ class ImportTimeChecker:
         :return: list
         """
         return list(self.checked_modules.items())
-
-    def _sort_by_time(self) -> None:
-        """
-        Sort time in descending order in self.checked_modules
-        :return: None
-        """
-        output = sorted(
-            self.checked_modules.items(), reverse=True, key=lambda x: x[1]
-        )
-        self.checked_modules = dict(output)
 
 
 def _parse() -> argparse.ArgumentParser:

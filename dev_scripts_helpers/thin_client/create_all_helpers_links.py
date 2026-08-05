@@ -43,7 +43,7 @@ _FILES_TO_LINK = [
     ".claude",
     ".coveragerc",
     # git doesn't like .gitignore to be a link.
-    #".gitignore",
+    # ".gitignore",
     ".gitleaksignore",
     ".isort.cfg",
     ".pre-commit-config.yaml",
@@ -115,9 +115,7 @@ def _should_create_link(
         return True
     # Warn if the file exists but is not a symbolic link.
     if os.path.exists(target_path) and not os.path.islink(target_path):
-        _LOG.warning(
-            "Target exists but is not a symbolic link: %s", target_path
-        )
+        _LOG.warning("Target exists but is not a symbolic link: %s", target_path)
     _LOG.debug("Target already exists and is not broken: %s", target_path)
     return False
 
@@ -142,7 +140,9 @@ def _create_symbolic_link(
         # Print the target for existing links.
         if os.path.islink(target_path):
             link_target = os.readlink(target_path)
-            _LOG.info("Skipping existing link: %s -> %s", target_path, link_target)
+            _LOG.info(
+                "Skipping existing link: %s -> %s", target_path, link_target
+            )
         else:
             _LOG.info("Skipping existing link: %s", target_path)
         return
@@ -164,7 +164,9 @@ def _create_symbolic_link(
     # Create the symbolic link.
     if dry_run:
         _LOG.info(
-            "[DRY RUN] Would create link: %s -> %s", target_path, relative_source_path
+            "[DRY RUN] Would create link: %s -> %s",
+            target_path,
+            relative_source_path,
         )
     else:
         _LOG.info("Creating link: %s -> %s", target_path, relative_source_path)
@@ -202,9 +204,7 @@ def _analyze_links(
         link_target = os.readlink(target_path)
         # Resolve to absolute path for checking.
         target_dir = os.path.dirname(target_path)
-        resolved_path = os.path.normpath(
-            os.path.join(target_dir, link_target)
-        )
+        resolved_path = os.path.normpath(os.path.join(target_dir, link_target))
         # Check if the resolved path exists.
         if not os.path.exists(resolved_path):
             _LOG.info(

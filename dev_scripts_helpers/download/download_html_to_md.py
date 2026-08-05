@@ -52,7 +52,7 @@ import helpers.hparser as hparser
 import helpers.hprint as hprint
 import helpers.hselect_action as hselacti
 import helpers.hsystem as hsystem
-import dev_scripts_helpers.download.download_utils as dsdlut
+import dev_scripts_helpers.download.download_utils as dshddut
 
 _LOG = logging.getLogger(__name__)
 
@@ -116,9 +116,7 @@ def _download_html(
         response = requests.get(input_url, headers=headers, timeout=30)
         response.raise_for_status()
         html_content = response.text
-        _LOG.debug(
-            "Received response: status_code=%s", response.status_code
-        )
+        _LOG.debug("Received response: status_code=%s", response.status_code)
     hio.to_file(output_html_file, html_content)
     _LOG.info("Saved HTML to '%s'", output_html_file)
 
@@ -397,10 +395,10 @@ def _summarize(
         _LOG.info("Summary already exists, skipping: %s", summary_file)
         return
     _LOG.info("Summarizing markdown file: '%s'...", output_md_file)
-    dsdlut.summarize_text_with_llm(
+    dshddut.summarize_text_with_llm(
         output_md_file,
         summary_file,
-        dsdlut.ARTICLE_SUMMARY_PROMPT,
+        dshddut.ARTICLE_SUMMARY_PROMPT,
         dry_run=dry_run,
     )
     if not dry_run:
@@ -424,14 +422,14 @@ def _get_output_md_file(input_arg: str) -> str:
     :return: Output markdown filename, e.g. `The_Page_Title.md`
     """
     _LOG.debug(hprint.to_str("input_arg"))
-    title = dsdlut.fetch_article_title(input_arg)
+    title = dshddut.fetch_article_title(input_arg)
     if not title:
         _LOG.warning(
             "Could not extract title from '%s', using input name instead",
             input_arg,
         )
         title = os.path.splitext(os.path.basename(input_arg))[0]
-    sanitized_title = dsdlut.sanitize_title_for_filename(title)
+    sanitized_title = dshddut.sanitize_title_for_filename(title)
     output_md_file = f"{sanitized_title}.md"
     _LOG.debug(hprint.to_str("output_md_file"))
     return output_md_file

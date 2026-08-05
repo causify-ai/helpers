@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 import helpers.hunit_test as hunitest
-import dev_scripts_helpers.download.download_to_md as dsdtm
+import dev_scripts_helpers.download.download_to_md as dshddtomd
 
 
 # #############################################################################
@@ -22,7 +22,7 @@ class Test_detect_input_type(hunitest.TestCase):
         :param expected: expected input type
         """
         # Run test.
-        actual = dsdtm.detect_input_type(input_arg)
+        actual = dshddtomd.detect_input_type(input_arg)
         # Check outputs.
         self.assert_equal(actual, expected)
 

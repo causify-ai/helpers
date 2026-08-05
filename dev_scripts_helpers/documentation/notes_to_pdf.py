@@ -95,7 +95,9 @@ def _run_all(args: argparse.Namespace) -> None:
     hdbg.dassert_path_exists(file_name)
     # Resolve `--slides_engine auto` into a concrete engine by looking at the
     # `// slides_engine=...` metadata directive at the top of the input file.
-    slides_engine = dshdlntpd.resolve_slides_engine(file_name, args.slides_engine)
+    slides_engine = dshdlntpd.resolve_slides_engine(
+        file_name, args.slides_engine
+    )
     _LOG.info(hprint.to_str("slides_engine"))
     # E.g., prefix='/app/helpers_root/tmp.notes_to_pdf'
     out_dir = os.path.abspath(os.path.dirname(args.output))
@@ -333,8 +335,7 @@ def _parse() -> argparse.ArgumentParser:
                if no such directive is present
             - 'beamer': pandoc -> LaTeX/beamer -> pdflatex (default)
             - 'typst': pandoc -> Typst/Touying -> typst compile
-        """
-        ),
+        """),
     )
     parser.add_argument(
         "--no_fail_on_warnings",

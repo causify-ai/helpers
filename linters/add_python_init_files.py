@@ -36,6 +36,11 @@ def _get_dirs_to_add_init(
     return dirs_missing_init
 
 
+# #############################################################################
+# _AddPythonInitFiles
+# #############################################################################
+
+
 class _AddPythonInitFiles(liaction.Action):
     """
     Create `__init__.py` files that are missing.

@@ -17,7 +17,6 @@ _LOG = logging.getLogger(__name__)
 
 # TODO(gp): -> _parser() or _get_parser() everywhere.
 def _parse() -> argparse.ArgumentParser:
-    """ """
     parser = argparse.ArgumentParser(
         description=__doc__,
         formatter_class=hparser.CustomHelpFormatter,
