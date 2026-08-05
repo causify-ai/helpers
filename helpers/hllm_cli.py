@@ -12,6 +12,7 @@ import dataclasses
 import hashlib
 import json
 import logging
+import re
 import shlex
 import subprocess
 import sys
@@ -44,6 +45,7 @@ if TYPE_CHECKING:
 
 import helpers.hcache_simple as hcacsimp
 import helpers.hdbg as hdbg
+import helpers.hgit as hgit
 import helpers.hio as hio
 import helpers.hmarkdown_select as hmarsele
 import helpers.hmodule as hmodule
@@ -381,6 +383,93 @@ def _calculate_cost_from_usage(
         cost_from_tokencost=cost,
         elapsed_time_in_seconds=elapsed_time_in_seconds,
     )
+
+
+# #############################################################################
+# Prompt processing
+# #############################################################################
+
+# Match a reference to a file (e.g., `@file.md` or `` `@file.md` ``).
+# The file name/path can contain word characters, dots, dashes, and slashes,
+# and must end with an extension (e.g., `.md`, `.py`) to avoid matching
+# unrelated `@` usages (e.g., email addresses).
+_FILE_REFERENCE_RE = re.compile(
+    r"""
+    `@(?P<path_bt>[\w./-]+\.\w+)`   # `@file.md` wrapped in backticks.
+    |                               # OR
+    @(?P<path>[\w./-]+\.\w+)        # @file.md without backticks.
+    """,
+    re.VERBOSE,
+)
+
+
+def _find_file_in_repo(file_name: str, *, repo_dir: str = "") -> str:
+    """
+    Find the single file matching `file_name` in the Git repo.
+
+    :param file_name: file name or relative path to search for (e.g.,
+        `file.md`, `dir/file.md`)
+    :param repo_dir: root directory to search under
+        - Default: `""` (search from the Git client root)
+    :return: absolute path of the matching file
+    """
+    _LOG.debug(hprint.to_str("file_name repo_dir"))
+    if repo_dir == "":
+        repo_dir = hgit.get_client_root(super_module=True)
+    # A reference with a path component (e.g., `dir/file.md`) is matched with
+    # `-path` since `-name` only compares the last path component.
+    if "/" in file_name:
+        cmd = f"find {repo_dir} -path '*/{file_name}' -not -path '*/.git/*'"
+    else:
+        cmd = f"find {repo_dir} -name '{file_name}' -not -path '*/.git/*'"
+    _, file_names = hsystem.system_to_lines(cmd)
+    hdbg.dassert_eq(
+        len(file_names),
+        1,
+        "Expected exactly one match for file reference '%s' under '%s', found: %s",
+        file_name,
+        repo_dir,
+        file_names,
+    )
+    file_name_out = file_names[0]
+    return file_name_out
+
+
+def expand_referenced_files(prompt: str, *, repo_dir: str = "") -> str:
+    r"""
+    Expand `@file` references in `prompt` into the referenced file content.
+
+    Scans `prompt` for references to files (e.g., `@file.md` or
+    `` `@file.md` ``), locates each file in the Git repo, and replaces the
+    reference with a `<!-- From <file> -->` comment followed by the file's
+    content.
+
+    :param prompt: text containing zero or more `@file` references
+    :param repo_dir: root directory to search under
+        - Default: `""` (search from the Git client root)
+    :return: `prompt` with every `@file` reference replaced by the
+        corresponding file content
+        Example:
+        ```
+        Follow the rules in @coding.rules.md
+        ```
+        becomes
+        ```
+        Follow the rules in <!-- From coding.rules.md -->
+        <rules content>
+        ```
+    """
+    _LOG.debug(hprint.to_str("prompt repo_dir"))
+
+    def _replace(match: re.Match[str]) -> str:
+        file_name = match.group("path_bt") or match.group("path")
+        file_path = _find_file_in_repo(file_name, repo_dir=repo_dir)
+        content = hio.from_file(file_path)
+        return f"<!-- From {file_name} -->\n{content}"
+
+    expanded_prompt = _FILE_REFERENCE_RE.sub(_replace, prompt)
+    _LOG.debug("return=%s", _compute_text_signature(expanded_prompt))
+    return expanded_prompt
 
 
 # #############################################################################

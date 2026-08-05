@@ -35,6 +35,7 @@ import pandas as pd
 import helpers.hdbg as hdbg
 import helpers.hlogging as hloggin
 import helpers.hparser as hparser
+import helpers.hprint as hprint
 import dev_scripts_helpers.download.link_gsheet_utils as dshslgsut
 
 _LOG = logging.getLogger(__name__)
@@ -65,10 +66,14 @@ def _download_from_gsheet(url: str) -> str:
     :param url: URL of the Google Sheets document
     :return: Path to the saved CSV file
     """
+    _LOG.debug(hprint.func_signature_to_str())
+    # Build a temp path so the raw Google Sheets export doesn't clash with
+    # other one-off scripts using the same helper.
     output_file = dshslgsut.get_tmp_file_path(
         HN_CSV_FILE, "process_one_off_link_gsheet"
     )
     dshslgsut.download_from_gsheet(url, output_file)
+    _LOG.debug(hprint.to_str("output_file"))
     return output_file
 
 
@@ -81,6 +86,8 @@ def _replace_article_tags(csv_file: str) -> str:
     :param csv_file: Path to the CSV file to process
     :return: Path to the updated CSV file
     """
+    _LOG.debug(hprint.func_signature_to_str())
+    # Load the CSV and validate it has the column we need to migrate.
     hdbg.dassert_path_exists(csv_file, "CSV file not found")
     _LOG.info("Loading CSV '%s' to replace topic names", csv_file)
     df = pd.read_csv(csv_file)
@@ -107,6 +114,7 @@ def _replace_article_tags(csv_file: str) -> str:
             replacements_made += 1
             _LOG.debug("Replaced '%s' with '%s'", old_tag, new_tag)
     _LOG.info("Made %d topic name replacements", replacements_made)
+    # Persist the updated tags back to the same CSV file.
     df.to_csv(csv_file, index=False)
     _LOG.info(
         "Wrote %d rows with %d columns to '%s'",
@@ -114,6 +122,7 @@ def _replace_article_tags(csv_file: str) -> str:
         len(df.columns),
         csv_file,
     )
+    _LOG.debug(hprint.to_str("csv_file replacements_made"))
     return csv_file
 
 
@@ -124,14 +133,18 @@ def _upload_to_gsheet(url: str, csv_file: str) -> None:
     :param url: URL of the Google Sheets document
     :param csv_file: Path to the CSV file to upload
     """
+    _LOG.debug(hprint.to_str("url csv_file"))
     hdbg.dassert_path_exists(csv_file, "CSV file not found")
+    # Use today's date in the tab name so re-uploads don't overwrite prior runs.
     tabname = "process_one_off_link_gsheet." + datetime.datetime.now().strftime(
         "%Y-%m-%d"
     )
+    _LOG.debug(hprint.to_str("tabname"))
     dshslgsut.upload_to_gsheet(url, csv_file, tabname)
 
 
 def _parse() -> argparse.ArgumentParser:
+    _LOG.debug(hprint.func_signature_to_str())
     parser = argparse.ArgumentParser(
         description=__doc__,
         formatter_class=hparser.CustomHelpFormatter,
@@ -147,6 +160,7 @@ def _parse() -> argparse.ArgumentParser:
 
 
 def _main(parser: argparse.ArgumentParser) -> None:
+    _LOG.debug(hprint.func_signature_to_str())
     args = parser.parse_args()
     hdbg.init_logger(verbosity=args.log_level, use_exec_path=True)
     hloggin.shutup_chatty_modules(verbosity=logging.ERROR)

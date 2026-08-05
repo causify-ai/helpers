@@ -1999,3 +1999,119 @@ class Test_add_llm_args(hunitest.TestCase):
         args = parser.parse_args([])
         # Check outputs.
         self.assertEqual(args.model, custom_model)
+
+
+# #############################################################################
+# Test_expand_referenced_files
+# #############################################################################
+
+
+class Test_expand_referenced_files(hunitest.TestCase):
+    """
+    Test expand_referenced_files function.
+    """
+
+    def helper(self, prompt: str, expected: str) -> None:
+        """
+        Helper for testing expand_referenced_files.
+
+        Creates `file.md` and `other.txt` fixtures in the scratch space and
+        expands `@file` references in `prompt` against that directory.
+
+        :param prompt: input prompt containing `@file` references
+        :param expected: expected prompt after expansion
+        """
+        # Prepare inputs.
+        repo_dir = self.get_scratch_space()
+        hio.to_file(os.path.join(repo_dir, "file.md"), "file content")
+        hio.to_file(os.path.join(repo_dir, "other.txt"), "other content")
+        # Run test.
+        actual = hllmcli.expand_referenced_files(prompt, repo_dir=repo_dir)
+        # Check outputs.
+        self.assert_equal(actual, expected)
+
+    def test1(self) -> None:
+        """
+        Test expanding a bare `@file.md` reference.
+        """
+        # Prepare inputs.
+        prompt = "Follow the rules in @file.md"
+        # Prepare outputs.
+        expected = "Follow the rules in <!-- From file.md -->\nfile content"
+        # Run test.
+        self.helper(prompt, expected)
+
+    def test2(self) -> None:
+        """
+        Test expanding a backtick-wrapped `` `@file.md` `` reference.
+        """
+        # Prepare inputs.
+        prompt = "Follow `@file.md`"
+        # Prepare outputs.
+        expected = "Follow <!-- From file.md -->\nfile content"
+        # Run test.
+        self.helper(prompt, expected)
+
+    def test3(self) -> None:
+        """
+        Test expanding multiple references in the same prompt.
+        """
+        # Prepare inputs.
+        prompt = "See @file.md and @other.txt"
+        # Prepare outputs.
+        expected = (
+            "See <!-- From file.md -->\nfile content"
+            " and <!-- From other.txt -->\nother content"
+        )
+        # Run test.
+        self.helper(prompt, expected)
+
+    def test4(self) -> None:
+        """
+        Test a prompt with no file references is returned unchanged.
+        """
+        # Prepare inputs.
+        prompt = "Hi @gp, please check @channel"
+        # Prepare outputs.
+        expected = prompt
+        # Run test.
+        self.helper(prompt, expected)
+
+    def test5(self) -> None:
+        """
+        Test expanding a reference that contains a directory path.
+        """
+        # Prepare inputs.
+        repo_dir = self.get_scratch_space()
+        hio.to_file(os.path.join(repo_dir, "sub", "nested.md"), "nested content")
+        prompt = "See @sub/nested.md"
+        # Prepare outputs.
+        expected = "See <!-- From sub/nested.md -->\nnested content"
+        # Run test.
+        actual = hllmcli.expand_referenced_files(prompt, repo_dir=repo_dir)
+        # Check outputs.
+        self.assert_equal(actual, expected)
+
+    def test6(self) -> None:
+        """
+        Test that a reference to a missing file raises an assertion.
+        """
+        # Prepare inputs.
+        repo_dir = self.get_scratch_space()
+        prompt = "See @missing.md"
+        # Run test and check outputs.
+        with self.assertRaises(AssertionError):
+            hllmcli.expand_referenced_files(prompt, repo_dir=repo_dir)
+
+    def test7(self) -> None:
+        """
+        Test that an ambiguous reference (2+ matches) raises an assertion.
+        """
+        # Prepare inputs.
+        repo_dir = self.get_scratch_space()
+        hio.to_file(os.path.join(repo_dir, "dir1", "dup.md"), "content1")
+        hio.to_file(os.path.join(repo_dir, "dir2", "dup.md"), "content2")
+        prompt = "See @dup.md"
+        # Run test and check outputs.
+        with self.assertRaises(AssertionError):
+            hllmcli.expand_referenced_files(prompt, repo_dir=repo_dir)

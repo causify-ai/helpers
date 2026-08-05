@@ -12,6 +12,13 @@ from typing import Any, Callable, Optional, Tuple
 
 _LOG = logging.getLogger(__name__)
 
+# TODO(ai_gp): Create a def for Callable[..., Any] with a meaningful name
+
+
+# TODO(ai_gp): Use defaults for num_attempts and retry_delay_in_sec and
+# move them after the * and simplify the callers
+_MAX_RETRIES = 3
+_RETRY_DELAY_SEC = 5
 
 def sync_retry(
     num_attempts: int, exceptions: Tuple[Any], retry_delay_in_sec: int = 0
@@ -20,10 +27,12 @@ def sync_retry(
     Decorator retrying the wrapped function/method num_attempts times if the
     `exceptions` listed in exceptions are thrown.
 
-    :param num_attempts: the number of times to repeat the wrapped function/method
+    :param num_attempts: the number of times to repeat the wrapped
+    function/method
       - The function will be called `num_attempts` times.
     :param exceptions: list of exceptions that trigger a retry attempt
-    :param retry_delay_in_sec: the number of seconds to wait between retry attempts
+    :param retry_delay_in_sec: the number of seconds to wait between retry
+        attempts
     :return: the result of the wrapped function/method
     """
 
@@ -52,12 +61,13 @@ def sync_retry(
             )
             hdbg.dassert_is_not(last_expection, None)
             raise last_exception
-
         return retry_wrapper
 
     return decorator
 
 
+# TODO(ai_gp): Use defaults for num_attempts and retry_delay_in_sec and
+# move them after the *
 def async_retry(
     num_attempts: int, exceptions: Tuple[Any], retry_delay_in_sec: int = 0
 ) -> Callable[[Callable[..., Any]], Callable[..., Any]]:
@@ -90,7 +100,6 @@ def async_retry(
             )
             hdbg.dassert_is_not(last_expection, None)
             raise last_exception
-
         return retry_wrapper
 
     return decorator
