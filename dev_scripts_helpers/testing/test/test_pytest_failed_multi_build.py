@@ -61,7 +61,9 @@ class Test_read_failed_tests(hunitest.TestCase):
         :param expected: Expected output (if provided, runs assertion)
         :return: Result from _read_failed_tests
         """
-        scratch_dir = _setup_build_files(self, build_name, "failed_tests.txt", content)
+        scratch_dir = _setup_build_files(
+            self, build_name, "failed_tests.txt", content
+        )
         with hsystem.cd(scratch_dir):
             result = dshtpfmbu._read_failed_tests(build_name)
         if expected is not None:
@@ -124,7 +126,9 @@ class Test_read_repro_script(hunitest.TestCase):
     Test _read_repro_script function for reading repro scripts.
     """
 
-    def helper(self, build_name: str, content: str, expected: Optional[str] = None) -> str:
+    def helper(
+        self, build_name: str, content: str, *, expected: Optional[str] = None
+    ) -> str:
         """
         Helper method to run test in scratch directory and check outputs.
 
@@ -443,7 +447,7 @@ class Test_summary_to_str(hunitest.TestCase):
         build_names: list,
         test_to_builds: Dict[str, Set[str]],
         expected: str,
-        ) -> None:
+    ) -> None:
         """
         Test helper for _summary_to_str and check outputs.
 
@@ -583,7 +587,7 @@ class Test_extract_build_stats_missing_pytest_ended(hunitest.TestCase):
         self,
         build_name: str,
         info_data: Dict[str, Any],
-        expected: Dict[str, Any]
+        expected: Dict[str, Any],
     ) -> Dict[str, Any]:
         """
         Helper to setup build directory with info.json and extract stats.

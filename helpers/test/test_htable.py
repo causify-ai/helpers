@@ -9,7 +9,6 @@ import helpers.hunit_test as hunitest
 _LOG = logging.getLogger(__name__)
 
 
-
 def _get_table() -> htable.Table:
     """
     Build a small `htable.Table` fixture for testing.

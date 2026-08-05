@@ -187,8 +187,7 @@ class Table:
         # (e.g., the `Status` column in `pytest_failed_multi_build.py`) don't
         # inflate the column width with invisible ANSI escape bytes.
         lengths = [
-            max(_visible_len(cell) for cell in col)
-            for col in zip(*table_as_str)
+            max(_visible_len(cell) for cell in col) for col in zip(*table_as_str)
         ]
         _LOG.debug(hprint.to_str("lengths"))
         # Add the row separating the column names.

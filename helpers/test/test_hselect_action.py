@@ -130,6 +130,7 @@ class Test_actions_to_string(hunitest.TestCase):
         valid_actions = ["a", "b"]
         # Prepare outputs.
         border = "#" * 80
+        # TODO(ai_gp): Use a """ and dedent
         expected = (
             f"{border}\n"
             "# Action selected:\n"
