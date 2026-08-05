@@ -295,7 +295,7 @@ def main() -> None:
     # Parse command-line arguments.
     ap = argparse.ArgumentParser(
         formatter_class=hparser.CustomHelpFormatter,
-        description="Bulk transfer GitHub issues (Python, GraphQL)."
+        description="Bulk transfer GitHub issues (Python, GraphQL).",
     )
     ap.add_argument("--src", default="causify-ai/cmamp")
     ap.add_argument("--dst", default="causify-ai/csfy")
@@ -387,7 +387,10 @@ def main() -> None:
     _LOG.info("Plan:")
     _LOG.info("  Requested: %d issues", len(numbers))
     _LOG.info(
-        "  Eligible (%s in %s): %d issues", args.state, args.src, len(to_transfer)
+        "  Eligible (%s in %s): %d issues",
+        args.state,
+        args.src,
+        len(to_transfer),
     )
     _LOG.info("  First 20 to transfer:")
     for n in to_transfer[:20]:

@@ -11,7 +11,7 @@ from unittest import mock
 
 import helpers.hunit_test as hunitest
 
-import dev_scripts_helpers.github.to_github as dscghtogh
+import dev_scripts_helpers.github.to_github as dshgtogi
 
 
 def _mock_system_to_string(
@@ -57,7 +57,7 @@ class Test_check_url_exists(hunitest.TestCase):
             "dev_scripts_helpers.github.to_github.requests.get",
             return_value=mock_response,
         ) as mock_get:
-            actual = dscghtogh._check_url_exists(url)
+            actual = dshgtogi._check_url_exists(url)
         # Check outputs.
         self.assertTrue(actual)
         mock_get.assert_called_once_with(url, timeout=10)
@@ -74,7 +74,7 @@ class Test_check_url_exists(hunitest.TestCase):
             "dev_scripts_helpers.github.to_github.requests.get",
             return_value=mock_response,
         ):
-            actual = dscghtogh._check_url_exists(url)
+            actual = dshgtogi._check_url_exists(url)
         # Check outputs.
         self.assertFalse(actual)
 
@@ -109,7 +109,7 @@ class Test_get_github_url(hunitest.TestCase):
                 "dev_scripts_helpers.github.to_github.requests.get"
             ) as mock_get,
         ):
-            actual = dscghtogh._get_github_url(
+            actual = dshgtogi._get_github_url(
                 file_path=file_path, use_master=False
             )
         # Check outputs.
@@ -137,7 +137,7 @@ class Test_get_github_url(hunitest.TestCase):
                 return_value=mock_response,
             ),
         ):
-            actual = dscghtogh._get_github_url(
+            actual = dshgtogi._get_github_url(
                 file_path=file_path, use_master=False, check_exists=True
             )
         # Check outputs.
@@ -168,7 +168,7 @@ class Test_get_github_url(hunitest.TestCase):
             ),
         ):
             with self.assertRaises(AssertionError) as cm:
-                dscghtogh._get_github_url(
+                dshgtogi._get_github_url(
                     file_path=file_path, use_master=False, check_exists=True
                 )
         # Check outputs.
@@ -192,7 +192,7 @@ class Test_parse(hunitest.TestCase):
         # Prepare inputs.
         arg_list = ["--input", "helpers/hdbg.py"]
         # Run test.
-        parser = dscghtogh._parse()
+        parser = dshgtogi._parse()
         args = parser.parse_args(arg_list)
         # Check outputs.
         self.assertFalse(args.check_exists)
@@ -205,7 +205,7 @@ class Test_parse(hunitest.TestCase):
         # Prepare inputs.
         arg_list = ["--input", "helpers/hdbg.py", "--check_exists"]
         # Run test.
-        parser = dscghtogh._parse()
+        parser = dshgtogi._parse()
         args = parser.parse_args(arg_list)
         # Check outputs.
         self.assertTrue(args.check_exists)

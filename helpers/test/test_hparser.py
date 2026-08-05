@@ -13,7 +13,7 @@ import helpers.hunit_test as hunitest
 
 
 # #############################################################################
-# _ForceColorFormatter / _ForceNoColorFormatter
+# _ForceColorFormatter
 # #############################################################################
 
 
@@ -28,6 +28,11 @@ class _ForceColorFormatter(hparser.CustomHelpFormatter):
     def __init__(self, prog: str, **kwargs: Any) -> None:
         super().__init__(prog, **kwargs)
         self._use_color = True
+
+
+# #############################################################################
+# _ForceNoColorFormatter
+# #############################################################################
 
 
 class _ForceNoColorFormatter(hparser.CustomHelpFormatter):
@@ -226,9 +231,7 @@ class Test_CustomHelpFormatter_get_help_string(hunitest.TestCase):
     Test `hparser.CustomHelpFormatter._get_help_string()`.
     """
 
-    def helper(
-        self, add_argument_kwargs: Dict[str, Any], expected: str
-    ) -> None:
+    def helper(self, add_argument_kwargs: Dict[str, Any], expected: str) -> None:
         """
         Build one `--x` argparse `Action` and check its formatted help.
 
@@ -484,9 +487,7 @@ class Test_CustomHelpFormatter_format_help(hunitest.TestCase):
     `hparser.CustomHelpFormatter`.
     """
 
-    def _build_parser(
-        self, formatter_class: type
-    ) -> argparse.ArgumentParser:
+    def _build_parser(self, formatter_class: type) -> argparse.ArgumentParser:
         """
         Build a small parser exercising bullets, a required arg, and a
         default value, mirroring `cc_lint.py`'s `--rule`/`--mode`/

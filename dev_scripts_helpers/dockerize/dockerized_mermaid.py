@@ -7,7 +7,7 @@ import argparse
 import logging
 
 import helpers.hdbg as hdbg
-import dev_scripts_helpers.dockerize.dockerized_utils as dshddut
+import dev_scripts_helpers.dockerize.dockerized_utils as dshddou
 import helpers.hdocker as hdocker
 import helpers.hparser as hparser
 import dev_scripts_helpers.dockerize.lib_mermaid as dshdlime
@@ -26,7 +26,7 @@ def _parse() -> argparse.ArgumentParser:
     parser.add_argument("-i", "--input", action="store", required=True)
     parser.add_argument("-o", "--output", action="store", default="")
     hdocker.add_dockerized_script_arg(parser)
-    dshddut.add_open_arg(parser)
+    dshddou.add_open_arg(parser)
     hparser.add_verbosity_arg(parser)
     return parser
 
@@ -48,7 +48,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
     )
     _LOG.info("Output written to '%s'", args.output)
     if args.open:
-        dshddut.open_file_on_macos(args.output)
+        dshddou.open_file_on_macos(args.output)
 
 
 if __name__ == "__main__":

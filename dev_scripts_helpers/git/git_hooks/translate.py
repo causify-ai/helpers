@@ -9,7 +9,7 @@ import dev_scripts_helpers.git.git_hooks.translate as dsgghotr
 import argparse
 import logging
 
-import dev_scripts_helpers.git.git_hooks.utils as dsgghout
+import dev_scripts_helpers.git.git_hooks.utils as dshgghout
 import helpers.hdbg as hdbg
 import helpers.hparser as hparser
 
@@ -32,7 +32,7 @@ def _parse() -> argparse.ArgumentParser:
 def _main(parser: argparse.ArgumentParser) -> None:
     args = parser.parse_args()
     hdbg.init_logger(verbosity=args.log_level, use_exec_path=True)
-    transformed_txt = dsgghout.caesar(args.text, args.step)
+    transformed_txt = dshgghout.caesar(args.text, args.step)
     print(transformed_txt)
 
 

@@ -54,7 +54,6 @@ import helpers.hlist as hlist
 import helpers.hparser as hparser
 import helpers.hprint as hprint
 import helpers.hsystem as hsystem
-import helpers.hunit_test as hunitest
 
 _LOG = logging.getLogger(__name__)
 

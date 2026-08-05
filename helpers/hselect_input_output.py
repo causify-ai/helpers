@@ -93,7 +93,7 @@ def add_file_selection_args(
         help="Select only files part of the previous commit",
     )
     file_selection.add_argument(
-        "--all",
+        "--all_files",
         action="store_true",
         dest="all_files",
         help="Select all repo files",
@@ -654,7 +654,7 @@ def add_file_type_filter_args(
         type=str,
         default=file_types_default,
         help="Comma-separated list of file extensions to process (e.g., 'py,ipynb,md,txt')\n"
-        "- Available: py (Python), ipynb (Jupyter), md (Markdown), txt (Text)"
+        "- Available: py (Python), ipynb (Jupyter), md (Markdown), txt (Text)",
     )
     file_type_group.add_argument(
         "--skip_file_types",

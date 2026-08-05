@@ -36,7 +36,7 @@ import helpers.hdbg as hdbg
 import helpers.hlogging as hloggin
 import helpers.hparser as hparser
 import helpers.hprint as hprint
-import dev_scripts_helpers.download.link_gsheet_utils as dshslgsut
+import dev_scripts_helpers.download.link_gsheet_utils as dshdlgsut
 
 _LOG = logging.getLogger(__name__)
 
@@ -69,10 +69,10 @@ def _download_from_gsheet(url: str) -> str:
     _LOG.debug(hprint.func_signature_to_str())
     # Build a temp path so the raw Google Sheets export doesn't clash with
     # other one-off scripts using the same helper.
-    output_file = dshslgsut.get_tmp_file_path(
+    output_file = dshdlgsut.get_tmp_file_path(
         HN_CSV_FILE, "process_one_off_link_gsheet"
     )
-    dshslgsut.download_from_gsheet(url, output_file)
+    dshdlgsut.download_from_gsheet(url, output_file)
     _LOG.debug(hprint.to_str("output_file"))
     return output_file
 
@@ -140,7 +140,7 @@ def _upload_to_gsheet(url: str, csv_file: str) -> None:
         "%Y-%m-%d"
     )
     _LOG.debug(hprint.to_str("tabname"))
-    dshslgsut.upload_to_gsheet(url, csv_file, tabname)
+    dshdlgsut.upload_to_gsheet(url, csv_file, tabname)
 
 
 def _parse() -> argparse.ArgumentParser:

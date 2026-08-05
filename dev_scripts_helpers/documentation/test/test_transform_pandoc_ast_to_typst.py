@@ -1310,12 +1310,8 @@ class Test__find_textcolor_calls(hunitest.TestCase):
         calls = dshdtpatt._find_textcolor_calls(latex_string)
         # Check outputs.
         self.assertEqual(len(calls), 2)
-        self.assert_equal(
-            str((calls[0][2], calls[0][3])), str(("blue", "x"))
-        )
-        self.assert_equal(
-            str((calls[1][2], calls[1][3])), str(("red", "y"))
-        )
+        self.assert_equal(str((calls[0][2], calls[0][3])), str(("blue", "x")))
+        self.assert_equal(str((calls[1][2], calls[1][3])), str(("red", "y")))
 
     def test_no_textcolor(self) -> None:
         r"""

@@ -76,6 +76,72 @@ RESTRICTION_KEYS = {
 
 
 class _RepoAndBranchSettings:
+    def _validate_settings(self) -> None:
+        """
+        Validate that all settings keys in the input file are known and
+        expected.
+
+        Raises an assertion error if unknown keys are found.
+        """
+        _LOG.debug("Validating settings")
+        gh_setting_keys = set(self._repo_and_branch_settings.keys())
+        unknown_gh_setting_keys = gh_setting_keys - GH_SETTING_KEYS
+        hdbg.dassert(
+            not unknown_gh_setting_keys,
+            "Unexpected top-level keys in settings: %s",
+            unknown_gh_setting_keys,
+        )
+        repo_setting_keys = self._repo_and_branch_settings.get(
+            "repository_settings", {}
+        ).keys()
+        unknown_repo_setting_keys = repo_setting_keys - REPO_SETTING_KEYS
+        hdbg.dassert(
+            not unknown_repo_setting_keys,
+            "Unexpected keys in 'repository_settings': %s",
+            unknown_repo_setting_keys,
+        )
+        branch_protection_keys = self._repo_and_branch_settings.get(
+            "branch_protection", {}
+        )
+        for branch, protection in branch_protection_keys.items():
+            unknown_branch_protection_keys = (
+                set(protection.keys()) - BRANCH_PROTECTION_KEYS
+            )
+            hdbg.dassert(
+                not unknown_branch_protection_keys,
+                "Unexpected keys in 'branch_protection' for branch '%s': %s",
+                branch,
+                unknown_branch_protection_keys,
+            )
+            status_checks_keys = protection.get(
+                "required_status_checks", {}
+            ).keys()
+            unknown_status_checks_keys = status_checks_keys - STATUS_CHECK_KEYS
+            hdbg.dassert(
+                not unknown_status_checks_keys,
+                "Unexpected keys in 'required_status_checks' for branch '%s': %s",
+                branch,
+                unknown_status_checks_keys,
+            )
+            pr_reviews_keys = protection.get(
+                "required_pull_request_reviews", {}
+            ).keys()
+            unknown_pr_reviews_keys = pr_reviews_keys - PR_REVIEW_KEYS
+            hdbg.dassert(
+                not unknown_pr_reviews_keys,
+                "Unexpected keys in 'required_pull_request_reviews' for branch '%s': %s",
+                branch,
+                unknown_pr_reviews_keys,
+            )
+            restrictions_keys = protection.get("restrictions", {}).keys()
+            unknown_restrictions_keys = restrictions_keys - RESTRICTION_KEYS
+            hdbg.dassert(
+                not unknown_restrictions_keys,
+                "Unexpected keys in 'restrictions' for branch '%s': %s",
+                branch,
+                unknown_restrictions_keys,
+            )
+
     def __init__(self, repo_and_branch_settings: Dict[str, Any]):
         """
         Initialize a nested dictionary of branch protection and repository
@@ -90,16 +156,6 @@ class _RepoAndBranchSettings:
         _LOG.debug(
             "Initializing settings with data: %s", repo_and_branch_settings
         )
-
-    def __repr__(self) -> str:
-        repo_settings = self._repo_and_branch_settings.get(
-            "repository_settings", {}
-        )
-        branch_settings = self._repo_and_branch_settings.get(
-            "branch_protection", {}
-        )
-        res = f"settings(branch_protection={branch_settings}, repo_settings={repo_settings})"
-        return res
 
     @staticmethod
     def get_repository_settings(
@@ -317,6 +373,43 @@ class _RepoAndBranchSettings:
             # flow style for better readability.
             yaml.dump(
                 settings_data, file, default_flow_style=False, sort_keys=False
+            )
+
+    def _log_settings(
+        self,
+        settings: Dict[str, Any],
+        action: str,
+        target: str,
+        *,
+        dry_run: Optional[bool] = False,
+    ) -> None:
+        """
+        Log repository or branch protection settings that have been synced.
+
+        :param settings: settings dictionary to log
+        :param action: action being performed (e.g., "apply branch protection rules")
+        :param target: target of the action (e.g., `branch` name or `repo` name)
+        :param dry_run: whether this is a dry run
+        """
+        # Filter out NotSet values from settings dictionary.
+        log_settings = {
+            k: v
+            for k, v in settings.items()
+            if v is not github.GithubObject.NotSet
+        }
+        if not dry_run:
+            _LOG.info(
+                "The below %s are applied to %s:\n%s",
+                action,
+                target,
+                "\n".join(f"  {k}: {v}" for k, v in log_settings.items()),
+            )
+        else:
+            _LOG.info(
+                "The below %s will be applied to %s without --dry_run:\n%s",
+                action,
+                target,
+                "\n".join(f"  {k}: {v}" for k, v in log_settings.items()),
             )
 
     def apply_branch_protection(
@@ -611,108 +704,15 @@ class _RepoAndBranchSettings:
         )
         return normalized_settings
 
-    def _validate_settings(self) -> None:
-        """
-        Validate that all settings keys in the input file are known and
-        expected.
-
-        Raises an assertion error if unknown keys are found.
-        """
-        _LOG.debug("Validating settings")
-        gh_setting_keys = set(self._repo_and_branch_settings.keys())
-        unknown_gh_setting_keys = gh_setting_keys - GH_SETTING_KEYS
-        hdbg.dassert(
-            not unknown_gh_setting_keys,
-            "Unexpected top-level keys in settings: %s",
-            unknown_gh_setting_keys,
-        )
-        repo_setting_keys = self._repo_and_branch_settings.get(
+    def __repr__(self) -> str:
+        repo_settings = self._repo_and_branch_settings.get(
             "repository_settings", {}
-        ).keys()
-        unknown_repo_setting_keys = repo_setting_keys - REPO_SETTING_KEYS
-        hdbg.dassert(
-            not unknown_repo_setting_keys,
-            "Unexpected keys in 'repository_settings': %s",
-            unknown_repo_setting_keys,
         )
-        branch_protection_keys = self._repo_and_branch_settings.get(
+        branch_settings = self._repo_and_branch_settings.get(
             "branch_protection", {}
         )
-        for branch, protection in branch_protection_keys.items():
-            unknown_branch_protection_keys = (
-                set(protection.keys()) - BRANCH_PROTECTION_KEYS
-            )
-            hdbg.dassert(
-                not unknown_branch_protection_keys,
-                "Unexpected keys in 'branch_protection' for branch '%s': %s",
-                branch,
-                unknown_branch_protection_keys,
-            )
-            status_checks_keys = protection.get(
-                "required_status_checks", {}
-            ).keys()
-            unknown_status_checks_keys = status_checks_keys - STATUS_CHECK_KEYS
-            hdbg.dassert(
-                not unknown_status_checks_keys,
-                "Unexpected keys in 'required_status_checks' for branch '%s': %s",
-                branch,
-                unknown_status_checks_keys,
-            )
-            pr_reviews_keys = protection.get(
-                "required_pull_request_reviews", {}
-            ).keys()
-            unknown_pr_reviews_keys = pr_reviews_keys - PR_REVIEW_KEYS
-            hdbg.dassert(
-                not unknown_pr_reviews_keys,
-                "Unexpected keys in 'required_pull_request_reviews' for branch '%s': %s",
-                branch,
-                unknown_pr_reviews_keys,
-            )
-            restrictions_keys = protection.get("restrictions", {}).keys()
-            unknown_restrictions_keys = restrictions_keys - RESTRICTION_KEYS
-            hdbg.dassert(
-                not unknown_restrictions_keys,
-                "Unexpected keys in 'restrictions' for branch '%s': %s",
-                branch,
-                unknown_restrictions_keys,
-            )
-
-    def _log_settings(
-        self,
-        settings: Dict[str, Any],
-        action: str,
-        target: str,
-        *,
-        dry_run: Optional[bool] = False,
-    ) -> None:
-        """
-        Log repository or branch protection settings that have been synced.
-
-        :param settings: settings dictionary to log
-        :param action: action being performed (e.g., "apply branch protection rules")
-        :param target: target of the action (e.g., `branch` name or `repo` name)
-        :param dry_run: whether this is a dry run
-        """
-        # Filter out NotSet values from settings dictionary.
-        log_settings = {
-            k: v
-            for k, v in settings.items()
-            if v is not github.GithubObject.NotSet
-        }
-        if not dry_run:
-            _LOG.info(
-                "The below %s are applied to %s:\n%s",
-                action,
-                target,
-                "\n".join(f"  {k}: {v}" for k, v in log_settings.items()),
-            )
-        else:
-            _LOG.info(
-                "The below %s will be applied to %s without --dry_run:\n%s",
-                action,
-                target,
-                "\n".join(f"  {k}: {v}" for k, v in log_settings.items()),
-            )
+        res = f"settings(branch_protection={branch_settings}, repo_settings={repo_settings})"
+        return res
 
 
 # #############################################################################

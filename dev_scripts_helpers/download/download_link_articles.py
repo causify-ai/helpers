@@ -107,7 +107,7 @@ import helpers.hprint as hprint
 import helpers.hcache_simple as hcacsimp
 import helpers.hselect_action as hselacti
 import helpers.hsystem as hsystem
-import dev_scripts_helpers.download.link_gsheet_utils as dshslgsut
+import dev_scripts_helpers.download.link_gsheet_utils as dshdlgsut
 
 _LOG = logging.getLogger(__name__)
 
@@ -125,12 +125,12 @@ def _load_rows_from_gsheet(url: str) -> List[Dict[str, Any]]:
     :return: List of data rows
     """
     _LOG.debug(hprint.func_signature_to_str())
-    gsheet_csv = dshslgsut.get_tmp_file_path(
+    gsheet_csv = dshdlgsut.get_tmp_file_path(
         "gsheet.csv", "download_link_articles"
     )
     _LOG.debug("Downloading from Google Sheets '%s' to '%s'", url, gsheet_csv)
-    dshslgsut.download_from_gsheet(url, gsheet_csv)
-    rows = dshslgsut.read_csv(gsheet_csv)
+    dshdlgsut.download_from_gsheet(url, gsheet_csv)
+    rows = dshdlgsut.read_csv(gsheet_csv)
     hdbg.dassert_lt(0, len(rows), "No rows in downloaded CSV")
     # Verify expected columns exist.
     expected_columns = {
@@ -150,6 +150,35 @@ def _load_rows_from_gsheet(url: str) -> List[Dict[str, Any]]:
     return rows
 
 
+# #############################################################################
+# Phase 3: Download
+# #############################################################################
+
+
+@hcacsimp.simple_cache(cache_type="json", write_through=True)
+def _fetch_hn_item(item_id: str) -> Optional[Dict[str, Any]]:
+    """
+    Fetch a Hacker News item from the API.
+
+    :param item_id: HN item ID
+    :return: Item data dict or None if fetch fails
+    """
+    _LOG.debug(hprint.func_signature_to_str())
+    # Query the official HN API for the item.
+    api_url = f"https://hacker-news.firebaseio.com/v0/item/{item_id}.json"
+    _LOG.debug("Fetching HN item: %s", api_url)
+    response = requests.get(api_url, timeout=10)
+    response.raise_for_status()
+    data = response.json()
+    if data:
+        result = data
+    else:
+        _LOG.warning("No data returned for item: %s", item_id)
+        result = None
+    _LOG.debug("return=%s", result is not None)
+    return result
+
+
 def _build_row_from_hn_url(hn_url: str) -> List[Dict[str, Any]]:
     """
     Build a single synthetic row from a directly-provided HN URL.
@@ -162,9 +191,9 @@ def _build_row_from_hn_url(hn_url: str) -> List[Dict[str, Any]]:
     """
     _LOG.debug(hprint.func_signature_to_str())
     hdbg.dassert(
-        dshslgsut.is_hackernews_url(hn_url), "Not a Hacker News URL: %s", hn_url
+        dshdlgsut.is_hackernews_url(hn_url), "Not a Hacker News URL: %s", hn_url
     )
-    item_id = dshslgsut.extract_item_id(hn_url)
+    item_id = dshdlgsut.extract_item_id(hn_url)
     item_data = _fetch_hn_item(item_id)
     title = item_id
     # Link posts have a "url" field pointing to the external article; Show
@@ -372,35 +401,6 @@ def _simplify_html_links(text: str) -> str:
     return simplified
 
 
-# #############################################################################
-# Phase 3: Download
-# #############################################################################
-
-
-@hcacsimp.simple_cache(cache_type="json", write_through=True)
-def _fetch_hn_item(item_id: str) -> Optional[Dict[str, Any]]:
-    """
-    Fetch a Hacker News item from the API.
-
-    :param item_id: HN item ID
-    :return: Item data dict or None if fetch fails
-    """
-    _LOG.debug(hprint.func_signature_to_str())
-    # Query the official HN API for the item.
-    api_url = f"https://hacker-news.firebaseio.com/v0/item/{item_id}.json"
-    _LOG.debug("Fetching HN item: %s", api_url)
-    response = requests.get(api_url, timeout=10)
-    response.raise_for_status()
-    data = response.json()
-    if data:
-        result = data
-    else:
-        _LOG.warning("No data returned for item: %s", item_id)
-        result = None
-    _LOG.debug("return=%s", result is not None)
-    return result
-
-
 def _fetch_hn_url(
     item_id: str,
     *,
@@ -556,18 +556,18 @@ def _download_arxiv_article(url: str, output_file: str) -> None:
     _LOG.debug(hprint.to_str("url output_file"))
     # Download the PDF into a scratch dir: the script derives its own
     # standardized filename from the paper's arXiv metadata.
-    tmp_dir = dshslgsut.get_tmp_file_path(
-        "papers", "download_link_articles"
-    )
+    tmp_dir = dshdlgsut.get_tmp_file_path("papers", "download_link_articles")
     hio.create_dir(tmp_dir, incremental=True)
     script = "dev_scripts_helpers/download/download_academic_paper.py"
-    cmd = (
-        f'{script} --input "{url}" --output_dir "{tmp_dir}" --no_incremental'
-    )
+    cmd = f'{script} --input "{url}" --output_dir "{tmp_dir}" --no_incremental'
     hsystem.system(cmd)
     pdf_files = glob.glob(os.path.join(tmp_dir, "*.pdf"))
     hdbg.dassert_eq(
-        len(pdf_files), 1, "Expected exactly 1 PDF in '%s', found %s", tmp_dir, pdf_files
+        len(pdf_files),
+        1,
+        "Expected exactly 1 PDF in '%s', found %s",
+        tmp_dir,
+        pdf_files,
     )
     # Move the PDF next to the text output, using the row's sanitized title.
     pdf_output_file = re.sub(r"\.txt$", ".pdf", output_file)
@@ -605,11 +605,11 @@ def _download_hn_urls(
             _LOG.warning("Row %d missing Url or Title, skipping", idx)
             continue
         # Validate URL is from HN and extract the submission item ID.
-        if not dshslgsut.is_hackernews_url(url):
+        if not dshdlgsut.is_hackernews_url(url):
             _LOG.info("Row %d: URL is not HN URL, skipping", idx)
             continue
         _LOG.debug("Processing row %d: %s", idx, title)
-        item_id = dshslgsut.extract_item_id(url)
+        item_id = dshdlgsut.extract_item_id(url)
         # Generate filename from title and check if it already exists.
         sanitized_title = _sanitize_title_for_filename(title)
         output_file = f"{sanitized_title}.3.hn_url.txt"
@@ -659,7 +659,11 @@ def _download_article_urls(
         output_file = f"{sanitized_title}.1.article_url.txt"
         # Dispatch to the appropriate downloader based on the URL type.
         is_arxiv = _is_arxiv_url(article_url)
-        downloader = "download_academic_paper.py" if is_arxiv else "download_html_to_md.py"
+        downloader = (
+            "download_academic_paper.py"
+            if is_arxiv
+            else "download_html_to_md.py"
+        )
         if dry_run:
             _LOG.info(
                 "[DRY RUN] Would download article from '%s' via %s",
@@ -670,7 +674,9 @@ def _download_article_urls(
                 "[DRY RUN] Would write article content to: %s", output_file
             )
         else:
-            _LOG.info("Downloading article from '%s' via %s", article_url, downloader)
+            _LOG.info(
+                "Downloading article from '%s' via %s", article_url, downloader
+            )
             try:
                 if is_arxiv:
                     _download_arxiv_article(article_url, output_file)
@@ -758,16 +764,16 @@ def _summarize_hn_url(
         " (DRY RUN)" if dry_run else "",
     )
     comments_prompt = """
-        Analyze the Hacker News comment section. 
-        From all comments, summarize the 5 most interesting ones based on: 
-        1. Thought-provoking or insightful content 
-        2. Unique perspective or uncommon knowledge 
-        3. Sparks discussion or debate 
-        4. Technically informative or educational 
-        5. Controversial but well-argued. 
-        Avoid comments that are: simple jokes, memes, very short reactions, 
-        repetitive or low-effort. 
-        Do not include commenter names. 
+        Analyze the Hacker News comment section.
+        From all comments, summarize the 5 most interesting ones based on:
+        1. Thought-provoking or insightful content
+        2. Unique perspective or uncommon knowledge
+        3. Sparks discussion or debate
+        4. Technically informative or educational
+        5. Controversial but well-argued.
+        Avoid comments that are: simple jokes, memes, very short reactions,
+        repetitive or low-effort.
+        Do not include commenter names.
         Format as plain text without markdown.
     """
     comments_prompt = hprint.dedent(comments_prompt)

@@ -11,7 +11,7 @@ import dev_scripts_helpers.git.git_hooks.pre-commit-dry-run as dsgghopr
 import argparse
 import logging
 
-import dev_scripts_helpers.git.git_hooks.utils as dsgghout
+import dev_scripts_helpers.git.git_hooks.utils as dshgghout
 import helpers.hdbg as hdbg
 import helpers.hgit as hgit
 import helpers.hparser as hparser
@@ -49,9 +49,9 @@ def _main(parser: argparse.ArgumentParser) -> None:
     abort_on_error = False
     # dsgghout.check_master()
     # dsgghout.check_author()
-    dsgghout.check_file_size(abort_on_error, file_list=file_list)
-    dsgghout.check_words(abort_on_error, file_list=file_list)
-    dsgghout.python_compile(abort_on_error, file_list=file_list)
+    dshgghout.check_file_size(abort_on_error, file_list=file_list)
+    dshgghout.check_words(abort_on_error, file_list=file_list)
+    dshgghout.python_compile(abort_on_error, file_list=file_list)
 
 
 if __name__ == "__main__":

@@ -53,6 +53,11 @@ def get_debug_poetry_dir() -> str:
     return poetry_debug_dir
 
 
+# #############################################################################
+# PoetryDebugger
+# #############################################################################
+
+
 class PoetryDebugger:
     def __init__(self, debug_mode: str, max_runtime_minutes: int) -> None:
         """
@@ -73,53 +78,6 @@ class PoetryDebugger:
         self._debug_mode_dir = os.path.join(
             self._poetry_debug_dir, self._debug_mode
         )
-
-    def run(self) -> None:
-        """
-        Run poetry debug with various options.
-        """
-        # Get Python packages to debug.
-        necessary_packages = self._get_necessary_packages()
-        optional_packages = (
-            self._get_optional_packages()
-            if self._debug_mode in ("optional", "optional_incremental")
-            else []
-        )
-        all_packages = necessary_packages + optional_packages
-        # Pick desired debug option.
-        if self._debug_mode == "necessary_incremental":
-            # TODO(Grisha): can we factor out this part?
-            # Add necessary packages one by one.
-            current_necessary_packages = []
-            for necessary_package in necessary_packages:
-                current_necessary_packages.append(necessary_package)
-                _LOG.info(
-                    "Adding necessary incremental packages=`%s`",
-                    current_necessary_packages,
-                )
-                self._run_wrapper(
-                    current_necessary_packages,
-                    last_package=necessary_package,
-                )
-        elif self._debug_mode == "optional_incremental":
-            # Add optional packages one by one, after necessary ones in one shot.
-            current_optional_packages = []
-            for optional_package in optional_packages:
-                current_optional_packages.append(optional_package)
-                _LOG.info(
-                    "Adding optional incremental packages=`%s`",
-                    current_optional_packages,
-                )
-                self._run_wrapper(
-                    necessary_packages + current_optional_packages,
-                    last_package=optional_package,
-                )
-        elif self._debug_mode in ("necessary", "optional"):
-            # Add packages in one shot.
-            _LOG.info("Adding packages in one shot=`%s`", all_packages)
-            self._run_wrapper(all_packages)
-        else:
-            raise ValueError(f"Unsupported debug mode `{self._debug_mode}`!")
 
     @staticmethod
     def _run_lock_cmd(dir_path: str) -> None:
@@ -212,33 +170,6 @@ class PoetryDebugger:
         poetry_lock.join()
         poetry_lock.close()
 
-    def _run_wrapper(
-        self,
-        python_packages: List[str],
-        *,
-        last_package: str = "",
-    ) -> None:
-        """
-        Wrapper around `poetry lock`.
-
-        :param python_packages: list of packages to be written in `pyproject.toml` file
-        :param last_package: last package in `pyproject.toml` that is useful for
-            creating different log files in incremental run
-        """
-        # Base directory path without subdirectories.
-        dir_path = self._debug_mode_dir
-        # Use clean package name, if package name is provided.
-        if last_package:
-            # `pandas = "*"` will become `pandas`.
-            last_package = last_package.split(" ")[0]
-            # Add last package as subdirectory.
-            dir_path = os.path.join(dir_path, last_package)
-        # Write `*.toml` files.
-        self._write_poetry_toml_file(dir_path)
-        self._write_pyproject_toml(python_packages, dir_path)
-        # Start as a separate process.
-        self._run_with_time_constraint(dir_path)
-
     def _write_pyproject_toml(self, packages: List[str], dir_name: str) -> None:
         """
         Write a `pyproject.toml` that orchestrate project metadata and its
@@ -299,41 +230,90 @@ class PoetryDebugger:
         _LOG.info("Writing `poetry.toml` to file=`%s`", file_path)
         hio.to_file(file_path, file_content)
 
+    def _run_wrapper(
+        self,
+        python_packages: List[str],
+        *,
+        last_package: str = "",
+    ) -> None:
+        """
+        Wrapper around `poetry lock`.
+
+        :param python_packages: list of packages to be written in `pyproject.toml` file
+        :param last_package: last package in `pyproject.toml` that is useful for
+            creating different log files in incremental run
+        """
+        # Base directory path without subdirectories.
+        dir_path = self._debug_mode_dir
+        # Use clean package name, if package name is provided.
+        if last_package:
+            # `pandas = "*"` will become `pandas`.
+            last_package = last_package.split(" ")[0]
+            # Add last package as subdirectory.
+            dir_path = os.path.join(dir_path, last_package)
+        # Write `*.toml` files.
+        self._write_poetry_toml_file(dir_path)
+        self._write_pyproject_toml(python_packages, dir_path)
+        # Start as a separate process.
+        self._run_with_time_constraint(dir_path)
+
+    def run(self) -> None:
+        """
+        Run poetry debug with various options.
+        """
+        # Get Python packages to debug.
+        necessary_packages = self._get_necessary_packages()
+        optional_packages = (
+            self._get_optional_packages()
+            if self._debug_mode in ("optional", "optional_incremental")
+            else []
+        )
+        all_packages = necessary_packages + optional_packages
+        # Pick desired debug option.
+        if self._debug_mode == "necessary_incremental":
+            # TODO(Grisha): can we factor out this part?
+            # Add necessary packages one by one.
+            current_necessary_packages = []
+            for necessary_package in necessary_packages:
+                current_necessary_packages.append(necessary_package)
+                _LOG.info(
+                    "Adding necessary incremental packages=`%s`",
+                    current_necessary_packages,
+                )
+                self._run_wrapper(
+                    current_necessary_packages,
+                    last_package=necessary_package,
+                )
+        elif self._debug_mode == "optional_incremental":
+            # Add optional packages one by one, after necessary ones in one shot.
+            current_optional_packages = []
+            for optional_package in optional_packages:
+                current_optional_packages.append(optional_package)
+                _LOG.info(
+                    "Adding optional incremental packages=`%s`",
+                    current_optional_packages,
+                )
+                self._run_wrapper(
+                    necessary_packages + current_optional_packages,
+                    last_package=optional_package,
+                )
+        elif self._debug_mode in ("necessary", "optional"):
+            # Add packages in one shot.
+            _LOG.info("Adding packages in one shot=`%s`", all_packages)
+            self._run_wrapper(all_packages)
+        else:
+            raise ValueError(f"Unsupported debug mode `{self._debug_mode}`!")
+
 
 POETRY_STATS = Dict[str, Union[str, Dict[str, str]]]
 
 
+# #############################################################################
+# PoetryDebugStatsComputer
+# #############################################################################
+
+
 class PoetryDebugStatsComputer:
-    def run(self) -> None:
-        """
-        Inspect all logs generated by `poetry lock` one by one.
-
-        At the end of inspection stats are saved in current directory.
-        """
-        stats: POETRY_STATS = {}
-        working_directory = get_debug_poetry_dir()
-        pattern = "poetry.log"
-        only_files = False
-        use_relative_paths = False
-        # Collect all logs.
-        log_paths = hio.listdir(
-            working_directory, pattern, only_files, use_relative_paths
-        )
-        for log_path in log_paths:
-            # Parse log path to extract debug mode directories.
-            # `.../poetry/necessary_incremental/pandas/poetry.log`.
-            debug_mode_path = log_path.split(f"poetry{os.sep}")[-1]
-            # `necessary_incremental/pandas/poetry.log` -> ["necessary_incremental", "pandas"].
-            debug_mode_dirs = debug_mode_path.split(os.sep)[:-1]
-            # Analyze log.
-            log_file = hio.from_file(log_path)
-            time_info = self._get_execution_time_from_log(log_file)
-            # Update stats.
-            self._update_poetry_run_stats(stats, debug_mode_dirs, time_info)
-        # Save stats.
-        filename = "poetry_debugger_stats.json"
-        hio.to_json(os.path.join(working_directory, filename), stats)
-
     @staticmethod
     def _update_poetry_run_stats(
         stats: POETRY_STATS, debug_mode_dirs: List[str], time_info: str
@@ -382,6 +362,36 @@ class PoetryDebugStatsComputer:
         if time_info_list:
             time_info = time_info_list[-1]
         return time_info
+
+    def run(self) -> None:
+        """
+        Inspect all logs generated by `poetry lock` one by one.
+
+        At the end of inspection stats are saved in current directory.
+        """
+        stats: POETRY_STATS = {}
+        working_directory = get_debug_poetry_dir()
+        pattern = "poetry.log"
+        only_files = False
+        use_relative_paths = False
+        # Collect all logs.
+        log_paths = hio.listdir(
+            working_directory, pattern, only_files, use_relative_paths
+        )
+        for log_path in log_paths:
+            # Parse log path to extract debug mode directories.
+            # `.../poetry/necessary_incremental/pandas/poetry.log`.
+            debug_mode_path = log_path.split(f"poetry{os.sep}")[-1]
+            # `necessary_incremental/pandas/poetry.log` -> ["necessary_incremental", "pandas"].
+            debug_mode_dirs = debug_mode_path.split(os.sep)[:-1]
+            # Analyze log.
+            log_file = hio.from_file(log_path)
+            time_info = self._get_execution_time_from_log(log_file)
+            # Update stats.
+            self._update_poetry_run_stats(stats, debug_mode_dirs, time_info)
+        # Save stats.
+        filename = "poetry_debugger_stats.json"
+        hio.to_json(os.path.join(working_directory, filename), stats)
 
 
 def _parse() -> argparse.ArgumentParser:

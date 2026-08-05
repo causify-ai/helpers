@@ -41,9 +41,9 @@ import helpers.hgit as hgit
 import helpers.hparser as hparser
 import helpers.hprint as hprint
 import helpers.hsystem as hsystem
-import dev_scripts_helpers.download.download_academic_paper_to_md as dsdapt
-import dev_scripts_helpers.download.download_utils as dsdlut
-import dev_scripts_helpers.download.link_gsheet_utils as dslgsut
+import dev_scripts_helpers.download.download_academic_paper_to_md as dshddaptm
+import dev_scripts_helpers.download.download_utils as dshddut
+import dev_scripts_helpers.download.link_gsheet_utils as dshdlgsut
 
 _LOG = logging.getLogger(__name__)
 
@@ -84,11 +84,11 @@ def detect_input_type(input_arg: str) -> str:
     _LOG.debug(hprint.to_str("input_arg"))
     # Classify the input in priority order: Hacker News submissions first,
     # then academic-paper-like URLs (arXiv/DOI/PDF), else a generic web page.
-    if dslgsut.is_hackernews_url(input_arg):
+    if dshdlgsut.is_hackernews_url(input_arg):
         input_type = _TYPE_HN
     elif (
-        dsdlut.is_arxiv_url(input_arg)
-        or dsdapt.detect_doi(input_arg)
+        dshddut.is_arxiv_url(input_arg)
+        or dshddaptm.detect_doi(input_arg)
         or _is_pdf_url(input_arg)
     ):
         input_type = _TYPE_ACADEMIC_PAPER

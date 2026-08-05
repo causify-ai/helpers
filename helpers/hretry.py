@@ -71,6 +71,7 @@ def sync_retry(
             # `dassert_is_not` guarantees `last_exception` is set, but pyright
             # can't infer that from a custom assertion function.
             raise cast(BaseException, last_exception)
+
         return retry_wrapper
 
     return decorator
@@ -115,6 +116,7 @@ def async_retry(
             # `dassert_is_not` guarantees `last_exception` is set, but pyright
             # can't infer that from a custom assertion function.
             raise cast(BaseException, last_exception)
+
         return retry_wrapper
 
     return decorator

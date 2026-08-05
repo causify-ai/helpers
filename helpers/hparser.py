@@ -35,6 +35,11 @@ _HELP_WIDTH = 90
 _DEFAULT_ANNOTATION_RE = re.compile(r"\(default: [^()]*\)")
 
 
+# #############################################################################
+# CustomHelpFormatter
+# #############################################################################
+
+
 class CustomHelpFormatter(argparse.RawDescriptionHelpFormatter):
     """
     Format `--help` like `RawDescriptionHelpFormatter`, plus:
@@ -107,9 +112,7 @@ class CustomHelpFormatter(argparse.RawDescriptionHelpFormatter):
         for raw_line in text.split("\n"):
             if raw_line.strip() == "":
                 if current_words is not None:
-                    paragraphs.append(
-                        (current_indent, " ".join(current_words))
-                    )
+                    paragraphs.append((current_indent, " ".join(current_words)))
                     current_words = None
                 paragraphs.append(None)
                 in_bullet = False
@@ -119,9 +122,7 @@ class CustomHelpFormatter(argparse.RawDescriptionHelpFormatter):
             is_bullet = stripped.startswith("- ")
             if is_bullet or not in_bullet or current_words is None:
                 if current_words is not None:
-                    paragraphs.append(
-                        (current_indent, " ".join(current_words))
-                    )
+                    paragraphs.append((current_indent, " ".join(current_words)))
                 current_indent = indent
                 current_words = [stripped]
                 in_bullet = is_bullet
@@ -203,31 +204,8 @@ class CustomHelpFormatter(argparse.RawDescriptionHelpFormatter):
             lambda m: self._color(m.group(0), "gray"), line
         )
 
-    # The 2 methods below duplicate small chunks of
-    # `argparse.HelpFormatter.add_argument()`/`_format_action()` so that
-    # column alignment is computed from each string's *visible* length
-    # instead of Python's `len()`, which would otherwise count the
-    # invisible ANSI codes injected by `_format_action_invocation()` and
-    # misalign the help column.
-    def add_argument(self, action: argparse.Action) -> None:
-        if action.help is not argparse.SUPPRESS:
-            get_invocation = self._format_action_invocation
-            invocations = [get_invocation(action)]
-            for subaction in self._iter_indented_subactions(action):
-                invocations.append(get_invocation(subaction))
-            invocation_length = max(
-                self._visible_len(s) for s in invocations
-            )
-            action_length = invocation_length + self._current_indent
-            self._action_max_length = max(
-                self._action_max_length, action_length
-            )
-        self._add_item(self._format_action, [action])
-
     def _format_action(self, action: argparse.Action) -> str:
-        help_position = min(
-            self._action_max_length + 2, self._max_help_position
-        )
+        help_position = min(self._action_max_length + 2, self._max_help_position)
         help_width = max(self._width - help_position, 11)
         action_width = help_position - self._current_indent - 2
         action_header = self._format_action_invocation(action)
@@ -271,6 +249,23 @@ class CustomHelpFormatter(argparse.RawDescriptionHelpFormatter):
         for subaction in self._iter_indented_subactions(action):
             parts.append(self._format_action(subaction))
         return self._join_parts(parts)
+
+    # The 2 methods below duplicate small chunks of
+    # `argparse.HelpFormatter.add_argument()`/`_format_action()` so that
+    # column alignment is computed from each string's *visible* length
+    # instead of Python's `len()`, which would otherwise count the
+    # invisible ANSI codes injected by `_format_action_invocation()` and
+    # misalign the help column.
+    def add_argument(self, action: argparse.Action) -> None:
+        if action.help is not argparse.SUPPRESS:
+            get_invocation = self._format_action_invocation
+            invocations = [get_invocation(action)]
+            for subaction in self._iter_indented_subactions(action):
+                invocations.append(get_invocation(subaction))
+            invocation_length = max(self._visible_len(s) for s in invocations)
+            action_length = invocation_length + self._current_indent
+            self._action_max_length = max(self._action_max_length, action_length)
+        self._add_item(self._format_action, [action])
 
 
 # #############################################################################

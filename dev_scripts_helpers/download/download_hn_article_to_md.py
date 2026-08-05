@@ -63,8 +63,8 @@ import helpers.hparser as hparser
 import helpers.hprint as hprint
 import helpers.hcache_simple as hcacsimp
 import helpers.hselect_action as hselacti
-import dev_scripts_helpers.download.download_utils as dsdlut
-import dev_scripts_helpers.download.link_gsheet_utils as dshslgsut
+import dev_scripts_helpers.download.download_utils as dshddut
+import dev_scripts_helpers.download.link_gsheet_utils as dshdlgsut
 
 _LOG = logging.getLogger(__name__)
 
@@ -257,9 +257,9 @@ def _fetch_submission(hn_url: str) -> Dict[str, str]:
     """
     _LOG.debug(hprint.func_signature_to_str())
     hdbg.dassert(
-        dshslgsut.is_hackernews_url(hn_url), "Not a Hacker News URL: %s", hn_url
+        dshdlgsut.is_hackernews_url(hn_url), "Not a Hacker News URL: %s", hn_url
     )
-    item_id = dshslgsut.extract_item_id(hn_url)
+    item_id = dshdlgsut.extract_item_id(hn_url)
     _LOG.debug(hprint.to_str("item_id"))
     item_data = _fetch_hn_item(item_id)
     title = item_id
@@ -323,7 +323,7 @@ def _download_article_url(
     # HTML-to-markdown converter.
     downloader = (
         "download_academic_paper_to_md.py"
-        if dsdlut.is_arxiv_url(article_url)
+        if dshddut.is_arxiv_url(article_url)
         else "download_html_to_md.py"
     )
     _LOG.debug(hprint.to_str("downloader"))
@@ -337,7 +337,7 @@ def _download_article_url(
         _LOG.debug("return: dry run, nothing written")
         return
     _LOG.info("Downloading article from '%s' via %s", article_url, downloader)
-    dsdlut.download_article(article_url, output_file)
+    dshddut.download_article(article_url, output_file)
     _LOG.info("Successfully saved article to: %s", output_file)
 
 
@@ -376,7 +376,7 @@ def _summarize_hn_url(
     _LOG.debug(hprint.to_str("comments_file summary_file dry_run"))
     if not dry_run:
         hdbg.dassert_file_exists(comments_file)
-    dsdlut.summarize_text_with_llm(
+    dshddut.summarize_text_with_llm(
         comments_file,
         summary_file,
         _HN_COMMENTS_PROMPT,
@@ -397,10 +397,10 @@ def _summarize_article_url(
     _LOG.debug(hprint.to_str("article_file summary_file dry_run"))
     if not dry_run:
         hdbg.dassert_file_exists(article_file)
-    dsdlut.summarize_text_with_llm(
+    dshddut.summarize_text_with_llm(
         article_file,
         summary_file,
-        dsdlut.ARTICLE_SUMMARY_PROMPT,
+        dshddut.ARTICLE_SUMMARY_PROMPT,
         dry_run=dry_run,
     )
 
@@ -479,7 +479,9 @@ def _main(parser: argparse.ArgumentParser) -> None:
     # explicitly via --action/--skip_action/--enable.
     default_actions = DEFAULT_ACTIONS
     if not article_url:
-        _LOG.info("Submission has no linked article, restricting to HN-only actions")
+        _LOG.info(
+            "Submission has no linked article, restricting to HN-only actions"
+        )
         default_actions = ["download_hn_url", "summarize_hn_url"]
     actions = hselacti.select_actions(args, VALID_ACTIONS, default_actions)
     _LOG.info(
@@ -488,7 +490,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
     )
     # Compute output filenames from `--output` if specified, otherwise from
     # the sanitized title.
-    base_name = args.output or dsdlut.sanitize_title_for_filename(title)
+    base_name = args.output or dshddut.sanitize_title_for_filename(title)
     article_file = f"{base_name}.1.article_url.txt"
     article_summary_file = f"{base_name}.2.article_url.summary.txt"
     hn_file = f"{base_name}.3.hn_url.txt"

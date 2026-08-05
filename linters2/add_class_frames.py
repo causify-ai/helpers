@@ -12,7 +12,6 @@ import logging
 import re
 from typing import List, Tuple
 
-import helpers.hdbg as hdbg
 import helpers.hio as hio
 import helpers.hparser as hparser
 import linters.action as liaction

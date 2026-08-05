@@ -1332,7 +1332,7 @@ def _merge_dataframes(
         len(result),
         num_input_models,
         f"Merged dataframe has {len(result)} rows but only {num_input_models} "
-        f"input models."
+        f"input models.",
     )
     return result
 
@@ -1492,14 +1492,19 @@ def _main(parser: argparse.ArgumentParser) -> None:
     if not id_to_aa_slug and api_lookup:
         aa_models = _fetch_all_aa_models()
         id_to_aa_slug = _build_openrouter_id_to_aa_slug(api_lookup, aa_models)
-        _LOG.debug("id_to_aa_slug (from identifiers) has %d entries", len(id_to_aa_slug))
+        _LOG.debug(
+            "id_to_aa_slug (from identifiers) has %d entries", len(id_to_aa_slug)
+        )
     if not id_to_permaslug and api_lookup:
         per_model_usage_raw = _fetch_openrouter_per_model_usage()
         available_permaslugs = list(per_model_usage_raw.keys())
         id_to_permaslug = _build_openrouter_id_to_permaslug(
             api_lookup, available_permaslugs
         )
-        _LOG.debug("id_to_permaslug (from identifiers) has %d entries", len(id_to_permaslug))
+        _LOG.debug(
+            "id_to_permaslug (from identifiers) has %d entries",
+            len(id_to_permaslug),
+        )
     # Build and merge action-specific dataframes.
     dataframes_to_merge: List[pd.DataFrame] = []
     actions_copy = list(actions)

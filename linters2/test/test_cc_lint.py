@@ -968,7 +968,9 @@ class Test_journal(hunitest.TestCase):
         entry.
         """
         # Run test and check outputs.
-        self.assertEqual(lcclint._latest_journal_status([], "a.py", "Rule One"), "")
+        self.assertEqual(
+            lcclint._latest_journal_status([], "a.py", "Rule One"), ""
+        )
 
     def test6(self) -> None:
         """
@@ -1080,8 +1082,7 @@ class Test_build_add_todos_instructions(hunitest.TestCase):
         # Prepare inputs.
         rule_file = ""
         expected_in = [
-            "# TODO(...): <what to do and why> "
-            "(<rule_file>:<rule header line>)",
+            "# TODO(...): <what to do and why> (<rule_file>:<rule header line>)",
             "the rule file",
         ]
         expected_not_in: List[str] = []
@@ -1189,9 +1190,13 @@ class Test_build_incremental_system_prompt(hunitest.TestCase):
         topic_info, system_prompt = self.helper(topic)
         role_content = hio.from_file(topic_info["role"])
         # Prepare outputs.
-        expected = role_content + "\n" + (
-            "You MUST make sure not to change the behavior or the intent "
-            "of the passed file"
+        expected = (
+            role_content
+            + "\n"
+            + (
+                "You MUST make sure not to change the behavior or the intent "
+                "of the passed file"
+            )
         )
         # Run test and check outputs.
         self.assert_equal(system_prompt, expected)
@@ -1206,10 +1211,61 @@ class Test_build_incremental_system_prompt(hunitest.TestCase):
         _, system_prompt = self.helper(topic, add_todos=True)
         # Check outputs.
         self.assertIn(
-            "# TODO(...): <what to do and why> "
-            "(<rule_file>:<rule header line>)",
+            "# TODO(...): <what to do and why> (<rule_file>:<rule header line>)",
             system_prompt,
         )
+
+
+# #############################################################################
+# Test_build_incremental_messages
+# #############################################################################
+
+
+def _expected_message(
+    file_path: str,
+    section_content: str,
+    *,
+    rule_file: str = "",
+    add_todos: bool = False,
+) -> str:
+    msg = []
+    if add_todos:
+        rule_file_descr = f"(from `{rule_file}`) " if rule_file else ""
+        action = (
+            f"Check ONLY the rule below {rule_file_descr}against "
+            f"`{file_path}` for violations and add a TODO(...) comment "
+            "for each one, per the system prompt's TODO format"
+        )
+    else:
+        action = f"Apply ONLY the rule below to `{file_path}`"
+    header = f"""
+    - {action}
+    - Do not revisit rules applied earlier
+    """
+    header = hprint.dedent(header)
+    msg.append(header)
+    #
+    fence_block = f"```\n{section_content}\n```"
+    msg.append(hprint.indent(fence_block, num_spaces=2))
+    #
+    if add_todos:
+        footer = """
+        - Reply with exactly one line:
+          - `LLM> NO-OP` if the file already complies with the rule or already
+            has a TODO for every violation
+          - `LLM> CHANGED: <one-line summary>` if you added TODO comment(s)
+        """
+    else:
+        footer = """
+        - Reply with exactly one line:
+          - `LLM> NO-OP` if the file already complies with the rule
+          - `LLM> CHANGED: <one-line summary>` if you made an edit
+        """
+    footer = hprint.dedent(footer)
+    msg.append(footer)
+    #
+    msg_as_str = "\n".join(msg)
+    return msg_as_str
 
 
 # #############################################################################
@@ -1294,58 +1350,6 @@ class Test_build_rule_message(hunitest.TestCase):
             rule_file=rule_file,
             add_todos=True,
         )
-
-
-# #############################################################################
-# Test_build_incremental_messages
-# #############################################################################
-
-
-def _expected_message(
-    file_path: str,
-    section_content: str,
-    *,
-    rule_file: str = "",
-    add_todos: bool = False,
-) -> str:
-    msg = []
-    if add_todos:
-        rule_file_descr = f"(from `{rule_file}`) " if rule_file else ""
-        action = (
-            f"Check ONLY the rule below {rule_file_descr}against "
-            f"`{file_path}` for violations and add a TODO(...) comment "
-            "for each one, per the system prompt's TODO format"
-        )
-    else:
-        action = f"Apply ONLY the rule below to `{file_path}`"
-    header = f"""
-    - {action}
-    - Do not revisit rules applied earlier
-    """
-    header = hprint.dedent(header)
-    msg.append(header)
-    #
-    fence_block = f"```\n{section_content}\n```"
-    msg.append(hprint.indent(fence_block, num_spaces=2))
-    #
-    if add_todos:
-        footer = """
-        - Reply with exactly one line:
-          - `LLM> NO-OP` if the file already complies with the rule or already
-            has a TODO for every violation
-          - `LLM> CHANGED: <one-line summary>` if you added TODO comment(s)
-        """
-    else:
-        footer = """
-        - Reply with exactly one line:
-          - `LLM> NO-OP` if the file already complies with the rule
-          - `LLM> CHANGED: <one-line summary>` if you made an edit
-        """
-    footer = hprint.dedent(footer)
-    msg.append(footer)
-    #
-    msg_as_str = "\n".join(msg)
-    return msg_as_str
 
 
 # #############################################################################
@@ -1711,8 +1715,7 @@ class Test_process_file_one_shot_with_cc(hunitest.TestCase):
         rule = ""
         # Prepare outputs.
         expected_prompt_substring = (
-            "# TODO(...): <what to do and why> "
-            "(<rule_file>:<rule header line>)"
+            "# TODO(...): <what to do and why> (<rule_file>:<rule header line>)"
         )
         # Run test.
         self.helper(
@@ -2364,52 +2367,6 @@ class Test_process_file_dry_run_output(hunitest.TestCase):
 
     _RULE_CONTENT = "# Mock Rule\n- Do the mock thing\n"
 
-    def helper(self, mode: str, add_todos: bool) -> None:
-        """
-        Run `_process_file()` in `dry_run` mode and check the tmp-file
-        content saved to `cc_lint._DRY_RUN_FILE`.
-
-        :param mode: `--mode` value
-        :param add_todos: `--add_todos` value
-        """
-        # Prepare inputs.
-        scratch_dir = self.get_scratch_space()
-        file_path = os.path.join(scratch_dir, "example.py")
-        hio.to_file(file_path, "x = 1\n")
-        rule_file = os.path.join(scratch_dir, "mock.rules.md")
-        hio.to_file(rule_file, self._RULE_CONTENT)
-        args = argparse.Namespace(
-            mode=mode,
-            topic="",
-            skill="",
-            rule=rule_file,
-            dry_run=True,
-            model="mock-model",
-            rule_level=2,
-            max_chunk_tokens=1500,
-            merge_small_rules=False,
-            filter_rules_by_relevance=False,
-            order_rules_by_dependency=False,
-            resume=False,
-            journal_file=os.path.join(scratch_dir, "journal.json"),
-            max_turns_per_chunk=15,
-            add_todos=add_todos,
-        )
-        topic_info = lcclint._get_rules_for_topic(
-            lcclint._infer_topic_from_filename(file_path)
-        )
-        # Prepare outputs.
-        expected = self._build_expected(
-            mode, add_todos, file_path, rule_file, topic_info
-        )
-        # Run test.
-        rc, actual_topic_info = lcclint._process_file(file_path, args)
-        actual = hio.from_file(lcclint._DRY_RUN_FILE)
-        # Check outputs.
-        self.assertEqual(rc, 0)
-        self.assertEqual(actual_topic_info, topic_info)
-        self.assert_equal(actual, expected)
-
     def _build_expected(
         self,
         mode: str,
@@ -2473,9 +2430,16 @@ class Test_process_file_dry_run_output(hunitest.TestCase):
                         "ai",
                     ),
                 )
-                cmd = " ".join(
-                    [cc_wrapper, "-p", "Execute the file tmp.cc_lint.prompt.txt"]
-                ) + f" | {extract_log}"
+                cmd = (
+                    " ".join(
+                        [
+                            cc_wrapper,
+                            "-p",
+                            "Execute the file tmp.cc_lint.prompt.txt",
+                        ]
+                    )
+                    + f" | {extract_log}"
+                )
                 out = [
                     "Using model: mock-model",
                     hprint.frame("Prompt (rule):"),
@@ -2492,6 +2456,52 @@ class Test_process_file_dry_run_output(hunitest.TestCase):
                 ]
             expected = "\n".join(out)
         return expected
+
+    def helper(self, mode: str, add_todos: bool) -> None:
+        """
+        Run `_process_file()` in `dry_run` mode and check the tmp-file
+        content saved to `cc_lint._DRY_RUN_FILE`.
+
+        :param mode: `--mode` value
+        :param add_todos: `--add_todos` value
+        """
+        # Prepare inputs.
+        scratch_dir = self.get_scratch_space()
+        file_path = os.path.join(scratch_dir, "example.py")
+        hio.to_file(file_path, "x = 1\n")
+        rule_file = os.path.join(scratch_dir, "mock.rules.md")
+        hio.to_file(rule_file, self._RULE_CONTENT)
+        args = argparse.Namespace(
+            mode=mode,
+            topic="",
+            skill="",
+            rule=rule_file,
+            dry_run=True,
+            model="mock-model",
+            rule_level=2,
+            max_chunk_tokens=1500,
+            merge_small_rules=False,
+            filter_rules_by_relevance=False,
+            order_rules_by_dependency=False,
+            resume=False,
+            journal_file=os.path.join(scratch_dir, "journal.json"),
+            max_turns_per_chunk=15,
+            add_todos=add_todos,
+        )
+        topic_info = lcclint._get_rules_for_topic(
+            lcclint._infer_topic_from_filename(file_path)
+        )
+        # Prepare outputs.
+        expected = self._build_expected(
+            mode, add_todos, file_path, rule_file, topic_info
+        )
+        # Run test.
+        rc, actual_topic_info = lcclint._process_file(file_path, args)
+        actual = hio.from_file(lcclint._DRY_RUN_FILE)
+        # Check outputs.
+        self.assertEqual(rc, 0)
+        self.assertEqual(actual_topic_info, topic_info)
+        self.assert_equal(actual, expected)
 
     def test1(self) -> None:
         """

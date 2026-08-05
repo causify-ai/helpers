@@ -61,7 +61,7 @@ def stage_links(symlinks: List[str]) -> None:
 def main():
     parser = argparse.ArgumentParser(
         formatter_class=hparser.CustomHelpFormatter,
-        description="Stage symbolic links for modification."
+        description="Stage symbolic links for modification.",
     )
     parser.add_argument(
         "--dst_dir", required=True, help="Destination directory."

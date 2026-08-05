@@ -941,9 +941,7 @@ class MarkdownFormatter:
         :param dialogue: list of dialogue lines (sorted by timestamp)
         :return: formatted markdown string
         """
-        _LOG.debug(
-            hprint.to_str("title url len(chapters) len(dialogue)")
-        )
+        _LOG.debug(hprint.to_str("title url len(chapters) len(dialogue)"))
         # Build speaker abbreviation map first.
         for line in dialogue:
             self._add_speaker(line.speaker)
