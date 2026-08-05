@@ -1020,6 +1020,34 @@
   - You want to test the full argument parsing and main logic flow
   - You don't need subprocess isolation for the test
 
+## Skip Tests for Executables with `uv run` Script Dependencies
+
+- For an executable with a `uv` script header (`#!/usr/bin/env -S uv run` and a
+  `# /// script` block declaring `dependencies`), add
+  `pytest.importorskip("<package>")` in the test file before importing the
+  module under test
+- Call `pytest.importorskip()` for each declared dependency that is not
+  installed in the default test environment (e.g., `graphviz`, `openai`,
+  `tabulate`)
+- This skips the test cleanly when the dependency is missing (e.g., outside a
+  `uv`-managed environment or in tutorials), instead of failing with an
+  `ImportError`
+
+- **Good** (skip before importing the module under test)
+  ```python
+  import pytest
+
+  # Skip this test suite if graphviz is not installed (skip for tutorials).
+  pytest.importorskip("graphviz")
+
+  import import_check.detect_import_cycles as icdeimcy
+  ```
+- **Bad** (import the module unconditionally, failing with `ImportError` when
+  the dependency is missing)
+  ```python
+  import import_check.detect_import_cycles as icdeimcy
+  ```
+
 ## Use Helper Methods to Run Executables with Mocked argv
 
 - When testing executables that call `_main()` with `_parse()`, create a
