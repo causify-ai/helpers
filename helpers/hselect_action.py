@@ -102,6 +102,7 @@ def add_action_arg(
         help="Actions to skip from default set (see available actions below)",
     )
     group.add_argument(
+        "-e",
         "--enable",
         action="append",
         dest="enable_action",

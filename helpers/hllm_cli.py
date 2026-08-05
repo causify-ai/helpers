@@ -49,6 +49,7 @@ import helpers.hgit as hgit
 import helpers.hio as hio
 import helpers.hmarkdown_select as hmarsele
 import helpers.hmodule as hmodule
+import helpers.hparser as hparser
 import helpers.hprint as hprint
 import helpers.hsystem as hsystem
 
@@ -1677,6 +1678,14 @@ def add_llm_args(
         help="Optional path to file containing system prompt to guide the LLM's behavior",
     )
     hmarsele.add_rule_cli_arg(system_prompt_group)
+    # Expand `@file` references in the resolved system prompt into file
+    # content, enabled by default.
+    hparser.add_bool_arg(
+        parser,
+        "expand_referenced_files",
+        default_value=True,
+        help_="Expand `@file` references in the system prompt into file content",
+    )
     # Model selection.
     if include_model:
         parser.add_argument(

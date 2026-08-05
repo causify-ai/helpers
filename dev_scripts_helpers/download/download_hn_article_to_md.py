@@ -15,10 +15,11 @@ r"""
 
 Output filenames share a base name, with
 
-- `{base}.1.article_url.txt`: Article content
-- `{base}.2.article_url.summary.txt`: Summarized article
-- `{base}.3.hn_url.txt`: Raw HN comments
-- `{base}.4.hn_url.summary.txt`: Summarized HN comments
+- `{base}.1.article_url.md`: Article content (actual markdown, as produced
+  by the PDF-to-markdown or HTML-to-markdown converters)
+- `{base}.2.article_url.summary.md`: Summarized article
+- `{base}.3.hn_url.txt`: Raw HN comments (plain indented text, not markdown)
+- `{base}.4.hn_url.summary.md`: Summarized HN comments
 
 where `{base}` is `--output` if specified, otherwise the submission title with
 bash-unfriendly characters replaced with underscores.
@@ -26,24 +27,29 @@ bash-unfriendly characters replaced with underscores.
 # Usage Example
 
 - Download and summarize everything for a submission (default actions):
-> download_hn_article_to_md.py --hn_url "https://news.ycombinator.com/item?id=12345"
+> download_hn_article_to_md.py --input "https://news.ycombinator.com/item?id=12345"
 
 - Only fetch HN comments, skip the linked article:
 > download_hn_article_to_md.py \
-    --hn_url "https://news.ycombinator.com/item?id=12345" \
+    --input "https://news.ycombinator.com/item?id=12345" \
     --action download_hn_url \
     --action summarize_hn_url
 
 - Download without summarizing:
 > download_hn_article_to_md.py \
-    --hn_url "https://news.ycombinator.com/item?id=12345" \
+    --input "https://news.ycombinator.com/item?id=12345" \
     --skip_action summarize_hn_url \
     --skip_action summarize_article_url
 
 - Use an explicit output base name instead of the derived title:
 > download_hn_article_to_md.py \
-    --hn_url "https://news.ycombinator.com/item?id=12345" \
+    --input "https://news.ycombinator.com/item?id=12345" \
     --output my_submission
+
+- Overwrite existing output files instead of skipping:
+> download_hn_article_to_md.py \
+    --input "https://news.ycombinator.com/item?id=12345" \
+    --no_incremental
 
 Import as:
 
@@ -53,6 +59,7 @@ import dev_scripts_helpers.download.download_hn_article_to_md as dsdhatm
 import argparse
 import html
 import logging
+import os
 import re
 from typing import Any, Dict, List, Optional
 
@@ -284,7 +291,11 @@ def _fetch_submission(hn_url: str) -> Dict[str, str]:
 
 
 def _download_hn_url(
-    item_id: str, output_file: str, *, dry_run: bool = False
+    item_id: str,
+    output_file: str,
+    *,
+    dry_run: bool = False,
+    no_incremental: bool = False,
 ) -> None:
     """
     Fetch HN comments for a submission and save them to a file.
@@ -292,12 +303,17 @@ def _download_hn_url(
     :param item_id: HN item ID
     :param output_file: Path to save the formatted comments to
     :param dry_run: If True, show what would be done without executing
+    :param no_incremental: If True, overwrite `output_file` even if it
+        already exists
     """
-    _LOG.debug(hprint.to_str("item_id output_file dry_run"))
+    _LOG.debug(hprint.to_str("item_id output_file dry_run no_incremental"))
     if dry_run:
         _LOG.info("[DRY RUN] Would fetch HN comments for item: %s", item_id)
         _LOG.info("[DRY RUN] Would write HN comments to: %s", output_file)
         _LOG.debug("return: dry run, nothing written")
+        return
+    if os.path.exists(output_file) and not no_incremental:
+        _LOG.info("HN comments already exist, skipping: %s", output_file)
         return
     _LOG.info("Fetching HN comments for item: %s", item_id)
     hn_comments = _fetch_hn_comments(item_id, max_depth=10)
@@ -309,7 +325,11 @@ def _download_hn_url(
 
 
 def _download_article_url(
-    article_url: str, output_file: str, *, dry_run: bool = False
+    article_url: str,
+    output_file: str,
+    *,
+    dry_run: bool = False,
+    no_incremental: bool = False,
 ) -> None:
     """
     Download the article content for a submission's linked URL.
@@ -317,8 +337,12 @@ def _download_article_url(
     :param article_url: Article URL
     :param output_file: Path to save the article content to
     :param dry_run: If True, show what would be done without executing
+    :param no_incremental: If True, overwrite `output_file` even if it
+        already exists
     """
-    _LOG.debug(hprint.to_str("article_url output_file dry_run"))
+    _LOG.debug(
+        hprint.to_str("article_url output_file dry_run no_incremental")
+    )
     # Pick the downloader based on the URL: arXiv links go through the
     # dedicated paper pipeline, everything else through the generic
     # HTML-to-markdown converter.
@@ -336,6 +360,9 @@ def _download_article_url(
         )
         _LOG.info("[DRY RUN] Would write article content to: %s", output_file)
         _LOG.debug("return: dry run, nothing written")
+        return
+    if os.path.exists(output_file) and not no_incremental:
+        _LOG.info("Article content already exists, skipping: %s", output_file)
         return
     _LOG.info("Downloading article from '%s' via %s", article_url, downloader)
     dsdlut.download_article(article_url, output_file)
@@ -365,7 +392,11 @@ _HN_COMMENTS_PROMPT = hprint.dedent("""
 
 
 def _summarize_hn_url(
-    comments_file: str, summary_file: str, *, dry_run: bool = False
+    comments_file: str,
+    summary_file: str,
+    *,
+    dry_run: bool = False,
+    no_incremental: bool = False,
 ) -> None:
     """
     Summarize HN comments using an LLM.
@@ -373,10 +404,17 @@ def _summarize_hn_url(
     :param comments_file: Path to the raw HN comments file
     :param summary_file: Path to save the summary to
     :param dry_run: If True, show what would be done without executing
+    :param no_incremental: If True, overwrite `summary_file` even if it
+        already exists
     """
-    _LOG.debug(hprint.to_str("comments_file summary_file dry_run"))
+    _LOG.debug(
+        hprint.to_str("comments_file summary_file dry_run no_incremental")
+    )
     if not dry_run:
         hdbg.dassert_file_exists(comments_file)
+    if os.path.exists(summary_file) and not no_incremental:
+        _LOG.info("HN comments summary already exists, skipping: %s", summary_file)
+        return
     dsdlut.summarize_text_with_llm(
         comments_file,
         summary_file,
@@ -386,7 +424,11 @@ def _summarize_hn_url(
 
 
 def _summarize_article_url(
-    article_file: str, summary_file: str, *, dry_run: bool = False
+    article_file: str,
+    summary_file: str,
+    *,
+    dry_run: bool = False,
+    no_incremental: bool = False,
 ) -> None:
     """
     Summarize article text using an LLM.
@@ -394,10 +436,17 @@ def _summarize_article_url(
     :param article_file: Path to the raw article content file
     :param summary_file: Path to save the summary to
     :param dry_run: If True, show what would be done without executing
+    :param no_incremental: If True, overwrite `summary_file` even if it
+        already exists
     """
-    _LOG.debug(hprint.to_str("article_file summary_file dry_run"))
+    _LOG.debug(
+        hprint.to_str("article_file summary_file dry_run no_incremental")
+    )
     if not dry_run:
         hdbg.dassert_file_exists(article_file)
+    if os.path.exists(summary_file) and not no_incremental:
+        _LOG.info("Article summary already exists, skipping: %s", summary_file)
+        return
     dsdlut.summarize_text_with_llm(
         article_file,
         summary_file,
@@ -430,7 +479,8 @@ def _parse() -> argparse.ArgumentParser:
         formatter_class=hparser.CustomHelpFormatter,
     )
     parser.add_argument(
-        "--hn_url",
+        "-i",
+        "--input",
         action="store",
         required=True,
         help="Hacker News submission URL, e.g. "
@@ -456,6 +506,11 @@ def _parse() -> argparse.ArgumentParser:
         action="store_true",
         help="Dry run mode: show what would be done without actually executing actions",
     )
+    parser.add_argument(
+        "--no_incremental",
+        action="store_true",
+        help="Overwrite existing output files instead of skipping",
+    )
     # Add verbosity control argument.
     hparser.add_verbosity_arg(parser)
     return parser
@@ -470,7 +525,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
     hdbg.init_logger(verbosity=args.log_level, use_exec_path=True)
     hcacsimp.parse_cache_control_args(args)
     # Fetch the submission to get its title and (optional) linked article URL.
-    submission = _fetch_submission(args.hn_url)
+    submission = _fetch_submission(args.input)
     title = submission["title"]
     article_url = submission["article_url"]
     item_id = submission["item_id"]
@@ -490,10 +545,10 @@ def _main(parser: argparse.ArgumentParser) -> None:
     # Compute output filenames from `--output` if specified, otherwise from
     # the sanitized title.
     base_name = args.output or dsdlut.sanitize_title_for_filename(title)
-    article_file = f"{base_name}.1.article_url.txt"
-    article_summary_file = f"{base_name}.2.article_url.summary.txt"
+    article_file = f"{base_name}.1.article_url.md"
+    article_summary_file = f"{base_name}.2.article_url.summary.md"
     hn_file = f"{base_name}.3.hn_url.txt"
-    hn_summary_file = f"{base_name}.4.hn_url.summary.txt"
+    hn_summary_file = f"{base_name}.4.hn_url.summary.md"
     _LOG.debug(hprint.to_str("base_name"))
     if args.dry_run:
         _LOG.info("DRY RUN MODE: showing what would be done without executing")
@@ -514,10 +569,18 @@ def _main(parser: argparse.ArgumentParser) -> None:
                 )
                 continue
             _download_article_url(
-                article_url, article_file, dry_run=args.dry_run
+                article_url,
+                article_file,
+                dry_run=args.dry_run,
+                no_incremental=args.no_incremental,
             )
         elif action == "download_hn_url":
-            _download_hn_url(item_id, hn_file, dry_run=args.dry_run)
+            _download_hn_url(
+                item_id,
+                hn_file,
+                dry_run=args.dry_run,
+                no_incremental=args.no_incremental,
+            )
         elif action == "summarize_article_url":
             if not article_url:
                 _LOG.warning(
@@ -525,10 +588,18 @@ def _main(parser: argparse.ArgumentParser) -> None:
                 )
                 continue
             _summarize_article_url(
-                article_file, article_summary_file, dry_run=args.dry_run
+                article_file,
+                article_summary_file,
+                dry_run=args.dry_run,
+                no_incremental=args.no_incremental,
             )
         elif action == "summarize_hn_url":
-            _summarize_hn_url(hn_file, hn_summary_file, dry_run=args.dry_run)
+            _summarize_hn_url(
+                hn_file,
+                hn_summary_file,
+                dry_run=args.dry_run,
+                no_incremental=args.no_incremental,
+            )
     _LOG.info("Download and processing completed")
 
 

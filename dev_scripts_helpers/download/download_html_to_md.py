@@ -31,6 +31,12 @@ r"""
 - Enable the `summarize` action on top of the default actions to also
   generate `<output>.summary.md`:
 > download_html_to_md.py --input https://example.com --output output.md -e summarize
+
+- Show what would be done without downloading, converting, or summarizing:
+> download_html_to_md.py --input https://example.com --output output.md --dry_run
+
+- Overwrite existing output files instead of skipping:
+> download_html_to_md.py --input https://example.com --output output.md --no_incremental
 """
 
 import argparse
@@ -56,14 +62,33 @@ _LOG = logging.getLogger(__name__)
 
 
 @hcacsimp.simple_cache(write_through=True)
-def _download_html(input_url: str, output_html_file: str) -> None:
+def _download_html(
+    input_url: str,
+    output_html_file: str,
+    *,
+    dry_run: bool = False,
+    no_incremental: bool = False,
+) -> None:
     """
     Download HTML from URL or read from local file and save to file.
 
     :param input_url: URL to download from or local file path
     :param output_html_file: Path to save the HTML file
+    :param dry_run: if True, show what would be done without executing
+    :param no_incremental: if True, overwrite `output_html_file` even if it
+        already exists
     """
-    _LOG.debug(hprint.to_str("input_url output_html_file"))
+    _LOG.debug(
+        hprint.to_str("input_url output_html_file dry_run no_incremental")
+    )
+    if dry_run:
+        _LOG.info("[DRY RUN] Would download HTML from '%s'", input_url)
+        _LOG.info("[DRY RUN] Would save HTML to: %s", output_html_file)
+        _LOG.debug("return: dry run, nothing written")
+        return
+    if os.path.exists(output_html_file) and not no_incremental:
+        _LOG.info("HTML already exists, skipping: %s", output_html_file)
+        return
     # Lazy imports to run unit tests.
     import requests
 
@@ -124,7 +149,7 @@ def _convert_using_pandoc(
     ]
     cmd = " ".join(cmd)
     _LOG.debug("Running pandoc command: '%s'", cmd)
-    hsystem.system(cmd)
+    hsystem.system(cmd, print_command=True)
     article_html = hio.from_file(output_md_file)
     _LOG.debug("return: len(article_html)=%d", len(article_html))
     return article_html
@@ -189,6 +214,8 @@ def _convert_html(
     output_md_file: str,
     *,
     converter: str = "auto",
+    dry_run: bool = False,
+    no_incremental: bool = False,
 ) -> None:
     """
     Convert HTML to markdown using python libraries.
@@ -200,8 +227,27 @@ def _convert_html(
         - If "readability": use readability library only
         - If "bs": use BeautifulSoup with smart selectors only
         - If "auto": try BeautifulSoup first, fall back to readability
+    :param dry_run: if True, show what would be done without executing
+    :param no_incremental: if True, overwrite `output_md_file` even if it
+        already exists
     """
-    _LOG.debug(hprint.to_str("input_html_file output_md_file converter"))
+    _LOG.debug(
+        hprint.to_str(
+            "input_html_file output_md_file converter dry_run no_incremental"
+        )
+    )
+    if dry_run:
+        _LOG.info(
+            "[DRY RUN] Would convert '%s' to markdown using '%s' converter",
+            input_html_file,
+            converter,
+        )
+        _LOG.info("[DRY RUN] Would save markdown to: %s", output_md_file)
+        _LOG.debug("return: dry run, nothing written")
+        return
+    if os.path.exists(output_md_file) and not no_incremental:
+        _LOG.info("Markdown already exists, skipping: %s", output_md_file)
+        return
     import markdownify  # type: ignore
 
     _LOG.info("Converting HTML to markdown using python libraries...")
@@ -282,13 +328,18 @@ def _cleanup_markdown_file(md_file: str) -> None:
     _LOG.info("Markdown file cleaned: '%s'", md_file)
 
 
-def _cleanup(md_file: str) -> None:
+def _cleanup(md_file: str, *, dry_run: bool = False) -> None:
     """
     Clean up markdown file by removing unnecessary content.
 
     :param md_file: Path to markdown file to clean
+    :param dry_run: if True, show what would be done without executing
     """
-    _LOG.debug(hprint.to_str("md_file"))
+    _LOG.debug(hprint.to_str("md_file dry_run"))
+    if dry_run:
+        _LOG.info("[DRY RUN] Would clean up markdown file: %s", md_file)
+        _LOG.debug("return: dry run, nothing written")
+        return
     _cleanup_markdown_file(md_file)
 
 
@@ -297,13 +348,19 @@ def _cleanup(md_file: str) -> None:
 # #############################################################################
 
 
-def _lint(output_md_file: str) -> None:
+# TODO(gp): Consider using the library and a faster lib to lint.
+def _lint(output_md_file: str, *, dry_run: bool = False) -> None:
     """
     Lint the markdown file using lint_txt.py.
 
     :param output_md_file: Path to markdown file to lint
+    :param dry_run: if True, show what would be done without executing
     """
-    _LOG.debug(hprint.to_str("output_md_file"))
+    _LOG.debug(hprint.to_str("output_md_file dry_run"))
+    if dry_run:
+        _LOG.info("[DRY RUN] Would lint markdown file: %s", output_md_file)
+        _LOG.debug("return: dry run, nothing written")
+        return
     _LOG.info("Linting markdown file: '%s'...", output_md_file)
     # Find lint_txt.py in the git tree.
     script_path = None
@@ -311,7 +368,7 @@ def _lint(output_md_file: str) -> None:
     _LOG.debug("script_path='%s'", script_path)
     cmd = f"{script_path} --input {output_md_file} --output {output_md_file}"
     _LOG.debug("Running command: '%s'", cmd)
-    hsystem.system(cmd, abort_on_error=False)
+    hsystem.system(cmd, abort_on_error=False, print_command=True)
     _LOG.info("Linting completed for '%s'", output_md_file)
 
 
@@ -320,21 +377,34 @@ def _lint(output_md_file: str) -> None:
 # #############################################################################
 
 
-def _summarize(output_md_file: str) -> None:
+def _summarize(
+    output_md_file: str,
+    *,
+    dry_run: bool = False,
+    no_incremental: bool = False,
+) -> None:
     """
     Summarize the markdown content using an LLM.
 
     :param output_md_file: Path to markdown file to summarize
+    :param dry_run: if True, show what would be done without executing
+    :param no_incremental: if True, overwrite the summary even if it
+        already exists
     """
-    _LOG.debug(hprint.to_str("output_md_file"))
+    _LOG.debug(hprint.to_str("output_md_file dry_run no_incremental"))
     summary_file = f"{output_md_file}.summary.md"
+    if not dry_run and os.path.exists(summary_file) and not no_incremental:
+        _LOG.info("Summary already exists, skipping: %s", summary_file)
+        return
     _LOG.info("Summarizing markdown file: '%s'...", output_md_file)
     dsdlut.summarize_text_with_llm(
         output_md_file,
         summary_file,
         dsdlut.ARTICLE_SUMMARY_PROMPT,
+        dry_run=dry_run,
     )
-    _LOG.info("Summary saved to: '%s'", summary_file)
+    if not dry_run:
+        _LOG.info("Summary saved to: '%s'", summary_file)
 
 
 # #############################################################################
@@ -414,6 +484,16 @@ def _parse() -> argparse.ArgumentParser:
         choices=_CONVERTERS,
         help="Converter to use for HTML to markdown conversion",
     )
+    parser.add_argument(
+        "--dry_run",
+        action="store_true",
+        help="Dry run mode: show what would be done without actually executing actions",
+    )
+    parser.add_argument(
+        "--no_incremental",
+        action="store_true",
+        help="Overwrite existing output files instead of skipping",
+    )
     hselacti.add_action_arg(parser, _VALID_ACTIONS, _DEFAULT_ACTIONS)
     _LOG.debug("return: parser built")
     return parser
@@ -456,6 +536,8 @@ def _main(parser: argparse.ArgumentParser) -> None:
         "\n%s",
         hselacti.actions_to_string(actions, _VALID_ACTIONS, add_frame=True),
     )
+    if args.dry_run:
+        _LOG.info("DRY RUN MODE: showing what would be done without executing")
     # Execute actions.
     while actions:
         action = actions[0]
@@ -464,17 +546,30 @@ def _main(parser: argparse.ArgumentParser) -> None:
             continue
         if action == "download":
             # If the file already exists skip downloading.
-            _download_html(args.input, html_file)
+            _download_html(
+                args.input,
+                html_file,
+                dry_run=args.dry_run,
+                no_incremental=args.no_incremental,
+            )
         elif action == "convert":
             _convert_html(
                 html_file,
-                args.output,
+                output_md_file,
                 converter=args.converter,
+                dry_run=args.dry_run,
+                no_incremental=args.no_incremental,
             )
         elif action == "cleanup":
-            _cleanup(args.output)
+            _cleanup(output_md_file, dry_run=args.dry_run)
         elif action == "lint":
-            _lint(args.output)
+            _lint(output_md_file, dry_run=args.dry_run)
+        elif action == "summarize":
+            _summarize(
+                output_md_file,
+                dry_run=args.dry_run,
+                no_incremental=args.no_incremental,
+            )
         else:
             raise ValueError(f"Invalid action='{action}'")
     hdbg.dassert_eq(

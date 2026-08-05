@@ -1712,6 +1712,7 @@ class Test_mock_apply_llm(hunitest.TestCase):
     Test mock_apply_llm context manager.
     """
 
+    # TODO(ai_gp): Use helper and assert_equal inside.
     def test1(self) -> None:
         """
         Test mock_apply_llm with input and system_prompt.
@@ -1999,6 +2000,22 @@ class Test_add_llm_args(hunitest.TestCase):
         args = parser.parse_args([])
         # Check outputs.
         self.assertEqual(args.model, custom_model)
+
+    def test8(self) -> None:
+        """
+        Test expand_referenced_files defaults to enabled and can be disabled.
+        """
+        # Prepare inputs.
+        parser = argparse.ArgumentParser(
+            formatter_class=hparser.CustomHelpFormatter
+        )
+        hllmcli.add_llm_args(parser, input_required=False)
+        # Parse with no flag: default is enabled.
+        args = parser.parse_args([])
+        self.assertTrue(args.expand_referenced_files)
+        # Parse with `--no_expand_referenced_files`: disabled.
+        args = parser.parse_args(["--no_expand_referenced_files"])
+        self.assertFalse(args.expand_referenced_files)
 
 
 # #############################################################################

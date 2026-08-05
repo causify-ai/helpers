@@ -28,6 +28,12 @@ script.
 - Specify an explicit output path/base name, forwarded to the dispatched script:
 > download_to_md.py --input "https://arxiv.org/abs/1706.03762" --output ./papers/attention
 
+- Show what the dispatched script would do without executing it:
+> download_to_md.py --input "https://arxiv.org/abs/1706.03762" --dry_run
+
+- Overwrite existing output files instead of skipping:
+> download_to_md.py --input "https://arxiv.org/abs/1706.03762" --no_incremental
+
 Import as:
 
 import dev_scripts_helpers.download.download_to_md as dsdtm
@@ -104,7 +110,14 @@ def detect_input_type(input_arg: str) -> str:
 # #############################################################################
 
 
-def _dispatch(input_arg: str, output_arg: str, input_type: str) -> None:
+def _dispatch(
+    input_arg: str,
+    output_arg: str,
+    input_type: str,
+    *,
+    dry_run: bool = False,
+    no_incremental: bool = False,
+) -> None:
     """
     Dispatch to the `download_*_to_md.py` script matching `input_type`.
 
@@ -112,19 +125,23 @@ def _dispatch(input_arg: str, output_arg: str, input_type: str) -> None:
     :param output_arg: output path/base name to forward, empty if not
         specified
     :param input_type: `_TYPE_HN`, `_TYPE_ACADEMIC_PAPER`, or `_TYPE_HTML`
+    :param dry_run: if True, forward `--dry_run` to the dispatched script
+    :param no_incremental: if True, forward `--no_incremental` to the
+        dispatched script
     """
-    _LOG.debug(hprint.to_str("input_arg output_arg input_type"))
-    # Resolve the script and CLI flag used to pass the input URL, based on
-    # the detected input type.
+    _LOG.debug(
+        hprint.to_str(
+            "input_arg output_arg input_type dry_run no_incremental"
+        )
+    )
+    # Resolve the script to dispatch to based on the detected input type; all
+    # 3 target scripts share the same `--input` CLI flag.
     if input_type == _TYPE_HN:
         script_name = "download_hn_article_to_md.py"
-        input_flag = "--hn_url"
     elif input_type == _TYPE_ACADEMIC_PAPER:
         script_name = "download_academic_paper_to_md.py"
-        input_flag = "--input"
     elif input_type == _TYPE_HTML:
         script_name = "download_html_to_md.py"
-        input_flag = "--input"
     else:
         raise ValueError(f"Unsupported input type: '{input_type}'")
     # Resolve the dispatched script's path and build its command line,
@@ -132,14 +149,18 @@ def _dispatch(input_arg: str, output_arg: str, input_type: str) -> None:
     script_path = hgit.find_file_in_git_tree(script_name)
     cmd = [
         script_path,
-        f'{input_flag} "{input_arg}"',
+        f'--input "{input_arg}"',
     ]
     if output_arg:
         cmd.append(f'--output "{output_arg}"')
+    if dry_run:
+        cmd.append("--dry_run")
+    if no_incremental:
+        cmd.append("--no_incremental")
     cmd = " ".join(cmd)
     _LOG.debug("cmd=%s", cmd)
     _LOG.info("Dispatching to '%s'", script_name)
-    hsystem.system(cmd)
+    hsystem.system(cmd, print_command=True)
 
 
 # #############################################################################
@@ -174,6 +195,22 @@ def _parse() -> argparse.ArgumentParser:
             "not specified, the dispatched script derives one on its own"
         ),
     )
+    parser.add_argument(
+        "--dry_run",
+        action="store_true",
+        help=(
+            "Dry run mode: forward --dry_run to the dispatched script so it "
+            "shows what would be done without actually executing actions"
+        ),
+    )
+    parser.add_argument(
+        "--no_incremental",
+        action="store_true",
+        help=(
+            "Forward --no_incremental to the dispatched script to overwrite "
+            "existing output files instead of skipping"
+        ),
+    )
     hparser.add_verbosity_arg(parser)
     return parser
 
@@ -186,7 +223,13 @@ def _main(parser: argparse.ArgumentParser) -> None:
     args = parser.parse_args()
     hdbg.init_logger(verbosity=args.log_level, use_exec_path=True)
     input_type = detect_input_type(args.input)
-    _dispatch(args.input, args.output, input_type)
+    _dispatch(
+        args.input,
+        args.output,
+        input_type,
+        dry_run=args.dry_run,
+        no_incremental=args.no_incremental,
+    )
 
 
 if __name__ == "__main__":

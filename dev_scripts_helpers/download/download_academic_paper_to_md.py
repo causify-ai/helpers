@@ -39,6 +39,12 @@
 - Only download and convert, skip summarization:
 > download_academic_paper_to_md.py --input "10.1038/nature12373" --skip_action summarize
 
+- Convert without extracting figures/images from the PDF:
+> download_academic_paper_to_md.py --input "10.1038/nature12373" --skip_figures
+
+- Show what would be done without downloading, converting, or summarizing:
+> download_academic_paper_to_md.py --input "10.1038/nature12373" --dry_run
+
 Import as:
 
 import dev_scripts_helpers.download.download_academic_paper_to_md as dsdapt
@@ -451,6 +457,7 @@ def _download(
     pdf_path: str,
     *,
     no_incremental: bool = False,
+    dry_run: bool = False,
 ) -> None:
     """
     Download the PDF for `url` and save it to `pdf_path`.
@@ -458,8 +465,14 @@ def _download(
     :param url: URL to PDF, arXiv URL, or DOI
     :param pdf_path: path to save the PDF to
     :param no_incremental: if True, overwrite existing files
+    :param dry_run: if True, show what would be done without executing
     """
-    _LOG.debug(hprint.to_str("url pdf_path no_incremental"))
+    _LOG.debug(hprint.to_str("url pdf_path no_incremental dry_run"))
+    if dry_run:
+        _LOG.info("[DRY RUN] Would download PDF from '%s'", url)
+        _LOG.info("[DRY RUN] Would save PDF to: %s", pdf_path)
+        _LOG.debug("return: dry run, nothing written")
+        return
     if os.path.exists(pdf_path) and not no_incremental:
         _LOG.info("PDF already exists, skipping: %s", pdf_path)
         return
@@ -486,15 +499,24 @@ def _download(
 # #############################################################################
 
 
-def _convert(pdf_path: str) -> None:
+def _convert(
+    pdf_path: str, *, skip_figures: bool = False, dry_run: bool = False
+) -> None:
     """
     Convert the PDF to Markdown using `convert_pdf_to_md.py`.
 
     Writes `<pdf_stem>.md` next to `pdf_path`, i.e. `<base_path>.md`.
 
     :param pdf_path: path to the PDF file to convert
+    :param skip_figures: if True, do not extract images/figures from the
+        PDF
+    :param dry_run: if True, show what would be done without executing
     """
-    _LOG.debug(hprint.to_str("pdf_path"))
+    _LOG.debug(hprint.to_str("pdf_path skip_figures dry_run"))
+    if dry_run:
+        _LOG.info("[DRY RUN] Would convert PDF to markdown: %s", pdf_path)
+        _LOG.debug("return: dry run, nothing written")
+        return
     hdbg.dassert_file_exists(pdf_path)
     _LOG.info("Converting PDF to markdown: %s", pdf_path)
     script_path = hgit.find_file_in_git_tree("convert_pdf_to_md.py")
@@ -502,8 +524,10 @@ def _convert(pdf_path: str) -> None:
     cmd = (
         f"{script_path} --input {pdf_path} --output {output_dir} --overwrite"
     )
+    if skip_figures:
+        cmd += " --skip_figures"
     _LOG.debug("Running command: %s", cmd)
-    hsystem.system(cmd)
+    hsystem.system(cmd, print_command=True)
 
 
 # #############################################################################
@@ -511,7 +535,7 @@ def _convert(pdf_path: str) -> None:
 # #############################################################################
 
 
-def _summarize(base_path: str) -> None:
+def _summarize(base_path: str, *, dry_run: bool = False) -> None:
     """
     Summarize the converted markdown content using an LLM.
 
@@ -519,18 +543,22 @@ def _summarize(base_path: str) -> None:
 
     :param base_path: base path (no extension) shared by the pdf/md/summary
         files
+    :param dry_run: if True, show what would be done without executing
     """
-    _LOG.debug(hprint.to_str("base_path"))
+    _LOG.debug(hprint.to_str("base_path dry_run"))
     md_path = f"{base_path}.md"
     summary_path = f"{base_path}.summary.md"
-    hdbg.dassert_file_exists(md_path)
+    if not dry_run:
+        hdbg.dassert_file_exists(md_path)
     _LOG.info("Summarizing markdown file: '%s'...", md_path)
     dsdlut.summarize_text_with_llm(
         md_path,
         summary_path,
         dsdlut.ARTICLE_SUMMARY_PROMPT,
+        dry_run=dry_run,
     )
-    _LOG.info("Summary saved to: '%s'", summary_path)
+    if not dry_run:
+        _LOG.info("Summary saved to: '%s'", summary_path)
 
 
 # #############################################################################
@@ -574,6 +602,16 @@ def _parse() -> argparse.ArgumentParser:
         action="store_true",
         help="Overwrite existing files instead of skipping",
     )
+    parser.add_argument(
+        "--skip_figures",
+        action="store_true",
+        help="Skip extracting figures/images when converting the PDF to markdown",
+    )
+    parser.add_argument(
+        "--dry_run",
+        action="store_true",
+        help="Dry run mode: show what would be done without actually executing actions",
+    )
     hselacti.add_action_arg(parser, _VALID_ACTIONS, _DEFAULT_ACTIONS)
     hparser.add_verbosity_arg(parser)
     _LOG.debug("return=parser")
@@ -601,6 +639,8 @@ def _main(parser: argparse.ArgumentParser) -> None:
     # Get selected actions.
     actions = hselacti.select_actions(args, _VALID_ACTIONS, _DEFAULT_ACTIONS)
     _LOG.info("Selected actions: %s", actions)
+    if args.dry_run:
+        _LOG.info("DRY RUN MODE: showing what would be done without executing")
     # Execute actions.
     while actions:
         action = actions[0]
@@ -608,12 +648,19 @@ def _main(parser: argparse.ArgumentParser) -> None:
         if to_execute:
             if action == "download":
                 _download(
-                    args.input, pdf_path, no_incremental=args.no_incremental
+                    args.input,
+                    pdf_path,
+                    no_incremental=args.no_incremental,
+                    dry_run=args.dry_run,
                 )
             elif action == "convert":
-                _convert(pdf_path)
+                _convert(
+                    pdf_path,
+                    skip_figures=args.skip_figures,
+                    dry_run=args.dry_run,
+                )
             elif action == "summarize":
-                _summarize(base_path)
+                _summarize(base_path, dry_run=args.dry_run)
             else:
                 raise ValueError("Invalid action='{action}'")
 
