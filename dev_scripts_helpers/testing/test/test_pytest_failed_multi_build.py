@@ -732,7 +732,6 @@ class Test_build_stats_to_str_colorization(hunitest.TestCase):
     def helper(
         self,
         build_stats: list,
-        expected_status: str,
         expected: str,
         *,
         dedent: bool = False,
@@ -741,7 +740,6 @@ class Test_build_stats_to_str_colorization(hunitest.TestCase):
         Helper to check that status appears in colorized output.
 
         :param build_stats: Build statistics list
-        :param expected_status: Expected status string (e.g., "PASS", "FAIL")
         :param expected: Expected full output (if provided, uses assert_equal)
         :param dedent: Whether to dedent and strip the expected string
         """
@@ -780,7 +778,7 @@ class Test_build_stats_to_str_colorization(hunitest.TestCase):
         ------ | ------ | ------ | ------- | ------ | ----- | -------- |
         docker | PASS   | 368    | 20      | 0      | 388   | 11.87s   |"""
         # Run test.
-        self.helper(build_stats, "PASS", expected, dedent=True)
+        self.helper(build_stats, expected, dedent=True)
 
     def test2(self) -> None:
         """
@@ -806,7 +804,7 @@ class Test_build_stats_to_str_colorization(hunitest.TestCase):
         ------ | ------ | ------ | ------- | ------ | ----- | -------- |
         docker | FAIL   | 357    | 20      | 11     | 388   | 12.45s   |"""
         # Run test.
-        self.helper(build_stats, "FAIL", expected, dedent=True)
+        self.helper(build_stats, expected, dedent=True)
 
     def test3(self) -> None:
         """
@@ -832,9 +830,7 @@ class Test_build_stats_to_str_colorization(hunitest.TestCase):
         ------------- | ----------- | ------ | ------- | ------ | ----- | -------- |
         dev_container | NOT STARTED | 0      | 0       | 0      | 0     | N/A      |"""
         # Run test.
-        self.helper(
-            build_stats, "NOT STARTED", expected, dedent=True
-        )
+        self.helper(build_stats, expected, dedent=True)
 
     def test4(self) -> None:
         """
@@ -860,9 +856,7 @@ class Test_build_stats_to_str_colorization(hunitest.TestCase):
         ----- | ----------- | ------ | ------- | ------ | ----- | -------- |
         apple | IN PROGRESS | 150    | 5       | 0      | 155   | N/A      |"""
         # Run test.
-        self.helper(
-            build_stats, "IN PROGRESS", expected, dedent=True
-        )
+        self.helper(build_stats, expected, dedent=True)
 
     def test5(self) -> None:
         """
@@ -889,7 +883,7 @@ class Test_build_stats_to_str_colorization(hunitest.TestCase):
         ------ | ----------- | ------ | ------- | ------ | ----- | -------- |
         docker | NOT STARTED | 0      | 0       | 0      | 0     | N/A      |"""
         # Run test.
-        self.helper(build_stats, "NOT STARTED", expected, dedent=True)
+        self.helper(build_stats, expected, dedent=True)
 
 
 # #############################################################################
