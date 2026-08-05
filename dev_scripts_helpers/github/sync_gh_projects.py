@@ -11,11 +11,13 @@ It does NOT (currently not supported):
 - Delete extra fields or views
 - Detect hidden fields or per-view field visibility
 
-Usage:
-    python sync_gh_projects.py \
-        --owner "causify-ai" \
-        --src-template "[TEMPLATE] Causify Project" \
-        --dst-project "Buildmeister"
+# Usage Example
+
+- Sync fields from the template project to the destination project:
+> sync_gh_projects.py \
+    --owner "causify-ai" \
+    --src-template "[TEMPLATE] Causify Project" \
+    --dst-project "Buildmeister"
 
 Options:
 - `--dry-run`: Show what changes would be made without applying them.

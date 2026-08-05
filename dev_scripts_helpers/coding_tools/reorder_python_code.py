@@ -7,7 +7,10 @@ This script reads a markdown map file that specifies how to organize functions
 from an input Python file into multiple target files. It performs text-based
 manipulation to extract, reorder, and organize functions according to the map.
 
-Example usage:
+# Usage Example
+
+- Reorganize functions from a source file into multiple target files based
+  on a map:
 > reorder_python_code.py \
     --input_file helpers/hpandas.py \
     --map_file hpandas_map.md

@@ -32,6 +32,8 @@ General-purpose CLI to apply LLM transformations to text files or text input
 - Supports multiple input sources: file, stdin, inline text
 - Chunk selection with file reassembly (select mode)
 - Flexible system prompts: inline string, file, rule spec, skill reference
+- Automatic expansion of `@file` references in the system prompt into file
+  content (enabled by default; disable with `--no_expand_referenced_files`)
 - 3 backend implementations: library (fastest, with cost tracking), executable
   (subprocess), mock (testing only)
 - Optional output linting, progress bars, token cost tracking, dry-run preview
@@ -284,6 +286,11 @@ System prompt comes from exactly one of three mutually exclusive sources:
 The rule spec format is `path:line:topic`, e.g
 `.claude/skills/slides.rules.md:58:# Slide Organization`
 
+Once resolved, the system prompt is expanded via
+`hllmcli.expand_referenced_files()`: any `@file.ext` reference in the prompt
+text is replaced with the referenced file's content. This is enabled by
+default and can be turned off with `--no_expand_referenced_files`.
+
 **5. LLM Call & Post-Processing**
 The actual LLM call goes to `hllmcli.apply_llm()`, which supports 3 backends:
 
@@ -345,7 +352,9 @@ Determines `(input_file, input_text, output_file)` from CLI args. Handles stdin
 
 ### `_get_system_prompt()`: Prompt Resolution
 Reads system prompt from one source: file path, rule spec, or inline string
-Validates exactly one is provided
+Validates exactly one is provided. Then, unless
+`expand_referenced_files=False`, expands `@file` references in the resolved
+prompt into file content via `hllmcli.expand_referenced_files()`
 
 ## Helper Functions
 | Function                    | Purpose                                                                    |
@@ -578,6 +587,7 @@ llm_cli.py --llm_cmd "llm chat --model gpt-4"
 | `-p` / `--system_prompt`       | system_prompt       | `""`          | System prompt inline                  |
 | `-pf` / `--system_prompt_file` | system_prompt_file  | `""`          | System prompt from file               |
 | `--rule`                       | rule                | `""`          | Rule spec (`file:line:topic`)         |
+| `--expand_referenced_files` / `--no_expand_referenced_files` | expand_referenced_files | `True` | Expand `@file` refs in system prompt into file content |
 | `--select`                     | select              | `""`          | Chunk selection (line/header/regex)   |
 | `--model`                      | model               | `gpt-4o-mini` | LLM model name                        |
 | `--backend`                    | backend             | `library`     | Backend: library, executable, mock    |

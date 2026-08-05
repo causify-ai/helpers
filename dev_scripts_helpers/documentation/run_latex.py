@@ -9,21 +9,21 @@ is required. It also reports any `LaTeX`/`Package`/`Class` warnings found in
 the resulting `.log` file, and can copy the PDF to Google Drive and open it
 in Skim on macOS.
 
-Usage examples:
+# Usage Example
 
-# Quick single-pass build (default)
+- Quick single-pass build (default):
 > run_latex.py --input book.tex
 
-# Two-pass build (resolves cross-references).
+- Two-pass build (resolves cross-references):
 > run_latex.py --input book.tex --num_passes 2
 
-# Full build with bibliography (two passes, bibtex, two more passes).
+- Full build with bibliography (two passes, bibtex, two more passes):
 > run_latex.py --input book.tex --num_passes 3
 
-# Build, copy to Google Drive, and open the PDF in Skim.
+- Build, copy to Google Drive, and open the PDF in Skim:
 > run_latex.py --input book.tex -a copy_to_gdrive -a open
 
-# Watch mode: rebuild on file changes, skip opening on subsequent runs.
+- Watch mode: rebuild on file changes, skip opening on subsequent runs:
 > run_latex.py --input book.tex --daemon
 
 Import as:

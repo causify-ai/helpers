@@ -14,12 +14,12 @@ The output is automatically opened in the default PDF viewer.
 Each node in the call graph is a hyperlink to the corresponding function on
 GitHub.
 
-Example usage:
+# Usage Example
 
-Generate call graph for a single Python file:
+- Generate the call graph for a single Python file:
 > build_call_graph.py --input=myfile.py
 
-Generate with GitHub links pointing to master branch:
+- Generate the call graph with GitHub links pointing to the master branch:
 > build_call_graph.py --input=myfile.py --use_master
 
 Import as:

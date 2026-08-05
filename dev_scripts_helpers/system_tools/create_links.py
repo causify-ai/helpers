@@ -6,23 +6,24 @@ A detailed description is:
 
 > docs/tools/dev_system/all.replace_common_files_with_script_links.md
 
-Usage Example:
+# Usage Example
 
 - Step 1: Replace files in `dst_dir` with links from `src_dir`:
-  > create_links.py --src_dir $SRC_DIR --dst_dir $DST_DIR --replace_links
+> create_links.py --src_dir $SRC_DIR --dst_dir $DST_DIR --replace_links
 
-- Step 2: Stage linked files for modification (e.g., make a copy of all the links
-  so that they can be modified in place)
-  > create_links.py --src_dir $SRC_DIR --dst_dir $DST_DIR --stage_links
+- Step 2: Stage linked files for modification (e.g., make a copy of all the
+  links so that they can be modified in place):
+> create_links.py --src_dir $SRC_DIR --dst_dir $DST_DIR --stage_links
 
 - Step 3: After modification, restore the symbolic links:
-  > create_links.py --src_dir $SRC_DIR --dst_dir $DST_DIR --replace_links
+> create_links.py --src_dir $SRC_DIR --dst_dir $DST_DIR --replace_links
 
-- Links can be absolute or relative (using `--replace_links --link_type absolute`)
+- Links can be absolute or relative (using `--replace_links --link_type
+  absolute`)
 
-- E.g., `msml610/tutorials/L12_reinforcement_learning` was copied from
-  `class_project/project_template`
-  > create_links.py --src_dir class_project/project_template --dst_dir msml610/tutorials/L12_reinforcement_learning --replace_links
+- Example: `msml610/tutorials/L12_reinforcement_learning` was copied from
+  `class_project/project_template`:
+> create_links.py --src_dir class_project/project_template --dst_dir msml610/tutorials/L12_reinforcement_learning --replace_links
 
 Import as:
 

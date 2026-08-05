@@ -64,6 +64,7 @@ class Test_selected_text(hunitest.TestCase):
     Test lib_llm_cli.py selected text processing.
     """
 
+    # TODO(ai_gp): Factor out a helper and do the checking inside.
     def test1(self) -> None:
         """
         Test that select extracts and transforms the correct chunk.
@@ -204,6 +205,7 @@ class Test_get_system_prompt(hunitest.TestCase):
     Test `_get_system_prompt()` function.
     """
 
+    # TODO(ai_gp): Factor out a helper and do the checking inside.
     def test1(self) -> None:
         """
         Test getting system prompt from string argument.
@@ -244,6 +246,56 @@ class Test_get_system_prompt(hunitest.TestCase):
         # Check outputs.
         self.assertEqual(actual, expected)
 
+    def test3(self) -> None:
+        """
+        Test that `@file` references are expanded by default.
+        """
+        # Prepare inputs.
+        scratch_space = self.get_scratch_space()
+        ref_file = os.path.join(
+            scratch_space, "get_system_prompt_expand_test.md"
+        )
+        hio.to_file(ref_file, "referenced content")
+        system_prompt_file = ""
+        rule = ""
+        system_prompt = "Follow @get_system_prompt_expand_test.md"
+        # Prepare outputs.
+        expected = (
+            "Follow <!-- From get_system_prompt_expand_test.md -->\n"
+            "referenced content"
+        )
+        # Run test.
+        actual = dshllllcl._get_system_prompt(
+            system_prompt_file,
+            rule,
+            system_prompt,
+        )
+        # Check outputs.
+        self.assertEqual(actual, expected)
+
+    def test4(self) -> None:
+        """
+        Test that `@file` expansion can be disabled.
+        """
+        # Prepare inputs.
+        scratch_space = self.get_scratch_space()
+        ref_file = os.path.join(
+            scratch_space, "get_system_prompt_noexpand_test.md"
+        )
+        hio.to_file(ref_file, "referenced content")
+        system_prompt_file = ""
+        rule = ""
+        system_prompt = "Follow @get_system_prompt_noexpand_test.md"
+        # Run test.
+        actual = dshllllcl._get_system_prompt(
+            system_prompt_file,
+            rule,
+            system_prompt,
+            expand_referenced_files=False,
+        )
+        # Check outputs: reference is left untouched.
+        self.assertEqual(actual, system_prompt)
+
 
 # #############################################################################
 # Test_limit_input_text
@@ -255,6 +307,7 @@ class Test_limit_input_text(hunitest.TestCase):
     Test `_limit_input_text()` function.
     """
 
+    # TODO(ai_gp): Factor out a helper and do the checking inside.
     def test1(self) -> None:
         """
         Test that text shorter than limit is not truncated.
@@ -294,6 +347,7 @@ class Test_get_input_output_files(hunitest.TestCase):
     Test `_get_input_output_files()` function.
     """
 
+    # TODO(ai_gp): Factor out a helper and do the checking inside.
     def test1(self) -> None:
         """
         Test input file, output to stdout.

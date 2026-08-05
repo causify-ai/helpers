@@ -167,6 +167,8 @@ def _get_system_prompt(
     system_prompt_file: str,
     rule: str,
     system_prompt: str,
+    *,
+    expand_referenced_files: bool = True,
 ) -> str:
     """
     Get system prompt from file, rule, or argument.
@@ -176,6 +178,8 @@ def _get_system_prompt(
     :param rule: Rule specification to extract system prompt from (empty string
         if not provided)
     :param system_prompt: Default system prompt text
+    :param expand_referenced_files: whether to expand `@file` references in
+        the resolved prompt into file content
     :return: The resolved system prompt
     """
     _LOG.debug(hprint.func_signature_to_str())
@@ -212,6 +216,9 @@ def _get_system_prompt(
     else:
         # Use the provided string directly.
         result = system_prompt
+    # Expand `@file` references in the resolved prompt into file content.
+    if expand_referenced_files and result:
+        result = hllmcli.expand_referenced_files(result)
     _LOG.debug("return=system_prompt (%d chars)", len(result))
     return result
 
@@ -505,6 +512,8 @@ def _llm_cli(
     stat_file: str,
     llm_cmd: str,
     install_llm_plugins: bool,
+    *,
+    expand_referenced_files: bool = True,
 ) -> None:
     """
     Execute the LLM command processing logic.
@@ -537,6 +546,8 @@ def _llm_cli(
         provided)
     :param llm_cmd: Arbitrary llm command to execute (empty string if not
         provided)
+    :param expand_referenced_files: whether to expand `@file` references in
+        the system prompt into file content
     """
     _LOG.debug(hprint.func_signature_to_str())
     verbosity = log_level
@@ -580,6 +591,7 @@ def _llm_cli(
         system_prompt_file,
         rule,
         system_prompt_arg,
+        expand_referenced_files=expand_referenced_files,
     )
     # Route to the appropriate processing path: select or full-text.
     if select:

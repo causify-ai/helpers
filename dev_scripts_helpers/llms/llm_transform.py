@@ -15,17 +15,18 @@ There are different modes to run this script:
 - Process input and extract a cfile to be used to review the points in the code
  or for further processing with `llm_apply.py`
 
-Examples
-# Basic Usage
+# Usage Example
+
+- Apply a basic transform (convert to uppercase):
 > llm_transform.py -i input.txt -o output.txt -p uppercase
 
-# List of transforms
+- List available transforms:
 > llm_transform.py --list
 
-# Code review
+- Run a code review transform and produce a cfile:
 > llm_transform.py -i render_images.py -o cfile -p code_review
 
-# Propose refactoring
+- Propose a refactoring and produce a cfile:
 > llm_transform.py -i render_images.py -o cfile -p code_propose_refactoring
 """
 

@@ -13,10 +13,18 @@ google/gemini-3.1-pro-preview
 deepseek/deepseek-v4-pro
 ```
 
-Usage:
+# Usage Example
+
+- Compare models listed in a file, running the default data-fetching actions:
 > openrouter_models_table.py --models_from_file models.txt
+
+- Compare models listed in a file with debug logging enabled:
 > openrouter_models_table.py --models_from_file models.txt -v DEBUG
-> openrouter_models_table.py --models_from_file models.txt -a fetch_aa_benchmarks -a fetch_openrouter_throughput
+
+- Compare models listed in a file, running only the AA benchmarks and OpenRouter throughput actions:
+> openrouter_models_table.py --models_from_file models.txt --action fetch_aa_benchmarks --action fetch_openrouter_throughput
+
+- Compare models given as an inline space-separated list:
 > openrouter_models_table.py --models_list "google/gemini-3.1-pro-preview deepseek/deepseek-v4-pro"
 
 The script fetches data from multiple sources and displays a comparison table.
@@ -32,10 +40,10 @@ Available data sources:
   rankings API
 
 Use action selection flags to control which data sources are queried:
-- `-a/--action`: Select specific actions to run
-- `-sa/--skip_action`: Skip specific actions from the default set
-- `-e/--enable`: Enable additional actions beyond defaults
-- `--all`: Run all available actions (default behavior)
+- `--action`: Select specific actions to run
+- `--skip_action`: Skip specific actions from the default set
+- `--enable`: Enable additional actions beyond defaults
+- `--all_actions`: Run all available actions (default behavior)
 """
 
 import argparse

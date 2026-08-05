@@ -5,24 +5,19 @@ This script performs several actions on a Jupyter notebook, such as:
 - opening a notebook in the browser
 - publishing a notebook locally or remotely on an HTML server
 
-# Open a notebook in the browser
+# Usage Example
 
-- The following command opens an archived notebook as HTML into the browser:
-  ```
-  > publish_notebook.py \
-      --file s3://.../notebooks/PTask768_event_filtering.html \
-      --action open \
-      --aws_profile 'am'
-  ```
+- Open an archived notebook as HTML into the browser:
+> publish_notebook.py \
+    --file s3://.../notebooks/PTask768_event_filtering.html \
+    --action open \
+    --aws_profile 'am'
 
-# Publish a notebook
-
-  ```
-  > publish_notebook.py \
-      --file nlp/notebooks/PTask768_event_filtering.ipynb \
-      --action publish \
-      --aws_profile 'am'
-  ```
+- Publish a notebook:
+> publish_notebook.py \
+    --file nlp/notebooks/PTask768_event_filtering.ipynb \
+    --action publish \
+    --aws_profile 'am'
 
 # Detailed instructions at `/docs/coding/all.publish_notebook.how_to_guide.md`.
 

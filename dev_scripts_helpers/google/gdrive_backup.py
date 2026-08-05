@@ -2,20 +2,28 @@
 """
 Handle backups / export / import of Google Drive directory.
 
-# List content of a Google drive dir.
-> infra/gdrive.py --action ls --src_dir gp_drive:alphamatic -v DEBUG
+# Usage Example
 
-# Backup.
-> infra/gdrive.py --action backup --src_dir gp_drive:alphamatic --dst_dir gdrive_backup -v DEBUG
+- List the content of a Google Drive directory:
+> gdrive_backup.py --action ls --src_dir gp_drive:alphamatic -v DEBUG
 
-# Test of moving data.
-> infra/gdrive.py --action backup --src_dir gp_drive:alphamatic/LLC --dst_dir gdrive_backup
-> infra/gdrive.py --action export --src_dir gp_drive:alphamatic/LLC --dst_dir tmp.LLC
-> infra/gdrive.py --action import --src_dir tmp.LLC --dst_dir alphamatic_drive:test/LLC
+- Back up a Google Drive directory:
+> gdrive_backup.py --action backup --src_dir gp_drive:alphamatic --dst_dir gdrive_backup -v DEBUG
 
-# Moving data.
-> infra/gdrive.py --action export --src_dir gp_drive:alphamatic --dst_dir tmp.alphamatic
-> infra/gdrive.py --action import --src_dir tmp.alphamatic --dst_dir alphamatic_drive:alphamatic
+- Back up a subdirectory as a test of moving data:
+> gdrive_backup.py --action backup --src_dir gp_drive:alphamatic/LLC --dst_dir gdrive_backup
+
+- Export a subdirectory as a test of moving data:
+> gdrive_backup.py --action export --src_dir gp_drive:alphamatic/LLC --dst_dir tmp.LLC
+
+- Import a subdirectory as a test of moving data:
+> gdrive_backup.py --action import --src_dir tmp.LLC --dst_dir alphamatic_drive:test/LLC
+
+- Export a Google Drive directory to move data:
+> gdrive_backup.py --action export --src_dir gp_drive:alphamatic --dst_dir tmp.alphamatic
+
+- Import previously exported data into a Google Drive directory:
+> gdrive_backup.py --action import --src_dir tmp.alphamatic --dst_dir alphamatic_drive:alphamatic
 
 Import as:
 

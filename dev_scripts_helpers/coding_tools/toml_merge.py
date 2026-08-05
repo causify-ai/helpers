@@ -4,6 +4,9 @@
 Merge two or more pyproject.toml files in a single one. This can be used to
 merge multiple poetry files.
 
+# Usage Example
+
+- Merge two pyproject.toml files into a single output file:
 > toml_merge.py \
     --in_file devops/docker_build/pyproject.toml \
     --in_file amp/devops/docker_build/pyproject.toml \

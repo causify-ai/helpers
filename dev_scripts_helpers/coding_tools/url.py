@@ -4,6 +4,10 @@
 Convert a URL or a path into different formats, e.g., Jupyter URL, GitHub, Git
 path.
 
+# Usage Example
+
+- Convert a GitHub URL into the corresponding file path, GitHub URL, and
+  Jupyter URL:
 > url.py https://github.com/.../.../Task229_Exploratory_analysis_of_ST_data.ipynb
 file_name=
 /Users/saggese/src/.../.../oil/ST/Task229_Exploratory_analysis_of_ST_data.ipynb

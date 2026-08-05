@@ -5,16 +5,17 @@ Synchronize GitHub issue labels from a label inventory manifest file.
 This script builds the container dynamically if necessary and synchronizes GitHub
 issue labels using the provided manifest file.
 
-Synchronize labels for the `helpers` repository from a YAML manifest file with a dry run.
-```bash
-> ./dev_scripts_helpers/github/sync_gh_issue_labels.py \
+# Usage Example
+
+- Synchronize labels for the `helpers` repository from a YAML manifest file
+  with a dry run:
+> sync_gh_issue_labels.py \
     --input_file ./dev_scripts_helpers/github/labels/gh_issues_labels.yml \
     --owner causify-ai \
     --repo tutorials \
     --token_env_var GITHUB_TOKEN \
     --dry_run \
     --backup
-```
 """
 
 import argparse

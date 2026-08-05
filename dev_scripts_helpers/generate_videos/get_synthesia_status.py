@@ -5,7 +5,9 @@ Get Synthesia video generation status.
 This script retrieves the status of video generation jobs from the Synthesia API
 and displays them in a formatted table.
 
-Usage:
+# Usage Example
+
+- Print the status of the most recent video generation jobs:
 > get_synthesia_status.py
 
 Environment:

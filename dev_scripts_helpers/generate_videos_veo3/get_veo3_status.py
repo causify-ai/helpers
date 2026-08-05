@@ -5,8 +5,12 @@ Get Google Veo3 video generation status.
 This script retrieves the status of video generation operations from the Google GenAI API
 and displays them in a formatted table.
 
-Usage:
+# Usage Example
+
+- List recent video generation operations and their status:
 > get_veo3_status.py
+
+- Check the status of specific video generation operations:
 > get_veo3_status.py --operation-ids operations/12345 operations/67890
 
 Environment:

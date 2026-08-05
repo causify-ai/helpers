@@ -4,12 +4,13 @@
 """
 Scripts for one-off processing of latex files.
 
-# Replace only:
+# Usage Example
 
-> scripts/replace_latex.py -a replace --file notes/IN_PROGRESS/finance.portfolio_theory.txt
+- Replace only:
+> replace_latex.py -a replace --file notes/IN_PROGRESS/finance.portfolio_theory.txt
 
-# Replace and check:
-> scripts/replace_latex.py -a pandoc_before -a replace -a pandoc_after --file notes/IN_PROGRESS/finance.portfolio_theory.txt
+- Replace and check:
+> replace_latex.py -a pandoc_before -a replace -a pandoc_after --file notes/IN_PROGRESS/finance.portfolio_theory.txt
 
 Import as:
 

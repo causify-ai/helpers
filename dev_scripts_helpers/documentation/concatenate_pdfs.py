@@ -11,18 +11,18 @@ The script takes a list of PDF files (or glob patterns) and merges them
 into a single output PDF file. Files are sorted alphabetically before
 concatenation.
 
-Usage examples:
+# Usage Example
 
-# Concatenate all PDF files in current directory.
+- Concatenate all PDF files in current directory:
 > concatenate_pdfs.py --input_files "*.pdf" --output_file combined.pdf
 
-# Concatenate specific lesson PDFs in sorted order.
+- Concatenate specific lesson PDFs in sorted order:
 > concatenate_pdfs.py --input_files "data605/lectures_commentary/Lesson*.pdf" --output_file data605_lessons.pdf
 
-# Dry run to see which files will be concatenated.
+- Dry run to see which files will be concatenated:
 > concatenate_pdfs.py --input_files "*.pdf" --output_file combined.pdf --dry_run
 
-# Concatenate specific files.
+- Concatenate specific files:
 > concatenate_pdfs.py --input_files "file1.pdf file2.pdf file3.pdf" --output_file output.pdf
 
 Import as:

@@ -2,6 +2,9 @@
 """
 Wrapper for docformatter.
 
+# Usage Example
+
+- Run docformatter on one or more files:
 > amp_doc_formatter.py sample_file1.py sample_file2.py
 
 Import as:

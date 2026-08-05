@@ -2,6 +2,9 @@
 r"""
 Wrapper for pylint.
 
+# Usage Example
+
+- Run pylint on one or more files:
 > amp_pylint.py sample_file1.py sample_file2.py
 
 Import as:

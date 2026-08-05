@@ -59,7 +59,7 @@ def add_file_selection_args(
     - --modified: Select files modified in the client
     - --branch: Select files modified with respect to the branch point
     - --last_commit: Select files part of the previous commit
-    - --all: Select all files
+    - --all_files: Select all files
 
     :param parser: ArgumentParser to add arguments to
     :return: The same parser with arguments added
@@ -116,7 +116,7 @@ def parse_file_selection_args(
     - --modified: files modified in the client
     - --branch: files modified with respect to the branch point
     - --last_commit: files part of the previous commit
-    - --all: all repo files
+    - --all_files: all repo files
 
     :param args: Parsed command-line arguments from add_file_selection_args
     :param remove_dirs: Whether to exclude directories from results

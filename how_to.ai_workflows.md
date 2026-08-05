@@ -104,7 +104,7 @@
 - Detects file types, builds a prompt from the matching rules or skill, and
   invokes Claude Code on the selected files
 - Select files with `--files`, `--from_file`, `--modified`, `--branch`,
-  `--last_commit`, or `--all`
+  `--last_commit`, or `--all_files`
 - Select what to apply with `--topic`, `--skill`, or `--rule`
 - `--mode` is required (no default): pick `one_shot_with_cc`, `one_shot`,
   `session`, or `stateless`
@@ -146,8 +146,8 @@
 ### Lint Files by Topic Instead of a Single Rule
 - Use `cc_lint.py --files "<files>" --topic <topic> --mode one_shot_with_cc`
   to apply the topic's full rules file, or `--modified` / `--branch` /
-  `--last_commit` / `--all` instead of `--files` to select files by git state
-  rather than by name
+  `--last_commit` / `--all_files` instead of `--files` to select files by git
+  state rather than by name
 
 ### Run a Skill on a File
 - Use `cc_lint.py --files "<file>" --skill <topic>.<action> --mode one_shot_with_cc`

@@ -3,14 +3,15 @@
 """
 Show import dependencies and detect cyclic imports.
 
-E.g.,
-# Show file dependencies.
+# Usage Example
+
+- Show file dependencies:
 > show_imports.py <module_name>
 
-# Show directory dependencies.
+- Show directory dependencies:
 > show_imports.py --dir <module_name>
 
-# Show level X dependencies.
+- Show level X dependencies:
 > show_imports.py --max_level X <module_name>
 """
 

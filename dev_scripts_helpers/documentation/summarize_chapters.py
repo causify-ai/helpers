@@ -7,15 +7,16 @@ Reads one or more markdown files and summarizes them into bullet-point format
 while preserving the document structure (chapters and subchapters with their
 original numbers).
 
-Examples:
-# Single file
-> ./summarize_chapters.py -i chapter1.md -o chapter1.summary.md
+# Usage Example
 
-# Multiple files
-> ./summarize_chapters.py --input_files="ch1.md,ch2.md,ch3.md"
+- Summarize a single file:
+> summarize_chapters.py -i chapter1.md -o chapter1.summary.md
 
-# Files from a list
-> ./summarize_chapters.py --from_file=file_list.txt
+- Summarize multiple files:
+> summarize_chapters.py --input_files="ch1.md,ch2.md,ch3.md"
+
+- Summarize files listed in a file:
+> summarize_chapters.py --from_file=file_list.txt
 """
 
 import argparse

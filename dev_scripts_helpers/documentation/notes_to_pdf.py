@@ -3,15 +3,20 @@
 r"""
 Convert a txt file into a PDF / HTML / slides using `pandoc`.
 
-# From scratch with TOC:
-> notes_to_pdf.py -a pdf --input ...
+# Usage Example
 
-# For interactive mode:
-> notes_to_pdf.py -a pdf --no_cleanup_before --no_cleanup --input ...
+- Build the PDF from scratch, with a table of contents:
+> notes_to_pdf.py --action pdf --input ...
 
-# Check that can be compiled:
-> notes_to_pdf.py -a pdf --no_toc --no_open_pdf --input ...
+- Build the PDF in interactive mode, skipping the before/after cleanup steps:
+> notes_to_pdf.py --action pdf --no_cleanup_before --no_cleanup --input ...
 
+- Check that the file compiles, without a table of contents and without
+  opening the PDF:
+> notes_to_pdf.py --action pdf --no_toc --no_open_pdf --input ...
+
+- Build the PDF for a specific file, skipping cleanup, skipping the second
+  pdflatex pass, and without opening the result:
 > notes_to_pdf.py \
     --input notes/IN_PROGRESS/math.The_hundred_page_ML_book.Burkov.2019.txt \
     -t pdf \

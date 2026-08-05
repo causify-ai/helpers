@@ -149,7 +149,7 @@ def summarize_text_with_llm(
     ]
     cmd = " ".join(cmd_parts)
     _LOG.debug("Running command: %s", cmd)
-    hsystem.system(cmd)
+    hsystem.system(cmd, print_command=True)
     _LOG.info("Summary saved to: %s", output_file)
 
 
@@ -173,51 +173,58 @@ def is_arxiv_url(url: str) -> bool:
 
 def download_website_article(url: str, output_file: str) -> None:
     """
-    Download a normal website article and convert it to text via
+    Download a normal website article and convert it to markdown via
     `download_html_to_md.py`.
 
     :param url: Article URL
-    :param output_file: Path to save the article text to
+    :param output_file: Path to save the article markdown to; should end
+        in `.md`
     """
     _LOG.debug(hprint.to_str("url output_file"))
     script = hgit.find_file_in_git_tree("download_html_to_md.py")
     cmd = f'{script} --input "{url}" --output "{output_file}"'
-    hsystem.system(cmd)
+    hsystem.system(cmd, print_command=True)
     hdbg.dassert_file_exists(output_file)
 
 
 def download_arxiv_article(url: str, output_file: str) -> None:
     """
     Download an arXiv paper via `download_academic_paper_to_md.py` and use
-    its converted markdown as the article text.
+    its converted markdown as the article content.
 
-    The PDF and markdown are saved next to `output_file` (same basename,
-    `.pdf`/`.md` extensions) and the markdown content is written to
-    `output_file` so it can be consumed like any other article.
+    `output_file` must end in `.md`: `download_academic_paper_to_md.py`
+    writes its converted markdown directly to it (and the downloaded PDF to
+    the sibling `.pdf`), so no separate copy step is needed.
+
+    Figures are not extracted from the PDF since only the article text is
+    needed downstream (e.g., for summarization).
 
     :param url: arXiv URL
-    :param output_file: Path to save the extracted article text to
+    :param output_file: Path to save the extracted article markdown to;
+        must end in `.md`
     """
     _LOG.debug(hprint.to_str("url output_file"))
+    hdbg.dassert(
+        output_file.endswith(".md"),
+        "output_file must end in '.md': %s",
+        output_file,
+    )
     # Base path (no extension) shared by the generated .pdf/.md files.
-    base_path = re.sub(r"\.txt$", "", output_file)
+    base_path = output_file[: -len(".md")]
     script = hgit.find_file_in_git_tree("download_academic_paper_to_md.py")
     # Only download + convert here: skip the script's own summarize action
-    # since callers summarize the resulting article text themselves.
+    # since callers summarize the resulting article text themselves. Skip
+    # figures too, since only the text is consumed downstream.
     cmd = (
         f'{script} --input "{url}" --output "{base_path}" '
-        f"--no_incremental -sa summarize"
+        f"--no_incremental --skip_action summarize --skip_figures"
     )
-    hsystem.system(cmd)
+    hsystem.system(cmd, print_command=True)
     pdf_output_file = f"{base_path}.pdf"
-    md_output_file = f"{base_path}.md"
     hdbg.dassert_file_exists(pdf_output_file)
-    hdbg.dassert_file_exists(md_output_file)
+    hdbg.dassert_file_exists(output_file)
     _LOG.info("Saved PDF to: %s", pdf_output_file)
-    # Use the converted markdown as the article text for downstream
-    # summarization.
-    text = hio.from_file(md_output_file)
-    hio.to_file(output_file, text)
+    _LOG.info("Saved article markdown to: %s", output_file)
 
 
 def download_article(url: str, output_file: str) -> None:

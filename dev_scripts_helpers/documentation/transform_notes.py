@@ -1,26 +1,27 @@
 #!/usr/bin/env python
 
 """
-Perform one of several transformations on a txt file, e.g.,
+Perform one of several transformations on a txt file.
 
-1) `toc`: create table of context from the current file, with 1 level
-    > transform_notes.py -a toc -i % -l 1
+# Usage Example
 
-2) `format`: format the current file with 3 levels
-    :!transform_notes.py -a format -i % --max_lev 3
-    > transform_notes.py -a format -i notes/ABC.txt --max_lev 3
+- Create a table of contents from the current file, with 1 level:
+> transform_notes.py -a toc -i % -l 1
 
-    - In vim
-    :!transform_notes.py -a format -i % --max_lev 3
-    :%!transform_notes.py -a format -i - --max_lev 3
+- Format the current file with 3 levels:
+> transform_notes.py -a format -i notes/ABC.txt --max_lev 3
 
-3) `increase`: increase level
-    :!transform_notes.py -a increase -i %
-    :%!transform_notes.py -a increase -i -
+  In vim:
+  :!transform_notes.py -a format -i % --max_lev 3
+  :%!transform_notes.py -a format -i - --max_lev 3
 
-4) `md_list_to_latex`: convert a markdown list to a latex list
-    :!transform_notes.py -a md_list_to_latex -i %
-    :%!transform_notes.py -a md_list_to_latex -i -
+- Increase the indentation level, in vim:
+  :!transform_notes.py -a increase -i %
+  :%!transform_notes.py -a increase -i -
+
+- Convert a markdown list to a latex list, in vim:
+  :!transform_notes.py -a md_list_to_latex -i %
+  :%!transform_notes.py -a md_list_to_latex -i -
 
 - The input or output can be filename or stdin (represented by '-')
 - If output file is not specified then we assume that the output file is the

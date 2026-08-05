@@ -2,8 +2,12 @@
 r"""
 Wrapper for mypy.
 
+# Usage Example
+
+- Run mypy on one or more files:
 > amp_mypy.py sample_file1.py sample_file2.py
 
+- Run mypy on a file with debug-level logging:
 > amp_mypy.py sample_file1.py -v DEBUG
 
 Import as:

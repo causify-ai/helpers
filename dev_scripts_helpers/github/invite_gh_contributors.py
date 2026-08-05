@@ -4,14 +4,16 @@ Invite GitHub collaborators listed in a Google Sheet/CSV while obeying the
 50-invite / 24-hour cap by creating a docker container and running
 `dockerized_invite_gh_contributors`
 
-# Invite to the repo `causify-ai/tutorials` the users in the passed Google Sheet:
+# Usage Example
+
+- Invite to the repo `causify-ai/tutorials` the users in the passed Google Sheet:
 > invite_gh_contributors.py \
     --drive_url "https://docs.google.com/spreadsheets/d/1Ez5uRvOgvDMkFc9c6mI21kscTKnpiCSh4UkUh_ifLIw
     /edit?gid=0#gid=0" \
     --org_name causify-ai \
     --repo_name tutorials
 
-# Invite to the repo `causify-ai/tutorials` the users in the passed CSV file:
+- Invite to the repo `causify-ai/tutorials` the users in the passed CSV file:
 > invite_gh_contributors.py \
     --csv_file "/tmp/github_users.csv" \
     --org_name causify-ai \

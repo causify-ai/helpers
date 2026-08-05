@@ -14,10 +14,13 @@ Supports two transformation actions:
    - Converts `\textcolor{color}{content}` to `#text(fill: color)[content]`
    - Handles nested braces with proper parsing
 
-Usage:
+# Usage Example
+
+- Convert a markdown file's pandoc AST to typst, applying the divved-fence
+  and color-text transformations, then render it to typst:
 > pandoc input.md -t json | \
     transform_pandoc_ast_to_typst.py \
-        -i - -o output.json -a divved_fence -a color_text
+        -i - -o output.json --action divved_fence --action color_text
 > pandoc output.json -f json -t typst -o slides.typ
 
 Import as:

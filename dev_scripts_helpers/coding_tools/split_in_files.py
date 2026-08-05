@@ -24,23 +24,24 @@ Input file:
   Second chunk
 Result: output.txt contains "First chunk\nSecond chunk"
 
-Example:
-# Split a file with tags into separate files:
+# Usage Example
+
+- Split a file with tags into separate files:
 > split_in_files.py --input_file input.txt
 
-# Split with custom output directory:
+- Split with custom output directory:
 > split_in_files.py --input_file input.txt --output_dir ./output
 
-# Preview what would be done without writing files:
+- Preview what would be done without writing files:
 > split_in_files.py --input_file input.txt --dry_run
 
-# Keep the input file unchanged after splitting:
+- Keep the input file unchanged after splitting:
 > split_in_files.py --input_file input.txt --preserve_input
 
-# Append to existing files instead of overwriting:
+- Append to existing files instead of overwriting:
 > split_in_files.py --input_file input.txt --append
 
-# Skip content verification for faster processing:
+- Skip content verification for faster processing:
 > split_in_files.py --input_file input.txt --skip_verify
 
 Import as:

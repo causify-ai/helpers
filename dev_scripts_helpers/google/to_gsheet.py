@@ -20,27 +20,27 @@ Tab Selection:
 - With --use_gid flag, the tab name is extracted from the gid in the URL and the
   --tabname argument is ignored. The URL must contain a gid for this to work.
 
-Example usage:
+# Usage Example
 
-# Load CSV to a new tab (default tab name: 'new_data')
+- Load CSV to a new tab (default tab name: 'new_data'):
 > to_gsheet.py \
     --input_file data.csv \
     --url "https://docs.google.com/spreadsheets/d/1UZiJlRqUhNiFEFhdmLzVkxQ1kll7hQhQE-rnzNuIz5c/edit"
 
-# Load CSV to a specific tab
+- Load CSV to a specific tab:
 > to_gsheet.py \
     --input_file data.csv \
     --url "https://docs.google.com/spreadsheets/d/1UZiJlRqUhNiFEFhdmLzVkxQ1kll7hQhQE-rnzNuIz5c/edit" \
     --tabname "my_data"
 
-# Overwrite existing tab
+- Overwrite an existing tab:
 > to_gsheet.py \
     --input_file data.csv \
     --url "https://docs.google.com/spreadsheets/d/1UZiJlRqUhNiFEFhdmLzVkxQ1kll7hQhQE-rnzNuIz5c/edit" \
     --tabname "my_data" \
     --overwrite
 
-# Extract tab name from gid in URL (ignores --tabname)
+- Extract tab name from gid in URL (ignores --tabname):
 > to_gsheet.py \
     --input_file data.csv \
     --url "https://docs.google.com/spreadsheets/d/1UZiJlRqUhNiFEFhdmLzVkxQ1kll7hQhQE-rnzNuIz5c/edit?gid=123#gid=123" \

@@ -5,51 +5,51 @@ Unified linter for Python, Jupyter, and Markdown files.
 Selects files based on git state (modified, branch, etc.) or explicit paths,
 then applies appropriate linting tools per file type.
 
-Examples:
+# Usage Example
 
-# Lint files in current branch vs master (default)
+- Lint files in current branch vs master (default):
 > lint.py --branch
 
-# Lint all modified files (Python and Jupyter)
+- Lint all modified files (Python and Jupyter):
 > lint.py --modified
 
-# Lint specific files
+- Lint specific files:
 > lint.py --files "foo.py bar.ipynb baz.md"
 
-# Lint from a file list, Jupyter only
+- Lint from a file list, Jupyter only:
 > lint.py --from_file filelist.txt --file_types "ipynb"
 
-# Lint last commit
+- Lint last commit:
 > lint.py --last_commit
 
-# Lint all repo files
-> lint.py --all
+- Lint all repo files:
+> lint.py --all_files
 
-# Lint only Markdown files in modified files
+- Lint only Markdown files in modified files:
 > lint.py --modified --file_types "md"
 
-# Lint Markdown and Text files
+- Lint Markdown and Text files:
 > lint.py --modified --file_types "md,txt"
 
-# Run only specific actions on modified files (pre-commit and normalize_import)
+- Run only specific actions on modified files (pre-commit and normalize_import):
 > lint.py --modified --action pre-commit normalize_import
 
-# Run only jupytext sync on Jupyter notebooks
+- Run only jupytext sync on Jupyter notebooks:
 > lint.py --modified --file_types "ipynb" --action sync_jupytext
 
-# Run add_class_frames only on Python files
+- Run add_class_frames only on Python files:
 > lint.py --modified --file_types "py" --action add_class_frames
 
-# Run fix_comments only on Python files to convert single-line docstrings
+- Run fix_comments only on Python files to convert single-line docstrings:
 > lint.py --modified --file_types "py" --action fix_comments
 
-# Run pyright type-checker on modified Python files (including paired jupytext)
+- Run pyright type-checker on modified Python files (including paired jupytext):
 > lint.py --modified --file_types "py" --action pyright
 
-# Run fix_pyright via Claude Code to fix pyright errors
+- Run fix_pyright via Claude Code to fix pyright errors:
 > lint.py --modified --file_types "py" --action fix_pyright
 
-# Run coverage for test files corresponding to modified Python files
+- Run coverage for test files corresponding to modified Python files:
 > lint.py --modified --file_types "py" --action coverage
 """
 

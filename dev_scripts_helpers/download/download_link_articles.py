@@ -37,49 +37,65 @@ characters replaced with underscores:
 - `{title}.3.article_url.summary.txt` - Summarized article (from summarize_article_url)
 - `{title}.4.hn_url.summary.txt` - Summarized HN comments (from summarize_hn_url)
 
-## Example Usage
+# Usage Example
 
-Download HN comments for a single submission directly, bypassing Google
-Sheets:
+- Download HN comments (and its linked article, if any) for a single submission
+  directly, bypassing Google Sheets; the input type (HN submission vs. generic
+  article) is auto-detected:
 > download_link_articles.py \
-    --hn_url "https://news.ycombinator.com/item?id=12345"
+    --input "https://news.ycombinator.com/item?id=12345"
 
-Download a single article directly, bypassing Google Sheets; the title is
-extracted from the page's <title> tag:
+- Download a single article directly, bypassing Google Sheets; the title is
+  extracted from the page's <title> tag:
 > download_link_articles.py \
-    --article_url "https://queue.acm.org/detail.cfm?id=3807963"
+    --input "https://queue.acm.org/detail.cfm?id=3807963"
 
-Download HN comments for rows 0-9 where the "Hn_url" column is not empty:
+- Use an explicit output base name instead of the derived title:
+> download_link_articles.py \
+    --input "https://news.ycombinator.com/item?id=12345" \
+    --output my_submission
+
+- Overwrite existing output files instead of skipping:
+> download_link_articles.py \
+    --input "https://news.ycombinator.com/item?id=12345" \
+    --no_incremental
+
+- Download HN comments for rows 0-9 where the "Hn_url" column is not empty:
 > download_link_articles.py \
     --url "https://docs.google.com/spreadsheets/d/..." \
     --row_idx "0:10" \
     --action download_hn_url
 
-Download all actions (both HN comments and articles):
+- Download all actions (both HN comments and articles):
 > download_link_articles.py \
     --url "https://docs.google.com/spreadsheets/d/..." \
-    --all
+    --all_actions
 
-Download article content only:
+- Download article content only:
 > download_link_articles.py \
     --url "https://docs.google.com/spreadsheets/d/..." \
     --action download_article_url
 
-Download from rows 0-4, skip article downloads:
+- Download from rows 0-4, skip article downloads:
 > download_link_articles.py \
     --url "https://docs.google.com/spreadsheets/d/..." \
     --row_idx "0:5" \
     --skip_action download_article_url
 
-Summarize articles (requires prior download_article_url):
+- Summarize articles (requires prior download_article_url):
 > download_link_articles.py \
     --url "https://docs.google.com/spreadsheets/d/..." \
     --action summarize_article_url
 
-Summarize HN comments (requires prior download_hn_url):
+- Summarize HN comments (requires prior download_hn_url):
 > download_link_articles.py \
     --url "https://docs.google.com/spreadsheets/d/..." \
     --action summarize_hn_url
+
+- Show what would be done without downloading or summarizing:
+> download_link_articles.py \
+    --url "https://docs.google.com/spreadsheets/d/..." \
+    --dry_run
 
 Import as:
 
@@ -87,16 +103,13 @@ import dev_scripts_helpers.download.download_link_articles as dssdla
 """
 
 import argparse
-import glob
 import html
 import logging
 import os
 import re
-import shutil
 from typing import Any, Dict, List, Optional
 
 import bs4
-import fitz  # PyMuPDF
 import requests
 from tqdm import tqdm
 
@@ -107,6 +120,7 @@ import helpers.hprint as hprint
 import helpers.hcache_simple as hcacsimp
 import helpers.hselect_action as hselacti
 import helpers.hsystem as hsystem
+import dev_scripts_helpers.download.download_utils as dshddut
 import dev_scripts_helpers.download.link_gsheet_utils as dshdlgsut
 
 _LOG = logging.getLogger(__name__)
@@ -184,7 +198,8 @@ def _build_row_from_hn_url(hn_url: str) -> List[Dict[str, Any]]:
     Build a single synthetic row from a directly-provided HN URL.
 
     Bypasses the Google Sheets download by fetching the submission title
-    directly from the HN API, so `--hn_url` can be used standalone.
+    directly from the HN API, so `--input` can be used standalone with a HN
+    submission URL.
 
     :param hn_url: Hacker News item URL
     :return: List containing a single row with Title, Article_url, Hn_url
@@ -205,7 +220,7 @@ def _build_row_from_hn_url(hn_url: str) -> List[Dict[str, Any]]:
         article_url = item_data.get("url", "")
     row = {"Title": title, "Article_url": article_url, "Hn_url": hn_url}
     _LOG.info(
-        "Built row from --hn_url: title='%s' article_url='%s'",
+        "Built row from --input: title='%s' article_url='%s'",
         title,
         article_url,
     )
@@ -257,7 +272,8 @@ def _build_row_from_article_url(article_url: str) -> List[Dict[str, Any]]:
     Build a single synthetic row from a directly-provided article URL.
 
     Bypasses the Google Sheets download by fetching the page's `<title>`
-    tag directly, so `--article_url` can be used standalone.
+    tag directly, so `--input` can be used standalone with a generic
+    article URL.
 
     :param article_url: Article URL
     :return: List containing a single row with Title, Article_url, Hn_url
@@ -272,11 +288,31 @@ def _build_row_from_article_url(article_url: str) -> List[Dict[str, Any]]:
         title = article_url
     row = {"Title": title, "Article_url": article_url, "Hn_url": ""}
     _LOG.info(
-        "Built row from --article_url: title='%s' article_url='%s'",
+        "Built row from --input: title='%s' article_url='%s'",
         title,
         article_url,
     )
     return [row]
+
+
+def _build_row_from_input(input_arg: str) -> List[Dict[str, Any]]:
+    """
+    Build a single synthetic row from a directly-provided URL, bypassing
+    Google Sheets.
+
+    The input type (Hacker News submission vs. generic article) is
+    auto-detected, mirroring `download_to_md.py`'s `detect_input_type()`.
+
+    :param input_arg: HN submission URL or generic article URL
+    :return: List containing a single row with Title, Article_url, Hn_url
+    """
+    _LOG.debug(hprint.func_signature_to_str())
+    if dshdlgsut.is_hackernews_url(input_arg):
+        rows = _build_row_from_hn_url(input_arg)
+    else:
+        rows = _build_row_from_article_url(input_arg)
+    _LOG.debug(hprint.to_str("rows"))
+    return rows
 
 
 # #############################################################################
@@ -526,62 +562,12 @@ def _is_arxiv_url(url: str) -> bool:
     return "arxiv.org" in url.lower()
 
 
-def _download_website_article(url: str, output_file: str) -> None:
-    """
-    Download a normal website article and convert it to text via
-    `download_html_to_md.py`.
-
-    :param url: Article URL
-    :param output_file: Path to save the article text to
-    """
-    _LOG.debug(hprint.to_str("url output_file"))
-    script = "dev_scripts_helpers/download/download_html_to_md.py"
-    cmd = f'{script} --input "{url}" --output "{output_file}"'
-    hsystem.system(cmd)
-    hdbg.dassert_file_exists(output_file)
-
-
-def _download_arxiv_article(url: str, output_file: str) -> None:
-    """
-    Download an arXiv paper via `download_academic_paper.py` and extract its
-    text.
-
-    The PDF is saved next to `output_file` (same basename, `.pdf`
-    extension) and its extracted text is written to `output_file` so it can
-    be consumed like any other article by the rest of the pipeline.
-
-    :param url: arXiv URL
-    :param output_file: Path to save the extracted article text to
-    """
-    _LOG.debug(hprint.to_str("url output_file"))
-    # Download the PDF into a scratch dir: the script derives its own
-    # standardized filename from the paper's arXiv metadata.
-    tmp_dir = dshdlgsut.get_tmp_file_path("papers", "download_link_articles")
-    hio.create_dir(tmp_dir, incremental=True)
-    script = "dev_scripts_helpers/download/download_academic_paper.py"
-    cmd = f'{script} --input "{url}" --output_dir "{tmp_dir}" --no_incremental'
-    hsystem.system(cmd)
-    pdf_files = glob.glob(os.path.join(tmp_dir, "*.pdf"))
-    hdbg.dassert_eq(
-        len(pdf_files),
-        1,
-        "Expected exactly 1 PDF in '%s', found %s",
-        tmp_dir,
-        pdf_files,
-    )
-    # Move the PDF next to the text output, using the row's sanitized title.
-    pdf_output_file = re.sub(r"\.txt$", ".pdf", output_file)
-    shutil.move(pdf_files[0], pdf_output_file)
-    _LOG.info("Saved PDF to: %s", pdf_output_file)
-    # Extract text from the PDF for downstream summarization.
-    doc = fitz.open(pdf_output_file)
-    text = "\n".join(page.get_text("text") for page in doc)
-    doc.close()
-    hio.to_file(output_file, text)
-
-
 def _download_hn_urls(
-    rows: List[Dict[str, Any]], indices: List[int], *, dry_run: bool = False
+    rows: List[Dict[str, Any]],
+    indices: List[int],
+    *,
+    dry_run: bool = False,
+    no_incremental: bool = False,
 ) -> None:
     """
     Download HN comments for selected rows and save to files.
@@ -589,6 +575,8 @@ def _download_hn_urls(
     :param rows: List of data rows
     :param indices: List of row indices to process
     :param dry_run: If True, show what would be done without executing
+    :param no_incremental: If True, overwrite output files even if they
+        already exist
     """
     _LOG.debug(hprint.to_str("len(indices)"))
     _LOG.info(
@@ -618,6 +606,8 @@ def _download_hn_urls(
         if dry_run:
             _LOG.info("[DRY RUN] Would fetch HN comments for item: %s", item_id)
             _LOG.info("[DRY RUN] Would write HN comments to: %s", output_file)
+        elif os.path.exists(output_file) and not no_incremental:
+            _LOG.info("HN comments already exist, skipping: %s", output_file)
         else:
             hn_comments = _fetch_hn_url(item_id, max_depth=10)
             total_comments = _count_comments(hn_comments)
@@ -630,7 +620,11 @@ def _download_hn_urls(
 
 
 def _download_article_urls(
-    rows: List[Dict[str, Any]], *, indices: List[int], dry_run: bool = False
+    rows: List[Dict[str, Any]],
+    *,
+    indices: List[int],
+    dry_run: bool = False,
+    no_incremental: bool = False,
 ) -> None:
     """
     Download article content from Article_url column and save to files.
@@ -638,6 +632,8 @@ def _download_article_urls(
     :param rows: List of data rows
     :param indices: List of row indices to process
     :param dry_run: If True, show what would be done without executing
+    :param no_incremental: If True, overwrite output files even if they
+        already exist
     """
     _LOG.debug(hprint.to_str("len(indices)"))
     _LOG.info(
@@ -657,10 +653,13 @@ def _download_article_urls(
         # Generate filename from title and check if it already exists.
         sanitized_title = _sanitize_title_for_filename(title)
         output_file = f"{sanitized_title}.1.article_url.txt"
-        # Dispatch to the appropriate downloader based on the URL type.
+        # TODO(ai_gp): Use dev_scripts_helpers/download/download_to_md.py
+        # Dispatch to the appropriate downloader based on the URL type; reuse
+        # the shared, already-correct `download_utils.py` downloaders
+        # instead of maintaining separate copies here.
         is_arxiv = _is_arxiv_url(article_url)
         downloader = (
-            "download_academic_paper.py"
+            "download_academic_paper_to_md.py"
             if is_arxiv
             else "download_html_to_md.py"
         )
@@ -673,15 +672,16 @@ def _download_article_urls(
             _LOG.info(
                 "[DRY RUN] Would write article content to: %s", output_file
             )
+        elif os.path.exists(output_file) and not no_incremental:
+            _LOG.info(
+                "Article content already exists, skipping: %s", output_file
+            )
         else:
             _LOG.info(
                 "Downloading article from '%s' via %s", article_url, downloader
             )
             try:
-                if is_arxiv:
-                    _download_arxiv_article(article_url, output_file)
-                else:
-                    _download_website_article(article_url, output_file)
+                dshddut.download_article(article_url, output_file)
             except Exception as e:
                 _LOG.warning(
                     "Row %d: Failed to download article from '%s': %s",
@@ -740,12 +740,16 @@ def _summarize_text_with_llm(
     ]
     cmd = " ".join(cmd_parts)
     _LOG.debug("Running command: %s", cmd)
-    hsystem.system(cmd)
+    hsystem.system(cmd, print_command=True)
     _LOG.info("Summary saved to: %s", output_file)
 
 
 def _summarize_hn_url(
-    rows: List[Dict[str, Any]], *, indices: List[int], dry_run: bool = False
+    rows: List[Dict[str, Any]],
+    *,
+    indices: List[int],
+    dry_run: bool = False,
+    no_incremental: bool = False,
 ) -> None:
     """
     Summarize HN comments using llm_cli.py.
@@ -756,6 +760,8 @@ def _summarize_hn_url(
     :param rows: List of data rows
     :param indices: List of row indices to process
     :param dry_run: If True, show what would be done without executing
+    :param no_incremental: If True, overwrite the summary even if it
+        already exists
     """
     _LOG.debug(hprint.to_str("len(indices)"))
     _LOG.info(
@@ -789,6 +795,16 @@ def _summarize_hn_url(
         if not dry_run:
             hdbg.dassert_file_exists(comments_file)
         comments_summary_file = f"{sanitized_title}.4.hn_url.summary.txt"
+        if (
+            not dry_run
+            and os.path.exists(comments_summary_file)
+            and not no_incremental
+        ):
+            _LOG.info(
+                "HN comments summary already exists, skipping: %s",
+                comments_summary_file,
+            )
+            continue
         _LOG.info("Summarizing HN comments for: %s", title)
         _summarize_text_with_llm(
             comments_file,
@@ -800,7 +816,11 @@ def _summarize_hn_url(
 
 
 def _summarize_articles(
-    rows: List[Dict[str, Any]], *, indices: List[int], dry_run: bool = False
+    rows: List[Dict[str, Any]],
+    *,
+    indices: List[int],
+    dry_run: bool = False,
+    no_incremental: bool = False,
 ) -> None:
     """
     Summarize article text using llm_cli.py.
@@ -811,6 +831,8 @@ def _summarize_articles(
     :param rows: List of data rows
     :param indices: List of row indices to process
     :param dry_run: If True, show what would be done without executing
+    :param no_incremental: If True, overwrite the summary even if it
+        already exists
     """
     _LOG.debug(hprint.to_str("len(indices)"))
     _LOG.info(
@@ -834,6 +856,16 @@ def _summarize_articles(
         if not dry_run:
             hdbg.dassert_file_exists(article_file)
         article_summary_file = f"{sanitized_title}.2.article_url.summary.txt"
+        if (
+            not dry_run
+            and os.path.exists(article_summary_file)
+            and not no_incremental
+        ):
+            _LOG.info(
+                "Article summary already exists, skipping: %s",
+                article_summary_file,
+            )
+            continue
         _LOG.info("Summarizing article text for: %s", title)
         _summarize_text_with_llm(
             article_file,
@@ -867,9 +899,9 @@ def _parse() -> argparse.ArgumentParser:
         description=__doc__,
         formatter_class=hparser.CustomHelpFormatter,
     )
-    # Exactly one data source is required: a Google Sheets document, a
-    # single HN submission URL, or a single article URL, each processed
-    # directly (bypassing Google Sheets) for the latter two.
+    # Exactly one data source is required: a Google Sheets document, or a
+    # single HN submission/article URL processed directly (bypassing Google
+    # Sheets), with the input type auto-detected.
     source_group = parser.add_mutually_exclusive_group(required=True)
     source_group.add_argument(
         "--url",
@@ -877,25 +909,31 @@ def _parse() -> argparse.ArgumentParser:
         help="URL of the Google Sheets document",
     )
     source_group.add_argument(
-        "--hn_url",
+        "-i",
+        "--input",
         action="store",
-        help="Directly download a single HN submission URL, bypassing Google Sheets",
+        help="Directly download a single HN submission URL or article URL, "
+        "bypassing Google Sheets (type auto-detected)",
     )
-    source_group.add_argument(
-        "--article_url",
-        action="store",
-        help="Directly download a single article URL, bypassing Google Sheets; "
-        "the title is extracted from the page's <title> tag",
+    parser.add_argument(
+        "-o",
+        "--output",
+        type=str,
+        default="",
+        help=(
+            "Output base name (no extension) shared by the generated files, "
+            "used with --input only (ignored with --url). If not "
+            "specified, the sanitized page/submission title is used"
+        ),
     )
     # Optional: specify which rows to process (0-indexed). Ignored when
-    # --hn_url or --article_url is used, since each processes a single
-    # synthetic row.
+    # --input is used, since it processes a single synthetic row.
     parser.add_argument(
         "--row_idx",
         action="store",
         required=False,
         default="",
-        help="Row index or range to process, 1-indexed (e.g., '1' for first row, '1:10' for rows 1-10); ignored with --hn_url/--article_url",
+        help="Row index or range to process, 1-indexed (e.g., '1' for first row, '1:10' for rows 1-10); ignored with --input",
     )
     # Add action selection arguments (download_hn_url, download_article_url, etc).
     hselacti.add_action_arg(parser, _VALID_ACTIONS, _DEFAULT_ACTIONS)
@@ -906,6 +944,11 @@ def _parse() -> argparse.ArgumentParser:
         "--dry_run",
         action="store_true",
         help="Dry run mode: show what would be done without actually executing actions",
+    )
+    parser.add_argument(
+        "--no_incremental",
+        action="store_true",
+        help="Overwrite existing output files instead of skipping",
     )
     # Add verbosity control argument.
     hparser.add_verbosity_arg(parser)
@@ -920,13 +963,17 @@ def _main(parser: argparse.ArgumentParser) -> None:
     args = parser.parse_args()
     hdbg.init_logger(verbosity=args.log_level, use_exec_path=True)
     hcacsimp.parse_cache_control_args(args)
-    # Phase 1: Determine the rows to process, either from a single --hn_url,
-    # a single --article_url, or from the full Google Sheets document.
-    if args.hn_url:
-        rows = _build_row_from_hn_url(args.hn_url)
-        indices = [0]
-    elif args.article_url:
-        rows = _build_row_from_article_url(args.article_url)
+    # Phase 1: Determine the rows to process, either from a single --input
+    # (type auto-detected) or from the full Google Sheets document.
+    is_hn_input = False
+    if args.input:
+        is_hn_input = dshdlgsut.is_hackernews_url(args.input)
+        rows = _build_row_from_input(args.input)
+        if args.output:
+            # Override the derived title so downstream filenames use the
+            # explicit --output base name instead of the sanitized
+            # page/submission title.
+            rows[0]["Title"] = args.output
         indices = [0]
     else:
         rows = _load_rows_from_gsheet(args.url)
@@ -934,15 +981,16 @@ def _main(parser: argparse.ArgumentParser) -> None:
         indices = _parse_row_idx(args.row_idx, len(rows))
     _LOG.info("Row indices to process: %s", indices)
     # Determine which actions to execute based on command-line flags. When
-    # processing a single --hn_url directly and the submission has no linked
-    # article (e.g., Show HN / Ask HN / text posts have no Article_url),
-    # restrict the defaults to HN-only actions. Likewise, --article_url has
-    # no Hn_url, so restrict to article-only actions. Both are overridable
-    # explicitly via --action/--skip_action/--enable.
+    # processing a single --input directly that resolves to an HN
+    # submission with no linked article (e.g., Show HN / Ask HN / text
+    # posts have no Article_url), restrict the defaults to HN-only actions.
+    # Likewise, a generic article --input has no Hn_url, so restrict to
+    # article-only actions. Both are overridable explicitly via
+    # --action/--skip_action/--enable.
     default_actions = _DEFAULT_ACTIONS
-    if args.hn_url and not rows[0]["Article_url"]:
+    if is_hn_input and not rows[0]["Article_url"]:
         default_actions = ["download_hn_url", "summarize_hn_url"]
-    elif args.article_url:
+    elif args.input and not is_hn_input:
         default_actions = ["download_article_url", "summarize_article_url"]
     actions = hselacti.select_actions(args, _VALID_ACTIONS, default_actions)
     _LOG.info(
@@ -960,14 +1008,34 @@ def _main(parser: argparse.ArgumentParser) -> None:
             continue
         # Phase 3: Download article.
         if action == "download_article_url":
-            _download_article_urls(rows, indices=indices, dry_run=args.dry_run)
+            _download_article_urls(
+                rows,
+                indices=indices,
+                dry_run=args.dry_run,
+                no_incremental=args.no_incremental,
+            )
         elif action == "download_hn_url":
-            _download_hn_urls(rows, indices=indices, dry_run=args.dry_run)
+            _download_hn_urls(
+                rows,
+                indices,
+                dry_run=args.dry_run,
+                no_incremental=args.no_incremental,
+            )
         elif action == "summarize_article_url":
             # Phase 4: Summarization.
-            _summarize_articles(rows, indices=indices, dry_run=args.dry_run)
+            _summarize_articles(
+                rows,
+                indices=indices,
+                dry_run=args.dry_run,
+                no_incremental=args.no_incremental,
+            )
         elif action == "summarize_hn_url":
-            _summarize_hn_url(rows, indices=indices, dry_run=args.dry_run)
+            _summarize_hn_url(
+                rows,
+                indices=indices,
+                dry_run=args.dry_run,
+                no_incremental=args.no_incremental,
+            )
         else:
             raise ValueError(f"Invalid action='{action}'")
     hdbg.dassert_eq(

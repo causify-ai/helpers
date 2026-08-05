@@ -7,14 +7,15 @@ This script generates several images from a single prompt using OpenAI's image
 generation API. It supports both standard and HD quality modes, and multiple
 models including DALL-E 2, DALL-E 3, and gpt-image-1.
 
-Examples:
-# Generate images using prompt from file
+# Usage Example
+
+- Generate images using a prompt from a file:
 > generate_images.py --input descr.txt --dst_dir ./images
 
-# Generate low-res images using prompt from file
+- Generate low-res images using a prompt from a file:
 > generate_images.py --input descr.txt --dst_dir ./images --low_res
 
-# Generate images using gpt-image-1 model
+- Generate images using the gpt-image-1 model:
 > generate_images.py --input descr.txt --dst_dir ./images --model gpt-image-1
 """
 

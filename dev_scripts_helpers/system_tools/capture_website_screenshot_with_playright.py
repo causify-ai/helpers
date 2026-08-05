@@ -7,6 +7,9 @@
 """
 Take a screenshot of a website using Playwright.
 
+# Usage Example
+
+- Take a screenshot of a website and save it to a PNG file:
 > website_screenshot.py --url https://example.com --output screenshot.png
 """
 

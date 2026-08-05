@@ -2,6 +2,9 @@
 r"""
 Reflow, capitalize and add punctuation to python files.
 
+# Usage Example
+
+- Reflow, capitalize, and add punctuation to comments in one or more files:
 > amp_fix_comments.py sample_file1.py sample_file2.py
 
 Import as:

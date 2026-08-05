@@ -2,6 +2,9 @@
 r"""
 Wrapper for lint_txt.py text.
 
+# Usage Example
+
+- Lint one or more Markdown files:
 > amp_lint_md.py sample_file1.md sample_file2.md
 
 Import as:

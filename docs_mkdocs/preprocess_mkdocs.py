@@ -14,13 +14,18 @@ for mkdocs by:
     - Skipping TOC removal and code formatting
 4. (Optional) Rendering mermaid/plantuml/graphviz diagrams to images
 
-Example usage:
-# For documentation:
+# Usage Example
+
+- Process documentation markdown files for mkdocs:
 > preprocess_mkdocs.py --input_dir docs --output_dir tmp.mkdocs
+
+- Process documentation markdown files for mkdocs and render diagrams to images:
 > preprocess_mkdocs.py --input_dir docs --output_dir tmp.mkdocs --render_images
 
-# For blogs:
+- Process blog markdown files for mkdocs:
 > preprocess_mkdocs.py --blog --input_dir blog --output_dir tmp.mkblogs
+
+- Process blog markdown files for mkdocs and render diagrams to images:
 > preprocess_mkdocs.py --blog --input_dir blog --output_dir tmp.mkblogs --render_images
 
 Import as:

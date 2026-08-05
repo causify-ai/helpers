@@ -3,6 +3,9 @@
 """
 Generate a markdown file with the docstring for any script in the repo.
 
+# Usage Example
+
+- Generate the script catalog markdown file for all scripts in the repo:
 > generate_script_catalog.py
 """
 

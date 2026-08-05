@@ -79,6 +79,7 @@ class Test_llm_cli_py(hunitest.TestCase):
         hio.to_file(input_file, hprint.dedent(content))
         return input_file
 
+    # TODO(ai_gp): Factor out a helper and do the checking inside.
     def test1(self) -> None:
         """
         Test basic help output.
@@ -299,3 +300,38 @@ class Test_llm_cli_py(hunitest.TestCase):
         # Verify the LLM mock produces deterministic output.
         expected = "8ab2fffdb92e144a56658973a32a54a0"
         self.assert_equal(actual, expected)
+
+    def test11(self) -> None:
+        """
+        Test that `@file` references in the system prompt are expanded by
+        default.
+        """
+        # Prepare inputs.
+        input_file = self._create_test_input_file("Test input")
+        output_file = os.path.join(self.get_scratch_space(), "output.txt")
+        ref_file = os.path.join(
+            self.get_scratch_space(), "llm_cli_expand_test.md"
+        )
+        hio.to_file(ref_file, "referenced content")
+        argv = [
+            "llm_cli.py",
+            f"--input={input_file}",
+            f"--output={output_file}",
+            "--system_prompt=Follow @llm_cli_expand_test.md",
+        ]
+        # Run test with mocked LLM.
+        expanded = _run_llm_cli_with_mock(
+            argv,
+            scratch_space=self.get_scratch_space(),
+            output_basename="output.txt",
+        )
+        # Run again with expansion disabled.
+        argv_no_expand = argv + ["--no_expand_referenced_files"]
+        not_expanded = _run_llm_cli_with_mock(
+            argv_no_expand,
+            scratch_space=self.get_scratch_space(),
+            output_basename="output.txt",
+        )
+        # Check outputs: expanding the reference changes the effective
+        # system prompt, so the mocked digest differs from the unexpanded run.
+        self.assertNotEqual(expanded, not_expanded)
