@@ -2014,6 +2014,22 @@ class Test_add_llm_args(hunitest.TestCase):
         # Check outputs.
         self.assertEqual(args.model, custom_model)
 
+    def test8(self) -> None:
+        """
+        Test expand_referenced_files defaults to enabled and can be disabled.
+        """
+        # Prepare inputs.
+        parser = argparse.ArgumentParser(
+            formatter_class=hparser.CustomHelpFormatter
+        )
+        hllmcli.add_llm_args(parser, input_required=False)
+        # Parse with no flag: default is enabled.
+        args = parser.parse_args([])
+        self.assertTrue(args.expand_referenced_files)
+        # Parse with `--no_expand_referenced_files`: disabled.
+        args = parser.parse_args(["--no_expand_referenced_files"])
+        self.assertFalse(args.expand_referenced_files)
+
 
 # #############################################################################
 # Test_expand_referenced_files

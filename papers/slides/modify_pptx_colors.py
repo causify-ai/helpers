@@ -2,8 +2,12 @@
 """
 Modify PowerPoint presentation to have dark background and light text.
 
-Example usage:
+# Usage Example
+
+- Convert a presentation to dark background with light text:
 > modify_pptx_colors.py --input ref.pptx --output ref_dark.pptx
+
+- Convert a presentation using a custom background image:
 > modify_pptx_colors.py --input ref.pptx --output ref_bg.pptx --background image.png
 
 Import as:

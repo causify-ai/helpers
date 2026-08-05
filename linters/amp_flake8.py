@@ -2,6 +2,9 @@
 r"""
 Wrapper for flake8.
 
+# Usage Example
+
+- Run flake8 on one or more files:
 > amp_flake8.py sample_file1.py sample_file2.py
 
 Import as:

@@ -13,10 +13,12 @@ The script:
 - outputs a list of all URLs found and their reachability status.
 - prints the count of broken URLs.
 
-# Check links in a Markdown file:
+# Usage Example
+
+- Check links in a Markdown file:
 > check_links.py --in_file README.md
 
-# Check links in a text file with verbose output:
+- Check links in a text file with verbose output:
 > check_links.py --in_file docs.txt -v DEBUG
 
 Import as:

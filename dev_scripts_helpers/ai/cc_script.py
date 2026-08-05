@@ -8,11 +8,12 @@ Execute sequential prompts against Claude Code.
 Reads a list of prompts and executes them sequentially, maintaining context
 across prompts. Outputs raw responses and saves a session log.
 
-Usage:
-# Execute with inline prompts.
+# Usage Example
+
+- Execute with inline prompts:
 > cc_script.py --prompts "prompt1" --prompts "prompt2" [--options]
 
-# Execute with prompts from a file (one per line).
+- Execute with prompts from a file (one per line):
 > cc_script.py --prompts_file prompts.txt [--options]
 """
 

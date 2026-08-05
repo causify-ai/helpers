@@ -6,8 +6,13 @@ Generate Google Veo3 videos from storyboard text files.
 This script parses a text file containing scenes with visuals and narration
 descriptions, then generates videos for each scene using the Google Veo3 API.
 
-Example usage:
+# Usage Example
+
+- Generate videos from a storyboard file, writing outputs with the given
+  prefix:
 > generate_videos.py --in_file storyboard.txt --out_file video.mp4
+
+- Generate videos using a global reference image for all scenes:
 > generate_videos.py --in_file storyboard.txt --image_file reference.jpg
 
 Expected text format:

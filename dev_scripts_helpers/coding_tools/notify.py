@@ -7,19 +7,21 @@ Notify the user that the last command is completed through different channels:
 
 By default both the blink and the notification are enabled.
 
-# Do both (default behavior).
+# Usage Example
+
+- Do both blink and notify (default behavior):
 > notify.py
 
-# Only send a one-shot macOS notification.
+- Send a one-shot macOS notification only:
 > notify.py --no_blink
 
-# Only blink the current tmux window tab until Ctrl-C.
+- Blink the current tmux window tab until Ctrl-C only:
 > notify.py --no_notify
 
-# Blink for at most 10 seconds instead of forever.
+- Blink for at most 10 seconds instead of forever:
 > notify.py --timeout 10
 
-# Send notification in background and return immediately.
+- Send notification in background and return immediately:
 > notify.py --background
 """
 

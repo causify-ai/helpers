@@ -28,14 +28,15 @@ Duration modes:
 - "fill": Video is slowed down to match segment duration
 - "normal": Video keeps original duration, last frame frozen if needed
 
-Examples:
-# Basic usage
+# Usage Example
+
+- Basic usage with default positioning:
 > create_presentation_video.py --in_dir ./videos --out_file final.mp4
 
-# With custom video settings
+- Use custom video settings:
 > create_presentation_video.py --in_dir ./videos --out_file final.mp4 --resolution 1920x1080 --quality high
 
-# With plan file for custom positioning
+- Use a plan file for custom positioning:
 > create_presentation_video.py --in_dir ./videos --out_file final.mp4 --plan plan.txt
 
 Import as:

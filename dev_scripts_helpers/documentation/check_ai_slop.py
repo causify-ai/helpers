@@ -7,15 +7,16 @@ This script provides two actions:
 - detect: Analyze text to determine if it was AI-generated (score 1-100)
 - fix: Humanize AI-generated text to make it undetectable
 
-Examples:
-# Detect AI content in a file.
-> dev_scripts_helpers/documentation/check_ai_slop.py -i input.txt --action detect
+# Usage Example
 
-# Humanize AI content and save to output file.
-> dev_scripts_helpers/documentation/check_ai_slop.py -i input.txt -o output.txt --action fix
+- Detect AI content in a file:
+> check_ai_slop.py -i input.txt --action detect
 
-# Process with specific humanization settings.
-> dev_scripts_helpers/documentation/check_ai_slop.py -i input.txt -o output.txt --action fix --readability "University" --purpose "Essay"
+- Humanize AI content and save to output file:
+> check_ai_slop.py -i input.txt -o output.txt --action fix
+
+- Process with specific humanization settings:
+> check_ai_slop.py -i input.txt -o output.txt --action fix --readability "University" --purpose "Essay"
 
 Import as:
 

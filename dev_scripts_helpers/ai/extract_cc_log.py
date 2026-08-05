@@ -6,21 +6,22 @@ Extract a human-readable narrative from a Claude Code streaming JSON log.
 Parses `log.txt` and produces a chronological transcript interleaving
 thinking blocks, tool calls, results, and cost per request.
 
-Usage:
-# Print the full narrative (thinking, tool calls, cost) to stdout:
-> ./extract_cc_log.py --input log.txt
+# Usage Example
 
-# Write the full narrative to `cc_log_narrative.txt` under /tmp:
-> ./extract_cc_log.py --input log.txt --output_dir /tmp
+- Print the full narrative (thinking, tool calls, cost) to stdout:
+> extract_cc_log.py --input log.txt
 
-# Write only the assistant text to `cc_log_assistant_text.txt` under /tmp:
-> ./extract_cc_log.py --input log.txt --output_dir /tmp --text_only
+- Write the full narrative to `cc_log_narrative.txt` under /tmp:
+> extract_cc_log.py --input log.txt --output_dir /tmp
 
-# Read the log from stdin and print the assistant text to stdout:
-> ./extract_cc_log.py --input - --output - < log.txt
+- Write only the assistant text to `cc_log_assistant_text.txt` under /tmp:
+> extract_cc_log.py --input log.txt --output_dir /tmp --text_only
 
-# Read the log from a file and print the assistant text to stdout:
-> ./extract_cc_log.py --input log.txt --output -
+- Read the log from stdin and print the assistant text to stdout:
+> extract_cc_log.py --input - --output - < log.txt
+
+- Read the log from a file and print the assistant text to stdout:
+> extract_cc_log.py --input log.txt --output -
 """
 
 import argparse

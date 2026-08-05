@@ -4,10 +4,18 @@
 This is an example of script using the `joblib_helpers` API to run jobs in
 parallel.
 
-# Run with:
+# Usage Example
+
+- Run the success workload serially:
 > clear; parallel_script_template.py --workload success --num_threads serial
+
+- Run the success workload with 2 parallel threads:
 > clear; parallel_script_template.py --workload success --num_threads 2
+
+- Run the failure workload serially:
 > clear; parallel_script_template.py --workload failure --num_threads serial
+
+- Run the failure workload with 3 parallel threads:
 > clear; parallel_script_template.py --workload failure --num_threads 3
 
 Add a description of what the script does and examples of command lines.

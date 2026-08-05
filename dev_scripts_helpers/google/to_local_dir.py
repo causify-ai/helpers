@@ -12,18 +12,18 @@ The script supports three Google Drive accounts:
 - gmail: /Users/saggese/Library/CloudStorage/GoogleDrive-saggese@gmail.com
 - umd: /Users/saggese/Library/CloudStorage/GoogleDrive-gsaggese@umd.edu
 
-Usage examples:
+# Usage Example
 
-# Automatic account detection for a document
+- Automatic account detection for a document:
 > to_local_dir.py --url "https://docs.google.com/document/d/1DK-ZWp4EhY-EpdfH66SOsdZcWkM1VE9o/edit"
 
-# Automatic account detection for a folder
+- Automatic account detection for a folder:
 > to_local_dir.py --url "https://drive.google.com/drive/u/0/folders/15eHDd9GUCJp8Y5YSpxJXZGqP0xiGvjfP"
 
-# Specify account explicitly
+- Specify account explicitly:
 > to_local_dir.py --url "https://docs.google.com/document/d/1DK-ZWp4EhY-EpdfH66SOsdZcWkM1VE9o/edit" --account causify
 
-# Using file name instead of URL
+- Use file name instead of URL:
 > to_local_dir.py --file_name "My Document" --account gmail
 
 Import as:

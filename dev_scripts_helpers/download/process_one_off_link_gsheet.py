@@ -15,9 +15,9 @@ This script performs a one-off data processing pipeline:
 2. replace_article_tags: Replace old topic names with simplified names
 3. upload_gsheet_links: Upload the processed CSV back to Google Sheets
 
-Example usage:
+# Usage Example
 
-# Run complete pipeline
+- Run complete pipeline:
 > process_one_off_link_gsheet.py \
     --url "https://docs.google.com/spreadsheets/d/1i6Z7v2..."
 

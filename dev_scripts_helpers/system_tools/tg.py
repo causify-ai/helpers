@@ -3,9 +3,15 @@
 """
 Send a notification through Telegram. See README.md in helpers/telegram_notify.
 
+# Usage Example
+
+- Send a notification with the exit code of an arbitrary command:
 > cmd_to_check; tg.py -m "error=$?"
 
+- Send a notification with the exit code of a successful command:
 > ls; htnoteno.py -m "error=$?"
+
+- Send a notification with the exit code of a failing command:
 > ls /I_do_not_exist; htnoteno.py -m "error=$?"
 
 Import as:

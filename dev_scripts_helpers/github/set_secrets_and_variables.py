@@ -2,9 +2,10 @@
 """
 Script to set batch of GitHub secrets/variables from `.json` file in one go.
 
-Simple usage:
+# Usage Example
 
-> ./dev_scripts_helpers/github/set_secrets_and_variables.py \
+- Set the secrets/variables from a JSON file on the given repo:
+> set_secrets_and_variables.py \
      --file 'dev_scripts/github/vars.json' \
      --repo 'cryptomtc/cmamp_test'
 

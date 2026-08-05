@@ -15,20 +15,21 @@ This script:
 - Builds a prompt
 - Invokes Claude Code with that prompt on the selected files
 
-Quick examples:
-# Lint specific Python files:
+# Usage Example
+
+- Lint specific Python files:
 > cc_lint.py --files "file1.py file2.py" ...
 
-# Lint modified files:
+- Lint modified files:
 > cc_lint.py --modified ...
 
-# Apply specific topic rules:
+- Apply specific topic rules:
 > cc_lint.py --files "file.py" --topic coding ...
 
-# Execute a skill:
+- Execute a skill:
 > cc_lint.py --files "file.py" --skill coding.fix_inline ...
 
-# Save command to `tmp.cc_lint_dry_run.txt` without executing:
+- Save command to `tmp.cc_lint_dry_run.txt` without executing:
 > cc_lint.py --files "*.md" --dry_run ...
 """
 

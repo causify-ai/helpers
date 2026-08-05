@@ -14,45 +14,40 @@ lint_txt.py unless --skip_lint is specified.
 
 Note: At least one action must be specified using --action.
 
-Examples:
-```bash
-# Single file examples
+# Usage Example
 
-# Summarize a markdown file
+- Summarize a markdown file:
 > update_md.py --input file.md --action summarize
 
-# Update content to match code
+- Update content to match code:
 > update_md.py --input file.md --action update_content
 
-# Apply style guidelines
+- Apply style guidelines:
 > update_md.py --input file.md --action apply_style
 
-# Only lint the file
+- Only lint the file:
 > update_md.py --input file.md --action lint
 
-# Perform multiple actions
+- Perform multiple actions:
 > update_md.py --input file.md --action summarize,apply_style
 
-# Use a specific model
+- Use a specific model:
 > update_md.py --input file.md --action summarize --model gpt-4o
 
-# Skip linting after actions
+- Skip linting after actions:
 > update_md.py --input file.md --action summarize --skip_lint
 
-# Multiple files examples
-
-# Process multiple files using comma-separated list
+- Process multiple files using comma-separated list:
 > update_md.py --files="file1.md,file2.md,file3.md" --action summarize
 
-# Process multiple files using repeated --input argument
+- Process multiple files using repeated --input argument:
 > update_md.py --input file1.md --input file2.md --input file3.md --action summarize
 
-# Process multiple files from a file list (one file per line)
+- Process multiple files from a file list (one file per line):
 > update_md.py --from_files="files.txt" --action summarize
 
-# Process multiple files with multiple actions and progress bar
+- Process multiple files with multiple actions and progress bar:
 > update_md.py --files="file1.md,file2.md,file3.md" --action summarize,apply_style
-```
 
 Import as:
 

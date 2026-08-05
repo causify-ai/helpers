@@ -144,6 +144,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
         args.stat_file,
         args.llm_cmd,
         args.install_llm_plugins,
+        expand_referenced_files=args.expand_referenced_files,
     )
 
 

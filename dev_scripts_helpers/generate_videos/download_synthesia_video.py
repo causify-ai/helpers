@@ -5,8 +5,12 @@ Download Synthesia videos.
 This script downloads completed videos from the Synthesia API using their
 download URLs and saves them with meaningful names.
 
-Usage:
+# Usage Example
+
+- Download videos by ID to the default output directory:
 > download_synthesia_video.py --ids "id1 id2 id3"
+
+- Download videos by ID to a custom output directory:
 > download_synthesia_video.py --ids "id1 id2" --out_dir downloads
 
 The videos will be saved with names like: slide1.id1.mp4, slide2.id2.mp4

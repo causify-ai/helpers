@@ -16,15 +16,16 @@ Actions:
 - format: convert raw transcript to formatted markdown (02.format.txt)
 - lint: run lint_txt.py on formatted markdown (03.lint.txt)
 
-Examples:
-# Default: download, format, and lint a Lex Fridman episode
-> ./podcast_dl.py --type lexfridman --title lars-brownworth --output ./podcasts/lars-brownworth.md
+# Usage Example
 
-# Download only
-> ./podcast_dl.py -a download --type lexfridman --title lars-brownworth --output ./podcasts/lars-brownworth.md
+- Default: download, format, and lint a Lex Fridman episode:
+> podcast_dl.py --type lexfridman --title lars-brownworth --output ./podcasts/lars-brownworth.md
 
-# Download and format (skip linting)
-> ./podcast_dl.py -a download -a format --type dwarkesh --title andrej-karpathy --output ./podcasts/andrej-karpathy.md
+- Download only:
+> podcast_dl.py -a download --type lexfridman --title lars-brownworth --output ./podcasts/lars-brownworth.md
+
+- Download and format (skip linting):
+> podcast_dl.py -a download -a format --type dwarkesh --title andrej-karpathy --output ./podcasts/andrej-karpathy.md
 """
 
 # Architecture:

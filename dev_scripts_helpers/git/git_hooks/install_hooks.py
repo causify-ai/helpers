@@ -2,13 +2,15 @@
 """
 Manage custom git pre-commit hooks.
 
-# Install hooks as links to the repo:
+# Usage Example
+
+- Install hooks as links to the repo:
 > install_hooks.py --action install
 
-# Remove hooks:
+- Remove hooks:
 > install_hooks.py --action remove
 
-# Check hook status:
+- Check hook status:
 > install_hooks.py --action status
 
 Import as:

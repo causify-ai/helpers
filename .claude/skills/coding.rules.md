@@ -1197,8 +1197,10 @@
     `PATH` resolution is handled automatically, so the leading `./` is redundant
   - Refer to scripts using their simple filename, both in the README/comments and
     in docstring usage examples
-  - Precede each usage example with a `#` comment line explaining what that
-    specific example does
+  - Introduce the usage section with the markdown header `# Usage Example`
+  - Format each usage example as a bullet point: a short description ending in
+    `:`, followed on the next line by the command prefixed with `>`
+  - Separate usage examples with a blank line
 
 - **Bad**: Uses full path and `python` prefix
   ```python
@@ -1215,7 +1217,8 @@
   > ./manage_cache.py --action test
   > dev_scripts_helpers/cache/manage_cache.py --action test
   ```
-- **Bad**: Usage examples with no comment explaining each one
+- **Bad**: No `# Usage Example` header, and no description explaining each
+  example
   ```python
   """
   Usage examples:
@@ -1224,24 +1227,26 @@
   > manage_cache.py --action clear_mem
   """
   ```
-- **Good**: Uses simple script name, with a comment describing each example
+- **Good**: `# Usage Example` header with a bullet description before each
+  command
   ```python
   """
-  Usage examples:
-  # Print stats for all cached functions.
-  > manage_cache.py --action print_info
+  # Usage Example
 
-  # Clear everything (memory + disk).
-  > manage_cache.py --action clear_all
+  - Print the GitHub URL for a file on the current branch:
+  > to_github.py --input helpers/hdbg.py
 
-  # Clear only the in-process memory layer.
-  > manage_cache.py --action clear_mem
+  - Print the GitHub URL for a file on the master branch:
+  > to_github.py --input helpers/hdbg.py --use_master
 
-  # Clear only disk files.
-  > manage_cache.py --action clear_disk
+  - Print the GitHub URL and open it in the default web browser:
+  > to_github.py --input helpers/hdbg.py --open
 
-  # Run a self-contained smoke test.
-  > manage_cache.py --action test
+  - Print the GitHub URL and copy it to the system clipboard:
+  > to_github.py --input helpers/hdbg.py --pbcopy
+
+  - Print the GitHub URL after verifying that it resolves:
+  > to_github.py --input helpers/hdbg.py --check_exists
   """
   ```
 

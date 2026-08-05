@@ -20,25 +20,25 @@ Tab Selection:
 - Use --tabname to override the gid and download a different tab.
 - If no gid is in the URL and no --tabname is provided, downloads the first tab.
 
-Example usage:
+# Usage Example
 
-# Download first tab to CSV
+- Download first tab to CSV:
 > from_gsheet.py \
     --url "https://docs.google.com/spreadsheets/d/1UZiJlRqUhNiFEFhdmLzVkxQ1kll7hQhQE-rnzNuIz5c/edit" \
     --output_file data.csv
 
-# Download specific tab by name
+- Download specific tab by name:
 > from_gsheet.py \
     --url "https://docs.google.com/spreadsheets/d/1UZiJlRqUhNiFEFhdmLzVkxQ1kll7hQhQE-rnzNuIz5c/edit" \
     --tabname "my_data" \
     --output_file data.csv
 
-# Automatically download tab from gid in URL (no --tabname needed)
+- Automatically download tab from gid in URL (no --tabname needed):
 > from_gsheet.py \
     --url "https://docs.google.com/spreadsheets/d/1UZiJlRqUhNiFEFhdmLzVkxQ1kll7hQhQE-rnzNuIz5c/edit?gid=123#gid=123" \
     --output_file data.csv
 
-# Override gid with explicit tab name
+- Override gid with explicit tab name:
 > from_gsheet.py \
     --url "https://docs.google.com/spreadsheets/d/1UZiJlRqUhNiFEFhdmLzVkxQ1kll7hQhQE-rnzNuIz5c/edit?gid=123#gid=123" \
     --tabname "different_tab" \

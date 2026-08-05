@@ -1,19 +1,20 @@
 #!/usr/bin/env python
 """
-# Start all tunnels.
+# Usage Example
 
+- Start all tunnels:
 > ssh_tunnels.py start
 
-# Stop all service tunnels
+- Stop all service tunnels:
 > ssh_tunnels.py stop
 
-# Report the status of each service tunnel
+- Report the status of each service tunnel:
 > ssh_tunnels.py check
 
-# Kill all the ssh tunnels on the machine, for a known service or not.
+- Kill all the ssh tunnels on the machine, for a known service or not:
 > ssh_tunnels.py kill
 
-# Starting a tunnel is equivalent to:
+Starting a tunnel is equivalent to:
 > ssh -i {ssh_key_path} -f -nNT -L {local_port}:localhost:{remote_port} {user_name}@{server}
 > ssh -f -nNT -L 10003:localhost:10003 saggese@$DEV_SERVER
 

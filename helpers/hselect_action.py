@@ -84,21 +84,19 @@ def add_action_arg(
     actions_list = "\n".join([f"- {action}" for action in valid_actions])
     if parser.epilog:
         parser.epilog += "\n\n"
-    epilog = f"Available actions:\n{actions_list}"
+    epilog = f"## Available actions:\n{actions_list}"
     default_list = "\n".join([f"- {action}" for action in default_actions])
-    epilog += f"\n\nDefault actions:\n{default_list}"
+    epilog += f"\n\n## Default actions:\n{default_list}"
     parser.epilog = epilog
     # Create mutually exclusive group for action selection.
     group = parser.add_mutually_exclusive_group(required=False)
     group.add_argument(
-        "-a",
         "--action",
         action="append",
         dest="action",
         help="Actions to execute (see available actions below)",
     )
     group.add_argument(
-        "-sa",
         "--skip_action",
         action="append",
         dest="skip_action",
@@ -113,8 +111,9 @@ def add_action_arg(
     )
     hdbg.dassert_is_subset(default_actions, valid_actions)
     parser.add_argument(
-        "--all",
+        "--all_actions",
         action="store_true",
+        dest="all_actions",
         help=f"Run all the actions ({' '.join(default_actions)})",
     )
     return parser
@@ -164,8 +163,8 @@ def select_actions(
     :return: list of selected actions
     """
     hdbg.dassert(
-        not (args.action and args.all),
-        "You can't specify together --action and --all",
+        not (args.action and args.all_actions),
+        "You can't specify together --action and --all_actions",
     )
     hdbg.dassert(
         not (args.action and args.skip_action),
@@ -183,7 +182,7 @@ def select_actions(
             "You can't specify together --skip_action and --enable",
         )
     # Select actions.
-    if not args.action or args.all:
+    if not args.action or args.all_actions:
         hdbg.dassert_is_subset(default_actions, valid_actions)
         # Convert it into list since through some code paths it can be a tuple.
         actions = list(default_actions)

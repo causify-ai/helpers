@@ -3,10 +3,10 @@
 """
 Implement several Git workflows on multiple repos.
 
-# Show the current state of the submodules:
-  ```
-  > dev_scripts/git/git_submodules.py
-  ```
+# Usage Example
+
+- Show the current state of the submodules:
+> git_submodules.py
 
 Import as:
 

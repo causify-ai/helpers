@@ -11,14 +11,15 @@ Requirements:
 - OPENAI_API_KEY environment variable for OpenAI costs
 - ANTHROPIC_KEY environment variable for Anthropic costs
 
-Example usage:
-# Print today's costs
+# Usage Example
+
+- Print today's costs:
 > print_daily_cost.py
 
-# Print costs with debug logging
+- Print costs with debug logging:
 > print_daily_cost.py -v DEBUG
 
-# Print costs for a specific date
+- Print costs for a specific date:
 > print_daily_cost.py --date 2025-12-30
 
 Import as:

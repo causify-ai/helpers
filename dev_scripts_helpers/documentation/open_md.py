@@ -13,10 +13,18 @@ Render and open markdown files in different modes.
 - global: Use locally installed tools
 - dockerized: Use tools in Docker container
 
-Usage:
+# Usage Example
+
+- Open a file on GitHub in the browser:
 > open_md.py --input xyz.md --mode github
+
+- Convert the file to HTML with pandoc using locally installed tools:
 > open_md.py --input xyz.md --mode pandoc --backend global
+
+- Export the file to HTML with grip using locally installed tools:
 > open_md.py --input xyz.md --mode grip --backend global
+
+- Start a grip daemon for live preview using locally installed tools:
 > open_md.py --input xyz.md --mode grip_daemon --backend global
 """
 

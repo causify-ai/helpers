@@ -4,18 +4,22 @@
 Parse a file with a traceback and generate a cfile to be used with vim to
 navigate the stack trace.
 
-# Run pytest and save the output on a file:
+# Usage Example
+
+- Run pytest, save the output to a file, and navigate the stack trace with
+  vim:
 > pytest helpers/test/test_traceback.py 2>&1 | tee tmp.pytest.log
-# Navigate the stacktrace with vim:
-> dev_scripts/traceback_to_cfile.py -i log.txt
+> traceback_to_cfile.py -i log.txt
 > vim -c "cfile cfile"
 
-# Navigate the stacktrace from the system clipboard:
+- Navigate the stack trace from the system clipboard:
 > pbpaste | traceback_to_cfile.py -i -
-# Or use the new --from_pb option:
+
+- Navigate the stack trace from the system clipboard using the --from_pb
+  option:
 > traceback_to_cfile.py --from_pb
 
-# Find and parse the latest .log file:
+- Find and parse the latest .log file:
 > traceback_to_cfile.py --from_latest_file
 
 Import as:

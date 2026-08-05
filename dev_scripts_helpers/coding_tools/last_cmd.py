@@ -3,13 +3,15 @@
 """
 Capture a command from shell history and copy it to the clipboard.
 
-# Copy the last command to the clipboard.
+# Usage Example
+
+- Copy the last command to the clipboard:
 > last_cmd.py
 
-# Copy the 3rd most recent command to the clipboard.
+- Copy the 3rd most recent command to the clipboard:
 > last_cmd.py -n 3
 
-# Print the last command instead of copying it to the clipboard.
+- Print the last command instead of copying it to the clipboard:
 > last_cmd.py --no_pb_copy
 """
 

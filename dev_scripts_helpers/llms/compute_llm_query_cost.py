@@ -7,12 +7,13 @@ This script makes LLM API calls and calculates the associated costs using
 the tokencost library. Supports batch processing with shared system prompts
 to optimize costs.
 
-Example usage:
-# Single query
-> dev_scripts_helpers/compute_llm_query_cost.py
+# Usage Example
 
-# Multiple queries with shared system prompt
-> dev_scripts_helpers/compute_llm_query_cost.py --prompts_file prompts.txt --system_prompt "You are a helpful assistant"
+- Single query:
+> compute_llm_query_cost.py
+
+- Multiple queries with shared system prompt:
+> compute_llm_query_cost.py --prompts_file prompts.txt --system_prompt "You are a helpful assistant"
 
 Import as:
 

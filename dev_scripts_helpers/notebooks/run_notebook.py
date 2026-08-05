@@ -2,7 +2,9 @@
 r"""
 Run a notebook given a config or a list of configs.
 
-# Use example:
+# Usage Example
+
+- Run a notebook for each config produced by a config builder:
 > run_notebook.py \
     --notebook nlp/notebooks/NLP_RP_pipeline.ipynb \
     --config_builder "nlp.build_configs.build_PTask1088_configs()" \

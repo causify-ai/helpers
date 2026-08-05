@@ -12,24 +12,25 @@ Markdown format with embedded image references.
 
 Automatically installs dependencies via `uv` if missing.
 
-Usage:
-# Convert PDF to markdown with images.
+# Usage Example
+
+- Convert PDF to markdown with images:
 > convert_pdf_to_md.py --input document.pdf --action convert --output output_dir
 
-# Convert PDF to markdown without images.
+- Convert PDF to markdown without images:
 > convert_pdf_to_md.py \
     --input document.pdf \
     --action convert \
     --output output_dir \
     --skip_figures
 
-# Clean an existing markdown file (remove PDF conversion artifacts).
+- Clean an existing markdown file (remove PDF conversion artifacts):
 > convert_pdf_to_md.py --input document.pdf --action remove_junk
 
-# Run prettier formatter on the markdown file.
+- Run prettier formatter on the markdown file:
 > convert_pdf_to_md.py --input document.pdf --action lint
 
-# Run all actions in sequence (convert, remove_junk, lint).
+- Run all actions in sequence (convert, remove_junk, lint):
 > convert_pdf_to_md.py --input document.pdf --output output_dir
 
 Available actions (one or more can be specified via --action):

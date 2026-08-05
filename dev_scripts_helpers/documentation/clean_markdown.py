@@ -3,6 +3,9 @@
 """
 Clean up HTML markup in markdown files.
 
+# Usage Example
+
+- Clean up HTML markup in a markdown file and write the result to a new file:
 > clean_markdown.py --input INPUT --output OUTPUT
 """
 

@@ -7,17 +7,18 @@ Convert markdown tables, CSV, and TSV formats.
 
 Supports file I/O and stdin/stdout with mode specification.
 
-Example:
-# CSV to markdown
+# Usage Example
+
+- Convert a CSV file to markdown:
 > convert_table.py -i table.csv -o table.md
 
-# TSV to CSV
+- Convert a TSV file to CSV:
 > convert_table.py -i table.tsv -o table.csv
 
-# stdin to stdout with mode flags
+- Convert from stdin to stdout with explicit mode flags:
 > convert_table.py -i - -o - --input_mode md --output_mode csv
 
-# Copy to clipboard
+- Convert a CSV file to markdown and copy the result to the clipboard:
 > convert_table.py -i table.csv --output_mode md --pbcopy
 
 Import as:

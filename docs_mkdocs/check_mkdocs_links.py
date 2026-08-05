@@ -11,9 +11,15 @@ The script:
 - also checks external links when --check_external is passed
 - exits with code 1 if any broken links are found (CI-friendly)
 
-Usage:
+# Usage Example
+
+- Crawl the default MkDocs server and report broken internal links:
 > check_mkdocs_links.py
+
+- Crawl a MkDocs server running at a custom base URL:
 > check_mkdocs_links.py --base_url http://localhost:8003
+
+- Crawl the default MkDocs server and also check external links:
 > check_mkdocs_links.py --check_external
 
 Import as:

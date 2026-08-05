@@ -75,7 +75,7 @@
   ```bash
   > update_link_gsheet_from_raindrop.py \
       --url "$LINKS_GSHEET" \
-      --all
+      --all_actions
   ```
 
 - Run individual actions:
@@ -125,7 +125,7 @@
   ```bash
   > process_link_gsheet.py \
       --url "$LINKS_GSHEET" \
-      --all
+      --all_actions
   ```
 
 - Run specific actions:
@@ -179,7 +179,7 @@
   > download_link_articles.py \
       --url "$LINKS_GSHEET" \
       --row_idx 1 \
-      --all
+      --all_actions
   ```
 
 - Download HN comments for rows 0-10 where `Url` column is not empty:
@@ -249,19 +249,19 @@ A typical workflow for enriching links from multiple sources:
 
 1. Download links from Raindrop.io and merge with existing gsheet:
    ```bash
-   > update_link_gsheet_from_raindrop.py --url <sheet_url> --all
+   > update_link_gsheet_from_raindrop.py --url <sheet_url> --all_actions
    ```
 
 2. Process HN articles to extract URLs and classify by topic:
    ```bash
-   > process_link_gsheet.py --url <sheet_url> --all
+   > process_link_gsheet.py --url <sheet_url> --all_actions
    ```
 
 3. Download HN comments and article content:
    ```bash
    > download_link_articles.py \
        --url <sheet_url> \
-       --all
+       --all_actions
    ```
 
 4. Summarize articles and HN comments using LLM:

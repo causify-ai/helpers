@@ -9,23 +9,29 @@ By default:
 - Waits for page load
 - Opens the captured screenshot
 
-Usage:
+# Usage Example
+
+- Capture a screenshot with default settings (Safari, 1024x768):
 > capture_browser_screenshot.py \
     --url "https://example.com" \
     --output_file screenshot.png
 
+- Capture a screenshot using Chrome, waiting 3 seconds for the page to load:
 > capture_browser_screenshot.py \
     --url "https://example.com" \
     --output_file screenshot.png \
     --delay_seconds 3 \
     --browser chrome
 
+- Capture a screenshot with a custom window size:
 > capture_browser_screenshot.py \
     --url "https://example.com" \
     --output_file screenshot.png \
     --window_width 1920 \
     --window_height 1080
 
+- Capture a screenshot including background windows, without opening or
+  closing the browser:
 > capture_browser_screenshot.py \
     --url "https://example.com" \
     --output_file screenshot.png \

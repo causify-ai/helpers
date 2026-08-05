@@ -3,9 +3,12 @@
 """
 Publish all notes to a Google dir.
 
+# Usage Example
+
+- Publish all notes:
 > publish_notes.py publish
 
-# Publish all the notes from scratch:
+- Publish all the notes from scratch:
 > publish_notes.py ls rm publish
 
 Import as:
@@ -70,7 +73,7 @@ def _publish_file(args: argparse.Namespace, file_name: str, action: str) -> None
     out_file = os.path.join(tmp_dir, out_file)
     cmd = []
     cmd.append(exec_path)
-    cmd.append(f"-a {action}")
+    cmd.append(f"--action {action}")
     cmd.append(f"--input {file_name}")
     cmd.append(f"--output {out_file}")
     cmd.append(f"--tmp_dir {tmp_dir}")

@@ -7,21 +7,21 @@ This script takes a file or directory path and generates a GitHub URL
 by combining the repository's remote URL with the current (or master)
 branch and the relative file path.
 
-Usage
+# Usage Example
 
-# Print the GitHub URL for a file on the current branch.
+- Print the GitHub URL for a file on the current branch:
 > to_github.py --input helpers/hdbg.py
 
-# Print the GitHub URL for a file on the master branch.
+- Print the GitHub URL for a file on the master branch:
 > to_github.py --input helpers/hdbg.py --use_master
 
-# Print the GitHub URL and open it in the default web browser.
+- Print the GitHub URL and open it in the default web browser:
 > to_github.py --input helpers/hdbg.py --open
 
-# Print the GitHub URL and copy it to the system clipboard.
+- Print the GitHub URL and copy it to the system clipboard:
 > to_github.py --input helpers/hdbg.py --pbcopy
 
-# Print the GitHub URL after verifying that it resolves.
+- Print the GitHub URL after verifying that it resolves:
 > to_github.py --input helpers/hdbg.py --check_exists
 
 Import as:

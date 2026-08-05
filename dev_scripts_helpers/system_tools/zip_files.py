@@ -3,11 +3,10 @@
 """
 Zip all files in a directory retaining the dir structure.
 
-# Compress all the files in the dir `FTX` in a dir `FTX.zipped`
+# Usage Example
 
-```
+- Compress all the files in the dir `FTX` in a dir `FTX.zipped`:
 > zip_files.py --src_dir FTX --dst_dir FTX.zipped --delete_dst_dir
-```
 
 Import as:
 
