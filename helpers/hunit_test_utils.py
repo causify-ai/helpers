@@ -595,11 +595,11 @@ def get_parent_dirs(files: List[str]) -> List[str]:
     set. Files at the root level (with empty parent dir) are assigned to ".".
 
     Example:
-        Input: ["dev_scripts_helpers/scraping/process_link_gsheet.py",
-                "dev_scripts_helpers/scraping/test/__init__.py",
+        Input: ["dev_scripts_helpers/download/process_link_gsheet.py",
+                "dev_scripts_helpers/download/test/__init__.py",
                 "helpers/hgit.py",
                 "helpers/lib_tasks_utils.py"]
-        Output: ["dev_scripts_helpers/scraping", "helpers"]
+        Output: ["dev_scripts_helpers/download", "helpers"]
 
     :param files: list of file paths
     :return: list of minimal parent directories

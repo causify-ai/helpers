@@ -27,7 +27,6 @@ Development automation scripts and utilities organized by functionality. Provide
 | -------------------- | ------------------------------------------------ |
 | **documentation/**   | Documentation generation and processing tools    |
 | **notebooks/**       | Jupyter notebook utilities and automation        |
-| **academic_papers/** | Academic paper management and download utilities |
 | **typst/**           | Typst document processing and template tools     |
 | **gdrive/**          | Google Drive integration for content management  |
 | **google/**          | Google services utilities (Sheets, Docs, etc.)   |
@@ -37,7 +36,7 @@ Development automation scripts and utilities organized by functionality. Provide
 | ------------------------- | ---------------------------------------- |
 | **generate_videos/**      | Video generation from slides and content |
 | **generate_videos_veo3/** | Video generation using Veo3 AI model     |
-| **scraping/**             | Web scraping utilities and tools         |
+| **download/**             | Web scraping and download utilities and tools |
 
 ### System & AI
 | Directory           | Purpose                                |

@@ -8,7 +8,7 @@ and working with CSV files.
 
 Import as:
 
-import dev_scripts_helpers.scraping.link_gsheet_utils as dslgu
+import dev_scripts_helpers.download.link_gsheet_utils as dslgu
 """
 
 import csv

@@ -176,7 +176,7 @@ Claude Code integration for intelligent formatting.
 
 - Use a different model
   ```
-  > cc_lint.py --files dev_scripts_helpers/scraping/download_link_articles.py --skill "coding.add_comments" --mode one_shot_with_cc --model deepseek/deepseek-v4-flash
+  > cc_lint.py --files dev_scripts_helpers/download/download_link_articles.py --skill "coding.add_comments" --mode one_shot_with_cc --model deepseek/deepseek-v4-flash
   ```
 
 ## normalize_import.py

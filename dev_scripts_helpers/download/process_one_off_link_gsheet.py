@@ -7,7 +7,7 @@
 # ]
 # ///
 
-"""
+r"""
 Process links and articles from Google Sheets with topic tag replacement.
 
 This script performs a one-off data processing pipeline:
@@ -23,7 +23,7 @@ Example usage:
 
 Import as:
 
-import dev_scripts_helpers.scraping.process_one_off_link_gsheet as dsolg
+import dev_scripts_helpers.download.process_one_off_link_gsheet as dsolg
 """
 
 import argparse
@@ -35,7 +35,7 @@ import pandas as pd
 import helpers.hdbg as hdbg
 import helpers.hlogging as hloggin
 import helpers.hparser as hparser
-import dev_scripts_helpers.scraping.link_gsheet_utils as dshslgsut
+import dev_scripts_helpers.download.link_gsheet_utils as dshslgsut
 
 _LOG = logging.getLogger(__name__)
 

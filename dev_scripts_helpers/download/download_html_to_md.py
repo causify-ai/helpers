@@ -14,7 +14,7 @@ Supports multiple converters:
   4. auto: Tries BeautifulSoup first, falls back to readability
 
 Examples:
-
+# TODO(ai_gp): Add a comment for each command line
 > download_html_to_md.py --input https://example.com --output output.md
 
 > download_html_to_md.py --input https://example.com --output output.md --converter pandoc
@@ -59,7 +59,19 @@ def _download_html(input_url: str, output_html_file: str) -> None:
         html_content = hio.from_file(input_url)
         _LOG.info("Read local HTML file from '%s'", input_url)
     else:
-        response = requests.get(input_url)
+        headers = {
+            "User-Agent": (
+                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+                "AppleWebKit/537.36 (KHTML, like Gecko) "
+                "Chrome/124.0.0.0 Safari/537.36"
+            ),
+            "Accept": (
+                "text/html,application/xhtml+xml,application/xml;"
+                "q=0.9,image/webp,*/*;q=0.8"
+            ),
+            "Accept-Language": "en-US,en;q=0.9",
+        }
+        response = requests.get(input_url, headers=headers, timeout=30)
         response.raise_for_status()
         html_content = response.text
     hio.to_file(output_html_file, html_content)

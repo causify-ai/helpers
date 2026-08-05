@@ -40,7 +40,7 @@ Claude Code integration for topic-based formatting.
 - Use a different model:
   ```bash
   > cc_lint.py \
-    --files dev_scripts_helpers/scraping/download_link_articles.py \
+    --files dev_scripts_helpers/download/download_link_articles.py \
     --skill "coding.add_comments" \
     --mode one_shot_with_cc \
     --model deepseek/deepseek-v4-flash

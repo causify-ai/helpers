@@ -35,7 +35,7 @@ Example usage:
 
 Import as:
 
-import dev_scripts_helpers.scraping.update_link_gsheet_from_raindrop as dshlufr
+import dev_scripts_helpers.download.update_link_gsheet_from_raindrop as dshlufr
 """
 
 import argparse
@@ -48,7 +48,7 @@ import requests
 import helpers.hdbg as hdbg
 import helpers.hparser as hparser
 import helpers.hselect_action as hselacti
-import dev_scripts_helpers.scraping.link_gsheet_utils as dshslgsut
+import dev_scripts_helpers.download.link_gsheet_utils as dshslgsut
 
 _LOG = logging.getLogger(__name__)
 

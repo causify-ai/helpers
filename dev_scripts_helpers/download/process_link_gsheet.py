@@ -20,7 +20,7 @@
 Process links and articles from a Google Sheets document.
 
 For detailed documentation on the link workflow, see:
-`dev_scripts_helpers/scraping/link_flow.README.md`
+`dev_scripts_helpers/download/link_flow.README.md`
 
 This script manages the following actions:
 1. download_link_gsheet: Download data from Google Sheets to CSV (alias)
@@ -43,7 +43,7 @@ Example usage:
 
 Import as:
 
-import dev_scripts_helpers.scraping.process_link_gsheet as dslg
+import dev_scripts_helpers.download.process_link_gsheet as dslg
 """
 
 import argparse
@@ -60,7 +60,7 @@ import helpers.hlogging as hloggin
 import helpers.hparser as hparser
 import helpers.hselect_action as hselacti
 import helpers.hcache_simple as hcacsimp
-import dev_scripts_helpers.scraping.link_gsheet_utils as dshslgsut
+import dev_scripts_helpers.download.link_gsheet_utils as dshslgsut
 
 _LOG = logging.getLogger(__name__)
 
@@ -410,6 +410,11 @@ def _upload_to_gsheet(url: str) -> None:
     )
     hdbg.dassert_path_exists(clusters_csv, "clusters CSV file not found")
     dshslgsut.upload_to_gsheet(url, clusters_csv, tabname)
+
+
+# #############################################################################
+# CLI
+# #############################################################################
 
 
 # List of available pipeline actions; executed in order when --all is used.
