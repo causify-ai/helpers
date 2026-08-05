@@ -52,6 +52,7 @@ _LOG = logging.getLogger(__name__)
 # Input type detection
 # #############################################################################
 
+# TODO(ai_gp): Inline these constants
 _TYPE_HN = "hn"
 _TYPE_ACADEMIC_PAPER = "academic_paper"
 _TYPE_HTML = "html"
@@ -102,14 +103,6 @@ def detect_input_type(input_arg: str) -> str:
 # Dispatch
 # #############################################################################
 
-# Map each input type to the script and CLI flag used to pass the input URL.
-# TODO(ai_gp): Use an if-then-else instead of a map and inline
-_TYPE_TO_SCRIPT_AND_FLAG = {
-    _TYPE_HN: ("download_hn_article_to_md.py", "--hn_url"),
-    _TYPE_ACADEMIC_PAPER: ("download_academic_paper_to_md.py", "--input"),
-    _TYPE_HTML: ("download_html_to_md.py", "--input"),
-}
-
 
 def _dispatch(input_arg: str, output_arg: str, input_type: str) -> None:
     """
@@ -121,12 +114,21 @@ def _dispatch(input_arg: str, output_arg: str, input_type: str) -> None:
     :param input_type: `_TYPE_HN`, `_TYPE_ACADEMIC_PAPER`, or `_TYPE_HTML`
     """
     _LOG.debug(hprint.to_str("input_arg output_arg input_type"))
-    hdbg.dassert_in(
-        input_type, _TYPE_TO_SCRIPT_AND_FLAG, "Unsupported input type"
-    )
+    # Resolve the script and CLI flag used to pass the input URL, based on
+    # the detected input type.
+    if input_type == _TYPE_HN:
+        script_name = "download_hn_article_to_md.py"
+        input_flag = "--hn_url"
+    elif input_type == _TYPE_ACADEMIC_PAPER:
+        script_name = "download_academic_paper_to_md.py"
+        input_flag = "--input"
+    elif input_type == _TYPE_HTML:
+        script_name = "download_html_to_md.py"
+        input_flag = "--input"
+    else:
+        raise ValueError(f"Unsupported input type: '{input_type}'")
     # Resolve the dispatched script's path and build its command line,
     # forwarding `--output` only when the caller specified one.
-    script_name, input_flag = _TYPE_TO_SCRIPT_AND_FLAG[input_type]
     script_path = hgit.find_file_in_git_tree(script_name)
     cmd = [
         script_path,

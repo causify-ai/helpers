@@ -9,16 +9,15 @@ Import as:
 import dev_scripts_helpers.download.download_utils as dsdlut
 """
 
-import html
 import logging
 import re
-from typing import Any, Dict, List, Optional
+from typing import Optional
 
 import bs4
 import requests
-from tqdm import tqdm
 
 import helpers.hdbg as hdbg
+import helpers.hgit as hgit
 import helpers.hio as hio
 import helpers.hprint as hprint
 import helpers.hcache_simple as hcacsimp
@@ -88,12 +87,30 @@ def sanitize_title_for_filename(title: str) -> str:
     return sanitized
 
 
-# TODO(ai_gp): Use _SUMMARY_MODEL = "gpt-4o-mini" as default value for model
+# Default model for LLM-based summarization. This is a direct model name
+# passed to `llm` (not routed through OpenRouter, which uses an
+# "openrouter/<provider>/<model>" prefix, e.g.
+# "openrouter/anthropic/claude-haiku-4.5"; see `llm_cli.py`).
+_SUMMARY_MODEL = "gpt-4o-mini"
+
+# Shared prompt for summarizing article content into 5 bullet points; reused
+# by `download_hn_article_to_md.py`, `download_html_to_md.py`, and
+# `download_academic_paper_to_md.py` to avoid repeating the same prompt text.
+ARTICLE_SUMMARY_PROMPT = hprint.dedent(
+    """
+    - Summarize the main article in 5 bullet points
+    - Format as plain text without markdown following the conventions in:
+      - @.claude/skills/markdown.rules.txt
+      - @.claude/skills/text.rules.txt
+    """
+)
+
+
 def summarize_text_with_llm(
     input_file: str,
     output_file: str,
     prompt: str,
-    model: str,
+    model: str = _SUMMARY_MODEL,
     *,
     dry_run: bool = False,
 ) -> None:
@@ -163,8 +180,7 @@ def download_website_article(url: str, output_file: str) -> None:
     :param output_file: Path to save the article text to
     """
     _LOG.debug(hprint.to_str("url output_file"))
-    # TODO(ai_gp): Use hgit.find_in_repo
-    script = "dev_scripts_helpers/download/download_html_to_md.py"
+    script = hgit.find_file_in_git_tree("download_html_to_md.py")
     cmd = f'{script} --input "{url}" --output "{output_file}"'
     hsystem.system(cmd)
     hdbg.dassert_file_exists(output_file)
@@ -185,8 +201,7 @@ def download_arxiv_article(url: str, output_file: str) -> None:
     _LOG.debug(hprint.to_str("url output_file"))
     # Base path (no extension) shared by the generated .pdf/.md files.
     base_path = re.sub(r"\.txt$", "", output_file)
-    # TODO(ai_gp): Use hgit.find_in_repo
-    script = "dev_scripts_helpers/download/download_academic_paper_to_md.py"
+    script = hgit.find_file_in_git_tree("download_academic_paper_to_md.py")
     # Only download + convert here: skip the script's own summarize action
     # since callers summarize the resulting article text themselves.
     cmd = (
@@ -217,179 +232,3 @@ def download_article(url: str, output_file: str) -> None:
         download_arxiv_article(url, output_file)
     else:
         download_website_article(url, output_file)
-
-
-# #############################################################################
-# Hacker News comments
-# #############################################################################
-
-# TODO(ai_gp): Move all the functions for hackernews that are used only by
-# ./dev_scripts_helpers/download/download_hn_article_to_md.py to that file
-# and make them private
-
-@hcacsimp.simple_cache(cache_type="json", write_through=True)
-def fetch_hn_item(item_id: str) -> Optional[Dict[str, Any]]:
-    """
-    Fetch a Hacker News item from the API.
-
-    :param item_id: HN item ID
-    :return: Item data dict or None if fetch fails
-    """
-    _LOG.debug(hprint.func_signature_to_str())
-    # Query the official HN API for the item.
-    api_url = f"https://hacker-news.firebaseio.com/v0/item/{item_id}.json"
-    _LOG.debug("Fetching HN item: %s", api_url)
-    response = requests.get(api_url, timeout=10)
-    response.raise_for_status()
-    data = response.json()
-    if data:
-        result = data
-    else:
-        _LOG.warning("No data returned for item: %s", item_id)
-        result = None
-    _LOG.debug("return=%s", result is not None)
-    return result
-
-
-def fetch_hn_comments(
-    item_id: str,
-    *,
-    max_depth: int = -1,
-    current_depth: int = 0,
-) -> List[Dict[str, Any]]:
-    """
-    Recursively fetch HN comments for an item.
-
-    :param item_id: HN item ID
-    :param max_depth: Maximum recursion depth
-    :param current_depth: Current recursion depth (internal use)
-    :return: List of comment dicts with nested replies
-    """
-    _LOG.debug(hprint.to_str("item_id current_depth"))
-    # Guard: stop recursion at max depth to limit API calls and processing time.
-    if max_depth >= 0 and current_depth >= max_depth:
-        result = []
-    else:
-        # Fetch the item data from HN API.
-        item_data = fetch_hn_item(item_id)
-        if not item_data:
-            result = []
-        else:
-            # Extract core comment metadata from the item data.
-            comment = {
-                "id": item_data.get("id"),
-                "by": item_data.get("by"),
-                "text": item_data.get("text", ""),
-                "time": item_data.get("time"),
-                "score": item_data.get("score"),
-            }
-            # Recursively fetch all child comments (replies) if they exist.
-            kids = item_data.get("kids", [])
-            if kids:
-                replies = []
-                for kid_id in kids:
-                    kid_comments = fetch_hn_comments(
-                        str(kid_id),
-                        max_depth=max_depth,
-                        current_depth=current_depth + 1,
-                    )
-                    replies.extend(kid_comments)
-                comment["replies"] = replies
-            result = [comment]
-    _LOG.debug(hprint.to_str("len(result)"))
-    return result
-
-
-def count_comments(comments: List[Dict[str, Any]]) -> int:
-    """
-    Recursively count total comments including nested replies.
-
-    :param comments: List of comment dicts with nested replies
-    :return: Total comment count
-    """
-    _LOG.debug(hprint.to_str("len(comments)"))
-    count = len(comments)
-    # Recurse into each comment's replies to include nested comments in the
-    # total.
-    for comment in comments:
-        if "replies" in comment:
-            count += count_comments(comment["replies"])
-    _LOG.debug(hprint.to_str("count"))
-    return count
-
-
-def _simplify_html_links(text: str) -> str:
-    """
-    Simplify HTML links by extracting just the URL and unescaping entities.
-
-    Converts: `<a href="https:&#x2F;&#x2F;example.com">...</a>`
-    to: `https://example.com`
-
-    :param text: Text containing HTML links
-    :return: Text with simplified links
-    """
-    _LOG.debug(hprint.func_signature_to_str())
-
-    def replace_link(match):
-        """
-        Match <a> tags and extract href, then replace with just the URL.
-        """
-        href = match.group(1)
-        # Unescape HTML entities (&#x2F; -> /).
-        unescaped = html.unescape(href)
-        return unescaped
-
-    # Pattern: <a href="...">...</a>: captures the href attribute.
-    pattern = r'<a\s+[^>]*href=["\'](.*?)["\'][^>]*>.*?</a>'
-    simplified = re.sub(
-        pattern, replace_link, text, flags=re.IGNORECASE | re.DOTALL
-    )
-    _LOG.debug("simplified=%d chars", len(simplified))
-    return simplified
-
-
-def _add_comment_tree(
-    comment_list: List[Dict[str, Any]], lines: List[str], depth: int = 0
-) -> None:
-    """
-    Recursively add comments to output, preserving hierarchy.
-    """
-    _LOG.debug(hprint.func_signature_to_str())
-    for comment in comment_list:
-        # Format comment metadata: author, score, and timestamp.
-        indent = "  " * depth
-        lines.append(f"{indent}By: {comment.get('by', 'unknown')}")
-        lines.append(f"{indent}Score: {comment.get('score', 0)}")
-        lines.append(f"{indent}Time: {comment.get('time', 'unknown')}")
-        # Extract and format comment text, preserving line breaks.
-        text = comment.get("text", "").strip()
-        if text:
-            # Simplify HTML links in comment text.
-            text = _simplify_html_links(text)
-            # Unescape HTML entities (&#x27; -> ', &quot; -> ", etc.)
-            text = html.unescape(text)
-            for text_line in text.split("\n"):
-                lines.append(f"{indent}{text_line}")
-        lines.append("")
-        # Recursively process nested replies at increasing indentation depth.
-        if "replies" in comment:
-            _add_comment_tree(comment["replies"], lines, depth + 1)
-
-
-def format_hn_comments_as_text(comments: List[Dict[str, Any]]) -> str:
-    """
-    Format HN comments list as readable text.
-
-    :param comments: List of comment dicts with nested replies
-    :return: Formatted text representation of comments
-    """
-    _LOG.debug(hprint.func_signature_to_str())
-    lines: List[str] = []
-    _add_comment_tree(comments, lines)
-    text = "\n".join(lines)
-    # Simplify HTML links in comment text.
-    text = _simplify_html_links(text)
-    total_comments = count_comments(comments)
-    _LOG.info("Total comments downloaded: %d", total_comments)
-    _LOG.debug(hprint.to_str("len(text)"))
-    return text

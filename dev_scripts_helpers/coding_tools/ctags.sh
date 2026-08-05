@@ -28,7 +28,7 @@ while [[ $# -gt 0 ]]; do
             ;;
     esac
 done
-set -- "${ARGS[@]}"
+set -- ${ARGS[@]+"${ARGS[@]}"}
 
 EXCLUDE_OPTS=""
 for dir in "${EXCLUDE_DIRS[@]}"; do

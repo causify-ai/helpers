@@ -25,7 +25,9 @@ class Test_retry(hunitest.TestCase):
         self.exception_count = 0
         num_attempts = 3
 
-        @hretry.sync_retry(num_attempts, EXCEPTIONS)
+        @hretry.sync_retry(
+            EXCEPTIONS, num_attempts=num_attempts, retry_delay_in_sec=0
+        )
         def func() -> bool:
             if self.exception_count < num_attempts - 1:
                 self.exception_count += 1
@@ -44,7 +46,9 @@ class Test_retry(hunitest.TestCase):
         self.exception_count = 0
         num_attempts = 3
 
-        @hretry.sync_retry(num_attempts, EXCEPTIONS)
+        @hretry.sync_retry(
+            EXCEPTIONS, num_attempts=num_attempts, retry_delay_in_sec=0
+        )
         def func() -> bool:
             if self.exception_count < num_attempts:
                 self.exception_count += 1
@@ -63,7 +67,7 @@ class Test_retry(hunitest.TestCase):
         self.exception_count = 0
         num_attempts = 3
 
-        @hretry.sync_retry(num_attempts, EXCEPTIONS)
+        @hretry.sync_retry(EXCEPTIONS, num_attempts=num_attempts)
         def func() -> None:
             if self.exception_count < num_attempts - 1:
                 self.exception_count += 1
@@ -88,7 +92,11 @@ class Test_retry2(hunitest.TestCase):
         num_attempts = 3
         retry_delay_in_sec = 1
 
-        @hretry.async_retry(num_attempts, EXCEPTIONS, retry_delay_in_sec)
+        @hretry.async_retry(
+            EXCEPTIONS,
+            num_attempts=num_attempts,
+            retry_delay_in_sec=retry_delay_in_sec,
+        )
         async def func() -> bool:
             if self.exception_count < num_attempts - 1:
                 self.exception_count += 1
@@ -113,7 +121,11 @@ class Test_retry2(hunitest.TestCase):
         num_attempts = 3
         retry_delay_in_sec = 1
 
-        @hretry.async_retry(num_attempts, EXCEPTIONS, retry_delay_in_sec)
+        @hretry.async_retry(
+            EXCEPTIONS,
+            num_attempts=num_attempts,
+            retry_delay_in_sec=retry_delay_in_sec,
+        )
         async def func() -> bool:
             if self.exception_count < num_attempts:
                 self.exception_count += 1
@@ -142,7 +154,11 @@ class Test_retry2(hunitest.TestCase):
         num_attempts = 3
         retry_delay_in_sec = 1
 
-        @hretry.async_retry(num_attempts, EXCEPTIONS, retry_delay_in_sec)
+        @hretry.async_retry(
+            EXCEPTIONS,
+            num_attempts=num_attempts,
+            retry_delay_in_sec=retry_delay_in_sec,
+        )
         async def func() -> None:
             if self.exception_count < num_attempts - 1:
                 self.exception_count += 1

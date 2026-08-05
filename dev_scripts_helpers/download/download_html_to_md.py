@@ -14,11 +14,14 @@ r"""
 - Summarize the content
 
 Examples:
-# TODO(ai_gp): Add a comment for each command line
+# Download a page and convert it using the default "auto" converter (tries
+# BeautifulSoup first, falls back to readability).
 > download_html_to_md.py --input https://example.com --output output.md
 
+# Convert using the `pandoc` command-line tool instead.
 > download_html_to_md.py --input https://example.com --output output.md --converter pandoc
 
+# Convert using BeautifulSoup with common content selectors only.
 > download_html_to_md.py --input https://example.com --output output.md --converter bs
 
 # If --output is omitted, the page title is used to generate the filename.
@@ -315,15 +318,6 @@ def _lint(output_md_file: str) -> None:
 # Summarize action
 # #############################################################################
 
-# Prompt and model used to summarize the downloaded markdown content.
-# TODO(ai_gp): Improve this referring to .claude/markdown.rules.md
-_SUMMARY_PROMPT = (
-    "Summarize the main article in 5 bullet points. "
-    "Format as plain text without markdown."
-)
-# TODO(ai_gp): Is this openrouter?
-_SUMMARY_MODEL = "gpt-4o-mini"
-
 
 def _summarize(output_md_file: str) -> None:
     """
@@ -334,12 +328,10 @@ def _summarize(output_md_file: str) -> None:
     _LOG.debug(hprint.to_str("output_md_file"))
     summary_file = f"{output_md_file}.summary.md"
     _LOG.info("Summarizing markdown file: '%s'...", output_md_file)
-    _LOG.debug("Calling summarize_text_with_llm with model='%s'", _SUMMARY_MODEL)
     dsdlut.summarize_text_with_llm(
         output_md_file,
         summary_file,
-        _SUMMARY_PROMPT,
-        _SUMMARY_MODEL,
+        dsdlut.ARTICLE_SUMMARY_PROMPT,
     )
     _LOG.info("Summary saved to: '%s'", summary_file)
 

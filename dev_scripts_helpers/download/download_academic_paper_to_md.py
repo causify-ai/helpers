@@ -27,8 +27,8 @@
 # Download from generic PDF URL
 > download_academic_paper_to_md.py --input "https://example.com/paper.pdf"
 
-# Specify custom output directory (used only when --output is not passed)
-> download_academic_paper_to_md.py --input "https://arxiv.org/abs/1706.03762" --output_dir ./my_papers
+# Save under a custom directory when --output is not passed, via $PAPERS_DIR
+> PAPERS_DIR=./my_papers download_academic_paper_to_md.py --input "https://arxiv.org/abs/1706.03762"
 
 # Specify an explicit output base name (produces mypaper.pdf, mypaper.md, ...)
 > download_academic_paper_to_md.py --input "https://arxiv.org/abs/1706.03762" --output ./my_papers/mypaper
@@ -69,7 +69,6 @@ import dev_scripts_helpers.download.download_utils as dsdlut
 _LOG = logging.getLogger(__name__)
 
 # API decorator configuration.
-_MAX_RETRIES = 3
 _RETRY_DELAY_SEC = 2
 _API_TIMEOUT = 30
 _DOWNLOAD_TIMEOUT = 300
@@ -114,21 +113,20 @@ def _extract_arxiv_metadata(arxiv_id: str) -> Dict[str, Any]:
     return metadata
 
 
-# TODO(ai_gp): Return empty string instead of None
-def _detect_arxiv_id(url: str) -> Optional[str]:
+def _detect_arxiv_id(url: str) -> str:
     """
     Detect arXiv ID from URL.
-    
-    TODO(ai_gp): Add example of input and output
 
     :param url: input URL
-    :return: arXiv ID if detected, None otherwise
+        Example: "https://arxiv.org/abs/1706.03762"
+    :return: arXiv ID if detected, empty string otherwise
+        Example: "1706.03762"
     """
     _LOG.debug(hprint.to_str("url"))
     # Match the arXiv ID with or without a leading `arxiv.org/abs|pdf/` prefix.
     _ARXIV_ID_PATTERN = r"(?:arxiv\.org/(?:abs|pdf)/)?(\d{4}\.\d{4,5})"
     match = re.search(_ARXIV_ID_PATTERN, url)
-    arxiv_id = match.group(1) if match else None
+    arxiv_id = match.group(1) if match else ""
     _LOG.debug(hprint.to_str("arxiv_id"))
     return arxiv_id
 
@@ -165,8 +163,7 @@ def detect_doi(url: str) -> Optional[str]:
 
 
 @hretry.sync_retry(
-    num_attempts=_MAX_RETRIES,
-    exceptions=(requests.RequestException,),
+    (requests.RequestException,),
     retry_delay_in_sec=_RETRY_DELAY_SEC,
 )
 def _crossref_query(doi: str) -> Dict[str, Any]:
@@ -188,8 +185,7 @@ def _crossref_query(doi: str) -> Dict[str, Any]:
 
 
 @hretry.sync_retry(
-    num_attempts=_MAX_RETRIES,
-    exceptions=(requests.RequestException,),
+    (requests.RequestException,),
     retry_delay_in_sec=_RETRY_DELAY_SEC,
 )
 def _unpaywall_query(
@@ -515,13 +511,6 @@ def _convert(pdf_path: str) -> None:
 # Summarize action
 # #############################################################################
 
-# Prompt and model used to summarize the converted markdown content.
-_SUMMARY_PROMPT = (
-    "Summarize the main article in 5 bullet points. "
-    "Format as plain text without markdown."
-)
-_SUMMARY_MODEL = "gpt-4o-mini"
-
 
 def _summarize(base_path: str) -> None:
     """
@@ -540,8 +529,7 @@ def _summarize(base_path: str) -> None:
     dsdlut.summarize_text_with_llm(
         md_path,
         summary_path,
-        _SUMMARY_PROMPT,
-        _SUMMARY_MODEL,
+        dsdlut.ARTICLE_SUMMARY_PROMPT,
     )
     _LOG.info("Summary saved to: '%s'", summary_path)
 
@@ -560,7 +548,6 @@ def _parse() -> argparse.ArgumentParser:
     Parse command-line arguments.
     """
     _LOG.debug("Building the argument parser.")
-    _DEFAULT_OUTPUT_DIR = os.path.expanduser(os.getenv("PAPERS_DIR", "."))
     parser = argparse.ArgumentParser(
         formatter_class=hparser.CustomHelpFormatter,
         description=__doc__,
@@ -579,14 +566,9 @@ def _parse() -> argparse.ArgumentParser:
             "Output base path (no extension), shared by the generated "
             "<output>.pdf, <output>.md, <output>.summary.md files. If not "
             "specified, a standardized name is derived from the paper's "
-            "metadata and saved under --output_dir"
+            "metadata and saved under $PAPERS_DIR (or the current directory "
+            "if unset)"
         ),
-    )
-    # TODO(ai_gp): This is not needed. Use only --output
-    parser.add_argument(
-        "--output_dir",
-        default=_DEFAULT_OUTPUT_DIR,
-        help="Output directory used when --output is not specified",
     )
     parser.add_argument(
         "--no_incremental",
@@ -611,7 +593,8 @@ def _main(parser: argparse.ArgumentParser) -> None:
         base_path = args.output
         _LOG.debug("Using explicit --output base path: '%s'", base_path)
     else:
-        base_path = _get_output_base_path(args.input, args.output_dir)
+        output_dir = os.path.expanduser(os.getenv("PAPERS_DIR", "."))
+        base_path = _get_output_base_path(args.input, output_dir)
         _LOG.info(
             "No --output specified, using derived base path: '%s'", base_path
         )
