@@ -39,7 +39,7 @@ This script manages the following actions:
 - Run all actions:
 > process_link_gsheet.py \
     --url "https://docs.google.com/spreadsheets/d/1i6Z7v2..." \
-    --all
+    --all_actions
 
 Import as:
 
@@ -433,7 +433,8 @@ def _upload_to_gsheet(url: str) -> None:
 # #############################################################################
 
 
-# List of available pipeline actions; executed in order when --all is used.
+# List of available pipeline actions; executed in order when --all_actions is
+# used.
 _VALID_ACTIONS = [
     "download_link_gsheet",
     "update_article_url",
@@ -479,7 +480,8 @@ def _main(parser: argparse.ArgumentParser) -> None:
         logger = logging.getLogger(module_name)
         logger.setLevel(logging.CRITICAL)
     hcacsimp.parse_cache_control_args(args)
-    # Resolve which actions to run based on command-line flags (--action, --all, --skip-action).
+    # Resolve which actions to run based on command-line flags (--action,
+    # --all_actions, --skip-action).
     actions = hselacti.select_actions(args, _VALID_ACTIONS, _DEFAULT_ACTIONS)
     _LOG.info(
         "Actions to execute:\n%s",

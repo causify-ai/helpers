@@ -17,7 +17,7 @@
     --modified            Select only files modified in the client (staged and unstaged)
     --branch              Select only files modified with respect to the branch point
     --last_commit         Select only files part of the previous commit
-    --all                 Select all repo files
+    --all_files            Select all repo files
   ```
 
 ## Output options
@@ -142,7 +142,7 @@
     --enable ENABLE_ACTION
                           Enable additional actions on top of defaults (see
                           available actions below)
-    --all                 Run all the actions (a b)
+    --all_actions          Run all the actions (a b)
 
     ## Available actions:
     - a

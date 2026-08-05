@@ -14,7 +14,7 @@ staged for commit by git, thus you need to stage again after running it.
 > linter.py -c --collect_only
 
 - Lint all current git-client files:
-> linter.py -c --all
+> linter.py -c --all_actions
 
 - Lint files modified in the previous commit, listing them without processing:
 > linter.py -p --collect_only

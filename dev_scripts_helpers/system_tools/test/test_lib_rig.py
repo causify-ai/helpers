@@ -227,10 +227,10 @@ class TestRigScript(hunitest.TestCase):
 
     def test12(self) -> None:
         """
-        Test --all flag with pattern.
+        Test --all_files flag with pattern.
         """
         # Prepare inputs.
-        args = ["TODO", "--all"]
+        args = ["TODO", "--all_files"]
         # Prepare outputs.
         expected_cmd = ""
         expected_exit_code = 0

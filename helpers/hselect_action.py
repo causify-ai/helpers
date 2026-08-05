@@ -110,8 +110,9 @@ def add_action_arg(
     )
     hdbg.dassert_is_subset(default_actions, valid_actions)
     parser.add_argument(
-        "--all",
+        "--all_actions",
         action="store_true",
+        dest="all_actions",
         help=f"Run all the actions ({' '.join(default_actions)})",
     )
     return parser
@@ -161,8 +162,8 @@ def select_actions(
     :return: list of selected actions
     """
     hdbg.dassert(
-        not (args.action and args.all),
-        "You can't specify together --action and --all",
+        not (args.action and args.all_actions),
+        "You can't specify together --action and --all_actions",
     )
     hdbg.dassert(
         not (args.action and args.skip_action),
@@ -180,7 +181,7 @@ def select_actions(
             "You can't specify together --skip_action and --enable",
         )
     # Select actions.
-    if not args.action or args.all:
+    if not args.action or args.all_actions:
         hdbg.dassert_is_subset(default_actions, valid_actions)
         # Convert it into list since through some code paths it can be a tuple.
         actions = list(default_actions)

@@ -26,7 +26,7 @@ This script manages four actions:
 - Run all actions:
 > update_link_gsheet_from_raindrop.py \
     --url "https://docs.google.com/spreadsheets/d/1i6Z7v2..." \
-    --all
+    --all_actions
 
 - Skip the upload action:
 > update_link_gsheet_from_raindrop.py \

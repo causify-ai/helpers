@@ -32,7 +32,7 @@
 
 * Action Control
 - Default actions = tree generation + LLM analysis
-- `--all` = run all actions (tree, llm, combine, table)
+- `--all_actions` = run all actions (tree, llm, combine, table)
 - `--action tree` = only generate tree structures
 - `--action llm` = only run AI analysis
 - `--action combine` = combine existing outputs
@@ -76,7 +76,7 @@
   ```bash
   > create_google_drive_map.py --in_dir /drive/folder \
     --from_scratch \
-    --all
+    --all_actions
   ```
 
 - Create Directory Table Only

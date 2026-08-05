@@ -1413,7 +1413,7 @@ The `--md_end "END"` special value is useful for reading from a starting section
 
 - Full workflow with custom output directory
   ```bash
-  > create_google_drive_map.py --in_dir /projects/code --out_dir analysis --all
+  > create_google_drive_map.py --in_dir /projects/code --out_dir analysis --all_actions
   ```
 
 - Start fresh by deleting existing output

@@ -23,7 +23,7 @@ then applies appropriate linting tools per file type.
 > lint.py --last_commit
 
 - Lint all repo files:
-> lint.py --all
+> lint.py --all_files
 
 - Lint only Markdown files in modified files:
 > lint.py --modified --file_types "md"

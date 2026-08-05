@@ -69,7 +69,7 @@ characters replaced with underscores:
 - Download all actions (both HN comments and articles):
 > download_link_articles.py \
     --url "https://docs.google.com/spreadsheets/d/..." \
-    --all
+    --all_actions
 
 - Download article content only:
 > download_link_articles.py \

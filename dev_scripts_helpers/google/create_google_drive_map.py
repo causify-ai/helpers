@@ -27,7 +27,7 @@ Use --from_scratch to delete the output directory before processing.
 > create_google_drive_map.py --in_dir /path/to/analyze --out_dir results
 
 - Run all available actions (tree, llm, combine, table):
-> create_google_drive_map.py --in_dir /path/to/process --all
+> create_google_drive_map.py --in_dir /path/to/process --all_actions
 
 - Run the default actions except the tree action:
 > create_google_drive_map.py --in_dir /path/to/process --skip_action tree

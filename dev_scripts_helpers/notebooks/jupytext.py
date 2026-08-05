@@ -9,7 +9,7 @@ Automate some common workflows with jupytext.
 > jupytext.py --action pair --files <notebook.ipynb> [<notebook2.ipynb> ...]
 
 - Pair all notebooks in the repo:
-> jupytext.py --action pair --all
+> jupytext.py --action pair --all_files
 
 - Pair notebooks modified in the client:
 > jupytext.py --action pair --modified
@@ -21,7 +21,7 @@ Automate some common workflows with jupytext.
 > jupytext.py --action test --files <notebook.{py,ipynb}> [<notebook2.{py,ipynb}> ...]
 
 - Test that all notebooks are in sync:
-> jupytext.py --action test --all
+> jupytext.py --action test --all_files
 
 - Test that notebooks modified in the client are in sync:
 > jupytext.py --action test --modified
@@ -30,7 +30,7 @@ Automate some common workflows with jupytext.
 > jupytext.py --action sync --files <notebook.{py,ipynb}> [<notebook2.{py,ipynb}> ...]
 
 - Sync all notebooks:
-> jupytext.py --action sync --all
+> jupytext.py --action sync --all_files
 
 - Sync notebooks modified in the client:
 > jupytext.py --action sync --modified
@@ -385,7 +385,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
     files = hseinout.parse_file_selection_args(args)
     hdbg.dassert(
         len(files) > 0,
-        "No files selected; use --all, --files, --modified, --branch, --last_commit, or --from_file",
+        "No files selected; use --all_files, --files, --modified, --branch, --last_commit, or --from_file",
     )
     # Suppress routine "Skipping non-.ipynb file" messages.
     files = _filter_ipynb_files(files, log_level=logging.DEBUG)

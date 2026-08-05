@@ -43,7 +43,7 @@ Use action selection flags to control which data sources are queried:
 - `--action`: Select specific actions to run
 - `--skip_action`: Skip specific actions from the default set
 - `--enable`: Enable additional actions beyond defaults
-- `--all`: Run all available actions (default behavior)
+- `--all_actions`: Run all available actions (default behavior)
 """
 
 import argparse
