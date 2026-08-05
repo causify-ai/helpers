@@ -91,6 +91,16 @@ def _clear_cache() -> None:
     _LOG.debug("cache cleared")
 
 
+def _restart_docker_if_needed() -> None:
+    """
+    Restart Docker Desktop if it is hanging, using docker_restart_if_needed.py.
+    """
+    _LOG.debug("_restart_docker_if_needed called")
+    _LOG.info("Checking Docker health...")
+    hsystem.system("docker_restart_if_needed.py")
+    _LOG.debug("Docker health check done")
+
+
 def _build_pytest_cmd(targets: List[str]) -> str:
     """
     Build pytest command from targets.
@@ -205,7 +215,12 @@ def _main(parser: argparse.ArgumentParser) -> None:
     else:
         build_names = list(hpytest.BUILD_CONFIG.keys())
     total_builds = len(build_names)
+    docker_restarted = False
     for build_num, build_name in enumerate(build_names, 1):
+        docker_engine, _ = hpytest.BUILD_CONFIG[build_name]
+        if docker_engine == "docker" and not docker_restarted:
+            _restart_docker_if_needed()
+            docker_restarted = True
         if not args.no_delete_cache:
             _clear_cache()
         _run_build(build_name, cmd, build_num, total_builds)

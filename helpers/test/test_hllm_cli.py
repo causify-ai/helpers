@@ -28,6 +28,9 @@ _RUN_REAL_LLM_BACKEND = False
 # _RUN_REAL_LLM_BACKEND = True
 
 
+_DEFAULT_TEST_MODEL = "gpt-5-nano"
+
+
 # #############################################################################
 # Test_apply_llm_with_files
 # #############################################################################
@@ -166,6 +169,9 @@ class TestApplyLlmBase(_BaseCacheTest):
                 backend,
             )
             output_file = os.path.join(scratch_dir, f"output_{idx}.txt")
+            # Ensure `model` is always passed since it is a required arg.
+            kwargs = dict(kwargs)
+            kwargs.setdefault("model", _DEFAULT_TEST_MODEL)
             # Run test.
             hllmcli.apply_llm_with_files(
                 input_file=input_file,
@@ -210,6 +216,8 @@ class TestApplyLlmBase(_BaseCacheTest):
             )
             kwargs_copy = kwargs.copy()
             input_text = kwargs_copy.pop("input_text")
+            # Ensure `model` is always passed since it is a required arg.
+            kwargs_copy.setdefault("model", _DEFAULT_TEST_MODEL)
             response, _ = hllmcli.apply_llm(
                 input_text,
                 backend=backend,
@@ -374,8 +382,11 @@ class Test_apply_llm_with_files2(TestApplyLlmBase):
             # Extract parameters from kwargs.
             kwargs_copy = kwargs.copy()
             input_text = kwargs_copy.pop("input_text")
-            kwargs_copy.pop("print_only")  # Not needed for apply_llm
-            # Run test using apply_llm directly - this should print to stdout.
+            # Not needed for apply_llm.
+            kwargs_copy.pop("print_only")
+            # Ensure `model` is always passed since it is a required arg.
+            kwargs_copy.setdefault("model", _DEFAULT_TEST_MODEL)
+            # Run test using apply_llm directly, this should print to stdout.
             response, _ = hllmcli.apply_llm(
                 input_text,
                 backend=backend,
@@ -1712,7 +1723,7 @@ class Test_mock_apply_llm(hunitest.TestCase):
     Test mock_apply_llm context manager.
     """
 
-    # TODO(ai_gp): Use helper and assert_equal inside.
+    # TODO(ai_gp): Use an helper and assert_equal.
     def test1(self) -> None:
         """
         Test mock_apply_llm with input and system_prompt.
@@ -1796,6 +1807,7 @@ class Test_add_llm_prompt_arg(hunitest.TestCase):
     Test add_llm_prompt_arg function.
     """
 
+    # TODO(ai_gp): Use an helper and assert_equal.
     def test1(self) -> None:
         """
         Test basic argument addition with is_required=True.
@@ -1890,6 +1902,7 @@ class Test_add_llm_args(hunitest.TestCase):
     Test add_llm_args function.
     """
 
+    # TODO(ai_gp): Use an helper and assert_equal.
     def test1(self) -> None:
         """
         Test basic LLM arguments with defaults.
@@ -2094,6 +2107,7 @@ class Test_expand_referenced_files(hunitest.TestCase):
         # Run test.
         self.helper(prompt, expected)
 
+    # TODO(ai_gp): Can we use self.helper
     def test5(self) -> None:
         """
         Test expanding a reference that contains a directory path.

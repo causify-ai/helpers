@@ -16,7 +16,7 @@
 # ]
 # ///
 
-"""
+r"""
 Process links and articles from a Google Sheets document.
 
 For detailed documentation on the link workflow, see:

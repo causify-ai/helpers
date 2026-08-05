@@ -1,4 +1,9 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
+
+import pytest
+
+pytest.importorskip("feedparser")
+pytest.importorskip("fitz")
 
 import helpers.hunit_test as hunitest
 import dev_scripts_helpers.download.download_to_md as dshddtomd
