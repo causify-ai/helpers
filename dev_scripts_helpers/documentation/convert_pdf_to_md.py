@@ -520,7 +520,7 @@ def _parse() -> argparse.ArgumentParser:
     """
     parser = argparse.ArgumentParser(
         description=__doc__,
-        formatter_class=argparse.RawDescriptionHelpFormatter,
+        formatter_class=hparser.CustomHelpFormatter,
     )
     parser.add_argument(
         "-i",
@@ -570,18 +570,24 @@ def _main(parser: argparse.ArgumentParser) -> None:
     while actions:
         action = actions[0]
         to_execute, actions = hselacti.mark_action(action, actions)
-        if to_execute:
-            if action == "convert":
-                _pdf_to_markdown(
-                    pdf_path=args.input,
-                    output_dir=args.output,
-                    skip_figures=args.skip_figures,
-                    overwrite=args.overwrite,
-                )
-            elif action == "remove_junk":
-                _remove_junk(pdf_path=args.input, output_dir=args.output)
-            elif action == "lint":
-                _lint(pdf_path=args.input, output_dir=args.output)
+        if not to_execute:
+            continue
+        if action == "convert":
+            _pdf_to_markdown(
+                pdf_path=args.input,
+                output_dir=args.output,
+                skip_figures=args.skip_figures,
+                overwrite=args.overwrite,
+            )
+        elif action == "remove_junk":
+            _remove_junk(pdf_path=args.input, output_dir=args.output)
+        elif action == "lint":
+            _lint(pdf_path=args.input, output_dir=args.output)
+        else:
+            raise ValueError(f"Invalid action='{action}'")
+    hdbg.dassert_eq(
+        len(actions), 0, "There are unprocessed actions: %s", str(actions)
+    )
 
 
 if __name__ == "__main__":

@@ -2,12 +2,38 @@
 #
 # Dockerized ctags
 #
-# 
 # sudo apt install universal-ctags
 # rm tags
 # ctags --languages=Python --exclude=.git --exclude=.mypy_cache -R .
+#
+# Skip extra dirs with -e/--exclude (repeatable):
+# > ctags.sh --exclude node_modules --exclude build
 
 set -eux
+
+# Dirs always excluded.
+EXCLUDE_DIRS=(".git" ".mypy_cache")
+
+# Parse `-e|--exclude DIR` options, forward everything else untouched.
+ARGS=()
+while [[ $# -gt 0 ]]; do
+    case "$1" in
+        -e|--exclude)
+            EXCLUDE_DIRS+=("$2")
+            shift 2
+            ;;
+        *)
+            ARGS+=("$1")
+            shift
+            ;;
+    esac
+done
+set -- ${ARGS[@]+"${ARGS[@]}"}
+
+EXCLUDE_OPTS=""
+for dir in "${EXCLUDE_DIRS[@]}"; do
+    EXCLUDE_OPTS+=" --exclude=${dir}"
+done
 
 cat >/tmp/tmp.dockerfile <<EOF
 FROM ubuntu:20.04
@@ -51,7 +77,7 @@ TAGS_FILE="tags"
 cat >./run_tags.sh <<EOF
 rm $TAGS_FILE
 ctags --version || true
-ctags --languages=python --exclude=.git --exclude=.mypy_cache -R .
+ctags --languages=python$EXCLUDE_OPTS -R .
 echo "Created tags in '$TAGS_FILE'"
 EOF
 chmod +x ./run_tags.sh

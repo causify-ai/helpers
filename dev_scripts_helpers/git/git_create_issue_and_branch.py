@@ -290,7 +290,7 @@ def _parse() -> argparse.ArgumentParser:
     """
     parser = argparse.ArgumentParser(
         description=__doc__,
-        formatter_class=argparse.RawDescriptionHelpFormatter,
+        formatter_class=hparser.CustomHelpFormatter,
     )
     # Issue source: mutually exclusive (create new or use existing).
     issue_group = parser.add_mutually_exclusive_group()

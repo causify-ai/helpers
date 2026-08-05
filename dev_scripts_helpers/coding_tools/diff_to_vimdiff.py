@@ -447,7 +447,7 @@ def _parse_diff_output(
 def _parse() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         description=__doc__,
-        formatter_class=argparse.RawDescriptionHelpFormatter,
+        formatter_class=hparser.CustomHelpFormatter,
     )
     # Required: paths to the two directories to compare.
     parser.add_argument(

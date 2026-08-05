@@ -46,28 +46,28 @@ def _add_common_test_arguments(parser: argparse.ArgumentParser) -> None:
 def _parse() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         description=__doc__,
-        formatter_class=argparse.RawDescriptionHelpFormatter,
+        formatter_class=hparser.CustomHelpFormatter,
     )
     subparsers = parser.add_subparsers(dest="command", help="Sub-command help")
     # Add command for running fast tests.
     run_fast_tests_parser = subparsers.add_parser(
         "run_fast_tests",
         help="Run fast tests",
-        formatter_class=argparse.RawDescriptionHelpFormatter,
+        formatter_class=hparser.CustomHelpFormatter,
     )
     _add_common_test_arguments(run_fast_tests_parser)
     # Add command for running slow tests.
     run_slow_tests_parser = subparsers.add_parser(
         "run_slow_tests",
         help="Run slow tests",
-        formatter_class=argparse.RawDescriptionHelpFormatter,
+        formatter_class=hparser.CustomHelpFormatter,
     )
     _add_common_test_arguments(run_slow_tests_parser)
     # Add command for running superslow tests.
     run_superslow_tests_parser = subparsers.add_parser(
         "run_superslow_tests",
         help="Run superslow tests",
-        formatter_class=argparse.RawDescriptionHelpFormatter,
+        formatter_class=hparser.CustomHelpFormatter,
     )
     _add_common_test_arguments(run_superslow_tests_parser)
     parser = hparser.add_verbosity_arg(parser)

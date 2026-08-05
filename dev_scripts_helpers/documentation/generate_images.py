@@ -398,7 +398,7 @@ def _generate_images_from_file(
 def _parse() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         description=__doc__,
-        formatter_class=argparse.RawDescriptionHelpFormatter,
+        formatter_class=hparser.CustomHelpFormatter,
     )
     parser.add_argument(
         "prompt", nargs="?", help="Text prompt for image generation"

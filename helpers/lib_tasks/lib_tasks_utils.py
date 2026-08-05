@@ -187,11 +187,11 @@ def to_multi_line_cmd(docker_cmd_: List[str]) -> str:
     # Expand all strings into single lines.
     _LOG.debug("docker_cmd=%s", docker_cmd_)
     docker_cmd_tmp = []
-    for dc in docker_cmd_:
+    for cmd in docker_cmd_:
         # Add a `\` at the end of each string.
-        hdbg.dassert(not dc.endswith("\\"), "dc='%s'", dc)
-        dc += " \\"
-        docker_cmd_tmp.extend(dc.split("\n"))
+        hdbg.dassert(not cmd.endswith("\\"), "cmd='%s'", cmd)
+        cmd += " \\"
+        docker_cmd_tmp.extend(cmd.split("\n"))
     docker_cmd_ = docker_cmd_tmp
     # Remove empty lines.
     docker_cmd_ = [cmd for cmd in docker_cmd_ if cmd.rstrip().lstrip() != ""]
@@ -207,8 +207,6 @@ def to_multi_line_cmd(docker_cmd_: List[str]) -> str:
 use_one_line_cmd = False
 
 
-# TODO(ai_gp): print_cmd is not useful since there is a corresponding option
-# in system.
 def run(
     ctx: Any,
     cmd: str,
@@ -227,7 +225,7 @@ def run(
         _LOG.warning("Skipping execution of '%s'", cmd)
         res = None
     else:
-        # TODO(ai_gp): Remove this
+        # TODO(ai_gp2): Remove this, if not used
         if print_cmd:
             print(hprint.color_highlight(f"> {cmd}", color="green"))
         if use_system:
@@ -245,7 +243,7 @@ def run(
 # Copied from helpers.datetime_ to avoid dependency from pandas.
 
 
-# TODO(ai_gp): Can this be eliminated?
+# TODO(ai_gp2): Is it used? If not can it be eliminated?
 def get_ET_timestamp() -> str:
     # The timezone depends on how the shell is configured.
     timestamp = datetime.datetime.now()

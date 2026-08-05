@@ -17,19 +17,19 @@ This script:
 
 Quick examples:
 # Lint specific Python files:
-> cc_lint.py --files "file1.py file2.py"
+> cc_lint.py --files "file1.py file2.py" ...
 
 # Lint modified files:
-> cc_lint.py --modified
+> cc_lint.py --modified ...
 
 # Apply specific topic rules:
-> cc_lint.py --files "file.py" --topic coding
+> cc_lint.py --files "file.py" --topic coding ...
 
 # Execute a skill:
-> cc_lint.py --files "file.py" --skill coding.fix_inline
+> cc_lint.py --files "file.py" --skill coding.fix_inline ...
 
 # Save command to `tmp.cc_lint_dry_run.txt` without executing:
-> cc_lint.py --files "*.md" --dry_run
+> cc_lint.py --files "*.md" --dry_run ...
 """
 
 import argparse
@@ -250,6 +250,9 @@ class RuleChunk:
     title: str
     content: str
     order: int
+    # Path of the rule file `content` was extracted from, used to cite the
+    # rule (e.g., in a `--add_todos` TODO comment).
+    rule_file: str = ""
 
 
 def _estimate_tokens(text: str) -> int:
@@ -307,14 +310,16 @@ def _merge_small_chunks(
     bucket_content = [chunks[0].content]
     bucket_tokens = _estimate_tokens(chunks[0].content)
     bucket_h1 = _chunk_h1_title(chunks[0])
+    bucket_rule_file = chunks[0].rule_file
     # Greedily fold each subsequent chunk into the current bucket when it
-    # shares the parent H1 and still fits the token budget, otherwise flush
-    # the bucket and start a new one.
+    # shares the parent H1 and rule file and still fits the token budget,
+    # otherwise flush the bucket and start a new one.
     for chunk in chunks[1:]:
         chunk_tokens = _estimate_tokens(chunk.content)
         same_h1 = _chunk_h1_title(chunk) == bucket_h1
+        same_rule_file = chunk.rule_file == bucket_rule_file
         fits_budget = bucket_tokens + chunk_tokens <= max_tokens
-        if same_h1 and fits_budget:
+        if same_h1 and same_rule_file and fits_budget:
             # Strip the repeated H1 header line before folding into the
             # bucket, since the bucket's first chunk already carries it.
             content_to_add = chunk.content
@@ -329,18 +334,21 @@ def _merge_small_chunks(
                     title=" / ".join(bucket_titles),
                     content="\n\n".join(bucket_content),
                     order=len(merged),
+                    rule_file=bucket_rule_file,
                 )
             )
             bucket_titles = [chunk.title]
             bucket_content = [chunk.content]
             bucket_tokens = chunk_tokens
             bucket_h1 = _chunk_h1_title(chunk)
+            bucket_rule_file = chunk.rule_file
     # Flush the last bucket.
     merged.append(
         RuleChunk(
             title=" / ".join(bucket_titles),
             content="\n\n".join(bucket_content),
             order=len(merged),
+            rule_file=bucket_rule_file,
         )
     )
     _LOG.debug("return=%d merged chunks", len(merged))
@@ -368,18 +376,20 @@ def _build_rule_chunks(
         `topic_info["rules"]`, in file order, `order` set to position
     """
     _LOG.debug(hprint.to_str("level max_tokens merge_small_rules"))
-    # Split every rule file's H1 sections into chunks at `level`.
+    # Split every rule file's H1 sections into chunks at `level`, keeping
+    # track of which rule file each section came from.
     rule_files = topic_info["rules"]
-    all_sections: List[Tuple[str, str]] = []
+    all_sections: List[Tuple[str, str, str]] = []
     for rule_file in rule_files:
         hdbg.dassert_file_exists(rule_file, "Rule file not found")
         lines = hio.from_file(rule_file).split("\n")
-        all_sections.extend(
-            hmarhead.extract_sections_at_level(lines, level=level)
-        )
+        for title, content in hmarhead.extract_sections_at_level(
+            lines, level=level
+        ):
+            all_sections.append((title, content, rule_file))
     chunks = [
-        RuleChunk(title=title, content=content, order=idx)
-        for idx, (title, content) in enumerate(all_sections)
+        RuleChunk(title=title, content=content, order=idx, rule_file=rule_file)
+        for idx, (title, content, rule_file) in enumerate(all_sections)
     ]
     # Optionally pack small chunks together to cut the number of turns.
     if merge_small_rules:
@@ -624,20 +634,19 @@ def _append_journal_entries(
     )
 
 
-# TODO(ai_gp): Return "" instead of None
 def _latest_journal_status(
     journal: List[Dict[str, Any]], file_path: str, chunk_title: str
-) -> Optional[str]:
+) -> str:
     """
     Get the most recently appended status for `(file_path, chunk_title)`.
 
     :param journal: journal entries, in append order (see `_load_journal()`)
     :param file_path: file the chunk applies to
     :param chunk_title: chunk title, as journaled
-    :return: the `status` of the last matching entry, or `None` if the pair
+    :return: the `status` of the last matching entry, or `""` if the pair
         has no entry
     """
-    status = None
+    status = ""
     for entry in journal:
         if (
             entry["file_path"] == file_path
@@ -724,14 +733,58 @@ def _filter_resumable(
 # #############################################################################
 
 
-def _build_prompt(topic: str) -> Tuple[str, Dict]:
+def _build_add_todos_instructions(rule_file: str = "") -> str:
+    """
+    Build the `--add_todos` instruction block.
+
+    Tells Claude Code to insert `# TODO(...): ...` comments citing the
+    violated rule's location instead of editing the file to comply with it.
+
+    :param rule_file: path of the rule file to name explicitly; left
+        generic when `""` (e.g., the one-shot topic prompt, which lists
+        several candidate rule files for Claude Code to read itself)
+    :return: instruction text with the TODO comment format and an example,
+        e.g.,
+        ```
+        # TODO(...): Do this and that (testing.rules.md:1081:## Use
+        Context Manager Syntax for Multiple Mocks)
+        ```
+    """
+    rule_file_descr = f"`{rule_file}`" if rule_file else "the rule file"
+    instructions = f"""
+        - Do NOT edit the file to comply with a rule. Instead, for every
+          violation, add a comment immediately above the offending line in the
+          form:
+          ```
+          # TODO(...): <what to do and why> (<rule_file>:<rule header line>)
+          ```
+          E.g.:
+          ```
+          # TODO(...): Do this and that (testing.rules.md:## Use Context Manager Syntax for Multiple Mocks)
+          ```
+          - Look up {rule_file_descr} to find the `<rule header line>` (the
+            header line text, including its leading `#`s) that the violated rule
+            came from
+          - Do not otherwise change the file: do not fix the violation, only add
+            the TODO comment
+        """
+    instructions = hprint.dedent(instructions)
+    return instructions
+
+
+def _build_prompt(topic: str, *, add_todos: bool = False) -> Tuple[str, Dict]:
     """
     Build a Claude Code prompt for the given skill.
 
     :param topic: Topic name (e.g., 'coding', 'testing')
+    :param add_todos: if `True`, instruct Claude Code to add
+        ```
+        # TODO(...): ...
+        ```
+        comments citing rule violations, instead of applying the rules
     :return: Tuple of (prompt string, topic_info dict)
     """
-    _LOG.debug("Building prompt for topic: '%s'", topic)
+    _LOG.debug(hprint.to_str("topic add_todos"))
     topic_info = _get_rules_for_topic(topic)
     role = topic_info["role"]
     rules = topic_info["rules"]
@@ -741,18 +794,26 @@ def _build_prompt(topic: str) -> Tuple[str, Dict]:
     role_content = hio.from_file(role)
     prompt_parts.append(role_content)
     if rules:
-        prompt_parts.append(
-            "You MUST look for each rule below that is not followed and apply them:"
-        )
+        if add_todos:
+            header = "You MUST look for each rule below that is not followed:"
+        else:
+            header = (
+                "You MUST look for each rule below that is not followed "
+                "and apply them:"
+            )
+        prompt_parts.append(f"- {header}")
         for rule_file in rules:
-            prompt_parts.append(f"- {rule_file}")
+            prompt_parts.append(f"  - `{rule_file}`")
     if templates:
-        prompt_parts.append("You MUST follow the templates below:")
+        prompt_parts.append("- You MUST follow the templates below:")
         for template_file in templates:
-            prompt_parts.append(f"- {template_file}")
-    prompt_parts.append(
-        "You MUST make sure not to change the behavior or the intent of the passed file"
-    )
+            prompt_parts.append(f"  - `{template_file}`")
+    if add_todos:
+        prompt_parts.append(_build_add_todos_instructions())
+    else:
+        prompt_parts.append(
+            "You MUST make sure not to change the behavior or the intent of the passed file"
+        )
     txt = "\n".join(prompt_parts)
     _LOG.debug("return=prompt_length=%d", len(txt))
     return txt, topic_info
@@ -832,7 +893,9 @@ def _run_claude_code(
 # #############################################################################
 
 
-def _build_incremental_system_prompt(topic_info: Dict) -> str:
+def _build_incremental_system_prompt(
+    topic_info: Dict, *, add_todos: bool = False
+) -> str:
     """
     Build the system prompt for incremental rule application.
 
@@ -841,6 +904,8 @@ def _build_incremental_system_prompt(topic_info: Dict) -> str:
     apply to every rule turn.
 
     :param topic_info: topic configuration dict from `_get_rules_for_topic()`
+    :param add_todos: if `True`, append `# TODO(...): ...` comments instead of
+        applying the rule
     :return: system prompt text combining the role, the templates to
         follow, and the "do not change behavior" instruction
     """
@@ -854,19 +919,28 @@ def _build_incremental_system_prompt(topic_info: Dict) -> str:
     msg = "You MUST make sure not to change the behavior or the intent of the passed file"
     system_prompt.append(msg)
     #
+    if add_todos:
+        system_prompt.append(_build_add_todos_instructions())
+    #
     templates = topic_info["templates"]
     if templates:
-        msg = "You MUST follow the templates below:"
+        msg = "- You MUST follow the templates below:"
         system_prompt.append(msg)
         for template_file in templates:
-            system_prompt.append(f"- {template_file}")
+            system_prompt.append(f"  - `{template_file}`")
     #
     system_prompt_as_str = "\n".join(system_prompt)
     _LOG.debug(hprint.to_str("system_prompt_as_str"))
     return system_prompt_as_str
 
 
-def _build_rule_message(file_path: str, rule_content: str) -> str:
+def _build_rule_message(
+    file_path: str,
+    rule_content: str,
+    *,
+    rule_file: str = "",
+    add_todos: bool = False,
+) -> str:
     """
     Build one rule message re-anchored on `file_path` with the no-op contract.
 
@@ -876,26 +950,44 @@ def _build_rule_message(file_path: str, rule_content: str) -> str:
 
     :param file_path: path of the file the rule applies to
     :param rule_content: H1 rule section content to apply
-    :return: prompt text requiring a structured `LLM> NO-OP` or `LLM>
-        CHANGED: <summary>` reply
+    :param rule_file: path of the rule file `rule_content` was extracted
+        from, cited in the check instruction when `add_todos` is `True`
+    :param add_todos: if `True`, check the rule for violations and add
+        `# TODO(...): ...` comments instead of applying the rule
+    :return: prompt text requiring a structured reply like
+        - `LLM> NO-OP`
+        - `LLM> CHANGED: <summary>`
     """
     rule_message: List[str] = []
+    if add_todos:
+        rule_file_descr = f"(from `{rule_file}`) " if rule_file else ""
+        action = rf"""
+        Check ONLY the rule below {rule_file_descr}against `{file_path}` for violations and add a TODO(...) comment for each one, per the system prompt's TODO format
+        """
+        action = hprint.dedent(action)
+    else:
+        action = f"Apply ONLY the rule below to `{file_path}`"
     header = f"""
-    - Re-read `{file_path}` from disk
-    - Apply ONLY the rule below to `{file_path}`
+    - {action}
     - Do not revisit rules applied earlier
     """
     rule_message.append(hprint.dedent(header))
+    fence_block = f"```\n{rule_content}\n```"
+    rule_message.append(hprint.indent(fence_block, num_spaces=2))
     #
-    rule_message.append("```")
-    rule_message.append(rule_content)
-    rule_message.append("```")
-    #
-    footer = """
-    - Reply with exactly one line:
-      - `LLM> NO-OP` if the file already complies with the rule
-      - `LLM> CHANGED: <one-line summary>` if you made an edit
-    """
+    if add_todos:
+        footer = """
+        - Reply with exactly one line:
+          - `LLM> NO-OP` if the file already complies with the rule or already
+            has a TODO for every violation
+          - `LLM> CHANGED: <one-line summary>` if you added TODO comment(s)
+        """
+    else:
+        footer = """
+        - Reply with exactly one line:
+          - `LLM> NO-OP` if the file already complies with the rule
+          - `LLM> CHANGED: <one-line summary>` if you made an edit
+        """
     rule_message.append(hprint.dedent(footer))
     #
     msg = "\n".join(rule_message)
@@ -912,6 +1004,7 @@ def _build_incremental_messages(
     filter_rules_by_relevance: bool = False,
     order_rules_by_dependency: bool = False,
     model: str = "",
+    add_todos: bool = False,
 ) -> List[Tuple[str, str]]:
     """
     Build a sequence of rule messages for incremental rule application.
@@ -932,6 +1025,9 @@ def _build_incremental_messages(
         `# Verification` lands last
     :param model: model to use for the `filter_rules_by_relevance` and
         `order_rules_by_dependency` pre-passes
+    :param add_todos: if `True`, each message asks Claude Code to add `#
+        TODO(...): ...` comments instead of applying the rule (see
+        `_build_rule_message()`)
     :return: one `(chunk_title, message)` pair per rule chunk; the role and
         the "do not change behavior" instruction live in the system prompt
         instead (see `_build_incremental_system_prompt()`)
@@ -939,7 +1035,7 @@ def _build_incremental_messages(
     _LOG.debug(
         hprint.to_str(
             "file_path level max_tokens merge_small_rules "
-            "filter_rules_by_relevance order_rules_by_dependency"
+            "filter_rules_by_relevance order_rules_by_dependency add_todos"
         )
     )
     hdbg.dassert_file_exists(file_path)
@@ -956,7 +1052,15 @@ def _build_incremental_messages(
         chunks = _order_chunks_by_dependency(chunks, model=model)
     #
     titled_messages = [
-        (chunk.title, _build_rule_message(file_path, chunk.content))
+        (
+            chunk.title,
+            _build_rule_message(
+                file_path,
+                chunk.content,
+                rule_file=chunk.rule_file,
+                add_todos=add_todos,
+            ),
+        )
         for chunk in chunks
     ]
     _LOG.debug("return=%d messages", len(titled_messages))
@@ -964,7 +1068,7 @@ def _build_incremental_messages(
 
 
 def _build_incremental_messages_for_rule(
-    file_path: str, rule_content: str, rule_spec: str
+    file_path: str, rule_content: str, rule_spec: str, *, add_todos: bool = False
 ) -> List[Tuple[str, str]]:
     """
     Build incremental rule messages for a `--rule` specification.
@@ -979,20 +1083,30 @@ def _build_incremental_messages_for_rule(
     :param rule_content: rule text from `hmarsele.extract_rule_from_file()`
     :param rule_spec: the `--rule` value as passed on the command line, used
         as the chunk title when `rule_content` has no H1 section of its own
-        to name it
+        to name it, and to derive the rule file path (the part before the
+        first `:`) cited when `add_todos` is `True`
+    :param add_todos: if `True`, each message asks Claude Code to add `#
+        TODO(...): ...` comments instead of applying the rule (see
+        `_build_rule_message()`)
     :return: one `(chunk_title, message)` pair per H1 section in
         `rule_content`, or a single pair titled `rule_spec` when it has zero
         or one H1 section
     """
-    _LOG.debug(hprint.to_str("file_path rule_spec"))
+    _LOG.debug(hprint.to_str("file_path rule_spec add_todos"))
     lines = rule_content.split("\n")
     sections = hmarhead.extract_h1_sections_from_lines(lines)
     if len(sections) > 1:
         titled_contents = sections
     else:
         titled_contents = [(rule_spec, rule_content)]
+    rule_file = rule_spec.split(":", 1)[0]
     titled_messages = [
-        (title, _build_rule_message(file_path, content))
+        (
+            title,
+            _build_rule_message(
+                file_path, content, rule_file=rule_file, add_todos=add_todos
+            ),
+        )
         for title, content in titled_contents
     ]
     _LOG.debug("return=%d messages", len(titled_messages))
@@ -1016,12 +1130,14 @@ async def _process_file_incrementally(
     resume: bool = False,
     journal_file: str = "",
     max_turns_per_chunk: Optional[int] = None,
+    add_todos: bool = False,
 ) -> int:
     """
     Apply rules incrementally, one chunk per Claude Code interaction.
 
     The chunks sent depend on which "what" was specified, mirroring the
-    `--topic`/`--skill`/`--rule`/default dispatch of the `one_shot` path:
+    `--topic`/`--skill`/`--rule`/default dispatch of the
+    `_build_one_shot_prompt()` path:
     - `skill`: a single, non-decomposed `/{skill} {file_path}` slash-command
       chunk, since it is a command for Claude Code's own skill loader, not
       declarative rule prose to split
@@ -1044,7 +1160,7 @@ async def _process_file_incrementally(
         `order_rules_by_dependency` pre-passes)
     :param context_strategy: `"stateless"` for a fresh session per chunk, or
         `"session"` for a single session shared across all chunks (i.e.,
-        `--mode` when it is not `"one_shot"`)
+        `--mode` when it is `"session"`/`"stateless"`)
     :param topic_info: topic configuration dict from `_get_rules_for_topic()`,
         used for the system prompt (role, templates) and, when neither
         `skill` nor `rule` is set, for the rule files to split into chunks
@@ -1066,6 +1182,11 @@ async def _process_file_incrementally(
         skipped when `""`
     :param max_turns_per_chunk: per-chunk turn limit forwarded to
         `PromptSequencer(max_turns=...)`, or `None` for no limit
+    :param add_todos: if `True`, ask Claude Code to add `#
+        TODO(...): ...` comments citing rule violations instead of
+        applying the rules (see `_build_add_todos_instructions()`);
+        ignored when `skill` is set, since a skill invocation owns its own
+        prompt
     :return: Return code (0 on success)
     """
     _LOG.debug(
@@ -1073,11 +1194,13 @@ async def _process_file_incrementally(
             "file_path dry_run model context_strategy skill rule "
             "rule_level max_chunk_tokens merge_small_rules "
             "filter_rules_by_relevance order_rules_by_dependency "
-            "resume journal_file max_turns_per_chunk"
+            "resume journal_file max_turns_per_chunk add_todos"
         )
     )
     hdbg.dassert_file_exists(file_path)
-    system_prompt = _build_incremental_system_prompt(topic_info)
+    system_prompt = _build_incremental_system_prompt(
+        topic_info, add_todos=add_todos
+    )
     _LOG.debug("\n%s\n%s", hprint.frame("System prompt:"), system_prompt)
     if skill:
         # A skill invocation is a single command for Claude Code's own skill
@@ -1089,7 +1212,7 @@ async def _process_file_incrementally(
     elif rule:
         rule_content = hmarsele.extract_rule_from_file(rule)
         titled_messages = _build_incremental_messages_for_rule(
-            file_path, rule_content, rule
+            file_path, rule_content, rule, add_todos=add_todos
         )
     else:
         titled_messages = _build_incremental_messages(
@@ -1101,6 +1224,7 @@ async def _process_file_incrementally(
             filter_rules_by_relevance=filter_rules_by_relevance,
             order_rules_by_dependency=order_rules_by_dependency,
             model=model,
+            add_todos=add_todos,
         )
     if resume and journal_file:
         journal = _load_journal(journal_file)
@@ -1190,6 +1314,133 @@ async def _process_file_incrementally(
         pbar.close()
 
 
+def _build_one_shot_prompt(
+    file_path: str, args: argparse.Namespace
+) -> Tuple[str, str, Dict]:
+    """
+    Build the single one-shot prompt for `file_path`.
+
+    Shared by `--mode one_shot_with_cc` (executed via a system call to the
+    `cc` wrapper, see `_run_claude_code()`) and `--mode one_shot` (executed
+    in-process via `PromptSequencer`, see
+    `_process_file_one_shot_via_sequencer()`), so both modes send Claude
+    Code the exact same prompt and differ only in how it is invoked.
+
+    Mirrors the `--topic`/`--skill`/`--rule`/default dispatch used by the
+    `session`/`stateless` incremental path (see
+    `_process_file_incrementally()`).
+
+    :param file_path: file to process
+    :param args: parsed command-line arguments
+    :return: tuple of `(prompt, topic_str, topic_info)`, where `topic_str`
+        is used for dry-run/logging labels and `topic_info` is the
+        inferred topic's rules/templates configuration
+    """
+    add_todos = args.add_todos
+    if args.skill:
+        full_skill_name = hmarsele.find_skill(args.skill)
+        prompt = f"/{full_skill_name} {file_path}"
+        topic_str = "skill"
+        inferred_topic = _infer_topic_from_filename(file_path)
+        topic_info = _get_rules_for_topic(inferred_topic)
+    elif args.rule:
+        _LOG.debug("Executing rule: %s", args.rule)
+        rule_content = hmarsele.extract_rule_from_file(args.rule)
+        if add_todos:
+            rule_file = args.rule.split(":", 1)[0]
+            prompt = (
+                f"Check the rule below against file {file_path} for "
+                f"violations (do not fix them):\n{rule_content}\n\n"
+                + _build_add_todos_instructions(rule_file)
+            )
+        else:
+            prompt = (
+                f"Execute the rule below on file {file_path}:\n{rule_content}"
+            )
+        topic_str = "rule"
+        inferred_topic = _infer_topic_from_filename(file_path)
+        topic_info = _get_rules_for_topic(inferred_topic)
+    else:
+        if args.topic:
+            topic_str = args.topic
+        else:
+            topic = _infer_topic_from_filename(file_path)
+            hdbg.dassert_is_not(topic, None, "Topic detection failed")
+            topic_str = cast(str, topic)
+        prompt, topic_info = _build_prompt(topic_str, add_todos=add_todos)
+        if add_todos:
+            prompt += (
+                "\n\n- Check the files below against the rules and "
+                "conventions above and add TODO\n"
+                "  comments for violations without asking questions to the "
+                "user\n"
+                f"  - `{file_path}`"
+            )
+        else:
+            prompt += (
+                "\n\n- Process the files below according to the rules and "
+                "conventions above and make the changes without asking "
+                "questions to the user\n"
+                f"  - `{file_path}`"
+            )
+    return prompt, topic_str, topic_info
+
+
+async def _process_file_one_shot_via_sequencer(
+    file_path: str,
+    dry_run: bool,
+    model: str,
+    prompt: str,
+) -> int:
+    """
+    Apply `prompt` to `file_path` in a single `PromptSequencer` call.
+
+    Equivalent to `--mode one_shot_with_cc`, but calls `PromptSequencer`
+    in-process instead of shelling out to the `cc` wrapper (see
+    `_run_claude_code()`).
+
+    :param file_path: file to process
+    :param dry_run: if `True`, save `prompt` to `_DRY_RUN_FILE` instead of
+        executing
+    :param model: model to use for the `PromptSequencer` call
+    :param prompt: the single one-shot message to send, built by
+        `_build_one_shot_prompt()`
+    :return: return code (`0` on success, `1` on `PromptSequencer` failure)
+    """
+    _LOG.debug(hprint.to_str("file_path dry_run model"))
+    hdbg.dassert_file_exists(file_path)
+    if dry_run:
+        # Save the full, untrimmed dry-run output to a file instead of
+        # printing it to screen.
+        dry_run_output = [
+            "Using model: %s" % model,
+            hprint.frame("Message:"),
+            prompt,
+            "Dry run: command not executed",
+        ]
+        hio.to_file(_DRY_RUN_FILE, "\n".join(dry_run_output))
+        _LOG.warning("Saved dry-run output to '%s'", _DRY_RUN_FILE)
+        _LOG.debug("return=0 (dry_run)")
+        return 0
+    try:
+        sequencer = dshaccli.PromptSequencer(
+            allowed_tools=["Read", "Edit", "Grep", "Glob"],
+            disallowed_tools=["Bash", "Task", "WebFetch"],
+            permission_mode="acceptEdits",
+            cwd=os.getcwd(),
+            model=model,
+            context_strategy="stateless",
+            target_file=file_path,
+        )
+        await sequencer.execute([prompt])
+        _LOG.debug("return=0")
+        return 0
+    except Exception as e:
+        _LOG.error("One-shot execution failed: %s", str(e))
+        _LOG.debug("return=1")
+        return 1
+
+
 def _process_file(
     file_path: str,
     args: argparse.Namespace,
@@ -1202,12 +1453,31 @@ def _process_file(
     :return: Tuple of (return code, topic_info dict).
     """
     _LOG.debug("Processing file: '%s'", file_path)
-    topic_info = {}
-    if args.mode != "one_shot":
-        # Apply rules incrementally via async processor, with `args.mode`
-        # ("session" or "stateless") selecting the context strategy, and
-        # `args.skill`/`args.rule`/`args.topic` selecting the "what"
-        # (mirroring the topic/skill/rule/default dispatch below).
+    if args.mode in ("one_shot_with_cc", "one_shot"):
+        # Both modes send Claude Code the exact same prompt (see
+        # `_build_one_shot_prompt()`) and only differ in how it's invoked:
+        # `one_shot_with_cc` shells out to the `cc` wrapper, `one_shot` calls
+        # `PromptSequencer` in-process.
+        prompt, topic_str, topic_info = _build_one_shot_prompt(file_path, args)
+        if args.mode == "one_shot_with_cc":
+            rc = _run_claude_code(
+                prompt,
+                topic_str,
+                file_path,
+                dry_run=args.dry_run,
+                model=args.model,
+            )
+        else:
+            rc = asyncio.run(
+                _process_file_one_shot_via_sequencer(
+                    file_path, args.dry_run, args.model, prompt
+                )
+            )
+    else:
+        # `args.mode` is "session" or "stateless": apply rules incrementally
+        # via async processor, with `args.mode` selecting the context
+        # strategy, and `args.skill`/`args.rule`/`args.topic` selecting the
+        # "what" (mirroring the topic/skill/rule/default dispatch above).
         if args.topic:
             topic_str = args.topic
         else:
@@ -1232,60 +1502,8 @@ def _process_file(
                 resume=args.resume,
                 journal_file=args.journal_file,
                 max_turns_per_chunk=max_turns_per_chunk,
+                add_todos=args.add_todos,
             )
-        )
-    elif args.skill:
-        # Execute a specific skill on the file.
-        full_skill_name = hmarsele.find_skill(args.skill)
-        prompt = f"/{full_skill_name} {file_path}"
-        topic_str = "skill"
-        inferred_topic = _infer_topic_from_filename(file_path)
-        topic_info = _get_rules_for_topic(inferred_topic)
-        rc = _run_claude_code(
-            prompt,
-            topic_str,
-            file_path,
-            dry_run=args.dry_run,
-            model=args.model,
-        )
-    elif args.rule:
-        # Execute a specific rule on the file.
-        _LOG.debug("Executing rule: %s", args.rule)
-        rule_content = hmarsele.extract_rule_from_file(args.rule)
-        prompt = f"Execute the rule below on file {file_path}:\n{rule_content}"
-        #
-        topic_str = "rule"
-        inferred_topic = _infer_topic_from_filename(file_path)
-        topic_info = _get_rules_for_topic(inferred_topic)
-        #
-        rc = _run_claude_code(
-            prompt,
-            topic_str,
-            file_path,
-            dry_run=args.dry_run,
-            model=args.model,
-        )
-    else:
-        # Infer topic from file and build prompt from topic rules.
-        if args.topic:
-            topic_str = args.topic
-            prompt, topic_info = _build_prompt(topic_str)
-        else:
-            topic = _infer_topic_from_filename(file_path)
-            hdbg.dassert_is_not(topic, None, "Topic detection failed")
-            topic_str = cast(str, topic)
-        prompt, topic_info = _build_prompt(topic_str)
-        prompt += (
-            f"\n\nProcess the file {file_path} and make the changes "
-            + "according to the rules and conventions without asking "
-            + "questions to the user"
-        )
-        rc = _run_claude_code(
-            prompt,
-            topic_str,
-            file_path,
-            dry_run=args.dry_run,
-            model=args.model,
         )
 
     _LOG.debug("return=(%d, topic_info)", rc)
@@ -1303,7 +1521,7 @@ def _parse() -> argparse.ArgumentParser:
     """
     parser = argparse.ArgumentParser(
         description=__doc__,
-        formatter_class=argparse.RawDescriptionHelpFormatter,
+        formatter_class=hparser.CustomHelpFormatter,
     )
     # File selection options (--files, --from_file, --branch, --modified, etc.).
     hseinout.add_file_selection_args(parser)
@@ -1327,15 +1545,26 @@ def _parse() -> argparse.ArgumentParser:
     parser.add_argument(
         "--mode",
         type=str,
-        default="one_shot",
-        choices=["one_shot", "session", "stateless"],
+        required=True,
+        choices=["one_shot_with_cc", "one_shot", "session", "stateless"],
         help=hprint.dedent("""
         Execution mode:
-        - 'one_shot' applies all rules in a single "Claude Code invocation
+        - 'one_shot_with_cc' applies all rules in a single Claude Code
+          invocation, shelling out to the `cc` wrapper
+        - 'one_shot' applies all rules in a single Claude Code invocation
+          too, but calls `PromptSequencer` in-process instead of shelling
+          out; equivalent to 'one_shot_with_cc' otherwise
         - 'session' and 'stateless' apply rules incrementally, one H1 section
           per Claude Code interaction, sharing one session across all chunks
           ('session') or opening a fresh session per chunk ('stateless')
         """),
+    )
+    parser.add_argument(
+        "--add_todos",
+        action="store_true",
+        help="Instead of applying rules, add "
+        "'# TODO(...): ... (rule_file:header)' comments citing each "
+        "rule violation; cannot be combined with --skill",
     )
     parser.add_argument(
         "--rule_level",
@@ -1427,6 +1656,11 @@ def _main(parser: argparse.ArgumentParser) -> int:
         num_exclusive,
         1,
         "Only one of --topic, --skill, or --rule can be used simultaneously",
+    )
+    hdbg.dassert(
+        not (args.add_todos and args.skill),
+        "--add_todos cannot be combined with --skill, since a skill "
+        "invocation owns its own prompt",
     )
     files = hseinout.parse_file_selection_args(args, remove_dirs=False)
     files = hseinout.parse_file_type_filter_args(args, files)

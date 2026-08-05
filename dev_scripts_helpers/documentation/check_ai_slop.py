@@ -328,7 +328,7 @@ def _humanize_from_file(
 def _parse() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         description=__doc__,
-        formatter_class=argparse.RawDescriptionHelpFormatter,
+        formatter_class=hparser.CustomHelpFormatter,
     )
     hseinout.add_input_output_args(parser, in_required=True, out_required=False)
     hselacti.add_action_arg(parser, _VALID_ACTIONS, _DEFAULT_ACTIONS)
@@ -380,9 +380,16 @@ def _main(parser: argparse.ArgumentParser) -> None:
     api_key = _get_api_key()
     # Select actions to run.
     actions = hselacti.select_actions(args, _VALID_ACTIONS, _DEFAULT_ACTIONS)
-    _LOG.info("Selected actions: %s", actions)
+    _LOG.info(
+        "\n%s",
+        hselacti.actions_to_string(actions, _VALID_ACTIONS, add_frame=True),
+    )
     # Run actions.
-    for action in actions:
+    while actions:
+        action = actions[0]
+        to_execute, actions = hselacti.mark_action(action, actions)
+        if not to_execute:
+            continue
         if action == "detect":
             _detect_ai_content_from_file(input_file, api_key)
         elif action == "fix":
@@ -395,7 +402,10 @@ def _main(parser: argparse.ArgumentParser) -> None:
                 strength=args.strength,
             )
         else:
-            hdbg.dfatal("Invalid action: %s", action)
+            raise ValueError(f"Invalid action='{action}'")
+    hdbg.dassert_eq(
+        len(actions), 0, "There are unprocessed actions: %s", str(actions)
+    )
 
 
 if __name__ == "__main__":

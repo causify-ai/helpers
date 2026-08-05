@@ -249,7 +249,7 @@ class _FixComment(liaction.Action):
 def _parse() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         description=__doc__,
-        formatter_class=argparse.RawDescriptionHelpFormatter,
+        formatter_class=hparser.CustomHelpFormatter,
     )
     parser.add_argument(
         "files", nargs="+", action="store", type=str, help="Files to process"

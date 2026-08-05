@@ -20,6 +20,7 @@ import argparse
 import os
 
 import helpers.hdbg as hdbg
+import helpers.hparser as hparser
 import helpers.hversion as hversio
 
 
@@ -74,7 +75,7 @@ def _print_release_message(container_dir_name: str) -> None:
 def _parse() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description=__doc__,
-        formatter_class=argparse.RawDescriptionHelpFormatter,
+        formatter_class=hparser.CustomHelpFormatter,
     )
     parser.add_argument(
         "--container_dir_name",

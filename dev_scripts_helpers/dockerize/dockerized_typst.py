@@ -29,7 +29,7 @@ _LOG = logging.getLogger(__name__)
 def _parse() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         description=__doc__,
-        formatter_class=argparse.RawDescriptionHelpFormatter,
+        formatter_class=hparser.CustomHelpFormatter,
     )
     hdocker.add_dockerized_script_arg(parser)
     parser.add_argument("-i", "--input", action="store", required=True)

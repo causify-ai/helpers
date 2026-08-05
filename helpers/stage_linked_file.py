@@ -10,6 +10,8 @@ import os
 import shutil
 from typing import List
 
+import helpers.hparser as hparser
+
 _LOG = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
 
@@ -58,7 +60,7 @@ def stage_links(symlinks: List[str]) -> None:
 
 def main():
     parser = argparse.ArgumentParser(
-        formatter_class=argparse.RawDescriptionHelpFormatter,
+        formatter_class=hparser.CustomHelpFormatter,
         description="Stage symbolic links for modification."
     )
     parser.add_argument(

@@ -150,7 +150,7 @@ def _parse() -> argparse.ArgumentParser:
     """
     parser = argparse.ArgumentParser(
         description=__doc__,
-        formatter_class=argparse.RawDescriptionHelpFormatter,
+        formatter_class=hparser.CustomHelpFormatter,
     )
     # Prompt input options (mutually exclusive).
     input_group = parser.add_mutually_exclusive_group(required=True)

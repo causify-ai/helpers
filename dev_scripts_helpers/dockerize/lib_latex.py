@@ -19,6 +19,7 @@ from typing import Any, Dict, List
 import helpers.hdbg as hdbg
 import helpers.hdocker as hdocker
 import helpers.hio as hio
+import helpers.hparser as hparser
 import helpers.hprint as hprint
 import helpers.hsystem as hsystem
 
@@ -171,7 +172,7 @@ def convert_latex_cmd_to_arguments(cmd: str) -> Dict[str, Any]:
     _LOG.debug(hprint.to_str("cmd"))
     # Parse arguments.
     parser = argparse.ArgumentParser(
-        formatter_class=argparse.RawDescriptionHelpFormatter
+        formatter_class=hparser.CustomHelpFormatter
     )
     parser.add_argument("--output-directory", required=True)
     # Latex uses options like `-XYZ` which confuse `argparse` so we need to

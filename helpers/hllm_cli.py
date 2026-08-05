@@ -12,6 +12,7 @@ import dataclasses
 import hashlib
 import json
 import logging
+import re
 import shlex
 import subprocess
 import sys
@@ -44,6 +45,7 @@ if TYPE_CHECKING:
 
 import helpers.hcache_simple as hcacsimp
 import helpers.hdbg as hdbg
+import helpers.hgit as hgit
 import helpers.hio as hio
 import helpers.hmarkdown_select as hmarsele
 import helpers.hmodule as hmodule
@@ -384,6 +386,93 @@ def _calculate_cost_from_usage(
 
 
 # #############################################################################
+# Prompt processing
+# #############################################################################
+
+# Match a reference to a file (e.g., `@file.md` or `` `@file.md` ``).
+# The file name/path can contain word characters, dots, dashes, and slashes,
+# and must end with an extension (e.g., `.md`, `.py`) to avoid matching
+# unrelated `@` usages (e.g., email addresses).
+_FILE_REFERENCE_RE = re.compile(
+    r"""
+    `@(?P<path_bt>[\w./-]+\.\w+)`   # `@file.md` wrapped in backticks.
+    |                               # OR
+    @(?P<path>[\w./-]+\.\w+)        # @file.md without backticks.
+    """,
+    re.VERBOSE,
+)
+
+
+def _find_file_in_repo(file_name: str, *, repo_dir: str = "") -> str:
+    """
+    Find the single file matching `file_name` in the Git repo.
+
+    :param file_name: file name or relative path to search for (e.g.,
+        `file.md`, `dir/file.md`)
+    :param repo_dir: root directory to search under
+        - Default: `""` (search from the Git client root)
+    :return: absolute path of the matching file
+    """
+    _LOG.debug(hprint.to_str("file_name repo_dir"))
+    if repo_dir == "":
+        repo_dir = hgit.get_client_root(super_module=True)
+    # A reference with a path component (e.g., `dir/file.md`) is matched with
+    # `-path` since `-name` only compares the last path component.
+    if "/" in file_name:
+        cmd = f"find {repo_dir} -path '*/{file_name}' -not -path '*/.git/*'"
+    else:
+        cmd = f"find {repo_dir} -name '{file_name}' -not -path '*/.git/*'"
+    _, file_names = hsystem.system_to_lines(cmd)
+    hdbg.dassert_eq(
+        len(file_names),
+        1,
+        "Expected exactly one match for file reference '%s' under '%s', found: %s",
+        file_name,
+        repo_dir,
+        file_names,
+    )
+    file_name_out = file_names[0]
+    return file_name_out
+
+
+def expand_referenced_files(prompt: str, *, repo_dir: str = "") -> str:
+    r"""
+    Expand `@file` references in `prompt` into the referenced file content.
+
+    Scans `prompt` for references to files (e.g., `@file.md` or
+    `` `@file.md` ``), locates each file in the Git repo, and replaces the
+    reference with a `<!-- From <file> -->` comment followed by the file's
+    content.
+
+    :param prompt: text containing zero or more `@file` references
+    :param repo_dir: root directory to search under
+        - Default: `""` (search from the Git client root)
+    :return: `prompt` with every `@file` reference replaced by the
+        corresponding file content
+        Example:
+        ```
+        Follow the rules in @coding.rules.md
+        ```
+        becomes
+        ```
+        Follow the rules in <!-- From coding.rules.md -->
+        <rules content>
+        ```
+    """
+    _LOG.debug(hprint.to_str("prompt repo_dir"))
+
+    def _replace(match: re.Match[str]) -> str:
+        file_name = match.group("path_bt") or match.group("path")
+        file_path = _find_file_in_repo(file_name, repo_dir=repo_dir)
+        content = hio.from_file(file_path)
+        return f"<!-- From {file_name} -->\n{content}"
+
+    expanded_prompt = _FILE_REFERENCE_RE.sub(_replace, prompt)
+    _LOG.debug("return=%s", _compute_text_signature(expanded_prompt))
+    return expanded_prompt
+
+
+# #############################################################################
 # Backend implementations
 # #############################################################################
 
@@ -412,9 +501,9 @@ def _apply_llm_via_mock(
 
 def _apply_llm_via_executable(
     input_str: str,
+    model: str,
     *,
     system_prompt: str = "",
-    model: str = "",
     expected_num_chars: int = 0,
 ) -> Tuple[str, TokenStats]:
     """
@@ -425,8 +514,8 @@ def _apply_llm_via_executable(
     expected output size is provided.
 
     :param input_str: the input text to process
+    :param model: model name to use
     :param system_prompt: optional system prompt to use
-    :param model: optional model name to use
     :param expected_num_chars: optional expected number of characters in output
         - Used to enable progress bar tracking during generation
     :return: tuple of (LLM response as string, TokenStats instance)
@@ -474,9 +563,9 @@ def _apply_llm_via_executable(
 
 def _apply_llm_via_library(
     input_str: str,
+    model: str,
     *,
     system_prompt: str = "",
-    model: str = "",
     expected_num_chars: int = 0,
 ) -> Tuple[str, TokenStats]:
     """
@@ -486,8 +575,8 @@ def _apply_llm_via_library(
     support. Calculates token cost if the tokencost library is available.
 
     :param input_str: the input text to process
+    :param model: model name to use
     :param system_prompt: optional system prompt to use
-    :param model: optional model name to use
     :param expected_num_chars: optional expected number of characters in output
         - Used to enable progress bar tracking during generation
     :return: tuple of (LLM response as string, TokenStats instance)
@@ -569,9 +658,9 @@ def _apply_llm_via_library(
 @hcacsimp.simple_cache(cache_type="pickle", write_through=True)
 def apply_llm(
     input_str: str,
+    model: str,
     *,
     system_prompt: str = "",
-    model: str = "",
     backend: str = "library",
     expected_num_chars: int = 0,
 ) -> Tuple[str, TokenStats]:
@@ -584,8 +673,8 @@ def apply_llm(
     selection, and progress bars for long outputs.
 
     :param input_str: the input text to process with the LLM
+    :param model: model name to use (e.g., "gpt-4", "claude-3-opus")
     :param system_prompt: optional system prompt to guide the LLM's behavior
-    :param model: optional model name to use (e.g., "gpt-4", "claude-3-opus")
     :param backend: backend to use ("executable", "library", or "mock")
     :param expected_num_chars: optional expected number of characters in
         output; if provided, displays a progress bar during generation
@@ -595,9 +684,8 @@ def apply_llm(
     hdbg.dassert_ne(input_str, "", "Input string cannot be empty")
     if system_prompt:
         hdbg.dassert_isinstance(system_prompt, str)
-    if model:
-        hdbg.dassert_isinstance(model, str)
-        hdbg.dassert_ne(model, "", "Model cannot be empty string")
+    hdbg.dassert_isinstance(model, str)
+    hdbg.dassert_ne(model, "", "Model cannot be empty string")
     hdbg.dassert_isinstance(expected_num_chars, int)
     if expected_num_chars > 0:
         hdbg.dassert_lt(
@@ -621,8 +709,8 @@ def apply_llm(
         hdbg.dassert(_check_llm_executable(), "llm executable not found")
         response, token_stats = _apply_llm_via_executable(
             input_str,
+            model,
             system_prompt=system_prompt,
-            model=model,
             expected_num_chars=expected_num_chars,
         )
     elif backend == "library":
@@ -630,8 +718,8 @@ def apply_llm(
         hdbg.dassert(_LLM_AVAILABLE, "llm library not found")
         response, token_stats = _apply_llm_via_library(
             input_str,
+            model,
             system_prompt=system_prompt,
-            model=model,
             expected_num_chars=expected_num_chars,
         )
     elif backend == "mock":
@@ -646,9 +734,9 @@ def apply_llm(
 def apply_llm_with_files(
     input_file: str,
     output_file: str,
+    model: str,
     *,
     system_prompt: str = "",
-    model: str = "",
     backend: str = "library",
     expected_num_chars: int = 0,
 ) -> TokenStats:
@@ -661,8 +749,8 @@ def apply_llm_with_files(
 
     :param input_file: path to the input file containing text to process
     :param output_file: path to the output file where result will be saved
+    :param model: model name to use (e.g., "gpt-4", "claude-3-opus")
     :param system_prompt: optional system prompt to guide the LLM's behavior
-    :param model: optional model name to use (e.g., "gpt-4", "claude-3-opus")
     :param backend: backend to use ("executable", "library", or "mock")
     :param expected_num_chars: optional expected number of characters in
         output; if provided, displays a progress bar during generation
@@ -679,8 +767,8 @@ def apply_llm_with_files(
     # Process with LLM.
     response, token_stats = apply_llm(
         input_str,
+        model,
         system_prompt=system_prompt,
-        model=model,
         backend=backend,
         expected_num_chars=expected_num_chars,
     )
@@ -850,8 +938,8 @@ def get_tqdm_progress_bar() -> tqdm:
 def apply_llm_batch_individual(
     prompt: str,
     input_list: List[str],
-    *,
     model: str,
+    *,
     testing_functor: Optional[Callable[[str], str]] = None,
     progress_bar_object: Optional[tqdm] = None,
 ) -> Tuple[List[str], TokenStats]:
@@ -894,8 +982,8 @@ def apply_llm_batch_individual(
 def apply_llm_batch_with_shared_prompt(
     prompt: str,
     input_list: List[str],
-    *,
     model: str,
+    *,
     testing_functor: Optional[Callable[[str], str]] = None,
     progress_bar_object: Optional[tqdm] = None,
 ) -> Tuple[List[str], TokenStats]:
@@ -953,8 +1041,8 @@ def apply_llm_batch_with_shared_prompt(
 def apply_llm_batch_combined(
     prompt: str,
     input_list: List[str],
-    *,
     model: str,
+    *,
     max_retries: int = 3,
     testing_functor: Optional[Callable[[str], str]] = None,
     progress_bar_object: Optional[tqdm] = None,
@@ -1126,9 +1214,9 @@ def _call_batch_processor(
         hdbg.dfatal("Invalid batch mode: %s", batch_mode)
     # pyright cannot infer that func is always assigned because hdbg.dfatal raises.
     batch_responses, batch_token_stats = func(  # type: ignore[possibly-unbound]
-        prompt=prompt,
-        input_list=batch_items,
-        model=model,
+        prompt,
+        batch_items,
+        model,
         testing_functor=testing_functor,
         progress_bar_object=progress_bar_object,
     )
@@ -1329,8 +1417,8 @@ def apply_llm_prompt_to_df(
     extractor: Callable[[Union[str, pd.Series]], str],
     target_col: str,
     batch_mode: str,
-    *,
     model: str,
+    *,
     batch_size: int = 50,
     dump_every_batch: str = "",
     tag: str = "Processing",
@@ -1455,9 +1543,9 @@ def mock_apply_llm():
 
     def _mock_apply_llm(
         input_str: str,
+        model: str,
         *,
         system_prompt: str = "",
-        model: str = "",
         backend: str = "library",
         expected_num_chars: int = 0,
     ) -> Tuple[str, TokenStats]:

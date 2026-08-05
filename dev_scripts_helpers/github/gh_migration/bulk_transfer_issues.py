@@ -48,6 +48,8 @@ from typing import Dict, List, Optional, Tuple
 
 import requests
 
+import helpers.hparser as hparser
+
 _LOG = logging.getLogger(__name__)
 
 GQL_ENDPOINT = "https://api.github.com/graphql"
@@ -292,7 +294,7 @@ def transfer_issue(
 def main() -> None:
     # Parse command-line arguments.
     ap = argparse.ArgumentParser(
-        formatter_class=argparse.RawDescriptionHelpFormatter,
+        formatter_class=hparser.CustomHelpFormatter,
         description="Bulk transfer GitHub issues (Python, GraphQL)."
     )
     ap.add_argument("--src", default="causify-ai/cmamp")

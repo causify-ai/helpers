@@ -1375,6 +1375,20 @@ def calc_efficiency(row: pd.Series) -> str:
 # #############################################################################
 
 
+_VALID_ACTIONS = [
+    "openrouter_pricing",
+    "metadata",
+    "aa_benchmarks",
+    "openrouter_throughput",
+    "openrouter_benchmarks",
+    "openrouter_per_model_usage",
+]
+# `openrouter_benchmarks` is opt-in only (not run by default).
+_DEFAULT_ACTIONS = [
+    action for action in _VALID_ACTIONS if action != "openrouter_benchmarks"
+]
+
+
 def _parse() -> argparse.ArgumentParser:
     """
     Create and return argument parser for the script.
@@ -1385,7 +1399,7 @@ def _parse() -> argparse.ArgumentParser:
     """
     parser = argparse.ArgumentParser(
         description=__doc__,
-        formatter_class=argparse.RawDescriptionHelpFormatter,
+        formatter_class=hparser.CustomHelpFormatter,
     )
     # Create mutually exclusive group for model input sources.
     models_group = parser.add_mutually_exclusive_group(required=True)
@@ -1399,16 +1413,7 @@ def _parse() -> argparse.ArgumentParser:
         type=str,
         help="Space-separated list of OpenRouter model IDs",
     )
-    valid_actions = [
-        "openrouter_pricing",
-        "metadata",
-        "aa_benchmarks",
-        "openrouter_throughput",
-        "openrouter_benchmarks",
-        "openrouter_per_model_usage",
-    ]
-    default_actions = valid_actions
-    hselacti.add_action_arg(parser, valid_actions, default_actions)
+    hselacti.add_action_arg(parser, _VALID_ACTIONS, _DEFAULT_ACTIONS)
     hcacsimp.add_cache_control_arg(parser)
     hparser.add_verbosity_arg(parser)
     return parser
@@ -1428,17 +1433,8 @@ def _main(parser: argparse.ArgumentParser) -> None:
     hdbg.init_logger(verbosity=args.log_level, use_exec_path=True)
     hcacsimp.parse_cache_control_args(args)
     # Select which data sources to query based on command-line actions.
-    valid_actions = [
-        "openrouter_pricing",
-        "metadata",
-        "aa_benchmarks",
-        "openrouter_throughput",
-        #"openrouter_benchmarks",
-        "openrouter_per_model_usage",
-    ]
-    default_actions = valid_actions
-    actions = hselacti.select_actions(args, valid_actions, default_actions)
-    print(hselacti.actions_to_string(actions, valid_actions, add_frame=True))
+    actions = hselacti.select_actions(args, _VALID_ACTIONS, _DEFAULT_ACTIONS)
+    print(hselacti.actions_to_string(actions, _VALID_ACTIONS, add_frame=True))
     # Read the models from file or list.
     if args.models_from_file:
         model_ids = _read_model_ids_from_file(args.models_from_file)
@@ -1570,6 +1566,12 @@ def _main(parser: argparse.ArgumentParser) -> None:
             "OpenRouter Per-Model Usage DataFrame:\n%s", usage_df.to_string()
         )
         dataframes_to_merge.append(usage_df)
+    hdbg.dassert_eq(
+        len(actions_copy),
+        0,
+        "There are unprocessed actions: %s",
+        str(actions_copy),
+    )
     # Merge all dataframes.
     if dataframes_to_merge:
         table = _merge_dataframes(

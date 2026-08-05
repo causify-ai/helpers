@@ -214,7 +214,7 @@ def _copy_to_google_drive(out_file_path: str) -> None:
 def _parse() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         description=__doc__,
-        formatter_class=argparse.RawDescriptionHelpFormatter,
+        formatter_class=hparser.CustomHelpFormatter,
     )
     parser.add_argument(
         "-i",
@@ -271,22 +271,32 @@ def _main(parser: argparse.ArgumentParser) -> None:
     else:
         # Get actions.
         actions = hselacti.select_actions(args, _VALID_ACTIONS, _DEFAULT_ACTIONS)
-        # Compile action.
-        if "compile" in actions:
-            _compile_latex(
-                in_file_path,
-                out_file_path,
-                args.num_passes,
-                force_rebuild=args.dockerized_force_rebuild,
-                use_sudo=args.dockerized_use_sudo,
-            )
-            _LOG.info("Output written to '%s'", out_file_path)
-        # Copy to Google Drive action.
-        if "copy_to_gdrive" in actions:
-            _copy_to_google_drive(out_file_path)
-        # Open action.
-        if "open" in actions:
-            hopen.open_file(out_file_path)
+        print(
+            hselacti.actions_to_string(actions, _VALID_ACTIONS, add_frame=True)
+        )
+        while actions:
+            action = actions[0]
+            to_execute, actions = hselacti.mark_action(action, actions)
+            if not to_execute:
+                continue
+            if action == "compile":
+                _compile_latex(
+                    in_file_path,
+                    out_file_path,
+                    args.num_passes,
+                    force_rebuild=args.dockerized_force_rebuild,
+                    use_sudo=args.dockerized_use_sudo,
+                )
+                _LOG.info("Output written to '%s'", out_file_path)
+            elif action == "copy_to_gdrive":
+                _copy_to_google_drive(out_file_path)
+            elif action == "open":
+                hopen.open_file(out_file_path)
+            else:
+                raise ValueError(f"Invalid action='{action}'")
+        hdbg.dassert_eq(
+            len(actions), 0, "There are unprocessed actions: %s", str(actions)
+        )
 
 
 if __name__ == "__main__":

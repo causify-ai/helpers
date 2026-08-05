@@ -654,15 +654,14 @@ def add_file_type_filter_args(
         type=str,
         default=file_types_default,
         help="Comma-separated list of file extensions to process (e.g., 'py,ipynb,md,txt')\n"
-        "  Available: py (Python), ipynb (Jupyter), md (Markdown), txt (Text)\n"
-        f"  Default: '{file_types_default}'",
+        "- Available: py (Python), ipynb (Jupyter), md (Markdown), txt (Text)"
     )
     file_type_group.add_argument(
         "--skip_file_types",
         type=str,
         default="",
         help="Comma-separated list of file extensions to skip (e.g., 'txt')\n"
-        "  Empty string means skip no extensions",
+        "- Empty string means skip no extensions",
     )
     return parser
 

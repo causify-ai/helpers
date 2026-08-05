@@ -81,7 +81,7 @@ def _parse() -> argparse.ArgumentParser:
     Parse command line arguments.
     """
     parser = argparse.ArgumentParser(
-        formatter_class=argparse.RawDescriptionHelpFormatter,
+        formatter_class=hparser.CustomHelpFormatter,
         description=__doc__,
         add_help=True,
     )

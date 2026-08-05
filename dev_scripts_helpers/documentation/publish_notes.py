@@ -117,7 +117,7 @@ def _publish_all_files(args: argparse.Namespace) -> None:
 def _parse() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         description=__doc__,
-        formatter_class=argparse.RawDescriptionHelpFormatter,
+        formatter_class=hparser.CustomHelpFormatter,
     )
     parser.add_argument("positional", nargs="*", choices=["rm", "ls", "publish"])
     parser.add_argument("--no_incremental", action="store_true")

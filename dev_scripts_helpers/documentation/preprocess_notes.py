@@ -93,8 +93,11 @@ def _colorize_backticks(
         """
         matched_text = m.group(1)
         if output_format == "latex":
-            # Escape underscores for LaTeX.
-            escaped_text = matched_text.replace("_", r"\_")
+            # Escape underscores and carets for LaTeX (`^` is a special
+            # character that triggers math mode otherwise).
+            escaped_text = matched_text.replace("_", r"\_").replace(
+                "^", r"\^{}"
+            )
             txt = rf"\textcolor{{{color}}}{{\texttt{{{escaped_text}}}}}"
         else:  # typst
             # For Typst, use #text with the content directly (no inner backticks).
@@ -876,7 +879,7 @@ def _parse() -> argparse.ArgumentParser:
     """
     parser = argparse.ArgumentParser(
         description=__doc__,
-        formatter_class=argparse.RawDescriptionHelpFormatter,
+        formatter_class=hparser.CustomHelpFormatter,
     )
     parser.add_argument("-i", "--input", action="store", type=str, required=True)
     parser.add_argument("-o", "--output", action="store", type=str, default="")
@@ -931,7 +934,9 @@ def _main(parser: argparse.ArgumentParser) -> None:
     """
     args = parser.parse_args()
     hdbg.init_logger(verbosity=args.log_level, use_exec_path=True)
-    _LOG.info("cmd line=%s", hdbg.get_command_line())
+    _LOG.info(
+        "%s", hprint.color_highlight(f"> {hdbg.get_command_line()}", "green")
+    )
     # Get the selected actions.
     actions = hselacti.select_actions(args, _VALID_ACTIONS, _DEFAULT_ACTIONS)
     _LOG.info("Selected actions: %s", actions)

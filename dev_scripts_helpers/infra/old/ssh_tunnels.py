@@ -40,7 +40,7 @@ _LOG = logging.getLogger(__name__)
 def _main() -> None:
     parser = argparse.ArgumentParser(
         description=__doc__,
-        formatter_class=argparse.RawDescriptionHelpFormatter,
+        formatter_class=hparser.CustomHelpFormatter,
     )
     _help = """
 - start: start a notebook if no notebook server is running at the requested port

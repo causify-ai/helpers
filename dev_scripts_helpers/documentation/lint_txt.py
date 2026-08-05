@@ -27,10 +27,12 @@ import dev_scripts_helpers.documentation.lib_lint_txt as dshdllitx
 
 _LOG = logging.getLogger(__name__)
 
+_VALID_ACTIONS = list(dshdllitx.VALID_ACTIONS.keys())
+
 # Default actions (excluding some that need explicit opt-in).
-DEFAULT_ACTIONS = [
+_DEFAULT_ACTIONS = [
     action
-    for action in dshdllitx.VALID_ACTIONS.keys()
+    for action in _VALID_ACTIONS
     if action
     not in [
         "frame_chapters",
@@ -47,7 +49,7 @@ DEFAULT_ACTIONS = [
 def _parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         description=__doc__,
-        formatter_class=argparse.RawDescriptionHelpFormatter,
+        formatter_class=hparser.CustomHelpFormatter,
     )
     hseinout.add_input_output_args(parser, in_required=False, out_required=False)
     parser.add_argument(
@@ -124,8 +126,8 @@ def _parser() -> argparse.ArgumentParser:
     )
     hselacti.add_action_arg(
         parser,
-        list(dshdllitx.VALID_ACTIONS.keys()),
-        DEFAULT_ACTIONS,
+        _VALID_ACTIONS,
+        _DEFAULT_ACTIONS,
     )
     hdocker.add_dockerized_script_arg(parser)
     hparser.add_verbosity_arg(parser)
@@ -150,12 +152,12 @@ def _main(parser: argparse.ArgumentParser) -> None:
     # Print actions (once for all files).
     actions = hselacti.select_actions(
         args,
-        list(dshdllitx.VALID_ACTIONS.keys()),
-        DEFAULT_ACTIONS,
+        _VALID_ACTIONS,
+        _DEFAULT_ACTIONS,
     )
     add_frame = True
     actions_as_str = hselacti.actions_to_string(
-        actions, list(dshdllitx.VALID_ACTIONS.keys()), add_frame
+        actions, _VALID_ACTIONS, add_frame
     )
     _LOG.info("\n%s", actions_as_str)
     # Check if processing multiple files or a single file.

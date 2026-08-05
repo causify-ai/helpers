@@ -245,7 +245,7 @@ def _run_all(args: argparse.Namespace) -> None:
 def _parse() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         description=__doc__,
-        formatter_class=argparse.RawDescriptionHelpFormatter,
+        formatter_class=hparser.CustomHelpFormatter,
     )
     parser.add_argument("-i", "--input", action="store", type=str, required=True)
     parser.add_argument(
@@ -318,7 +318,7 @@ def _parse() -> argparse.ArgumentParser:
     parser.add_argument(
         "--slides_engine",
         action="store",
-        # TODO(ai_gp): Use latex instead of beamer
+        # TODO(ai_gp2): Use latex instead of beamer
         default="auto",
         choices=["beamer", "typst", "auto"],
         help=hprint.dedent("""
@@ -400,7 +400,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
     cmd_line = " ".join(map(str, sys.argv))
     args = parser.parse_args()
     hdbg.init_logger(verbosity=args.log_level, use_exec_path=True)
-    _LOG.info("cmd line=%s", cmd_line)
+    _LOG.info("%s", hprint.color_highlight(f"> {cmd_line}", "green"))
     if args.daemon:
         # Skip "open" action on watch runs (viewer auto-reloads).
         hdaemon.run_daemon_mode(

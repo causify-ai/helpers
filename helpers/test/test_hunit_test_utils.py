@@ -475,7 +475,7 @@ class Test_is_test_file(hunitest.TestCase):
         Path with /test/ anywhere is detected as test file.
         """
         # Prepare inputs.
-        file_path = "dev_scripts_helpers/scraping/test/__init__.py"
+        file_path = "dev_scripts_helpers/download/test/__init__.py"
         # Prepare outputs.
         expected = True
         # Run test.
@@ -759,13 +759,13 @@ class Test_get_parent_dirs(hunitest.TestCase):
         """
         # Prepare inputs.
         files = [
-            "dev_scripts_helpers/scraping/process_link_gsheet.py",
+            "dev_scripts_helpers/download/process_link_gsheet.py",
             "helpers/hgit.py",
             "helpers/lib_tasks_utils.py",
         ]
         # Prepare outputs.
         expected = [
-            "dev_scripts_helpers/scraping",
+            "dev_scripts_helpers/download",
             "helpers",
         ]
         # Run test.
@@ -777,14 +777,14 @@ class Test_get_parent_dirs(hunitest.TestCase):
         """
         # Prepare inputs.
         files = [
-            "dev_scripts_helpers/scraping/process_link_gsheet.py",
-            "dev_scripts_helpers/scraping/test/__init__.py",
+            "dev_scripts_helpers/download/process_link_gsheet.py",
+            "dev_scripts_helpers/download/test/__init__.py",
             "helpers/hgit.py",
             "helpers/lib_tasks_utils.py",
         ]
         # Prepare outputs.
         expected = [
-            "dev_scripts_helpers/scraping",
+            "dev_scripts_helpers/download",
             "helpers",
         ]
         # Run test.

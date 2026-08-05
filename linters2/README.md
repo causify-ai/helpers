@@ -151,32 +151,32 @@ Claude Code integration for intelligent formatting.
 
 - Format specific Python files:
   ```bash
-  > cc_lint.py --files "file1.py file2.py"
+  > cc_lint.py --files "file1.py file2.py" --mode one_shot_with_cc
   ```
 
 - Apply a specific coding rule to a file:
   ```bash
-  > cc_lint.py --topic coding --files "file.py"
+  > cc_lint.py --topic coding --files "file.py" --mode one_shot_with_cc
   ```
 
 - Lint modified files in the repository:
   ```bash
-  > cc_lint.py --modified
+  > cc_lint.py --modified --mode one_shot_with_cc
   ```
 
 - Preview command without executing (dry-run):
   ```bash
-  > cc_lint.py --dry_run --files "*.md"
+  > cc_lint.py --dry_run --files "*.md" --mode one_shot_with_cc
   ```
 
 - Process multiple files with progress feedback:
   ```bash
-  > cc_lint.py --files "src/*.py" --topic coding
+  > cc_lint.py --files "src/*.py" --topic coding --mode one_shot_with_cc
   ```
 
 - Use a different model
   ```
-  linters2/cc_lint.py --files dev_scripts_helpers/scraping/download_link_articles.py --skill "coding.add_comments" --model deepseek/deepseek-v4-flash
+  > cc_lint.py --files dev_scripts_helpers/download/download_link_articles.py --skill "coding.add_comments" --mode one_shot_with_cc --model deepseek/deepseek-v4-flash
   ```
 
 ## normalize_import.py

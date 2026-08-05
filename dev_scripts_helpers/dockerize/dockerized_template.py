@@ -20,7 +20,7 @@ def _parse() -> argparse.ArgumentParser:
     # Create an ArgumentParser instance with the provided docstring.
     parser = argparse.ArgumentParser(
         description=__doc__,
-        formatter_class=argparse.RawDescriptionHelpFormatter,
+        formatter_class=hparser.CustomHelpFormatter,
     )
     # TODO(*): Add more options.
     # parser.add_argument(

@@ -59,6 +59,7 @@ import helpers.hdbg as hdbg
 import helpers.hlint as hlint
 import helpers.hio as hio
 import helpers.hparser as hparser
+import helpers.hprint as hprint
 import helpers.hselect_action as hselacti
 
 _LOG = logging.getLogger(__name__)
@@ -95,6 +96,7 @@ class PodcastDownloader(ABC):
         :param slug: the podcast identifier/slug
         :raises AssertionError: if slug is empty
         """
+        _LOG.debug(hprint.to_str("slug"))
         hdbg.dassert_ne(slug, "", "Slug cannot be empty")
         self._slug = slug
         self._session = requests.Session()
@@ -106,6 +108,7 @@ class PodcastDownloader(ABC):
 
         :return: the podcast URL
         """
+        # Abstract stub: implemented by each concrete downloader subclass.
         pass
 
     @abstractmethod
@@ -116,6 +119,7 @@ class PodcastDownloader(ABC):
         :param html: the HTML content of the podcast page
         :return: the extracted transcript text
         """
+        # Abstract stub: implemented by each concrete downloader subclass.
         pass
 
     @abstractmethod
@@ -126,6 +130,7 @@ class PodcastDownloader(ABC):
         :param html: the HTML content of the podcast page
         :return: tuple of (date, podcast_title, guest_name)
         """
+        # Abstract stub: implemented by each concrete downloader subclass.
         pass
 
     @staticmethod
@@ -139,6 +144,7 @@ class PodcastDownloader(ABC):
         :param text: the text to slugify
         :return: slugified text (e.g., "Andrej Karpathy" -> "andrej-karpathy")
         """
+        _LOG.debug(hprint.to_str("text"))
         # Convert to lowercase and normalize whitespace to single hyphens.
         text = text.lower()
         text = re.sub(r"\s+", "-", text)
@@ -147,6 +153,7 @@ class PodcastDownloader(ABC):
         # Collapse consecutive hyphens and strip leading/trailing hyphens.
         text = re.sub(r"-+", "-", text)
         text = text.strip("-")
+        _LOG.debug("return=%s", text)
         return text
 
     def _normalize_filename(
@@ -167,6 +174,7 @@ class PodcastDownloader(ABC):
         :param guest_name: optional guest name
         :return: normalized filename (e.g., "2024-05-15_lex-fridman_andrej-karpathy.txt")
         """
+        _LOG.debug(hprint.to_str("date podcast_title guest_name"))
         # Extract YYYY-MM-DD format from date string; fall back if not found.
         date_match = re.search(r"\d{4}-\d{2}-\d{2}", date)
         if date_match:
@@ -180,6 +188,7 @@ class PodcastDownloader(ABC):
             filename = f"{date_str}_{podcast_normalized}_{guest_normalized}.txt"
         else:
             filename = f"{date_str}_{podcast_normalized}.txt"
+        _LOG.debug("return=%s", filename)
         return filename
 
     def download(self) -> Tuple[str, str]:
@@ -188,11 +197,13 @@ class PodcastDownloader(ABC):
 
         :return: tuple of (transcript_text, output_filename)
         """
+        _LOG.debug(hprint.to_str("self._slug"))
         url = self._get_url()
         _LOG.info("Fetching transcript from: %s", url)
         response = self._session.get(url, timeout=30)
         response.raise_for_status()
         html = response.text
+        _LOG.debug("Fetched %d chars of HTML", len(html))
         transcript = self._extract_transcript(html)
         hdbg.dassert_ne(
             transcript,
@@ -200,11 +211,13 @@ class PodcastDownloader(ABC):
             "Failed to extract transcript from HTML",
         )
         date, podcast_title, guest_name = self._extract_metadata(html)
+        _LOG.debug(hprint.to_str("date podcast_title guest_name"))
         output_filename = self._normalize_filename(
             date=date,
             podcast_title=podcast_title,
             guest_name=guest_name,
         )
+        _LOG.debug("return=%s", output_filename)
         return transcript, output_filename
 
 
@@ -224,7 +237,10 @@ class LexFridmanDownloader(PodcastDownloader):
 
         :return: the full URL
         """
-        return f"https://lexfridman.com/{self._slug}-transcript"
+        _LOG.debug(hprint.to_str("self._slug"))
+        url = f"https://lexfridman.com/{self._slug}-transcript"
+        _LOG.debug("return=%s", url)
+        return url
 
     def _extract_transcript(self, html: str) -> str:
         """
@@ -233,6 +249,7 @@ class LexFridmanDownloader(PodcastDownloader):
         :param html: the HTML content
         :return: transcript text
         """
+        _LOG.debug("len(html)=%d", len(html))
         soup = BeautifulSoup(html, "html.parser")
         # Lex Fridman stores transcript in article or content div.
         content: Any = soup.find("article")
@@ -249,6 +266,7 @@ class LexFridmanDownloader(PodcastDownloader):
             if text:
                 lines.append(text)
         transcript = "\n\n".join(lines)
+        _LOG.debug("len(transcript)=%d", len(transcript))
         return transcript
 
     def _extract_metadata(self, html: str) -> Tuple[str, str, str]:
@@ -258,6 +276,7 @@ class LexFridmanDownloader(PodcastDownloader):
         :param html: the HTML content
         :return: tuple of (date, podcast_title, guest_name)
         """
+        _LOG.debug("len(html)=%d", len(html))
         soup = BeautifulSoup(html, "html.parser")
         # Try to find the title (usually in h1 or meta tags).
         title_tag = soup.find("h1")
@@ -272,6 +291,7 @@ class LexFridmanDownloader(PodcastDownloader):
         guest_name = ""
         if " - Lex" in title:
             guest_name = title.split(" - Lex")[0].strip()
+        _LOG.debug(hprint.to_str("date guest_name"))
         return date, "lex-fridman", guest_name
 
 
@@ -291,7 +311,10 @@ class DwarkeshDownloader(PodcastDownloader):
 
         :return: the full URL
         """
-        return f"https://www.dwarkesh.com/p/{self._slug}"
+        _LOG.debug(hprint.to_str("self._slug"))
+        url = f"https://www.dwarkesh.com/p/{self._slug}"
+        _LOG.debug("return=%s", url)
+        return url
 
     def _extract_transcript(self, html: str) -> str:
         """
@@ -300,6 +323,7 @@ class DwarkeshDownloader(PodcastDownloader):
         :param html: the HTML content
         :return: transcript text
         """
+        _LOG.debug("len(html)=%d", len(html))
         soup = BeautifulSoup(html, "html.parser")
         # Dwarkesh stores content in post-related divs.
         content: Any = soup.find("div", class_=re.compile(r"post", re.I))
@@ -314,6 +338,7 @@ class DwarkeshDownloader(PodcastDownloader):
             if text and len(text) > 10:
                 lines.append(text)
         transcript = "\n\n".join(lines)
+        _LOG.debug("len(transcript)=%d", len(transcript))
         return transcript
 
     def _extract_metadata(self, html: str) -> Tuple[str, str, str]:
@@ -323,6 +348,7 @@ class DwarkeshDownloader(PodcastDownloader):
         :param html: the HTML content
         :return: tuple of (date, podcast_title, guest_name)
         """
+        _LOG.debug("len(html)=%d", len(html))
         soup = BeautifulSoup(html, "html.parser")
         # Extract title from h1 or meta tags.
         title_tag = soup.find("h1")
@@ -334,6 +360,7 @@ class DwarkeshDownloader(PodcastDownloader):
         else:
             date = "unknown"
         guest_name = title if title != "Dwarkesh" else ""
+        _LOG.debug(hprint.to_str("date guest_name"))
         return date, "dwarkesh", guest_name
 
 
@@ -353,7 +380,10 @@ class PodcastTranscriptDownloader(PodcastDownloader):
 
         :return: the full URL
         """
-        return f"https://podcasttranscript.ai/library/{self._slug}"
+        _LOG.debug(hprint.to_str("self._slug"))
+        url = f"https://podcasttranscript.ai/library/{self._slug}"
+        _LOG.debug("return=%s", url)
+        return url
 
     def _extract_transcript(self, html: str) -> str:
         """
@@ -362,6 +392,7 @@ class PodcastTranscriptDownloader(PodcastDownloader):
         :param html: the HTML content
         :return: transcript text
         """
+        _LOG.debug("len(html)=%d", len(html))
         soup = BeautifulSoup(html, "html.parser")
         # Find transcript container.
         content: Any = soup.find(
@@ -378,6 +409,7 @@ class PodcastTranscriptDownloader(PodcastDownloader):
             if text:
                 lines.append(text)
         transcript = "\n\n".join(lines)
+        _LOG.debug("len(transcript)=%d", len(transcript))
         return transcript
 
     def _extract_metadata(self, html: str) -> Tuple[str, str, str]:
@@ -387,6 +419,7 @@ class PodcastTranscriptDownloader(PodcastDownloader):
         :param html: the HTML content
         :return: tuple of (date, podcast_title, guest_name)
         """
+        _LOG.debug("len(html)=%d", len(html))
         soup = BeautifulSoup(html, "html.parser")
         title_tag = soup.find("h1")
         title = (
@@ -397,6 +430,7 @@ class PodcastTranscriptDownloader(PodcastDownloader):
             date = str(date_tag.get("content", "unknown"))
         else:
             date = "unknown"
+        _LOG.debug(hprint.to_str("date title"))
         return date, "podcast-transcript", title
 
 
@@ -416,8 +450,11 @@ class PodscriptsDownloader(PodcastDownloader):
 
         :return: the full URL
         """
+        _LOG.debug(hprint.to_str("self._slug"))
         # Slug includes category: category/episode-slug
-        return f"https://podscripts.co/podcasts/{self._slug}"
+        url = f"https://podscripts.co/podcasts/{self._slug}"
+        _LOG.debug("return=%s", url)
+        return url
 
     def _extract_transcript(self, html: str) -> str:
         """
@@ -426,6 +463,7 @@ class PodscriptsDownloader(PodcastDownloader):
         :param html: the HTML content
         :return: transcript text
         """
+        _LOG.debug("len(html)=%d", len(html))
         soup = BeautifulSoup(html, "html.parser")
         # Find transcript container.
         content: Any = soup.find("div", class_=re.compile(r"transcript", re.I))
@@ -446,6 +484,7 @@ class PodscriptsDownloader(PodcastDownloader):
                 if text and len(text) > 10:
                     lines.append(text)
         transcript = "\n".join(lines)
+        _LOG.debug("len(transcript)=%d", len(transcript))
         return transcript
 
     def _extract_metadata(self, html: str) -> Tuple[str, str, str]:
@@ -455,6 +494,7 @@ class PodscriptsDownloader(PodcastDownloader):
         :param html: the HTML content
         :return: tuple of (date, podcast_title, guest_name)
         """
+        _LOG.debug("len(html)=%d", len(html))
         soup = BeautifulSoup(html, "html.parser")
         title_tag = soup.find("h1")
         title = title_tag.get_text(strip=True) if title_tag else "Podscripts"
@@ -463,6 +503,7 @@ class PodscriptsDownloader(PodcastDownloader):
             date = str(date_tag.get("content", "unknown"))
         else:
             date = "unknown"
+        _LOG.debug(hprint.to_str("date title"))
         return date, "podscripts", title
 
 
@@ -494,6 +535,7 @@ class Chapter:
         :param timestamp: time in H:MM or HH:MM format
         :return: time in seconds
         """
+        _LOG.debug(hprint.to_str("timestamp"))
         parts = timestamp.split(":")
         hdbg.dassert_eq(
             len(parts),
@@ -503,7 +545,9 @@ class Chapter:
         )
         hours = int(parts[0])
         minutes = int(parts[1])
-        return hours * 3600 + minutes * 60
+        seconds = hours * 3600 + minutes * 60
+        _LOG.debug("return=%s", seconds)
+        return seconds
 
     def __init__(self, *, timestamp: str, title: str) -> None:
         """
@@ -512,6 +556,7 @@ class Chapter:
         :param timestamp: chapter time in HH:MM or H:MM format
         :param title: chapter title
         """
+        _LOG.debug(hprint.to_str("timestamp title"))
         self.timestamp = timestamp
         self.title = title
         self.seconds = self._parse_timestamp(timestamp)
@@ -534,6 +579,7 @@ class DialogueLine:
         :param timestamp: time in HH:MM:SS format
         :return: time in seconds
         """
+        _LOG.debug(hprint.to_str("timestamp"))
         parts = timestamp.split(":")
         hdbg.dassert_eq(
             len(parts),
@@ -544,7 +590,9 @@ class DialogueLine:
         hours = int(parts[0])
         minutes = int(parts[1])
         seconds = int(parts[2])
-        return hours * 3600 + minutes * 60 + seconds
+        total_seconds = hours * 3600 + minutes * 60 + seconds
+        _LOG.debug("return=%s", total_seconds)
+        return total_seconds
 
     def __init__(self, *, speaker: str, timestamp: str, text: str) -> None:
         """
@@ -554,6 +602,7 @@ class DialogueLine:
         :param timestamp: time in HH:MM:SS format
         :param text: dialogue text
         """
+        _LOG.debug(hprint.to_str("speaker timestamp"))
         self.speaker = speaker
         self.timestamp = timestamp
         self.text = text
@@ -576,6 +625,7 @@ class TranscriptParser:
 
         :param transcript_text: the full transcript text
         """
+        _LOG.debug("len(transcript_text)=%d", len(transcript_text))
         self.transcript_text = transcript_text
         self.lines = transcript_text.split("\n")
 
@@ -589,6 +639,7 @@ class TranscriptParser:
 
         :return: episode title
         """
+        _LOG.debug("len(self.lines)=%d", len(self.lines))
         full_text = " ".join(self.lines)
         # Try multiple regex patterns that commonly appear in transcripts.
         patterns = [
@@ -606,6 +657,7 @@ class TranscriptParser:
             if match:
                 title = match.group(1).strip()
                 if len(title) > 3:
+                    _LOG.debug("return=%s", title)
                     return title
         # Fall back to the first non-metadata line in the transcript.
         for line in tqdm(
@@ -615,7 +667,9 @@ class TranscriptParser:
         ):
             line = line.strip()
             if line and not line.startswith(("The timestamps", "Playback", "×")):
+                _LOG.debug("return=%s", line)
                 return line
+        _LOG.debug("return=%s", "Podcast Transcript")
         return "Podcast Transcript"
 
     def extract_chapters(self) -> List[Chapter]:
@@ -627,6 +681,7 @@ class TranscriptParser:
 
         :return: list of Chapter objects (empty list if no TOC found)
         """
+        _LOG.debug("len(self.lines)=%d", len(self.lines))
         chapters = []
         # Join transcript lines with progress tracking.
         full_text = " ".join(
@@ -646,6 +701,7 @@ class TranscriptParser:
             toc_text = toc_match.group(1)
         else:
             toc_text = ""
+        _LOG.debug("Found TOC section: %s", bool(toc_match))
         # Parse chapter entries from the TOC with progress tracking.
         matches = list(re.finditer(_CHAPTER_PATTERN, toc_text))
         for match in tqdm(matches, desc="Extracting chapters", unit="chapter"):
@@ -654,6 +710,7 @@ class TranscriptParser:
             title = match.group(3).strip()
             timestamp = f"{hours}:{minutes}"
             chapters.append(Chapter(timestamp=timestamp, title=title))
+        _LOG.debug("len(chapters)=%d", len(chapters))
         return chapters
 
     def _extract_dialogue_line_format(self) -> List[DialogueLine]:
@@ -665,6 +722,7 @@ class TranscriptParser:
 
         :return: list of DialogueLine objects
         """
+        _LOG.debug("len(self.lines)=%d", len(self.lines))
         dialogue_lines = []
         # Parse dialogue lines with progress bar to track processing.
         for line in tqdm(self.lines, desc="Extracting dialogue", unit="line"):
@@ -694,6 +752,7 @@ class TranscriptParser:
                             text=text,
                         )
                     )
+        _LOG.debug("len(dialogue_lines)=%d", len(dialogue_lines))
         return dialogue_lines
 
     def _extract_dialogue_concat_format(self) -> List[DialogueLine]:
@@ -705,6 +764,7 @@ class TranscriptParser:
 
         :return: list of DialogueLine objects
         """
+        _LOG.debug("len(self.lines)=%d", len(self.lines))
         dialogue_lines = []
         full_text = " ".join(self.lines)
         # Find all speaker-timestamp matches in the concatenated text with progress.
@@ -715,6 +775,7 @@ class TranscriptParser:
                 unit="match",
             )
         )
+        _LOG.debug("len(matches)=%d", len(matches))
         # Extract dialogue text between each speaker marker with progress tracking.
         for i, match in enumerate(
             tqdm(
@@ -742,6 +803,7 @@ class TranscriptParser:
                         text=text,
                     )
                 )
+        _LOG.debug("len(dialogue_lines)=%d", len(dialogue_lines))
         return dialogue_lines
 
     def _extract_dialogue_podscripts_format(self) -> List[DialogueLine]:
@@ -753,6 +815,7 @@ class TranscriptParser:
 
         :return: list of DialogueLine objects
         """
+        _LOG.debug("len(self.lines)=%d", len(self.lines))
         dialogue_lines = []
         full_text = " ".join(self.lines)
         # Match "Starting point is HH:MM:SS" followed by text.
@@ -764,6 +827,7 @@ class TranscriptParser:
                 unit="match",
             )
         )
+        _LOG.debug("len(matches)=%d", len(matches))
         # Generate generic speakers (Speaker1, Speaker2) alternating.
         speaker_names = ["Speaker1", "Speaker2"]
         for i, match in enumerate(
@@ -787,6 +851,7 @@ class TranscriptParser:
                         text=text,
                     )
                 )
+        _LOG.debug("len(dialogue_lines)=%d", len(dialogue_lines))
         return dialogue_lines
 
     def extract_dialogue(self) -> List[DialogueLine]:
@@ -798,6 +863,7 @@ class TranscriptParser:
 
         :return: list of DialogueLine objects, sorted by timestamp (seconds)
         """
+        _LOG.debug("len(self.lines)=%d", len(self.lines))
         dialogue_lines = []
         # Try parsing line-separated format (Speaker(HH:MM:SS)text).
         dialogue_lines.extend(self._extract_dialogue_line_format())
@@ -815,6 +881,7 @@ class TranscriptParser:
                 unit="line",
             )
         )
+        _LOG.debug("len(dialogue_lines)=%d", len(dialogue_lines))
         return dialogue_lines
 
 
@@ -832,6 +899,7 @@ class MarkdownFormatter:
         """
         Initialize the formatter.
         """
+        _LOG.debug("Initializing MarkdownFormatter")
         self.speaker_abbrevs: Dict[str, str] = {}
 
     def _add_speaker(self, speaker: str) -> None:
@@ -840,13 +908,17 @@ class MarkdownFormatter:
 
         :param speaker: full speaker name
         """
+        _LOG.debug(hprint.to_str("speaker"))
         if speaker in self.speaker_abbrevs:
+            # Speaker already mapped: nothing to do.
+            _LOG.debug("Speaker '%s' already mapped; skipping", speaker)
             return
         parts = speaker.split()
         abbrev = "".join(p[0] for p in parts).upper()
         if not abbrev:
             abbrev = speaker[:2].upper()
         self.speaker_abbrevs[speaker] = abbrev
+        _LOG.debug("Added speaker abbreviation: '%s' -> '%s'", speaker, abbrev)
 
     def format(
         self,
@@ -869,6 +941,9 @@ class MarkdownFormatter:
         :param dialogue: list of dialogue lines (sorted by timestamp)
         :return: formatted markdown string
         """
+        _LOG.debug(
+            hprint.to_str("title url len(chapters) len(dialogue)")
+        )
         # Build speaker abbreviation map first.
         for line in dialogue:
             self._add_speaker(line.speaker)
@@ -889,7 +964,9 @@ class MarkdownFormatter:
                 chapter_idx += 1
             abbrev = self.speaker_abbrevs[dialogue_line.speaker]
             output.append(f"- {abbrev}: {dialogue_line.text}\n")
-        return "".join(output)
+        markdown = "".join(output)
+        _LOG.debug("len(markdown)=%d", len(markdown))
+        return markdown
 
 
 # #############################################################################
@@ -905,6 +982,7 @@ def _get_downloader(downloader_type: str, *, slug: str) -> PodcastDownloader:
     :param slug: the podcast slug
     :return: PodcastDownloader instance
     """
+    _LOG.debug(hprint.to_str("downloader_type slug"))
     hdbg.dassert_in(
         downloader_type,
         _VALID_TYPES,
@@ -919,7 +997,9 @@ def _get_downloader(downloader_type: str, *, slug: str) -> PodcastDownloader:
         "podscripts_co": PodscriptsDownloader,
     }
     downloader_class = downloader_map[downloader_type]
-    return downloader_class(slug=slug)
+    downloader = downloader_class(slug=slug)
+    _LOG.debug("return=%s", downloader)
+    return downloader
 
 
 # #############################################################################
@@ -937,7 +1017,10 @@ def _get_temp_dir(output_path: str) -> str:
     :param output_path: path to the output markdown file
     :return: path to the temporary directory for intermediate files
     """
-    return f"{output_path}.tmp"
+    _LOG.debug(hprint.to_str("output_path"))
+    temp_dir = f"{output_path}.tmp"
+    _LOG.debug("return=%s", temp_dir)
+    return temp_dir
 
 
 def _get_step_file(output_path: str, step_num: int, step_name: str) -> str:
@@ -953,8 +1036,11 @@ def _get_step_file(output_path: str, step_num: int, step_name: str) -> str:
     :param step_name: name of the step (download, format, lint)
     :return: path to the step's output file
     """
+    _LOG.debug(hprint.to_str("output_path step_num step_name"))
     temp_dir = _get_temp_dir(output_path)
-    return f"{temp_dir}/{step_num:02d}.{step_name}.txt"
+    step_file = f"{temp_dir}/{step_num:02d}.{step_name}.txt"
+    _LOG.debug("return=%s", step_file)
+    return step_file
 
 
 def _parse() -> argparse.ArgumentParser:
@@ -963,9 +1049,10 @@ def _parse() -> argparse.ArgumentParser:
 
     :return: configured ArgumentParser with all action-specific options
     """
+    _LOG.debug(hprint.func_signature_to_str())
     parser = argparse.ArgumentParser(
         description=__doc__,
-        formatter_class=argparse.RawDescriptionHelpFormatter,
+        formatter_class=hparser.CustomHelpFormatter,
     )
     hselacti.add_action_arg(parser, _VALID_ACTIONS, _DEFAULT_ACTIONS)
     parser.add_argument(
@@ -1000,6 +1087,7 @@ def _parse() -> argparse.ArgumentParser:
         help="Output markdown file path (required for download/format/all). Intermediate files saved to <OUTPUT>.tmp/",
     )
     hparser.add_verbosity_arg(parser)
+    _LOG.debug("return=%s", type(parser).__name__)
     return parser
 
 
@@ -1010,6 +1098,7 @@ def _run_download(args: argparse.Namespace) -> None:
     :param args: parsed command-line arguments with type, title, output
     :raises AssertionError: if required args (type, title, output) are missing
     """
+    _LOG.debug(hprint.to_str("args.type args.title args.output"))
     hdbg.dassert_ne(
         args.type,
         "",
@@ -1025,6 +1114,7 @@ def _run_download(args: argparse.Namespace) -> None:
         "",
         "--output is required for download action",
     )
+    # Create the working directories before writing any step outputs.
     temp_dir = _get_temp_dir(args.output)
     hio.create_dir(temp_dir, incremental=True)
     hio.create_enclosing_dir(args.output, incremental=True)
@@ -1049,6 +1139,7 @@ def _run_format(args: argparse.Namespace) -> None:
     :param args: parsed command-line arguments with output
     :raises AssertionError: if required arg (output) is missing
     """
+    _LOG.debug(hprint.to_str("args.output args.url"))
     hdbg.dassert_ne(
         args.output,
         "",
@@ -1066,6 +1157,7 @@ def _run_format(args: argparse.Namespace) -> None:
         url = hio.from_file(url_file).strip()
     if not url and args.url:
         url = args.url
+    _LOG.debug(hprint.to_str("url"))
     _LOG.info("Parsing transcript")
     parser_obj = TranscriptParser(transcript_text=transcript_text)
     # Track overall parsing progress with a progress bar.
@@ -1096,6 +1188,7 @@ def _run_lint(args: argparse.Namespace) -> None:
     :param args: parsed command-line arguments with output
     :raises AssertionError: if required arg (output) is missing
     """
+    _LOG.debug(hprint.to_str("args.output"))
     hdbg.dassert_ne(
         args.output,
         "",
@@ -1124,6 +1217,7 @@ def _finalize_output(args: argparse.Namespace, last_step: int) -> None:
     :param args: parsed command-line arguments with output
     :param last_step: the number of the last step executed (1, 2, or 3)
     """
+    _LOG.debug(hprint.to_str("args.output last_step"))
     step_names = {1: "download", 2: "format", 3: "lint"}
     source_file = _get_step_file(args.output, last_step, step_names[last_step])
     hdbg.dassert_file_exists(source_file)
@@ -1146,6 +1240,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
     """
     args = parser.parse_args()
     hdbg.init_logger(verbosity=args.log_level, use_exec_path=True)
+    _LOG.debug(hprint.to_str("args"))
     # Select which action(s) to run; defaults to download, format, lint.
     actions = hselacti.select_actions(args, _VALID_ACTIONS, _DEFAULT_ACTIONS)
     _LOG.info(
@@ -1154,7 +1249,11 @@ def _main(parser: argparse.ArgumentParser) -> None:
     # Track which step was last executed for finalization
     last_step = 0
     # Execute each selected action in sequence.
-    for action in actions:
+    while actions:
+        action = actions[0]
+        to_execute, actions = hselacti.mark_action(action, actions)
+        if not to_execute:
+            continue
         if action == "download":
             _run_download(args)
             last_step = 1
@@ -1164,6 +1263,11 @@ def _main(parser: argparse.ArgumentParser) -> None:
         elif action == "lint":
             _run_lint(args)
             last_step = 3
+        else:
+            raise ValueError(f"Invalid action='{action}'")
+    hdbg.dassert_eq(
+        len(actions), 0, "There are unprocessed actions: %s", str(actions)
+    )
     # Copy the final output file
     if last_step > 0:
         _finalize_output(args, last_step)

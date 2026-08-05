@@ -21,7 +21,7 @@ _LOG = logging.getLogger(__name__)
 def _parse() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         description=__doc__,
-        formatter_class=argparse.RawDescriptionHelpFormatter,
+        formatter_class=hparser.CustomHelpFormatter,
     )
     parser.add_argument("--text", action="store", type=str, required=True)
     parser.add_argument("--step", action="store", type=int, required=True)

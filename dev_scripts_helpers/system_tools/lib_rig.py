@@ -80,7 +80,7 @@ def parse(description: str = "") -> argparse.ArgumentParser:
         description = __doc__
     parser = argparse.ArgumentParser(
         description=description,
-        formatter_class=argparse.RawDescriptionHelpFormatter,
+        formatter_class=hparser.CustomHelpFormatter,
     )
     parser.add_argument(
         "positional", nargs="*", help="Positional arguments for search"

@@ -3,8 +3,8 @@
 # /// script
 # dependencies = [
 #   "beautifulsoup4",
-#   "lxml",
 #   "pandas",
+#   "pymupdf",
 #   "requests",
 #   "tqdm",
 # ]
@@ -14,7 +14,7 @@ r"""
 Download article content and HN comments from links stored in Google Sheets.
 
 For detailed documentation on the link workflow, see:
-`dev_scripts_helpers/scraping/download_link_articles.README.md`
+`dev_scripts_helpers/download/download_link_articles.README.md`
 
 This script processes a Google Sheets document containing article links,
 downloads article content and Hacker News comments, and optionally summarizes
@@ -38,6 +38,16 @@ characters replaced with underscores:
 - `{title}.4.hn_url.summary.txt` - Summarized HN comments (from summarize_hn_url)
 
 ## Example Usage
+
+Download HN comments for a single submission directly, bypassing Google
+Sheets:
+> download_link_articles.py \
+    --hn_url "https://news.ycombinator.com/item?id=12345"
+
+Download a single article directly, bypassing Google Sheets; the title is
+extracted from the page's <title> tag:
+> download_link_articles.py \
+    --article_url "https://queue.acm.org/detail.cfm?id=3807963"
 
 Download HN comments for rows 0-9 where the "Hn_url" column is not empty:
 > download_link_articles.py \
@@ -73,17 +83,21 @@ Summarize HN comments (requires prior download_hn_url):
 
 Import as:
 
-import dev_scripts_helpers.scraping.download_link_articles as dssdla
+import dev_scripts_helpers.download.download_link_articles as dssdla
 """
 
 import argparse
+import glob
 import html
 import logging
+import os
 import re
+import shutil
 from typing import Any, Dict, List, Optional
 
+import bs4
+import fitz  # PyMuPDF
 import requests
-from bs4 import BeautifulSoup
 from tqdm import tqdm
 
 import helpers.hdbg as hdbg
@@ -93,7 +107,7 @@ import helpers.hprint as hprint
 import helpers.hcache_simple as hcacsimp
 import helpers.hselect_action as hselacti
 import helpers.hsystem as hsystem
-import dev_scripts_helpers.scraping.link_gsheet_utils as dshslgsut
+import dev_scripts_helpers.download.link_gsheet_utils as dshslgsut
 
 _LOG = logging.getLogger(__name__)
 
@@ -134,6 +148,106 @@ def _load_rows_from_gsheet(url: str) -> List[Dict[str, Any]]:
     )
     _LOG.info("Retrieved %d rows from Google Sheets", len(rows))
     return rows
+
+
+def _build_row_from_hn_url(hn_url: str) -> List[Dict[str, Any]]:
+    """
+    Build a single synthetic row from a directly-provided HN URL.
+
+    Bypasses the Google Sheets download by fetching the submission title
+    directly from the HN API, so `--hn_url` can be used standalone.
+
+    :param hn_url: Hacker News item URL
+    :return: List containing a single row with Title, Article_url, Hn_url
+    """
+    _LOG.debug(hprint.func_signature_to_str())
+    hdbg.dassert(
+        dshslgsut.is_hackernews_url(hn_url), "Not a Hacker News URL: %s", hn_url
+    )
+    item_id = dshslgsut.extract_item_id(hn_url)
+    item_data = _fetch_hn_item(item_id)
+    title = item_id
+    # Link posts have a "url" field pointing to the external article; Show
+    # HN / Ask HN / text posts have no "url" (only "text"), so Article_url
+    # stays empty and article download/summarize is skipped for those.
+    article_url = ""
+    if item_data:
+        title = item_data.get("title", item_id)
+        article_url = item_data.get("url", "")
+    row = {"Title": title, "Article_url": article_url, "Hn_url": hn_url}
+    _LOG.info(
+        "Built row from --hn_url: title='%s' article_url='%s'",
+        title,
+        article_url,
+    )
+    return [row]
+
+
+@hcacsimp.simple_cache(cache_type="json", write_through=True)
+def _fetch_article_title(url: str) -> Optional[str]:
+    """
+    Fetch a web page and extract the contents of its `<title>` tag.
+
+    :param url: Article URL
+    :return: Page title, or None if it can't be fetched or has no
+        `<title>` tag
+    """
+    _LOG.debug(hprint.func_signature_to_str())
+    headers = {
+        "User-Agent": (
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+            "AppleWebKit/537.36 (KHTML, like Gecko) "
+            "Chrome/124.0.0.0 Safari/537.36"
+        ),
+        "Accept": (
+            "text/html,application/xhtml+xml,application/xml;"
+            "q=0.9,image/webp,*/*;q=0.8"
+        ),
+        "Accept-Language": "en-US,en;q=0.9",
+    }
+    try:
+        response = requests.get(url, timeout=30, headers=headers)
+        response.raise_for_status()
+    except requests.RequestException as e:
+        _LOG.warning("Failed to fetch '%s': %s", url, e)
+        return None
+    soup = bs4.BeautifulSoup(response.text, "html.parser")
+    if not soup.title or not soup.title.string:
+        _LOG.warning("No <title> tag found in '%s'", url)
+        return None
+    # BeautifulSoup already unescapes HTML entities; just collapse internal
+    # whitespace/newlines.
+    title = soup.title.string.strip()
+    title = re.sub(r"\s+", " ", title)
+    _LOG.debug(hprint.to_str("title"))
+    return title
+
+
+def _build_row_from_article_url(article_url: str) -> List[Dict[str, Any]]:
+    """
+    Build a single synthetic row from a directly-provided article URL.
+
+    Bypasses the Google Sheets download by fetching the page's `<title>`
+    tag directly, so `--article_url` can be used standalone.
+
+    :param article_url: Article URL
+    :return: List containing a single row with Title, Article_url, Hn_url
+    """
+    _LOG.debug(hprint.func_signature_to_str())
+    title = _fetch_article_title(article_url)
+    if not title:
+        _LOG.warning(
+            "Could not extract title from '%s', using URL as title",
+            article_url,
+        )
+        title = article_url
+    row = {"Title": title, "Article_url": article_url, "Hn_url": ""}
+    _LOG.info(
+        "Built row from --article_url: title='%s' article_url='%s'",
+        title,
+        article_url,
+    )
+    return [row]
 
 
 # #############################################################################
@@ -402,46 +516,68 @@ def _format_hn_url_as_text(comments: List[Dict[str, Any]]) -> str:
     return text
 
 
-@hcacsimp.simple_cache(cache_type="json", write_through=True)
-def _download_article_content(url: str) -> str:
+def _is_arxiv_url(url: str) -> bool:
     """
-    Download and extract article content from a URL.
+    Check if a URL points to an arXiv paper.
 
     :param url: Article URL
-    :return: Article text or empty string if download fails
+    :return: True if the URL is an arXiv link
     """
-    hdbg.dassert_is_not(url, None)
-    _LOG.debug(hprint.func_signature_to_str())
-    # Use a realistic User-Agent to avoid being blocked by many web servers.
-    headers = {
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
-    }
-    result = ""
-    try:
-        # Fetch the HTML from the URL with timeout to prevent hanging.
-        response = requests.get(url, timeout=15, headers=headers)
-        response.raise_for_status()
-        html = response.text
-        # Parse HTML and extract article text.
-        soup = BeautifulSoup(html, "html.parser")
-        # Remove script and style tags to avoid extracting them.
-        for tag in soup(["script", "style"]):
-            tag.decompose()
-        # Try to find article container tags first (more semantic).
-        article = soup.find(["article", "main"])
-        if article:
-            text = article.get_text()
-        else:
-            # Fall back to all text from the page body.
-            body = soup.find("body") or soup
-            text = body.get_text()
-        # Clean up excessive whitespace.
-        lines = (line.strip() for line in text.splitlines())
-        text = "\n".join(line for line in lines if line)
-    except Exception as e:
-        _LOG.warning("Failed to download article from %s: %s", url, e)
-    _LOG.debug(hprint.to_str("len(result)"))
-    return result
+    return "arxiv.org" in url.lower()
+
+
+def _download_website_article(url: str, output_file: str) -> None:
+    """
+    Download a normal website article and convert it to text via
+    `download_html_to_md.py`.
+
+    :param url: Article URL
+    :param output_file: Path to save the article text to
+    """
+    _LOG.debug(hprint.to_str("url output_file"))
+    script = "dev_scripts_helpers/download/download_html_to_md.py"
+    cmd = f'{script} --input "{url}" --output "{output_file}"'
+    hsystem.system(cmd)
+    hdbg.dassert_file_exists(output_file)
+
+
+def _download_arxiv_article(url: str, output_file: str) -> None:
+    """
+    Download an arXiv paper via `download_academic_paper.py` and extract its
+    text.
+
+    The PDF is saved next to `output_file` (same basename, `.pdf`
+    extension) and its extracted text is written to `output_file` so it can
+    be consumed like any other article by the rest of the pipeline.
+
+    :param url: arXiv URL
+    :param output_file: Path to save the extracted article text to
+    """
+    _LOG.debug(hprint.to_str("url output_file"))
+    # Download the PDF into a scratch dir: the script derives its own
+    # standardized filename from the paper's arXiv metadata.
+    tmp_dir = dshslgsut.get_tmp_file_path(
+        "papers", "download_link_articles"
+    )
+    hio.create_dir(tmp_dir, incremental=True)
+    script = "dev_scripts_helpers/download/download_academic_paper.py"
+    cmd = (
+        f'{script} --input "{url}" --output_dir "{tmp_dir}" --no_incremental'
+    )
+    hsystem.system(cmd)
+    pdf_files = glob.glob(os.path.join(tmp_dir, "*.pdf"))
+    hdbg.dassert_eq(
+        len(pdf_files), 1, "Expected exactly 1 PDF in '%s', found %s", tmp_dir, pdf_files
+    )
+    # Move the PDF next to the text output, using the row's sanitized title.
+    pdf_output_file = re.sub(r"\.txt$", ".pdf", output_file)
+    shutil.move(pdf_files[0], pdf_output_file)
+    _LOG.info("Saved PDF to: %s", pdf_output_file)
+    # Extract text from the PDF for downstream summarization.
+    doc = fitz.open(pdf_output_file)
+    text = "\n".join(page.get_text("text") for page in doc)
+    doc.close()
+    hio.to_file(output_file, text)
 
 
 def _download_hn_urls(
@@ -521,24 +657,33 @@ def _download_article_urls(
         # Generate filename from title and check if it already exists.
         sanitized_title = _sanitize_title_for_filename(title)
         output_file = f"{sanitized_title}.1.article_url.txt"
-        # Download and parse article content from the URL.
+        # Dispatch to the appropriate downloader based on the URL type.
+        is_arxiv = _is_arxiv_url(article_url)
+        downloader = "download_academic_paper.py" if is_arxiv else "download_html_to_md.py"
         if dry_run:
-            _LOG.info("[DRY RUN] Would download article from: %s", article_url)
+            _LOG.info(
+                "[DRY RUN] Would download article from '%s' via %s",
+                article_url,
+                downloader,
+            )
             _LOG.info(
                 "[DRY RUN] Would write article content to: %s", output_file
             )
         else:
-            article_content = _download_article_content(article_url)
-            if not article_content:
+            _LOG.info("Downloading article from '%s' via %s", article_url, downloader)
+            try:
+                if is_arxiv:
+                    _download_arxiv_article(article_url, output_file)
+                else:
+                    _download_website_article(article_url, output_file)
+            except Exception as e:
                 _LOG.warning(
-                    "Row %d: Failed to download article from: %s",
+                    "Row %d: Failed to download article from '%s': %s",
                     idx,
                     article_url,
+                    e,
                 )
                 continue
-            # Write article text to disk.
-            _LOG.info("Writing article content to: %s", output_file)
-            hio.to_file(output_file, article_content)
             _LOG.info("Successfully saved article for: %s", title)
 
 
@@ -612,19 +757,20 @@ def _summarize_hn_url(
         len(indices),
         " (DRY RUN)" if dry_run else "",
     )
-    comments_prompt = (
-        "Analyze the Hacker News comment section. "
-        "From all comments, summarize the 5 most interesting ones based on: "
-        "1. Thought-provoking or insightful content "
-        "2. Unique perspective or uncommon knowledge "
-        "3. Sparks discussion or debate "
-        "4. Technically informative or educational "
-        "5. Controversial but well-argued. "
-        "Avoid comments that are: simple jokes, memes, very short reactions, "
-        "repetitive or low-effort. "
-        "Do not include commenter names. "
-        "Format as plain text without markdown."
-    )
+    comments_prompt = """
+        Analyze the Hacker News comment section. 
+        From all comments, summarize the 5 most interesting ones based on: 
+        1. Thought-provoking or insightful content 
+        2. Unique perspective or uncommon knowledge 
+        3. Sparks discussion or debate 
+        4. Technically informative or educational 
+        5. Controversial but well-argued. 
+        Avoid comments that are: simple jokes, memes, very short reactions, 
+        repetitive or low-effort. 
+        Do not include commenter names. 
+        Format as plain text without markdown.
+    """
+    comments_prompt = hprint.dedent(comments_prompt)
     for idx in tqdm(indices, desc="Summarizing comments"):
         row = rows[idx]
         title = row.get("Title", "").strip()
@@ -697,13 +843,13 @@ def _summarize_articles(
 # #############################################################################
 
 
-VALID_ACTIONS = [
+_VALID_ACTIONS = [
     "download_article_url",
     "download_hn_url",
     "summarize_article_url",
     "summarize_hn_url",
 ]
-DEFAULT_ACTIONS = VALID_ACTIONS[:]
+_DEFAULT_ACTIONS = _VALID_ACTIONS[:]
 
 
 def _parse() -> argparse.ArgumentParser:
@@ -713,25 +859,40 @@ def _parse() -> argparse.ArgumentParser:
     _LOG.debug(hprint.func_signature_to_str())
     parser = argparse.ArgumentParser(
         description=__doc__,
-        formatter_class=argparse.RawDescriptionHelpFormatter,
+        formatter_class=hparser.CustomHelpFormatter,
     )
-    # Required: URL of the Google Sheets document containing article links.
-    parser.add_argument(
+    # Exactly one data source is required: a Google Sheets document, a
+    # single HN submission URL, or a single article URL, each processed
+    # directly (bypassing Google Sheets) for the latter two.
+    source_group = parser.add_mutually_exclusive_group(required=True)
+    source_group.add_argument(
         "--url",
         action="store",
-        required=True,
         help="URL of the Google Sheets document",
     )
-    # Optional: specify which rows to process (0-indexed).
+    source_group.add_argument(
+        "--hn_url",
+        action="store",
+        help="Directly download a single HN submission URL, bypassing Google Sheets",
+    )
+    source_group.add_argument(
+        "--article_url",
+        action="store",
+        help="Directly download a single article URL, bypassing Google Sheets; "
+        "the title is extracted from the page's <title> tag",
+    )
+    # Optional: specify which rows to process (0-indexed). Ignored when
+    # --hn_url or --article_url is used, since each processes a single
+    # synthetic row.
     parser.add_argument(
         "--row_idx",
         action="store",
         required=False,
         default="",
-        help="Row index or range to process, 1-indexed (e.g., '1' for first row, '1:10' for rows 1-10)",
+        help="Row index or range to process, 1-indexed (e.g., '1' for first row, '1:10' for rows 1-10); ignored with --hn_url/--article_url",
     )
     # Add action selection arguments (download_hn_url, download_article_url, etc).
-    hselacti.add_action_arg(parser, VALID_ACTIONS, DEFAULT_ACTIONS)
+    hselacti.add_action_arg(parser, _VALID_ACTIONS, _DEFAULT_ACTIONS)
     # Add cache control argument.
     hcacsimp.add_cache_control_arg(parser)
     # Dry run mode: show what would happen without executing.
@@ -753,28 +914,42 @@ def _main(parser: argparse.ArgumentParser) -> None:
     args = parser.parse_args()
     hdbg.init_logger(verbosity=args.log_level, use_exec_path=True)
     hcacsimp.parse_cache_control_args(args)
-    hdbg.dassert_is_not(args.url, None, "--url is required")
-    # Determine which actions to execute based on command-line flags.
-    actions = hselacti.select_actions(args, VALID_ACTIONS, DEFAULT_ACTIONS)
+    # Phase 1: Determine the rows to process, either from a single --hn_url,
+    # a single --article_url, or from the full Google Sheets document.
+    if args.hn_url:
+        rows = _build_row_from_hn_url(args.hn_url)
+        indices = [0]
+    elif args.article_url:
+        rows = _build_row_from_article_url(args.article_url)
+        indices = [0]
+    else:
+        rows = _load_rows_from_gsheet(args.url)
+        # Phase 2: Determine which rows to process based on `row_idx` argument.
+        indices = _parse_row_idx(args.row_idx, len(rows))
+    _LOG.info("Row indices to process: %s", indices)
+    # Determine which actions to execute based on command-line flags. When
+    # processing a single --hn_url directly and the submission has no linked
+    # article (e.g., Show HN / Ask HN / text posts have no Article_url),
+    # restrict the defaults to HN-only actions. Likewise, --article_url has
+    # no Hn_url, so restrict to article-only actions. Both are overridable
+    # explicitly via --action/--skip_action/--enable.
+    default_actions = _DEFAULT_ACTIONS
+    if args.hn_url and not rows[0]["Article_url"]:
+        default_actions = ["download_hn_url", "summarize_hn_url"]
+    elif args.article_url:
+        default_actions = ["download_article_url", "summarize_article_url"]
+    actions = hselacti.select_actions(args, _VALID_ACTIONS, default_actions)
     _LOG.info(
         "Actions to execute:\n%s",
-        hselacti.actions_to_string(actions, VALID_ACTIONS, add_frame=True),
+        hselacti.actions_to_string(actions, _VALID_ACTIONS, add_frame=True),
     )
-    # Phase 1: Download and parse the Google Sheets data.
-    rows = _load_rows_from_gsheet(args.url)
-    # Phase 2: Determine which rows to process based on `row_idx` argument.
-    indices = _parse_row_idx(args.row_idx, len(rows))
-    _LOG.info("Row indices to process: %s", indices)
     # Execute selected actions in sequence.
     # Each action processes the filtered set of rows independently.
     if args.dry_run:
         _LOG.info("DRY RUN MODE: showing what would be done without executing")
-    actions_remaining = actions
-    while actions_remaining:
-        action = actions_remaining[0]
-        to_execute, actions_remaining = hselacti.mark_action(
-            action, actions_remaining
-        )
+    while actions:
+        action = actions[0]
+        to_execute, actions = hselacti.mark_action(action, actions)
         if not to_execute:
             continue
         # Phase 3: Download article.
@@ -787,6 +962,11 @@ def _main(parser: argparse.ArgumentParser) -> None:
             _summarize_articles(rows, indices=indices, dry_run=args.dry_run)
         elif action == "summarize_hn_url":
             _summarize_hn_url(rows, indices=indices, dry_run=args.dry_run)
+        else:
+            raise ValueError(f"Invalid action='{action}'")
+    hdbg.dassert_eq(
+        len(actions), 0, "There are unprocessed actions: %s", str(actions)
+    )
     _LOG.info("Download and processing completed")
 
 
