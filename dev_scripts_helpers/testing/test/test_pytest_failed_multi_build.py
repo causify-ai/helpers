@@ -204,7 +204,7 @@ class Test_extract_tests_from_repro(hunitest.TestCase):
             "helpers/test/test_module.py::TestClass::test_method2",
         ]
         # Run test.
-        self.helper(repro_content, 2, expected)
+        self.helper(repro_content, 2, expected=expected)
 
     def test2(self) -> None:
         """
@@ -222,7 +222,7 @@ class Test_extract_tests_from_repro(hunitest.TestCase):
             "helpers/test/test_module.py::TestClass::test_method1",
         ]
         # Run test.
-        self.helper(repro_content, 1, expected)
+        self.helper(repro_content, 1, expected=expected)
 
     def test3(self) -> None:
         """
@@ -238,7 +238,7 @@ class Test_extract_tests_from_repro(hunitest.TestCase):
         # Prepare outputs.
         expected = []
         # Run test.
-        self.helper(repro_content, 0, expected)
+        self.helper(repro_content, 0, expected=expected)
 
 
 # #############################################################################
