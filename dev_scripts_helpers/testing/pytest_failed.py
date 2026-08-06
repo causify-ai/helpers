@@ -48,6 +48,7 @@ import argparse
 import logging
 from typing import Any, Dict
 
+import helpers.hdaemon as hdaemon
 import helpers.hdbg as hdbg
 import helpers.hio as hio
 import helpers.hparser as hparser
@@ -63,7 +64,8 @@ _LOG = logging.getLogger(__name__)
 # #############################################################################
 
 
-# TODO(gp): Who uses it? Does it belong to the pytest_utils.py?
+# TODO(gp): If it used only by
+# ./dev_scripts_helpers/testing/test/test_pytest_failed.py move it there
 def _get_output_filename(base: str, build_name: str = "") -> str:
     """
     Generate output filename with optional build name encoding.
@@ -100,6 +102,7 @@ def _add_build_env_to_repro(content: str, build_name: str) -> str:
     hdbg.dassert_in(build_name, hpytest.BUILD_CONFIG)
     docker_engine, use_docker_cmd = hpytest.BUILD_CONFIG[build_name]
     # Prepend environment setup specific to the build configuration.
+    # TODO(ai_gp): Use """ and dedent
     header_parts = [
         "#!/bin/bash",
         f"# Repro script for build: {build_name}",
@@ -108,12 +111,14 @@ def _add_build_env_to_repro(content: str, build_name: str) -> str:
     if use_docker_cmd:
         header_parts.extend(
             [
+    # TODO(ai_gp): Use """ and dedent
                 "# Note: This build requires docker_cmd wrapper",
                 '# Run commands with: invoke docker_cmd --stage=local -v 1.6.0 --cmd "<command>"',
             ]
         )
     header = "\n".join(header_parts) + "\n\n"
-    # Remove shebang from existing content to avoid duplication when prepending header.
+    # Remove shebang from existing content to avoid duplication when prepending
+    # header.
     if content.startswith("#!/bin/bash"):
         first_newline = content.find("\n")
         if first_newline != -1:
@@ -170,7 +175,7 @@ def _format_outcome_table(result: Dict[str, Any]) -> str:
 
 
 def _process_single_file(
-    file_path: str, *, build_name: str = ""
+    file_path: str, *, build_name: str = "", quiet: bool = False
 ) -> Dict[str, Any]:
     """
     Process a single pytest log file and return summary info.
@@ -178,15 +183,19 @@ def _process_single_file(
     :param file_path: Path to pytest log file
     :param build_name: Build name for output file naming
         - E.g., 'docker', 'apple', 'dev_container'
+    :param quiet: if True, skip printing the full parsed-results dump
+    (`hpytest.info_to_str()`) and only report the failed tests and outcome
+    summary (used in `--daemon` mode)
     """
-    _LOG.debug(hprint.to_str("file_path build_name"))
+    _LOG.debug(hprint.to_str("file_path build_name quiet"))
     _LOG.info("Reading '%s'", file_path)
     txt = hio.from_file(file_path)
     _LOG.info("Parsing '%s'", file_path)
     lines = txt.split("\n")
     info = hpytest.parse_failed_tests(lines)
-    # Print parsed test results summary.
-    print(hpytest.info_to_str(info))
+    if not quiet:
+        # Print parsed test results summary.
+        print(hpytest.info_to_str(info))
     # Write main repro script for failed tests.
     failed_tests = info["log_failed_tests"]
     repro_file = hpytest.get_output_file_path("repro.sh", build_name=build_name)
@@ -299,6 +308,11 @@ def _process_single_file(
     return result
 
 
+# #############################################################################
+# CLI
+# #############################################################################
+
+
 def _parse() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         description=__doc__,
@@ -317,6 +331,13 @@ def _parse() -> argparse.ArgumentParser:
         default="",
         help="Build name for output file naming (e.g., 'docker', 'apple', 'dev_container')",
     )
+    parser.add_argument(
+        "--quiet",
+        action="store_true",
+        help="Only report the failed tests and outcome summary, skipping "
+        "the full parsed-results dump (always implied by --daemon)",
+    )
+    hdaemon.add_periodic_daemon_args(parser, default_interval=5)
     hparser.add_verbosity_arg(parser)
     return parser
 
@@ -325,8 +346,23 @@ def _main(parser: argparse.ArgumentParser) -> None:
     _LOG.debug("_main called")
     args = parser.parse_args()
     hdbg.init_logger(verbosity=args.log_level, use_exec_path=True)
+    if args.daemon:
+        # Re-process `--input` every `--interval` seconds, reporting only
+        # the failed tests and outcome summary.
+        def _run() -> None:
+            result = _process_single_file(
+                args.input, build_name=args.build_name, quiet=True
+            )
+            print("\n" + _format_outcome_table(result))
+
+        hdaemon.run_periodic_daemon_mode(
+            _run, args.interval, window_name_str="pytest_failed"
+        )
+        return
     # Process the pytest log file to extract and organize failed tests.
-    result = _process_single_file(args.input, build_name=args.build_name)
+    result = _process_single_file(
+        args.input, build_name=args.build_name, quiet=args.quiet
+    )
     # Print outcome summary table with test counts and overall status.
     print("\n" + _format_outcome_table(result))
 

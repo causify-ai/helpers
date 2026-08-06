@@ -710,11 +710,11 @@ class Test_build_stats_to_str_incomplete_status(hunitest.TestCase):
         ################################################################################
         Build Statistics
         ################################################################################
-        Build         | Status              | Passed | Skipped | Failed | Total | Duration |
-        ------------- | ------------------- | ------ | ------- | ------ | ----- | -------- |
-        docker        | FAIL       | 235    | 9       | 19     | 263   | 45.2s    |
+        Build         | Status      | Passed | Skipped | Failed | Total | Duration |
+        ------------- | ----------- | ------ | ------- | ------ | ----- | -------- |
+        docker        | FAIL        | 235    | 9       | 19     | 263   | 45.2s    |
         apple         | NOT STARTED | 0      | 0       | 0      | 0     | N/A      |
-        dev_container | PASS       | 240    | 8       | 0      | 248   | 50.1s    |
+        dev_container | PASS        | 240    | 8       | 0      | 248   | 50.1s    |
         """
         self.assert_equal(clean_actual, expected, dedent=True)
 
@@ -776,9 +776,9 @@ class Test_build_stats_to_str_colorization(hunitest.TestCase):
         ################################################################################
         Build Statistics
         ################################################################################
-        Build  | Status        | Passed | Skipped | Failed | Total | Duration |
-        ------ | ------------- | ------ | ------- | ------ | ----- | -------- |
-        docker | PASS | 368    | 20      | 0      | 388   | 11.87s   |"""
+        Build  | Status | Passed | Skipped | Failed | Total | Duration |
+        ------ | ------ | ------ | ------- | ------ | ----- | -------- |
+        docker | PASS   | 368    | 20      | 0      | 388   | 11.87s   |"""
         # Run test.
         self._check_colorized_output(build_stats, "PASS", expected, dedent=True)
 
@@ -802,9 +802,9 @@ class Test_build_stats_to_str_colorization(hunitest.TestCase):
         ################################################################################
         Build Statistics
         ################################################################################
-        Build  | Status        | Passed | Skipped | Failed | Total | Duration |
-        ------ | ------------- | ------ | ------- | ------ | ----- | -------- |
-        docker | FAIL | 357    | 20      | 11     | 388   | 12.45s   |"""
+        Build  | Status | Passed | Skipped | Failed | Total | Duration |
+        ------ | ------ | ------ | ------- | ------ | ----- | -------- |
+        docker | FAIL   | 357    | 20      | 11     | 388   | 12.45s   |"""
         # Run test.
         self._check_colorized_output(build_stats, "FAIL", expected, dedent=True)
 
@@ -828,8 +828,8 @@ class Test_build_stats_to_str_colorization(hunitest.TestCase):
         ################################################################################
         Build Statistics
         ################################################################################
-        Build         | Status              | Passed | Skipped | Failed | Total | Duration |
-        ------------- | ------------------- | ------ | ------- | ------ | ----- | -------- |
+        Build         | Status      | Passed | Skipped | Failed | Total | Duration |
+        ------------- | ----------- | ------ | ------- | ------ | ----- | -------- |
         dev_container | NOT STARTED | 0      | 0       | 0      | 0     | N/A      |"""
         # Run test.
         self._check_colorized_output(
@@ -856,8 +856,8 @@ class Test_build_stats_to_str_colorization(hunitest.TestCase):
         ################################################################################
         Build Statistics
         ################################################################################
-        Build | Status               | Passed | Skipped | Failed | Total | Duration |
-        ----- | -------------------- | ------ | ------- | ------ | ----- | -------- |
+        Build | Status      | Passed | Skipped | Failed | Total | Duration |
+        ----- | ----------- | ------ | ------- | ------ | ----- | -------- |
         apple | IN PROGRESS | 150    | 5       | 0      | 155   | N/A      |"""
         # Run test.
         self._check_colorized_output(
@@ -885,8 +885,8 @@ class Test_build_stats_to_str_colorization(hunitest.TestCase):
         ################################################################################
         Build Statistics
         ################################################################################
-        Build  | Status              | Passed | Skipped | Failed | Total | Duration |
-        ------ | ------------------- | ------ | ------- | ------ | ----- | -------- |
+        Build  | Status      | Passed | Skipped | Failed | Total | Duration |
+        ------ | ----------- | ------ | ------- | ------ | ----- | -------- |
         docker | NOT STARTED | 0      | 0       | 0      | 0     | N/A      |"""
         # Run test.
         self._check_colorized_output(build_stats, "NOT STARTED", expected, dedent=True)

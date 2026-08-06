@@ -160,18 +160,34 @@ class Table:
         table.insert(0, self._column_names)
         # Convert the cells to strings.
         table_as_str = [[str(cell) for cell in row] for row in table]
-        # Find the length of each columns.
-        lengths = [max(map(len, col)) for col in zip(*table_as_str)]
+        # Compute the visible length of a cell, i.e., ignoring ANSI color codes
+        # (e.g., from `hprint.color_highlight()`). Using the raw `len()` would
+        # inflate the width of columns with colored cells (e.g., "Status")
+        # since escape codes count as characters but are not displayed, which
+        # misaligns the table when rendered.
+        # TODO(ai_gp): Convert all this into a loop for readability.
+        def _visible_len(cell: str) -> int:
+            return len(hprint.remove_non_printable_chars(cell))
+
+        # Find the visible length of each column.
+        lengths = [
+            max(_visible_len(cell) for cell in col)
+            for col in zip(*table_as_str)
+        ]
         _LOG.debug(hprint.to_str("lengths"))
-        # Compute format for the columns.
-        fmt = " ".join(f"{{:{x}}} |" for x in lengths)
-        _LOG.debug(hprint.to_str("fmt"))
         # Add the row separating the column names.
         row_sep = ["-" * length for length in lengths]
-        table.insert(1, row_sep)
-        table_as_str = [[str(cell) for cell in row] for row in table]
-        # Format rows.
-        rows_as_str = [fmt.format(*row) for row in table_as_str]
+        table_as_str.insert(1, row_sep)
+        # Format rows, padding each cell to the column's visible length (rather
+        # than relying on `str.format()`, which pads based on the raw, not
+        # visible, length).
+        rows_as_str = []
+        for row in table_as_str:
+            cells = [
+                f"{cell}{' ' * (length - _visible_len(cell))} |"
+                for cell, length in zip(row, lengths)
+            ]
+            rows_as_str.append(" ".join(cells))
         # Remove trailing spaces.
         rows_as_str = [row.rstrip() for row in rows_as_str]
         # Create string.

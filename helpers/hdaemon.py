@@ -1,8 +1,16 @@
 """
-File watching utilities with debouncing for daemon-mode operations.
+Utilities for daemon-mode operations, i.e., scripts that keep re-running
+instead of exiting after one pass
 
-Provides file hashing and command execution on file changes, useful for
-watch-mode file processors (e.g., document rebuilders, format watchers).
+- There are two flows:
+  1. Reactive daemon (`daemon_watch()` / `run_daemon_mode()`):
+     - Watch a file
+     - Re-run (debounced) only when it changes
+     - E.g., rebuilding a PDF from a `.tex` file that's being edited
+  2. Periodic daemon (`run_periodic_daemon_mode()`):
+     - Re-run on a fixed cadence regardless of whether anything changed
+     - E.g., refreshing a GitHub workflow status or a pytest log's parsed
+       summary every N seconds
 
 Import as:
 
@@ -14,6 +22,7 @@ import hashlib
 import logging
 import shlex
 import time
+from typing import Callable
 
 import helpers.hdbg as hdbg
 import helpers.hsystem as hsystem
@@ -22,23 +31,92 @@ import helpers.htmux as htmux
 _LOG = logging.getLogger(__name__)
 
 
+# #############################################################################
+# Periodic daemon.
+# #############################################################################
+
+
+# TODO(ai_gp): Inline if it's called only once
 def add_daemon_arg(
     parser: argparse.ArgumentParser,
+    *,
+    help_text: str = "Watch input file for changes and regenerate on change",
 ) -> argparse.ArgumentParser:
     """
     Add --daemon argument to an argument parser.
 
     :param parser: Argument parser to add daemon argument to
+    :param help_text: help text for the flag, overridable since it means
+        something different for the reactive vs. periodic flow
     :return: The parser (for method chaining)
     """
     parser.add_argument(
         "--daemon",
         action="store_true",
-        help="Watch input file for changes and regenerate on change",
+        help=help_text,
     )
     return parser
 
 
+def add_periodic_daemon_args(
+    parser: argparse.ArgumentParser, *, default_interval: int = 5
+) -> argparse.ArgumentParser:
+    """
+    Add `--daemon` and `--interval` arguments to an argument parser, for
+    scripts using periodic daemon mode (see `run_periodic_daemon_mode()`).
+
+    :param parser: argument parser to add arguments to
+    :param default_interval: default seconds between periodic runs
+    :return: the parser (for method chaining)
+    """
+    add_daemon_arg(
+        parser,
+        help_text="Periodically re-run and report status (see --interval)",
+    )
+    parser.add_argument(
+        "--interval",
+        type=int,
+        default=default_interval,
+        help="Seconds between periodic runs in daemon mode "
+        f"(default: {default_interval})",
+    )
+    return parser
+
+
+def run_periodic_daemon_mode(
+        # TODO(ai_gp): fn -> func
+    fn: Callable[[], None],
+    interval_in_sec: int,
+    *,
+    window_name_str: str = "",
+) -> None:
+    """
+    Run periodic daemon mode: call `fn()` every `interval_in_sec` seconds,
+    forever, regardless of whether anything changed.
+
+    E.g., watching on a fixed cadence:
+    - a GitHub workflow's status with `invoke gh_watch()`)
+    - a pytest log's parsed summary with `pytest_failed.py --daemon`
+
+    :param fn: zero-arg callable to invoke on each iteration
+    :param interval_in_sec: seconds to sleep between iterations
+    :param window_name_str: tmux window name to use while daemon is running
+        (no-op outside tmux)
+    """
+    _LOG.info("Periodic daemon mode: running every %ds", interval_in_sec)
+    with htmux.window_name(window_name_str):
+        while True:
+            fn()
+            _LOG.info("Sleeping %ds before next run", interval_in_sec)
+            time.sleep(interval_in_sec)
+
+
+# #############################################################################
+# Reactive daemon
+# #############################################################################
+
+
+# TODO(ai_gp): Who uses it? If nobody else -> private
 def file_hash(file_path: str) -> str:
     """
     Compute MD5 hash of a file.
@@ -53,6 +131,7 @@ def file_hash(file_path: str) -> str:
     return hasher.hexdigest()
 
 
+# TODO(ai_gp): Who uses it? If nobody else -> private
 def daemon_watch(
     file_path: str,
     cmd: str,
@@ -125,6 +204,7 @@ def daemon_watch(
                 stable_hash = ""
 
 
+# TODO(ai_gp): -> run_reactive_daemon_mode
 def run_daemon_mode(
     input_file: str,
     cmd: str,

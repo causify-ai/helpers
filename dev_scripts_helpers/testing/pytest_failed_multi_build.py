@@ -24,6 +24,7 @@ import os
 import sys
 from typing import Any, Dict, List, Set
 
+import helpers.hdaemon as hdaemon
 import helpers.hdbg as hdbg
 import helpers.hio as hio
 import helpers.hparser as hparser
@@ -91,7 +92,10 @@ def _extract_build_stats(build_name: str) -> Dict[str, Any]:
 
 
 def _generate_build_files(
-    build_names: List[str], in_build_tag: str = "pytest_multi_build"
+    build_names: List[str],
+    *,
+    in_build_tag: str = "pytest_multi_build",
+    quiet: bool = False,
 ) -> List[Dict[str, Any]]:
     """
     Generate output files for each build by calling `pytest_failed.py`.
@@ -100,9 +104,12 @@ def _generate_build_files(
         - E.g., ['docker', 'apple', 'dev_container']
     :param in_build_tag: Tag for input files (default: 'pytest_multi_build')
         - Input files will be named: tmp.<in_build_tag>.<build_name>.txt
+    :param quiet: if True, pass `--quiet` to `pytest_failed.py` so it only
+        reports the failed tests and outcome summary (used in `--daemon`
+        mode)
     :return: List of build statistics dicts
     """
-    _LOG.debug(hprint.to_str("build_names"))
+    _LOG.debug(hprint.to_str("build_names quiet"))
     # Locate `pytest_failed.py` script in the same directory.
     script_dir = os.path.dirname(os.path.abspath(__file__))
     pytest_failed_script = os.path.join(script_dir, "pytest_failed.py")
@@ -122,16 +129,15 @@ def _generate_build_files(
             continue
         _LOG.info("Processing target='%s' from '%s'", build_name, input_file)
         # Build command to execute `pytest_failed.py` for this build.
-        cmd = " ".join(
-            [
-                sys.executable,
-                pytest_failed_script,
-                "--input",
-                input_file,
-                "--build_name",
-                build_name,
-            ]
-        )
+        cmd_parts = [
+            sys.executable,
+            pytest_failed_script,
+            f"--input {input_file}",
+            f"--build_name {build_name}"
+        ]
+        if quiet:
+            cmd_parts.append("--quiet")
+        cmd = " ".join(cmd_parts)
         hsystem.system(cmd)
         # Extract build statistics from generated output.
         stats = _extract_build_stats(build_name)
@@ -407,6 +413,55 @@ def _summary_to_str(
     return result
 
 
+def _run_once(
+    build_names: List[str],
+    in_build_tag: str,
+    out_build_tag: str,
+    *,
+    quiet: bool = False,
+) -> None:
+    """
+    Run one pass of generating and consolidating failed tests across builds.
+
+    :param build_names: list of build names
+    :param in_build_tag: tag for input files to read
+    :param out_build_tag: tag for BUILD_TAG in generated repro script
+    :param quiet: if True, only report the build statistics table, skipping
+        the per-test failure summary across builds (used in `--daemon`
+        mode)
+    """
+    _LOG.info(
+        "Consolidating failed tests for builds: %s", ", ".join(build_names)
+    )
+    # Generate pytest_failed output files for each build by invoking
+    # `pytest_failed.py`.
+    _LOG.info("Generating intermediate files by calling pytest_failed.py...")
+    build_stats = _generate_build_files(
+        build_names, in_build_tag=in_build_tag, quiet=quiet
+    )
+    # Print build statistics summary.
+    stats_summary = _build_stats_to_str(build_stats)
+    print(stats_summary)
+    # Consolidate failed tests across all builds to identify common failures.
+    test_to_builds = _consolidate_failed_tests(build_names)
+    # Print summary of failures only if there are failed tests.
+    if test_to_builds and not quiet:
+        summary = _summary_to_str(build_names, test_to_builds)
+        print(summary)
+    # Create consolidated repro script combining tests from all builds.
+    repro_content = _create_consolidated_repro(
+        build_names, out_build_tag=out_build_tag
+    )
+    repro_file = "tmp.pytest_failed_multi_build.repro.sh"
+    hio.create_executable_script(repro_file, repro_content)
+    _LOG.info("Created consolidated repro script: '%s'...", repro_file)
+    # Create consolidated failed tests file with formatted table.
+    failed_table = _failed_tests_table_to_str(test_to_builds)
+    failed_file = "tmp.pytest_failed_multi_build.failed_tests.txt"
+    hio.to_file(failed_file, failed_table)
+    _LOG.info("Created consolidated failed tests file: '%s'...", failed_file)
+
+
 # #############################################################################
 # CLI
 # #############################################################################
@@ -440,6 +495,14 @@ def _parse() -> argparse.ArgumentParser:
         help="Tag for BUILD_TAG in generated repro script (default: pytest_multi_build). "
         "Output files will be named: tmp.<out_build_tag>.<build_name>.txt",
     )
+    parser.add_argument(
+        "--quiet",
+        action="store_true",
+        help="Only report the build statistics table, skipping the "
+        "per-test failure summary across builds (always implied by "
+        "--daemon)",
+    )
+    hdaemon.add_periodic_daemon_args(parser, default_interval=5)
     hparser.add_verbosity_arg(parser)
     return parser
 
@@ -454,34 +517,17 @@ def _main(parser: argparse.ArgumentParser) -> None:
     build_names = args.build_names
     in_build_tag = args.in_build_tag
     out_build_tag = args.out_build_tag
-    _LOG.info(
-        "Consolidating failed tests for builds: %s", ", ".join(build_names)
-    )
-    # Generate pytest_failed output files for each build by invoking
-    # `pytest_failed.py`.
-    _LOG.info("Generating intermediate files by calling pytest_failed.py...")
-    build_stats = _generate_build_files(build_names, in_build_tag=in_build_tag)
-    # Print build statistics summary.
-    stats_summary = _build_stats_to_str(build_stats)
-    print(stats_summary)
-    # Consolidate failed tests across all builds to identify common failures.
-    test_to_builds = _consolidate_failed_tests(build_names)
-    # Print summary of failures only if there are failed tests.
-    if test_to_builds:
-        summary = _summary_to_str(build_names, test_to_builds)
-        print(summary)
-    # Create consolidated repro script combining tests from all builds.
-    repro_content = _create_consolidated_repro(
-        build_names, out_build_tag=out_build_tag
-    )
-    repro_file = "tmp.pytest_failed_multi_build.repro.sh"
-    hio.create_executable_script(repro_file, repro_content)
-    _LOG.info("Created consolidated repro script: '%s'...", repro_file)
-    # Create consolidated failed tests file with formatted table.
-    failed_table = _failed_tests_table_to_str(test_to_builds)
-    failed_file = "tmp.pytest_failed_multi_build.failed_tests.txt"
-    hio.to_file(failed_file, failed_table)
-    _LOG.info("Created consolidated failed tests file: '%s'...", failed_file)
+    if args.daemon:
+        # Re-run the consolidation every `--interval` seconds, reporting
+        # only the build statistics table.
+        def _run() -> None:
+            _run_once(build_names, in_build_tag, out_build_tag, quiet=True)
+
+        hdaemon.run_periodic_daemon_mode(
+            _run, args.interval, window_name_str="pytest_failed_multi_build"
+        )
+        return
+    _run_once(build_names, in_build_tag, out_build_tag, quiet=args.quiet)
 
 
 if __name__ == "__main__":
