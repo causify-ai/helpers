@@ -125,9 +125,7 @@ class Test_read_repro_script(hunitest.TestCase):
     Test _read_repro_script function for reading repro scripts.
     """
 
-    def helper(
-        self, build_name: str, content: str, expected: str
-    ) -> str:
+    def helper(self, build_name: str, content: str, expected: str) -> str:
         """
         Helper method to run test in scratch directory and check outputs.
 

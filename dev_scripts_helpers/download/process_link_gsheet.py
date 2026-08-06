@@ -56,7 +56,7 @@ from tqdm import tqdm
 
 import helpers.hdbg as hdbg
 import helpers.hllm_cli as hllmcli
-import helpers.hlogging as hlogging
+import helpers.hlogging as hloggin
 import helpers.hparser as hparser
 import helpers.hprint as hprint
 import helpers.hselect_action as hselacti
@@ -473,7 +473,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
     _LOG.debug(hprint.func_signature_to_str())
     args = parser.parse_args()
     hdbg.init_logger(verbosity=args.log_level, use_exec_path=True)
-    hlogging.shutup_chatty_modules(verbosity=logging.ERROR)
+    hloggin.shutup_chatty_modules(verbosity=logging.ERROR)
     # Silence noisy third-party HTTP and LLM client loggers so INFO output
     # stays readable.
     for module_name in ["httpcore", "httpx", "_base_client", "_trace", "openai"]:

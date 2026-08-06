@@ -237,7 +237,7 @@ class Test_PromptSequencer_chunk_stats(hunitest.TestCase):
         # Prepare outputs.
         expected = (
             "[{'outcome': 'NO-OP', 'cost_usd': 0.05, 'num_turns': 3, "
-            "'is_error': False}]"
+            "'is_error': False, 'usage': None, 'stop_reason': None}]"
         )
         # Run test.
         self.helper(sequencer, ["prompt A"], fake_client, expected)
@@ -259,10 +259,11 @@ class Test_PromptSequencer_chunk_stats(hunitest.TestCase):
         )
         fake_client = dshaccli.FakeClaudeSDKClient(responses_by_call=[[msg1]])
         # Prepare outputs.
-        expected = (
-            "[{'outcome': 'NO-OP', 'cost_usd': None, 'num_turns': 0, "
-            "'is_error': False}]"
-        )
+        expected = r""""
+            [{'outcome': 'NO-OP', 'cost_usd': None, 'num_turns': 0, 'is_error': False, 'usage': None, 'stop_reason': None}]
+        """
+        # TODO(ai_gp): Move this in the helper and remove it from the callers.
+        expected = hprint.dedent(expected)
         # Run test.
         self.helper(sequencer, ["prompt A"], fake_client, expected)
 
@@ -295,7 +296,7 @@ class Test_PromptSequencer_chunk_stats(hunitest.TestCase):
         )
         # Prepare outputs.
         expected = r"""
-        [{'outcome': 'CHANGED: fixed x', 'cost_usd': 0.5, 'num_turns': 15, 'is_error': True}]
+        [{'outcome': 'CHANGED: fixed x', 'cost_usd': 0.5, 'num_turns': 15, 'is_error': True, 'usage': None, 'stop_reason': None}]
         """
         expected = hprint.dedent(expected)
         # Run test.
@@ -328,7 +329,7 @@ class Test_PromptSequencer_chunk_stats(hunitest.TestCase):
         )
         # Prepare outputs.
         expected = r"""
-        [{'outcome': 'NO-OP', 'cost_usd': None, 'num_turns': 0, 'is_error': False}, {'outcome': 'CHANGED: fixed x', 'cost_usd': None, 'num_turns': 0, 'is_error': False}]
+        [{'outcome': 'NO-OP', 'cost_usd': None, 'num_turns': 0, 'is_error': False, 'usage': None, 'stop_reason': None}, {'outcome': 'CHANGED: fixed x', 'cost_usd': None, 'num_turns': 0, 'is_error': False, 'usage': None, 'stop_reason': None}]
         """
         expected = hprint.dedent(expected)
         # Run test.
@@ -361,7 +362,7 @@ class Test_PromptSequencer_chunk_stats(hunitest.TestCase):
         )
         # Prepare outputs.
         expected = r"""
-        [{'outcome': 'NO-OP', 'cost_usd': None, 'num_turns': 0, 'is_error': False}, {'outcome': 'NO-OP', 'cost_usd': None, 'num_turns': 0, 'is_error': False}]
+        [{'outcome': 'NO-OP', 'cost_usd': None, 'num_turns': 0, 'is_error': False, 'usage': None, 'stop_reason': None}, {'outcome': 'NO-OP', 'cost_usd': None, 'num_turns': 0, 'is_error': False, 'usage': None, 'stop_reason': None}]
         """
         expected = hprint.dedent(expected)
         # Run test.

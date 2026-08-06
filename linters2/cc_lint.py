@@ -620,7 +620,8 @@ def _append_journal_entries(
 
     :param journal_file: path to the JSON journal file
     :param entries: journal entries to append, each with `file_path`,
-        `chunk_title`, `status`, `cost_usd`, and `num_turns`
+        `chunk_title`, `status`, `cost_usd`, `num_turns`, `usage`, and
+        `stop_reason`
     """
     if not entries:
         return
@@ -716,6 +717,8 @@ def _filter_resumable(
                     "status": "skipped",
                     "cost_usd": None,
                     "num_turns": None,
+                    "usage": None,
+                    "stop_reason": None,
                 }
             )
         else:
@@ -1276,6 +1279,15 @@ async def _process_file_incrementally(
 
     def _on_chunk_done(prompt_idx: int, stats: Dict[str, Any]) -> None:
         pbar.update(1)
+        # Surface each chunk's real cost, regardless of whether journaling
+        # is enabled.
+        _LOG.info(
+            "Chunk '%s' for '%s' cost $%s (%s turns)",
+            titles[prompt_idx - 1],
+            file_path,
+            stats["cost_usd"],
+            stats["num_turns"],
+        )
         if not journal_file:
             return
         entry = {
@@ -1284,6 +1296,8 @@ async def _process_file_incrementally(
             "status": _status_from_chunk_stats(stats),
             "cost_usd": stats["cost_usd"],
             "num_turns": stats["num_turns"],
+            "usage": stats["usage"],
+            "stop_reason": stats["stop_reason"],
         }
         _append_journal_entries(journal_file, [entry])
 
@@ -1302,6 +1316,12 @@ async def _process_file_incrementally(
         )
         await sequencer.execute(messages)
         stats = sequencer.get_execution_stats()
+        _LOG.info(
+            "Execution completed for '%s': total cost $%s (%s turns)",
+            file_path,
+            stats["total_cost_usd"],
+            stats["total_num_turns"],
+        )
         _LOG.debug("Execution completed: %s", stats)
         for idx, outcome in enumerate(sequencer.get_outcomes(), 1):
             _LOG.debug("Rule %d/%d outcome: %s", idx, len(messages), outcome)
@@ -1349,12 +1369,14 @@ def _build_one_shot_prompt(
         rule_content = hmarsele.extract_rule_from_file(args.rule)
         if add_todos:
             rule_file = args.rule.split(":", 1)[0]
+            # TODO(ai_gp): Use """ and dedent
             prompt = (
                 f"Check the rule below against file {file_path} for "
                 f"violations (do not fix them):\n{rule_content}\n\n"
                 + _build_add_todos_instructions(rule_file)
             )
         else:
+            # TODO(ai_gp): Use """ and dedent
             prompt = (
                 f"Execute the rule below on file {file_path}:\n{rule_content}"
             )
@@ -1370,6 +1392,7 @@ def _build_one_shot_prompt(
             topic_str = cast(str, topic)
         prompt, topic_info = _build_prompt(topic_str, add_todos=add_todos)
         if add_todos:
+            # TODO(ai_gp): Use """ and dedent
             prompt += (
                 "\n\n- Check the files below against the rules and "
                 "conventions above and add TODO\n"
@@ -1378,6 +1401,7 @@ def _build_one_shot_prompt(
                 f"  - `{file_path}`"
             )
         else:
+            # TODO(ai_gp): Use """ and dedent
             prompt += (
                 "\n\n- Process the files below according to the rules and "
                 "conventions above and make the changes without asking "
