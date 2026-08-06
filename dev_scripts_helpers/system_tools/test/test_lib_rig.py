@@ -351,10 +351,11 @@ class TestRigScript(hunitest.TestCase):
 
     def test18(self) -> None:
         """
-        Test -i flag expands to -S -i for ripgrep (smart-case + ignore-case).
+        Test --case_insensitive flag expands to -S -i for ripgrep (smart-case
+        + ignore-case).
         """
         # Prepare inputs.
-        args = ["TODO", "-i"]
+        args = ["TODO", "--case_insensitive"]
         # Prepare outputs.
         expected_cmd = (
             "rg TODO --hidden -n --no-heading --color=never -g !.git -S -i ."
@@ -369,10 +370,11 @@ class TestRigScript(hunitest.TestCase):
 
     def test19(self) -> None:
         """
-        Test -i flag combined with directory and extension arguments.
+        Test --case_insensitive flag combined with directory and extension
+        arguments.
         """
         # Prepare inputs.
-        args = ["import", "src", "js", "-i"]
+        args = ["import", "src", "js", "--case_insensitive"]
         # Prepare outputs.
         expected_cmd = "rg import --hidden -n --no-heading --color=never -g !.git -S -i -g *.js src"
         expected_exit_code = 0
