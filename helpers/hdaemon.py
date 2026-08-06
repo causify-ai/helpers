@@ -3,7 +3,7 @@ Utilities for daemon-mode operations, i.e., scripts that keep re-running
 instead of exiting after one pass
 
 - There are two flows:
-  1. Reactive daemon (`_daemon_watch()` / `run_reactive_daemon_mode()`):
+  1. Reactive daemon (`daemon_watch()` / `run_daemon_mode()`):
      - Watch a file
      - Re-run (debounced) only when it changes
      - E.g., rebuilding a PDF from a `.tex` file that's being edited
@@ -36,6 +36,7 @@ _LOG = logging.getLogger(__name__)
 # #############################################################################
 
 
+# TODO(ai_gp): Inline if it's called only once
 def add_daemon_arg(
     parser: argparse.ArgumentParser,
     *,
@@ -83,20 +84,21 @@ def add_periodic_daemon_args(
 
 
 def run_periodic_daemon_mode(
-    func: Callable[[], None],
+        # TODO(ai_gp): fn -> func
+    fn: Callable[[], None],
     interval_in_sec: int,
     *,
     window_name_str: str = "",
 ) -> None:
     """
-    Run periodic daemon mode: call `func()` every `interval_in_sec` seconds,
+    Run periodic daemon mode: call `fn()` every `interval_in_sec` seconds,
     forever, regardless of whether anything changed.
 
     E.g., watching on a fixed cadence:
-    - a GitHub workflow's status with `invoke gh_workflow_list --daemon`
+    - a GitHub workflow's status with `invoke gh_watch()`)
     - a pytest log's parsed summary with `pytest_failed.py --daemon`
 
-    :param func: zero-arg callable to invoke on each iteration
+    :param fn: zero-arg callable to invoke on each iteration
     :param interval_in_sec: seconds to sleep between iterations
     :param window_name_str: tmux window name to use while daemon is running
         (no-op outside tmux)
@@ -104,7 +106,7 @@ def run_periodic_daemon_mode(
     _LOG.info("Periodic daemon mode: running every %ds", interval_in_sec)
     with htmux.window_name(window_name_str):
         while True:
-            func()
+            fn()
             _LOG.info("Sleeping %ds before next run", interval_in_sec)
             time.sleep(interval_in_sec)
 
@@ -114,7 +116,8 @@ def run_periodic_daemon_mode(
 # #############################################################################
 
 
-def _file_hash(file_path: str) -> str:
+# TODO(ai_gp): Who uses it? If nobody else -> private
+def file_hash(file_path: str) -> str:
     """
     Compute MD5 hash of a file.
 
@@ -128,7 +131,8 @@ def _file_hash(file_path: str) -> str:
     return hasher.hexdigest()
 
 
-def _daemon_watch(
+# TODO(ai_gp): Who uses it? If nobody else -> private
+def daemon_watch(
     file_path: str,
     cmd: str,
     *,
@@ -200,7 +204,8 @@ def _daemon_watch(
                 stable_hash = ""
 
 
-def run_reactive_daemon_mode(
+# TODO(ai_gp): -> run_reactive_daemon_mode
+def run_daemon_mode(
     input_file: str,
     cmd: str,
     window_name_str: str,

@@ -28,6 +28,7 @@ This directory contains several categories of Git utilities:
 | `gdpy`           | Git diff for all Python files in the repository                              |
 | `gll`            | List commits in fancy format with author, timestamp, and branch info         |
 | `gllmy`          | List only your own commits in fancy format                                   |
+| `gmt`            | Run `git mergetool`, always matching `git status`'s unmerged file list       |
 | `gp`             | Sync client and then push local commits                                      |
 | `gpa`            | Pull with autostash (without pushing)                                        |
 | `grc`            | Continue a rebase operation                                                  |
@@ -251,6 +252,21 @@ This directory contains several categories of Git utilities:
     ```bash
     > git_conflict_show.sh conflicted_file.py
     ```
+
+### `gmt`
+- **What It Does**
+  - Run `git mergetool -- . "$@"` so it always lists the same unmerged files
+    as `git status`
+  - Works around a `git mergetool` quirk: with no path arguments, it skips
+    the normal unmerged-file check and instead trusts `git rerere remaining`
+    when `.git/MERGE_RR` exists. If that file is stale (e.g. left over from
+    an earlier step of a multi-commit rebase), `git mergetool` reports "No
+    files need merging" even though `git status` shows `UU` files. Passing
+    an explicit pathspec (`.`) makes it skip that shortcut and use the same
+    check `git status` is based on
+  - Note: `git config alias.mergetool ...` does not fix this — git silently
+    ignores aliases that hide an existing Git command, so an alias named
+    `mergetool` never takes effect
 
 ## Rebase Operations
 
