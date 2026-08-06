@@ -94,7 +94,6 @@ class Test_read_failed_tests(hunitest.TestCase):
         ]
         # Run test.
         expected = tests
-        _LOG.debug(hprint.to_str("build_name tests expected"))
         self.helper(build_name, "\n".join(tests), expected)
 
     def test2(self) -> None:
@@ -107,7 +106,6 @@ class Test_read_failed_tests(hunitest.TestCase):
         expected = []
         # An empty file must parse to an empty list, not `[""]`.
         # Run test.
-        _LOG.debug(hprint.to_str("build_name expected"))
         self.helper(build_name, "", expected)
 
     def test3(self) -> None:
@@ -130,7 +128,6 @@ class Test_read_failed_tests(hunitest.TestCase):
         # Leading/trailing whitespace and blank lines must be stripped out of
         # the parsed test list.
         # Run test.
-        _LOG.debug(hprint.to_str("build_name expected"))
         self.helper(build_name, content, expected)
 
 
@@ -178,7 +175,6 @@ class Test_read_repro_script(hunitest.TestCase):
         # written `content`.
         # Run test.
         expected = content
-        _LOG.debug(hprint.to_str("build_name"))
         self.helper(build_name, content, expected)
 
 
@@ -233,7 +229,6 @@ class Test_extract_tests_from_repro(hunitest.TestCase):
         ]
         # Both test IDs on the `pytest_log` line must be extracted.
         # Run test.
-        _LOG.debug(hprint.to_str("expected"))
         self.helper(repro_content, 2, expected)
 
     def test2(self) -> None:
@@ -252,7 +247,6 @@ class Test_extract_tests_from_repro(hunitest.TestCase):
             "helpers/test/test_module.py::TestClass::test_method1",
         ]
         # Run test.
-        _LOG.debug(hprint.to_str("expected"))
         self.helper(repro_content, 1, expected)
 
     def test3(self) -> None:
@@ -270,7 +264,6 @@ class Test_extract_tests_from_repro(hunitest.TestCase):
         expected = []
         # Absence of `pytest_log` must yield an empty list, not an error.
         # Run test.
-        _LOG.debug(hprint.to_str("expected"))
         self.helper(repro_content, 0, expected)
 
 
@@ -347,7 +340,6 @@ class Test_consolidate_failed_tests(hunitest.TestCase):
             "test_method2": {"docker"},
         }
         # Run test.
-        _LOG.debug(hprint.to_str("build_names expected"))
         self.helper(build_names, build_tests, expected)
 
     def test2(self) -> None:
@@ -368,7 +360,6 @@ class Test_consolidate_failed_tests(hunitest.TestCase):
             "test_method2": {"docker", "apple"},
             "test_method3": {"apple"},
         }
-        _LOG.debug(hprint.to_str("build_names expected"))
         self.helper(build_names, build_tests, expected)
 
 
@@ -451,7 +442,6 @@ class Test_create_consolidated_repro(hunitest.TestCase):
 
         """
         # Run test.
-        _LOG.debug(hprint.to_str("build_names"))
         self.helper(build_names, expected)
 
     def test2(self) -> None:
@@ -474,7 +464,6 @@ class Test_create_consolidated_repro(hunitest.TestCase):
 
         """
         # Run test.
-        _LOG.debug(hprint.to_str("build_names"))
         self.helper(build_names, expected)
 
 
@@ -531,7 +520,6 @@ class Test_summary_to_str(hunitest.TestCase):
         Tests failing in multiple builds: 0
         """
         # Run test.
-        _LOG.debug(hprint.to_str("build_names test_to_builds"))
         self.helper(build_names, test_to_builds, expected)
 
     def test2(self) -> None:
@@ -599,19 +587,31 @@ class Test_summary_conditional_display(hunitest.TestCase):
     Test that Failed Tests Summary is not shown when there are no failures.
     """
 
-    def test_no_summary_when_no_failures(self) -> None:
+    def helper(
+        self, test_to_builds: Dict[str, Set[str]], expected: bool
+    ) -> None:
+        """
+        Check whether the summary would be shown for `test_to_builds`.
+
+        :param test_to_builds: mapping of test name to failing build names
+        :param expected: expected truthiness of `test_to_builds`
+        """
+        _LOG.debug(hprint.to_str("test_to_builds expected"))
+        should_show_summary = bool(test_to_builds)
+        self.assertEqual(should_show_summary, expected)
+
+    def test1(self) -> None:
         """
         Test that summary is not generated when test_to_builds is empty.
         """
         # Prepare inputs: no failed tests.
         test_to_builds = {}
-        # Verify the check works as expected.
-        should_show_summary = bool(test_to_builds)
-        _LOG.debug(hprint.to_str("test_to_builds should_show_summary"))
-        # Check outputs.
-        self.assertFalse(should_show_summary)
+        # Prepare outputs.
+        expected = False
+        # Run test.
+        self.helper(test_to_builds, expected)
 
-    def test_summary_shown_when_failures_exist(self) -> None:
+    def test2(self) -> None:
         """
         Test that summary is generated when test_to_builds has failures.
         """
@@ -619,10 +619,10 @@ class Test_summary_conditional_display(hunitest.TestCase):
         test_to_builds = {
             "test_method1": {"docker"},
         }
-        # Verify the check works as expected.
-        should_show_summary = bool(test_to_builds)
-        # Check outputs.
-        self.assertTrue(should_show_summary)
+        # Prepare outputs.
+        expected = True
+        # Run test.
+        self.helper(test_to_builds, expected)
 
 
 # #############################################################################
@@ -725,6 +725,24 @@ class Test_build_stats_to_str_incomplete_status(hunitest.TestCase):
     Test _build_stats_to_str displays status correctly with incomplete builds.
     """
 
+    def helper(self, build_stats: List[Dict[str, Any]], expected: str) -> str:
+        """
+        Run `_build_stats_to_str()` and check the colorized, cleaned output.
+
+        :param build_stats: build statistics list
+        :param expected: expected output after stripping ANSI codes
+        :return: raw (colorized) output from `_build_stats_to_str()`
+        """
+        _LOG.debug(hprint.to_str("build_stats expected"))
+        actual = dshtpfmbu._build_stats_to_str(build_stats)
+        # Verify colorization is present (ANSI escape codes).
+        self.assertIn("\033[", actual)
+        # Remove ANSI codes and verify expected content.
+        clean_actual = hprint.remove_non_printable_chars(actual)
+        self.assert_equal(clean_actual, expected, dedent=True)
+        _LOG.debug("return=%s", actual)
+        return actual
+
     def test1(self) -> None:
         """
         Test that proper status is displayed with incomplete builds.
@@ -760,13 +778,7 @@ class Test_build_stats_to_str_incomplete_status(hunitest.TestCase):
                 "incomplete": False,
             },
         ]
-        # Run test.
-        _LOG.debug("build_stats=%s", build_stats)
-        actual = dshtpfmbu._build_stats_to_str(build_stats)
-        # Verify colorization is present (ANSI escape codes).
-        self.assertIn("\033[", actual)
-        # Remove ANSI codes and verify expected content.
-        clean_actual = hprint.remove_non_printable_chars(actual)
+        # Prepare outputs.
         expected = """
         ################################################################################
         Build Statistics
@@ -777,7 +789,8 @@ class Test_build_stats_to_str_incomplete_status(hunitest.TestCase):
         apple         | NOT STARTED | 0      | 0       | 0      | 0     | N/A      |
         dev_container | PASS        | 240    | 8       | 0      | 248   | 50.1s    |
         """
-        self.assert_equal(clean_actual, expected, dedent=True)
+        # Run test.
+        self.helper(build_stats, expected)
 
 
 # #############################################################################

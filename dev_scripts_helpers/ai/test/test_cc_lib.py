@@ -94,7 +94,6 @@ class Test_PromptSequencer_execute(hunitest.TestCase):
         )
         # Prepare outputs.
         prompts = ["prompt A", "prompt B"]
-        _LOG.debug(hprint.to_str("prompts"))
         # Run test.
         mock_client_cls = self.helper(sequencer, prompts, fake_client)
         # Check outputs.
@@ -107,7 +106,6 @@ class Test_PromptSequencer_execute(hunitest.TestCase):
             "'claude-test-model', ['project']), queried_prompts=['prompt "
             "A', 'prompt B'], aenter_called=True, aexit_called=True"
         )
-        _LOG.debug(hprint.to_str("actual expected"))
         self.assert_equal(actual, expected)
         # Check.
         self.assertIs(fake_client.options.can_use_tool, sequencer.can_use_tool)
@@ -137,7 +135,6 @@ class Test_PromptSequencer_execute(hunitest.TestCase):
         # Check outputs.
         _, kwargs = mock_client_cls.call_args
         options = kwargs["options"]
-        _LOG.debug(hprint.to_str("options.system_prompt"))
         self.assertEqual(options.system_prompt, "Follow the rules.")
 
     def test3(self) -> None:
@@ -167,7 +164,6 @@ class Test_PromptSequencer_execute(hunitest.TestCase):
         self.helper(sequencer, ["prompt A", "prompt B"], fake_client)
         # Check outputs.
         expected = "['NO-OP', 'CHANGED: fixed x']"
-        _LOG.debug(hprint.to_str("expected"))
         self.assertEqual(str(sequencer.get_outcomes()), expected)
         self.assertEqual(len(sequencer.get_responses()), 2)
 
@@ -191,7 +187,6 @@ class Test_PromptSequencer_execute(hunitest.TestCase):
         mock_client_cls = self.helper(sequencer, ["prompt A"], fake_client)
         # Check outputs.
         _, kwargs = mock_client_cls.call_args
-        _LOG.debug("kwargs['options'].max_turns=%s", kwargs["options"].max_turns)
         self.assertEqual(kwargs["options"].max_turns, 7)
 
 
@@ -262,7 +257,6 @@ class Test_PromptSequencer_chunk_stats(hunitest.TestCase):
             "[{'outcome': 'NO-OP', 'cost_usd': 0.05, 'num_turns': 3, "
             "'is_error': False, 'usage': None, 'stop_reason': None}]"
         )
-        _LOG.debug(hprint.to_str("expected"))
         # Run test.
         self.helper(sequencer, ["prompt A"], fake_client, expected)
 
@@ -401,7 +395,6 @@ class Test_PromptSequencer_chunk_stats(hunitest.TestCase):
         # Check outputs.
         # `idx` must be 1-based and strictly increasing, proving the callback
         # fires once per prompt even though each prompt gets a fresh client.
-        _LOG.debug(hprint.to_str("calls"))
         self.assertEqual([idx for idx, _ in calls], [1, 2])
 
 
@@ -558,7 +551,6 @@ class Test_PromptSequencer_execute_end_to_end(hunitest.TestCase):
         # Run test.
         asyncio.run(sequencer.execute([prompt]))
         # Check outputs.
-        _LOG.debug(hprint.to_str("sequencer.get_last_response()"))
         self.assertEqual(sequencer.get_execution_stats()["prompts_executed"], 1)
         self.assertIn("PONG", sequencer.get_last_response())
 
@@ -576,7 +568,6 @@ class Test_PromptSequencer_execute_end_to_end(hunitest.TestCase):
         # Run test.
         asyncio.run(sequencer.execute(prompts))
         # Check outputs.
-        _LOG.debug(hprint.to_str("sequencer.get_last_response()"))
         self.assertEqual(sequencer.get_execution_stats()["prompts_executed"], 2)
         self.assertIn("84210", sequencer.get_last_response())
 
@@ -615,7 +606,6 @@ class Test_PromptSequencer_execute_end_to_end(hunitest.TestCase):
         # Check outputs.
         # The guard must have denied the Write on `other_file`, so its
         # content must remain exactly what it was seeded with above.
-        _LOG.debug(hprint.to_str("other_file"))
         self.assertEqual(hio.from_file(other_file), "other\n")
 
 
