@@ -288,12 +288,6 @@
 > ./lint_text.py --in lesson.txt --type smd
 ```
 
-### Format a Lecture Slide Source as Slide Markdown
-
-```bash
-> ./lint_text.py --in lesson.txt --type smd
-```
-
 ## Notes and Considerations
 
 - **In-place editing**: Backup created before processing, can be reverted
