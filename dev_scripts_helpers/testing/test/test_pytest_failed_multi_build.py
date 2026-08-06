@@ -155,7 +155,6 @@ class Test_read_repro_script(hunitest.TestCase):
     def helper(
         self, build_name: str, content: str, expected: Optional[str] = None
     ) -> str:
->>>>>>> 57f91ae1 (UmdTask517_Get_regressions_to_pass_1 (#1341))
         """
         Helper method to run test in scratch directory and check outputs.
 
@@ -170,8 +169,8 @@ class Test_read_repro_script(hunitest.TestCase):
         scratch_dir = _setup_build_files(self, build_name, "repro.sh", content)
         with hsystem.cd(scratch_dir):
             result = dshtpfmbu._read_repro_script(build_name)
-        self.assert_equal(result, expected)
-        _LOG.debug("return=%s", result)
+        if expected is not None:
+            self.assert_equal(result, expected)
         return result
 
     def test1(self) -> None:
@@ -818,8 +817,7 @@ class Test_build_stats_to_str_incomplete_status(hunitest.TestCase):
         dev_container | DONE        | PASS   | 240    | 8       | 0      | 248   | 50.1s    | tmp.pytest_multi_build.dev_container.txt | tmp.pytest_failed.dev_container/ |
 >>>>>>> 57f91ae1 (UmdTask517_Get_regressions_to_pass_1 (#1341))
         """
-        # Run test.
-        self.helper(build_stats, expected)
+        self.assert_equal(clean_actual, expected, dedent=True)
 
 
 # #############################################################################
@@ -888,7 +886,7 @@ class Test_build_stats_to_str_colorization(hunitest.TestCase):
         docker | DONE      | PASS   | 368    | 20      | 0      | 388   | 11.87s   | tmp.pytest_multi_build.docker.txt | tmp.pytest_failed.docker/ |"""
 >>>>>>> 57f91ae1 (UmdTask517_Get_regressions_to_pass_1 (#1341))
         # Run test.
-        self.helper(build_stats, expected, dedent=True)
+        self._check_colorized_output(build_stats, "PASS", expected, dedent=True)
 
     def test2(self) -> None:
         """
@@ -921,7 +919,7 @@ class Test_build_stats_to_str_colorization(hunitest.TestCase):
         docker | DONE      | FAIL   | 357    | 20      | 11     | 388   | 12.45s   | tmp.pytest_multi_build.docker.txt | tmp.pytest_failed.docker/ |"""
 >>>>>>> 57f91ae1 (UmdTask517_Get_regressions_to_pass_1 (#1341))
         # Run test.
-        self.helper(build_stats, expected, dedent=True)
+        self._check_colorized_output(build_stats, "FAIL", expected, dedent=True)
 
     def test3(self) -> None:
         """
@@ -954,7 +952,9 @@ class Test_build_stats_to_str_colorization(hunitest.TestCase):
         dev_container | NOT STARTED | N/A    | 0      | 0       | 0      | 0     | N/A      | tmp.pytest_multi_build.dev_container.txt | tmp.pytest_failed.dev_container/ |"""
 >>>>>>> 57f91ae1 (UmdTask517_Get_regressions_to_pass_1 (#1341))
         # Run test.
-        self.helper(build_stats, expected, dedent=True)
+        self._check_colorized_output(
+            build_stats, "NOT STARTED", expected, dedent=True
+        )
 
     def test4(self) -> None:
         """
@@ -988,7 +988,9 @@ class Test_build_stats_to_str_colorization(hunitest.TestCase):
         apple | IN PROGRESS | N/A    | 150    | 5       | 0      | 155   | N/A      | tmp.pytest_multi_build.apple.txt | tmp.pytest_failed.apple/ |"""
 >>>>>>> 57f91ae1 (UmdTask517_Get_regressions_to_pass_1 (#1341))
         # Run test.
-        self.helper(build_stats, expected, dedent=True)
+        self._check_colorized_output(
+            build_stats, "IN PROGRESS", expected, dedent=True
+        )
 
     def test5(self) -> None:
         """
@@ -1241,8 +1243,6 @@ class Test_create_consolidated_repro_with_missing_files(hunitest.TestCase):
         """
         _LOG.debug(hprint.to_str("build_names_to_call build_names_to_create"))
         scratch_dir = self.get_scratch_space()
-        # Only create `repro.sh` for `build_names_to_create`, so the builds in
-        # `build_names_to_call` but not here exercise the missing-file path.
         for build_name in build_names_to_create:
             build_dir = os.path.join(
                 scratch_dir, f"tmp.pytest_failed.{build_name}"

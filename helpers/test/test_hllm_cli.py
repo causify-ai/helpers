@@ -1726,17 +1726,6 @@ class Test_mock_apply_llm(hunitest.TestCase):
 
     def helper(
         self, input_str: str, system_prompt: str, expected_hash: str
-<<<<<<< HEAD
-    ) -> None:
-        """
-        Test helper for `hllmcli.apply_llm()` under `hllmcli.mock_apply_llm()`.
-
-        :param input_str: input string passed to the mocked LLM call
-        :param system_prompt: system prompt passed to the mocked LLM call
-        :param expected_hash: expected MD5 hash of `input_str +
-            system_prompt`
-        """
-=======
     ) -> str:
         """
         Run `apply_llm()` inside `mock_apply_llm()` and check the mocked
@@ -1750,27 +1739,19 @@ class Test_mock_apply_llm(hunitest.TestCase):
         """
         # Prepare inputs.
         kwargs = {"system_prompt": system_prompt} if system_prompt else {}
->>>>>>> 57f91ae1 (UmdTask517_Get_regressions_to_pass_1 (#1341))
         # Run test.
         with hllmcli.mock_apply_llm():
             actual_response, actual_token_stats = hllmcli.apply_llm(
                 input_str,
                 "gpt-5-nano",
-<<<<<<< HEAD
-                system_prompt=system_prompt,
-=======
                 **kwargs,
->>>>>>> 57f91ae1 (UmdTask517_Get_regressions_to_pass_1 (#1341))
             )
         # Check outputs.
         self.assert_equal(actual_response, expected_hash)
         self.assertIsInstance(actual_token_stats, hllmcli.TokenStats)
         actual_cost = actual_token_stats.to_float()
         self.assertEqual(actual_cost, 0.0)
-<<<<<<< HEAD
-=======
         return actual_response
->>>>>>> 57f91ae1 (UmdTask517_Get_regressions_to_pass_1 (#1341))
 
     def test1(self) -> None:
         """
@@ -1793,10 +1774,7 @@ class Test_mock_apply_llm(hunitest.TestCase):
         # Prepare inputs.
         input_str = "test input"
         system_prompt = ""
-<<<<<<< HEAD
-=======
         # Prepare outputs.
->>>>>>> 57f91ae1 (UmdTask517_Get_regressions_to_pass_1 (#1341))
         expected_hash = hashlib.md5(input_str.encode()).hexdigest()
         # Run test.
         self.helper(input_str, system_prompt, expected_hash)
@@ -1844,25 +1822,6 @@ class Test_add_llm_prompt_arg(hunitest.TestCase):
 
     def helper(
         self,
-<<<<<<< HEAD
-        default_prompt: str,
-        is_required: bool,
-        argv: List[str],
-        expected: str,
-    ) -> None:
-        """
-        Test helper for `hllmcli.add_llm_prompt_arg()`.
-
-        Adds the prompt argument to a fresh parser, parses `argv`, and
-        checks the resulting `Namespace` against `expected`.
-
-        :param default_prompt: default prompt to pass to
-            `add_llm_prompt_arg()`
-        :param is_required: whether `--prompt` is required
-        :param argv: command line arguments to parse
-        :param expected: expected string representation of the parsed
-            `Namespace`
-=======
         add_llm_prompt_arg_kwargs: Dict[str, Any],
         parse_args_argv: List[str],
         expected: str,
@@ -1876,50 +1835,26 @@ class Test_add_llm_prompt_arg(hunitest.TestCase):
         :param parse_args_argv: argv list passed to `parser.parse_args()`
         :param expected: expected `pprint.pformat(vars(args))`
             representation
->>>>>>> 57f91ae1 (UmdTask517_Get_regressions_to_pass_1 (#1341))
         """
         # Prepare inputs.
         parser = argparse.ArgumentParser(
             formatter_class=hparser.CustomHelpFormatter
         )
-<<<<<<< HEAD
-        # Run test.
-=======
->>>>>>> 57f91ae1 (UmdTask517_Get_regressions_to_pass_1 (#1341))
         result_parser = hllmcli.add_llm_prompt_arg(
             parser, **add_llm_prompt_arg_kwargs
         )
-<<<<<<< HEAD
-        self.assertIs(result_parser, parser)
-        args = parser.parse_args(argv)
-        # Check outputs.
-        actual = str(dict(sorted(vars(args).items())))
-        self.assert_equal(actual, expected)
-=======
         # Run test.
         args = parser.parse_args(parse_args_argv)
         # Check outputs.
         self.assertIs(result_parser, parser)
         actual = pprint.pformat(vars(args))
         self.assert_equal(actual, expected, dedent=True)
->>>>>>> 57f91ae1 (UmdTask517_Get_regressions_to_pass_1 (#1341))
 
     def test1(self) -> None:
         """
         Test basic argument addition with is_required=True.
         """
         # Prepare inputs.
-<<<<<<< HEAD
-        default_prompt = ""
-        is_required = True
-        argv = ["--prompt", "test prompt", "--debug", "--fast_model"]
-        # Prepare outputs.
-        expected = str(
-            {"debug": True, "fast_model": True, "prompt": "test prompt"}
-        )
-        # Run test.
-        self.helper(default_prompt, is_required, argv, expected)
-=======
         add_llm_prompt_arg_kwargs = {
             "default_prompt": "",
             "is_required": True,
@@ -1931,24 +1866,12 @@ class Test_add_llm_prompt_arg(hunitest.TestCase):
         """
         # Run test.
         self.helper(add_llm_prompt_arg_kwargs, parse_args_argv, expected)
->>>>>>> 57f91ae1 (UmdTask517_Get_regressions_to_pass_1 (#1341))
 
     def test2(self) -> None:
         """
         Test with default_prompt and is_required=False.
         """
         # Prepare inputs.
-<<<<<<< HEAD
-        default_prompt = "default test prompt"
-        is_required = True
-        argv: List[str] = []
-        # Prepare outputs: prompt should not be required when default is set.
-        expected = str(
-            {"debug": False, "fast_model": False, "prompt": default_prompt}
-        )
-        # Run test.
-        self.helper(default_prompt, is_required, argv, expected)
-=======
         add_llm_prompt_arg_kwargs = {
             "default_prompt": "default test prompt",
             "is_required": True,
@@ -1961,24 +1884,12 @@ class Test_add_llm_prompt_arg(hunitest.TestCase):
         """
         # Run test.
         self.helper(add_llm_prompt_arg_kwargs, parse_args_argv, expected)
->>>>>>> 57f91ae1 (UmdTask517_Get_regressions_to_pass_1 (#1341))
 
     def test3(self) -> None:
         """
         Test all arguments are added correctly.
         """
         # Prepare inputs.
-<<<<<<< HEAD
-        default_prompt = ""
-        is_required = True
-        argv = ["--prompt", "test", "--debug", "--fast_model"]
-        # Prepare outputs.
-        expected = str(
-            {"debug": True, "fast_model": True, "prompt": "test"}
-        )
-        # Run test.
-        self.helper(default_prompt, is_required, argv, expected)
-=======
         add_llm_prompt_arg_kwargs: Dict[str, Any] = {}
         parse_args_argv = ["--prompt", "test", "--debug", "--fast_model"]
         # Prepare outputs.
@@ -1987,24 +1898,12 @@ class Test_add_llm_prompt_arg(hunitest.TestCase):
         """
         # Run test.
         self.helper(add_llm_prompt_arg_kwargs, parse_args_argv, expected)
->>>>>>> 57f91ae1 (UmdTask517_Get_regressions_to_pass_1 (#1341))
 
     def test4(self) -> None:
         """
         Test default values for optional flags.
         """
         # Prepare inputs.
-<<<<<<< HEAD
-        default_prompt = "default"
-        is_required = False
-        argv = ["--prompt", "custom"]
-        # Prepare outputs.
-        expected = str(
-            {"debug": False, "fast_model": False, "prompt": "custom"}
-        )
-        # Run test.
-        self.helper(default_prompt, is_required, argv, expected)
-=======
         add_llm_prompt_arg_kwargs = {
             "default_prompt": "default",
             "is_required": False,
@@ -2016,7 +1915,6 @@ class Test_add_llm_prompt_arg(hunitest.TestCase):
         """
         # Run test.
         self.helper(add_llm_prompt_arg_kwargs, parse_args_argv, expected)
->>>>>>> 57f91ae1 (UmdTask517_Get_regressions_to_pass_1 (#1341))
 
 
 # #############################################################################
@@ -2029,19 +1927,6 @@ class Test_add_llm_args(hunitest.TestCase):
     Test add_llm_args function.
     """
 
-<<<<<<< HEAD
-    def helper(self, argv: List[str], expected: str) -> None:
-        """
-        Test helper for `hllmcli.add_llm_args()` with default kwargs.
-
-        Adds arguments to a fresh parser via `hllmcli.add_llm_args(parser)`,
-        parses `argv`, and checks the resulting `input`, `model`, and
-        `backend` values.
-
-        :param argv: command line arguments to parse
-        :param expected: expected string representation of `(input, model,
-            backend)`
-=======
     def helper(
         self,
         add_llm_args_kwargs: Dict[str, Any],
@@ -2056,7 +1941,6 @@ class Test_add_llm_args(hunitest.TestCase):
         :param parse_args_argv: argv list passed to `parser.parse_args()`
         :param expected: expected `pprint.pformat(vars(args))`
             representation
->>>>>>> 57f91ae1 (UmdTask517_Get_regressions_to_pass_1 (#1341))
         """
         # Prepare inputs.
         parser = argparse.ArgumentParser(
@@ -2064,35 +1948,17 @@ class Test_add_llm_args(hunitest.TestCase):
         )
         result_parser = hllmcli.add_llm_args(parser, **add_llm_args_kwargs)
         # Run test.
-<<<<<<< HEAD
-        result_parser = hllmcli.add_llm_args(parser)
-        self.assertIs(result_parser, parser)
-        args = parser.parse_args(argv)
-        # Check outputs.
-        actual = str((args.input, args.model, args.backend))
-        self.assert_equal(actual, expected)
-=======
         args = parser.parse_args(parse_args_argv)
         # Check outputs.
         self.assertIs(result_parser, parser)
         actual = pprint.pformat(vars(args))
         self.assert_equal(actual, expected, dedent=True)
->>>>>>> 57f91ae1 (UmdTask517_Get_regressions_to_pass_1 (#1341))
 
     def test1(self) -> None:
         """
         Test basic LLM arguments with defaults.
         """
         # Prepare inputs.
-<<<<<<< HEAD
-        argv = ["--input", "test.txt"]
-        # Prepare outputs.
-        expected = str(
-            ("test.txt", "openrouter/deepseek/deepseek-v4-flash", "library")
-        )
-        # Run test.
-        self.helper(argv, expected)
-=======
         add_llm_args_kwargs: Dict[str, Any] = {}
         parse_args_argv = ["--input", "test.txt"]
         # Prepare outputs.
@@ -2111,7 +1977,6 @@ class Test_add_llm_args(hunitest.TestCase):
         """
         # Run test.
         self.helper(add_llm_args_kwargs, parse_args_argv, expected)
->>>>>>> 57f91ae1 (UmdTask517_Get_regressions_to_pass_1 (#1341))
 
     def test2(self) -> None:
         """
@@ -2322,7 +2187,6 @@ class Test_expand_referenced_files(hunitest.TestCase):
         prompt: str,
         expected: str,
         *,
-        # TODO(ai_gp): Pass None and then assign it.
         fixtures: Dict[str, str] = {
             "file.md": "file content",
             "other.txt": "other content",
@@ -2400,24 +2264,13 @@ class Test_expand_referenced_files(hunitest.TestCase):
         """
         Test expanding a reference that contains a directory path.
         """
-<<<<<<< HEAD
-        # Prepare inputs: `helper()` uses the same scratch space, so the
-        # nested file is visible when `expand_referenced_files()` runs.
-        repo_dir = self.get_scratch_space()
-        hio.to_file(os.path.join(repo_dir, "sub", "nested.md"), "nested content")
-=======
         # Prepare inputs.
->>>>>>> 57f91ae1 (UmdTask517_Get_regressions_to_pass_1 (#1341))
         prompt = "See @sub/nested.md"
         fixtures = {"sub/nested.md": "nested content"}
         # Prepare outputs.
         expected = "See <!-- From sub/nested.md -->\nnested content"
         # Run test.
-<<<<<<< HEAD
-        self.helper(prompt, expected)
-=======
         self.helper(prompt, expected, fixtures=fixtures)
->>>>>>> 57f91ae1 (UmdTask517_Get_regressions_to_pass_1 (#1341))
 
     def test6(self) -> None:
         """
