@@ -102,21 +102,20 @@ def _add_build_env_to_repro(content: str, build_name: str) -> str:
     hdbg.dassert_in(build_name, hpytest.BUILD_CONFIG)
     docker_engine, use_docker_cmd = hpytest.BUILD_CONFIG[build_name]
     # Prepend environment setup specific to the build configuration.
-    # TODO(ai_gp): Use """ and dedent
-    header_parts = [
-        "#!/bin/bash",
-        f"# Repro script for build: {build_name}",
-        f"export CSFY_DOCKER_ENGINE='{docker_engine}'",
-    ]
+    header = f"""
+        #!/bin/bash
+        # Repro script for build: {build_name}
+        export CSFY_DOCKER_ENGINE='{docker_engine}'
+        """
+    header = hprint.dedent(header)
     if use_docker_cmd:
-        header_parts.extend(
-            [
-    # TODO(ai_gp): Use """ and dedent
-                "# Note: This build requires docker_cmd wrapper",
-                '# Run commands with: invoke docker_cmd --stage=local -v 1.6.0 --cmd "<command>"',
-            ]
-        )
-    header = "\n".join(header_parts) + "\n\n"
+        docker_note = """
+            # Note: This build requires docker_cmd wrapper
+            # Run commands with: invoke docker_cmd --stage=local -v 1.6.0 --cmd "<command>"
+            """
+        docker_note = hprint.dedent(docker_note)
+        header += "\n" + docker_note
+    header += "\n\n"
     # Remove shebang from existing content to avoid duplication when prepending
     # header.
     if content.startswith("#!/bin/bash"):
