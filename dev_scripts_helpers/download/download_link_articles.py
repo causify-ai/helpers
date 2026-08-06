@@ -120,7 +120,7 @@ import helpers.hprint as hprint
 import helpers.hcache_simple as hcacsimp
 import helpers.hselect_action as hselacti
 import helpers.hsystem as hsystem
-import dev_scripts_helpers.download.download_to_md as dshddtomd
+import dev_scripts_helpers.download.download_to_md as dshddtm
 import dev_scripts_helpers.download.download_utils as dshddut
 import dev_scripts_helpers.download.link_gsheet_utils as dshdlgsut
 
@@ -650,7 +650,7 @@ def _download_article_urls(
         # (arXiv/DOI/PDF) instead of maintaining a separate, narrower check
         # here; the actual download still dispatches via
         # `dshddut.download_article()` below.
-        input_type = dshddtomd.detect_input_type(article_url)
+        input_type = dshddtm.detect_input_type(article_url)
         downloader = (
             "download_academic_paper_to_md.py"
             if input_type == "academic_paper"

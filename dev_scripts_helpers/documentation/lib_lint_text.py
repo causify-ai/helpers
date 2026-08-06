@@ -447,6 +447,9 @@ def _replace_em_dash_with_colon(lines: List[str]) -> List[str]:
     return lines_new
 
 
+# #############################################################################
+
+
 def _is_smd_fence_line(line: str) -> bool:
     """
     Check if a line is a pandoc fenced div marker (e.g., `::: columns`).
@@ -502,8 +505,14 @@ def _format_smd_fence_spacing(lines: List[str]) -> List[str]:
     hdbg.dassert_isinstance(lines_new, list)
     return lines_new
 
+
+# #############################################################################
+
 # TODO(ai_gp): Removing trailing white spaces and empty lines at the beginning
-# and at the end is a transform step by itself for all the formats.
+# and at the end is a transform step by itself for all the formats. This will
+# change `postprocess` behavior for `md`/`tex`/`txt` files too (e.g.,
+# markdown's trailing double-space hard line break)
+
 
 def _smd_format(lines: List[str]) -> List[str]:
     """
@@ -607,8 +616,9 @@ def _postprocess_txt(lines: List[str], in_file_name: str) -> List[str]:
 # #############################################################################
 
 
-# TODO(ai_gp): Is this redundant with something in select_actions.py
-def _to_execute_action(action: str, actions: Optional[List[str]] = None) -> bool:
+# This is different than `hselacti.mark_action()` since it only checks membership
+# without mutating the state.
+def _to_execute_action(action: str, actions: List[str]) -> bool:
     to_execute = actions is None or action in actions
     if not to_execute:
         _LOG.debug("Skipping %s", action)
@@ -708,8 +718,8 @@ def _is_action_supported_for_format(action: str, extension: str) -> bool:
 
 
 def _filter_actions_by_format(
-    actions: Optional[List[str]], extension: str
-) -> Optional[List[str]]:
+    actions: List[str], extension: str
+    ) -> List[str]:
     """
     Filter actions to keep only those supported by the given format.
 
@@ -719,8 +729,7 @@ def _filter_actions_by_format(
     :param extension: The file extension (md, tex, txt, smd).
     :return: Filtered list of actions, or None if input was None.
     """
-    if actions is None:
-        return None
+    hdbg.dassert_isinstance(actions, list)
     filtered = [
         a for a in actions if _is_action_supported_for_format(a, extension)
     ]
@@ -733,7 +742,7 @@ def _filter_actions_by_format(
             action,
             extension,
         )
-    return filtered if filtered else None
+    return filtered
 
 
 def _perform_actions(
