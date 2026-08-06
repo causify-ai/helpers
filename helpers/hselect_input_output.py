@@ -54,7 +54,7 @@ def add_file_selection_args(
     Add file selection arguments to a parser.
 
     Adds the following mutually exclusive arguments:
-    - --files: Specify specific files
+    - --files / -i / --input: Specify specific file(s)
     - --from_files: Select files listed in a file
     - --modified: Select files modified in the client
     - --branch: Select files modified with respect to the branch point
@@ -65,12 +65,15 @@ def add_file_selection_args(
     :return: The same parser with arguments added
     """
     file_selection = parser.add_mutually_exclusive_group()
+    # TODO(ai_gp): Separate -i, --input to files as two different options.
     file_selection.add_argument(
+        "-i",
         "--files",
         "--input",
         dest="files",
         action=_SingleFilesAction,
-        help="Select specific files (space-separated list in a single argument)",
+        help="Select specific file(s) (a single file, or a space-separated "
+        "list in a single argument)",
     )
     file_selection.add_argument(
         "--from_file",

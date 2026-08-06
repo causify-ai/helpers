@@ -20,6 +20,9 @@ This script:
 - Lint specific Python files:
 > cc_lint.py --files "file1.py file2.py" ...
 
+- Lint a single file:
+> cc_lint.py -i file.py ...
+
 - Lint modified files:
 > cc_lint.py --modified ...
 

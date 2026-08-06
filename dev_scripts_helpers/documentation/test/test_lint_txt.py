@@ -99,8 +99,7 @@ class Test_lint_txt1(hunitest.TestCase):
 
         _helper_process_lines(self, txt, expected, preprocess_wrapper)
 
-    # TODO(ai_gp): Rename to test1 (testing.rules.md:## Test Method Names)
-    def test_preprocess1(self) -> None:
+    def test1(self) -> None:
         txt = r"""$$E_{in} = \frac{1}{N} \sum_i e(h(\vx_i), y_i)$$"""
         expected = r"""
         $$
@@ -108,8 +107,7 @@ class Test_lint_txt1(hunitest.TestCase):
         $$"""
         self.helper(txt, expected)
 
-    # TODO(ai_gp): Rename to test2 (testing.rules.md:## Test Method Names)
-    def test_preprocess2(self) -> None:
+    def test2(self) -> None:
         txt = r"""
         $$E_{in}(\vw) = \frac{1}{N} \sum_i \big(
         -y_i \log(\Pr(h(\vx) = 1|\vx)) - (1 - y_i) \log(1 - \Pr(h(\vx)=1|\vx))
@@ -122,8 +120,7 @@ class Test_lint_txt1(hunitest.TestCase):
         $$"""
         self.helper(txt, expected)
 
-    # TODO(ai_gp): Rename to test3 (testing.rules.md:## Test Method Names)
-    def test_preprocess3(self) -> None:
+    def test3(self) -> None:
         txt = _get_text1()
         expected = r"""
         - STARGradient descent for logistic regression
@@ -152,8 +149,7 @@ class Test_lint_txt1(hunitest.TestCase):
           monotone)"""
         self.helper(txt, expected)
 
-    # TODO(ai_gp): Rename to test4 (testing.rules.md:## Test Method Names)
-    def test_preprocess4(self) -> None:
+    def test4(self) -> None:
         txt = r"""
         # #########################
         # test
@@ -161,8 +157,7 @@ class Test_lint_txt1(hunitest.TestCase):
         expected = r"""# test"""
         self.helper(txt, expected)
 
-    # TODO(ai_gp): Rename to test5 (testing.rules.md:## Test Method Names)
-    def test_preprocess5(self) -> None:
+    def test5(self) -> None:
         txt = r"""
         ## ////////////////
         # test
@@ -1942,8 +1937,39 @@ class Test_lint_txt2(hunitest.TestCase):
         expected = ""
         file_name = "test.txt"
         actual = self.helper(txt, expected, file_name)
-        # TODO(ai_gp): Use self.assert_equal() instead of self.check_string() (testing.rules.md:## Never Use `self.check_string()`)
-        self.check_string(actual)
+        # Check.
+        expected = r"""
+        - Gradient descent for logistic regression
+        - The typical implementations of gradient descent (basic or advanced) need two
+          inputs:
+          - The cost function $E_{in}(\vw)$ (to monitor convergence)
+          - The gradient of the cost function
+            $\frac{\partial E}{w_j} \text{ for all } j$ (to optimize)
+        - The cost function is:
+
+          $$
+          E_{in} = \frac{1}{N} \sum_i e(h(\vx_i), y_i)
+          $$
+
+        - In case of general probabilistic model $h(\vx)$ in \{0, 1\}):
+          $$
+            E_{in}(\vw) = \frac{1}{N} \sum_i \big(
+            -y_i \log(\Pr(h(\vx) = 1|\vx)) - (1 - y_i) \log(1 - \Pr(h(\vx)=1|\vx))
+            \big)
+            $$
+
+        - In case of logistic regression in \{+1, -1\}:
+
+          $$
+          E_{in}(\vw) = \frac{1}{N} \sum_i \log(1 + \exp(-y_i \vw^T \vx_i))
+          $$
+
+        - It can be proven that the function $E_{in}(\vw)$ to minimize is convex in
+          $\vw$ (sum of exponentials and flipped exponentials is convex and log is
+          monotone)
+        """
+        expected = hprint.dedent(expected, remove_lead_trail_empty_lines_=True)
+        self.assert_equal(actual, expected)
 
     @pytest.mark.slow
     def test2(self) -> None:
@@ -2280,6 +2306,27 @@ class Test_lint_txt_py1(hunitest.TestCase):
             output_txt = "\n".join(out_lines)
         return output_txt
 
+    @staticmethod
+    def get_expected_md_output1() -> str:
+        """
+        Return the expected output of linting `text.md` (shared by test1 and
+        test2, which process the same input file).
+        """
+        expected = r"""
+        # Test Document
+
+        ## Introduction
+        This is a test markdown document for lint_text testing
+
+        ## Content
+        Some sample content to test the linting functionality
+
+        ### Subsection
+        More detailed content
+        """
+        expected = hprint.dedent(expected, remove_lead_trail_empty_lines_=True)
+        return expected
+
     # ///////////////////////////////////////////////////////////////////////////
 
     @pytest.mark.skipif(hserver.is_host_mac(), reason="CsfyIssue8889")
@@ -2296,8 +2343,8 @@ class Test_lint_txt_py1(hunitest.TestCase):
         # Run the script.
         output_txt = self.run_lint_txt(in_file, type_, use_script, cmd_opts)
         # Check.
-        # TODO(ai_gp): Use self.assert_equal() instead of self.check_string() (testing.rules.md:## Never Use `self.check_string()`)
-        self.check_string(output_txt)
+        expected = self.get_expected_md_output1()
+        self.assert_equal(output_txt, expected)
 
     @pytest.mark.skipif(
         hserver.is_inside_docker(),
@@ -2321,8 +2368,8 @@ class Test_lint_txt_py1(hunitest.TestCase):
         # Run the script.
         output_txt = self.run_lint_txt(in_file, type_, use_script, cmd_opts)
         # Check using the same golden outcome as test1.
-        # TODO(ai_gp): Use self.assert_equal() instead of self.check_string() (testing.rules.md:## Never Use `self.check_string()`)
-        self.check_string(output_txt, test_method_name="test1")
+        expected = self.get_expected_md_output1()
+        self.assert_equal(output_txt, expected)
 
     @pytest.mark.slow
     def test3(self) -> None:
@@ -2337,8 +2384,35 @@ class Test_lint_txt_py1(hunitest.TestCase):
         # Run the script.
         output_txt = self.run_lint_txt(in_file, type_, use_script, cmd_opts)
         # Check.
-        # TODO(ai_gp): Use self.assert_equal() instead of self.check_string() (testing.rules.md:## Never Use `self.check_string()`)
-        self.check_string(output_txt)
+        expected = r"""
+        \documentclass{article}
+        \usepackage[utf-8]{inputenc}
+
+        \title{Test LaTeX Document}
+        \author{Test Author}
+        \date{\today}
+
+        \begin{document}
+          \maketitle
+
+        % ##############################################################################
+          \section{Introduction}
+
+          This is a test LaTeX document with some text. Lorem ipsum dolor sit amet, consectetur
+          adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna
+          aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris
+          nisi ut aliquip ex ea commodo consequat
+
+        % ##############################################################################
+          \section{Content}
+
+          Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu
+          fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in
+          culpa qui officia deserunt mollit anim id est laborum
+        \end{document}
+        """
+        expected = hprint.dedent(expected, remove_lead_trail_empty_lines_=True)
+        self.assert_equal(output_txt, expected)
 
     @pytest.mark.slow
     def test4(self) -> None:
@@ -2359,8 +2433,33 @@ class Test_lint_txt_py1(hunitest.TestCase):
         # Run the script.
         output_txt = self.run_lint_txt(in_file, type_, use_script, cmd_opts)
         # Check using the same golden outcome as test3.
-        # TODO(ai_gp): Use self.assert_equal() instead of self.check_string() (testing.rules.md:## Never Use `self.check_string()`)
-        self.check_string(output_txt, test_method_name="test4")
+        expected = r"""
+        \documentclass{article}
+        \usepackage[utf-8]{inputenc}
+
+        \title{Test LaTeX Document}
+        \author{Test Author}
+        \date{\today}
+
+        \begin{document}
+          \maketitle
+
+          \section{Introduction}
+
+          This is a test LaTeX document with some text. Lorem ipsum dolor sit amet, consectetur
+          adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna
+          aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris
+          nisi ut aliquip ex ea commodo consequat
+
+          \section{Content}
+
+          Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu
+          fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in
+          culpa qui officia deserunt mollit anim id est laborum
+        \end{document}
+        """
+        expected = hprint.dedent(expected, remove_lead_trail_empty_lines_=True)
+        self.assert_equal(output_txt, expected)
 
 
 # #############################################################################
@@ -2458,8 +2557,7 @@ class Test__get_backup_filename(hunitest.TestCase):
     Test the _get_backup_filename function.
     """
 
-    # TODO(ai_gp): Rename to test1 (testing.rules.md:## Test Method Names)
-    def test_simple_filename(self) -> None:
+    def test1(self) -> None:
         """
         Test backup filename generation for a simple filename.
         """
@@ -2471,8 +2569,7 @@ class Test__get_backup_filename(hunitest.TestCase):
         expected = "tmp.lint_txt.test.md"
         self.assertEqual(actual, expected)
 
-    # TODO(ai_gp): Rename to test2 (testing.rules.md:## Test Method Names)
-    def test_filename_with_single_directory(self) -> None:
+    def test2(self) -> None:
         """
         Test backup filename generation for a file in a directory.
         """
@@ -2484,8 +2581,7 @@ class Test__get_backup_filename(hunitest.TestCase):
         expected = ".claude/skills/tmp.lint_txt.testing.rules.md"
         self.assertEqual(actual, expected)
 
-    # TODO(ai_gp): Rename to test3 (testing.rules.md:## Test Method Names)
-    def test_filename_with_nested_directories(self) -> None:
+    def test3(self) -> None:
         """
         Test backup filename generation for a file in nested directories.
         """
@@ -2497,8 +2593,7 @@ class Test__get_backup_filename(hunitest.TestCase):
         expected = "path/to/nested/directory/tmp.lint_txt.file.txt"
         self.assertEqual(actual, expected)
 
-    # TODO(ai_gp): Rename to test4 (testing.rules.md:## Test Method Names)
-    def test_filename_with_multiple_dots(self) -> None:
+    def test4(self) -> None:
         """
         Test backup filename generation for files with multiple dots.
         """
@@ -2645,8 +2740,7 @@ class Test_smd_format(hunitest.TestCase):
         """
         _helper_process_lines(self, txt, expected, dshdllitx._smd_format)
 
-    # TODO(ai_gp): Rename to test1 (testing.rules.md:## Test Method Names)
-    def test_remove_trailing_whitespace1(self) -> None:
+    def test1(self) -> None:
         """
         Test removing white spaces before the newline.
         """
@@ -2667,8 +2761,7 @@ class Test_smd_format(hunitest.TestCase):
         # Run test.
         self.helper(txt, expected)
 
-    # TODO(ai_gp): Rename to test2 (testing.rules.md:## Test Method Names)
-    def test_remove_tag_colon1(self) -> None:
+    def test2(self) -> None:
         """
         Test removing the colon after a lone `@tag@` on its own line.
         """
@@ -2683,8 +2776,7 @@ class Test_smd_format(hunitest.TestCase):
         # Run test.
         self.helper(txt, expected)
 
-    # TODO(ai_gp): Rename to test3 (testing.rules.md:## Test Method Names)
-    def test_remove_tag_colon2(self) -> None:
+    def test3(self) -> None:
         """
         Test removing the colon after a bulleted lone `@tag@`.
         """
@@ -2699,8 +2791,7 @@ class Test_smd_format(hunitest.TestCase):
         # Run test.
         self.helper(txt, expected)
 
-    # TODO(ai_gp): Rename to test4 (testing.rules.md:## Test Method Names)
-    def test_keep_tag_colon_with_content1(self) -> None:
+    def test4(self) -> None:
         """
         Test that the `:` is kept (and the following text capitalized) when
         the tag line has content after it.
@@ -2716,8 +2807,7 @@ class Test_smd_format(hunitest.TestCase):
         # Run test.
         self.helper(txt, expected)
 
-    # TODO(ai_gp): Rename to test5 (testing.rules.md:## Test Method Names)
-    def test_capitalize_after_colon1(self) -> None:
+    def test5(self) -> None:
         """
         Test capitalizing the first letter after a `:`.
         """
@@ -2732,8 +2822,7 @@ class Test_smd_format(hunitest.TestCase):
         # Run test.
         self.helper(txt, expected)
 
-    # TODO(ai_gp): Rename to test6 (testing.rules.md:## Test Method Names)
-    def test_capitalize_after_colon_with_bold1(self) -> None:
+    def test6(self) -> None:
         """
         Test capitalizing the first letter after a `:`, skipping over a
         leading bold marker.
@@ -2749,8 +2838,7 @@ class Test_smd_format(hunitest.TestCase):
         # Run test.
         self.helper(txt, expected)
 
-    # TODO(ai_gp): Rename to test7 (testing.rules.md:## Test Method Names)
-    def test_capitalize_after_colon_already_capitalized1(self) -> None:
+    def test7(self) -> None:
         """
         Test that already capitalized text after a `:` is left unchanged.
         """
@@ -2763,8 +2851,7 @@ class Test_smd_format(hunitest.TestCase):
         # Run test.
         self.helper(txt, expected)
 
-    # TODO(ai_gp): Rename to test8 (testing.rules.md:## Test Method Names)
-    def test_no_capitalize_without_letter1(self) -> None:
+    def test8(self) -> None:
         """
         Test that a `:` not followed by a letter (e.g., a number) is left
         unchanged.
@@ -2778,8 +2865,7 @@ class Test_smd_format(hunitest.TestCase):
         # Run test.
         self.helper(txt, expected)
 
-    # TODO(ai_gp): Rename to test9 (testing.rules.md:## Test Method Names)
-    def test_fence_spacing1(self) -> None:
+    def test9(self) -> None:
         """
         Test that exactly one blank line is inserted between fence lines and
         surrounding content, while consecutive fence lines stay adjacent.
@@ -2817,8 +2903,7 @@ class Test_smd_format(hunitest.TestCase):
         # Run test.
         self.helper(txt, expected)
 
-    # TODO(ai_gp): Rename to test10 (testing.rules.md:## Test Method Names)
-    def test_fence_spacing_idempotent1(self) -> None:
+    def test10(self) -> None:
         """
         Test that an already well-formatted fenced div block is left
         unchanged.
@@ -2848,8 +2933,7 @@ class Test_smd_format(hunitest.TestCase):
         # Run test.
         self.helper(txt, expected)
 
-    # TODO(ai_gp): Rename to test11 (testing.rules.md:## Test Method Names)
-    def test_fence_spacing_collapses_extra_blank_lines1(self) -> None:
+    def test11(self) -> None:
         """
         Test that more than one blank line around a fence is collapsed to
         exactly one.
@@ -2875,8 +2959,7 @@ class Test_smd_format(hunitest.TestCase):
         # Run test.
         self.helper(txt, expected)
 
-    # TODO(ai_gp): Rename to test12 (testing.rules.md:## Test Method Names)
-    def test_fence_spacing_no_blank_between_consecutive_fences1(self) -> None:
+    def test12(self) -> None:
         """
         Test that a blank line between two consecutive fence lines is
         removed.
@@ -2897,8 +2980,7 @@ class Test_smd_format(hunitest.TestCase):
         # Run test.
         self.helper(txt, expected)
 
-    # TODO(ai_gp): Rename to test13 (testing.rules.md:## Test Method Names)
-    def test_no_fence_unaffected1(self) -> None:
+    def test13(self) -> None:
         """
         Test that text without any fenced div blocks is left unchanged.
         """
@@ -2923,8 +3005,7 @@ class Test_perform_actions_smd_type(hunitest.TestCase):
     Test that `_perform_actions` recognizes the `smd` file type.
     """
 
-    # TODO(ai_gp): Rename to test1 (testing.rules.md:## Test Method Names)
-    def test_file_type_override_smd1(self) -> None:
+    def test1(self) -> None:
         """
         Test that `file_type_override="smd"` runs the `smd_format` action.
         """
@@ -2943,8 +3024,7 @@ class Test_perform_actions_smd_type(hunitest.TestCase):
         expected = ["@Problem@"]
         self.assertEqual(actual, expected)
 
-    # TODO(ai_gp): Rename to test2 (testing.rules.md:## Test Method Names)
-    def test_invalid_file_type_override1(self) -> None:
+    def test2(self) -> None:
         """
         Test that an invalid `file_type_override` raises an assertion.
         """
