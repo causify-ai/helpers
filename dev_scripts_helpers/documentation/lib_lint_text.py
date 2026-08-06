@@ -502,8 +502,8 @@ def _format_smd_fence_spacing(lines: List[str]) -> List[str]:
     hdbg.dassert_isinstance(lines_new, list)
     return lines_new
 
-# TODO(ai_gp): Removing trailing white spaces and empty lines at the beginning and at the end is a transform step by itself
-# for all the formats.
+# TODO(ai_gp): Removing trailing white spaces and empty lines at the beginning
+# and at the end is a transform step by itself for all the formats.
 
 def _smd_format(lines: List[str]) -> List[str]:
     """
