@@ -139,7 +139,7 @@ def _generate_build_files(
             sys.executable,
             pytest_failed_script,
             f"--input {input_file}",
-            f"--build_name {build_name}",
+            f"--build_name {build_name}"
         ]
         if quiet:
             cmd_parts.append("--quiet")
@@ -479,7 +479,7 @@ def _run_once(
         build_names, in_build_tag=in_build_tag, quiet=quiet
     )
     # Print build statistics summary.
-    stats_summary = _build_stats_to_str(build_stats, in_build_tag=in_build_tag)
+    stats_summary = _build_stats_to_str(build_stats)
     print(stats_summary)
     # Consolidate failed tests across all builds to identify common failures.
     test_to_builds = _consolidate_failed_tests(build_names)
