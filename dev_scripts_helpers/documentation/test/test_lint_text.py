@@ -99,6 +99,7 @@ class Test_lint_text1(hunitest.TestCase):
 
         _helper_process_lines(self, txt, expected, preprocess_wrapper)
 
+    # TODO(ai_gp): Rename to test1 (testing.rules.md:## Test Method Names)
     def test_preprocess1(self) -> None:
         txt = r"""$$E_{in} = \frac{1}{N} \sum_i e(h(\vx_i), y_i)$$"""
         expected = r"""
@@ -107,6 +108,7 @@ class Test_lint_text1(hunitest.TestCase):
         $$"""
         self.helper(txt, expected)
 
+    # TODO(ai_gp): Rename to test2 (testing.rules.md:## Test Method Names)
     def test_preprocess2(self) -> None:
         txt = r"""
         $$E_{in}(\vw) = \frac{1}{N} \sum_i \big(
@@ -120,6 +122,7 @@ class Test_lint_text1(hunitest.TestCase):
         $$"""
         self.helper(txt, expected)
 
+    # TODO(ai_gp): Rename to test3 (testing.rules.md:## Test Method Names)
     def test_preprocess3(self) -> None:
         txt = _get_text1()
         expected = r"""
@@ -149,6 +152,7 @@ class Test_lint_text1(hunitest.TestCase):
           monotone)"""
         self.helper(txt, expected)
 
+    # TODO(ai_gp): Rename to test4 (testing.rules.md:## Test Method Names)
     def test_preprocess4(self) -> None:
         txt = r"""
         # #########################
@@ -157,6 +161,7 @@ class Test_lint_text1(hunitest.TestCase):
         expected = r"""# test"""
         self.helper(txt, expected)
 
+    # TODO(ai_gp): Rename to test5 (testing.rules.md:## Test Method Names)
     def test_preprocess5(self) -> None:
         txt = r"""
         ## ////////////////
@@ -1937,6 +1942,7 @@ class Test_lint_text2(hunitest.TestCase):
         expected = ""
         file_name = "test.txt"
         actual = self.helper(txt, expected, file_name)
+        # TODO(ai_gp): Use self.assert_equal() instead of self.check_string() (testing.rules.md:## Never Use `self.check_string()`)
         self.check_string(actual)
 
     @pytest.mark.slow
@@ -2290,6 +2296,7 @@ class Test_lint_text_py1(hunitest.TestCase):
         # Run the script.
         output_txt = self.run_lint_text(in_file, type_, use_script, cmd_opts)
         # Check.
+        # TODO(ai_gp): Use self.assert_equal() instead of self.check_string() (testing.rules.md:## Never Use `self.check_string()`)
         self.check_string(output_txt)
 
     @pytest.mark.skipif(
@@ -2314,6 +2321,7 @@ class Test_lint_text_py1(hunitest.TestCase):
         # Run the script.
         output_txt = self.run_lint_text(in_file, type_, use_script, cmd_opts)
         # Check using the same golden outcome as test1.
+        # TODO(ai_gp): Use self.assert_equal() instead of self.check_string() (testing.rules.md:## Never Use `self.check_string()`)
         self.check_string(output_txt, test_method_name="test1")
 
     @pytest.mark.slow
@@ -2329,6 +2337,7 @@ class Test_lint_text_py1(hunitest.TestCase):
         # Run the script.
         output_txt = self.run_lint_text(in_file, type_, use_script, cmd_opts)
         # Check.
+        # TODO(ai_gp): Use self.assert_equal() instead of self.check_string() (testing.rules.md:## Never Use `self.check_string()`)
         self.check_string(output_txt)
 
     @pytest.mark.slow
@@ -2350,6 +2359,7 @@ class Test_lint_text_py1(hunitest.TestCase):
         # Run the script.
         output_txt = self.run_lint_text(in_file, type_, use_script, cmd_opts)
         # Check using the same golden outcome as test3.
+        # TODO(ai_gp): Use self.assert_equal() instead of self.check_string() (testing.rules.md:## Never Use `self.check_string()`)
         self.check_string(output_txt, test_method_name="test4")
 
 
@@ -2448,6 +2458,7 @@ class Test__get_backup_filename(hunitest.TestCase):
     Test the _get_backup_filename function.
     """
 
+    # TODO(ai_gp): Rename to test1 (testing.rules.md:## Test Method Names)
     def test_simple_filename(self) -> None:
         """
         Test backup filename generation for a simple filename.
@@ -2460,6 +2471,7 @@ class Test__get_backup_filename(hunitest.TestCase):
         expected = "tmp.lint_text.test.md"
         self.assertEqual(actual, expected)
 
+    # TODO(ai_gp): Rename to test2 (testing.rules.md:## Test Method Names)
     def test_filename_with_single_directory(self) -> None:
         """
         Test backup filename generation for a file in a directory.
@@ -2472,6 +2484,7 @@ class Test__get_backup_filename(hunitest.TestCase):
         expected = ".claude/skills/tmp.lint_text.testing.rules.md"
         self.assertEqual(actual, expected)
 
+    # TODO(ai_gp): Rename to test3 (testing.rules.md:## Test Method Names)
     def test_filename_with_nested_directories(self) -> None:
         """
         Test backup filename generation for a file in nested directories.
@@ -2484,6 +2497,7 @@ class Test__get_backup_filename(hunitest.TestCase):
         expected = "path/to/nested/directory/tmp.lint_text.file.txt"
         self.assertEqual(actual, expected)
 
+    # TODO(ai_gp): Rename to test4 (testing.rules.md:## Test Method Names)
     def test_filename_with_multiple_dots(self) -> None:
         """
         Test backup filename generation for files with multiple dots.
@@ -2631,6 +2645,7 @@ class Test_smd_format(hunitest.TestCase):
         """
         _helper_process_lines(self, txt, expected, dshdllitx._smd_format)
 
+    # TODO(ai_gp): Rename to test1 (testing.rules.md:## Test Method Names)
     def test_remove_trailing_whitespace1(self) -> None:
         """
         Test removing white spaces before the newline.
@@ -2652,6 +2667,7 @@ class Test_smd_format(hunitest.TestCase):
         # Run test.
         self.helper(txt, expected)
 
+    # TODO(ai_gp): Rename to test2 (testing.rules.md:## Test Method Names)
     def test_remove_tag_colon1(self) -> None:
         """
         Test removing the colon after a lone `@tag@` on its own line.
@@ -2667,6 +2683,7 @@ class Test_smd_format(hunitest.TestCase):
         # Run test.
         self.helper(txt, expected)
 
+    # TODO(ai_gp): Rename to test3 (testing.rules.md:## Test Method Names)
     def test_remove_tag_colon2(self) -> None:
         """
         Test removing the colon after a bulleted lone `@tag@`.
@@ -2682,6 +2699,7 @@ class Test_smd_format(hunitest.TestCase):
         # Run test.
         self.helper(txt, expected)
 
+    # TODO(ai_gp): Rename to test4 (testing.rules.md:## Test Method Names)
     def test_keep_tag_colon_with_content1(self) -> None:
         """
         Test that the `:` is kept (and the following text capitalized) when
@@ -2698,6 +2716,7 @@ class Test_smd_format(hunitest.TestCase):
         # Run test.
         self.helper(txt, expected)
 
+    # TODO(ai_gp): Rename to test5 (testing.rules.md:## Test Method Names)
     def test_capitalize_after_colon1(self) -> None:
         """
         Test capitalizing the first letter after a `:`.
@@ -2713,6 +2732,7 @@ class Test_smd_format(hunitest.TestCase):
         # Run test.
         self.helper(txt, expected)
 
+    # TODO(ai_gp): Rename to test6 (testing.rules.md:## Test Method Names)
     def test_capitalize_after_colon_with_bold1(self) -> None:
         """
         Test capitalizing the first letter after a `:`, skipping over a
@@ -2729,6 +2749,7 @@ class Test_smd_format(hunitest.TestCase):
         # Run test.
         self.helper(txt, expected)
 
+    # TODO(ai_gp): Rename to test7 (testing.rules.md:## Test Method Names)
     def test_capitalize_after_colon_already_capitalized1(self) -> None:
         """
         Test that already capitalized text after a `:` is left unchanged.
@@ -2742,6 +2763,7 @@ class Test_smd_format(hunitest.TestCase):
         # Run test.
         self.helper(txt, expected)
 
+    # TODO(ai_gp): Rename to test8 (testing.rules.md:## Test Method Names)
     def test_no_capitalize_without_letter1(self) -> None:
         """
         Test that a `:` not followed by a letter (e.g., a number) is left
@@ -2756,6 +2778,7 @@ class Test_smd_format(hunitest.TestCase):
         # Run test.
         self.helper(txt, expected)
 
+    # TODO(ai_gp): Rename to test9 (testing.rules.md:## Test Method Names)
     def test_fence_spacing1(self) -> None:
         """
         Test that exactly one blank line is inserted between fence lines and
@@ -2794,6 +2817,7 @@ class Test_smd_format(hunitest.TestCase):
         # Run test.
         self.helper(txt, expected)
 
+    # TODO(ai_gp): Rename to test10 (testing.rules.md:## Test Method Names)
     def test_fence_spacing_idempotent1(self) -> None:
         """
         Test that an already well-formatted fenced div block is left
@@ -2824,6 +2848,7 @@ class Test_smd_format(hunitest.TestCase):
         # Run test.
         self.helper(txt, expected)
 
+    # TODO(ai_gp): Rename to test11 (testing.rules.md:## Test Method Names)
     def test_fence_spacing_collapses_extra_blank_lines1(self) -> None:
         """
         Test that more than one blank line around a fence is collapsed to
@@ -2850,6 +2875,7 @@ class Test_smd_format(hunitest.TestCase):
         # Run test.
         self.helper(txt, expected)
 
+    # TODO(ai_gp): Rename to test12 (testing.rules.md:## Test Method Names)
     def test_fence_spacing_no_blank_between_consecutive_fences1(self) -> None:
         """
         Test that a blank line between two consecutive fence lines is
@@ -2871,6 +2897,7 @@ class Test_smd_format(hunitest.TestCase):
         # Run test.
         self.helper(txt, expected)
 
+    # TODO(ai_gp): Rename to test13 (testing.rules.md:## Test Method Names)
     def test_no_fence_unaffected1(self) -> None:
         """
         Test that text without any fenced div blocks is left unchanged.
@@ -2896,6 +2923,7 @@ class Test_perform_actions_smd_type(hunitest.TestCase):
     Test that `_perform_actions` recognizes the `smd` file type.
     """
 
+    # TODO(ai_gp): Rename to test1 (testing.rules.md:## Test Method Names)
     def test_file_type_override_smd1(self) -> None:
         """
         Test that `file_type_override="smd"` runs the `smd_format` action.
@@ -2915,6 +2943,7 @@ class Test_perform_actions_smd_type(hunitest.TestCase):
         expected = ["@Problem@"]
         self.assertEqual(actual, expected)
 
+    # TODO(ai_gp): Rename to test2 (testing.rules.md:## Test Method Names)
     def test_invalid_file_type_override1(self) -> None:
         """
         Test that an invalid `file_type_override` raises an assertion.
