@@ -3,7 +3,7 @@ Utilities for daemon-mode operations, i.e., scripts that keep re-running
 instead of exiting after one pass
 
 - There are two flows:
-  1. Reactive daemon (`daemon_watch()` / `run_daemon_mode()`):
+  1. Reactive daemon (`_daemon_watch()` / `run_reactive_daemon_mode()`):
      - Watch a file
      - Re-run (debounced) only when it changes
      - E.g., rebuilding a PDF from a `.tex` file that's being edited
@@ -36,7 +36,6 @@ _LOG = logging.getLogger(__name__)
 # #############################################################################
 
 
-# TODO(ai_gp): Inline if it's called only once
 def add_daemon_arg(
     parser: argparse.ArgumentParser,
     *,
@@ -84,21 +83,20 @@ def add_periodic_daemon_args(
 
 
 def run_periodic_daemon_mode(
-        # TODO(ai_gp): fn -> func
-    fn: Callable[[], None],
+    func: Callable[[], None],
     interval_in_sec: int,
     *,
     window_name_str: str = "",
 ) -> None:
     """
-    Run periodic daemon mode: call `fn()` every `interval_in_sec` seconds,
+    Run periodic daemon mode: call `func()` every `interval_in_sec` seconds,
     forever, regardless of whether anything changed.
 
     E.g., watching on a fixed cadence:
-    - a GitHub workflow's status with `invoke gh_watch()`)
+    - a GitHub workflow's status with `invoke gh_workflow_list --daemon`
     - a pytest log's parsed summary with `pytest_failed.py --daemon`
 
-    :param fn: zero-arg callable to invoke on each iteration
+    :param func: zero-arg callable to invoke on each iteration
     :param interval_in_sec: seconds to sleep between iterations
     :param window_name_str: tmux window name to use while daemon is running
         (no-op outside tmux)
@@ -106,7 +104,7 @@ def run_periodic_daemon_mode(
     _LOG.info("Periodic daemon mode: running every %ds", interval_in_sec)
     with htmux.window_name(window_name_str):
         while True:
-            fn()
+            func()
             _LOG.info("Sleeping %ds before next run", interval_in_sec)
             time.sleep(interval_in_sec)
 
@@ -116,8 +114,7 @@ def run_periodic_daemon_mode(
 # #############################################################################
 
 
-# TODO(ai_gp): Who uses it? If nobody else -> private
-def file_hash(file_path: str) -> str:
+def _file_hash(file_path: str) -> str:
     """
     Compute MD5 hash of a file.
 
@@ -131,8 +128,7 @@ def file_hash(file_path: str) -> str:
     return hasher.hexdigest()
 
 
-# TODO(ai_gp): Who uses it? If nobody else -> private
-def daemon_watch(
+def _daemon_watch(
     file_path: str,
     cmd: str,
     *,
@@ -177,12 +173,12 @@ def daemon_watch(
     _LOG.info("Initial run complete")
     # Build watch command with optional suffix.
     watch_cmd = cmd if not watch_cmd_suffix else cmd + watch_cmd_suffix
-    prev_hash = file_hash(file_path)
+    prev_hash = _file_hash(file_path)
     stable_hash: str = ""
     time_since_last_change = 0
     while True:
         time.sleep(wait_in_sec)
-        cur_hash = file_hash(file_path)
+        cur_hash = _file_hash(file_path)
         if cur_hash != prev_hash:
             # File changed, start debounce.
             _LOG.info(
@@ -204,8 +200,7 @@ def daemon_watch(
                 stable_hash = ""
 
 
-# TODO(ai_gp): -> run_reactive_daemon_mode
-def run_daemon_mode(
+def run_reactive_daemon_mode(
     input_file: str,
     cmd: str,
     window_name_str: str,
@@ -224,9 +219,9 @@ def run_daemon_mode(
     :param window_name_str: Tmux window name to use while daemon is running
     :param watch_cmd_suffix: Suffix to append to command for watch runs
     """
-    # Build command without --daemon flag for daemon_watch to execute.
+    # Build command without --daemon flag for _daemon_watch to execute.
     cmd_parts = [part for part in shlex.split(cmd) if part != "--daemon"]
     cmd = " ".join(shlex.quote(part) for part in cmd_parts)
     _LOG.info("Daemon mode: watching '%s' for changes", input_file)
     with htmux.window_name(window_name_str):
-        daemon_watch(input_file, cmd, watch_cmd_suffix=watch_cmd_suffix)
+        _daemon_watch(input_file, cmd, watch_cmd_suffix=watch_cmd_suffix)

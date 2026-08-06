@@ -576,7 +576,8 @@ class Test_summary_conditional_display(hunitest.TestCase):
 
 class Test_extract_build_stats_missing_pytest_ended(hunitest.TestCase):
     """
-    Test _extract_build_stats marks INCOMPLETE when pytest_ended token missing.
+    Test _extract_build_stats sets `ended=False` when pytest_ended token
+    is missing.
     """
 
     def helper(
@@ -605,7 +606,7 @@ class Test_extract_build_stats_missing_pytest_ended(hunitest.TestCase):
 
     def test1(self) -> None:
         """
-        Test that missing pytest_ended token marks build as INCOMPLETE.
+        Test that missing pytest_ended token marks build as IN PROGRESS.
         """
         # Prepare inputs.
         info_data = {
@@ -623,14 +624,15 @@ class Test_extract_build_stats_missing_pytest_ended(hunitest.TestCase):
             "failed": 5,
             "total": 107,
             "duration": "45.2s",
-            "incomplete": True,
+            "started": True,
+            "ended": False,
         }
         # Run test.
         self.helper("dev_container", info_data, expected)
 
     def test2(self) -> None:
         """
-        Test that presence of pytest_ended token marks build as COMPLETE.
+        Test that presence of pytest_ended token marks build as DONE.
         """
         # Prepare inputs.
         info_data = {
@@ -649,7 +651,8 @@ class Test_extract_build_stats_missing_pytest_ended(hunitest.TestCase):
             "failed": 0,
             "total": 102,
             "duration": "45.2s",
-            "incomplete": False,
+            "started": True,
+            "ended": True,
         }
         # Run test.
         self.helper("docker", info_data, expected)
@@ -667,8 +670,9 @@ class Test_build_stats_to_str_incomplete_status(hunitest.TestCase):
 
     def test1(self) -> None:
         """
-        Test that proper status is displayed with incomplete builds.
-        Incomplete builds with total=0 show NOT STARTED status.
+        Test that proper Completed/Status is displayed with incomplete
+        builds. Builds that never started (started=False) show NOT
+        STARTED in Completed and N/A in Status.
         """
         # Prepare inputs.
         build_stats = [
@@ -679,7 +683,8 @@ class Test_build_stats_to_str_incomplete_status(hunitest.TestCase):
                 "failed": 19,
                 "total": 263,
                 "duration": "45.2s",
-                "incomplete": False,
+                "started": True,
+                "ended": True,
             },
             {
                 "build": "apple",
@@ -688,7 +693,8 @@ class Test_build_stats_to_str_incomplete_status(hunitest.TestCase):
                 "failed": 0,
                 "total": 0,
                 "duration": "N/A",
-                "incomplete": True,
+                "started": False,
+                "ended": False,
             },
             {
                 "build": "dev_container",
@@ -697,7 +703,8 @@ class Test_build_stats_to_str_incomplete_status(hunitest.TestCase):
                 "failed": 0,
                 "total": 248,
                 "duration": "50.1s",
-                "incomplete": False,
+                "started": True,
+                "ended": True,
             },
         ]
         # Run test.
@@ -710,11 +717,11 @@ class Test_build_stats_to_str_incomplete_status(hunitest.TestCase):
         ################################################################################
         Build Statistics
         ################################################################################
-        Build         | Status      | Passed | Skipped | Failed | Total | Duration |
-        ------------- | ----------- | ------ | ------- | ------ | ----- | -------- |
-        docker        | FAIL        | 235    | 9       | 19     | 263   | 45.2s    |
-        apple         | NOT STARTED | 0      | 0       | 0      | 0     | N/A      |
-        dev_container | PASS        | 240    | 8       | 0      | 248   | 50.1s    |
+        Build         | Completed   | Status | Passed | Skipped | Failed | Total | Duration | File                                     | Dir                              |
+        ------------- | ----------- | ------ | ------ | ------- | ------ | ----- | -------- | ---------------------------------------- | -------------------------------- |
+        docker        | DONE        | FAIL   | 235    | 9       | 19     | 263   | 45.2s    | tmp.pytest_multi_build.docker.txt        | tmp.pytest_failed.docker/        |
+        apple         | NOT STARTED | N/A    | 0      | 0       | 0      | 0     | N/A      | tmp.pytest_multi_build.apple.txt         | tmp.pytest_failed.apple/         |
+        dev_container | DONE        | PASS   | 240    | 8       | 0      | 248   | 50.1s    | tmp.pytest_multi_build.dev_container.txt | tmp.pytest_failed.dev_container/ |
         """
         self.assert_equal(clean_actual, expected, dedent=True)
 
@@ -769,16 +776,17 @@ class Test_build_stats_to_str_colorization(hunitest.TestCase):
                 "failed": 0,
                 "total": 388,
                 "duration": "11.87s",
-                "incomplete": False,
+                "started": True,
+                "ended": True,
             },
         ]
         expected = """
         ################################################################################
         Build Statistics
         ################################################################################
-        Build  | Status | Passed | Skipped | Failed | Total | Duration |
-        ------ | ------ | ------ | ------- | ------ | ----- | -------- |
-        docker | PASS   | 368    | 20      | 0      | 388   | 11.87s   |"""
+        Build  | Completed | Status | Passed | Skipped | Failed | Total | Duration | File                              | Dir                       |
+        ------ | --------- | ------ | ------ | ------- | ------ | ----- | -------- | --------------------------------- | ------------------------- |
+        docker | DONE      | PASS   | 368    | 20      | 0      | 388   | 11.87s   | tmp.pytest_multi_build.docker.txt | tmp.pytest_failed.docker/ |"""
         # Run test.
         self._check_colorized_output(build_stats, "PASS", expected, dedent=True)
 
@@ -795,16 +803,17 @@ class Test_build_stats_to_str_colorization(hunitest.TestCase):
                 "failed": 11,
                 "total": 388,
                 "duration": "12.45s",
-                "incomplete": False,
+                "started": True,
+                "ended": True,
             },
         ]
         expected = """
         ################################################################################
         Build Statistics
         ################################################################################
-        Build  | Status | Passed | Skipped | Failed | Total | Duration |
-        ------ | ------ | ------ | ------- | ------ | ----- | -------- |
-        docker | FAIL   | 357    | 20      | 11     | 388   | 12.45s   |"""
+        Build  | Completed | Status | Passed | Skipped | Failed | Total | Duration | File                              | Dir                       |
+        ------ | --------- | ------ | ------ | ------- | ------ | ----- | -------- | --------------------------------- | ------------------------- |
+        docker | DONE      | FAIL   | 357    | 20      | 11     | 388   | 12.45s   | tmp.pytest_multi_build.docker.txt | tmp.pytest_failed.docker/ |"""
         # Run test.
         self._check_colorized_output(build_stats, "FAIL", expected, dedent=True)
 
@@ -812,7 +821,7 @@ class Test_build_stats_to_str_colorization(hunitest.TestCase):
         """
         Test that NOT STARTED status is displayed when no info file exists.
         """
-        # Prepare inputs: build with no pytest file (total=0, incomplete=True).
+        # Prepare inputs: build with no pytest file (started=False, ended=False).
         build_stats = [
             {
                 "build": "dev_container",
@@ -821,16 +830,17 @@ class Test_build_stats_to_str_colorization(hunitest.TestCase):
                 "failed": 0,
                 "total": 0,
                 "duration": "N/A",
-                "incomplete": True,
+                "started": False,
+                "ended": False,
             },
         ]
         expected = """
         ################################################################################
         Build Statistics
         ################################################################################
-        Build         | Status      | Passed | Skipped | Failed | Total | Duration |
-        ------------- | ----------- | ------ | ------- | ------ | ----- | -------- |
-        dev_container | NOT STARTED | 0      | 0       | 0      | 0     | N/A      |"""
+        Build         | Completed   | Status | Passed | Skipped | Failed | Total | Duration | File                                     | Dir                              |
+        ------------- | ----------- | ------ | ------ | ------- | ------ | ----- | -------- | ---------------------------------------- | -------------------------------- |
+        dev_container | NOT STARTED | N/A    | 0      | 0       | 0      | 0     | N/A      | tmp.pytest_multi_build.dev_container.txt | tmp.pytest_failed.dev_container/ |"""
         # Run test.
         self._check_colorized_output(
             build_stats, "NOT STARTED", expected, dedent=True
@@ -838,9 +848,10 @@ class Test_build_stats_to_str_colorization(hunitest.TestCase):
 
     def test4(self) -> None:
         """
-        Test that IN PROGRESS status is displayed when pytest incomplete.
+        Test that IN PROGRESS status is displayed when pytest started but
+        not finished.
         """
-        # Prepare inputs: build running but not finished (incomplete=True, total>0).
+        # Prepare inputs: build running but not finished (started=True, ended=False).
         build_stats = [
             {
                 "build": "apple",
@@ -849,16 +860,17 @@ class Test_build_stats_to_str_colorization(hunitest.TestCase):
                 "failed": 0,
                 "total": 155,
                 "duration": "N/A",
-                "incomplete": True,
+                "started": True,
+                "ended": False,
             },
         ]
         expected = """
         ################################################################################
         Build Statistics
         ################################################################################
-        Build | Status      | Passed | Skipped | Failed | Total | Duration |
-        ----- | ----------- | ------ | ------- | ------ | ----- | -------- |
-        apple | IN PROGRESS | 150    | 5       | 0      | 155   | N/A      |"""
+        Build | Completed   | Status | Passed | Skipped | Failed | Total | Duration | File                             | Dir                      |
+        ----- | ----------- | ------ | ------ | ------- | ------ | ----- | -------- | -------------------------------- | ------------------------ |
+        apple | IN PROGRESS | N/A    | 150    | 5       | 0      | 155   | N/A      | tmp.pytest_multi_build.apple.txt | tmp.pytest_failed.apple/ |"""
         # Run test.
         self._check_colorized_output(
             build_stats, "IN PROGRESS", expected, dedent=True
@@ -868,7 +880,7 @@ class Test_build_stats_to_str_colorization(hunitest.TestCase):
         """
         Test that IN PROGRESS status is displayed even with no tests output yet.
         """
-        # Prepare inputs: pytest started but produced no output (incomplete=True, total=0).
+        # Prepare inputs: pytest started but produced no output (started=True, ended=False, total=0).
         build_stats = [
             {
                 "build": "docker",
@@ -877,7 +889,8 @@ class Test_build_stats_to_str_colorization(hunitest.TestCase):
                 "failed": 0,
                 "total": 0,
                 "duration": "N/A",
-                "incomplete": True,
+                "started": True,
+                "ended": False,
             },
         ]
         # Prepare outputs.
@@ -885,11 +898,11 @@ class Test_build_stats_to_str_colorization(hunitest.TestCase):
         ################################################################################
         Build Statistics
         ################################################################################
-        Build  | Status      | Passed | Skipped | Failed | Total | Duration |
-        ------ | ----------- | ------ | ------- | ------ | ----- | -------- |
-        docker | NOT STARTED | 0      | 0       | 0      | 0     | N/A      |"""
+        Build  | Completed   | Status | Passed | Skipped | Failed | Total | Duration | File                              | Dir                       |
+        ------ | ----------- | ------ | ------ | ------- | ------ | ----- | -------- | --------------------------------- | ------------------------- |
+        docker | IN PROGRESS | N/A    | 0      | 0       | 0      | 0     | N/A      | tmp.pytest_multi_build.docker.txt | tmp.pytest_failed.docker/ |"""
         # Run test.
-        self._check_colorized_output(build_stats, "NOT STARTED", expected, dedent=True)
+        self._check_colorized_output(build_stats, "IN PROGRESS", expected, dedent=True)
 
 
 # #############################################################################
@@ -929,7 +942,7 @@ class Test_build_stats_to_str_new_status_conditions(hunitest.TestCase):
     def test1(self) -> None:
         """
         Test NOT STARTED status when no pytest file exists.
-        Scenario: incomplete=True, total=0 (no info.json file)
+        Scenario: started=False, ended=False (no info.json file)
         """
         # Prepare inputs.
         build_stats = [
@@ -940,7 +953,8 @@ class Test_build_stats_to_str_new_status_conditions(hunitest.TestCase):
                 "failed": 0,
                 "total": 0,
                 "duration": "N/A",
-                "incomplete": True,
+                "started": False,
+                "ended": False,
             },
         ]
         # Run test.
@@ -949,7 +963,7 @@ class Test_build_stats_to_str_new_status_conditions(hunitest.TestCase):
     def test2(self) -> None:
         """
         Test IN PROGRESS status when pytest running but unfinished.
-        Scenario: incomplete=True, total>0 (no pytest_ended marker)
+        Scenario: started=True, ended=False (no pytest_ended marker)
         """
         # Prepare inputs.
         build_stats = [
@@ -960,7 +974,8 @@ class Test_build_stats_to_str_new_status_conditions(hunitest.TestCase):
                 "failed": 5,
                 "total": 115,
                 "duration": "N/A",
-                "incomplete": True,
+                "started": True,
+                "ended": False,
             },
         ]
         # Run test.
@@ -968,9 +983,9 @@ class Test_build_stats_to_str_new_status_conditions(hunitest.TestCase):
 
     def test3(self) -> None:
         """
-        Test IN PROGRESS status when pytest started but no output yet.
-        Scenario: incomplete=True, total=0, but info.json exists (edge case)
-        Should be treated as NOT STARTED since total=0.
+        Test NOT STARTED status when pytest never reached the start banner.
+        Scenario: started=False, ended=False, but info.json exists (edge
+        case where the log has no output at all)
         """
         # Prepare inputs.
         build_stats = [
@@ -981,7 +996,8 @@ class Test_build_stats_to_str_new_status_conditions(hunitest.TestCase):
                 "failed": 0,
                 "total": 0,
                 "duration": "N/A",
-                "incomplete": True,
+                "started": False,
+                "ended": False,
             },
         ]
         # Run test.
@@ -990,7 +1006,7 @@ class Test_build_stats_to_str_new_status_conditions(hunitest.TestCase):
     def test4(self) -> None:
         """
         Test PASS status when pytest completed with no failures.
-        Scenario: incomplete=False, failed=0
+        Scenario: started=True, ended=True, failed=0
         """
         # Prepare inputs.
         build_stats = [
@@ -1001,7 +1017,8 @@ class Test_build_stats_to_str_new_status_conditions(hunitest.TestCase):
                 "failed": 0,
                 "total": 520,
                 "duration": "45.2s",
-                "incomplete": False,
+                "started": True,
+                "ended": True,
             },
         ]
         # Run test.
@@ -1010,7 +1027,7 @@ class Test_build_stats_to_str_new_status_conditions(hunitest.TestCase):
     def test5(self) -> None:
         """
         Test FAIL status when pytest completed with failures.
-        Scenario: incomplete=False, failed>0
+        Scenario: started=True, ended=True, failed>0
         """
         # Prepare inputs.
         build_stats = [
@@ -1021,7 +1038,8 @@ class Test_build_stats_to_str_new_status_conditions(hunitest.TestCase):
                 "failed": 5,
                 "total": 520,
                 "duration": "47.1s",
-                "incomplete": False,
+                "started": True,
+                "ended": True,
             },
         ]
         # Run test.
@@ -1040,7 +1058,8 @@ class Test_build_stats_to_str_new_status_conditions(hunitest.TestCase):
                 "failed": 0,
                 "total": 0,
                 "duration": "N/A",
-                "incomplete": True,
+                "started": False,
+                "ended": False,
             },
             {
                 "build": "apple",
@@ -1049,7 +1068,8 @@ class Test_build_stats_to_str_new_status_conditions(hunitest.TestCase):
                 "failed": 0,
                 "total": 105,
                 "duration": "N/A",
-                "incomplete": True,
+                "started": True,
+                "ended": False,
             },
             {
                 "build": "dev_container",
@@ -1058,7 +1078,8 @@ class Test_build_stats_to_str_new_status_conditions(hunitest.TestCase):
                 "failed": 0,
                 "total": 540,
                 "duration": "48.5s",
-                "incomplete": False,
+                "started": True,
+                "ended": True,
             },
         ]
         # Run test.
