@@ -174,6 +174,7 @@ def _create_branch_and_pr(
     *,
     create_pr: bool = True,
     gh_issue_id_provided: bool = False,
+    no_abort_if_not_master: bool = False,
 ) -> str:
     """
     Create a git branch using invoke git_branch_create task.
@@ -182,6 +183,9 @@ def _create_branch_and_pr(
     :param original_branch: Name of the original branch to extract files from
     :param create_pr: Whether to create a draft PR (default: True)
     :param gh_issue_id_provided: True if issue ID was provided (not newly created)
+    :param no_abort_if_not_master: if True, allow branching from a non-'master'
+        branch instead of aborting (the underlying invoke task switches to
+        'master' first)
     :return: Created branch name
     """
     # Get the branch name from GitHub issue title.
@@ -201,6 +205,10 @@ def _create_branch_and_pr(
     cmd = f"invoke git_branch_create --issue-id {issue_id}"
     if not create_pr:
         cmd += " --create-pr=False"
+    if no_abort_if_not_master:
+        # Let git_branch_create switch to 'master' itself instead of
+        # aborting when the current branch isn't 'master'.
+        cmd += " --abort-if-not-master=False"
     _LOG.info("Creating branch via invoke: %s", cmd)
     hsystem.system(cmd, log_level=logging.INFO)
     # Get the current branch name (invoke git_branch_create creates and checks out the branch).
@@ -215,7 +223,11 @@ def _create_branch_and_pr(
 
 
 def _create_branch_in_submodule(
-    submodule_path: str, branch_name: str, *, create_pr: bool = True
+    submodule_path: str,
+    branch_name: str,
+    *,
+    create_pr: bool = True,
+    no_abort_if_not_master: bool = False,
 ) -> None:
     """
     Create (or check out) `branch_name` inside a submodule.
@@ -229,6 +241,9 @@ def _create_branch_in_submodule(
     :param branch_name: literal branch name, already computed from the outer
         repo's GH issue
     :param create_pr: whether to create a draft PR (default: True)
+    :param no_abort_if_not_master: if True, allow branching from a non-'master'
+        branch instead of aborting (the underlying invoke task switches to
+        'master' first)
     """
     if hgit.does_branch_exist(branch_name, mode="all", dir_name=submodule_path):
         _LOG.info(
@@ -245,6 +260,10 @@ def _create_branch_in_submodule(
     )
     if not create_pr:
         cmd += " --create-pr=False"
+    if no_abort_if_not_master:
+        # Let git_branch_create switch to 'master' itself instead of
+        # aborting when the current branch isn't 'master'.
+        cmd += " --abort-if-not-master=False"
     _LOG.info("Creating branch in '%s' via invoke: %s", submodule_path, cmd)
     hsystem.system(cmd, log_level=logging.INFO)
 
@@ -425,7 +444,7 @@ def _parse() -> argparse.ArgumentParser:
         ),
     )
     parser.add_argument(
-        "--no_master_check",
+        "--no_abort_if_not_master",
         action="store_true",
         default=False,
         help="Skip checking that every repo target is on 'master'",
@@ -492,13 +511,17 @@ def _main_workflow(
         original_branch,
         create_pr=args.create_pr,
         gh_issue_id_provided=bool(args.gh_issue_id),
+        no_abort_if_not_master=args.no_abort_if_not_master,
     )
     _LOG.info("Branch name: '%s'", branch_name)
     # Symmetrically create the same branch (by name) in every submodule.
     submodule_targets = repo_targets[1:]
     for submodule_path in submodule_targets:
         _create_branch_in_submodule(
-            submodule_path, branch_name, create_pr=args.create_pr
+            submodule_path,
+            branch_name,
+            create_pr=args.create_pr,
+            no_abort_if_not_master=args.no_abort_if_not_master,
         )
     # Create worktree, if requested.
     if args.create_worktree:
@@ -525,7 +548,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
     _dassert_all_targets_clean(repo_targets)
     # Capture original branch to restore on failure.
     original_branch = hgit.get_branch_name()
-    if len(repo_targets) > 1 and not args.no_master_check:
+    if len(repo_targets) > 1 and not args.no_abort_if_not_master:
         # Assert that every repo target is on 'master' before creating a
         # branch in any of them, to avoid a half-done state across repos.
         _dassert_all_targets_on_master(repo_targets, original_branch)
