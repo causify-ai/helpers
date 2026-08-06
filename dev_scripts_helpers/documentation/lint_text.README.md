@@ -16,7 +16,7 @@
   - `.md` (markdown)
   - `.tex` (LaTeX)
   - `.txt` (plain text)
-  - `.emd` (enhanced markdown)
+  - `smd` (slide markdown)
 - Input/output modes: File-based (single or multiple) or stdin/stdout
 - Safety features: Automatic backups, revert capability, action filtering
 
@@ -124,14 +124,28 @@
   - Reports broken links without failing
   - Supports HTTP/HTTPS requests
 
+### Slide Markdown Actions
+
+- **smd_format**: Apply `smd` (slide markdown) specific formatting (`smd` only)
+  - Removes trailing white spaces before the newline
+  - Removes the `:` after a lone `@tag@` on its own line, e.g., `@Problem@:`
+    -> `@Problem@`
+  - Capitalizes the first letter after a `:`, skipping leading markdown
+    emphasis markers, e.g., `@Definition@: **models**` ->
+    `@Definition@: **Models**`
+  - Ensures exactly one blank line between a fenced div block (a line
+    starting with at least 3 `:`, e.g., `::: columns`) and the surrounding
+    chunk of code, while keeping consecutive fence lines adjacent
+
 ## Command Line Options
 
 ### Input/Output
 
 - `--in <file>`: Input file (or `-` for stdin)
 - `--out <file>`: Output file (defaults to `--in` for in-place editing)
-- `--type <type>`: File type when using stdin (required for stdin input)
-  - Options: `md`, `tex`, `txt`
+- `--type <type>`: File type when using stdin (required for stdin input), or
+  to force a type instead of inferring it from the file extension
+  - Options: `md`, `tex`, `txt`, `smd`
 
 ### Formatting Configuration
 
@@ -207,6 +221,9 @@
   - No markdown syntax processing
   - All lines treated as content
 
+- **Slide markdown files** (`smd`, forced via `--type smd`):
+  - `txt`-like format for lecture slide sources
+
 ### Backup System
 
 - Backup filename: `tmp.lint_text.<original_filename>`
@@ -263,6 +280,12 @@
 
 ```bash
 > ./lint_text.py --in chapter1.md chapter2.md chapter3.md
+```
+
+### Format a Lecture Slide Source as Slide Markdown
+
+```bash
+> ./lint_text.py --in lesson.txt --type smd
 ```
 
 ## Notes and Considerations

@@ -57,10 +57,10 @@ def _parser() -> argparse.ArgumentParser:
         action="store",
         type=str,
         default="",
-        choices=["", "md", "tex", "txt", "emd"],
+        choices=["", "md", "tex", "txt", "smd"],
         help=(
             "Force the file type instead of inferring from extension. "
-            "When reading from stdin, this option is required."
+            "When reading from stdin, this option is required. "
         ),
     )
     parser.add_argument(
