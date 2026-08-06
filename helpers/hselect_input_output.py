@@ -88,7 +88,7 @@ def add_file_selection_args(
     Add file selection arguments to a parser.
 
     Adds the following mutually exclusive arguments:
-    - -i / --input: Specify specific file
+    - -i / --input: Specify a single file (not a space-separated list)
     - --files: Specify specific file(s)
     - --from_files: Select files listed in a file
     - --modified: Select files modified in the client
@@ -104,8 +104,8 @@ def add_file_selection_args(
         "-i",
         "--input",
         dest="input",
-        action=_SingleFilesAction,
-        help="Select specific file"
+        action=_SingleFileAction,
+        help="Select a single specific file",
     )
     file_selection.add_argument(
         "--files",
@@ -154,7 +154,7 @@ def parse_file_selection_args(
 
     Handles these mutually exclusive options:
     - --files: files specified as space-separated list
-    - -i / --input: a single file
+    - -i / --input: a single file (not a space-separated list)
     - --from_files: files listed in a file (one per line)
     - --modified: files modified in the client
     - --branch: files modified with respect to the branch point
@@ -168,8 +168,9 @@ def parse_file_selection_args(
     """
     import helpers.hgit as hgit
 
-    # `--files` and `-i` / `--input` are separate mutually exclusive options
-    # that both select an explicit space-separated list of files.
+    # `--files` and `-i` / `--input` are separate mutually exclusive options:
+    # `--files` takes a space-separated list, `-i`/`--input` takes a single
+    # file.
     files_str = getattr(args, "files", None) or getattr(args, "input", None)
     files = hgit.get_files_to_process(
         files_str or "",
