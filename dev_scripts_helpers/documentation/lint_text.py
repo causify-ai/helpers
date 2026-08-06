@@ -12,7 +12,7 @@ See instructions at
 `docs/tools/documentation_toolchain/all.notes_toolchain.how_to_guide.md`
 
 For a description of the architecture of this file, see the file
-`lint_txt.README.md` in the same directory.
+`lint_text.README.md` in the same directory.
 """
 
 import argparse
@@ -23,7 +23,7 @@ import helpers.hdocker as hdocker
 import helpers.hselect_input_output as hseinout
 import helpers.hparser as hparser
 import helpers.hselect_action as hselacti
-import dev_scripts_helpers.documentation.lib_lint_txt as dshdllitx
+import dev_scripts_helpers.documentation.lib_lint_text as dshdllitx
 
 _LOG = logging.getLogger(__name__)
 

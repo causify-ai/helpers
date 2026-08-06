@@ -94,5 +94,5 @@ model: opus
 # Lint
 - After generating the file `notebook_ideas.<tag>.md`
   ```
-  > lint_txt.py -i `notebook_ideas.<tag>.md`
+  > lint_text.py -i `notebook_ideas.<tag>.md`
   ```

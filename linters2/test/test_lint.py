@@ -701,7 +701,7 @@ class Test_lint_markdown_files(hunitest.TestCase):
         Empty file list: returns 0 immediately, no calls.
         """
         # Prepare inputs.
-        lint_script_path = "/fake/lint_txt.py"
+        lint_script_path = "/fake/lint_text.py"
         mock_find_file.return_value = lint_script_path
         file_paths = []
         abort_on_error = True
@@ -725,10 +725,10 @@ class Test_lint_markdown_files(hunitest.TestCase):
         mock_find_file: umock.MagicMock,
     ) -> None:
         """
-        Two .md files: 1 call to lint_txt.py with filenames.
+        Two .md files: 1 call to lint_text.py with filenames.
         """
         # Prepare inputs.
-        lint_script_path = "/fake/lint_txt.py"
+        lint_script_path = "/fake/lint_text.py"
         mock_find_file.return_value = lint_script_path
         file_paths = ["doc.md", "readme.md"]
         abort_on_error = True
@@ -737,7 +737,7 @@ class Test_lint_markdown_files(hunitest.TestCase):
         expected = r"""[
         {
         'function': hsystem.system,
-        'args': ('/fake/lint_txt.py --input_files doc.md readme.md',),
+        'args': ('/fake/lint_text.py --input_files doc.md readme.md',),
         'kwargs': {'print_command': True, 'abort_on_error': True, 'suppress_output': False},
         },
         ]"""

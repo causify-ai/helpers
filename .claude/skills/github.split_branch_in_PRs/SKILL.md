@@ -85,5 +85,5 @@ description: Split the current changes in a Git client in small cohesive PRs to 
   the PRs already merged based on the current `i git_files` and the `git log`
 - Run the linter on `github_PR_plan.md`
   ```
-  > lint_txt.py -i github_PR_plan.md
+  > lint_text.py -i github_PR_plan.md
   ```

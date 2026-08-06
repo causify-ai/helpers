@@ -48,7 +48,7 @@ model: haiku
 
 ## Step 5: Lint Document
   ```bash
-  > lint_txt.py -i `<FILE>.README.md`
+  > lint_text.py -i `<FILE>.README.md`
   ```
 
 # Conventions

@@ -1,11 +1,11 @@
 """
 Core library for linting and formatting text files.
 
-Provides transformation functions and file processing logic used by lint_txt.py.
+Provides transformation functions and file processing logic used by lint_text.py.
 
 Import as:
 
-import dev_scripts_helpers.documentation.lib_lint_txt as dshdllitx
+import dev_scripts_helpers.documentation.lib_lint_text as dshdllitx
 """
 
 import argparse
@@ -778,14 +778,14 @@ def _get_backup_filename(file_path: str) -> str:
     Get the backup filename for a given file path.
 
     Example: `.claude/skills/testing.rules.md` ->
-    `.claude/skills/tmp.lint_txt.testing.rules.md`
+    `.claude/skills/tmp.lint_text.testing.rules.md`
 
     :param file_path: The original file path.
     :return: The backup file path.
     """
     dir_name = os.path.dirname(file_path)
     file_name = os.path.basename(file_path)
-    backup_name = f"tmp.lint_txt.{file_name}"
+    backup_name = f"tmp.lint_text.{file_name}"
     if dir_name:
         backup_path = os.path.join(dir_name, backup_name)
     else:

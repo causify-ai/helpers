@@ -63,7 +63,7 @@ model: haiku
   - `tutorials/AutoGen/README.md`
   - `tutorials/BambooAI/README.md`
   - `tutorials/TensorFlow/README.md`
-- Run `lint_txt.py -i` to format the README file
+- Run `lint_text.py -i` to format the README file
 
 ## Run Docker
 - Make sure the system builds by running
@@ -95,4 +95,4 @@ model: haiku
   - `website/docs/blog/posts/Autogen_in_60_mins.md`,
   - `website/docs/blog/posts/BambooAI_in_60_mins.md`,
   - `website/docs/blog/posts/TensorFlow_in_60_mins.md`,
-- Run `lint_txt.py -i` to format the file
+- Run `lint_text.py -i` to format the file

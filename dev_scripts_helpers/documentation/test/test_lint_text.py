@@ -4,7 +4,7 @@ from typing import Callable, List
 
 import pytest
 
-import dev_scripts_helpers.documentation.lib_lint_txt as dshdllitx
+import dev_scripts_helpers.documentation.lib_lint_text as dshdllitx
 import dev_scripts_helpers.dockerize.lib_prettier as dshdlipr
 import helpers.hdbg as hdbg
 import helpers.hgit as hgit
@@ -76,11 +76,11 @@ def _get_text1() -> str:
 
 
 # #############################################################################
-# Test_lint_txt1
+# Test_lint_text1
 # #############################################################################
 
 
-class Test_lint_txt1(hunitest.TestCase):
+class Test_lint_text1(hunitest.TestCase):
     """
     Test the text preprocessing functionality.
     """
@@ -1884,11 +1884,11 @@ class Test_capitalize_header(hunitest.TestCase):
 
 
 # #############################################################################
-# Test_lint_txt2
+# Test_lint_text2
 # #############################################################################
 
 
-class Test_lint_txt2(hunitest.TestCase):
+class Test_lint_text2(hunitest.TestCase):
     @staticmethod
     def get_text_problematic_for_prettier1() -> str:
         txt = r"""
@@ -2209,16 +2209,16 @@ class Test_lint_txt2(hunitest.TestCase):
 
 
 # #############################################################################
-# Test_lint_txt_py1
+# Test_lint_text_py1
 # #############################################################################
 
 
-class Test_lint_txt_py1(hunitest.TestCase):
+class Test_lint_text_py1(hunitest.TestCase):
     """
-    Test the lint_txt.py command-line script with different file types.
+    Test the lint_text.py command-line script with different file types.
     """
 
-    def run_lint_txt(
+    def run_lint_text(
         self,
         in_file: str,
         type_: str,
@@ -2226,7 +2226,7 @@ class Test_lint_txt_py1(hunitest.TestCase):
         cmd_opts: str,
     ) -> str:
         """
-        Run lint_txt processing directly by calling the code.
+        Run lint_text processing directly by calling the code.
 
         :param in_file: Path to the input file containing the notes.
         :param type_: The output format, either 'md' or 'tex'. :param
@@ -2236,11 +2236,11 @@ class Test_lint_txt_py1(hunitest.TestCase):
         :return: The processed text content.
         """
         if use_script:
-            # lint_txt.py \
+            # lint_text.py \
             #  -i papers/DataFlow_stream_computing_framework/DataFlow_stream_computing_framework.tex \
             #  --use_dockerized_prettier \
             cmd = []
-            exec_path = hgit.find_file_in_git_tree("lint_txt.py")
+            exec_path = hgit.find_file_in_git_tree("lint_text.py")
             hdbg.dassert_path_exists(exec_path)
             cmd.append(exec_path)
             cmd.append(f"--input {in_file}")
@@ -2288,7 +2288,7 @@ class Test_lint_txt_py1(hunitest.TestCase):
         use_script = False
         cmd_opts = ""
         # Run the script.
-        output_txt = self.run_lint_txt(in_file, type_, use_script, cmd_opts)
+        output_txt = self.run_lint_text(in_file, type_, use_script, cmd_opts)
         # Check.
         self.check_string(output_txt)
 
@@ -2312,7 +2312,7 @@ class Test_lint_txt_py1(hunitest.TestCase):
         use_script = True
         cmd_opts = ""
         # Run the script.
-        output_txt = self.run_lint_txt(in_file, type_, use_script, cmd_opts)
+        output_txt = self.run_lint_text(in_file, type_, use_script, cmd_opts)
         # Check using the same golden outcome as test1.
         self.check_string(output_txt, test_method_name="test1")
 
@@ -2327,7 +2327,7 @@ class Test_lint_txt_py1(hunitest.TestCase):
         use_script = False
         cmd_opts = ""
         # Run the script.
-        output_txt = self.run_lint_txt(in_file, type_, use_script, cmd_opts)
+        output_txt = self.run_lint_text(in_file, type_, use_script, cmd_opts)
         # Check.
         self.check_string(output_txt)
 
@@ -2348,28 +2348,28 @@ class Test_lint_txt_py1(hunitest.TestCase):
         use_script = True
         cmd_opts = "--width 80"
         # Run the script.
-        output_txt = self.run_lint_txt(in_file, type_, use_script, cmd_opts)
+        output_txt = self.run_lint_text(in_file, type_, use_script, cmd_opts)
         # Check using the same golden outcome as test3.
         self.check_string(output_txt, test_method_name="test4")
 
 
 # #############################################################################
-# Test_lint_txt_py_idempotency
+# Test_lint_text_py_idempotency
 # #############################################################################
 
 
-class Test_lint_txt_py_idempotency(hunitest.TestCase):
+class Test_lint_text_py_idempotency(hunitest.TestCase):
     """
-    Test that lint_txt.py does not modify already formatted files.
+    Test that lint_text.py does not modify already formatted files.
     """
 
-    def run_lint_txt(
+    def run_lint_text(
         self,
         in_file: str,
         type_: str,
     ) -> str:
         """
-        Run lint_txt processing directly by calling the code.
+        Run lint_text processing directly by calling the code.
 
         :param in_file: Path to the input file containing the notes.
         :param type_: The output format, either 'md' or 'tex'.
@@ -2400,7 +2400,7 @@ class Test_lint_txt_py_idempotency(hunitest.TestCase):
         """
         Test idempotency for all markdown files in the input directory.
 
-        This test verifies that running lint_txt twice on each file in
+        This test verifies that running lint_text twice on each file in
         the input directory produces identical output.
         """
         # Prepare inputs.
@@ -2422,7 +2422,7 @@ class Test_lint_txt_py_idempotency(hunitest.TestCase):
             # Prepare outputs.
             type_ = "md"
             # Run the script once.
-            output_txt_1 = self.run_lint_txt(in_file, type_)
+            output_txt_1 = self.run_lint_text(in_file, type_)
             # Format the output again using the same formatter.
             lines = output_txt_1.split("\n")
             output_lines = dshdllitx._perform_actions(
@@ -2457,7 +2457,7 @@ class Test__get_backup_filename(hunitest.TestCase):
         # Run test.
         actual = dshdllitx._get_backup_filename(file_path)
         # Check outputs.
-        expected = "tmp.lint_txt.test.md"
+        expected = "tmp.lint_text.test.md"
         self.assertEqual(actual, expected)
 
     def test_filename_with_single_directory(self) -> None:
@@ -2469,7 +2469,7 @@ class Test__get_backup_filename(hunitest.TestCase):
         # Run test.
         actual = dshdllitx._get_backup_filename(file_path)
         # Check outputs.
-        expected = ".claude/skills/tmp.lint_txt.testing.rules.md"
+        expected = ".claude/skills/tmp.lint_text.testing.rules.md"
         self.assertEqual(actual, expected)
 
     def test_filename_with_nested_directories(self) -> None:
@@ -2481,7 +2481,7 @@ class Test__get_backup_filename(hunitest.TestCase):
         # Run test.
         actual = dshdllitx._get_backup_filename(file_path)
         # Check outputs.
-        expected = "path/to/nested/directory/tmp.lint_txt.file.txt"
+        expected = "path/to/nested/directory/tmp.lint_text.file.txt"
         self.assertEqual(actual, expected)
 
     def test_filename_with_multiple_dots(self) -> None:
@@ -2493,7 +2493,7 @@ class Test__get_backup_filename(hunitest.TestCase):
         # Run test.
         actual = dshdllitx._get_backup_filename(file_path)
         # Check outputs.
-        expected = "directory/tmp.lint_txt.some.config.yaml"
+        expected = "directory/tmp.lint_text.some.config.yaml"
         self.assertEqual(actual, expected)
 
 
