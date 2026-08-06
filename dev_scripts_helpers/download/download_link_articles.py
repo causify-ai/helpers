@@ -606,15 +606,15 @@ def _download_hn_urls(
         _LOG.info("Fetching HN comments for item: %s", item_id)
         if dry_run:
             _LOG.info("[DRY RUN] Would fetch HN comments for item: %s", item_id)
-            _LOG.info("[DRY RUN] Would write HN comments to: %s", output_file)
+            _LOG.info("[DRY RUN] Would write HN comments to: '%s'", output_file)
         elif os.path.exists(output_file) and not no_incremental:
-            _LOG.info("HN comments already exist, skipping: %s", output_file)
+            _LOG.info("HN comments already exist, skipping: '%s'", output_file)
         else:
             hn_comments = _fetch_hn_url(item_id, max_depth=10)
             total_comments = _count_comments(hn_comments)
             _LOG.info("Fetched %d total comments", total_comments)
             # Write comments to disk.
-            _LOG.info("Writing HN comments to: %s", output_file)
+            _LOG.info("Writing HN comments to: '%s'", output_file)
             formatted_comments = _format_hn_url_as_text(hn_comments)
             hio.to_file(output_file, formatted_comments)
             _LOG.info("Successfully saved HN comments for: %s", title)
@@ -674,8 +674,8 @@ def _download_article_urls(
                 "[DRY RUN] Would write article content to: %s", output_file
             )
         elif os.path.exists(output_file) and not no_incremental:
-            _LOG.info(
-                "Article content already exists, skipping: %s", output_file
+            _LOG.warning(
+                "Article content already exists, skipping: '%s'", output_file
             )
         else:
             _LOG.info(
@@ -716,7 +716,7 @@ def _summarize_text_with_llm(
     :param dry_run: If True, show what would be done without executing
     """
     _LOG.debug(hprint.to_str("input_file output_file model"))
-    _LOG.info("Summarizing: %s", input_file)
+    _LOG.info("Summarizing: '%s'", input_file)
     if dry_run:
         _LOG.info(
             "[DRY RUN] Would summarize: %s -> %s (model: %s)",
@@ -728,7 +728,7 @@ def _summarize_text_with_llm(
     # Save prompt to a temporary file.
     prompt_file = "tmp.summarize_text_with_llm.prompt.txt"
     hio.to_file(prompt_file, prompt)
-    _LOG.debug("Saved prompt to: %s", prompt_file)
+    _LOG.debug("Saved prompt to: '%s'", prompt_file)
     # Build command to call llm_cli.py with the given prompt file.
     llm_cli_path = "dev_scripts_helpers/llms/llm_cli.py"
     cmd_parts = [
@@ -742,7 +742,7 @@ def _summarize_text_with_llm(
     cmd = " ".join(cmd_parts)
     _LOG.debug("Running command: %s", cmd)
     hsystem.system(cmd, print_command=True)
-    _LOG.info("Summary saved to: %s", output_file)
+    _LOG.info("Summary saved to: '%s'", output_file)
 
 
 def _summarize_hn_url(
@@ -801,8 +801,8 @@ def _summarize_hn_url(
             and os.path.exists(comments_summary_file)
             and not no_incremental
         ):
-            _LOG.info(
-                "HN comments summary already exists, skipping: %s",
+            _LOG.warning(
+                "HN comments summary already exists, skipping: '%s'",
                 comments_summary_file,
             )
             continue
@@ -862,8 +862,8 @@ def _summarize_articles(
             and os.path.exists(article_summary_file)
             and not no_incremental
         ):
-            _LOG.info(
-                "Article summary already exists, skipping: %s",
+            _LOG.warning(
+                "Article summary already exists, skipping: '%s'",
                 article_summary_file,
             )
             continue

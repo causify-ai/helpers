@@ -4,4 +4,4 @@
 # Usage: ccp <prompt>
 # """
 
-cc -p --verbose "$*"
+cc -p --verbose "$*" | extract_cc_log2.py

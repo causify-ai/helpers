@@ -56,7 +56,7 @@ from tqdm import tqdm
 
 import helpers.hdbg as hdbg
 import helpers.hllm_cli as hllmcli
-import helpers.hlogging as hloggin
+import helpers.hlogging as hlogging
 import helpers.hparser as hparser
 import helpers.hprint as hprint
 import helpers.hselect_action as hselacti
@@ -215,18 +215,18 @@ def _update_article_urls() -> str:
         total=len(rows_to_process),
         desc="Extracting article URLs",
     ):
-        url = row["Url"]
+        url = row["Url"]  # type: ignore[index]
         if dshdlgsut.is_hackernews_url(url):
             _LOG.debug(
                 "Processing row %d: Extracting from HN URL", row_indices[idx]
             )
             article_url = _extract_article_url(url)
-            row["Article_url"] = article_url
+            row["Article_url"] = article_url  # type: ignore[index]
         else:
             _LOG.debug(
                 "Processing row %d: Non-HN URL, using as-is", row_indices[idx]
             )
-            row["Article_url"] = url
+            row["Article_url"] = url  # type: ignore[index]
     # Write the updated rows with extracted article URLs to a new CSV file for the next processing stage.
     urls_csv = dshdlgsut.get_tmp_file_path(URLS_CSV_FILE, "process_link_gsheet")
     _LOG.info("Writing updated data to CSV file: '%s'", urls_csv)
@@ -275,7 +275,7 @@ def _update_article_tags(
     valid_items = []
     for idx, row in df.iterrows():
         tag_val = row["Article_tag"]
-        if pd.isna(tag_val) or str(tag_val).strip() == "":
+        if bool(pd.isna(tag_val)) or str(tag_val).strip() == "":
             # Get title from Title column.
             title = ""
             title_val = row["Title"]
@@ -384,14 +384,14 @@ def _update_article_clusters() -> str:
         total=len(rows_to_process),
         desc="Assigning clusters",
     ):
-        tag = row["Article_tag"].strip()
+        tag = row["Article_tag"].strip()  # type: ignore[index]
         hdbg.dassert_isinstance(tag, str)
         if tag in topic_to_cluster:
             cluster = topic_to_cluster[tag]
-            row["Article_cluster"] = cluster
+            row["Article_cluster"] = cluster  # type: ignore[index]
         else:
             _LOG.warning(f"Tag '{tag}' not found in topic_to_cluster mapping")
-            row["Article_cluster"] = ""
+            row["Article_cluster"] = ""  # type: ignore[index]
     # Write the clustered data to a new CSV file for final upload.
     clusters_csv = dshdlgsut.get_tmp_file_path(
         CLUSTERS_CSV_FILE, "process_link_gsheet"
@@ -473,7 +473,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
     _LOG.debug(hprint.func_signature_to_str())
     args = parser.parse_args()
     hdbg.init_logger(verbosity=args.log_level, use_exec_path=True)
-    hloggin.shutup_chatty_modules(verbosity=logging.ERROR)
+    hlogging.shutup_chatty_modules(verbosity=logging.ERROR)
     # Silence noisy third-party HTTP and LLM client loggers so INFO output
     # stays readable.
     for module_name in ["httpcore", "httpx", "_base_client", "_trace", "openai"]:

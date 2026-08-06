@@ -100,8 +100,8 @@ ARTICLE_SUMMARY_PROMPT = hprint.dedent(
     """
     - Summarize the main article in 5 bullet points
     - Format as plain text without markdown following the conventions in:
-      - @.claude/skills/markdown.rules.txt
-      - @.claude/skills/text.rules.txt
+      - @.claude/skills/markdown.rules.md
+      - @.claude/skills/text.rules.md
     """
 )
 
@@ -124,7 +124,7 @@ def summarize_text_with_llm(
     :param dry_run: If True, show what would be done without executing
     """
     _LOG.debug(hprint.to_str("input_file output_file model"))
-    _LOG.info("Summarizing: %s", input_file)
+    _LOG.info("Summarizing: '%s'", input_file)
     if dry_run:
         _LOG.info(
             "[DRY RUN] Would summarize: %s -> %s (model: %s)",
@@ -136,7 +136,7 @@ def summarize_text_with_llm(
     # Save prompt to a temporary file.
     prompt_file = "tmp.summarize_text_with_llm.prompt.txt"
     hio.to_file(prompt_file, prompt)
-    _LOG.debug("Saved prompt to: %s", prompt_file)
+    _LOG.debug("Saved prompt to: '%s'", prompt_file)
     # Build command to call llm_cli.py with the given prompt file.
     llm_cli_path = "dev_scripts_helpers/llms/llm_cli.py"
     cmd_parts = [
@@ -150,7 +150,7 @@ def summarize_text_with_llm(
     cmd = " ".join(cmd_parts)
     _LOG.debug("Running command: %s", cmd)
     hsystem.system(cmd, print_command=True)
-    _LOG.info("Summary saved to: %s", output_file)
+    _LOG.info("Summary saved to: '%s'", output_file)
 
 
 # #############################################################################
@@ -223,8 +223,8 @@ def download_arxiv_article(url: str, output_file: str) -> None:
     pdf_output_file = f"{base_path}.pdf"
     hdbg.dassert_file_exists(pdf_output_file)
     hdbg.dassert_file_exists(output_file)
-    _LOG.info("Saved PDF to: %s", pdf_output_file)
-    _LOG.info("Saved article markdown to: %s", output_file)
+    _LOG.info("Saved PDF to: '%s'", pdf_output_file)
+    _LOG.info("Saved article markdown to: '%s'", output_file)
 
 
 def download_article(url: str, output_file: str) -> None:

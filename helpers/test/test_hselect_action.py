@@ -130,14 +130,13 @@ class Test_actions_to_string(hunitest.TestCase):
         valid_actions = ["a", "b"]
         # Prepare outputs.
         border = "#" * 80
-        # TODO(ai_gp): Use a """ and dedent
-        expected = (
-            f"{border}\n"
-            "# Action selected:\n"
-            f"{border}\n"
-            "    a: Yes\n"
-            "    b: -"
-        )
+        expected = hprint.dedent(f"""
+            {border}
+            # Action selected:
+            {border}
+            a: Yes
+            b: -
+            """)
         # Run test.
         actual = hselacti.actions_to_string(
             actions, valid_actions, add_frame=True

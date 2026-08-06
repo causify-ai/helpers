@@ -140,7 +140,9 @@ def _fetch_models_from_api() -> Dict[str, Dict[str, Any]]:
         canonical_slug: Optional[str] = m.get("canonical_slug")
         if canonical_slug:
             lookup[canonical_slug] = lookup[model_id]
-    hdbg.dassert_lte(1, len(lookup.keys()))
+    hdbg.dassert_lte(
+        1, len(lookup.keys()), "OpenRouter API must return at least one model"
+    )
     _LOG.debug(
         "Result (first items):\n%s",
         pprint.pformat(lookup[list(lookup.keys())[0]]),
@@ -1345,14 +1347,14 @@ def _merge_dataframes(
     return result
 
 
-def calc_efficiency(row: pd.Series) -> str:
+def _calc_efficiency(row: pd.Series) -> str:
     """
-    Calculate efficiency score for a model row (applied via DataFrame.apply).
+    Calculate efficiency score for a model row (applied via `DataFrame.apply`).
 
     Efficiency = (Coding_IQ × Speed) / (In_Cost + Out_Cost)
 
-    This function is used as a callback for DataFrame.apply(axis=1) to compute
-    efficiency across all rows.
+    This function is used as a callback for `DataFrame.apply(axis=1)` to
+    compute efficiency across all rows.
 
     :param row: pandas Series representing a single model row
     :return: Formatted efficiency string or "N/A" if data missing
@@ -1546,7 +1548,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
         benchmarks_df = _build_aa_benchmarks_dataframe(model_ids, id_to_aa_slug)
         _LOG.debug("AA Benchmarks DataFrame:\n%s", benchmarks_df.to_string())
         dataframes_to_merge.append(benchmarks_df)
-    #
+    # Build throughput dataframe.
     to_exec_throughput, actions_copy = hselacti.mark_action(
         "openrouter_throughput", actions_copy
     )
@@ -1556,7 +1558,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
             "OpenRouter Throughput DataFrame:\n%s", throughput_df.to_string()
         )
         dataframes_to_merge.append(throughput_df)
-    #
+    # Build OpenRouter benchmarks dataframe.
     to_exec_benchmarks_or, actions_copy = hselacti.mark_action(
         "openrouter_benchmarks", actions_copy
     )
@@ -1598,7 +1600,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
         and "In_Cost" in table.columns
         and "Out_Cost" in table.columns
     ):
-        table["Efficiency"] = table.apply(calc_efficiency, axis=1)
+        table["Efficiency"] = table.apply(_calc_efficiency, axis=1)
     # Format and display the table.
     table = _format_table(table)
     print(table.to_string())

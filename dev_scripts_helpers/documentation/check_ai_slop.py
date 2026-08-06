@@ -59,7 +59,7 @@ def _get_api_key() -> str:
         os.environ,
         "Environment variable API_UNDETECTABLE is not set",
     )
-    api_key = os.getenv(key)
+    api_key = os.environ[key]
     return api_key
 
 
@@ -96,6 +96,7 @@ def _poll_detection_result(
         "Detection timed out after %s attempts",
         max_attempts,
     )
+    return {}  # pragma: no cover
 
 
 def _detect_ai_content(text: str, api_key: str) -> Dict[str, Any]:
@@ -222,6 +223,7 @@ def _poll_humanization_result(
         "Humanization timed out after %s attempts",
         max_attempts,
     )
+    return {}  # pragma: no cover
 
 
 # #############################################################################

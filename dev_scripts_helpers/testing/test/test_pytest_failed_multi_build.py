@@ -52,7 +52,7 @@ class Test_read_failed_tests(hunitest.TestCase):
     Test `_read_failed_tests` function for reading failed test files.
     """
 
-    def helper(self, build_name: str, content: str, expected: Any = None) -> Any:
+    def helper(self, build_name: str, content: str, expected: str) -> Any:
         """
         Helper method to run test in scratch directory and check outputs.
 
@@ -66,8 +66,7 @@ class Test_read_failed_tests(hunitest.TestCase):
         )
         with hsystem.cd(scratch_dir):
             result = dshtpfmbu._read_failed_tests(build_name)
-        if expected is not None:
-            self.assert_equal(str(result), str(expected))
+        self.assert_equal(str(result), str(expected))
         return result
 
     def test1(self) -> None:
@@ -127,7 +126,7 @@ class Test_read_repro_script(hunitest.TestCase):
     """
 
     def helper(
-        self, build_name: str, content: str, *, expected: Optional[str] = None
+        self, build_name: str, content: str, expected: str
     ) -> str:
         """
         Helper method to run test in scratch directory and check outputs.
@@ -140,8 +139,7 @@ class Test_read_repro_script(hunitest.TestCase):
         scratch_dir = _setup_build_files(self, build_name, "repro.sh", content)
         with hsystem.cd(scratch_dir):
             result = dshtpfmbu._read_repro_script(build_name)
-        if expected is not None:
-            self.assert_equal(result, expected)
+        self.assert_equal(result, expected)
         return result
 
     def test1(self) -> None:
@@ -174,8 +172,7 @@ class Test_extract_tests_from_repro(hunitest.TestCase):
         self,
         repro_content: str,
         expected_count: int,
-        *,
-        expected: Optional[Any] = None,
+        expected: str,
     ) -> Any:
         """
         Test helper for _extract_tests_from_repro.
@@ -187,8 +184,7 @@ class Test_extract_tests_from_repro(hunitest.TestCase):
         """
         actual = dshtpfmbu._extract_tests_from_repro(repro_content)
         self.assertEqual(len(actual), expected_count)
-        if expected is not None:
-            self.assert_equal(str(actual), str(expected))
+        self.assert_equal(str(actual), str(expected))
         return actual
 
     def test1(self) -> None:
@@ -208,7 +204,7 @@ class Test_extract_tests_from_repro(hunitest.TestCase):
             "helpers/test/test_module.py::TestClass::test_method2",
         ]
         # Run test.
-        self.helper(repro_content, 2, expected=expected)
+        self.helper(repro_content, 2, expected)
 
     def test2(self) -> None:
         """
@@ -226,7 +222,7 @@ class Test_extract_tests_from_repro(hunitest.TestCase):
             "helpers/test/test_module.py::TestClass::test_method1",
         ]
         # Run test.
-        self.helper(repro_content, 1, expected=expected)
+        self.helper(repro_content, 1, expected)
 
     def test3(self) -> None:
         """
@@ -242,7 +238,7 @@ class Test_extract_tests_from_repro(hunitest.TestCase):
         # Prepare outputs.
         expected = []
         # Run test.
-        self.helper(repro_content, 0, expected=expected)
+        self.helper(repro_content, 0, expected)
 
 
 # #############################################################################
@@ -278,7 +274,7 @@ class Test_consolidate_failed_tests(hunitest.TestCase):
         self,
         build_names: list,
         build_tests: Dict[str, list],
-        expected: Optional[Dict[str, Set[str]]] = None,
+        expected: Dict[str, Set[str]],
     ) -> Dict[str, Set[str]]:
         """
         Helper to create files and run consolidation test.
@@ -903,7 +899,8 @@ class Test_build_stats_to_str_new_status_conditions(hunitest.TestCase):
     def helper(
         self,
         build_stats: List[Any],
-        expected_strings: Optional[List[str]] = None,
+        expected_strings: List[str],
+        *,
         unexpected_strings: Optional[List[str]] = None,
     ) -> str:
         """
@@ -916,9 +913,8 @@ class Test_build_stats_to_str_new_status_conditions(hunitest.TestCase):
         """
         actual = dshtpfmbu._build_stats_to_str(build_stats)
         clean_actual = hprint.remove_non_printable_chars(actual)
-        if expected_strings is not None:
-            for expected in expected_strings:
-                self.assertIn(expected, clean_actual)
+        for expected in expected_strings:
+            self.assertIn(expected, clean_actual)
         if unexpected_strings is not None:
             for unexpected in unexpected_strings:
                 self.assertNotIn(unexpected, clean_actual)

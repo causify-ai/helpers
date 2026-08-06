@@ -55,7 +55,6 @@ then applies appropriate linting tools per file type.
 
 import argparse
 import logging
-import subprocess
 import sys
 from typing import List, Tuple
 
@@ -268,11 +267,12 @@ def _run_python_linting_actions(
         prompt = f"/coding.fix_pyright {files_str}"
         cmd = " ".join([ccp_script, prompt])
         _LOG.debug("> %s", cmd)
-        result = subprocess.run(
-            [ccp_script, prompt],
-            capture_output=False,
+        ret |= hsystem.system(
+            cmd,
+            print_command=False,
+            abort_on_error=abort_on_error,
+            suppress_output=False,
         )
-        ret |= result.returncode
     if "coverage" in actions:
         _LOG.info("\n%s", hprint.frame("Running coverage", char1="="))
         ret |= _run_coverage(
@@ -614,6 +614,7 @@ _DEFAULT_ACTIONS = [
     "normalize_import",
     "add_class_frames",
     "fix_comments",
+    "pyright",
 ]
 
 

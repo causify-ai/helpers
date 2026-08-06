@@ -470,11 +470,11 @@ def _download(
     _LOG.debug(hprint.to_str("url pdf_path no_incremental dry_run"))
     if dry_run:
         _LOG.info("[DRY RUN] Would download PDF from '%s'", url)
-        _LOG.info("[DRY RUN] Would save PDF to: %s", pdf_path)
+        _LOG.info("[DRY RUN] Would save PDF to: '%s'", pdf_path)
         _LOG.debug("return: dry run, nothing written")
         return
     if os.path.exists(pdf_path) and not no_incremental:
-        _LOG.info("PDF already exists, skipping: %s", pdf_path)
+        _LOG.warning("PDF already exists, skipping: '%s'", pdf_path)
         return
     _, pdf_content, pdf_url = _resolve_metadata_and_content(url)
     # Download the PDF now if metadata resolution did not already fetch it
@@ -488,10 +488,10 @@ def _download(
     # Save PDF.
     pdf_dir = os.path.dirname(pdf_path) or "."
     hio.create_dir(pdf_dir, incremental=True)
-    _LOG.info("Saving PDF to: %s", pdf_path)
+    _LOG.info("Saving PDF to: '%s'", pdf_path)
     with open(pdf_path, "wb") as f:
         f.write(pdf_content)
-    _LOG.info("Successfully downloaded and saved: %s", pdf_path)
+    _LOG.info("Successfully downloaded and saved: '%s'", pdf_path)
 
 
 # #############################################################################
