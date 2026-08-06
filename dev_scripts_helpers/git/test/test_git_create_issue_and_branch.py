@@ -312,7 +312,7 @@ class Test__create_branch_in_submodule(hunitest.TestCase):
         expected = r"""[
         {
         'function': hsystem.system,
-        'args': ('cd helpers_root && invoke git_branch_create --branch-name HelpersTask1290_Test_Branch --create-pr=False',),
+        'args': ('cd helpers_root && invoke git_branch_create --branch-name HelpersTask1290_Test_Branch --no-create-pr',),
         'kwargs': {'log_level': 20},
         },
         ]"""

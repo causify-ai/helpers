@@ -204,11 +204,11 @@ def _create_branch_and_pr(
     # Build invoke command to create new branch.
     cmd = f"invoke git_branch_create --issue-id {issue_id}"
     if not create_pr:
-        cmd += " --create-pr=False"
+        cmd += " --no-create-pr"
     if no_abort_if_not_master:
         # Let git_branch_create switch to 'master' itself instead of
         # aborting when the current branch isn't 'master'.
-        cmd += " --abort-if-not-master=False"
+        cmd += " --no-abort-if-not-master"
     _LOG.info("Creating branch via invoke: %s", cmd)
     hsystem.system(cmd, log_level=logging.INFO)
     # Get the current branch name (invoke git_branch_create creates and checks out the branch).
@@ -259,11 +259,11 @@ def _create_branch_in_submodule(
         f"--branch-name {shlex.quote(branch_name)}"
     )
     if not create_pr:
-        cmd += " --create-pr=False"
+        cmd += " --no-create-pr"
     if no_abort_if_not_master:
         # Let git_branch_create switch to 'master' itself instead of
         # aborting when the current branch isn't 'master'.
-        cmd += " --abort-if-not-master=False"
+        cmd += " --no-abort-if-not-master"
     _LOG.info("Creating branch in '%s' via invoke: %s", submodule_path, cmd)
     hsystem.system(cmd, log_level=logging.INFO)
 
