@@ -282,6 +282,12 @@
 > ./lint_text.py --in chapter1.md chapter2.md chapter3.md
 ```
 
+### Format a Lecture Slide Source as Slide Markdown
+
+```bash
+> ./lint_text.py --in lesson.txt --type smd
+```
+
 ## Notes and Considerations
 
 - **In-place editing**: Backup created before processing, can be reverted
