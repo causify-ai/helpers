@@ -200,14 +200,14 @@ def _system(
     if isinstance(log_level, str):
         hdbg.dassert_in(log_level, ("PRINT", "PRINT_FRAME"))
         if log_level == "PRINT_FRAME":
-            print(hprint.frame("> %s" % hprint.color_highlight(cmd, "green")))
+            print(hprint.frame(hprint.color_highlight(f"> {cmd}", "green")))
         elif log_level == "PRINT":
-            print("> %s" % hprint.color_highlight(cmd, "green"))
+            print(hprint.color_highlight(f"> {cmd}", "green"))
         else:
             raise ValueError(f"Invalid log_level='{log_level}'")
         _LOG.trace("> %s", cmd)
     else:
-        _LOG.log(log_level, "> %s", hprint.color_highlight(cmd, "green"))
+        _LOG.log(log_level, "%s", hprint.color_highlight(f"> {cmd}", "green"))
     output = ""
     # Handle `dry_run`.
     if dry_run:
