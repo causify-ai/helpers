@@ -55,7 +55,8 @@ class Test_CustomHelpFormatter_split_lines(hunitest.TestCase):
     Test `hparser.CustomHelpFormatter._split_lines()`.
     """
 
-    def helper(self, text: str, width: int, expected: str) -> None:
+    # TODO(ai_gp): Pass expected as a string and then use self.assert_equal
+    def helper(self, text: str, width: int, expected: List[str]) -> None:
         """
         Check `_split_lines()`'s output for `text` at `width`.
 
@@ -95,7 +96,8 @@ class Test_CustomHelpFormatter_split_lines(hunitest.TestCase):
         - 'session' applies incrementally
         """
         # Run test.
-        self.helper(text, width, expected)
+        # TODO(ai_gp): Assign width=40 and pass width. Do this in all tests.
+        self.helper(text, 40, expected)
 
     def test2(self) -> None:
         """
