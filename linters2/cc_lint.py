@@ -60,6 +60,8 @@ import helpers.hsystem as hsystem
 
 _LOG = logging.getLogger(__name__)
 
+_TODO_STR = "TODO(ai_gp)"
+
 # File collecting the untrimmed dry-run output instead of printing it to
 # screen.
 _DRY_RUN_FILE = "tmp.cc_lint_dry_run.txt"
@@ -303,7 +305,11 @@ def _merge_small_chunks(
     :return: chunks with consecutive same-H1 small ones combined, in
         original order, `order` renumbered from `0`
     """
+    # `chunks` is a list of dataclasses, so log its length instead of its
+    # full content.
+    _LOG.debug("num_chunks=%d max_tokens=%d", len(chunks), max_tokens)
     if not chunks:
+        _LOG.debug("return=0 chunks (empty input)")
         return []
     # Seed the current bucket from the first chunk.
     merged: List[RuleChunk] = []
@@ -388,6 +394,11 @@ def _build_rule_chunks(
             lines, level=level
         ):
             all_sections.append((title, content, rule_file))
+    _LOG.debug(
+        "Extracted %d section(s) from %d rule file(s)",
+        len(all_sections),
+        len(rule_files),
+    )
     chunks = [
         RuleChunk(title=title, content=content, order=idx, rule_file=rule_file)
         for idx, (title, content, rule_file) in enumerate(all_sections)
@@ -418,12 +429,14 @@ def _call_llm_for_json(prompt: str, *, model: str) -> Optional[Any]:
     match = re.search(r"\[.*\]|\{.*\}", response, re.DOTALL)
     if not match:
         _LOG.warning("No JSON found in LLM reply: '%s'", response)
+        _LOG.debug("return=None")
         return None
     # Parse the located payload.
     try:
         result = json.loads(match.group(0))
     except json.JSONDecodeError:
         _LOG.warning("Could not parse JSON from LLM reply: '%s'", response)
+        _LOG.debug("return=None")
         return None
     _LOG.debug("return=%s", hprint.to_str("result"))
     return result
@@ -489,6 +502,7 @@ def _filter_relevant_chunks(
             "chunk(s)",
             len(chunks),
         )
+        _LOG.debug("return=%d chunks (unfiltered)", len(chunks))
         return chunks
     # Keep only the chunks whose title was selected.
     selected_set = set(selected)
@@ -508,6 +522,7 @@ def _filter_relevant_chunks(
             "Relevance filter selected zero chunks; keeping all %d chunk(s)",
             len(chunks),
         )
+        _LOG.debug("return=%d chunks (unfiltered)", len(chunks))
         return chunks
     kept = [
         dataclasses.replace(chunk, order=idx) for idx, chunk in enumerate(kept)
@@ -601,11 +616,15 @@ def _load_journal(journal_file: str) -> List[Dict[str, Any]]:
     :param journal_file: path to the JSON journal file
     :return: list of journal entries, in the order they were appended
     """
+    _LOG.debug(hprint.to_str("journal_file"))
     if not os.path.exists(journal_file):
+        # No journal yet: treat as an empty history rather than an error.
+        _LOG.debug("return=0 entries (journal file not found)")
         return []
     content = hio.from_file(journal_file)
     entries = cast(List[Dict[str, Any]], json.loads(content))
     _LOG.debug("Loaded %d journal entries from '%s'", len(entries), journal_file)
+    _LOG.debug("return=%d entries", len(entries))
     return entries
 
 
@@ -623,7 +642,11 @@ def _append_journal_entries(
         `chunk_title`, `status`, `cost_usd`, `num_turns`, `usage`, and
         `stop_reason`
     """
+    # `entries` can hold full stats dicts, so log only the count.
+    _LOG.debug("journal_file=%s num_entries=%d", journal_file, len(entries))
     if not entries:
+        # Nothing to persist: avoid a needless read-modify-write cycle.
+        _LOG.debug("return (nothing to append)")
         return
     journal = _load_journal(journal_file)
     journal.extend(entries)
@@ -634,6 +657,7 @@ def _append_journal_entries(
         journal_file,
         len(journal),
     )
+    _LOG.debug("return (appended)")
 
 
 def _latest_journal_status(
@@ -648,13 +672,23 @@ def _latest_journal_status(
     :return: the `status` of the last matching entry, or `""` if the pair
         has no entry
     """
+    # `journal` can be long-running history, so log only its length.
+    _LOG.debug(
+        "num_journal_entries=%d file_path=%s chunk_title=%s",
+        len(journal),
+        file_path,
+        chunk_title,
+    )
     status = ""
+    # Scan in append order so a later entry for the same pair overwrites an
+    # earlier one, leaving `status` as the most recent outcome.
     for entry in journal:
         if (
             entry["file_path"] == file_path
             and entry["chunk_title"] == chunk_title
         ):
             status = entry["status"]
+    _LOG.debug("return='%s'", status)
     return status
 
 
@@ -668,15 +702,21 @@ def _status_from_chunk_stats(stats: Dict[str, Any]) -> str:
         no-op contract (`outcome == "UNKNOWN"`), else `"no_op"` or `"done"`
         derived from `outcome`
     """
+    # `stats` is a dict of scalars, so it's cheap to log as-is.
+    _LOG.debug(hprint.to_str("stats"))
     if stats["is_error"]:
+        _LOG.debug("return='failed' (is_error)")
         return "failed"
     outcome = stats["outcome"]
     if outcome == "NO-OP":
+        _LOG.debug("return='no_op'")
         return "no_op"
     if outcome.startswith("CHANGED"):
+        _LOG.debug("return='done'")
         return "done"
     # "UNKNOWN": the reply did not follow the no-op contract, so the
     # chunk's actual effect on the file is untrusted.
+    _LOG.debug("return='failed' (outcome=%s)", outcome)
     return "failed"
 
 
@@ -699,6 +739,15 @@ def _filter_resumable(
     :param journal_file: path to append `"skipped"` entries to
     :return: `titled_messages` with already-`done`/`no_op` chunks removed
     """
+    # `titled_messages`/`journal` can be long, so log only their sizes.
+    _LOG.debug(
+        "file_path=%s num_titled_messages=%d num_journal_entries=%d "
+        "journal_file=%s",
+        file_path,
+        len(titled_messages),
+        len(journal),
+        journal_file,
+    )
     kept: List[Tuple[str, str]] = []
     skipped_entries: List[Dict[str, Any]] = []
     for title, message in titled_messages:
@@ -754,17 +803,18 @@ def _build_add_todos_instructions(rule_file: str = "") -> str:
         Context Manager Syntax for Multiple Mocks)
         ```
     """
+    _LOG.debug(hprint.to_str("rule_file"))
     rule_file_descr = f"`{rule_file}`" if rule_file else "the rule file"
     instructions = f"""
         - Do NOT edit the file to comply with a rule. Instead, for every
           violation, add a comment immediately above the offending line in the
           form:
           ```
-          # TODO(...): <what to do and why> (<rule_file>:<rule header line>)
+          # {_TODO_STR}: <what to do and why> (<rule_file>:<rule header line>)
           ```
           E.g.:
           ```
-          # TODO(...): Do this and that (testing.rules.md:## Use Context Manager Syntax for Multiple Mocks)
+          # {_TODO_STR}: Do this and that (testing.rules.md:## Use Context Manager Syntax for Multiple Mocks)
           ```
           - Look up {rule_file_descr} to find the `<rule header line>` (the
             header line text, including its leading `#`s) that the violated rule
@@ -773,6 +823,8 @@ def _build_add_todos_instructions(rule_file: str = "") -> str:
             the TODO comment
         """
     instructions = hprint.dedent(instructions)
+    # `instructions` is a multi-line template: log its length, not the text.
+    _LOG.debug("return=instructions_length=%d", len(instructions))
     return instructions
 
 
@@ -913,28 +965,33 @@ def _build_incremental_system_prompt(
     :return: system prompt text combining the role, the templates to
         follow, and the "do not change behavior" instruction
     """
+    # `topic_info` is a dict, so log only its keys instead of the full value.
+    _LOG.debug(
+        "add_todos=%s topic_info_keys=%s", add_todos, list(topic_info.keys())
+    )
     system_prompt: List[str] = []
-    #
+    # Role text comes first, since it sets the persona for every rule turn.
     role = topic_info["role"]
     hdbg.dassert_file_exists(role, "Role file not found")
     role_content = hio.from_file(role)
     system_prompt.append(role_content)
-    #
+    # Global guardrail applied across every chunk in this system prompt.
     msg = "You MUST make sure not to change the behavior or the intent of the passed file"
     system_prompt.append(msg)
-    #
+    # Optionally add the TODO-only instructions for `--add_todos`.
     if add_todos:
         system_prompt.append(_build_add_todos_instructions())
-    #
+    # Optionally list templates the file must follow.
     templates = topic_info["templates"]
     if templates:
         msg = "- You MUST follow the templates below:"
         system_prompt.append(msg)
         for template_file in templates:
             system_prompt.append(f"  - `{template_file}`")
-    #
+    # Join all parts into the final system prompt string.
     system_prompt_as_str = "\n".join(system_prompt)
     _LOG.debug(hprint.to_str("system_prompt_as_str"))
+    _LOG.debug("return=system_prompt_length=%d", len(system_prompt_as_str))
     return system_prompt_as_str
 
 
@@ -962,6 +1019,14 @@ def _build_rule_message(
         - `LLM> NO-OP`
         - `LLM> CHANGED: <summary>`
     """
+    # `rule_content` can be a full rule section: log its length, not text.
+    _LOG.debug(
+        "file_path=%s rule_file=%s add_todos=%s rule_content_length=%d",
+        file_path,
+        rule_file,
+        add_todos,
+        len(rule_content),
+    )
     rule_message: List[str] = []
     if add_todos:
         rule_file_descr = f"(from `{rule_file}`) " if rule_file else ""
@@ -978,7 +1043,8 @@ def _build_rule_message(
     rule_message.append(hprint.dedent(header))
     fence_block = f"```\n{rule_content}\n```"
     rule_message.append(hprint.indent(fence_block, num_spaces=2))
-    #
+    # Footer wording depends on `add_todos`: TODO-only runs also treat an
+    # already-fully-TODO'd file as a no-op.
     if add_todos:
         footer = """
         - Reply with exactly one line:
@@ -993,8 +1059,9 @@ def _build_rule_message(
           - `LLM> CHANGED: <one-line summary>` if you made an edit
         """
     rule_message.append(hprint.dedent(footer))
-    #
+    # Assemble the final message from header, rule content, and footer.
     msg = "\n".join(rule_message)
+    _LOG.debug("return=message_length=%d", len(msg))
     return msg
 
 
@@ -1054,7 +1121,7 @@ def _build_incremental_messages(
         chunks = _filter_relevant_chunks(file_path, chunks, model=model)
     if order_rules_by_dependency:
         chunks = _order_chunks_by_dependency(chunks, model=model)
-    #
+    # Build one titled message per final chunk.
     titled_messages = [
         (
             chunk.title,
@@ -1357,14 +1424,25 @@ def _build_one_shot_prompt(
         is used for dry-run/logging labels and `topic_info` is the
         inferred topic's rules/templates configuration
     """
+    # `args` is the full CLI namespace: log only the fields this function
+    # branches on instead of the whole object.
+    _LOG.debug(
+        hprint.to_str(
+            "file_path args.skill args.rule args.topic args.add_todos"
+        )
+    )
     add_todos = args.add_todos
     if args.skill:
+        # Skill dispatch: the prompt is a single slash-command for Claude
+        # Code's own skill loader, so no rule text is assembled here.
         full_skill_name = hmarsele.find_skill(args.skill)
         prompt = f"/{full_skill_name} {file_path}"
         topic_str = "skill"
         inferred_topic = _infer_topic_from_filename(file_path)
         topic_info = _get_rules_for_topic(inferred_topic)
     elif args.rule:
+        # Rule dispatch: build a prompt from the single `--rule` spec,
+        # either as a violation check (`add_todos`) or a direct apply.
         _LOG.debug("Executing rule: %s", args.rule)
         rule_content = hmarsele.extract_rule_from_file(args.rule)
         if add_todos:
@@ -1384,6 +1462,8 @@ def _build_one_shot_prompt(
         inferred_topic = _infer_topic_from_filename(file_path)
         topic_info = _get_rules_for_topic(inferred_topic)
     else:
+        # Default dispatch: use `--topic` if given, else infer the topic
+        # from the filename, then build the full topic prompt.
         if args.topic:
             topic_str = args.topic
         else:
@@ -1408,6 +1488,9 @@ def _build_one_shot_prompt(
                 "questions to the user\n"
                 f"  - `{file_path}`"
             )
+    _LOG.debug(
+        "return=(prompt_length=%d, topic_str=%s)", len(prompt), topic_str
+    )
     return prompt, topic_str, topic_info
 
 
@@ -1530,7 +1613,8 @@ def _process_file(
                 add_todos=args.add_todos,
             )
         )
-
+    # `topic_info` is forwarded so `_main()` can run post-processing hooks
+    # (jupytext sync, lint) keyed off it.
     _LOG.debug("return=(%d, topic_info)", rc)
     return rc, topic_info
 
@@ -1666,6 +1750,14 @@ def _main(parser: argparse.ArgumentParser) -> int:
     """
     args = parser.parse_args()
     hdbg.init_logger(verbosity=args.log_level, use_exec_path=True)
+    # `args` is the full CLI namespace: log only the fields relevant to
+    # dispatch instead of the whole object.
+    _LOG.debug(
+        hprint.to_str(
+            "args.mode args.topic args.skill args.rule args.add_todos "
+            "args.dry_run"
+        )
+    )
     # Select files.
     # Mutual exclusivity between `--topic`/`--skill`/`--rule` is already
     # enforced by their argparse mutually exclusive group.
@@ -1698,6 +1790,9 @@ def _main(parser: argparse.ArgumentParser) -> int:
         )
     _LOG.info("Processing %d file(s)", len(files))
     ret = 0
+    # Process each file, then run any per-topic post-processing hooks
+    # (`jupytext` sync for notebooks, `hlint.lint_file()` for readme/markdown)
+    # declared on that file's `topic_info`.
     for file_path in tqdm(files, desc="Processing files"):
         rc, topic_info = _process_file(file_path, args)
         ret |= rc
@@ -1707,6 +1802,7 @@ def _main(parser: argparse.ArgumentParser) -> int:
                 hsystem.system(" ".join(cmd))
             if topic_info.get("run_lint"):
                 hlint.lint_file(file_path)
+    _LOG.debug("return=%d", ret)
     return ret
 
 

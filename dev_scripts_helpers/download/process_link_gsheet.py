@@ -119,6 +119,8 @@ topic_to_cluster = {
 }
 
 
+# Base prompt for LLM tagging: the list of valid tags (`topic_to_cluster` keys)
+# is appended at call time so the prompt and the mapping stay in sync.
 _CLASSIFICATION_PROMPT = """
 Given the title and URL of an article, emit the tag among the ones below that represents
 the article best. Consider both the title and URL when making your classification.
@@ -170,7 +172,10 @@ def _download_from_gsheet(url: str) -> str:
     :return: Path to the saved CSV file
     """
     _LOG.debug(hprint.to_str("url"))
+    # Use a fixed temp path so downstream actions (e.g., `update_article_url`)
+    # can find the downloaded data without passing it explicitly.
     output_file = dshdlgsut.get_tmp_file_path(HN_CSV_FILE, "process_link_gsheet")
+    _LOG.debug("Downloading gsheet '%s' to '%s'", url, output_file)
     dshdlgsut.download_from_gsheet(url, output_file)
     _LOG.debug("return=%s", output_file)
     return output_file
@@ -310,6 +315,8 @@ def _update_article_tags(
         batch_size,
     )
     tags_csv = dshdlgsut.get_tmp_file_path(TAGS_CSV_FILE, "process_link_gsheet")
+    # Append the full list of valid topic tags to the base prompt so the LLM
+    # knows exactly which labels it is allowed to choose from.
     prompt = _CLASSIFICATION_PROMPT
     prompt += "\n".join(topic_to_cluster.keys())
     for batch_num in tqdm(range(num_batches), desc="Tagging articles"):
@@ -426,6 +433,7 @@ def _upload_to_gsheet(url: str) -> None:
     hdbg.dassert_path_exists(clusters_csv, "clusters CSV file not found")
     _LOG.debug("Uploading '%s' to tab '%s'", clusters_csv, tabname)
     dshdlgsut.upload_to_gsheet(url, clusters_csv, tabname)
+    _LOG.debug("Upload to gsheet tab '%s' complete", tabname)
 
 
 # #############################################################################
@@ -466,11 +474,17 @@ def _parse() -> argparse.ArgumentParser:
     hselacti.add_action_arg(parser, _VALID_ACTIONS, _DEFAULT_ACTIONS)
     hcacsimp.add_cache_control_arg(parser)
     hparser.add_verbosity_arg(parser)
+    # Avoid printing the full parser (its repr embeds the module docstring via
+    # `description=__doc__`); log a short summary instead.
+    _LOG.debug(
+        "return=parser with %d registered arguments", len(parser._actions)
+    )
     return parser
 
 
 def _main(parser: argparse.ArgumentParser) -> None:
     _LOG.debug(hprint.func_signature_to_str())
+    # Parse CLI args and set up logging before running any action.
     args = parser.parse_args()
     hdbg.init_logger(verbosity=args.log_level, use_exec_path=True)
     hloggin.shutup_chatty_modules(verbosity=logging.ERROR)

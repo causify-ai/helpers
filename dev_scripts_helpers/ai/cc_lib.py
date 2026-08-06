@@ -54,6 +54,7 @@ def message_to_str(message: Any) -> str:
     _LOG.debug("message type=%s", type(message).__name__)
     if not isinstance(message, claude_agent_sdk.AssistantMessage):
         # Results and system metadata messages carry nothing printable.
+        _LOG.debug("return='' (non-AssistantMessage)")
         return ""
     # Render each content block in the message with appropriate formatting.
     chunks = []
@@ -90,6 +91,8 @@ def _extract_assistant_text(message: Any) -> str:
     """
     _LOG.debug("message type=%s", type(message).__name__)
     if not isinstance(message, claude_agent_sdk.AssistantMessage):
+        # Only assistant messages carry text blocks worth extracting.
+        _LOG.debug("return='' (non-AssistantMessage)")
         return ""
     # Keep only the text blocks, dropping thinking and tool-use blocks.
     parts = [
@@ -168,6 +171,8 @@ def _make_file_scope_guard(target_file: str) -> CanUseToolFn:
         _context: Any,
     ) -> Any:
         _LOG.debug(hprint.to_str("tool_name"))
+        # Only file-modifying tools need scope checking: everything else
+        # (reads, searches, etc.) is allowed unconditionally.
         if tool_name in file_modifying_tools:
             file_path = tool_input.get("file_path", "")
             if file_path and os.path.abspath(file_path) != target_abspath:
@@ -321,6 +326,13 @@ class PromptSequencer:
         :param prompt_idx: 1-based index of `prompt` in the overall sequence
         :param total_prompts: total number of prompts in the sequence
         """
+        # `client` and `prompt` are omitted from the entry log below:
+        # `client` is an opaque session object and `prompt` can be
+        # arbitrarily long text, so only its length is logged.
+        _LOG.debug(hprint.to_str("prompt_idx total_prompts"))
+        _LOG.debug("prompt length=%d chars", len(prompt))
+        # Build a framed banner showing which prompt in the sequence is
+        # about to run, for easier log tracing.
         msg = []
         msg.append(
             hprint.frame(f"Executing prompt {prompt_idx}/{total_prompts}")
@@ -485,6 +497,8 @@ class PromptSequencer:
             `cost_usd`, `num_turns`, `is_error`, `usage`, and `stop_reason`
             (same shape as the `on_chunk_done` callback's `stats` argument)
         """
+        # Zip the six parallel per-prompt attribute lists together, one dict
+        # per executed prompt.
         stats = [
             {
                 "outcome": outcome,
@@ -601,6 +615,9 @@ class FakeClaudeSDKClient:
         :return: string with `options`, `queried_prompts`, `aenter_called`, and
             `aexit_called`
         """
+        # Pull out only the handful of `options` fields useful for test
+        # assertions: the full `ClaudeAgentOptions` repr carries many defaulted
+        # fields that would clutter assertion diffs.
         options = None
         if self.options is not None:
             options = (
@@ -610,12 +627,14 @@ class FakeClaudeSDKClient:
                 self.options.model,
                 self.options.setting_sources,
             )
-        return (
+        result = (
             f"options={options!r}, "
             f"queried_prompts={self.queried_prompts!r}, "
             f"aenter_called={self.aenter_called!r}, "
             f"aexit_called={self.aexit_called!r}"
         )
+        _LOG.debug("return=%d chars", len(result))
+        return result
 
 
 # #############################################################################

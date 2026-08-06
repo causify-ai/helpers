@@ -4,6 +4,7 @@ Unit tests for pytest_failed_multi_build.py module.
 Tests consolidation of failed tests across multiple build configurations.
 """
 
+import logging
 import os
 from typing import Any, Dict, List, Optional, Set
 
@@ -12,6 +13,8 @@ import helpers.hprint as hprint
 import helpers.hsystem as hsystem
 import helpers.hunit_test as hunitest
 import dev_scripts_helpers.testing.pytest_failed_multi_build as dshtpfmbu
+
+_LOG = logging.getLogger(__name__)
 
 
 # #############################################################################
@@ -34,11 +37,17 @@ def _setup_build_files(
     :param content: Content to write to file
     :return: Scratch directory path
     """
+    # `content` can be large (e.g., a repro script), so only report its length.
+    _LOG.debug(hprint.to_str("build_name file_name"))
+    _LOG.debug("len(content)=%s", len(content))
     scratch_dir = test_case.get_scratch_space()
+    # Build directory naming mirrors `pytest_failed_multi_build.py`'s own
+    # per-build layout, so the code under test can find the file.
     build_dir = os.path.join(scratch_dir, f"tmp.pytest_failed.{build_name}")
     hio.create_dir(build_dir, incremental=True)
     file_path = os.path.join(build_dir, file_name)
     hio.to_file(file_path, content)
+    _LOG.debug("return=%s", scratch_dir)
     return scratch_dir
 
 
@@ -61,12 +70,16 @@ class Test_read_failed_tests(hunitest.TestCase):
         :param expected: Expected output (if provided, runs assertion)
         :return: Result from _read_failed_tests
         """
+        _LOG.debug(hprint.to_str("build_name expected"))
         scratch_dir = _setup_build_files(
             self, build_name, "failed_tests.txt", content
         )
+        # Run inside `scratch_dir` since `_read_failed_tests` resolves the
+        # build directory relative to the current working directory.
         with hsystem.cd(scratch_dir):
             result = dshtpfmbu._read_failed_tests(build_name)
         self.assert_equal(str(result), str(expected))
+        _LOG.debug("return=%s", result)
         return result
 
     def test1(self) -> None:
@@ -81,6 +94,7 @@ class Test_read_failed_tests(hunitest.TestCase):
         ]
         # Run test.
         expected = tests
+        _LOG.debug(hprint.to_str("build_name tests expected"))
         self.helper(build_name, "\n".join(tests), expected)
 
     def test2(self) -> None:
@@ -91,7 +105,9 @@ class Test_read_failed_tests(hunitest.TestCase):
         build_name = "apple"
         # Prepare outputs.
         expected = []
+        # An empty file must parse to an empty list, not `[""]`.
         # Run test.
+        _LOG.debug(hprint.to_str("build_name expected"))
         self.helper(build_name, "", expected)
 
     def test3(self) -> None:
@@ -111,7 +127,10 @@ class Test_read_failed_tests(hunitest.TestCase):
             "helpers/test/test_module.py::TestClass::test_method1",
             "helpers/test/test_module.py::TestClass::test_method2",
         ]
+        # Leading/trailing whitespace and blank lines must be stripped out of
+        # the parsed test list.
         # Run test.
+        _LOG.debug(hprint.to_str("build_name expected"))
         self.helper(build_name, content, expected)
 
 
@@ -134,10 +153,14 @@ class Test_read_repro_script(hunitest.TestCase):
         :param expected: Expected output (if provided, runs assertion)
         :return: Result from _read_repro_script
         """
+        # `content` and `expected` can be multi-line scripts, so only log
+        # `build_name` verbatim.
+        _LOG.debug(hprint.to_str("build_name"))
         scratch_dir = _setup_build_files(self, build_name, "repro.sh", content)
         with hsystem.cd(scratch_dir):
             result = dshtpfmbu._read_repro_script(build_name)
         self.assert_equal(result, expected)
+        _LOG.debug("return=%s", result)
         return result
 
     def test1(self) -> None:
@@ -151,8 +174,11 @@ class Test_read_repro_script(hunitest.TestCase):
         pytest helpers/test/test_module.py
         """
         content = hprint.dedent(content)
+        # The script is read back verbatim, so `expected` mirrors the
+        # written `content`.
         # Run test.
         expected = content
+        _LOG.debug(hprint.to_str("build_name"))
         self.helper(build_name, content, expected)
 
 
@@ -180,9 +206,13 @@ class Test_extract_tests_from_repro(hunitest.TestCase):
         :param expected: Expected output (if provided, runs assertion)
         :return: Actual extracted tests
         """
+        # `repro_content` is a multi-line script, so log only its length.
+        _LOG.debug("len(repro_content)=%s", len(repro_content))
+        _LOG.debug(hprint.to_str("expected_count expected"))
         actual = dshtpfmbu._extract_tests_from_repro(repro_content)
         self.assertEqual(len(actual), expected_count)
         self.assert_equal(str(actual), str(expected))
+        _LOG.debug("return=%s", actual)
         return actual
 
     def test1(self) -> None:
@@ -201,7 +231,9 @@ class Test_extract_tests_from_repro(hunitest.TestCase):
             "helpers/test/test_module.py::TestClass::test_method1",
             "helpers/test/test_module.py::TestClass::test_method2",
         ]
+        # Both test IDs on the `pytest_log` line must be extracted.
         # Run test.
+        _LOG.debug(hprint.to_str("expected"))
         self.helper(repro_content, 2, expected)
 
     def test2(self) -> None:
@@ -220,6 +252,7 @@ class Test_extract_tests_from_repro(hunitest.TestCase):
             "helpers/test/test_module.py::TestClass::test_method1",
         ]
         # Run test.
+        _LOG.debug(hprint.to_str("expected"))
         self.helper(repro_content, 1, expected)
 
     def test3(self) -> None:
@@ -235,7 +268,9 @@ class Test_extract_tests_from_repro(hunitest.TestCase):
         repro_content = hprint.dedent(repro_content)
         # Prepare outputs.
         expected = []
+        # Absence of `pytest_log` must yield an empty list, not an error.
         # Run test.
+        _LOG.debug(hprint.to_str("expected"))
         self.helper(repro_content, 0, expected)
 
 
@@ -260,6 +295,10 @@ class Test_consolidate_failed_tests(hunitest.TestCase):
         :param scratch_dir: Scratch directory path
         :param build_tests: Dict mapping build name to test list
         """
+        # Log only the build names since `build_tests` values can be long
+        # test-ID lists.
+        _LOG.debug(hprint.to_str("scratch_dir"))
+        _LOG.debug("build_tests.keys()=%s", list(build_tests.keys()))
         for build_name, tests in build_tests.items():
             build_dir = os.path.join(
                 scratch_dir, f"tmp.pytest_failed.{build_name}"
@@ -282,11 +321,15 @@ class Test_consolidate_failed_tests(hunitest.TestCase):
         :param expected: Expected output (if provided, runs assertion)
         :return: Result from _consolidate_failed_tests
         """
+        _LOG.debug(hprint.to_str("build_names expected"))
         scratch_dir = self.get_scratch_space()
         self._create_failed_test_files(scratch_dir, build_tests)
+        # Run inside `scratch_dir` since `_consolidate_failed_tests` looks up
+        # each build's `tmp.pytest_failed.<build>` directory relative to cwd.
         with hsystem.cd(scratch_dir):
             result = dshtpfmbu._consolidate_failed_tests(build_names)
         self.assert_equal(str(result), str(expected))
+        _LOG.debug("return=%s", result)
         return result
 
     def test1(self) -> None:
@@ -304,6 +347,7 @@ class Test_consolidate_failed_tests(hunitest.TestCase):
             "test_method2": {"docker"},
         }
         # Run test.
+        _LOG.debug(hprint.to_str("build_names expected"))
         self.helper(build_names, build_tests, expected)
 
     def test2(self) -> None:
@@ -316,12 +360,15 @@ class Test_consolidate_failed_tests(hunitest.TestCase):
             "docker": ["test_method1", "test_method2"],
             "apple": ["test_method2", "test_method3"],
         }
+        # `test_method2` fails in both builds, so its expected build set must
+        # include both.
         # Run test.
         expected = {
             "test_method1": {"docker"},
             "test_method2": {"docker", "apple"},
             "test_method3": {"apple"},
         }
+        _LOG.debug(hprint.to_str("build_names expected"))
         self.helper(build_names, build_tests, expected)
 
 
@@ -346,6 +393,7 @@ class Test_create_consolidated_repro(hunitest.TestCase):
         :param scratch_dir: Scratch directory path
         :param build_names: List of build names
         """
+        _LOG.debug(hprint.to_str("scratch_dir build_names"))
         for build_name in build_names:
             build_dir = os.path.join(
                 scratch_dir, f"tmp.pytest_failed.{build_name}"
@@ -373,11 +421,13 @@ class Test_create_consolidated_repro(hunitest.TestCase):
         :param expected: Expected output (if provided, runs assertion)
         :return: Result from _create_consolidated_repro
         """
+        _LOG.debug(hprint.to_str("build_names"))
         scratch_dir = self.get_scratch_space()
         self._create_repro_files(scratch_dir, build_names)
         with hsystem.cd(scratch_dir):
             result = dshtpfmbu._create_consolidated_repro(build_names)
         self.assert_equal(result, expected, dedent=True, fuzzy_match=True)
+        _LOG.debug("return=%s", result)
         return result
 
     def test1(self) -> None:
@@ -401,6 +451,7 @@ class Test_create_consolidated_repro(hunitest.TestCase):
 
         """
         # Run test.
+        _LOG.debug(hprint.to_str("build_names"))
         self.helper(build_names, expected)
 
     def test2(self) -> None:
@@ -423,6 +474,7 @@ class Test_create_consolidated_repro(hunitest.TestCase):
 
         """
         # Run test.
+        _LOG.debug(hprint.to_str("build_names"))
         self.helper(build_names, expected)
 
 
@@ -450,6 +502,7 @@ class Test_summary_to_str(hunitest.TestCase):
         :param expected: Expected output (if provided, runs assertion)
         :return: Summary string result
         """
+        _LOG.debug(hprint.to_str("build_names test_to_builds"))
         actual = dshtpfmbu._summary_to_str(build_names, test_to_builds)
         self.assert_equal(actual, expected, dedent=True, fuzzy_match=True)
 
@@ -478,6 +531,7 @@ class Test_summary_to_str(hunitest.TestCase):
         Tests failing in multiple builds: 0
         """
         # Run test.
+        _LOG.debug(hprint.to_str("build_names test_to_builds"))
         self.helper(build_names, test_to_builds, expected)
 
     def test2(self) -> None:
@@ -491,6 +545,8 @@ class Test_summary_to_str(hunitest.TestCase):
             "test_method2": {"docker"},
             "test_method3": {"apple", "dev_container"},
         }
+        # `test_method1` and `test_method3` each fail in two builds, so the
+        # summary's cross-build count must be 2.
         # Prepare outputs.
         expected = """
         ################################################################################
@@ -528,6 +584,7 @@ class Test_summary_to_str(hunitest.TestCase):
         Across builds: docker, apple
         Tests failing in multiple builds: 0
         """
+        # No failures still produces a summary table with header and totals.
         # Run test.
         self.helper(build_names, test_to_builds, expected)
 
@@ -550,6 +607,7 @@ class Test_summary_conditional_display(hunitest.TestCase):
         test_to_builds = {}
         # Verify the check works as expected.
         should_show_summary = bool(test_to_builds)
+        _LOG.debug(hprint.to_str("test_to_builds should_show_summary"))
         # Check outputs.
         self.assertFalse(should_show_summary)
 
@@ -591,6 +649,7 @@ class Test_extract_build_stats_missing_pytest_ended(hunitest.TestCase):
         :param expected: Expected output (if provided, runs assertion)
         :return: Result from _extract_build_stats
         """
+        _LOG.debug(hprint.to_str("build_name info_data expected"))
         scratch_dir = self.get_scratch_space()
         build_dir = os.path.join(scratch_dir, f"tmp.pytest_failed.{build_name}")
         hio.create_dir(build_dir, incremental=True)
@@ -599,12 +658,15 @@ class Test_extract_build_stats_missing_pytest_ended(hunitest.TestCase):
         with hsystem.cd(scratch_dir):
             result = dshtpfmbu._extract_build_stats(build_name)
         self.assert_equal(str(result), str(expected))
+        _LOG.debug("return=%s", result)
         return result
 
     def test1(self) -> None:
         """
         Test that missing pytest_ended token marks build as INCOMPLETE.
         """
+        # `info.json` has no "pytest_ended" key, simulating a build that
+        # crashed or was interrupted mid-run.
         # Prepare inputs.
         info_data = {
             "pytest_started": "2024-01-01T00:00:00",
@@ -699,6 +761,7 @@ class Test_build_stats_to_str_incomplete_status(hunitest.TestCase):
             },
         ]
         # Run test.
+        _LOG.debug("build_stats=%s", build_stats)
         actual = dshtpfmbu._build_stats_to_str(build_stats)
         # Verify colorization is present (ANSI escape codes).
         self.assertIn("\033[", actual)
@@ -909,13 +972,19 @@ class Test_build_stats_to_str_new_status_conditions(hunitest.TestCase):
         :param unexpected_strings: List of strings not expected to be in output
         :return: Cleaned output from _build_stats_to_str with ANSI codes removed
         """
+        _LOG.debug(
+            hprint.to_str("build_stats expected_strings unexpected_strings")
+        )
         actual = dshtpfmbu._build_stats_to_str(build_stats)
         clean_actual = hprint.remove_non_printable_chars(actual)
+        # Positive check: all expected status/labels must appear in the table.
         for expected in expected_strings:
             self.assertIn(expected, clean_actual)
+        # Negative check: mutually exclusive statuses must not both appear.
         if unexpected_strings is not None:
             for unexpected in unexpected_strings:
                 self.assertNotIn(unexpected, clean_actual)
+        _LOG.debug("return=%s", clean_actual)
         return clean_actual
 
     def test1(self) -> None:
@@ -1080,7 +1149,10 @@ class Test_create_consolidated_repro_with_missing_files(hunitest.TestCase):
         :param expected: Expected output (if provided, runs assertion)
         :return: Result from _create_consolidated_repro
         """
+        _LOG.debug(hprint.to_str("build_names_to_call build_names_to_create"))
         scratch_dir = self.get_scratch_space()
+        # Only create `repro.sh` for `build_names_to_create`, so the builds in
+        # `build_names_to_call` but not here exercise the missing-file path.
         for build_name in build_names_to_create:
             build_dir = os.path.join(
                 scratch_dir, f"tmp.pytest_failed.{build_name}"
@@ -1092,6 +1164,7 @@ class Test_create_consolidated_repro_with_missing_files(hunitest.TestCase):
         with hsystem.cd(scratch_dir):
             result = dshtpfmbu._create_consolidated_repro(build_names_to_call)
         self.assert_equal(result, expected, dedent=True, fuzzy_match=True)
+        _LOG.debug("return=%s", result)
         return result
 
     def test1(self) -> None:
@@ -1102,6 +1175,8 @@ class Test_create_consolidated_repro_with_missing_files(hunitest.TestCase):
         build_names_to_call = ["docker", "apple", "dev_container"]
         # Only docker has repro.sh
         build_names_to_create = ["docker"]
+        # `apple` and `dev_container` have no `repro.sh`, so the consolidated
+        # script must contain only the `docker` section.
         expected = """
         #!/bin/bash
         # Consolidated repro script for multiple builds.
