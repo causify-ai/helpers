@@ -12,7 +12,7 @@ import helpers.hdbg as hdbg
 import helpers.hgit as hgit
 import helpers.hsystem as hsystem
 import helpers.hselect_input_output as hseinout
-import dev_scripts_helpers.documentation.lint_text as dshdlite
+import dev_scripts_helpers.documentation.lint_text as dshdlitx
 
 _LOG = logging.getLogger(__name__)
 
