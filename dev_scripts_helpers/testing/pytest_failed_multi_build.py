@@ -55,7 +55,7 @@ def _extract_build_stats(build_name: str) -> Dict[str, Any]:
     info_file = hpytest.get_output_file_path("info.json", build_name=build_name)
     # Check if info file exists.
     if not os.path.exists(info_file):
-        _LOG.warning("Info file not found for %s: %s", build_name, info_file)
+        _LOG.warning("Info file not found for %s: '%s'", build_name, info_file)
         res = {
             "build": build_name,
             "passed": 0,
@@ -127,7 +127,7 @@ def _generate_build_files(
         # Check if input file exists; skip pytest_failed.py if missing.
         if not os.path.exists(input_file):
             _LOG.warning(
-                "Input file not found for %s: %s", build_name, input_file
+                "Input file not found for %s: '%s'", build_name, input_file
             )
             # Extract build statistics (will return incomplete status).
             stats = _extract_build_stats(build_name)
@@ -170,7 +170,7 @@ def _read_failed_tests(build_name: str) -> List[str]:
     )
     if not os.path.exists(failed_file):
         _LOG.warning(
-            "Failed tests file not found for %s: %s", build_name, failed_file
+            "Failed tests file not found for %s: '%s'", build_name, failed_file
         )
         return []
     txt = hio.from_file(failed_file)
@@ -217,7 +217,7 @@ def _read_repro_script(build_name: str) -> str:
     _LOG.debug(hprint.to_str("build_name"))
     repro_file = hpytest.get_output_file_path("repro.sh", build_name=build_name)
     if not os.path.exists(repro_file):
-        _LOG.warning("Repro script not found for %s: %s", build_name, repro_file)
+        _LOG.warning("Repro script not found for %s: '%s'", build_name, repro_file)
         return ""
     content = hio.from_file(repro_file)
     _LOG.debug("return=%s bytes", len(content))

@@ -6,6 +6,7 @@ import helpers.hunit_test_utils as hunteuti
 
 import abc
 import contextlib
+import functools
 import glob
 import logging
 import os
@@ -508,6 +509,20 @@ def is_test_file(file_path: str) -> bool:
     ) and file_path.endswith(".py")
 
 
+@functools.lru_cache(maxsize=1)
+def _get_helpers_root() -> str:
+    """
+    Get the root of the `helpers` repository that contains this module.
+
+    The lookup is anchored on this file's own location (not on the process
+    current working directory), so `get_test_file_for_source()` and
+    `get_test_dirs_for_python_files()` behave the same regardless of the
+    directory pytest (or any other caller) was invoked from.
+    """
+    dir_path = os.path.dirname(os.path.abspath(__file__))
+    return hgit.find_helpers_root(dir_path=dir_path)
+
+
 def get_test_file_for_source(source_file: str) -> Optional[str]:
     """
     Map a source Python file to its corresponding test file.
@@ -523,7 +538,8 @@ def get_test_file_for_source(source_file: str) -> Optional[str]:
     base_name = os.path.basename(source_file)
     dir_name = os.path.dirname(source_file)
     test_file = os.path.join(dir_name, "test", f"test_{base_name}")
-    if os.path.exists(test_file):
+    abs_test_file = os.path.join(_get_helpers_root(), test_file)
+    if os.path.exists(abs_test_file):
         return test_file
     return None
 
@@ -580,8 +596,10 @@ def get_test_dirs_for_python_files(files: List[str]) -> List[str]:
             # For source files, get their test directory.
             dir_name = os.path.dirname(file_path)
             test_dir = os.path.join(dir_name, "test") if dir_name else "test"
-            # Only add if test directory exists (consistent with get_test_file_for_source behavior).
-            if os.path.exists(test_dir):
+            # Only add if test directory exists (consistent with
+            # `get_test_file_for_source()` behavior).
+            abs_test_dir = os.path.join(_get_helpers_root(), test_dir)
+            if os.path.exists(abs_test_dir):
                 test_dirs_set.add(test_dir)
     return sorted(test_dirs_set)
 
