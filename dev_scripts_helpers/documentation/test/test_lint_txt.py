@@ -2609,3 +2609,321 @@ class Test_replace_em_dash_with_colon(hunitest.TestCase):
         """
         # Run test.
         self.helper(txt, expected)
+
+
+# #############################################################################
+# Test_smd_format
+# #############################################################################
+
+
+class Test_smd_format(hunitest.TestCase):
+    """
+    Test the _smd_format function used for the smd (slide markdown) file
+    type.
+    """
+
+    def helper(self, txt: str, expected: str) -> None:
+        """
+        Test helper for _smd_format.
+
+        :param txt: Input text to process
+        :param expected: Expected output after smd formatting
+        """
+        _helper_process_lines(self, txt, expected, dshdllitx._smd_format)
+
+    def test_remove_trailing_whitespace1(self) -> None:
+        """
+        Test removing white spaces before the newline.
+        """
+        # Prepare inputs.
+        txt = "\n".join(
+            [
+                "- Some text with trailing spaces   ",
+                "- Another line\t",
+            ]
+        )
+        # Prepare outputs.
+        expected = "\n".join(
+            [
+                "- Some text with trailing spaces",
+                "- Another line",
+            ]
+        )
+        # Run test.
+        self.helper(txt, expected)
+
+    def test_remove_tag_colon1(self) -> None:
+        """
+        Test removing the colon after a lone `@tag@` on its own line.
+        """
+        # Prepare inputs.
+        txt = """
+        @Problem@:
+        """
+        # Prepare outputs.
+        expected = """
+        @Problem@
+        """
+        # Run test.
+        self.helper(txt, expected)
+
+    def test_remove_tag_colon2(self) -> None:
+        """
+        Test removing the colon after a bulleted lone `@tag@`.
+        """
+        # Prepare inputs.
+        txt = """
+        - @Problem@:
+        """
+        # Prepare outputs.
+        expected = """
+        - @Problem@
+        """
+        # Run test.
+        self.helper(txt, expected)
+
+    def test_keep_tag_colon_with_content1(self) -> None:
+        """
+        Test that the `:` is kept (and the following text capitalized) when
+        the tag line has content after it.
+        """
+        # Prepare inputs.
+        txt = """
+        - @Problem@: treatment slopes are non-observable at unit level
+        """
+        # Prepare outputs.
+        expected = """
+        - @Problem@: Treatment slopes are non-observable at unit level
+        """
+        # Run test.
+        self.helper(txt, expected)
+
+    def test_capitalize_after_colon1(self) -> None:
+        """
+        Test capitalizing the first letter after a `:`.
+        """
+        # Prepare inputs.
+        txt = """
+        - _Explicit assumptions_: instead
+        """
+        # Prepare outputs.
+        expected = """
+        - _Explicit assumptions_: Instead
+        """
+        # Run test.
+        self.helper(txt, expected)
+
+    def test_capitalize_after_colon_with_bold1(self) -> None:
+        """
+        Test capitalizing the first letter after a `:`, skipping over a
+        leading bold marker.
+        """
+        # Prepare inputs.
+        txt = """
+        @Definition@: **models**
+        """
+        # Prepare outputs.
+        expected = """
+        @Definition@: **Models**
+        """
+        # Run test.
+        self.helper(txt, expected)
+
+    def test_capitalize_after_colon_already_capitalized1(self) -> None:
+        """
+        Test that already capitalized text after a `:` is left unchanged.
+        """
+        # Prepare inputs.
+        txt = """
+        - @Definition@: Already capitalized text
+        """
+        # Prepare outputs: no changes needed.
+        expected = txt
+        # Run test.
+        self.helper(txt, expected)
+
+    def test_no_capitalize_without_letter1(self) -> None:
+        """
+        Test that a `:` not followed by a letter (e.g., a number) is left
+        unchanged.
+        """
+        # Prepare inputs.
+        txt = """
+        - Level: 3 out of 5
+        """
+        # Prepare outputs: no changes needed.
+        expected = txt
+        # Run test.
+        self.helper(txt, expected)
+
+    def test_fence_spacing1(self) -> None:
+        """
+        Test that exactly one blank line is inserted between fence lines and
+        surrounding content, while consecutive fence lines stay adjacent.
+        """
+        # Prepare inputs.
+        txt = r"""
+        ::: columns
+        :::: {.column width=40%}
+        - @Procedure@
+          1. Compute single KDE for all chains
+          2. Rank plot to check results
+        ::::
+        :::: {.column width=60%}
+        ![](msml610/lectures_source/figures/L07.1.Coin_example_numerical_solution_2.png)
+        ::::
+        :::
+        """
+        # Prepare outputs.
+        expected = r"""
+        ::: columns
+        :::: {.column width=40%}
+
+        - @Procedure@
+          1. Compute single KDE for all chains
+          2. Rank plot to check results
+
+        ::::
+        :::: {.column width=60%}
+
+        ![](msml610/lectures_source/figures/L07.1.Coin_example_numerical_solution_2.png)
+
+        ::::
+        :::
+        """
+        # Run test.
+        self.helper(txt, expected)
+
+    def test_fence_spacing_idempotent1(self) -> None:
+        """
+        Test that an already well-formatted fenced div block is left
+        unchanged.
+        """
+        # Prepare inputs.
+        txt = r"""
+        ::: columns
+        :::: {.column width=40%}
+
+        - @Procedure@
+          1. Compute single KDE for all chains
+          2. Rank plot to check results
+             - Histograms should look uniform, exploring different (and all)
+               posterior regions
+          3. Plot single KDE with all statistics
+
+        ::::
+        :::: {.column width=60%}
+
+        ![](msml610/lectures_source/figures/L07.1.Coin_example_numerical_solution_2.png)
+
+        ::::
+        :::
+        """
+        # Prepare outputs: no changes needed.
+        expected = txt
+        # Run test.
+        self.helper(txt, expected)
+
+    def test_fence_spacing_collapses_extra_blank_lines1(self) -> None:
+        """
+        Test that more than one blank line around a fence is collapsed to
+        exactly one.
+        """
+        # Prepare inputs.
+        txt = """
+        ::: columns
+
+
+        - Content here
+
+
+        :::
+        """
+        # Prepare outputs.
+        expected = """
+        ::: columns
+
+        - Content here
+
+        :::
+        """
+        # Run test.
+        self.helper(txt, expected)
+
+    def test_fence_spacing_no_blank_between_consecutive_fences1(self) -> None:
+        """
+        Test that a blank line between two consecutive fence lines is
+        removed.
+        """
+        # Prepare inputs.
+        txt = """
+        ::::
+
+        ::::
+        :::
+        """
+        # Prepare outputs.
+        expected = """
+        ::::
+        ::::
+        :::
+        """
+        # Run test.
+        self.helper(txt, expected)
+
+    def test_no_fence_unaffected1(self) -> None:
+        """
+        Test that text without any fenced div blocks is left unchanged.
+        """
+        # Prepare inputs.
+        txt = """
+        Regular text
+        - Bullet point
+        """
+        # Prepare outputs: no changes needed.
+        expected = txt
+        # Run test.
+        self.helper(txt, expected)
+
+
+# #############################################################################
+# Test_perform_actions_smd_type
+# #############################################################################
+
+
+class Test_perform_actions_smd_type(hunitest.TestCase):
+    """
+    Test that `_perform_actions` recognizes the `smd` file type.
+    """
+
+    def test_file_type_override_smd1(self) -> None:
+        """
+        Test that `file_type_override="smd"` runs the `smd_format` action.
+        """
+        # Prepare inputs.
+        lines = ["@Problem@:"]
+        file_name = "lesson.txt"
+        # Run test: restrict to `smd_format` to avoid requiring
+        # prettier/Docker.
+        actual = dshdllitx._perform_actions(
+            lines,
+            file_name,
+            file_type_override="smd",
+            actions=["smd_format"],
+        )
+        # Check outputs.
+        expected = ["@Problem@"]
+        self.assertEqual(actual, expected)
+
+    def test_invalid_file_type_override1(self) -> None:
+        """
+        Test that an invalid `file_type_override` raises an assertion.
+        """
+        # Prepare inputs.
+        lines = ["text"]
+        file_name = "lesson.foo"
+        # Run test.
+        with self.assertRaises(AssertionError):
+            dshdllitx._perform_actions(
+                lines, file_name, file_type_override="foo"
+            )
