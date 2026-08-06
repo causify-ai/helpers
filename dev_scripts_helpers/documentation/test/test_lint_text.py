@@ -4,7 +4,7 @@ from typing import Callable, List
 
 import pytest
 
-import dev_scripts_helpers.documentation.lib_lint_text as dshdllite
+import dev_scripts_helpers.documentation.lib_lint_text as dshdllitx
 import dev_scripts_helpers.dockerize.lib_prettier as dshdlipr
 import helpers.hdbg as hdbg
 import helpers.hgit as hgit

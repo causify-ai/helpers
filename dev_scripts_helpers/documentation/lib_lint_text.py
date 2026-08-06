@@ -5,7 +5,7 @@ Provides transformation functions and file processing logic used by lint_text.py
 
 Import as:
 
-import dev_scripts_helpers.documentation.lib_lint_text as dshdllite
+import dev_scripts_helpers.documentation.lib_lint_text as dshdllitx
 """
 
 import argparse
