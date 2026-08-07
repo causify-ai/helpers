@@ -141,15 +141,27 @@ def _format_outcome_table(result: Dict[str, Any]) -> str:
     """
     _LOG.debug("result keys=%s", list(result.keys()))
     lines = [hprint.frame("Test Outcome Summary")]
-    # Determine status with colorization.
+    # Determine status with colorization, using the same convention as
+    # `pytest_failed_multi_build.py`:
+    # - PASS (green): no failed tests
+    # - FAIL (red): at least one failed test
+    # - N/A (gray): no tests were run
     num_total = result["num_total"]
     num_failed = result["num_failed"]
     if num_total == 0:
-        status = hprint.color_highlight("NOT RUN", "yellow")
+        status = hprint.color_highlight("N/A", "gray")
     elif num_failed == 0:
         status = hprint.color_highlight("PASS", "green")
     else:
         status = hprint.color_highlight("FAIL", "red")
+    # `Failed` count: 0 (green), > 0 (red).
+    if num_failed == 0:
+        failed = hprint.color_highlight(str(num_failed), "green")
+    else:
+        failed = hprint.color_highlight(str(num_failed), "red")
+    # Use `N/A` instead of `None` when the duration is not available.
+    duration = result.get("duration")
+    duration_str = f"{duration:.2f}s" if duration is not None else "N/A"
     # Convert result dict to table row with test counts and status.
     table_data = [
         [
@@ -157,9 +169,9 @@ def _format_outcome_table(result: Dict[str, Any]) -> str:
             status,
             str(result["num_passed"]),
             str(result["num_skipped"]),
-            str(result["num_failed"]),
+            failed,
             str(result["num_total"]),
-            f"{result['duration']:.2f}s" if "duration" in result else "N/A",
+            duration_str,
         ]
     ]
     # Create and format table.
