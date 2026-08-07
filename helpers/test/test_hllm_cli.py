@@ -2187,6 +2187,7 @@ class Test_expand_referenced_files(hunitest.TestCase):
         prompt: str,
         expected: str,
         *,
+        # TODO(ai_gp): Pass None and then assign it.
         fixtures: Dict[str, str] = {
             "file.md": "file content",
             "other.txt": "other content",
