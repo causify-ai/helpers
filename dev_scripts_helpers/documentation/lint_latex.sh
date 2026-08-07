@@ -17,5 +17,5 @@ SCRIPT_DIR=$(dirname $SCRIPT_SOURCE)
 
 for FILE in $SCRIPT_DIR/*.tex; do
     echo "Processing $FILE"
-    lint_txt.py -i "$FILE" --use_dockerized_prettier
+    lint_text.py -i "$FILE" --use_dockerized_prettier
 done

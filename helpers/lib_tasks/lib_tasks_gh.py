@@ -9,6 +9,7 @@ import json
 import logging
 import os
 import re
+import subprocess
 from typing import Any, Dict, List, Optional, Tuple
 
 import invoke.exceptions as invexc
@@ -16,6 +17,7 @@ from invoke import task
 
 # We want to minimize the dependencies from non-standard Python packages since
 # this code needs to run with minimal dependencies and without Docker.
+import helpers.hdaemon as hdaemon
 import helpers.hdbg as hdbg
 import helpers.hgit as hgit
 import helpers.hio as hio
@@ -185,6 +187,8 @@ def gh_workflow_list(  # type: ignore
     report_only_status=True,
     show_stack_trace=False,
     print_table=True,
+    daemon=False,
+    interval=60,
 ):
     """
     Report the status of the GH workflows.
@@ -199,7 +203,29 @@ def gh_workflow_list(  # type: ignore
     :param show_stack_trace: in case of error run `pytest_repro` reporting also
         the stack trace
     :param print_table: if True, print the table with the status of the workflows
+    :param daemon: if True, periodically clear the screen and re-run this
+        same report every `interval` seconds instead of running once (this
+        merges the old standalone `gh_watch` flow)
+    :param interval: seconds between periodic runs in daemon mode
     """
+    if daemon:
+        # Periodically re-run this same report (with `daemon=False`),
+        # replacing the standalone `gh_watch` flow.
+        def _run() -> None:
+            subprocess.run("clear", shell=True)
+            gh_workflow_list(
+                ctx,
+                filter_by_branch=filter_by_branch,
+                filter_by_completed=filter_by_completed,
+                report_only_status=report_only_status,
+                show_stack_trace=show_stack_trace,
+                print_table=print_table,
+            )
+
+        hdaemon.run_periodic_daemon_mode(
+            _run, interval, window_name_str="*GH_WATCH*"
+        )
+        return
     hltltaut.report_task(
         txt=hprint.to_str("filter_by_branch filter_by_completed")
     )

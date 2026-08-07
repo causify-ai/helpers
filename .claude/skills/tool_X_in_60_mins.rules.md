@@ -173,7 +173,7 @@ Before submission, verify:
 - [ ] Linter passes with no errors (`linters2/lint_branch.sh`)
 
 ## Tools of the Trade
-- Format markdown: `lint_txt.py -i ...`
+- Format markdown: `lint_text.py -i ...`
 - Clean up Python code: Use the agent skill `/coding.format`
 - Render locally: `website/test.sh`
 - Reference tutorials:

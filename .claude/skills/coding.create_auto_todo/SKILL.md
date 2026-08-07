@@ -75,5 +75,5 @@ description: Create a plan for fixing TODOs
 ## Step 4: Lint the file
 - Run
   ```
-  > lint_txt.py -i plan.todo_janitor.md --skip_action capitalize_header
+  > lint_text.py -i plan.todo_janitor.md --skip_action capitalize_header
   ```

@@ -5,7 +5,7 @@ import helpers.test.test_hparser as httehpar
 """
 
 import argparse
-from typing import Any, Dict, List
+from typing import Any, Dict
 
 import helpers.hparser as hparser
 import helpers.hprint as hprint
@@ -55,20 +55,21 @@ class Test_CustomHelpFormatter_split_lines(hunitest.TestCase):
     Test `hparser.CustomHelpFormatter._split_lines()`.
     """
 
-    def helper(self, text: str, width: int, expected: List[str]) -> None:
+    def helper(self, text: str, width: int, expected: str) -> None:
         """
         Check `_split_lines()`'s output for `text` at `width`.
 
         :param text: `help=`-style text to wrap
         :param width: wrap width to pass to `_split_lines()`
-        :param expected: expected list of output lines
+        :param expected: expected output lines, newline-separated
         """
         # Prepare inputs.
         formatter = hparser.CustomHelpFormatter("prog")
         # Run test.
         actual = formatter._split_lines(text, width)
+        actual = "\n".join(actual)
         # Check outputs.
-        self.assertEqual(actual, expected)
+        self.assert_equal(actual, expected, dedent=True)
 
     def test1(self) -> None:
         """
@@ -77,23 +78,24 @@ class Test_CustomHelpFormatter_split_lines(hunitest.TestCase):
         words.
         """
         # Prepare inputs.
+        # TODO(ai_gp): Use """ and dedent.
         text = (
             "Execution mode:\n"
             "- 'one_shot_with_cc' applies all rules in a single Claude Code\n"
             "  invocation, shelling out to the `cc` wrapper\n"
             "- 'session' applies incrementally"
         )
+        width = 40
         # Prepare outputs.
-        expected = [
-            "Execution mode:",
-            "- 'one_shot_with_cc' applies all rules",
-            "  in a single Claude Code invocation,",
-            "  shelling out to the `cc` wrapper",
-            "- 'session' applies incrementally",
-        ]
+        expected = """
+        Execution mode:
+        - 'one_shot_with_cc' applies all rules
+          in a single Claude Code invocation,
+          shelling out to the `cc` wrapper
+        - 'session' applies incrementally
+        """
         # Run test.
-        # TODO(ai_gp): Assign width=40 and pass width in all tests.
-        self.helper(text, 40, expected)
+        self.helper(text, width, expected)
 
     def test2(self) -> None:
         """
@@ -101,21 +103,23 @@ class Test_CustomHelpFormatter_split_lines(hunitest.TestCase):
         their own line instead of being merged with neighboring lines.
         """
         # Prepare inputs.
+        # TODO(ai_gp): Use """ and dedent.
         text = (
             "Comma-separated list of file extensions to process (e.g., "
             "'py,ipynb,md,txt')\n"
             "  Available: py (Python)\n"
             "  Default: 'py,ipynb,md'"
         )
+        width = 66
         # Prepare outputs.
-        expected = [
-            "Comma-separated list of file extensions to process (e.g.,",
-            "'py,ipynb,md,txt')",
-            "  Available: py (Python)",
-            "  Default: 'py,ipynb,md'",
-        ]
+        expected = """
+        Comma-separated list of file extensions to process (e.g.,
+        'py,ipynb,md,txt')
+          Available: py (Python)
+          Default: 'py,ipynb,md'
+        """
         # Run test.
-        self.helper(text, 66, expected)
+        self.helper(text, width, expected)
 
     def test3(self) -> None:
         """
@@ -127,13 +131,14 @@ class Test_CustomHelpFormatter_split_lines(hunitest.TestCase):
             "Model name to use using cc conventions (default: "
             "claude-haiku-4-5-20251001)"
         )
+        width = 40
         # Prepare outputs.
-        expected = [
-            "Model name to use using cc conventions",
-            "(default: claude-haiku-4-5-20251001)",
-        ]
+        expected = """
+        Model name to use using cc conventions
+        (default: claude-haiku-4-5-20251001)
+        """
         # Run test.
-        self.helper(text, 40, expected)
+        self.helper(text, width, expected)
 
     def test4(self) -> None:
         """
@@ -142,10 +147,15 @@ class Test_CustomHelpFormatter_split_lines(hunitest.TestCase):
         """
         # Prepare inputs.
         text = "Para one\n\nPara two"
+        width = 40
         # Prepare outputs.
-        expected = ["Para one", "", "Para two"]
+        expected = """
+        Para one
+
+        Para two
+        """
         # Run test.
-        self.helper(text, 40, expected)
+        self.helper(text, width, expected)
 
 
 # #############################################################################
@@ -158,12 +168,14 @@ class Test_CustomHelpFormatter_reflow_help_paragraphs(hunitest.TestCase):
     Test `hparser.CustomHelpFormatter._reflow_help_paragraphs()`.
     """
 
+    # TODO(ai_gp): Factor out an helper
     def test1(self) -> None:
         """
         Test that non-bullet lines following a "- " bullet are folded
         into it as continuations of the same logical paragraph.
         """
         # Prepare inputs.
+        # TODO(ai_gp): Use """ and dedent.
         text = (
             "- 'a' bullet one line one\n"
             "  continuation of bullet one\n"

@@ -9,7 +9,7 @@ import hashlib
 import logging
 import os
 
-import helpers.hdaemon as hdaem
+import helpers.hdaemon as hdaemon
 import helpers.hio as hio
 import helpers.hunit_test as hunitest
 
@@ -17,18 +17,18 @@ _LOG = logging.getLogger(__name__)
 
 
 # #############################################################################
-# Test_file_hash
+# Test__file_hash
 # #############################################################################
 
 
-class Test_file_hash(hunitest.TestCase):
+class Test__file_hash(hunitest.TestCase):
     """
-    Test `file_hash()` function that computes MD5 hashes of files.
+    Test `_file_hash()` function that computes MD5 hashes of files.
     """
 
     def helper(self, content: str) -> None:
         """
-        Test helper for file_hash.
+        Test helper for `_file_hash()`.
 
         :param content: File content to hash
         """
@@ -39,7 +39,7 @@ class Test_file_hash(hunitest.TestCase):
         # Prepare outputs.
         expected_hash = hashlib.md5(content.encode()).hexdigest()
         # Run test.
-        actual = hdaem.file_hash(test_file)
+        actual = hdaemon._file_hash(test_file)
         # Check outputs.
         self.assert_equal(actual, expected_hash)
 
@@ -74,8 +74,8 @@ class Test_file_hash(hunitest.TestCase):
         hio.to_file(file1, content1)
         hio.to_file(file2, content2)
         # Run test.
-        hash1 = hdaem.file_hash(file1)
-        hash2 = hdaem.file_hash(file2)
+        hash1 = hdaemon._file_hash(file1)
+        hash2 = hdaemon._file_hash(file2)
         # Check outputs.
         expected_hash1 = hashlib.md5(content1.encode()).hexdigest()
         expected_hash2 = hashlib.md5(content2.encode()).hexdigest()
@@ -101,7 +101,7 @@ class Test_file_hash(hunitest.TestCase):
         content = "Consistent content"
         hio.to_file(test_file, content)
         # Run test.
-        hash1 = hdaem.file_hash(test_file)
-        hash2 = hdaem.file_hash(test_file)
+        hash1 = hdaemon._file_hash(test_file)
+        hash2 = hdaemon._file_hash(test_file)
         # Check outputs.
         self.assert_equal(hash1, hash2)

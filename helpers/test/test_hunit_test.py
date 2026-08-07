@@ -650,6 +650,11 @@ class Test_check_string1(hunitest.TestCase):
         finally:
             # Clean up.
             hio.delete_file(file_name)
+            # `check_string()` ran a real `git add` on the golden file above,
+            # so it's staged in the index. Since we just deleted it from disk
+            # and it was never in HEAD, `git add -u` removes it from the
+            # index too, leaving a clean git status.
+            _git_add(file_name)
         # Actual doesn't match the golden outcome and it was updated.
         self.assertTrue(outcome_updated)
         self.assertFalse(file_exists)
@@ -934,6 +939,11 @@ class Test_check_dataframe1(hunitest.TestCase):
         finally:
             # Clean up.
             hio.delete_file(file_name)
+            # `check_dataframe()` ran a real `git add` on the golden file
+            # above, so it's staged in the index. Since we just deleted it
+            # from disk and it was never in HEAD, `git add -u` removes it
+            # from the index too, leaving a clean git status.
+            _git_add(file_name)
         # Expected outcome doesn't exists and it was not updated.
         self.assertTrue(outcome_updated)
         self.assertFalse(file_exists)

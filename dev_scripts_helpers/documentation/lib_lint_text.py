@@ -1,11 +1,11 @@
 """
 Core library for linting and formatting text files.
 
-Provides transformation functions and file processing logic used by lint_txt.py.
+Provides transformation functions and file processing logic used by lint_text.py.
 
 Import as:
 
-import dev_scripts_helpers.documentation.lib_lint_txt as dshdllitx
+import dev_scripts_helpers.documentation.lib_lint_text as dshdllite
 """
 
 import argparse
@@ -51,7 +51,7 @@ def _preprocess_txt(
     - Format frames
 
     :param lines: The lines to be processed.
-    :param extension: The file extension (md, tex, txt, emd).
+    :param extension: The file extension (md, tex, txt, smd).
     :return: Tuple of (preprocessed lines, protected content map).
     """
     _LOG.debug("lines=%s", lines)
@@ -447,6 +447,117 @@ def _replace_em_dash_with_colon(lines: List[str]) -> List[str]:
     return lines_new
 
 
+# #############################################################################
+
+
+def _is_smd_fence_line(line: str) -> bool:
+    """
+    Check if a line is a pandoc fenced div marker (e.g., `::: columns`).
+
+    :param line: The line to check.
+    :return: True if the line starts with at least 3 colons.
+    """
+    return bool(re.match(r"^\s*:{3,}", line))
+
+
+def _format_smd_fence_spacing(lines: List[str]) -> List[str]:
+    """
+    Normalize blank lines around smd fenced div blocks (e.g., `::: columns`).
+
+    - Consecutive fence lines (e.g., an opening `:::: {.column ...}` right
+      after a `::: columns`, or two closing fences in a row) are kept adjacent,
+      with no blank line between them.
+    - Everywhere a fence line borders a non-fence chunk of code, exactly one
+      blank line is enforced.
+
+    :param lines: The lines to be processed.
+    :return: The lines with normalized spacing around fenced div blocks.
+    """
+    _LOG.debug("lines=%s", lines)
+    # 1) Drop every blank line that borders a fence line (on either side): it
+    # will be re-inserted (at most once) in the next step.
+    no_blank_near_fence: List[str] = []
+    i = 0
+    n = len(lines)
+    while i < n:
+        line = lines[i]
+        if line.strip() == "":
+            prev_line = no_blank_near_fence[-1] if no_blank_near_fence else ""
+            # Look past the run of blank lines to find the next real line.
+            j = i
+            while j < n and lines[j].strip() == "":
+                j += 1
+            next_line = lines[j] if j < n else ""
+            if _is_smd_fence_line(prev_line) or _is_smd_fence_line(next_line):
+                i = j
+                continue
+        no_blank_near_fence.append(line)
+        i += 1
+    # 2) Re-insert exactly one blank line wherever a fence line borders a
+    # non-fence chunk of code (but not between two consecutive fences).
+    lines_new: List[str] = []
+    for idx, line in enumerate(no_blank_near_fence):
+        if idx > 0:
+            prev_line = no_blank_near_fence[idx - 1]
+            if _is_smd_fence_line(prev_line) != _is_smd_fence_line(line):
+                lines_new.append("")
+        lines_new.append(line)
+    hdbg.dassert_isinstance(lines_new, list)
+    return lines_new
+
+
+# #############################################################################
+
+# TODO(ai_gp): Removing trailing white spaces and empty lines at the beginning
+# and at the end is a transform step by itself for all the formats. This will
+# change `postprocess` behavior for `md`/`tex`/`txt` files too (e.g.,
+# markdown's trailing double-space hard line break)
+
+
+def _smd_format(lines: List[str]) -> List[str]:
+    """
+    Apply "smd" (slide markdown) specific formatting.
+
+    - Remove white spaces before the newline (i.e., trailing white spaces).
+    - Remove the `:` after a lone `@tag@` on its own line
+      - E.g., `@Problem@:` -> `@Problem@`
+    - Capitalize the first letter of the text following a `:`, skipping over
+      leading markdown emphasis markers (`*`, `_`)
+      - E.g., `- _Explicit assumptions_: instead` ->
+        `- _Explicit assumptions_: Instead`
+      - E.g., `@Definition@: **models**` -> `@Definition@: **Models**`
+    - Make sure there is exactly one empty line between a fenced div block
+      (a line starting with at least 3 `:`, e.g., `::: columns`) and the
+      surrounding chunk of code, while consecutive fence lines stay adjacent
+
+    :param lines: The lines to be processed.
+    :return: The lines formatted according to the smd conventions.
+    """
+    _LOG.debug("lines=%s", lines)
+    lines_new: List[str] = []
+    for line in lines:
+        # Remove white spaces before the newline.
+        line = line.rstrip()
+        # Fenced div marker lines (e.g., `::: columns`) are structural: don't
+        # apply the tag-colon or capitalization rules to their `:::`.
+        if not _is_smd_fence_line(line):
+            # Remove the `:` after a lone `@tag@` (e.g., `@Problem@:` ->
+            # `@Problem@`).
+            line = re.sub(r"^(\s*(?:-\s+)?@[^@]+@):\s*$", r"\1", line)
+            # Capitalize the first letter after a `:`, skipping over leading
+            # markdown emphasis markers so `**models**` becomes `**Models**`.
+            line = re.sub(
+                r"(:\s+)([*_]*)([a-zA-Z])",
+                lambda m: m.group(1) + m.group(2) + m.group(3).upper(),
+                line,
+            )
+        lines_new.append(line)
+    # Normalize the blank lines around fenced div blocks (`:::`).
+    lines_new = _format_smd_fence_spacing(lines_new)
+    hdbg.dassert_isinstance(lines_new, list)
+    return lines_new
+
+
 # TODO(gp): Clarify what are the transformations for this.
 # TODO(gp): Reuse the code in htext_protect
 def _postprocess_txt(lines: List[str], in_file_name: str) -> List[str]:
@@ -505,72 +616,78 @@ def _postprocess_txt(lines: List[str], in_file_name: str) -> List[str]:
 # #############################################################################
 
 
-def _to_execute_action(action: str, actions: Optional[List[str]] = None) -> bool:
+# This is different than `hselacti.mark_action()` since it only checks membership
+# without mutating the state.
+def _to_execute_action(action: str, actions: Optional[List[str]]) -> bool:
     to_execute = actions is None or action in actions
     if not to_execute:
         _LOG.debug("Skipping %s", action)
     return to_execute
 
 
-# #############################################################################
-
 VALID_ACTIONS = {
     # Preprocess text before formatting: normalize artifacts, handle math equations.
     # - Convert Google Docs smart quotes to ASCII
     # - Protect math blocks (`$$...$$`)
     # - Normalize bullet points and whitespace
-    "preprocess": ["md", "tex", "txt", "emd"],
+    "preprocess": ["md", "tex", "txt", "smd"],
     # Apply prettier/mdformat formatting.
     # - Wrap lines to specified width
     # - Reformat bullet lists and code blocks
     # - Normalize markdown/text syntax
-    "beautify": ["md", "tex", "txt", "emd"],
+    "beautify": ["md", "tex", "txt", "smd"],
     # Post-process formatted text: restore protected content, capitalize lists.
     # - Restore starred bullets `*` -> `*`
     # - Capitalize first letter of bullet points
     # - Remove empty lines around code blocks
-    "postprocess": ["md", "tex", "txt", "emd"],
+    "postprocess": ["md", "tex", "txt", "smd"],
     # Remove extra indentation added by beautify inside code blocks.
     # - Fixes over-indented code lines
-    "remove_code_block_extra_indentation": ["md", "tex", "txt", "emd"],
+    "remove_code_block_extra_indentation": ["md", "tex", "txt", "smd"],
     # Remove page separator lines (`---`).
     # - Cleans up document structure
-    "remove_page_separators": ["md", "tex", "txt", "emd"],
+    "remove_page_separators": ["md", "tex", "txt", "smd"],
     # Remove empty lines after headers and before code blocks.
     # - `# Header\n\ntext` -> `# Header\ntext`
     # - `text\n\n\`\`\`` -> `text\n\`\`\``
-    "handle_empty_lines": ["md", "emd"],
+    "handle_empty_lines": ["md", "smd"],
     # Add blank lines between consecutive markdown headers.
     # - `# H1\n## H2` -> `# H1\n\n## H2`
-    "add_blank_lines_between_headers": ["md", "emd"],
+    "add_blank_lines_between_headers": ["md", "smd"],
     # Convert asterisk bullets (`*`) to dash bullets (`-`).
     # - `* item` -> `- item`
     # - `* nested` -> `- nested`
-    "convert_asterisk_bullets_to_dashes": ["md", "txt", "emd"],
+    "convert_asterisk_bullets_to_dashes": ["md", "txt", "smd"],
     # Remove trailing periods from bullet points and list items.
     # - `- item.` -> `- item`
     # - `1) numbered.` -> `1) numbered`
-    "remove_trailing_periods": ["md", "tex", "txt", "emd"],
+    "remove_trailing_periods": ["md", "tex", "txt", "smd"],
     # Replace em dash (`—`) with colon (`:`) in list items.
     # - `- term — definition` -> `- term: definition`
-    "replace_em_dash_with_colon": ["md", "tex", "txt", "emd"],
+    "replace_em_dash_with_colon": ["md", "tex", "txt", "smd"],
     # Remove markdown syntax from text: bold, italic, links, images, headers.
     # - `**bold** *italic* [link](url)` -> `bold italic link`
     # - `# Header` -> `Header`
-    "remove_markdown_formatting": ["md", "emd"],
+    "remove_markdown_formatting": ["md", "smd"],
     # Add visual frame around section headers.
     # - `# Chapter` -> `# ###############\n# Chapter\n# ###############`
-    "frame_chapters": ["md", "tex", "txt", "emd"],
+    "frame_chapters": ["md", "tex", "txt", "smd"],
     # Capitalize first letter of bullet points and headers.
     # - `- hello world` -> `- Hello world`
     # - `# my title` -> `# My Title`
-    "capitalize_header": ["md", "txt", "emd"],
+    "capitalize_header": ["md", "txt", "smd"],
     # Regenerate table of contents (markdown only).
     # - `<!-- toc --> ... <!-- tocstop -->` -> auto-generated TOC
-    "refresh_toc": ["md", "emd"],
+    "refresh_toc": ["md", "smd"],
     # Validate all URLs in the document are reachable.
     # - Performs HTTP requests to check link status
-    "check_links": ["md", "tex", "txt", "emd"],
+    "check_links": ["md", "tex", "txt", "smd"],
+    # Apply smd (slide markdown) specific formatting (smd only).
+    # - Remove trailing white spaces
+    # - Remove the `:` after a lone `@tag@`
+    # - Capitalize the first letter after a `:`
+    # - Normalize blank lines around fenced div blocks (`:::`)
+    "smd_format": ["smd"],
 }
 
 
@@ -592,7 +709,7 @@ def _is_action_supported_for_format(action: str, extension: str) -> bool:
     Check if an action is supported for a given file format.
 
     :param action: The action name.
-    :param extension: The file extension (md, tex, txt, emd).
+    :param extension: The file extension (md, tex, txt, smd).
     :return: True if the action is supported, False otherwise.
     """
     hdbg.dassert_in(action, VALID_ACTIONS, msg=f"Unknown action: {action}")
@@ -608,7 +725,7 @@ def _filter_actions_by_format(
     Warns about unsupported actions and removes them from the list.
 
     :param actions: List of actions to filter, or None (all default actions).
-    :param extension: The file extension (md, tex, txt, emd).
+    :param extension: The file extension (md, tex, txt, smd).
     :return: Filtered list of actions, or None if input was None.
     """
     if actions is None:
@@ -646,7 +763,7 @@ def _perform_actions(
     :param in_file_name: The name of the input file.
     :param actions: A list of actions to be performed on the text. If
         None, all default actions are performed.
-    :param file_type_override: Force a specific file type (md, tex, txt, emd).
+    :param file_type_override: Force a specific file type (md, tex, txt, smd).
         If provided, overrides detection from file extension.
     :param kwargs: Additional keyword arguments to be passed to the
         actions.
@@ -655,7 +772,7 @@ def _perform_actions(
     hdbg.dassert_isinstance(lines, list)
     # Determine the extension: use override if provided, otherwise infer from filename.
     if file_type_override:
-        hdbg.dassert_in(file_type_override, ["md", "tex", "txt", "emd"])
+        hdbg.dassert_in(file_type_override, ["md", "tex", "txt", "smd"])
         extension = file_type_override
     else:
         extension = os.path.splitext(in_file_name)[1]
@@ -668,9 +785,11 @@ def _perform_actions(
     is_md_file = extension == "md"
     is_tex_file = extension == "tex"
     is_txt_file = extension == "txt"
-    is_emd_file = extension == "emd"
+    # `smd` (slide markdown) is a `txt`-like format used for lecture slide
+    # sources (e.g., `@tag@` semantic markup, pandoc `:::` fenced divs).
+    is_smd_file = extension == "smd"
     hdbg.dassert_eq(
-        is_md_file + is_tex_file + is_txt_file + is_emd_file,
+        is_md_file + is_tex_file + is_txt_file + is_smd_file,
         1,
         msg="Invalid file type",
     )
@@ -684,7 +803,10 @@ def _perform_actions(
     action = "preprocess"
     protected_map: dict = {}
     if _to_execute_action(action, actions):
-        lines, protected_map = _preprocess_txt(lines, extension)
+        # `htext_protect` only understands `md`/`txt`/`tex`; treat `smd` as
+        # `txt` for the purpose of protecting fenced blocks and comments.
+        preprocess_extension = "txt" if is_smd_file else extension
+        lines, protected_map = _preprocess_txt(lines, preprocess_extension)
     # Beautify.
     action = "beautify"
     if _to_execute_action(action, actions):
@@ -697,8 +819,12 @@ def _perform_actions(
             width = kwargs.pop("width")
             txt = hmarform.format_md(txt, backend, mode, width=width)
         else:
-            # Use prettier for all file types (e.g., tex and txt).
-            txt = dshdlipr.prettier_on_str(txt, file_type=extension, **kwargs)
+            # Use prettier for all file types (e.g., tex and txt). `prettier`
+            # only understands `md`/`txt`/`tex`, so treat `smd` as `txt`.
+            prettier_extension = "txt" if is_smd_file else extension
+            txt = dshdlipr.prettier_on_str(
+                txt, file_type=prettier_extension, **kwargs
+            )
         lines = txt.split("\n")
     # Post-process text.
     action = "postprocess"
@@ -728,6 +854,11 @@ def _perform_actions(
     action = "replace_em_dash_with_colon"
     if _to_execute_action(action, actions):
         lines = _replace_em_dash_with_colon(lines)
+    # Apply smd-specific formatting (tag colons, capitalization, fence spacing).
+    action = "smd_format"
+    if _to_execute_action(action, actions):
+        if is_smd_file:
+            lines = _smd_format(lines)
     # Remove markdown formatting.
     action = "remove_markdown_formatting"
     if _to_execute_action(action, actions):
@@ -735,7 +866,7 @@ def _perform_actions(
     # Frame chapters.
     action = "frame_chapters"
     if _to_execute_action(action, actions):
-        if is_txt_file:
+        if is_txt_file or is_smd_file:
             lines = hmarkdo.frame_chapters(lines)
         elif is_tex_file:
             lines = hlatex.frame_sections(lines)
@@ -758,7 +889,7 @@ def _perform_actions(
     action = "check_links"
     if _to_execute_action(action, actions):
         # Only check links for markdown and text files.
-        if is_md_file or is_txt_file:
+        if is_md_file or is_txt_file or is_smd_file:
             _check_links(in_file_name)
         else:
             _LOG.debug("Skipping link check for non-text file type")
@@ -778,14 +909,14 @@ def _get_backup_filename(file_path: str) -> str:
     Get the backup filename for a given file path.
 
     Example: `.claude/skills/testing.rules.md` ->
-    `.claude/skills/tmp.lint_txt.testing.rules.md`
+    `.claude/skills/tmp.lint_text.testing.rules.md`
 
     :param file_path: The original file path.
     :return: The backup file path.
     """
     dir_name = os.path.dirname(file_path)
     file_name = os.path.basename(file_path)
-    backup_name = f"tmp.lint_txt.{file_name}"
+    backup_name = f"tmp.lint_text.{file_name}"
     if dir_name:
         backup_path = os.path.join(dir_name, backup_name)
     else:

@@ -40,7 +40,7 @@ For bullet point formatting rules, refer to
 - Output the result in a file `hn.txt` without bold or other markdown formatting
 - Run the command:
   ```bash
-  > lint_txt.py -i hn.txt
+  > lint_text.py -i hn.txt
   ```
 - Run the command:
   ```bash

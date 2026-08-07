@@ -166,7 +166,7 @@ output_txt
 \newcommand{\mat}[1]{\boldsymbol{\underline{\underline{#1}}}}
 
 % TODO(saggese): Remove this and use \quad.
-\newcommand{\eqspace}{\hspace{10 mm}}
+\newcommand{\eqspace}{\hspace{1cm}}
 \newcommand{\norm}[1]{\left\lVert#1\right\rVert}
 
 % NOTE: These shortcuts are not only to make the latex code easier but also to

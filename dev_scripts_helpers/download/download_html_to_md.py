@@ -349,7 +349,7 @@ def _cleanup(md_file: str, *, dry_run: bool = False) -> None:
 # TODO(gp): Consider using the library and a faster lib to lint.
 def _lint(output_md_file: str, *, dry_run: bool = False) -> None:
     """
-    Lint the markdown file using lint_txt.py.
+    Lint the markdown file using lint_text.py.
 
     :param output_md_file: Path to markdown file to lint
     :param dry_run: if True, show what would be done without executing
@@ -360,9 +360,9 @@ def _lint(output_md_file: str, *, dry_run: bool = False) -> None:
         _LOG.debug("return: dry run, nothing written")
         return
     _LOG.info("Linting markdown file: '%s'...", output_md_file)
-    # Find lint_txt.py in the git tree.
+    # Find lint_text.py in the git tree.
     script_path = None
-    script_path = hgit.find_file_in_git_tree("lint_txt.py")
+    script_path = hgit.find_file_in_git_tree("lint_text.py")
     _LOG.debug("script_path='%s'", script_path)
     cmd = f"{script_path} --input {output_md_file} --output {output_md_file}"
     _LOG.debug("Running command: '%s'", cmd)
