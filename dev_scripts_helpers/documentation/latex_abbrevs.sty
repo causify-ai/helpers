@@ -25,7 +25,23 @@
 
 % Work-around for too deeply nested error.
 \usepackage{enumitem}
+% NOTE: `\renewlist` resets the label of every level back to enumitem's
+% "Undefined label" placeholder, so it must run before the per-level
+% `\setlist` calls below (not after), otherwise it wipes out this
+% configuration.
+%
+% NOTE: AMS document classes (e.g., `amsart`) measure the width of
+% `\labelenumi` / `\labelitemi` at `\begin{document}` to compute list
+% margins. If `\renewlist` has already replaced those labels with
+% enumitem's lazy "Undefined label" placeholder by then, that measurement
+% expands the placeholder and aborts with
+% "Package enumitem Error: Undefined label." To avoid the clash, defer
+% this whole block to `\AtBeginDocument`, so it runs after the class's own
+% `\AtBeginDocument` hook (registered earlier, when the class was loaded)
+% and before any list is actually typeset in the body.
+\AtBeginDocument{%
 \setlistdepth{9}
+\renewlist{itemize}{itemize}{9}
 \setlist[itemize,1]{label=\textendash}
 \setlist[itemize,2]{label=\textendash}
 \setlist[itemize,3]{label=\textendash}
@@ -35,7 +51,6 @@
 \setlist[itemize,7]{label=\textendash}
 \setlist[itemize,8]{label=\textendash}
 \setlist[itemize,9]{label=\textendash}
-\renewlist{itemize}{itemize}{9}
 
 % \setlist[itemize,1]{label=\textbullet}
 % \setlist[itemize,2]{label=\textendash}
@@ -48,6 +63,7 @@
 % \setlist[itemize,9]{label=\textbullet}
 
 % Configure enumerate lists to prevent infinite recursion in Beamer themes.
+\renewlist{enumerate}{enumerate}{9}
 \setlist[enumerate,1]{label=\arabic*.,ref=\arabic*}
 \setlist[enumerate,2]{label=\alph*.,ref=\theenumi.\alph*}
 \setlist[enumerate,3]{label=\roman*.,ref=\theenumi.\theenumii.\roman*}
@@ -56,8 +72,8 @@
 \setlist[enumerate,6]{label=\arabic*.,ref=\theenumi.\theenumii.\theenumiii.\theenumiv.\theenumv.\arabic*}
 \setlist[enumerate,7]{label=\alph*.,ref=\theenumi.\theenumii.\theenumiii.\theenumiv.\theenumv.\theenumvi.\alph*}
 \setlist[enumerate,8]{label=\roman*.,ref=\theenumi.\theenumii.\theenumiii.\theenumiv.\theenumv.\theenumvi.\theenumvii.\roman*}
-\setlist[enumerate,9]{label=\arabic*.,ref=\theenumi.\theenumii.\theenumiii.\theenumiv.\theenumv.\theenumvi.\theenumvii.\theenumviii.\arabic*}
-\renewlist{enumerate}{enumerate}{9}
+\setlist[enumerate,9]{label=\arabic*.,ref=\theenumi.\theenumii.\theenumiii.\theenumiv.\theenumv.\theenumvi.\theenumvii.\theenumviii.\arabic*}%
+}
 
 % #############################################################################
 % Vector / matrix notation
