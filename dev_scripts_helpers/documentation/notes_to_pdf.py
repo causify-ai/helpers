@@ -409,7 +409,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
     _LOG.info("%s", hprint.color_highlight(f"> {cmd_line}", "green"))
     if args.daemon:
         # Skip "open" action on watch runs (viewer auto-reloads).
-        hdaemon.run_daemon_mode(
+        hdaemon.run_reactive_daemon_mode(
             args.input,
             cmd_line,
             "notes_to_pdf",

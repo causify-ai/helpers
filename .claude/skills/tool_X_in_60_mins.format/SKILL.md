@@ -36,7 +36,7 @@ model: haiku
   - `tutorials/AutoGen/README.md`
   - `tutorials/BambooAI/README.md`
   - `tutorials/TensorFlow/README.md`
-- Run `lint_txt.py -i` to format the file
+- Run `lint_text.py -i` to format the file
 
 # Step 5: Improve Blog Entry
 - Create or improve a file `website/docs/blog/posts/<topic>_in_60_mins.md`
@@ -52,4 +52,4 @@ model: haiku
   - `website/docs/blog/posts/Autogen_in_60_mins.md`,
   - `website/docs/blog/posts/BambooAI_in_60_mins.md`,
   - `website/docs/blog/posts/TensorFlow_in_60_mins.md`,
-- Run `lint_txt.py -i` to format the file
+- Run `lint_text.py -i` to format the file

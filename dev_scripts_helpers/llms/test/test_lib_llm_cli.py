@@ -64,7 +64,37 @@ class Test_selected_text(hunitest.TestCase):
     Test lib_llm_cli.py selected text processing.
     """
 
-    # TODO(ai_gp): Factor out a helper and do the checking inside.
+    def helper(
+        self,
+        input_content: str,
+        select: str,
+        system_prompt: str,
+        expected: str,
+        *,
+        output_file: str = "",
+    ) -> None:
+        """
+        Run `_process_selected_text()` with mocked LLM and check the output.
+
+        :param input_content: markdown text to write to the scratch input
+            file
+        :param select: value passed to select parameter
+        :param system_prompt: system prompt to use
+        :param expected: expected content of the output file after the run
+        :param output_file: if given, writes to it; otherwise uses in-place
+            editing
+        """
+        # Run test.
+        actual = _run_lib_llm_cli_with_mock(
+            input_content=input_content,
+            select=select,
+            system_prompt=system_prompt,
+            scratch_space=self.get_scratch_space(),
+            output_file=output_file,
+        )
+        # Check outputs.
+        self.assert_equal(actual, expected, dedent=True)
+
     def test1(self) -> None:
         """
         Test that select extracts and transforms the correct chunk.
@@ -104,16 +134,8 @@ class Test_selected_text(hunitest.TestCase):
 
         Content for chapter 2.
         """
-        expected = hprint.dedent(expected)
         # Run test.
-        actual = _run_lib_llm_cli_with_mock(
-            input_content=input_content,
-            select=select,
-            system_prompt=system_prompt,
-            scratch_space=self.get_scratch_space(),
-        )
-        # Check outputs.
-        self.assert_equal(actual, expected)
+        self.helper(input_content, select, system_prompt, expected)
 
     def test2(self) -> None:
         """
@@ -146,16 +168,8 @@ class Test_selected_text(hunitest.TestCase):
 
         More content.
         """
-        expected = hprint.dedent(expected)
         # Run test.
-        actual = _run_lib_llm_cli_with_mock(
-            input_content=input_content,
-            select=select,
-            system_prompt=system_prompt,
-            scratch_space=self.get_scratch_space(),
-        )
-        # Check outputs.
-        self.assert_equal(actual, expected)
+        self.helper(input_content, select, system_prompt, expected)
 
     def test3(self) -> None:
         """
@@ -182,17 +196,14 @@ class Test_selected_text(hunitest.TestCase):
         expected = """
         2b13c254159543fd2eba46aef124463b
         """
-        expected = hprint.dedent(expected)
         # Run test.
-        actual = _run_lib_llm_cli_with_mock(
-            input_content=input_content,
-            select=select,
-            system_prompt=system_prompt,
-            scratch_space=self.get_scratch_space(),
+        self.helper(
+            input_content,
+            select,
+            system_prompt,
+            expected,
             output_file=output_file,
         )
-        # Check outputs.
-        self.assert_equal(actual, expected)
 
 
 # #############################################################################
@@ -205,7 +216,35 @@ class Test_get_system_prompt(hunitest.TestCase):
     Test `_get_system_prompt()` function.
     """
 
-    # TODO(ai_gp): Factor out a helper and do the checking inside.
+    def helper(
+        self,
+        system_prompt_file: str,
+        rule: str,
+        system_prompt: str,
+        expected: str,
+        *,
+        expand_referenced_files: bool = True,
+    ) -> None:
+        """
+        Check `_get_system_prompt()`'s output.
+
+        :param system_prompt_file: path to file containing system prompt
+        :param rule: rule specification to use as system prompt
+        :param system_prompt: system prompt passed directly as a string
+        :param expected: expected resolved system prompt
+        :param expand_referenced_files: whether to expand `@file`
+            references in the resolved system prompt
+        """
+        # Run test.
+        actual = dshllllcl._get_system_prompt(
+            system_prompt_file,
+            rule,
+            system_prompt,
+            expand_referenced_files=expand_referenced_files,
+        )
+        # Check outputs.
+        self.assertEqual(actual, expected)
+
     def test1(self) -> None:
         """
         Test getting system prompt from string argument.
@@ -217,13 +256,7 @@ class Test_get_system_prompt(hunitest.TestCase):
         # Prepare outputs.
         expected = "Test prompt"
         # Run test.
-        actual = dshllllcl._get_system_prompt(
-            system_prompt_file,
-            rule,
-            system_prompt,
-        )
-        # Check outputs.
-        self.assertEqual(actual, expected)
+        self.helper(system_prompt_file, rule, system_prompt, expected)
 
     def test2(self) -> None:
         """
@@ -238,13 +271,7 @@ class Test_get_system_prompt(hunitest.TestCase):
         # Prepare outputs.
         expected = "File-based prompt"
         # Run test.
-        actual = dshllllcl._get_system_prompt(
-            system_prompt_file,
-            rule,
-            system_prompt,
-        )
-        # Check outputs.
-        self.assertEqual(actual, expected)
+        self.helper(system_prompt_file, rule, system_prompt, expected)
 
     def test3(self) -> None:
         """
@@ -265,13 +292,7 @@ class Test_get_system_prompt(hunitest.TestCase):
             "referenced content"
         )
         # Run test.
-        actual = dshllllcl._get_system_prompt(
-            system_prompt_file,
-            rule,
-            system_prompt,
-        )
-        # Check outputs.
-        self.assertEqual(actual, expected)
+        self.helper(system_prompt_file, rule, system_prompt, expected)
 
     def test4(self) -> None:
         """
@@ -286,15 +307,16 @@ class Test_get_system_prompt(hunitest.TestCase):
         system_prompt_file = ""
         rule = ""
         system_prompt = "Follow @get_system_prompt_noexpand_test.md"
+        # Prepare outputs: reference is left untouched.
+        expected = system_prompt
         # Run test.
-        actual = dshllllcl._get_system_prompt(
+        self.helper(
             system_prompt_file,
             rule,
             system_prompt,
+            expected,
             expand_referenced_files=False,
         )
-        # Check outputs: reference is left untouched.
-        self.assertEqual(actual, system_prompt)
 
 
 # #############################################################################
@@ -307,7 +329,19 @@ class Test_limit_input_text(hunitest.TestCase):
     Test `_limit_input_text()` function.
     """
 
-    # TODO(ai_gp): Factor out a helper and do the checking inside.
+    def helper(self, text: str, max_chars: int, expected: str) -> None:
+        """
+        Check `_limit_input_text()`'s output.
+
+        :param text: input text to limit
+        :param max_chars: maximum number of characters
+        :param expected: expected limited text
+        """
+        # Run test.
+        actual = dshllllcl._limit_input_text(text, max_chars)
+        # Check outputs.
+        self.assertEqual(actual, expected)
+
     def test1(self) -> None:
         """
         Test that text shorter than limit is not truncated.
@@ -318,9 +352,7 @@ class Test_limit_input_text(hunitest.TestCase):
         # Prepare outputs.
         expected = "Short text"
         # Run test.
-        actual = dshllllcl._limit_input_text(text, max_chars)
-        # Check outputs.
-        self.assertEqual(actual, expected)
+        self.helper(text, max_chars, expected)
 
     def test2(self) -> None:
         """
@@ -332,9 +364,7 @@ class Test_limit_input_text(hunitest.TestCase):
         # Prepare outputs.
         expected = "This is a "
         # Run test.
-        actual = dshllllcl._limit_input_text(text, max_chars)
-        # Check outputs.
-        self.assertEqual(actual, expected)
+        self.helper(text, max_chars, expected)
 
 
 # #############################################################################
@@ -347,7 +377,34 @@ class Test_get_input_output_files(hunitest.TestCase):
     Test `_get_input_output_files()` function.
     """
 
-    # TODO(ai_gp): Factor out a helper and do the checking inside.
+    def helper(
+        self,
+        input_arg: str,
+        input_text_arg: str,
+        output_arg: str,
+        modify_in_place: bool,
+        expected: str,
+    ) -> None:
+        """
+        Check `_get_input_output_files()`'s output.
+
+        :param input_arg: input file path or '-' for stdin
+        :param input_text_arg: input text from command line
+        :param output_arg: output file path or '-' for stdout
+        :param modify_in_place: whether to modify input file in place
+        :param expected: expected `(input_file, input_text, output_file)`
+            tuple, as a string
+        """
+        # Run test.
+        actual = dshllllcl._get_input_output_files(
+            input_arg,
+            input_text_arg,
+            output_arg,
+            modify_in_place,
+        )
+        # Check outputs.
+        self.assert_equal(str(actual), expected)
+
     def test1(self) -> None:
         """
         Test input file, output to stdout.
@@ -358,22 +415,11 @@ class Test_get_input_output_files(hunitest.TestCase):
         output_arg = ""
         modify_in_place = False
         # Prepare outputs.
-        expected_input_file = "test.txt"
-        expected_input_text = ""
-        expected_output_file = "-"
+        expected = str(("test.txt", "", "-"))
         # Run test.
-        actual_input_file, actual_input_text, actual_output_file = (
-            dshllllcl._get_input_output_files(
-                input_arg,
-                input_text_arg,
-                output_arg,
-                modify_in_place,
-            )
+        self.helper(
+            input_arg, input_text_arg, output_arg, modify_in_place, expected
         )
-        # Check outputs.
-        self.assertEqual(actual_input_file, expected_input_file)
-        self.assertEqual(actual_input_text, expected_input_text)
-        self.assertEqual(actual_output_file, expected_output_file)
 
     def test2(self) -> None:
         """
@@ -385,19 +431,8 @@ class Test_get_input_output_files(hunitest.TestCase):
         output_arg = "output.txt"
         modify_in_place = False
         # Prepare outputs.
-        expected_input_file = ""
-        expected_input_text = "Test input"
-        expected_output_file = "output.txt"
+        expected = str(("", "Test input", "output.txt"))
         # Run test.
-        actual_input_file, actual_input_text, actual_output_file = (
-            dshllllcl._get_input_output_files(
-                input_arg,
-                input_text_arg,
-                output_arg,
-                modify_in_place,
-            )
+        self.helper(
+            input_arg, input_text_arg, output_arg, modify_in_place, expected
         )
-        # Check outputs.
-        self.assertEqual(actual_input_file, expected_input_file)
-        self.assertEqual(actual_input_text, expected_input_text)
-        self.assertEqual(actual_output_file, expected_output_file)

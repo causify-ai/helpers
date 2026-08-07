@@ -115,7 +115,7 @@ def _summarize_file(
     :param output_file: path to output markdown file
     :param model: LLM model name to use
     :param backend: backend to use ("executable", "library", or "mock")
-    :param lint: if True, run lint_txt.py on the output file
+    :param lint: if True, run lint_text.py on the output file
     """
     _LOG.debug("Summarizing file: %s", input_file)
     hdbg.dassert_file_exists(input_file)
@@ -167,7 +167,7 @@ def _parse() -> argparse.ArgumentParser:
     parser.add_argument(
         "--lint",
         action="store_true",
-        help="Run lint_txt.py on the generated summary files",
+        help="Run lint_text.py on the generated summary files",
     )
     hparser.add_verbosity_arg(parser)
     return parser

@@ -7,10 +7,10 @@ This script provides multiple actions for processing markdown files:
 - summarize: Generate and add/update a Summary section
 - update_content: Refresh content to match current code
 - apply_style: Apply formatting rules from ai.md_instructions.md
-- lint: Run lint_txt.py to format the file
+- lint: Run lint_text.py to format the file
 
 After each action (except lint), the file is automatically linted using
-lint_txt.py unless --skip_lint is specified.
+lint_text.py unless --skip_lint is specified.
 
 Note: At least one action must be specified using --action.
 
@@ -425,7 +425,7 @@ def _action_apply_style(
 
 def _action_lint(input_file: str) -> None:
     """
-    Run lint_txt.py on the markdown file.
+    Run lint_text.py on the markdown file.
 
     :param input_file: path to input markdown file
     """
@@ -464,7 +464,7 @@ def _parse() -> argparse.ArgumentParser:
         "--skip_lint",
         action="store_true",
         default=False,
-        help="Skip running lint_txt.py after each action (default: False)",
+        help="Skip running lint_text.py after each action (default: False)",
     )
     hparser.add_verbosity_arg(parser)
     return parser

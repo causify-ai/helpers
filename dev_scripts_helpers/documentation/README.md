@@ -123,7 +123,7 @@ The toolchain supports multiple documentation workflows:
 - Short Classification of Tools
   - Core Documentation Tools
     - `clean_markdown.py`: Cleans up HTML markup in Markdown files
-    - `lint_txt.py`: Lints and formats Markdown/LaTeX/txt notes
+    - `lint_text.py`: Lints and formats Markdown/LaTeX/txt notes
     - `notes_to_pdf.py`: Main tool for converting notes to PDF/HTML/slides with
       automatic PDF compression
     - `preprocess_notes.py`: Converts Causify notes to Pandoc Markdown
@@ -350,7 +350,7 @@ The supported File types and code blocks are:
 
 ### Text Formatting and Cleanup
 
-#### `lint_txt.py`
+#### `lint_text.py`
 
 ### What It Does
 - Tidy up notes in different formats (selected with the file extension or
@@ -371,30 +371,30 @@ The supported File types and code blocks are:
 ### Examples
 - Basic usage
   ```bash
-  > lint_txt.py -i input.md -o output.md
+  > lint_text.py -i input.md -o output.md
   ```
 
 - Process specific actions only
   ```bash
-  > lint_txt.py -i input.md -o output.md --action preprocess,prettier
+  > lint_text.py -i input.md -o output.md --action preprocess,prettier
   ```
 
 - Prettify with Dockerized Prettier and TOC rebuild
   ```bash
-  > lint_txt.py -i Lesson10.md \
+  > lint_text.py -i Lesson10.md \
       --use_dockerized_prettier \
       --use_dockerized_markdown_toc
   ```
 
 - Custom print width and selective actions
   ```bash
-  > lint_txt.py -i draft.txt -o tidy.txt -w 100 \
+  > lint_text.py -i draft.txt -o tidy.txt -w 100 \
       --action preprocess,prettier,postprocess
   ```
 
 - Use in vim for inline formatting
   ```vim
-  :%!lint_txt.py
+  :%!lint_text.py
   ```
 
 #### `clean_markdown.py`
@@ -743,13 +743,13 @@ The `--md_end "END"` special value is useful for reading from a starting section
   - **update_content**: Refresh content to match current code using LLM analysis
   - **apply_style**: Apply formatting rules from
     `docs/ai_coding/ai.md_instructions.md`
-  - **lint**: Run lint_txt.py to format the file
+  - **lint**: Run lint_text.py to format the file
 - Intelligently places summaries:
   - After `<!-- tocstop -->` tag if present (ideal for files with table of
     contents)
   - Otherwise, replaces existing `# Summary` section if found
   - Otherwise, adds at the beginning of the file
-- Automatically runs `lint_txt.py` after each action for proper formatting
+- Automatically runs `lint_text.py` after each action for proper formatting
   - Can be disabled with `--skip_lint` flag
 - Supports multiple actions in a single run
 - Works with multiple LLM models (default: `gpt-4o-mini`)
@@ -1495,7 +1495,7 @@ The `--md_end "END"` special value is useful for reading from a starting section
 
 ### What It Does
 - Dockerized linter for LaTeX files using Prettier
-- Runs `lint_txt.py` on every `.tex` file in the same directory as the script
+- Runs `lint_text.py` on every `.tex` file in the same directory as the script
 
 ### Examples
 - Lint the LaTeX files in a project directory

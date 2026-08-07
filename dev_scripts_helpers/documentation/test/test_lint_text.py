@@ -4,7 +4,7 @@ from typing import Callable, List
 
 import pytest
 
-import dev_scripts_helpers.documentation.lib_lint_txt as dshdllitx
+import dev_scripts_helpers.documentation.lib_lint_text as dshdllitx
 import dev_scripts_helpers.dockerize.lib_prettier as dshdlipr
 import helpers.hdbg as hdbg
 import helpers.hgit as hgit
@@ -76,11 +76,11 @@ def _get_text1() -> str:
 
 
 # #############################################################################
-# Test_lint_txt1
+# Test_lint_text1
 # #############################################################################
 
 
-class Test_lint_txt1(hunitest.TestCase):
+class Test_lint_text1(hunitest.TestCase):
     """
     Test the text preprocessing functionality.
     """
@@ -99,7 +99,7 @@ class Test_lint_txt1(hunitest.TestCase):
 
         _helper_process_lines(self, txt, expected, preprocess_wrapper)
 
-    def test_preprocess1(self) -> None:
+    def test1(self) -> None:
         txt = r"""$$E_{in} = \frac{1}{N} \sum_i e(h(\vx_i), y_i)$$"""
         expected = r"""
         $$
@@ -107,7 +107,7 @@ class Test_lint_txt1(hunitest.TestCase):
         $$"""
         self.helper(txt, expected)
 
-    def test_preprocess2(self) -> None:
+    def test2(self) -> None:
         txt = r"""
         $$E_{in}(\vw) = \frac{1}{N} \sum_i \big(
         -y_i \log(\Pr(h(\vx) = 1|\vx)) - (1 - y_i) \log(1 - \Pr(h(\vx)=1|\vx))
@@ -120,7 +120,7 @@ class Test_lint_txt1(hunitest.TestCase):
         $$"""
         self.helper(txt, expected)
 
-    def test_preprocess3(self) -> None:
+    def test3(self) -> None:
         txt = _get_text1()
         expected = r"""
         - STARGradient descent for logistic regression
@@ -149,7 +149,7 @@ class Test_lint_txt1(hunitest.TestCase):
           monotone)"""
         self.helper(txt, expected)
 
-    def test_preprocess4(self) -> None:
+    def test4(self) -> None:
         txt = r"""
         # #########################
         # test
@@ -157,7 +157,7 @@ class Test_lint_txt1(hunitest.TestCase):
         expected = r"""# test"""
         self.helper(txt, expected)
 
-    def test_preprocess5(self) -> None:
+    def test5(self) -> None:
         txt = r"""
         ## ////////////////
         # test
@@ -1884,11 +1884,11 @@ class Test_capitalize_header(hunitest.TestCase):
 
 
 # #############################################################################
-# Test_lint_txt2
+# Test_lint_text2
 # #############################################################################
 
 
-class Test_lint_txt2(hunitest.TestCase):
+class Test_lint_text2(hunitest.TestCase):
     @staticmethod
     def get_text_problematic_for_prettier1() -> str:
         txt = r"""
@@ -1937,7 +1937,39 @@ class Test_lint_txt2(hunitest.TestCase):
         expected = ""
         file_name = "test.txt"
         actual = self.helper(txt, expected, file_name)
-        self.check_string(actual)
+        # Check.
+        expected = r"""
+        - Gradient descent for logistic regression
+        - The typical implementations of gradient descent (basic or advanced) need two
+          inputs:
+          - The cost function $E_{in}(\vw)$ (to monitor convergence)
+          - The gradient of the cost function
+            $\frac{\partial E}{w_j} \text{ for all } j$ (to optimize)
+        - The cost function is:
+
+          $$
+          E_{in} = \frac{1}{N} \sum_i e(h(\vx_i), y_i)
+          $$
+
+        - In case of general probabilistic model $h(\vx)$ in \{0, 1\}):
+          $$
+            E_{in}(\vw) = \frac{1}{N} \sum_i \big(
+            -y_i \log(\Pr(h(\vx) = 1|\vx)) - (1 - y_i) \log(1 - \Pr(h(\vx)=1|\vx))
+            \big)
+            $$
+
+        - In case of logistic regression in \{+1, -1\}:
+
+          $$
+          E_{in}(\vw) = \frac{1}{N} \sum_i \log(1 + \exp(-y_i \vw^T \vx_i))
+          $$
+
+        - It can be proven that the function $E_{in}(\vw)$ to minimize is convex in
+          $\vw$ (sum of exponentials and flipped exponentials is convex and log is
+          monotone)
+        """
+        expected = hprint.dedent(expected, remove_lead_trail_empty_lines_=True)
+        self.assert_equal(actual, expected)
 
     @pytest.mark.slow
     def test2(self) -> None:
@@ -2209,16 +2241,16 @@ class Test_lint_txt2(hunitest.TestCase):
 
 
 # #############################################################################
-# Test_lint_txt_py1
+# Test_lint_text_py1
 # #############################################################################
 
 
-class Test_lint_txt_py1(hunitest.TestCase):
+class Test_lint_text_py1(hunitest.TestCase):
     """
-    Test the lint_txt.py command-line script with different file types.
+    Test the lint_text.py command-line script with different file types.
     """
 
-    def run_lint_txt(
+    def run_lint_text(
         self,
         in_file: str,
         type_: str,
@@ -2226,7 +2258,7 @@ class Test_lint_txt_py1(hunitest.TestCase):
         cmd_opts: str,
     ) -> str:
         """
-        Run lint_txt processing directly by calling the code.
+        Run lint_text processing directly by calling the code.
 
         :param in_file: Path to the input file containing the notes.
         :param type_: The output format, either 'md' or 'tex'. :param
@@ -2236,11 +2268,11 @@ class Test_lint_txt_py1(hunitest.TestCase):
         :return: The processed text content.
         """
         if use_script:
-            # lint_txt.py \
+            # lint_text.py \
             #  -i papers/DataFlow_stream_computing_framework/DataFlow_stream_computing_framework.tex \
             #  --use_dockerized_prettier \
             cmd = []
-            exec_path = hgit.find_file_in_git_tree("lint_txt.py")
+            exec_path = hgit.find_file_in_git_tree("lint_text.py")
             hdbg.dassert_path_exists(exec_path)
             cmd.append(exec_path)
             cmd.append(f"--input {in_file}")
@@ -2274,6 +2306,27 @@ class Test_lint_txt_py1(hunitest.TestCase):
             output_txt = "\n".join(out_lines)
         return output_txt
 
+    @staticmethod
+    def get_expected_md_output1() -> str:
+        """
+        Return the expected output of linting `text.md` (shared by test1 and
+        test2, which process the same input file).
+        """
+        expected = r"""
+        # Test Document
+
+        ## Introduction
+        This is a test markdown document for lint_text testing
+
+        ## Content
+        Some sample content to test the linting functionality
+
+        ### Subsection
+        More detailed content
+        """
+        expected = hprint.dedent(expected, remove_lead_trail_empty_lines_=True)
+        return expected
+
     # ///////////////////////////////////////////////////////////////////////////
 
     @pytest.mark.skipif(hserver.is_host_mac(), reason="CsfyIssue8889")
@@ -2288,9 +2341,10 @@ class Test_lint_txt_py1(hunitest.TestCase):
         use_script = False
         cmd_opts = ""
         # Run the script.
-        output_txt = self.run_lint_txt(in_file, type_, use_script, cmd_opts)
+        output_txt = self.run_lint_text(in_file, type_, use_script, cmd_opts)
         # Check.
-        self.check_string(output_txt)
+        expected = self.get_expected_md_output1()
+        self.assert_equal(output_txt, expected)
 
     @pytest.mark.skipif(
         hserver.is_inside_docker(),
@@ -2312,9 +2366,10 @@ class Test_lint_txt_py1(hunitest.TestCase):
         use_script = True
         cmd_opts = ""
         # Run the script.
-        output_txt = self.run_lint_txt(in_file, type_, use_script, cmd_opts)
+        output_txt = self.run_lint_text(in_file, type_, use_script, cmd_opts)
         # Check using the same golden outcome as test1.
-        self.check_string(output_txt, test_method_name="test1")
+        expected = self.get_expected_md_output1()
+        self.assert_equal(output_txt, expected)
 
     @pytest.mark.slow
     def test3(self) -> None:
@@ -2327,9 +2382,37 @@ class Test_lint_txt_py1(hunitest.TestCase):
         use_script = False
         cmd_opts = ""
         # Run the script.
-        output_txt = self.run_lint_txt(in_file, type_, use_script, cmd_opts)
+        output_txt = self.run_lint_text(in_file, type_, use_script, cmd_opts)
         # Check.
-        self.check_string(output_txt)
+        expected = r"""
+        \documentclass{article}
+        \usepackage[utf-8]{inputenc}
+
+        \title{Test LaTeX Document}
+        \author{Test Author}
+        \date{\today}
+
+        \begin{document}
+          \maketitle
+
+        % ##############################################################################
+          \section{Introduction}
+
+          This is a test LaTeX document with some text. Lorem ipsum dolor sit amet, consectetur
+          adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna
+          aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris
+          nisi ut aliquip ex ea commodo consequat
+
+        % ##############################################################################
+          \section{Content}
+
+          Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu
+          fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in
+          culpa qui officia deserunt mollit anim id est laborum
+        \end{document}
+        """
+        expected = hprint.dedent(expected, remove_lead_trail_empty_lines_=True)
+        self.assert_equal(output_txt, expected)
 
     @pytest.mark.slow
     def test4(self) -> None:
@@ -2348,28 +2431,54 @@ class Test_lint_txt_py1(hunitest.TestCase):
         use_script = True
         cmd_opts = "--width 80"
         # Run the script.
-        output_txt = self.run_lint_txt(in_file, type_, use_script, cmd_opts)
+        output_txt = self.run_lint_text(in_file, type_, use_script, cmd_opts)
         # Check using the same golden outcome as test3.
-        self.check_string(output_txt, test_method_name="test4")
+        expected = r"""
+        \documentclass{article}
+        \usepackage[utf-8]{inputenc}
+
+        \title{Test LaTeX Document}
+        \author{Test Author}
+        \date{\today}
+
+        \begin{document}
+          \maketitle
+
+          \section{Introduction}
+
+          This is a test LaTeX document with some text. Lorem ipsum dolor sit amet, consectetur
+          adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna
+          aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris
+          nisi ut aliquip ex ea commodo consequat
+
+          \section{Content}
+
+          Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu
+          fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in
+          culpa qui officia deserunt mollit anim id est laborum
+        \end{document}
+        """
+        expected = hprint.dedent(expected, remove_lead_trail_empty_lines_=True)
+        self.assert_equal(output_txt, expected)
 
 
 # #############################################################################
-# Test_lint_txt_py_idempotency
+# Test_lint_text_py_idempotency
 # #############################################################################
 
 
-class Test_lint_txt_py_idempotency(hunitest.TestCase):
+class Test_lint_text_py_idempotency(hunitest.TestCase):
     """
-    Test that lint_txt.py does not modify already formatted files.
+    Test that lint_text.py does not modify already formatted files.
     """
 
-    def run_lint_txt(
+    def run_lint_text(
         self,
         in_file: str,
         type_: str,
     ) -> str:
         """
-        Run lint_txt processing directly by calling the code.
+        Run lint_text processing directly by calling the code.
 
         :param in_file: Path to the input file containing the notes.
         :param type_: The output format, either 'md' or 'tex'.
@@ -2400,7 +2509,7 @@ class Test_lint_txt_py_idempotency(hunitest.TestCase):
         """
         Test idempotency for all markdown files in the input directory.
 
-        This test verifies that running lint_txt twice on each file in
+        This test verifies that running lint_text twice on each file in
         the input directory produces identical output.
         """
         # Prepare inputs.
@@ -2422,7 +2531,7 @@ class Test_lint_txt_py_idempotency(hunitest.TestCase):
             # Prepare outputs.
             type_ = "md"
             # Run the script once.
-            output_txt_1 = self.run_lint_txt(in_file, type_)
+            output_txt_1 = self.run_lint_text(in_file, type_)
             # Format the output again using the same formatter.
             lines = output_txt_1.split("\n")
             output_lines = dshdllitx._perform_actions(
@@ -2448,7 +2557,7 @@ class Test__get_backup_filename(hunitest.TestCase):
     Test the _get_backup_filename function.
     """
 
-    def test_simple_filename(self) -> None:
+    def test1(self) -> None:
         """
         Test backup filename generation for a simple filename.
         """
@@ -2457,10 +2566,10 @@ class Test__get_backup_filename(hunitest.TestCase):
         # Run test.
         actual = dshdllitx._get_backup_filename(file_path)
         # Check outputs.
-        expected = "tmp.lint_txt.test.md"
+        expected = "tmp.lint_text.test.md"
         self.assertEqual(actual, expected)
 
-    def test_filename_with_single_directory(self) -> None:
+    def test2(self) -> None:
         """
         Test backup filename generation for a file in a directory.
         """
@@ -2469,10 +2578,10 @@ class Test__get_backup_filename(hunitest.TestCase):
         # Run test.
         actual = dshdllitx._get_backup_filename(file_path)
         # Check outputs.
-        expected = ".claude/skills/tmp.lint_txt.testing.rules.md"
+        expected = ".claude/skills/tmp.lint_text.testing.rules.md"
         self.assertEqual(actual, expected)
 
-    def test_filename_with_nested_directories(self) -> None:
+    def test3(self) -> None:
         """
         Test backup filename generation for a file in nested directories.
         """
@@ -2481,10 +2590,10 @@ class Test__get_backup_filename(hunitest.TestCase):
         # Run test.
         actual = dshdllitx._get_backup_filename(file_path)
         # Check outputs.
-        expected = "path/to/nested/directory/tmp.lint_txt.file.txt"
+        expected = "path/to/nested/directory/tmp.lint_text.file.txt"
         self.assertEqual(actual, expected)
 
-    def test_filename_with_multiple_dots(self) -> None:
+    def test4(self) -> None:
         """
         Test backup filename generation for files with multiple dots.
         """
@@ -2493,7 +2602,7 @@ class Test__get_backup_filename(hunitest.TestCase):
         # Run test.
         actual = dshdllitx._get_backup_filename(file_path)
         # Check outputs.
-        expected = "directory/tmp.lint_txt.some.config.yaml"
+        expected = "directory/tmp.lint_text.some.config.yaml"
         self.assertEqual(actual, expected)
 
 
@@ -2609,3 +2718,321 @@ class Test_replace_em_dash_with_colon(hunitest.TestCase):
         """
         # Run test.
         self.helper(txt, expected)
+
+
+# #############################################################################
+# Test_smd_format
+# #############################################################################
+
+
+class Test_smd_format(hunitest.TestCase):
+    """
+    Test the _smd_format function used for the smd (slide markdown) file
+    type.
+    """
+
+    def helper(self, txt: str, expected: str) -> None:
+        """
+        Test helper for _smd_format.
+
+        :param txt: Input text to process
+        :param expected: Expected output after smd formatting
+        """
+        _helper_process_lines(self, txt, expected, dshdllitx._smd_format)
+
+    def test1(self) -> None:
+        """
+        Test removing white spaces before the newline.
+        """
+        # Prepare inputs.
+        txt = "\n".join(
+            [
+                "- Some text with trailing spaces   ",
+                "- Another line\t",
+            ]
+        )
+        # Prepare outputs.
+        expected = "\n".join(
+            [
+                "- Some text with trailing spaces",
+                "- Another line",
+            ]
+        )
+        # Run test.
+        self.helper(txt, expected)
+
+    def test2(self) -> None:
+        """
+        Test removing the colon after a lone `@tag@` on its own line.
+        """
+        # Prepare inputs.
+        txt = """
+        @Problem@:
+        """
+        # Prepare outputs.
+        expected = """
+        @Problem@
+        """
+        # Run test.
+        self.helper(txt, expected)
+
+    def test3(self) -> None:
+        """
+        Test removing the colon after a bulleted lone `@tag@`.
+        """
+        # Prepare inputs.
+        txt = """
+        - @Problem@:
+        """
+        # Prepare outputs.
+        expected = """
+        - @Problem@
+        """
+        # Run test.
+        self.helper(txt, expected)
+
+    def test4(self) -> None:
+        """
+        Test that the `:` is kept (and the following text capitalized) when
+        the tag line has content after it.
+        """
+        # Prepare inputs.
+        txt = """
+        - @Problem@: treatment slopes are non-observable at unit level
+        """
+        # Prepare outputs.
+        expected = """
+        - @Problem@: Treatment slopes are non-observable at unit level
+        """
+        # Run test.
+        self.helper(txt, expected)
+
+    def test5(self) -> None:
+        """
+        Test capitalizing the first letter after a `:`.
+        """
+        # Prepare inputs.
+        txt = """
+        - _Explicit assumptions_: instead
+        """
+        # Prepare outputs.
+        expected = """
+        - _Explicit assumptions_: Instead
+        """
+        # Run test.
+        self.helper(txt, expected)
+
+    def test6(self) -> None:
+        """
+        Test capitalizing the first letter after a `:`, skipping over a
+        leading bold marker.
+        """
+        # Prepare inputs.
+        txt = """
+        @Definition@: **models**
+        """
+        # Prepare outputs.
+        expected = """
+        @Definition@: **Models**
+        """
+        # Run test.
+        self.helper(txt, expected)
+
+    def test7(self) -> None:
+        """
+        Test that already capitalized text after a `:` is left unchanged.
+        """
+        # Prepare inputs.
+        txt = """
+        - @Definition@: Already capitalized text
+        """
+        # Prepare outputs: no changes needed.
+        expected = txt
+        # Run test.
+        self.helper(txt, expected)
+
+    def test8(self) -> None:
+        """
+        Test that a `:` not followed by a letter (e.g., a number) is left
+        unchanged.
+        """
+        # Prepare inputs.
+        txt = """
+        - Level: 3 out of 5
+        """
+        # Prepare outputs: no changes needed.
+        expected = txt
+        # Run test.
+        self.helper(txt, expected)
+
+    def test9(self) -> None:
+        """
+        Test that exactly one blank line is inserted between fence lines and
+        surrounding content, while consecutive fence lines stay adjacent.
+        """
+        # Prepare inputs.
+        txt = r"""
+        ::: columns
+        :::: {.column width=40%}
+        - @Procedure@
+          1. Compute single KDE for all chains
+          2. Rank plot to check results
+        ::::
+        :::: {.column width=60%}
+        ![](msml610/lectures_source/figures/L07.1.Coin_example_numerical_solution_2.png)
+        ::::
+        :::
+        """
+        # Prepare outputs.
+        expected = r"""
+        ::: columns
+        :::: {.column width=40%}
+
+        - @Procedure@
+          1. Compute single KDE for all chains
+          2. Rank plot to check results
+
+        ::::
+        :::: {.column width=60%}
+
+        ![](msml610/lectures_source/figures/L07.1.Coin_example_numerical_solution_2.png)
+
+        ::::
+        :::
+        """
+        # Run test.
+        self.helper(txt, expected)
+
+    def test10(self) -> None:
+        """
+        Test that an already well-formatted fenced div block is left
+        unchanged.
+        """
+        # Prepare inputs.
+        txt = r"""
+        ::: columns
+        :::: {.column width=40%}
+
+        - @Procedure@
+          1. Compute single KDE for all chains
+          2. Rank plot to check results
+             - Histograms should look uniform, exploring different (and all)
+               posterior regions
+          3. Plot single KDE with all statistics
+
+        ::::
+        :::: {.column width=60%}
+
+        ![](msml610/lectures_source/figures/L07.1.Coin_example_numerical_solution_2.png)
+
+        ::::
+        :::
+        """
+        # Prepare outputs: no changes needed.
+        expected = txt
+        # Run test.
+        self.helper(txt, expected)
+
+    def test11(self) -> None:
+        """
+        Test that more than one blank line around a fence is collapsed to
+        exactly one.
+        """
+        # Prepare inputs.
+        txt = """
+        ::: columns
+
+
+        - Content here
+
+
+        :::
+        """
+        # Prepare outputs.
+        expected = """
+        ::: columns
+
+        - Content here
+
+        :::
+        """
+        # Run test.
+        self.helper(txt, expected)
+
+    def test12(self) -> None:
+        """
+        Test that a blank line between two consecutive fence lines is
+        removed.
+        """
+        # Prepare inputs.
+        txt = """
+        ::::
+
+        ::::
+        :::
+        """
+        # Prepare outputs.
+        expected = """
+        ::::
+        ::::
+        :::
+        """
+        # Run test.
+        self.helper(txt, expected)
+
+    def test13(self) -> None:
+        """
+        Test that text without any fenced div blocks is left unchanged.
+        """
+        # Prepare inputs.
+        txt = """
+        Regular text
+        - Bullet point
+        """
+        # Prepare outputs: no changes needed.
+        expected = txt
+        # Run test.
+        self.helper(txt, expected)
+
+
+# #############################################################################
+# Test_perform_actions_smd_type
+# #############################################################################
+
+
+class Test_perform_actions_smd_type(hunitest.TestCase):
+    """
+    Test that `_perform_actions` recognizes the `smd` file type.
+    """
+
+    def test1(self) -> None:
+        """
+        Test that `file_type_override="smd"` runs the `smd_format` action.
+        """
+        # Prepare inputs.
+        lines = ["@Problem@:"]
+        file_name = "lesson.txt"
+        # Run test: restrict to `smd_format` to avoid requiring
+        # prettier/Docker.
+        actual = dshdllitx._perform_actions(
+            lines,
+            file_name,
+            file_type_override="smd",
+            actions=["smd_format"],
+        )
+        # Check outputs.
+        expected = ["@Problem@"]
+        self.assertEqual(actual, expected)
+
+    def test2(self) -> None:
+        """
+        Test that an invalid `file_type_override` raises an assertion.
+        """
+        # Prepare inputs.
+        lines = ["text"]
+        file_name = "lesson.foo"
+        # Run test.
+        with self.assertRaises(AssertionError):
+            dshdllitx._perform_actions(
+                lines, file_name, file_type_override="foo"
+            )

@@ -1,4 +1,4 @@
-# lint_txt.py
+# lint_text.py
 
 - Automated formatter for markdown, LaTeX, and plain text files
 - Applies a series of transformations to normalize and improve document structure
@@ -7,7 +7,7 @@
 
 ## Overview
 
-- `lint_txt.py` processes text documents through a pipeline of formatting
+- `lint_text.py` processes text documents through a pipeline of formatting
   actions
 - Each action transforms specific aspects of the text, from fixing spacing and
   punctuation to handling markdown formatting and validating links
@@ -16,7 +16,7 @@
   - `.md` (markdown)
   - `.tex` (LaTeX)
   - `.txt` (plain text)
-  - `.emd` (enhanced markdown)
+  - `smd` (slide markdown)
 - Input/output modes: File-based (single or multiple) or stdin/stdout
 - Safety features: Automatic backups, revert capability, action filtering
 
@@ -24,27 +24,27 @@
 
 - Format a markdown file:
   ```bash
-  > ./lint_txt.py --in my_file.md
+  > ./lint_text.py --in my_file.md
   ```
 
 - Format multiple files:
   ```bash
-  > ./lint_txt.py --in file1.md file2.md file3.md
+  > ./lint_text.py --in file1.md file2.md file3.md
   ```
 
 - Process stdin/stdout:
   ```bash
-  > cat my_file.md | ./lint_txt.py --type md
+  > cat my_file.md | ./lint_text.py --type md
   ```
 
 - Revert a file from backup:
   ```bash
-  > ./lint_txt.py --in my_file.md --revert
+  > ./lint_text.py --in my_file.md --revert
   ```
 
 - Run specific actions only:
   ```bash
-  > ./lint_txt.py --in my_file.md --action preprocess beautify postprocess
+  > ./lint_text.py --in my_file.md --action preprocess beautify postprocess
   ```
 
 ## Available Actions
@@ -124,14 +124,28 @@
   - Reports broken links without failing
   - Supports HTTP/HTTPS requests
 
+### Slide Markdown Actions
+
+- **smd_format**: Apply `smd` (slide markdown) specific formatting (`smd` only)
+  - Removes trailing white spaces before the newline
+  - Removes the `:` after a lone `@tag@` on its own line, e.g., `@Problem@:`
+    -> `@Problem@`
+  - Capitalizes the first letter after a `:`, skipping leading markdown
+    emphasis markers, e.g., `@Definition@: **models**` ->
+    `@Definition@: **Models**`
+  - Ensures exactly one blank line between a fenced div block (a line
+    starting with at least 3 `:`, e.g., `::: columns`) and the surrounding
+    chunk of code, while keeping consecutive fence lines adjacent
+
 ## Command Line Options
 
 ### Input/Output
 
 - `--in <file>`: Input file (or `-` for stdin)
 - `--out <file>`: Output file (defaults to `--in` for in-place editing)
-- `--type <type>`: File type when using stdin (required for stdin input)
-  - Options: `md`, `tex`, `txt`
+- `--type <type>`: File type when using stdin (required for stdin input), or
+  to force a type instead of inferring it from the file extension
+  - Options: `md`, `tex`, `txt`, `smd`
 
 ### Formatting Configuration
 
@@ -207,10 +221,13 @@
   - No markdown syntax processing
   - All lines treated as content
 
+- **Slide markdown files** (`smd`, forced via `--type smd`):
+  - `txt`-like format for lecture slide sources
+
 ### Backup System
 
-- Backup filename: `tmp.lint_txt.<original_filename>`
-  - E.g., `my_file.md` -> `tmp.lint_txt.my_file.md`
+- Backup filename: `tmp.lint_text.<original_filename>`
+  - E.g., `my_file.md` -> `tmp.lint_text.my_file.md`
 - Created in same directory as original
 - Automatically created before in-place processing
 - Used by `--revert` option to restore original
@@ -220,49 +237,55 @@
 ### Format with All Default Actions
 
 ```bash
-> ./lint_txt.py --in documentation.md
+> ./lint_text.py --in documentation.md
 ```
 
 ### Format and Refresh Table of Contents
 
 ```bash
-> ./lint_txt.py --in documentation.md --action preprocess beautify postprocess refresh_toc
+> ./lint_text.py --in documentation.md --action preprocess beautify postprocess refresh_toc
 ```
 
 ### Convert Markdown to Plain Text
 
 ```bash
-> ./lint_txt.py --in content.md --action remove_markdown_formatting --out content.txt
+> ./lint_text.py --in content.md --action remove_markdown_formatting --out content.txt
 ```
 
 ### Check Links Only
 
 ```bash
-> ./lint_txt.py --in documentation.md --action check_links
+> ./lint_text.py --in documentation.md --action check_links
 ```
 
 ### Process with Custom Line Width
 
 ```bash
-> ./lint_txt.py --in article.md --width 100
+> ./lint_text.py --in article.md --width 100
 ```
 
 ### Use Alternative Markdown Backend
 
 ```bash
-> ./lint_txt.py --in document.md --backend mdformat --mode library
+> ./lint_text.py --in document.md --backend mdformat --mode library
 ```
 
 ### Revert Previous Formatting
 
 ```bash
-> ./lint_txt.py --in document.md --revert
+> ./lint_text.py --in document.md --revert
 ```
 
 ### Process Multiple Files
 
 ```bash
-> ./lint_txt.py --in chapter1.md chapter2.md chapter3.md
+> ./lint_text.py --in chapter1.md chapter2.md chapter3.md
+```
+
+### Format a Lecture Slide Source as Slide Markdown
+
+```bash
+> ./lint_text.py --in lesson.txt --type smd
 ```
 
 ## Notes and Considerations

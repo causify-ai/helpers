@@ -164,13 +164,13 @@ class Test__extract_columns(hunitest.TestCase):
                     return result
         return None
 
-    # TODO(ai_gp): Move the self.assert_equal check inside helper
-    def helper(self, markdown_input: str) -> str:
+    def helper(self, markdown_input: str, expected: str) -> None:
         """
-        Run full pipeline from markdown to extracted columns.
+        Run full pipeline from markdown to extracted columns and check the
+        outcome.
 
         :param markdown_input: Markdown text to convert
-        :return: Formatted outcome string
+        :param expected: expected formatted outcome string
         """
         scratch_dir = self.get_scratch_space()
         outcome = {}
@@ -188,7 +188,8 @@ class Test__extract_columns(hunitest.TestCase):
         actual = dshdtpatt._extract_columns(container)
         outcome["3. extracted_columns"] = str(actual)
         actual_outcome = outcome_to_str(outcome)
-        return actual_outcome
+        # Check outputs.
+        self.assert_equal(actual_outcome, expected, dedent=True)
 
     def test1(self) -> None:
         """
@@ -312,10 +313,8 @@ class Test__extract_columns(hunitest.TestCase):
         ################################################################################
         [('55%', [{'t': 'Para', 'c': [{'t': 'Str', 'c': 'Left'}]}]), ('45%', [{'t': 'Para', 'c': [{'t': 'Str', 'c': 'Right'}]}])]
         """
-        # Run test.
-        actual = self.helper(markdown_input)
-        # Check outputs.
-        self.assert_equal(actual, expected, dedent=True)
+        # Run test and check outputs.
+        self.helper(markdown_input, expected)
 
     def test2(self) -> None:
         """
@@ -405,10 +404,8 @@ class Test__extract_columns(hunitest.TestCase):
         ################################################################################
         [('1fr', [{'t': 'Para', 'c': [{'t': 'Str', 'c': 'Default'}, {'t': 'Space'}, {'t': 'Str', 'c': 'width'}]}])]
         """
-        # Run test.
-        actual = self.helper(markdown_input)
-        # Check outputs.
-        self.assert_equal(actual, expected, dedent=True)
+        # Run test and check outputs.
+        self.helper(markdown_input, expected)
 
     def test3(self) -> None:
         """
@@ -527,10 +524,8 @@ class Test__extract_columns(hunitest.TestCase):
         ################################################################################
         [('50%', [{'t': 'Para', 'c': [{'t': 'Str', 'c': 'Included'}]}])]
         """
-        # Run test.
-        actual = self.helper(markdown_input)
-        # Check outputs.
-        self.assert_equal(actual, expected, dedent=True)
+        # Run test and check outputs.
+        self.helper(markdown_input, expected)
 
 
 # #############################################################################
@@ -641,13 +636,13 @@ class Test__transform_elem(hunitest.TestCase):
     Test the `_transform_elem()` function.
     """
 
-    # TODO(ai_gp): Move the self.assert_equal check inside helper
-    def helper(self, markdown_input: str) -> str:
+    def helper(self, markdown_input: str, expected: str) -> None:
         """
-        Run full pipeline from markdown to transformed elem.
+        Run full pipeline from markdown to transformed elem and check the
+        outcome.
 
         :param markdown_input: Markdown text to convert
-        :return: Formatted outcome string
+        :param expected: expected formatted outcome string
         """
         scratch_dir = self.get_scratch_space()
         outcome = {}
@@ -661,7 +656,8 @@ class Test__transform_elem(hunitest.TestCase):
         actual_ast = dshdtpatt._transform_ast_divved_fence(ast)
         outcome["2. ast_output"] = dshdtpatt.ast_to_str(actual_ast)
         actual_outcome = outcome_to_str(outcome)
-        return actual_outcome
+        # Check outputs.
+        self.assert_equal(actual_outcome, expected, dedent=True)
 
     def test1(self) -> None:
         """
@@ -724,10 +720,8 @@ class Test__transform_elem(hunitest.TestCase):
           ]
         }
         """
-        # Run test.
-        actual = self.helper(markdown_input)
-        # Check outputs.
-        self.assert_equal(actual, expected, dedent=True)
+        # Run test and check outputs.
+        self.helper(markdown_input, expected)
 
     def test2(self) -> None:
         """
@@ -794,10 +788,8 @@ class Test__transform_elem(hunitest.TestCase):
           ]
         }
         """
-        # Run test.
-        actual = self.helper(markdown_input)
-        # Check outputs.
-        self.assert_equal(actual, expected, dedent=True)
+        # Run test and check outputs.
+        self.helper(markdown_input, expected)
 
     def test3(self) -> None:
         """
@@ -836,10 +828,8 @@ class Test__transform_elem(hunitest.TestCase):
           ]
         }
         """
-        # Run test.
-        actual = self.helper(markdown_input)
-        # Check outputs.
-        self.assert_equal(actual, expected, dedent=True)
+        # Run test and check outputs.
+        self.helper(markdown_input, expected)
 
     def test4(self) -> None:
         """
@@ -934,10 +924,8 @@ class Test__transform_elem(hunitest.TestCase):
           ]
         }
         """
-        # Run test.
-        actual = self.helper(markdown_input)
-        # Check outputs.
-        self.assert_equal(actual, expected, dedent=True)
+        # Run test and check outputs.
+        self.helper(markdown_input, expected)
 
 
 # #############################################################################
@@ -950,13 +938,13 @@ class Test__transform_ast(hunitest.TestCase):
     Test the `_transform_ast()` function.
     """
 
-    # TODO(ai_gp): Move the self.assert_equal check inside helper
-    def helper(self, markdown_input: str) -> str:
+    def helper(self, markdown_input: str, expected: str) -> None:
         """
-        Run full pipeline from markdown to transformed AST.
+        Run full pipeline from markdown to transformed AST and check the
+        outcome.
 
         :param markdown_input: Markdown text to convert
-        :return: Formatted outcome string
+        :param expected: expected formatted outcome string
         """
         scratch_dir = self.get_scratch_space()
         outcome = {}
@@ -970,7 +958,8 @@ class Test__transform_ast(hunitest.TestCase):
         actual_ast = dshdtpatt._transform_ast_divved_fence(ast)
         outcome["2. ast_output"] = dshdtpatt.ast_to_str(actual_ast)
         actual_outcome = outcome_to_str(outcome)
-        return actual_outcome
+        # Check outputs.
+        self.assert_equal(actual_outcome, expected, dedent=True)
 
     def test1(self) -> None:
         """
@@ -1042,10 +1031,8 @@ class Test__transform_ast(hunitest.TestCase):
           ]
         }
         """
-        # Run test.
-        actual = self.helper(markdown_input)
-        # Check outputs.
-        self.assert_equal(actual, expected, dedent=True)
+        # Run test and check outputs.
+        self.helper(markdown_input, expected)
 
     def test2(self) -> None:
         """
@@ -1084,10 +1071,8 @@ class Test__transform_ast(hunitest.TestCase):
           ]
         }
         """
-        # Run test.
-        actual = self.helper(markdown_input)
-        # Check outputs.
-        self.assert_equal(actual, expected, dedent=True)
+        # Run test and check outputs.
+        self.helper(markdown_input, expected)
 
 
 # #############################################################################
@@ -1100,13 +1085,13 @@ class Test_end_to_end(hunitest.TestCase):
     End-to-end test using pandoc to convert markdown with columns to typst.
     """
 
-    # TODO(ai_gp): Move the self.assert_equal check inside helper
-    def helper(self, markdown_input: str) -> str:
+    def helper(self, markdown_input: str, expected: str) -> None:
         """
-        Run full pipeline from markdown to transformed AST and typst.
+        Run full pipeline from markdown to transformed AST and typst, and
+        check the outcome.
 
         :param markdown_input: Markdown text to convert
-        :return: Formatted outcome string
+        :param expected: expected formatted outcome string
         """
         scratch_dir = self.get_scratch_space()
         outcome = {}
@@ -1127,7 +1112,8 @@ class Test_end_to_end(hunitest.TestCase):
         )
         outcome["2. typst_output"] = actual_typst
         actual_outcome = outcome_to_str(outcome)
-        return actual_outcome
+        # Check outputs.
+        self.assert_equal(actual_outcome, expected, dedent=True)
 
     @pytest.mark.skipif(
         shutil.which("pandoc") is None, reason="pandoc is not installed"
@@ -1186,10 +1172,8 @@ class Test_end_to_end(hunitest.TestCase):
           ]
         )
         """
-        # Run test.
-        actual = self.helper(markdown_input)
-        # Check outputs.
-        self.assert_equal(actual, expected, dedent=True)
+        # Run test and check outputs.
+        self.helper(markdown_input, expected)
 
     def test2(self) -> None:
         """
@@ -1254,10 +1238,8 @@ class Test_end_to_end(hunitest.TestCase):
           ]
         )
         """
-        # Run test.
-        actual = self.helper(markdown_input)
-        # Check outputs.
-        self.assert_equal(actual, expected, dedent=True)
+        # Run test and check outputs.
+        self.helper(markdown_input, expected)
 
 
 # #############################################################################
@@ -1270,21 +1252,39 @@ class Test__find_textcolor_calls(hunitest.TestCase):
     Test the `_find_textcolor_calls()` brace-aware parser.
     """
 
-    # TODO(ai_gp): Create an helper
+    def helper(
+        self, latex_string: str, expected_calls: List[Tuple[str, str]]
+    ) -> None:
+        r"""
+        Check `_find_textcolor_calls()`'s extracted `(color, content)`
+        pairs.
+
+        Also verifies that each call's `latex_string[start:end]` span
+        reconstructs the corresponding `\textcolor{color}{content}`
+        substring.
+
+        :param latex_string: LaTeX formula to search for `\textcolor{...}{...}`
+        :param expected_calls: expected list of `(color, content)` pairs
+        """
+        # Run test.
+        calls = dshdtpatt._find_textcolor_calls(latex_string)
+        # Check outputs.
+        actual_calls = [(color, content) for _, _, color, content in calls]
+        self.assert_equal(str(actual_calls), str(expected_calls))
+        for start, end, color, content in calls:
+            expected_span = r"\textcolor{%s}{%s}" % (color, content)
+            self.assert_equal(latex_string[start:end], expected_span)
+
     def test1(self) -> None:
         r"""
         Test extraction of a single call with no nested braces.
         """
         # Prepare inputs.
         latex_string = r"\textcolor{red}{hello}"
-        # Run test.
-        calls = dshdtpatt._find_textcolor_calls(latex_string)
-        # Check outputs.
-        self.assertEqual(len(calls), 1)
-        start, end, color, content = calls[0]
-        self.assert_equal(latex_string[start:end], latex_string)
-        self.assert_equal(color, "red")
-        self.assert_equal(content, "hello")
+        # Prepare outputs.
+        expected_calls = [("red", "hello")]
+        # Run test and check outputs.
+        self.helper(latex_string, expected_calls)
 
     def test2(self) -> None:
         r"""
@@ -1296,14 +1296,10 @@ class Test__find_textcolor_calls(hunitest.TestCase):
         """
         # Prepare inputs.
         latex_string = r"\textcolor{blue}{x_1, ..., x_{n-1}}"
-        # Run test.
-        calls = dshdtpatt._find_textcolor_calls(latex_string)
-        # Check outputs.
-        self.assertEqual(len(calls), 1)
-        _, end, color, content = calls[0]
-        self.assert_equal(color, "blue")
-        self.assert_equal(content, "x_1, ..., x_{n-1}")
-        self.assertEqual(end, len(latex_string))
+        # Prepare outputs.
+        expected_calls = [("blue", "x_1, ..., x_{n-1}")]
+        # Run test and check outputs.
+        self.helper(latex_string, expected_calls)
 
     def test3(self) -> None:
         r"""
@@ -1311,21 +1307,21 @@ class Test__find_textcolor_calls(hunitest.TestCase):
         """
         # Prepare inputs.
         latex_string = r"\Pr(\textcolor{blue}{x}, \textcolor{red}{y})"
-        # Run test.
-        calls = dshdtpatt._find_textcolor_calls(latex_string)
-        # Check outputs.
-        self.assertEqual(len(calls), 2)
-        self.assert_equal(str((calls[0][2], calls[0][3])), str(("blue", "x")))
-        self.assert_equal(str((calls[1][2], calls[1][3])), str(("red", "y")))
+        # Prepare outputs.
+        expected_calls = [("blue", "x"), ("red", "y")]
+        # Run test and check outputs.
+        self.helper(latex_string, expected_calls)
 
     def test4(self) -> None:
         r"""
         Test that a formula without `\textcolor` yields no calls.
         """
-        # Run test.
-        calls = dshdtpatt._find_textcolor_calls("x + y")
-        # Check outputs.
-        self.assert_equal(str(calls), str([]))
+        # Prepare inputs.
+        latex_string = "x + y"
+        # Prepare outputs.
+        expected_calls: List[Tuple[str, str]] = []
+        # Run test and check outputs.
+        self.helper(latex_string, expected_calls)
 
 
 # #############################################################################

@@ -160,20 +160,39 @@ class Table:
         table.insert(0, self._column_names)
         # Convert the cells to strings.
         table_as_str = [[str(cell) for cell in row] for row in table]
-        # Find the length of each columns.
-        lengths = [max(map(len, col)) for col in zip(*table_as_str)]
+        # Compute the visible length of a cell, i.e., ignoring ANSI color codes
+        # (e.g., from `hprint.color_highlight()`). Using the raw `len()` would
+        # inflate the width of columns with colored cells (e.g., "Status")
+        # since escape codes count as characters but are not displayed, which
+        # misaligns the table when rendered.
+        # TODO(ai_gp): Inline since thin.
+        def _visible_len(cell: str) -> int:
+            return len(hprint.remove_non_printable_chars(cell))
+
+        # Find the visible length of each column, looping over rows and
+        # columns explicitly instead of transposing with `zip(*table_as_str)`.
+        num_cols = len(self._column_names)
+        lengths = [0] * num_cols
+        for row in table_as_str:
+            for col_idx, cell in enumerate(row):
+                lengths[col_idx] = max(lengths[col_idx], _visible_len(cell))
         _LOG.debug(hprint.to_str("lengths"))
-        # Compute format for the columns.
-        fmt = " ".join(f"{{:{x}}} |" for x in lengths)
-        _LOG.debug(hprint.to_str("fmt"))
         # Add the row separating the column names.
         row_sep = ["-" * length for length in lengths]
-        table.insert(1, row_sep)
-        table_as_str = [[str(cell) for cell in row] for row in table]
-        # Format rows.
-        rows_as_str = [fmt.format(*row) for row in table_as_str]
+        table_as_str.insert(1, row_sep)
+        # Format rows, padding each cell to the column's visible length (rather
+        # than relying on `str.format()`, which pads based on the raw, not
+        # visible, length).
+        rows_as_str = []
+        for row in table_as_str:
+            cells = []
+            for cell, length in zip(row, lengths):
+                padding = " " * (length - _visible_len(cell))
+                cells.append(f"{cell}{padding} |")
+            rows_as_str.append(" ".join(cells))
         # Remove trailing spaces.
-        rows_as_str = [row.rstrip() for row in rows_as_str]
+        for idx, row_str in enumerate(rows_as_str):
+            rows_as_str[idx] = row_str.rstrip()
         # Create string.
         res = "\n".join(rows_as_str)
         # res += "\nsize=" + str(self.size())

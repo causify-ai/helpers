@@ -666,6 +666,83 @@ def _parse() -> argparse.ArgumentParser:
     return parser
 
 
+def _run_summarize_action(
+    args: argparse.Namespace, in_file_name: str, out_file_name: str
+) -> str:
+    """
+    Run the "summarize" action: extract, summarize, and write each target
+    header's section.
+
+    :param args: parsed command-line arguments
+    :param in_file_name: path to the input markdown file
+    :param out_file_name: requested output file path (auto-generated if
+        empty)
+    :return: the resolved output file path that was written to
+    """
+    hdbg.dassert_lte(-1, args.md_level, "--md_level must be >= -1")
+    out_file_name = _prepare_output_file(
+        in_file_name, out_file_name, args.overwrite
+    )
+    lines, all_headers = _read_and_parse_markdown(in_file_name)
+    content = hio.from_file(in_file_name)
+    input_word_count = _count_words(content)
+    read_time = _estimate_read_time(input_word_count)
+    print("\n=== Input File Statistics ===")
+    print(f"Word count: {input_word_count}")
+    print(f"Estimated read time: {read_time:.1f} minutes")
+    print(f"Header level: {args.md_level}")
+    if args.max_words > 0:
+        print(f"Max words per chunk: {args.max_words}")
+    elif args.pct_words > 0.0:
+        print(f"Compression factor: {args.pct_words:.1%}")
+    md_start = ""
+    md_end = ""
+    if args.select:
+        md_start, md_end = hmarsele.parse_select_arg(args.select)
+    target_headers = _get_target_headers(
+        all_headers,
+        md_level=args.md_level,
+        md_start=md_start,
+        md_end=md_end,
+    )
+    _LOG.info(
+        "Processing %d headers at level %d",
+        len(target_headers),
+        args.md_level,
+    )
+    print("\nHeaders to summarize:")
+    for header in target_headers:
+        level, title, _ = header
+        header_mark = "#" * level
+        print(f"{header_mark} {title}")
+    system_prompt = _get_system_prompt()
+    total_cost, summarized_words = _process_headers_for_summarization(
+        target_headers,
+        all_headers,
+        lines,
+        out_file_name,
+        system_prompt,
+        args.model,
+        md_level=args.md_level,
+        test_mode=args.test,
+        dry_run=args.dry_run,
+        max_words=args.max_words,
+        pct_words=args.pct_words,
+    )
+    if not args.test:
+        _LOG.info("Total LLM cost: $%.6f", total_cost)
+    compression_rate = _calculate_compression_rate(
+        input_word_count, summarized_words
+    )
+    output_read_time = _estimate_read_time(summarized_words)
+    print("\n=== Output Summary Statistics ===")
+    print(f"Summarized word count: {summarized_words}")
+    print(f"Estimated read time: {output_read_time:.1f} minutes")
+    print(f"Compression rate: {compression_rate * 100:.1f}%")
+    _LOG.info("Summaries written to: %s", out_file_name)
+    return out_file_name
+
+
 def _main(parser: argparse.ArgumentParser) -> None:
     """
     Main function to summarize markdown sections or lint with prettier.
@@ -689,68 +766,9 @@ def _main(parser: argparse.ArgumentParser) -> None:
         if not to_execute:
             continue
         if action == "summarize":
-            # TODO(ai_gp): Factor out in a function.
-            hdbg.dassert_lte(-1, args.md_level, "--md_level must be >= -1")
-            out_file_name = _prepare_output_file(
-                in_file_name, out_file_name, args.overwrite
+            out_file_name = _run_summarize_action(
+                args, in_file_name, out_file_name
             )
-            lines, all_headers = _read_and_parse_markdown(in_file_name)
-            content = hio.from_file(in_file_name)
-            input_word_count = _count_words(content)
-            read_time = _estimate_read_time(input_word_count)
-            print("\n=== Input File Statistics ===")
-            print(f"Word count: {input_word_count}")
-            print(f"Estimated read time: {read_time:.1f} minutes")
-            print(f"Header level: {args.md_level}")
-            if args.max_words > 0:
-                print(f"Max words per chunk: {args.max_words}")
-            elif args.pct_words > 0.0:
-                print(f"Compression factor: {args.pct_words:.1%}")
-            md_start = ""
-            md_end = ""
-            if args.select:
-                md_start, md_end = hmarsele.parse_select_arg(args.select)
-            target_headers = _get_target_headers(
-                all_headers,
-                md_level=args.md_level,
-                md_start=md_start,
-                md_end=md_end,
-            )
-            _LOG.info(
-                "Processing %d headers at level %d",
-                len(target_headers),
-                args.md_level,
-            )
-            print("\nHeaders to summarize:")
-            for header in target_headers:
-                level, title, _ = header
-                header_mark = "#" * level
-                print(f"{header_mark} {title}")
-            system_prompt = _get_system_prompt()
-            total_cost, summarized_words = _process_headers_for_summarization(
-                target_headers,
-                all_headers,
-                lines,
-                out_file_name,
-                system_prompt,
-                args.model,
-                md_level=args.md_level,
-                test_mode=args.test,
-                dry_run=args.dry_run,
-                max_words=args.max_words,
-                pct_words=args.pct_words,
-            )
-            if not args.test:
-                _LOG.info("Total LLM cost: $%.6f", total_cost)
-            compression_rate = _calculate_compression_rate(
-                input_word_count, summarized_words
-            )
-            output_read_time = _estimate_read_time(summarized_words)
-            print("\n=== Output Summary Statistics ===")
-            print(f"Summarized word count: {summarized_words}")
-            print(f"Estimated read time: {output_read_time:.1f} minutes")
-            print(f"Compression rate: {compression_rate * 100:.1f}%")
-            _LOG.info("Summaries written to: %s", out_file_name)
         elif action == "lint":
             if not args.test:
                 hlint.lint_file(out_file_name)

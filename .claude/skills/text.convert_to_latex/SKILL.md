@@ -62,5 +62,5 @@ model: haiku
 
 - After the conversion run the command:
   ```bash
-  > lint_txt.py -i <file>
+  > lint_text.py -i <file>
   ```

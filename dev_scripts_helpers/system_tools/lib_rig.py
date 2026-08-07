@@ -115,8 +115,10 @@ def parse(description: str = "") -> argparse.ArgumentParser:
         help="Save output to cfile and open in vim",
     )
     # Modifiers for `rg`.
+    # NB: no short `-i` here since `hseinout.add_file_selection_args()`
+    # already claims it for `-i/--input`.
     parser.add_argument(
-        "-i",
+        "--case_insensitive",
         dest="case_insensitive",
         action="store_true",
         help="Case-insensitive search (expands to -S -i for ripgrep)",

@@ -262,7 +262,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
     if args.daemon:
         # Skip "open" action on watch runs (viewer auto-reloads).
         cmd_line = " ".join(sys.argv)
-        hdaemon.run_daemon_mode(
+        hdaemon.run_reactive_daemon_mode(
             in_file_path,
             cmd_line,
             "run_latex",

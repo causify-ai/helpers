@@ -14,7 +14,7 @@ to <OUTPUT>.md.
 Actions:
 - download: fetch transcript from a podcast site (01.download.txt)
 - format: convert raw transcript to formatted markdown (02.format.txt)
-- lint: run lint_txt.py on formatted markdown (03.lint.txt)
+- lint: run lint_text.py on formatted markdown (03.lint.txt)
 
 # Usage Example
 

@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 r"""
-Wrapper for lint_txt.py text.
+Wrapper for lint_text.py text.
 
 # Usage Example
 
@@ -46,7 +46,7 @@ def _check_readme_is_capitalized(file_name: str) -> str:
 class _LintMarkdown(liaction.Action):
     def __init__(self) -> None:
         try:
-            executable = hgit.find_file_in_git_tree("lint_txt.py")
+            executable = hgit.find_file_in_git_tree("lint_text.py")
             super().__init__(executable)
             self._is_possible = True
         except AssertionError:
@@ -65,7 +65,7 @@ class _LintMarkdown(liaction.Action):
                 "Skipping file_name='%s' because ext='%s'", file_name, ext
             )
             return output
-        # Run lint_txt.py.
+        # Run lint_text.py.
         cmd = []
         cmd.append(self._executable)
         cmd.append(f"-i {file_name}")

@@ -31,4 +31,4 @@ perl -i -pe 's/\n{2,}/\n\n/g' $file
 # ## How We Ask for Feedback at Causify
 perl -pi -e 's/^(#+)\s+\*\*(.*?)\*\*/"$1 $2"/e' "$file"
 
-lint_txt.py -i $file --use_dockerized_prettier --use_dockerized_markdown_toc --skip_action refresh_toc
+lint_text.py -i $file --use_dockerized_prettier --use_dockerized_markdown_toc --skip_action refresh_toc
