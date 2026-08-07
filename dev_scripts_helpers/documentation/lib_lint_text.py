@@ -5,7 +5,7 @@ Provides transformation functions and file processing logic used by lint_text.py
 
 Import as:
 
-import dev_scripts_helpers.documentation.lib_lint_text as dshdllitx
+import dev_scripts_helpers.documentation.lib_lint_text as dshdllite
 """
 
 import argparse
@@ -625,7 +625,6 @@ def _to_execute_action(action: str, actions: List[str]) -> bool:
     return to_execute
 
 
-
 VALID_ACTIONS = {
     # Preprocess text before formatting: normalize artifacts, handle math equations.
     # - Convert Google Docs smart quotes to ASCII
@@ -717,9 +716,7 @@ def _is_action_supported_for_format(action: str, extension: str) -> bool:
     return extension in VALID_ACTIONS[action]
 
 
-def _filter_actions_by_format(
-    actions: List[str], extension: str
-    ) -> List[str]:
+def _filter_actions_by_format(actions: List[str], extension: str) -> List[str]:
     """
     Filter actions to keep only those supported by the given format.
 

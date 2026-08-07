@@ -1724,7 +1724,9 @@ class Test_mock_apply_llm(hunitest.TestCase):
     Test mock_apply_llm context manager.
     """
 
-    def helper(self, input_str: str, system_prompt: str, expected_hash: str) -> str:
+    def helper(
+        self, input_str: str, system_prompt: str, expected_hash: str
+    ) -> str:
         """
         Run `apply_llm()` inside `mock_apply_llm()` and check the mocked
         response and token stats.

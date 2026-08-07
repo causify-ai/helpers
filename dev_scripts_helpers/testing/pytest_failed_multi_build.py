@@ -140,7 +140,7 @@ def _generate_build_files(
             sys.executable,
             pytest_failed_script,
             f"--input {input_file}",
-            f"--build_name {build_name}"
+            f"--build_name {build_name}",
         ]
         if quiet:
             cmd_parts.append("--quiet")
@@ -218,7 +218,9 @@ def _read_repro_script(build_name: str) -> str:
     _LOG.debug(hprint.to_str("build_name"))
     repro_file = hpytest.get_output_file_path("repro.sh", build_name=build_name)
     if not os.path.exists(repro_file):
-        _LOG.warning("Repro script not found for %s: '%s'", build_name, repro_file)
+        _LOG.warning(
+            "Repro script not found for %s: '%s'", build_name, repro_file
+        )
         return ""
     content = hio.from_file(repro_file)
     _LOG.debug("return=%s bytes", len(content))

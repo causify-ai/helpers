@@ -975,7 +975,9 @@ class Test_build_stats_to_str_colorization(hunitest.TestCase):
         ------ | ----------- | ------ | ------ | ------- | ------ | ----- | -------- | --------------------------------- | ------------------------- |
         docker | IN PROGRESS | N/A    | 0      | 0       | 0      | 0     | N/A      | tmp.pytest_multi_build.docker.txt | tmp.pytest_failed.docker/ |"""
         # Run test.
-        self._check_colorized_output(build_stats, "IN PROGRESS", expected, dedent=True)
+        self._check_colorized_output(
+            build_stats, "IN PROGRESS", expected, dedent=True
+        )
 
 
 # #############################################################################
