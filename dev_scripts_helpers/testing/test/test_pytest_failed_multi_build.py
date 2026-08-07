@@ -72,18 +72,9 @@ class Test_read_failed_tests(hunitest.TestCase):
         :param expected: Expected output (if provided, runs assertion)
         :return: Result from _read_failed_tests
         """
-<<<<<<< HEAD
-        _LOG.debug(hprint.to_str("build_name expected"))
         scratch_dir = _setup_build_files(
             self, build_name, "failed_tests.txt", content
         )
-        # Run inside `scratch_dir` since `_read_failed_tests` resolves the
-        # build directory relative to the current working directory.
-=======
-        scratch_dir = _setup_build_files(
-            self, build_name, "failed_tests.txt", content
-        )
->>>>>>> 57f91ae1 (UmdTask517_Get_regressions_to_pass_1 (#1341))
         with hsystem.cd(scratch_dir):
             result = dshtpfmbu._read_failed_tests(build_name)
         self.assert_equal(str(result), str(expected))
@@ -149,9 +140,6 @@ class Test_read_repro_script(hunitest.TestCase):
     Test _read_repro_script function for reading repro scripts.
     """
 
-<<<<<<< HEAD
-    def helper(self, build_name: str, content: str, expected: str) -> str:
-=======
     def helper(
         self, build_name: str, content: str, expected: Optional[str] = None
     ) -> str:
@@ -803,21 +791,14 @@ class Test_build_stats_to_str_incomplete_status(hunitest.TestCase):
         ################################################################################
         Build Statistics
         ################################################################################
-<<<<<<< HEAD
-        Build         | Status      | Passed | Skipped | Failed | Total | Duration |
-        ------------- | ----------- | ------ | ------- | ------ | ----- | -------- |
-        docker        | FAIL        | 235    | 9       | 19     | 263   | 45.2s    |
-        apple         | NOT STARTED | 0      | 0       | 0      | 0     | N/A      |
-        dev_container | PASS        | 240    | 8       | 0      | 248   | 50.1s    |
-=======
         Build         | Completed   | Status | Passed | Skipped | Failed | Total | Duration | File                                     | Dir                              |
         ------------- | ----------- | ------ | ------ | ------- | ------ | ----- | -------- | ---------------------------------------- | -------------------------------- |
         docker        | DONE        | FAIL   | 235    | 9       | 19     | 263   | 45.2s    | tmp.pytest_multi_build.docker.txt        | tmp.pytest_failed.docker/        |
         apple         | NOT STARTED | N/A    | 0      | 0       | 0      | 0     | N/A      | tmp.pytest_multi_build.apple.txt         | tmp.pytest_failed.apple/         |
         dev_container | DONE        | PASS   | 240    | 8       | 0      | 248   | 50.1s    | tmp.pytest_multi_build.dev_container.txt | tmp.pytest_failed.dev_container/ |
->>>>>>> 57f91ae1 (UmdTask517_Get_regressions_to_pass_1 (#1341))
         """
-        self.assert_equal(clean_actual, expected, dedent=True)
+        # Run test.
+        self.helper(build_stats, expected)
 
 
 # #############################################################################
@@ -830,9 +811,10 @@ class Test_build_stats_to_str_colorization(hunitest.TestCase):
     Test _build_stats_to_str status colorization behavior.
     """
 
-    def helper(
+    def _check_colorized_output(
         self,
         build_stats: list,
+        expected_status: str,
         expected: str,
         *,
         dedent: bool = False,
@@ -841,6 +823,7 @@ class Test_build_stats_to_str_colorization(hunitest.TestCase):
         Helper to check that status appears in colorized output.
 
         :param build_stats: Build statistics list
+        :param expected_status: Expected status string (e.g., "PASS", "FAIL")
         :param expected: Expected full output (if provided, uses assert_equal)
         :param dedent: Whether to dedent and strip the expected string
         """
@@ -876,15 +859,9 @@ class Test_build_stats_to_str_colorization(hunitest.TestCase):
         ################################################################################
         Build Statistics
         ################################################################################
-<<<<<<< HEAD
-        Build  | Status | Passed | Skipped | Failed | Total | Duration |
-        ------ | ------ | ------ | ------- | ------ | ----- | -------- |
-        docker | PASS   | 368    | 20      | 0      | 388   | 11.87s   |"""
-=======
         Build  | Completed | Status | Passed | Skipped | Failed | Total | Duration | File                              | Dir                       |
         ------ | --------- | ------ | ------ | ------- | ------ | ----- | -------- | --------------------------------- | ------------------------- |
         docker | DONE      | PASS   | 368    | 20      | 0      | 388   | 11.87s   | tmp.pytest_multi_build.docker.txt | tmp.pytest_failed.docker/ |"""
->>>>>>> 57f91ae1 (UmdTask517_Get_regressions_to_pass_1 (#1341))
         # Run test.
         self._check_colorized_output(build_stats, "PASS", expected, dedent=True)
 
@@ -909,15 +886,9 @@ class Test_build_stats_to_str_colorization(hunitest.TestCase):
         ################################################################################
         Build Statistics
         ################################################################################
-<<<<<<< HEAD
-        Build  | Status | Passed | Skipped | Failed | Total | Duration |
-        ------ | ------ | ------ | ------- | ------ | ----- | -------- |
-        docker | FAIL   | 357    | 20      | 11     | 388   | 12.45s   |"""
-=======
         Build  | Completed | Status | Passed | Skipped | Failed | Total | Duration | File                              | Dir                       |
         ------ | --------- | ------ | ------ | ------- | ------ | ----- | -------- | --------------------------------- | ------------------------- |
         docker | DONE      | FAIL   | 357    | 20      | 11     | 388   | 12.45s   | tmp.pytest_multi_build.docker.txt | tmp.pytest_failed.docker/ |"""
->>>>>>> 57f91ae1 (UmdTask517_Get_regressions_to_pass_1 (#1341))
         # Run test.
         self._check_colorized_output(build_stats, "FAIL", expected, dedent=True)
 
@@ -942,15 +913,9 @@ class Test_build_stats_to_str_colorization(hunitest.TestCase):
         ################################################################################
         Build Statistics
         ################################################################################
-<<<<<<< HEAD
-        Build         | Status      | Passed | Skipped | Failed | Total | Duration |
-        ------------- | ----------- | ------ | ------- | ------ | ----- | -------- |
-        dev_container | NOT STARTED | 0      | 0       | 0      | 0     | N/A      |"""
-=======
         Build         | Completed   | Status | Passed | Skipped | Failed | Total | Duration | File                                     | Dir                              |
         ------------- | ----------- | ------ | ------ | ------- | ------ | ----- | -------- | ---------------------------------------- | -------------------------------- |
         dev_container | NOT STARTED | N/A    | 0      | 0       | 0      | 0     | N/A      | tmp.pytest_multi_build.dev_container.txt | tmp.pytest_failed.dev_container/ |"""
->>>>>>> 57f91ae1 (UmdTask517_Get_regressions_to_pass_1 (#1341))
         # Run test.
         self._check_colorized_output(
             build_stats, "NOT STARTED", expected, dedent=True
@@ -978,15 +943,9 @@ class Test_build_stats_to_str_colorization(hunitest.TestCase):
         ################################################################################
         Build Statistics
         ################################################################################
-<<<<<<< HEAD
-        Build | Status      | Passed | Skipped | Failed | Total | Duration |
-        ----- | ----------- | ------ | ------- | ------ | ----- | -------- |
-        apple | IN PROGRESS | 150    | 5       | 0      | 155   | N/A      |"""
-=======
         Build | Completed   | Status | Passed | Skipped | Failed | Total | Duration | File                             | Dir                      |
         ----- | ----------- | ------ | ------ | ------- | ------ | ----- | -------- | -------------------------------- | ------------------------ |
         apple | IN PROGRESS | N/A    | 150    | 5       | 0      | 155   | N/A      | tmp.pytest_multi_build.apple.txt | tmp.pytest_failed.apple/ |"""
->>>>>>> 57f91ae1 (UmdTask517_Get_regressions_to_pass_1 (#1341))
         # Run test.
         self._check_colorized_output(
             build_stats, "IN PROGRESS", expected, dedent=True
@@ -1014,13 +973,6 @@ class Test_build_stats_to_str_colorization(hunitest.TestCase):
         ################################################################################
         Build Statistics
         ################################################################################
-<<<<<<< HEAD
-        Build  | Status      | Passed | Skipped | Failed | Total | Duration |
-        ------ | ----------- | ------ | ------- | ------ | ----- | -------- |
-        docker | NOT STARTED | 0      | 0       | 0      | 0     | N/A      |"""
-        # Run test.
-        self.helper(build_stats, expected, dedent=True)
-=======
         Build  | Completed   | Status | Passed | Skipped | Failed | Total | Duration | File                              | Dir                       |
         ------ | ----------- | ------ | ------ | ------- | ------ | ----- | -------- | --------------------------------- | ------------------------- |
         docker | IN PROGRESS | N/A    | 0      | 0       | 0      | 0     | N/A      | tmp.pytest_multi_build.docker.txt | tmp.pytest_failed.docker/ |"""
@@ -1028,7 +980,6 @@ class Test_build_stats_to_str_colorization(hunitest.TestCase):
         self._check_colorized_output(
             build_stats, "IN PROGRESS", expected, dedent=True
         )
->>>>>>> 57f91ae1 (UmdTask517_Get_regressions_to_pass_1 (#1341))
 
 
 # #############################################################################
@@ -1090,7 +1041,9 @@ class Test_build_stats_to_str_new_status_conditions(hunitest.TestCase):
             },
         ]
         # Run test.
-        self.helper(build_stats, ["NOT STARTED"], ["IN PROGRESS"])
+        self.helper(
+            build_stats, ["NOT STARTED"], unexpected_strings=["IN PROGRESS"]
+        )
 
     def test2(self) -> None:
         """
@@ -1111,7 +1064,9 @@ class Test_build_stats_to_str_new_status_conditions(hunitest.TestCase):
             },
         ]
         # Run test.
-        self.helper(build_stats, ["IN PROGRESS"], ["NOT STARTED"])
+        self.helper(
+            build_stats, ["IN PROGRESS"], unexpected_strings=["NOT STARTED"]
+        )
 
     def test3(self) -> None:
         """
@@ -1154,7 +1109,7 @@ class Test_build_stats_to_str_new_status_conditions(hunitest.TestCase):
             },
         ]
         # Run test.
-        self.helper(build_stats, ["PASS"], ["FAIL"])
+        self.helper(build_stats, ["PASS"], unexpected_strings=["FAIL"])
 
     def test5(self) -> None:
         """
@@ -1175,7 +1130,7 @@ class Test_build_stats_to_str_new_status_conditions(hunitest.TestCase):
             },
         ]
         # Run test.
-        self.helper(build_stats, ["FAIL"], ["PASS"])
+        self.helper(build_stats, ["FAIL"], unexpected_strings=["PASS"])
 
     def test6(self) -> None:
         """

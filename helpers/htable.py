@@ -160,6 +160,7 @@ class Table:
         table.insert(0, self._column_names)
         # Convert the cells to strings.
         table_as_str = [[str(cell) for cell in row] for row in table]
+
         # Compute the visible length of a cell, i.e., ignoring ANSI color codes
         # (e.g., from `hprint.color_highlight()`). Using the raw `len()` would
         # inflate the width of columns with colored cells (e.g., "Status")
