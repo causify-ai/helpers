@@ -616,7 +616,9 @@ def _postprocess_txt(lines: List[str], in_file_name: str) -> List[str]:
 # #############################################################################
 
 
-def _to_execute_action(action: str, actions: Optional[List[str]] = None) -> bool:
+# This is different than `hselacti.mark_action()` since it only checks membership
+# without mutating the state.
+def _to_execute_action(action: str, actions: Optional[List[str]]) -> bool:
     to_execute = actions is None or action in actions
     if not to_execute:
         _LOG.debug("Skipping %s", action)
