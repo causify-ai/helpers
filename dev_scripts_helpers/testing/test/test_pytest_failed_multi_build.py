@@ -721,7 +721,7 @@ class Test_build_stats_to_str_incomplete_status(hunitest.TestCase):
         ################################################################################
         Build Statistics
         ################################################################################
-        Build         | Completed   | Status | Passed | Skipped | Failed | Total | Duration | File                                     | Dir                              |
+        Build         | Completed   | Status | Passed | Skipped | Failed | Total | Duration | pytest log file                          | pytest log dir                   |
         ------------- | ----------- | ------ | ------ | ------- | ------ | ----- | -------- | ---------------------------------------- | -------------------------------- |
         docker        | DONE        | FAIL   | 235    | 9       | 19     | 263   | 45.2s    | tmp.pytest_multi_build.docker.txt        | tmp.pytest_failed.docker/        |
         apple         | NOT STARTED | N/A    | 0      | 0       | 0      | 0     | N/A      | tmp.pytest_multi_build.apple.txt         | tmp.pytest_failed.apple/         |
@@ -788,7 +788,7 @@ class Test_build_stats_to_str_colorization(hunitest.TestCase):
         ################################################################################
         Build Statistics
         ################################################################################
-        Build  | Completed | Status | Passed | Skipped | Failed | Total | Duration | File                              | Dir                       |
+        Build  | Completed | Status | Passed | Skipped | Failed | Total | Duration | pytest log file                   | pytest log dir            |
         ------ | --------- | ------ | ------ | ------- | ------ | ----- | -------- | --------------------------------- | ------------------------- |
         docker | DONE      | PASS   | 368    | 20      | 0      | 388   | 11.87s   | tmp.pytest_multi_build.docker.txt | tmp.pytest_failed.docker/ |"""
         # Run test.
@@ -815,7 +815,7 @@ class Test_build_stats_to_str_colorization(hunitest.TestCase):
         ################################################################################
         Build Statistics
         ################################################################################
-        Build  | Completed | Status | Passed | Skipped | Failed | Total | Duration | File                              | Dir                       |
+        Build  | Completed | Status | Passed | Skipped | Failed | Total | Duration | pytest log file                   | pytest log dir            |
         ------ | --------- | ------ | ------ | ------- | ------ | ----- | -------- | --------------------------------- | ------------------------- |
         docker | DONE      | FAIL   | 357    | 20      | 11     | 388   | 12.45s   | tmp.pytest_multi_build.docker.txt | tmp.pytest_failed.docker/ |"""
         # Run test.
@@ -842,7 +842,7 @@ class Test_build_stats_to_str_colorization(hunitest.TestCase):
         ################################################################################
         Build Statistics
         ################################################################################
-        Build         | Completed   | Status | Passed | Skipped | Failed | Total | Duration | File                                     | Dir                              |
+        Build         | Completed   | Status | Passed | Skipped | Failed | Total | Duration | pytest log file                          | pytest log dir                   |
         ------------- | ----------- | ------ | ------ | ------- | ------ | ----- | -------- | ---------------------------------------- | -------------------------------- |
         dev_container | NOT STARTED | N/A    | 0      | 0       | 0      | 0     | N/A      | tmp.pytest_multi_build.dev_container.txt | tmp.pytest_failed.dev_container/ |"""
         # Run test.
@@ -872,7 +872,7 @@ class Test_build_stats_to_str_colorization(hunitest.TestCase):
         ################################################################################
         Build Statistics
         ################################################################################
-        Build | Completed   | Status | Passed | Skipped | Failed | Total | Duration | File                             | Dir                      |
+        Build | Completed   | Status | Passed | Skipped | Failed | Total | Duration | pytest log file                  | pytest log dir           |
         ----- | ----------- | ------ | ------ | ------- | ------ | ----- | -------- | -------------------------------- | ------------------------ |
         apple | IN PROGRESS | N/A    | 150    | 5       | 0      | 155   | N/A      | tmp.pytest_multi_build.apple.txt | tmp.pytest_failed.apple/ |"""
         # Run test.
@@ -902,7 +902,7 @@ class Test_build_stats_to_str_colorization(hunitest.TestCase):
         ################################################################################
         Build Statistics
         ################################################################################
-        Build  | Completed   | Status | Passed | Skipped | Failed | Total | Duration | File                              | Dir                       |
+        Build  | Completed   | Status | Passed | Skipped | Failed | Total | Duration | pytest log file                   | pytest log dir            |
         ------ | ----------- | ------ | ------ | ------- | ------ | ----- | -------- | --------------------------------- | ------------------------- |
         docker | IN PROGRESS | N/A    | 0      | 0       | 0      | 0     | N/A      | tmp.pytest_multi_build.docker.txt | tmp.pytest_failed.docker/ |"""
         # Run test.

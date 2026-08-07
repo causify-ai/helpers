@@ -77,9 +77,10 @@ def _extract_build_stats(build_name: str) -> Dict[str, Any]:
     num_failed = info.get("log_num_failed", 0) or 0
     num_skipped = info.get("log_num_skipped", 0) or 0
     num_total = num_passed + num_failed + num_skipped
+    pytest_duration_in_secs = info.get("pytest_duration_in_secs")
     duration = (
-        f"{info['pytest_duration_in_secs']}s"
-        if "pytest_duration_in_secs" in info
+        f"{pytest_duration_in_secs}s"
+        if pytest_duration_in_secs is not None
         else "N/A"
     )
     # Assemble result.
@@ -315,40 +316,47 @@ def _build_stats_to_str(
         the `File` column, e.g., `tmp.<in_build_tag>.<build_name>.txt`
     :return: Formatted table string, e.g.,
         ```
-        Build          Completed     Status   Passed  Skipped  Failed  Total  Duration  File                                  Dir
+        Build          Completed     Status   Passed  Skipped  Failed  Total  Duration  pytest log file                      pytest log dir
         --------------------------------------------------------------------------------------------------------------------------------------------
         docker         DONE          PASS     1234     0       10      1244   45.2s     tmp.pytest_multi_build.docker.txt        tmp.pytest_failed.docker/
-        apple          NOT STARTED   N/A         0      0        0        0     N/A     tmp.pytest_multi_build.apple.txt         tmp.pytest_failed.apple/
-        dev_container  IN PROGRESS   N/A      1232      1       11      1244   48.5s     tmp.pytest_multi_build.dev_container.txt tmp.pytest_failed.dev_container/
+        apple          NOT STARTED   N/A         0     0        0        0     N/A      tmp.pytest_multi_build.apple.txt         tmp.pytest_failed.apple/
+        dev_container  IN PROGRESS   N/A      1232     1       11      1244   48.5s     tmp.pytest_multi_build.dev_container.txt tmp.pytest_failed.dev_container/
         ```
     """
     _LOG.debug("build_stats=%s items", len(build_stats))
     lines = [hprint.frame("Build Statistics")]
     # `Completed` mapping based on the raw `pytest_started`/`pytest_ended`
     # tokens parsed from `info.json`:
-    # - NOT STARTED (white): pytest never reached the "test session starts"
+    # - NOT STARTED (gray): pytest never reached the "test session starts"
     #   banner (`started=False`), e.g., no info file exists yet
     # - IN PROGRESS (blue): pytest started but the final summary line was
     #   not reached (`started=True`, `ended=False`)
-    # - DONE (white): pytest reached the final summary line (`ended=True`)
+    # - DONE (green): pytest reached the final summary line (`ended=True`)
     # `Status` is only meaningful once a build is DONE:
     # - PASS (green): no failed tests
     # - FAIL (red): at least one failed test
-    # - N/A: build is not DONE yet, so pass/fail is not known
+    # - N/A (gray): build is not DONE yet, so pass/fail is not known
+    # `Failed` count:
+    # - 0 (green): no failed tests
+    # - > 0 (red): at least one failed test
     table_data = []
     for stats in build_stats:
         if stats.get("ended", False):
-            completed = hprint.color_highlight("DONE", "white")
+            completed = hprint.color_highlight("DONE", "green")
             if stats["failed"] == 0:
                 status = hprint.color_highlight("PASS", "green")
             else:
                 status = hprint.color_highlight("FAIL", "red")
         elif stats.get("started", False):
             completed = hprint.color_highlight("IN PROGRESS", "blue")
-            status = "N/A"
+            status = hprint.color_highlight("N/A", "gray")
         else:
-            completed = hprint.color_highlight("NOT STARTED", "white")
-            status = "N/A"
+            completed = hprint.color_highlight("NOT STARTED", "gray")
+            status = hprint.color_highlight("N/A", "gray")
+        if stats["failed"] == 0:
+            failed = hprint.color_highlight(str(stats["failed"]), "green")
+        else:
+            failed = hprint.color_highlight(str(stats["failed"]), "red")
         build_name = stats["build"]
         file_name = f"tmp.{in_build_tag}.{build_name}.txt"
         dir_name = f"tmp.pytest_failed.{build_name}/"
@@ -359,7 +367,7 @@ def _build_stats_to_str(
                 status,
                 str(stats["passed"]),
                 str(stats["skipped"]),
-                str(stats["failed"]),
+                failed,
                 str(stats["total"]),
                 str(stats["duration"]),
                 file_name,
@@ -378,8 +386,8 @@ def _build_stats_to_str(
             "Failed",
             "Total",
             "Duration",
-            "File",
-            "Dir",
+            "pytest log file",
+            "pytest log dir",
         ],
     )
     lines.append(str(table_obj))
