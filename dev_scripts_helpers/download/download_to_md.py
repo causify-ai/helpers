@@ -58,6 +58,7 @@ _LOG = logging.getLogger(__name__)
 # Input type detection
 # #############################################################################
 
+
 def _is_pdf_url(url: str) -> bool:
     """
     Check if a URL points directly to a PDF file.

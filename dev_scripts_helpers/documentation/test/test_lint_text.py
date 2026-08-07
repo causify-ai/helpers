@@ -4,7 +4,7 @@ from typing import Callable, List
 
 import pytest
 
-import dev_scripts_helpers.documentation.lib_lint_text as dshdllitx
+import dev_scripts_helpers.documentation.lib_lint_text as dshdllite
 import dev_scripts_helpers.dockerize.lib_prettier as dshdlipr
 import helpers.hdbg as hdbg
 import helpers.hgit as hgit
@@ -2738,7 +2738,7 @@ class Test_smd_format(hunitest.TestCase):
         :param txt: Input text to process
         :param expected: Expected output after smd formatting
         """
-        _helper_process_lines(self, txt, expected, dshdllitx._smd_format)
+        _helper_process_lines(self, txt, expected, dshdllite._smd_format)
 
     def test1(self) -> None:
         """
@@ -3014,7 +3014,7 @@ class Test_perform_actions_smd_type(hunitest.TestCase):
         file_name = "lesson.txt"
         # Run test: restrict to `smd_format` to avoid requiring
         # prettier/Docker.
-        actual = dshdllitx._perform_actions(
+        actual = dshdllite._perform_actions(
             lines,
             file_name,
             file_type_override="smd",
@@ -3033,6 +3033,6 @@ class Test_perform_actions_smd_type(hunitest.TestCase):
         file_name = "lesson.foo"
         # Run test.
         with self.assertRaises(AssertionError):
-            dshdllitx._perform_actions(
+            dshdllite._perform_actions(
                 lines, file_name, file_type_override="foo"
             )
