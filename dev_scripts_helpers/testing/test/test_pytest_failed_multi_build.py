@@ -61,7 +61,9 @@ class Test_read_failed_tests(hunitest.TestCase):
         :param expected: Expected output (if provided, runs assertion)
         :return: Result from _read_failed_tests
         """
-        scratch_dir = _setup_build_files(self, build_name, "failed_tests.txt", content)
+        scratch_dir = _setup_build_files(
+            self, build_name, "failed_tests.txt", content
+        )
         with hsystem.cd(scratch_dir):
             result = dshtpfmbu._read_failed_tests(build_name)
         if expected is not None:
@@ -124,7 +126,9 @@ class Test_read_repro_script(hunitest.TestCase):
     Test _read_repro_script function for reading repro scripts.
     """
 
-    def helper(self, build_name: str, content: str, expected: Optional[str] = None) -> str:
+    def helper(
+        self, build_name: str, content: str, expected: Optional[str] = None
+    ) -> str:
         """
         Helper method to run test in scratch directory and check outputs.
 
@@ -584,7 +588,7 @@ class Test_extract_build_stats_missing_pytest_ended(hunitest.TestCase):
         self,
         build_name: str,
         info_data: Dict[str, Any],
-        expected: Dict[str, Any]
+        expected: Dict[str, Any],
     ) -> Dict[str, Any]:
         """
         Helper to setup build directory with info.json and extract stats.
@@ -902,7 +906,9 @@ class Test_build_stats_to_str_colorization(hunitest.TestCase):
         ------ | ----------- | ------ | ------ | ------- | ------ | ----- | -------- | --------------------------------- | ------------------------- |
         docker | IN PROGRESS | N/A    | 0      | 0       | 0      | 0     | N/A      | tmp.pytest_multi_build.docker.txt | tmp.pytest_failed.docker/ |"""
         # Run test.
-        self._check_colorized_output(build_stats, "IN PROGRESS", expected, dedent=True)
+        self._check_colorized_output(
+            build_stats, "IN PROGRESS", expected, dedent=True
+        )
 
 
 # #############################################################################
