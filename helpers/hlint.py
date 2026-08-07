@@ -12,7 +12,7 @@ import helpers.hdbg as hdbg
 import helpers.hgit as hgit
 import helpers.hsystem as hsystem
 import helpers.hselect_input_output as hseinout
-import dev_scripts_helpers.documentation.lint_text as dshdlitx
+import dev_scripts_helpers.documentation.lint_text as dshdlite
 
 _LOG = logging.getLogger(__name__)
 
@@ -41,6 +41,6 @@ def lint_file(file_path: str, *, backend: str = "docker") -> None:
     else:
         # Direct library call to lint_text.py
         lines = hseinout.from_file(file_path)
-        out_lines = dshdlitx._perform_actions(lines, file_path)
+        out_lines = dshdlite._perform_actions(lines, file_path)
         hseinout.to_file(out_lines, file_path)
     _LOG.info("File linted successfully: %s", file_path)

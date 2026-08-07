@@ -23,11 +23,11 @@ import helpers.hdocker as hdocker
 import helpers.hselect_input_output as hseinout
 import helpers.hparser as hparser
 import helpers.hselect_action as hselacti
-import dev_scripts_helpers.documentation.lib_lint_text as dshdllitx
+import dev_scripts_helpers.documentation.lib_lint_text as dshdllite
 
 _LOG = logging.getLogger(__name__)
 
-_VALID_ACTIONS = list(dshdllitx.VALID_ACTIONS.keys())
+_VALID_ACTIONS = list(dshdllite.VALID_ACTIONS.keys())
 
 # Default actions (excluding some that need explicit opt-in).
 _DEFAULT_ACTIONS = [
@@ -142,12 +142,12 @@ def _main(parser: argparse.ArgumentParser) -> None:
         files = hseinout.parse_input_output_files(args)
         if files:
             for file_path in files:
-                dshdllitx._revert_from_backup(file_path)
+                dshdllite._revert_from_backup(file_path)
         else:
             in_file_name, _ = hseinout.parse_input_output_args(
                 args, clear_screen=False
             )
-            dshdllitx._revert_from_backup(in_file_name)
+            dshdllite._revert_from_backup(in_file_name)
         return
     # Print actions (once for all files).
     actions = hselacti.select_actions(
@@ -170,13 +170,13 @@ def _main(parser: argparse.ArgumentParser) -> None:
                 _LOG.error("File not found: %s", file_path)
                 continue
             _LOG.info("Processing: %s", file_path)
-            dshdllitx._process_single_file(file_path, file_path, args, actions)
+            dshdllite._process_single_file(file_path, file_path, args, actions)
     else:
         # Process single file (original behavior).
         in_file_name, out_file_name = hseinout.parse_input_output_args(
             args, clear_screen=False
         )
-        dshdllitx._process_single_file(
+        dshdllite._process_single_file(
             in_file_name, out_file_name, args, actions
         )
 
