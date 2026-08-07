@@ -279,7 +279,7 @@ class Test_PromptSequencer_chunk_stats(hunitest.TestCase):
         # Prepare outputs.
         # No `ResultMessage` in the stream: stats must fall back to defaults
         # (None cost, 0 turns) instead of raising.
-        expected = r""""
+        expected = r"""
             [{'outcome': 'NO-OP', 'cost_usd': None, 'num_turns': 0, 'is_error': False, 'usage': None, 'stop_reason': None}]
         """
         # TODO(ai_gp): Move this in the helper and remove it from the callers.

@@ -61,7 +61,9 @@ class Test_read_failed_tests(hunitest.TestCase):
     Test `_read_failed_tests` function for reading failed test files.
     """
 
-    def helper(self, build_name: str, content: str, expected: str) -> Any:
+    def helper(
+        self, build_name: str, content: str, expected: List[str]
+    ) -> Any:
         """
         Helper method to run test in scratch directory and check outputs.
 
@@ -192,7 +194,7 @@ class Test_extract_tests_from_repro(hunitest.TestCase):
         self,
         repro_content: str,
         expected_count: int,
-        expected: str,
+        expected: List[str],
     ) -> Any:
         """
         Test helper for _extract_tests_from_repro.
@@ -974,7 +976,7 @@ class Test_build_stats_to_str_new_status_conditions(hunitest.TestCase):
         self,
         build_stats: List[Any],
         expected_strings: List[str],
-        *,
+        # TODO(ai_gp): If this is not used by any test remove it.
         unexpected_strings: Optional[List[str]] = None,
     ) -> str:
         """
