@@ -2,7 +2,7 @@
 
 ## Introduction
 
-This is a test markdown document for lint_txt testing.
+This is a test markdown document for lint_text testing.
 
 ## Content
 

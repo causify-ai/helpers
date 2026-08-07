@@ -167,7 +167,13 @@
 - [ ] Linter passes with no errors (`linters2/lint_branch.sh`)
 
 ## Tools of the Trade
+<<<<<<< HEAD
 - Format markdown: `lint_txt.py -i ...`
+=======
+- Format markdown: `lint_text.py -i ...`
+- Clean up Python code: Use the agent skill `/coding.format`
+- Render locally: `website/test.sh`
+>>>>>>> 57f91ae1 (UmdTask517_Get_regressions_to_pass_1 (#1341))
 - Reference tutorials:
   - [`DATA605`](https://github.com/gpsaggese/gpsaggese.github.io/tree/master/data605/tutorials)
   - [`MSML610`](https://github.com/gpsaggese/gpsaggese.github.io/tree/master/msml610/tutorials)

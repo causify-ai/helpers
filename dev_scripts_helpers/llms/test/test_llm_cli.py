@@ -107,6 +107,30 @@ class Test_llm_cli_py(hunitest.TestCase):
         hio.to_file(input_file, hprint.dedent(content))
         return input_file
 
+<<<<<<< HEAD
+=======
+    def helper(
+        self, argv: List[str], output_basename: str, expected: str
+    ) -> None:
+        """
+        Run `llm_cli.py` with a mocked LLM and check the output file.
+
+        :param argv: command-line argument list to inject via
+            `mock.patch("sys.argv", ...)`
+        :param output_basename: basename of the output file to read and
+            check
+        :param expected: expected content of the output file
+        """
+        # Run test.
+        actual = _run_llm_cli_with_mock(
+            argv,
+            scratch_space=self.get_scratch_space(),
+            output_basename=output_basename,
+        )
+        # Check outputs.
+        self.assert_equal(actual, expected, dedent=True)
+
+>>>>>>> 57f91ae1 (UmdTask517_Get_regressions_to_pass_1 (#1341))
     def test1(self) -> None:
         """
         Test basic help output.
@@ -137,8 +161,13 @@ class Test_llm_cli_py(hunitest.TestCase):
         expected = """
         4cefdd211c4f3a83dbb505a8269b0df9
         """
+<<<<<<< HEAD
         # Run test and check outputs.
         self.helper(argv, expected, output_basename="output.md", dedent=True)
+=======
+        # Run test.
+        self.helper(argv, "output.md", expected)
+>>>>>>> 57f91ae1 (UmdTask517_Get_regressions_to_pass_1 (#1341))
 
     def test4(self) -> None:
         """
@@ -155,8 +184,13 @@ class Test_llm_cli_py(hunitest.TestCase):
         ]
         # Prepare outputs.
         expected = "28cc170b019a2f19c81096da11d44835"
+<<<<<<< HEAD
         # Run test and check outputs.
         self.helper(argv, expected, output_basename="output.txt")
+=======
+        # Run test.
+        self.helper(argv, "output.txt", expected)
+>>>>>>> 57f91ae1 (UmdTask517_Get_regressions_to_pass_1 (#1341))
 
     def test5(self) -> None:
         """
@@ -200,8 +234,13 @@ class Test_llm_cli_py(hunitest.TestCase):
         expected = """
         64e37ab448ad7f67cd85825553bb1a6c
         """
+<<<<<<< HEAD
         # Run test and check outputs.
         self.helper(argv, expected, output_basename="output.txt", dedent=True)
+=======
+        # Run test.
+        self.helper(argv, "output.txt", expected)
+>>>>>>> 57f91ae1 (UmdTask517_Get_regressions_to_pass_1 (#1341))
 
     def test7(self) -> None:
         """
@@ -222,8 +261,13 @@ class Test_llm_cli_py(hunitest.TestCase):
         expected = """
         24deded3cba2982bbc822f6c159020b3
         """
+<<<<<<< HEAD
         # Run test and check outputs.
         self.helper(argv, expected, output_basename="output.txt", dedent=True)
+=======
+        # Run test.
+        self.helper(argv, "output.txt", expected)
+>>>>>>> 57f91ae1 (UmdTask517_Get_regressions_to_pass_1 (#1341))
 
     def test8(self) -> None:
         """
@@ -253,8 +297,13 @@ class Test_llm_cli_py(hunitest.TestCase):
         expected = """
         e90271897868ca4acf82b3c77a14a996
         """
+<<<<<<< HEAD
         # Run test and check outputs.
         self.helper(argv, expected, output_basename="output.txt", dedent=True)
+=======
+        # Run test.
+        self.helper(argv, "output.txt", expected)
+>>>>>>> 57f91ae1 (UmdTask517_Get_regressions_to_pass_1 (#1341))
 
     def test9(self) -> None:
         """
@@ -272,8 +321,13 @@ class Test_llm_cli_py(hunitest.TestCase):
         ]
         # Prepare outputs.
         expected = "9053c4164b6a086e755eea157ecaa6f2"
+<<<<<<< HEAD
         # Run test and check outputs.
         self.helper(argv, expected, output_basename="output.txt")
+=======
+        # Run test.
+        self.helper(argv, "output.txt", expected)
+>>>>>>> 57f91ae1 (UmdTask517_Get_regressions_to_pass_1 (#1341))
 
     def test10(self) -> None:
         """
@@ -291,6 +345,7 @@ class Test_llm_cli_py(hunitest.TestCase):
             f"--output={output_file}",
             "--system_prompt=Simple prompt",
         ]
+<<<<<<< HEAD
         # Prepare outputs.
         # Verify the LLM mock produces deterministic output.
         expected = "8ab2fffdb92e144a56658973a32a54a0"
@@ -298,6 +353,13 @@ class Test_llm_cli_py(hunitest.TestCase):
         self.helper(argv, expected, output_basename="output.txt")
         # Check outputs.
         # Expected: file transformation produces output file.
+=======
+        # Prepare outputs: deterministic digest from the LLM mock.
+        expected = "8ab2fffdb92e144a56658973a32a54a0"
+        # Run test with mocked LLM to avoid actual API calls.
+        self.helper(argv, "output.txt", expected)
+        # Check outputs: file transformation produces output file.
+>>>>>>> 57f91ae1 (UmdTask517_Get_regressions_to_pass_1 (#1341))
         self.assertTrue(os.path.exists(output_file))
 
     def test11(self) -> None:

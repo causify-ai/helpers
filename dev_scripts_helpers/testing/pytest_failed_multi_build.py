@@ -24,6 +24,7 @@ import os
 import sys
 from typing import Any, Dict, List, Set
 
+import helpers.hdaemon as hdaemon
 import helpers.hdbg as hdbg
 import helpers.hio as hio
 import helpers.hparser as hparser
@@ -45,13 +46,16 @@ def _extract_build_stats(build_name: str) -> Dict[str, Any]:
     Extract build statistics from JSON info file.
 
     :param build_name: Build name (e.g., 'docker', 'apple', 'dev_container')
-    :return: Dict with build stats (includes 'incomplete' flag if data is missing)
+    :return: Dict with build stats, including the raw `started`/`ended`
+        completion tokens (`pytest_started`/`pytest_ended` from
+        `info.json`), used by `_build_stats_to_str()` to derive the
+        `Completed` column
     """
     _LOG.debug(hprint.to_str("build_name"))
     info_file = hpytest.get_output_file_path("info.json", build_name=build_name)
     # Check if info file exists.
     if not os.path.exists(info_file):
-        _LOG.warning("Info file not found for %s: %s", build_name, info_file)
+        _LOG.warning("Info file not found for %s: '%s'", build_name, info_file)
         res = {
             "build": build_name,
             "passed": 0,
@@ -59,13 +63,15 @@ def _extract_build_stats(build_name: str) -> Dict[str, Any]:
             "failed": 0,
             "total": 0,
             "duration": "N/A",
-            "incomplete": True,
+            "started": False,
+            "ended": False,
         }
-        _LOG.debug("return=%s (incomplete)", res)
+        _LOG.debug("return=%s (not started)", res)
         return res
     info = hio.from_json(info_file)
-    # Check for pytest completion token (pytest_ended indicates run completed).
-    pytest_completed = "pytest_ended" in info
+    # Check for pytest start/completion tokens.
+    pytest_started = bool(info.get("pytest_started"))
+    pytest_ended = bool(info.get("pytest_ended"))
     # Extract info.
     num_passed = info.get("log_num_passed", 0) or 0
     num_failed = info.get("log_num_failed", 0) or 0
@@ -84,14 +90,18 @@ def _extract_build_stats(build_name: str) -> Dict[str, Any]:
         "failed": num_failed,
         "total": num_total,
         "duration": duration,
-        "incomplete": not pytest_completed,
+        "started": pytest_started,
+        "ended": pytest_ended,
     }
     _LOG.debug("return=%s", res)
     return res
 
 
 def _generate_build_files(
-    build_names: List[str], in_build_tag: str = "pytest_multi_build"
+    build_names: List[str],
+    *,
+    in_build_tag: str = "pytest_multi_build",
+    quiet: bool = False,
 ) -> List[Dict[str, Any]]:
     """
     Generate output files for each build by calling `pytest_failed.py`.
@@ -100,9 +110,12 @@ def _generate_build_files(
         - E.g., ['docker', 'apple', 'dev_container']
     :param in_build_tag: Tag for input files (default: 'pytest_multi_build')
         - Input files will be named: tmp.<in_build_tag>.<build_name>.txt
+    :param quiet: if True, pass `--quiet` to `pytest_failed.py` so it only
+        reports the failed tests and outcome summary (used in `--daemon`
+        mode)
     :return: List of build statistics dicts
     """
-    _LOG.debug(hprint.to_str("build_names"))
+    _LOG.debug(hprint.to_str("build_names quiet"))
     # Locate `pytest_failed.py` script in the same directory.
     script_dir = os.path.dirname(os.path.abspath(__file__))
     pytest_failed_script = os.path.join(script_dir, "pytest_failed.py")
@@ -114,7 +127,7 @@ def _generate_build_files(
         # Check if input file exists; skip pytest_failed.py if missing.
         if not os.path.exists(input_file):
             _LOG.warning(
-                "Input file not found for %s: %s", build_name, input_file
+                "Input file not found for %s: '%s'", build_name, input_file
             )
             # Extract build statistics (will return incomplete status).
             stats = _extract_build_stats(build_name)
@@ -122,16 +135,15 @@ def _generate_build_files(
             continue
         _LOG.info("Processing target='%s' from '%s'", build_name, input_file)
         # Build command to execute `pytest_failed.py` for this build.
-        cmd = " ".join(
-            [
-                sys.executable,
-                pytest_failed_script,
-                "--input",
-                input_file,
-                "--build_name",
-                build_name,
-            ]
-        )
+        cmd_parts = [
+            sys.executable,
+            pytest_failed_script,
+            f"--input {input_file}",
+            f"--build_name {build_name}",
+        ]
+        if quiet:
+            cmd_parts.append("--quiet")
+        cmd = " ".join(cmd_parts)
         hsystem.system(cmd)
         # Extract build statistics from generated output.
         stats = _extract_build_stats(build_name)
@@ -158,7 +170,7 @@ def _read_failed_tests(build_name: str) -> List[str]:
     )
     if not os.path.exists(failed_file):
         _LOG.warning(
-            "Failed tests file not found for %s: %s", build_name, failed_file
+            "Failed tests file not found for %s: '%s'", build_name, failed_file
         )
         return []
     txt = hio.from_file(failed_file)
@@ -205,7 +217,9 @@ def _read_repro_script(build_name: str) -> str:
     _LOG.debug(hprint.to_str("build_name"))
     repro_file = hpytest.get_output_file_path("repro.sh", build_name=build_name)
     if not os.path.exists(repro_file):
-        _LOG.warning("Repro script not found for %s: %s", build_name, repro_file)
+        _LOG.warning(
+            "Repro script not found for %s: '%s'", build_name, repro_file
+        )
         return ""
     content = hio.from_file(repro_file)
     _LOG.debug("return=%s bytes", len(content))
@@ -288,54 +302,85 @@ def _create_consolidated_repro(
     return content
 
 
-def _build_stats_to_str(build_stats: List[Dict[str, Any]]) -> str:
+def _build_stats_to_str(
+    build_stats: List[Dict[str, Any]],
+    *,
+    in_build_tag: str = "pytest_multi_build",
+) -> str:
     """
     Format build statistics as a table.
 
     :param build_stats: List of build statistics dicts
+    :param in_build_tag: Tag used to name the per-build input log file in
+        the `File` column, e.g., `tmp.<in_build_tag>.<build_name>.txt`
     :return: Formatted table string, e.g.,
         ```
-        Build          Status              Passed   Skipped   Failed   Total   Duration
-        -----------------------------------------------------------------------
-        docker         PASS                 1234        0       10      1244       45.2s
-        apple          NOT STARTED             0        0        0        0          N/A
-        dev_container  IN PROGRESS          1232        1       11      1244       48.5s
+        Build          Completed     Status   Passed  Skipped  Failed  Total  Duration  File                                  Dir
+        --------------------------------------------------------------------------------------------------------------------------------------------
+        docker         DONE          PASS     1234     0       10      1244   45.2s     tmp.pytest_multi_build.docker.txt        tmp.pytest_failed.docker/
+        apple          NOT STARTED   N/A         0      0        0        0     N/A     tmp.pytest_multi_build.apple.txt         tmp.pytest_failed.apple/
+        dev_container  IN PROGRESS   N/A      1232      1       11      1244   48.5s     tmp.pytest_multi_build.dev_container.txt tmp.pytest_failed.dev_container/
         ```
     """
     _LOG.debug("build_stats=%s items", len(build_stats))
     lines = [hprint.frame("Build Statistics")]
-    # Status mapping based on build completion state:
-    # - NOT STARTED (white): no info file exists (incomplete=True, total=0)
-    # - IN PROGRESS (blue): pytest running but not finished (incomplete=True,
-    #   total>=0, no pytest_ended marker)
-    # - PASS (green): pytest finished with no failures (incomplete=False, failed=0)
-    # - FAIL (red): pytest finished with failures (incomplete=False, failed>0)
+    # `Completed` mapping based on the raw `pytest_started`/`pytest_ended`
+    # tokens parsed from `info.json`:
+    # - NOT STARTED (white): pytest never reached the "test session starts"
+    #   banner (`started=False`), e.g., no info file exists yet
+    # - IN PROGRESS (blue): pytest started but the final summary line was
+    #   not reached (`started=True`, `ended=False`)
+    # - DONE (white): pytest reached the final summary line (`ended=True`)
+    # `Status` is only meaningful once a build is DONE:
+    # - PASS (green): no failed tests
+    # - FAIL (red): at least one failed test
+    # - N/A: build is not DONE yet, so pass/fail is not known
     table_data = []
     for stats in build_stats:
-        if stats.get("incomplete", False):
-            if stats["total"] == 0:
-                status = hprint.color_highlight("NOT STARTED", "white")
+        if stats.get("ended", False):
+            completed = hprint.color_highlight("DONE", "white")
+            if stats["failed"] == 0:
+                status = hprint.color_highlight("PASS", "green")
             else:
-                status = hprint.color_highlight("IN PROGRESS", "blue")
-        elif stats["failed"] == 0:
-            status = hprint.color_highlight("PASS", "green")
+                status = hprint.color_highlight("FAIL", "red")
+        elif stats.get("started", False):
+            completed = hprint.color_highlight("IN PROGRESS", "blue")
+            status = "N/A"
         else:
-            status = hprint.color_highlight("FAIL", "red")
+            completed = hprint.color_highlight("NOT STARTED", "white")
+            status = "N/A"
+        build_name = stats["build"]
+        file_name = f"tmp.{in_build_tag}.{build_name}.txt"
+        dir_name = f"tmp.pytest_failed.{build_name}/"
         table_data.append(
             [
-                stats["build"],
+                build_name,
+                completed,
                 status,
                 str(stats["passed"]),
                 str(stats["skipped"]),
                 str(stats["failed"]),
                 str(stats["total"]),
                 str(stats["duration"]),
+                file_name,
+                dir_name,
             ]
         )
     # Create and format table.
     table_obj = htable.Table(
         table_data,
-        ["Build", "Status", "Passed", "Skipped", "Failed", "Total", "Duration"],
+        [
+            "Build",
+            "Completed",
+            "Status",
+            "Passed",
+            "Skipped",
+            "Failed",
+            "Total",
+            "Duration",
+            "File",
+            "Dir",
+        ],
     )
     lines.append(str(table_obj))
     result = "\n".join(lines)
@@ -407,6 +452,55 @@ def _summary_to_str(
     return result
 
 
+def _run_once(
+    build_names: List[str],
+    in_build_tag: str,
+    out_build_tag: str,
+    *,
+    quiet: bool = False,
+) -> None:
+    """
+    Run one pass of generating and consolidating failed tests across builds.
+
+    :param build_names: list of build names
+    :param in_build_tag: tag for input files to read
+    :param out_build_tag: tag for BUILD_TAG in generated repro script
+    :param quiet: if True, only report the build statistics table, skipping
+        the per-test failure summary across builds (used in `--daemon`
+        mode)
+    """
+    _LOG.info(
+        "Consolidating failed tests for builds: %s", ", ".join(build_names)
+    )
+    # Generate pytest_failed output files for each build by invoking
+    # `pytest_failed.py`.
+    _LOG.info("Generating intermediate files by calling pytest_failed.py...")
+    build_stats = _generate_build_files(
+        build_names, in_build_tag=in_build_tag, quiet=quiet
+    )
+    # Print build statistics summary.
+    stats_summary = _build_stats_to_str(build_stats, in_build_tag=in_build_tag)
+    print(stats_summary)
+    # Consolidate failed tests across all builds to identify common failures.
+    test_to_builds = _consolidate_failed_tests(build_names)
+    # Print summary of failures only if there are failed tests.
+    if test_to_builds and not quiet:
+        summary = _summary_to_str(build_names, test_to_builds)
+        print(summary)
+    # Create consolidated repro script combining tests from all builds.
+    repro_content = _create_consolidated_repro(
+        build_names, out_build_tag=out_build_tag
+    )
+    repro_file = "tmp.pytest_failed_multi_build.repro.sh"
+    hio.create_executable_script(repro_file, repro_content)
+    _LOG.info("Created consolidated repro script: '%s'...", repro_file)
+    # Create consolidated failed tests file with formatted table.
+    failed_table = _failed_tests_table_to_str(test_to_builds)
+    failed_file = "tmp.pytest_failed_multi_build.failed_tests.txt"
+    hio.to_file(failed_file, failed_table)
+    _LOG.info("Created consolidated failed tests file: '%s'...", failed_file)
+
+
 # #############################################################################
 # CLI
 # #############################################################################
@@ -440,6 +534,14 @@ def _parse() -> argparse.ArgumentParser:
         help="Tag for BUILD_TAG in generated repro script (default: pytest_multi_build). "
         "Output files will be named: tmp.<out_build_tag>.<build_name>.txt",
     )
+    parser.add_argument(
+        "--quiet",
+        action="store_true",
+        help="Only report the build statistics table, skipping the "
+        "per-test failure summary across builds (always implied by "
+        "--daemon)",
+    )
+    hdaemon.add_periodic_daemon_args(parser, default_interval=5)
     hparser.add_verbosity_arg(parser)
     return parser
 
@@ -454,34 +556,17 @@ def _main(parser: argparse.ArgumentParser) -> None:
     build_names = args.build_names
     in_build_tag = args.in_build_tag
     out_build_tag = args.out_build_tag
-    _LOG.info(
-        "Consolidating failed tests for builds: %s", ", ".join(build_names)
-    )
-    # Generate pytest_failed output files for each build by invoking
-    # `pytest_failed.py`.
-    _LOG.info("Generating intermediate files by calling pytest_failed.py...")
-    build_stats = _generate_build_files(build_names, in_build_tag=in_build_tag)
-    # Print build statistics summary.
-    stats_summary = _build_stats_to_str(build_stats)
-    print(stats_summary)
-    # Consolidate failed tests across all builds to identify common failures.
-    test_to_builds = _consolidate_failed_tests(build_names)
-    # Print summary of failures only if there are failed tests.
-    if test_to_builds:
-        summary = _summary_to_str(build_names, test_to_builds)
-        print(summary)
-    # Create consolidated repro script combining tests from all builds.
-    repro_content = _create_consolidated_repro(
-        build_names, out_build_tag=out_build_tag
-    )
-    repro_file = "tmp.pytest_failed_multi_build.repro.sh"
-    hio.create_executable_script(repro_file, repro_content)
-    _LOG.info("Created consolidated repro script: '%s'...", repro_file)
-    # Create consolidated failed tests file with formatted table.
-    failed_table = _failed_tests_table_to_str(test_to_builds)
-    failed_file = "tmp.pytest_failed_multi_build.failed_tests.txt"
-    hio.to_file(failed_file, failed_table)
-    _LOG.info("Created consolidated failed tests file: '%s'...", failed_file)
+    if args.daemon:
+        # Re-run the consolidation every `--interval` seconds, reporting
+        # only the build statistics table.
+        def _run() -> None:
+            _run_once(build_names, in_build_tag, out_build_tag, quiet=True)
+
+        hdaemon.run_periodic_daemon_mode(
+            _run, args.interval, window_name_str="pytest_failed_multi_build"
+        )
+        return
+    _run_once(build_names, in_build_tag, out_build_tag, quiet=args.quiet)
 
 
 if __name__ == "__main__":

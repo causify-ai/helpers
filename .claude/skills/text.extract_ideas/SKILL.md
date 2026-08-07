@@ -65,4 +65,4 @@ model: opus
 
 # Step 3: Save the Output
 - Save the output in `<file>.ideas.md`
-- Run `lint_txt.py -i` to format `<file>.ideas.md`
+- Run `lint_text.py -i` to format `<file>.ideas.md`

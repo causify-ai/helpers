@@ -51,7 +51,7 @@ model: sonnet
   - `tutorials/AutoGen/README.md`
   - `tutorials/BambooAI/README.md`
   - `tutorials/TensorFlow/README.md`
-- Run `lint_txt.py -i` to format the README file
+- Run `lint_text.py -i` to format the README file
 
 ## Run Docker
 - Make sure the system builds by running
@@ -83,6 +83,7 @@ model: sonnet
   - `website/docs/blog/posts/Autogen_in_60_mins.md`,
   - `website/docs/blog/posts/BambooAI_in_60_mins.md`,
   - `website/docs/blog/posts/TensorFlow_in_60_mins.md`,
+<<<<<<< HEAD
 - Run `lint_txt.py -i` to format the markdown file
 
 # Examples
@@ -90,3 +91,6 @@ model: sonnet
   - `tutorials/AutoGen`
   - `tutorials/BambooAI`
   - `tutorials/TensorFlow`
+=======
+- Run `lint_text.py -i` to format the file
+>>>>>>> 57f91ae1 (UmdTask517_Get_regressions_to_pass_1 (#1341))

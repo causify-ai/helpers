@@ -121,6 +121,7 @@ import helpers.hprint as hprint
 import helpers.hcache_simple as hcacsimp
 import helpers.hselect_action as hselacti
 import helpers.hsystem as hsystem
+import dev_scripts_helpers.download.download_to_md as dshddtomd
 import dev_scripts_helpers.download.download_utils as dshddut
 import dev_scripts_helpers.download.link_gsheet_utils as dshdlgsut
 
@@ -553,16 +554,6 @@ def _format_hn_url_as_text(comments: List[Dict[str, Any]]) -> str:
     return text
 
 
-def _is_arxiv_url(url: str) -> bool:
-    """
-    Check if a URL points to an arXiv paper.
-
-    :param url: Article URL
-    :return: True if the URL is an arXiv link
-    """
-    return "arxiv.org" in url.lower()
-
-
 def _download_hn_urls(
     rows: List[Dict[str, Any]],
     indices: List[int],
@@ -654,14 +645,16 @@ def _download_article_urls(
         # Generate filename from title and check if it already exists.
         sanitized_title = _sanitize_title_for_filename(title)
         output_file = f"{sanitized_title}.1.article_url.txt"
-        # TODO(ai_gp): Use dev_scripts_helpers/download/download_to_md.py
-        # Dispatch to the appropriate downloader based on the URL type; reuse
-        # the shared, already-correct `download_utils.py` downloaders
-        # instead of maintaining separate copies here.
-        is_arxiv = _is_arxiv_url(article_url)
+        # TODO(ai_gp): Consider using directly
+        # dev_scripts_helpers/download/download_to_md.py
+        # Use `download_to_md.py`'s shared, already-correct URL-type detection
+        # (arXiv/DOI/PDF) instead of maintaining a separate, narrower check
+        # here; the actual download still dispatches via
+        # `dshddut.download_article()` below.
+        input_type = dshddtomd.detect_input_type(article_url)
         downloader = (
             "download_academic_paper_to_md.py"
-            if is_arxiv
+            if input_type == "academic_paper"
             else "download_html_to_md.py"
         )
         if dry_run:

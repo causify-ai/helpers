@@ -8,6 +8,8 @@
 # - Usage: cc [--anth|--or_anth|--ds|--dsp|--model MODEL_STR] [--test] [-v] [-p PROMPT] [claude_options]
 # """
 
+# TODO(ai_gp): Convert to Python at some point
+
 #set -x
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd -P)"

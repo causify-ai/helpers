@@ -667,6 +667,7 @@ def _parse() -> argparse.ArgumentParser:
 
 
 def _run_summarize_action(
+<<<<<<< HEAD
     in_file_name: str, out_file_name: str, args: argparse.Namespace
 ) -> str:
     """
@@ -687,6 +688,20 @@ def _run_summarize_action(
         from the input `out_file_name` when auto-generated)
     """
     _LOG.debug(hprint.to_str("in_file_name out_file_name"))
+=======
+    args: argparse.Namespace, in_file_name: str, out_file_name: str
+) -> str:
+    """
+    Run the "summarize" action: extract, summarize, and write each target
+    header's section.
+
+    :param args: parsed command-line arguments
+    :param in_file_name: path to the input markdown file
+    :param out_file_name: requested output file path (auto-generated if
+        empty)
+    :return: the resolved output file path that was written to
+    """
+>>>>>>> 57f91ae1 (UmdTask517_Get_regressions_to_pass_1 (#1341))
     hdbg.dassert_lte(-1, args.md_level, "--md_level must be >= -1")
     out_file_name = _prepare_output_file(
         in_file_name, out_file_name, args.overwrite
@@ -776,7 +791,11 @@ def _main(parser: argparse.ArgumentParser) -> None:
             continue
         if action == "summarize":
             out_file_name = _run_summarize_action(
+<<<<<<< HEAD
                 in_file_name, out_file_name, args
+=======
+                args, in_file_name, out_file_name
+>>>>>>> 57f91ae1 (UmdTask517_Get_regressions_to_pass_1 (#1341))
             )
         elif action == "lint":
             if not args.test:

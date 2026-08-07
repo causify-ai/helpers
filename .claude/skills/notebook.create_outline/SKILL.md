@@ -161,7 +161,7 @@ model: sonnet
 # Lint
 - After generating the file `notebook_outline.<tag>.md`
   ```
-  > lint_txt.py -i `notebook_outline.<tag>.md`
+  > lint_text.py -i `notebook_outline.<tag>.md`
   ```
 
 # Conventions

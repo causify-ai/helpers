@@ -379,10 +379,10 @@ def _lint_markdown_files(
     _LOG.info("Linting %d Markdown files", len(file_paths))
     if not file_paths:
         return 0
-    lint_txt_script = hsystem.find_file_in_repo("lint_txt.py")
+    lint_text_script = hsystem.find_file_in_repo("lint_text.py")
     files_str = " ".join(file_paths)
     ret = hsystem.system(
-        f"{lint_txt_script} --input_files {files_str}",
+        f"{lint_text_script} --input_files {files_str}",
         print_command=True,
         abort_on_error=abort_on_error,
         suppress_output=False,

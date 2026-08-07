@@ -78,10 +78,10 @@ def _extract_markdown_section(
     md_end: str,
 ) -> str:
     """
-    Extract a markdown section, write to tmp file, run lint_txt.py.
+    Extract a markdown section, write to tmp file, run lint_text.py.
 
     Extracts lines between md_start and md_end headers, writes them to
-    `tmp.piper_markdown_reader.extract.md`, runs `lint_txt.py -w 1000`
+    `tmp.piper_markdown_reader.extract.md`, runs `lint_text.py -w 1000`
     to unroll bullet list breaks, and returns the processed content.
 
     :param file_path: path to markdown input file
@@ -101,7 +101,7 @@ def _extract_markdown_section(
     _LOG.info("Extracted section written to '%s'", _TMP_EXTRACT_FILE)
     # Lint.
     _LOG.info("Linting ...")
-    lint_script = hgit.find_file_in_git_tree("lint_txt.py")
+    lint_script = hgit.find_file_in_git_tree("lint_text.py")
     cmd = f"{lint_script} -i {_TMP_EXTRACT_FILE} -w 1000"
     hsystem.system(cmd)
     _LOG.info("Linting ... done")

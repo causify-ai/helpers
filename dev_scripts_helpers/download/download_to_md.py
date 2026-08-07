@@ -58,11 +58,6 @@ _LOG = logging.getLogger(__name__)
 # Input type detection
 # #############################################################################
 
-# TODO(ai_gp): Inline these constants
-_TYPE_HN = "hn"
-_TYPE_ACADEMIC_PAPER = "academic_paper"
-_TYPE_HTML = "html"
-
 
 def _is_pdf_url(url: str) -> bool:
     """
@@ -85,21 +80,21 @@ def detect_input_type(input_arg: str) -> str:
     Detect the type of `input_arg` to select the script to dispatch to.
 
     :param input_arg: URL to classify
-    :return: `_TYPE_HN`, `_TYPE_ACADEMIC_PAPER`, or `_TYPE_HTML`
+    :return: "hn", "academic_paper", or "html"
     """
     _LOG.debug(hprint.to_str("input_arg"))
     # Classify the input in priority order: Hacker News submissions first,
     # then academic-paper-like URLs (arXiv/DOI/PDF), else a generic web page.
     if dshdlgsut.is_hackernews_url(input_arg):
-        input_type = _TYPE_HN
+        input_type = "hn"
     elif (
         dshddut.is_arxiv_url(input_arg)
         or dshddaptm.detect_doi(input_arg)
         or _is_pdf_url(input_arg)
     ):
-        input_type = _TYPE_ACADEMIC_PAPER
+        input_type = "academic_paper"
     else:
-        input_type = _TYPE_HTML
+        input_type = "html"
     _LOG.info("Detected input type '%s' for: '%s'", input_type, input_arg)
     _LOG.debug("return=%s", input_type)
     return input_type
@@ -124,7 +119,7 @@ def _dispatch(
     :param input_arg: URL to download
     :param output_arg: output path/base name to forward, empty if not
         specified
-    :param input_type: `_TYPE_HN`, `_TYPE_ACADEMIC_PAPER`, or `_TYPE_HTML`
+    :param input_type: "hn", "academic_paper", or "html"
     :param dry_run: if True, forward `--dry_run` to the dispatched script
     :param no_incremental: if True, forward `--no_incremental` to the
         dispatched script
@@ -134,11 +129,11 @@ def _dispatch(
     )
     # Resolve the script to dispatch to based on the detected input type; all
     # 3 target scripts share the same `--input` CLI flag.
-    if input_type == _TYPE_HN:
+    if input_type == "hn":
         script_name = "download_hn_article_to_md.py"
-    elif input_type == _TYPE_ACADEMIC_PAPER:
+    elif input_type == "academic_paper":
         script_name = "download_academic_paper_to_md.py"
-    elif input_type == _TYPE_HTML:
+    elif input_type == "html":
         script_name = "download_html_to_md.py"
     else:
         raise ValueError(f"Unsupported input type: '{input_type}'")

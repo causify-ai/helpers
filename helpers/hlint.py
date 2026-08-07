@@ -12,7 +12,7 @@ import helpers.hdbg as hdbg
 import helpers.hgit as hgit
 import helpers.hsystem as hsystem
 import helpers.hselect_input_output as hseinout
-import dev_scripts_helpers.documentation.lint_txt as dshdlitx
+import dev_scripts_helpers.documentation.lint_text as dshdlite
 
 _LOG = logging.getLogger(__name__)
 
@@ -25,22 +25,22 @@ def lint_file(file_path: str, *, backend: str = "docker") -> None:
     markdown processing, and style enforcement.
 
     :param file_path: path to the file to lint
-    :param backend: Backend to use for linting: "docker" (call lint_txt.py script)
+    :param backend: Backend to use for linting: "docker" (call lint_text.py script)
         or "library" (use the library directly)
     """
     hdbg.dassert_in(backend, ["docker", "library"])
     _LOG.info("Linting file: %s", file_path)
     if backend == "docker":
-        # Find the lint_txt.py script.
-        script_path = hgit.find_file_in_git_tree("lint_txt.py")
+        # Find the lint_text.py script.
+        script_path = hgit.find_file_in_git_tree("lint_text.py")
         hdbg.dassert_file_exists(script_path)
-        _LOG.debug("Found lint_txt.py at: %s", script_path)
-        # Build command to call the lint_txt.py script.
+        _LOG.debug("Found lint_text.py at: %s", script_path)
+        # Build command to call the lint_text.py script.
         cmd = f"{script_path} -i {file_path}"
         hsystem.system(cmd, abort_on_error=True, suppress_output=True)
     else:
-        # Direct library call to lint_txt.py
+        # Direct library call to lint_text.py
         lines = hseinout.from_file(file_path)
-        out_lines = dshdlitx._perform_actions(lines, file_path)
+        out_lines = dshdlite._perform_actions(lines, file_path)
         hseinout.to_file(out_lines, file_path)
     _LOG.info("File linted successfully: %s", file_path)
