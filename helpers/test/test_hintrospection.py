@@ -1,10 +1,17 @@
+import importlib.abc
+import importlib.machinery
+import importlib.util
 import logging
 import os
-from typing import Any, Callable
+import sys
+import types
+from typing import Any, Callable, cast, Dict
 
 import helpers.hdbg as hdbg
 import helpers.hintrospection as hintros
+import helpers.hio as hio
 import helpers.hpickle as hpickle
+import helpers.hsystem as hsystem
 import helpers.hunit_test as hunitest
 
 _LOG = logging.getLogger(__name__)
@@ -393,3 +400,249 @@ class Test_get_function_from_string1(hunitest.TestCase):
         self.assert_equal(
             actual, expected, purify_text=True, purify_expected_text=True
         )
+
+
+# #############################################################################
+# Test_get_link_to_code
+# #############################################################################
+
+
+def _init_git_repo(git_repo: str, *, branch_name: str, remote_url: str) -> None:
+    """
+    Initialize `git_repo` as a Git repo with a checked-out branch and an
+    `origin` remote.
+
+    :param git_repo: path to the (already created) directory to turn
+        into a Git repo
+    :param branch_name: name of the branch to check out
+    :param remote_url: URL to register as the `origin` remote
+    """
+    _LOG.debug(
+        "git_repo=%s branch_name=%s remote_url=%s",
+        git_repo,
+        branch_name,
+        remote_url,
+    )
+    with hsystem.cd(git_repo):
+        hsystem.system("git init", suppress_output=True)
+        hsystem.system(
+            "git config user.email 'test@test.com'", suppress_output=True
+        )
+        hsystem.system(
+            "git config user.name 'Test User'", suppress_output=True
+        )
+        # Check out a known branch name so the test doesn't depend on the
+        # host's `init.defaultBranch` config (e.g., `main` vs `master`).
+        hsystem.system(f"git checkout -b {branch_name}", suppress_output=True)
+        hsystem.system(
+            f"git remote add origin {remote_url}", suppress_output=True
+        )
+
+
+def _commit_all(git_repo: str) -> None:
+    """
+    Stage and commit all files in `git_repo`.
+
+    A commit is needed for `git rev-parse --abbrev-ref HEAD` (used by
+    `hgit.get_branch_name()`) to resolve on a freshly initialized repo.
+
+    :param git_repo: path to the Git repo
+    """
+    with hsystem.cd(git_repo):
+        hsystem.system("git add -A", suppress_output=True)
+        hsystem.system(
+            "git commit -m 'initial commit'", suppress_output=True
+        )
+
+
+def _load_module_from_file(
+    file_path: str, module_name: str
+) -> types.ModuleType:
+    """
+    Import `file_path` as a standalone module named `module_name`.
+
+    Used to obtain real function/class objects whose code points at
+    `file_path`, so `inspect.getsourcefile()`/`getsourcelines()` resolve
+    against it exactly like they would for a normally imported module. The
+    module is registered in `sys.modules` (like a normal import would do)
+    since `inspect` resolves a class's file via
+    `sys.modules[cls.__module__].__file__`.
+
+    :param file_path: path to the `.py` file to load
+    :param module_name: name to register the module under
+    :return: the loaded module
+    """
+    _LOG.debug("file_path=%s module_name=%s", file_path, module_name)
+    spec = importlib.util.spec_from_file_location(module_name, file_path)
+    hdbg.dassert_is_not(
+        spec, None, "Can't create module spec for '%s'", file_path
+    )
+    spec = cast(importlib.machinery.ModuleSpec, spec)
+    hdbg.dassert_is_not(
+        spec.loader, None, "Module spec for '%s' has no loader", file_path
+    )
+    loader = cast(importlib.abc.Loader, spec.loader)
+    module = importlib.util.module_from_spec(spec)
+    sys.modules[module_name] = module
+    loader.exec_module(module)
+    return module
+
+
+class Test_get_link_to_code(hunitest.TestCase):
+    """
+    Test `hintrospection.get_link_to_code()` function.
+    """
+
+    def _create_repo_with_module(
+        self, file_content: str, *, rel_path: str = "module.py"
+    ) -> types.ModuleType:
+        """
+        Create a Git repo containing a committed module at `rel_path` and
+        import it.
+
+        :param file_content: source code to write to the module file
+        :param rel_path: path of the module file relative to the repo
+            root
+        :return: the imported module, backed by a file inside the new
+            repo
+        """
+        # Prepare inputs: a Git repo with a known remote and branch,
+        # containing one committed module file.
+        scratch_dir = self.get_scratch_space()
+        git_repo = os.path.join(scratch_dir, "repo")
+        hio.create_dir(git_repo, incremental=False)
+        remote_url = "git@github.com:test_owner/test_repo.git"
+        _init_git_repo(
+            git_repo, branch_name="test_branch", remote_url=remote_url
+        )
+        module_file = os.path.join(git_repo, rel_path)
+        hio.to_file(module_file, file_content)
+        _commit_all(git_repo)
+        # Import the module under a name unique to this test so that
+        # concurrent/repeated test runs don't clobber each other's entry in
+        # `sys.modules`.
+        module_name = "tmp_module_" + self.id().replace(".", "_")
+        module = _load_module_from_file(module_file, module_name)
+        return module
+
+    def test1(self) -> None:
+        """
+        Test the link for a function defined on the first line of a file.
+        """
+        # Prepare inputs.
+        file_content = "def foo():\n    pass\n"
+        module = self._create_repo_with_module(file_content)
+        # Prepare outputs.
+        expected = (
+            "https://github.com/test_owner/test_repo/blob/test_branch/"
+            "module.py#L1"
+        )
+        # Run test.
+        actual = hintros.get_link_to_code(module.foo)
+        # Check outputs.
+        self.assert_equal(actual, expected)
+
+    def test2(self) -> None:
+        """
+        Test the link for a class defined after leading comments and blank
+        lines, i.e., the reported line matches the `class` line, not line 1.
+        """
+        # Prepare inputs.
+        file_content = (
+            "# A leading comment.\n"
+            "\n"
+            "\n"
+            "class Bar:\n"
+            "    def method(self) -> None:\n"
+            "        pass\n"
+        )
+        module = self._create_repo_with_module(file_content)
+        # Prepare outputs.
+        expected = (
+            "https://github.com/test_owner/test_repo/blob/test_branch/"
+            "module.py#L4"
+        )
+        # Run test.
+        actual = hintros.get_link_to_code(module.Bar)
+        # Check outputs.
+        self.assert_equal(actual, expected)
+
+    def test3(self) -> None:
+        """
+        Test that a decorated function's link points at the decorator line,
+        not the `def` line, matching `inspect.getsourcelines()` semantics.
+        """
+        # Prepare inputs.
+        file_content = (
+            "def identity_decorator(func):\n"
+            "    return func\n"
+            "\n"
+            "\n"
+            "@identity_decorator\n"
+            "def decorated_foo():\n"
+            "    pass\n"
+        )
+        module = self._create_repo_with_module(file_content)
+        # Prepare outputs.
+        expected = (
+            "https://github.com/test_owner/test_repo/blob/test_branch/"
+            "module.py#L5"
+        )
+        # Run test.
+        actual = hintros.get_link_to_code(module.decorated_foo)
+        # Check outputs.
+        self.assert_equal(actual, expected)
+
+    def test4(self) -> None:
+        """
+        Test that the relative path is correct for a module nested inside a
+        subdirectory of the Git repo.
+        """
+        # Prepare inputs.
+        file_content = "def foo():\n    pass\n"
+        module = self._create_repo_with_module(
+            file_content, rel_path=os.path.join("pkg", "sub", "module.py")
+        )
+        # Prepare outputs.
+        expected = (
+            "https://github.com/test_owner/test_repo/blob/test_branch/"
+            "pkg/sub/module.py#L1"
+        )
+        # Run test.
+        actual = hintros.get_link_to_code(module.foo)
+        # Check outputs.
+        self.assert_equal(actual, expected)
+
+    def test5(self) -> None:
+        """
+        Test that `use_master=True` points at the `master` branch regardless
+        of the currently checked-out branch.
+        """
+        # Prepare inputs.
+        file_content = "def foo():\n    pass\n"
+        module = self._create_repo_with_module(file_content)
+        # Prepare outputs.
+        expected = (
+            "https://github.com/test_owner/test_repo/blob/master/"
+            "module.py#L1"
+        )
+        # Run test.
+        actual = hintros.get_link_to_code(module.foo, use_master=True)
+        # Check outputs.
+        self.assert_equal(actual, expected)
+
+    def test6(self) -> None:
+        """
+        Test that an object with no retrievable source file (e.g., defined
+        via `exec()` with no backing file) raises an assertion instead of
+        silently returning a link with a wrong (or stale) line number.
+        """
+        # Prepare inputs: a function compiled without a real backing file,
+        # so `inspect.getsourcefile()` returns `None`.
+        code = compile("def foo():\n    pass\n", "<string>", "exec")
+        namespace: Dict[str, Any] = {}
+        exec(code, namespace)
+        foo = namespace["foo"]
+        # Run test.
+        with self.assertRaises(AssertionError):
+            hintros.get_link_to_code(foo)

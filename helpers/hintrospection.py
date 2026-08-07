@@ -8,6 +8,7 @@ import collections.abc as cabc
 import importlib
 import inspect
 import logging
+import os
 import pickle
 import re
 import sys
@@ -161,6 +162,79 @@ def print_public_methods(obj: Any, *, use_markdown: bool = False) -> None:
                     first_line = doc.split("\n")[0]
                     print(f"    {first_line}")
                 print()
+
+
+# #############################################################################
+# GitHub link
+# #############################################################################
+
+
+def get_link_to_code(obj: Any, *, use_master: bool = False) -> str:
+    """
+    Print and return a GitHub link to the source code of `obj`.
+
+    Resolves the source file and starting line number of `obj` (e.g., a
+    function, method, class, or module) via `inspect`, then builds the
+    corresponding GitHub URL using the same logic as `to_github.py`
+    (`dev_scripts_helpers/github/to_github.py`), i.e., combining the repo's
+    remote URL, the branch, and the file's path relative to the Git root. A
+    `#L<line>` anchor is appended so the link points directly at the
+    definition of `obj`.
+
+    The Git root is resolved from the directory of `obj`'s source file
+    (rather than the current working directory), so this correctly handles
+    objects defined in a submodule (e.g., `helpers_root`) that has its own
+    GitHub repo.
+
+    :param obj: function, method, class, or module to link to
+    :param use_master: use the `master` branch instead of the current
+        branch
+        - Default: `False`
+    :return: GitHub URL pointing at the definition of `obj`
+        Example:
+        ```
+        https://github.com/causify-ai/helpers/blob/master/helpers/hdbg.py#L42
+        ```
+    """
+    # Import locally, since `hgit` and `hsystem` both depend (transitively,
+    # via this module) on `hintrospection`, so a top-level import here would
+    # create a circular dependency.
+    import helpers.hgit as hgit
+    import helpers.hsystem as hsystem
+
+    _LOG.debug("obj=%s use_master=%s", obj, use_master)
+    # Resolve the source file and starting line number of `obj`.
+    file_path = inspect.getsourcefile(obj)
+    hdbg.dassert_is_not(
+        file_path, None, "Can't find source file for object='%s'", obj
+    )
+    file_path = os.path.abspath(str(file_path))
+    _, line_number = inspect.getsourcelines(obj)
+    _LOG.debug("file_path=%s line_number=%s", file_path, line_number)
+    # Get the root of the Git repo containing `file_path`, scoped to the
+    # file's own directory (and not the current working directory) so that
+    # an object defined inside a submodule (e.g., `helpers_root`) resolves
+    # to the submodule's own repo, matching `to_github.py`'s approach.
+    file_dir = os.path.dirname(file_path)
+    cmd = f"cd {file_dir} && git rev-parse --show-toplevel"
+    _, git_root = hsystem.system_to_one_line(cmd)
+    relative_path = os.path.relpath(file_path, git_root)
+    # Get the repo full name (e.g., "github.com/causify-ai/umd_classes1").
+    repo_name = hgit.get_repo_full_name_from_dirname(
+        git_root, include_host_name=True
+    )
+    # Get the branch to point the link to.
+    if use_master:
+        branch_name = "master"
+    else:
+        branch_name = hgit.get_branch_name(git_root)
+    # Build the GitHub URL, anchoring at the object's starting line.
+    url = (
+        f"https://{repo_name}/blob/{branch_name}/{relative_path}"
+        f"#L{line_number}"
+    )
+    print(url)
+    return url
 
 
 # #############################################################################
