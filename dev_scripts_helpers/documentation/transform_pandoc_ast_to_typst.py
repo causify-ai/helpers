@@ -16,11 +16,19 @@ Supports two transformation actions:
 
 # Usage Example
 
-- Convert a markdown file's pandoc AST to typst, applying the divved-fence
-  and color-text transformations, then render it to typst:
+- Convert a markdown file's pandoc AST to typst, running the default
+  transformations (divved_fence, color_text, small_code), then render it to
+  typst:
 > pandoc input.md -t json | \
     transform_pandoc_ast_to_typst.py \
-        -i - -o output.json --action divved_fence --action color_text
+        -i - -o output.json
+> pandoc output.json -f json -t typst -o slides.typ
+
+- Same, but running only the divved-fence and color-text transformations:
+> pandoc input.md -t json | \
+    transform_pandoc_ast_to_typst.py \
+        -i - -o output.json \
+        --clear_actions --action divved_fence --action color_text
 > pandoc output.json -f json -t typst -o slides.typ
 
 Import as:

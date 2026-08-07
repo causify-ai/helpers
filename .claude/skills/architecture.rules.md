@@ -185,9 +185,10 @@
 - Use `hselect_action` module to allow users to select which pipeline stages to
   execute
 - This enables:
-  - Running only specific stages (e.g., `--action process`)
-  - Skipping stages (e.g., `--skip_action cleanup`)
-  - Enabling optional stages (e.g., `--enable debug_export`)
+  - Adding an optional stage on top of the defaults (e.g., `--action debug_export`)
+  - Skipping a default stage (e.g., `--skip_action cleanup`)
+  - Running only specific stages (e.g., `--clear_actions --action process`)
+  - Running every valid stage (e.g., `--all_actions`)
 
 - See `helpers/hselect_action.py` for complete usage patterns and examples
 - E.g., pipeline with action selection pattern is executed

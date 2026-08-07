@@ -671,7 +671,8 @@ def _main(parser: argparse.ArgumentParser) -> None:
     Main function to summarize markdown sections or lint with prettier.
 
     Summarizes sections using LLM by default, or computes SHA1 digests if
-    `--test` flag is enabled. With --action lint, formats the file using prettier.
+    `--test` flag is enabled. With --clear_actions --action lint, formats the
+    file using prettier only.
     """
     args = parser.parse_args()
     hparser.parse_verbosity_args(args)

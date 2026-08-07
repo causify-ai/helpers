@@ -141,15 +141,18 @@ def _get_branch_next_name_via_github_api(
 
 
 @functools.lru_cache()
-def _get_gh_pr_list() -> str:
+def _get_gh_pr_list(dir_name: str = ".") -> str:
     """
     Get a cached list of all pull requests from GitHub (merged and open).
 
-    Results are cached via functools.lru_cache to avoid repeated GitHub API calls.
+    Results are cached via functools.lru_cache (keyed on `dir_name`) to avoid
+    repeated GitHub API calls.
 
+    :param dir_name: directory containing the git repository to query (e.g.,
+        a submodule has its own, disjoint GitHub repo and PR list)
     :return: raw output from `gh pr list` command
     """
-    cmd = "gh pr list -s all --limit 1000"
+    cmd = f"cd {dir_name} && gh pr list -s all --limit 1000"
     rc, txt = hsystem.system_to_string(cmd)
     _ = rc
     return txt
@@ -202,7 +205,7 @@ def does_branch_exist(
         _LOG.debug("branch_name='%s' on git: exists=%s", branch_name, exists)
     # Check on GitHub.
     if mode == "github":
-        txt = _get_gh_pr_list()
+        txt = _get_gh_pr_list(dir_name)
         # ```
         # > gh pr list -s all --limit 10000 | grep AmpTask2163
         # 347     AmpTask2163_Implement_tiled_backtesting_1  AmpTask2163 ... MERGED

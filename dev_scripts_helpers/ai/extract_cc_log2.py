@@ -11,12 +11,16 @@ GRAY = "\033[90m"
 WHITE = "\033[97m"
 RESET = "\033[0m"
 
+# Print message
+SHOW_PROGRESS = True
+
 for line in sys.stdin:
     line = line.strip()
     if not line:
         continue
-    # sys.stderr.write(".")
-    # sys.stderr.flush()
+    if SHOW_PROGRESS:
+        sys.stderr.write(".")
+        sys.stderr.flush()
     try:
         obj = json.loads(line)
         # Handle stream events with deltas
@@ -57,5 +61,6 @@ for line in sys.stdin:
         pass
 
 print()  # final newline
-# sys.stderr.write("\n")
-# sys.stderr.flush()
+if SHOW_PROGRESS:
+    sys.stderr.write("\n")
+    sys.stderr.flush()

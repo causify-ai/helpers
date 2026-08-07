@@ -8,16 +8,16 @@ Manage the `hcache_simple` function cache from the command line.
 > manage_cache.py --action print_info
 
 - Clear everything (memory + disk):
-> manage_cache.py --action clear_all
+> manage_cache.py --clear_actions --action clear_all
 
 - Clear only the in-process memory layer:
-> manage_cache.py --action clear_mem
+> manage_cache.py --clear_actions --action clear_mem
 
 - Clear only disk files:
-> manage_cache.py --action clear_disk
+> manage_cache.py --clear_actions --action clear_disk
 
 - Run a self-contained smoke test:
-> manage_cache.py --action test
+> manage_cache.py --clear_actions --action test
 
 Import as:
 

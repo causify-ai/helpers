@@ -49,7 +49,7 @@ class Test_convert_epub_to_md(hunitest.TestCase):
             f" --output {out_dir}"
             f" --skip_figures"
             f" --overwrite"
-            f" --action remove_junk"
+            f" --clear_actions --action remove_junk"
         )
         hsystem.system(cmd)
         # Check outputs.

@@ -32,30 +32,29 @@ then applies appropriate linting tools per file type.
 > lint.py --modified --file_types "md,txt"
 
 - Run only specific actions on modified files (pre-commit and normalize_import):
-> lint.py --modified --action pre-commit normalize_import
+> lint.py --modified --clear_actions --action pre-commit --action normalize_import
 
 - Run only jupytext sync on Jupyter notebooks:
-> lint.py --modified --file_types "ipynb" --action sync_jupytext
+> lint.py --modified --file_types "ipynb" --clear_actions --action sync_jupytext
 
 - Run add_class_frames only on Python files:
-> lint.py --modified --file_types "py" --action add_class_frames
+> lint.py --modified --file_types "py" --clear_actions --action add_class_frames
 
 - Run fix_comments only on Python files to convert single-line docstrings:
-> lint.py --modified --file_types "py" --action fix_comments
+> lint.py --modified --file_types "py" --clear_actions --action fix_comments
 
 - Run pyright type-checker on modified Python files (including paired jupytext):
-> lint.py --modified --file_types "py" --action pyright
+> lint.py --modified --file_types "py" --clear_actions --action pyright
 
 - Run fix_pyright via Claude Code to fix pyright errors:
-> lint.py --modified --file_types "py" --action fix_pyright
+> lint.py --modified --file_types "py" --clear_actions --action fix_pyright
 
 - Run coverage for test files corresponding to modified Python files:
-> lint.py --modified --file_types "py" --action coverage
+> lint.py --modified --file_types "py" --clear_actions --action coverage
 """
 
 import argparse
 import logging
-import subprocess
 import sys
 from typing import List, Tuple
 
@@ -268,11 +267,12 @@ def _run_python_linting_actions(
         prompt = f"/coding.fix_pyright {files_str}"
         cmd = " ".join([ccp_script, prompt])
         _LOG.debug("> %s", cmd)
-        result = subprocess.run(
-            [ccp_script, prompt],
-            capture_output=False,
+        ret |= hsystem.system(
+            cmd,
+            print_command=False,
+            abort_on_error=abort_on_error,
+            suppress_output=False,
         )
-        ret |= result.returncode
     if "coverage" in actions:
         _LOG.info("\n%s", hprint.frame("Running coverage", char1="="))
         ret |= _run_coverage(
@@ -614,6 +614,7 @@ _DEFAULT_ACTIONS = [
     "normalize_import",
     "add_class_frames",
     "fix_comments",
+    "pyright",
 ]
 
 

@@ -14,7 +14,8 @@ Workflow:
 5. Optionally combines all LLM outputs into a single markdown file
 6. Optionally creates a table with directory metadata (owner, department, content)
 
-Actions can be selectively skipped using --skip_action or --action flags.
+Actions can be selectively added or skipped using --action or --skip_action
+flags, or restricted to a subset via --clear_actions --action.
 Use --out_dir to organize output files in a dedicated directory.
 Use --from_scratch to delete the output directory before processing.
 
@@ -33,16 +34,16 @@ Use --from_scratch to delete the output directory before processing.
 > create_google_drive_map.py --in_dir /path/to/process --skip_action tree
 
 - Run only the llm summarization action:
-> create_google_drive_map.py --in_dir /path/to/process --action llm
+> create_google_drive_map.py --in_dir /path/to/process --clear_actions --action llm
 
 - Run only the tree action:
-> create_google_drive_map.py --in_dir /path/to/process --action tree
+> create_google_drive_map.py --in_dir /path/to/process --clear_actions --action tree
 
 - Run only the combine action:
-> create_google_drive_map.py --in_dir /path/to/process --action combine
+> create_google_drive_map.py --in_dir /path/to/process --clear_actions --action combine
 
 - Run only the table action:
-> create_google_drive_map.py --in_dir /path/to/process --action table
+> create_google_drive_map.py --in_dir /path/to/process --clear_actions --action table
 
 - Process a directory and save output to an "analysis" directory:
 > create_google_drive_map.py --in_dir /path/to/process --out_dir analysis
@@ -54,10 +55,10 @@ Use --from_scratch to delete the output directory before processing.
 > create_google_drive_map.py --in_dir /projects/code --out_dir analysis
 
 - Combine existing LLM outputs into a single markdown file:
-> create_google_drive_map.py --in_dir /path/to/process --action combine --out_dir existing_results
+> create_google_drive_map.py --in_dir /path/to/process --clear_actions --action combine --out_dir existing_results
 
 - Create a directory table:
-> create_google_drive_map.py --in_dir /path/to/process --action table --out_dir results
+> create_google_drive_map.py --in_dir /path/to/process --clear_actions --action table --out_dir results
 
 - Process only the first 3 directories (1st to 3rd):
 > create_google_drive_map.py --in_dir /path/to/process --limit 1:3

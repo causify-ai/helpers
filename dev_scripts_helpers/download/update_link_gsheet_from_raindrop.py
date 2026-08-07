@@ -18,10 +18,10 @@ This script manages four actions:
 
 # Usage Example
 
-- Download data from Google Sheets:
+- Download data from Google Sheets (only that action):
 > update_link_gsheet_from_raindrop.py \
     --url "https://docs.google.com/spreadsheets/d/1i6Z7v2..." \
-    --action download_link_gsheet
+    --clear_actions --action download_link_gsheet
 
 - Run all actions:
 > update_link_gsheet_from_raindrop.py \
