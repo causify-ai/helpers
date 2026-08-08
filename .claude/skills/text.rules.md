@@ -53,6 +53,11 @@ Rules for writing structured text using bullet lists
 
 # Formatting
 
+## Wrap Lines at 85 Characters
+
+- Wrap text and markdown prose lines at 85 characters
+- Fenced code blocks are exempt: preserve their content without rewrapping
+
 ## Use Only Text
 
 - Avoid emojis and icons
@@ -145,7 +150,8 @@ Rules for writing structured text using bullet lists
 - Use nested structure with maximal clarity and fewer words
   - Use `-` for first-level bullets
   - Use indented `-` for sub-bullets
-  - Organize hierarchically: general rule first, then example, then mathematical formulation
+  - Organize hierarchically: general rule first, then example, then mathematical
+    formulation
 - Use LaTeX notation for formulas
 - Avoid non-ASCII symbols (use `->` not `→`)
 - Extract concrete examples

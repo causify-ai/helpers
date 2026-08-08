@@ -21,6 +21,13 @@ Render and open markdown files in different modes.
 - Convert the file to HTML with pandoc using locally installed tools:
 > open_md.py --input xyz.md --mode pandoc --backend global
 
+- Convert the file to HTML with pandoc, styled to look like GitHub's
+  rendering (bigger font, yellowish verbatim, wider layout):
+> open_md.py --input xyz.md --mode pandoc --backend global --github_style
+
+- Same, with a custom CSS/HTML header-include instead of the bundled style:
+> open_md.py --input xyz.md --mode pandoc --backend global --css my_style.html
+
 - Export the file to HTML with grip using locally installed tools:
 > open_md.py --input xyz.md --mode grip --backend global
 
@@ -33,6 +40,7 @@ import logging
 import os
 import platform
 import subprocess
+from typing import Optional
 
 import dev_scripts_helpers.dockerize.lib_pandoc as dshdlipa
 import helpers.hdbg as hdbg
@@ -171,6 +179,7 @@ def _render_with_pandoc(
     backend: str,
     force_rebuild: bool = False,
     use_sudo: bool = False,
+    style_file: Optional[str] = None,
 ) -> None:
     """
     Render markdown with pandoc to HTML and open in browser.
@@ -179,6 +188,9 @@ def _render_with_pandoc(
     :param backend: "global" or "dockerized"
     :param force_rebuild: Force rebuild Docker image (for dockerized only)
     :param use_sudo: Use sudo for Docker (for dockerized only)
+    :param style_file: path to an HTML snippet (e.g., a `<style>` block)
+        injected into the `<head>` via pandoc's `--include-in-header`; None
+        means use pandoc's bare default styling
     """
     _LOG.info("Rendering with pandoc (backend=%s): '%s'", backend, input_file)
     # Validate input file exists.
@@ -188,6 +200,13 @@ def _render_with_pandoc(
     # Determine output file.
     output_file = "tmp.open_md.pandoc.html"
     file_dir = os.path.dirname(os.path.abspath(processed_file))
+    # Add the optional style/header-include and matching syntax highlighting.
+    style_opts = ""
+    if style_file is not None:
+        hdbg.dassert_file_exists(style_file)
+        style_opts = (
+            f"--highlight-style=pygments --include-in-header={style_file}"
+        )
     if backend == "global":
         # Run pandoc to HTML.
         cmd = (
@@ -195,7 +214,8 @@ def _render_with_pandoc(
             f"-o {output_file} "
             f"--resource-path={file_dir} "
             f"--standalone "
-            f"--mathjax"
+            f"--mathjax "
+            f"{style_opts}"
         )
         _LOG.info("Running pandoc: %s", cmd)
         hsystem.system(cmd)
@@ -206,7 +226,8 @@ def _render_with_pandoc(
             f"-o {output_file} "
             f"--resource-path={file_dir} "
             f"--standalone "
-            f"--mathjax"
+            f"--mathjax "
+            f"{style_opts}"
         )
         _LOG.info("Running dockerized pandoc: %s", cmd)
         dshdlipa.run_dockerized_pandoc(
@@ -312,6 +333,21 @@ def _parse() -> argparse.ArgumentParser:
         default="global",
         help="Backend to use for rendering",
     )
+    parser.add_argument(
+        "--github_style",
+        action="store_true",
+        help="(pandoc mode only) Style the output HTML to look like "
+        "GitHub's markdown rendering (bigger font, yellowish verbatim, "
+        "wider layout), using the bundled github_style.html",
+    )
+    parser.add_argument(
+        "--css",
+        type=str,
+        default=None,
+        help="(pandoc mode only) Path to a custom HTML snippet (e.g., a "
+        "`<style>` block) to inject into the output via pandoc's "
+        "--include-in-header; overrides --github_style",
+    )
     hdocker.add_dockerized_script_arg(parser)
     hparser.add_verbosity_arg(parser)
     return parser
@@ -324,11 +360,17 @@ def _main(parser: argparse.ArgumentParser) -> None:
     if args.mode == "github":
         _open_on_github(args.input)
     elif args.mode == "pandoc":
+        # Resolve the style/header-include: explicit --css wins, otherwise
+        # fall back to the bundled GitHub-like style if requested.
+        style_file = args.css
+        if style_file is None and args.github_style:
+            style_file = hgit.find_file("github_style.html")
         _render_with_pandoc(
             args.input,
             backend=args.backend,
             force_rebuild=args.dockerized_force_rebuild,
             use_sudo=args.dockerized_use_sudo,
+            style_file=style_file,
         )
     elif args.mode == "grip":
         _render_with_grip(args.input, backend=args.backend)
