@@ -22,5 +22,11 @@ if [[ $# -gt 0 ]]; then
     commit_msg="$*"
 fi
 
+echo "==================== git commit ===================="
 execute "git commit -am '$commit_msg' $no_verify"
+
+echo "==================== git pull ===================="
+execute "git pull --autostash --rebase"
+
+echo "==================== git push ===================="
 execute "git push"
