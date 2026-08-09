@@ -1,31 +1,3 @@
-
-
-<!-- toc -->
-
-- [Docker](#docker)
-  * [Introduction](#introduction)
-  * [Concepts](#concepts)
-    + [Docker image](#docker-image)
-    + [Dockerfile](#dockerfile)
-    + [Docker container](#docker-container)
-    + [Docker registry](#docker-registry)
-  * [Poetry](#poetry)
-  * [Build a Docker image](#build-a-docker-image)
-    + [General](#general)
-      - [Base image](#base-image)
-      - [Copy files](#copy-files)
-      - [Install OS packages](#install-os-packages)
-      - [Install Python packages](#install-python-packages)
-    + [Build an image from a Dockerfile](#build-an-image-from-a-dockerfile)
-  * [Run multi-container Docker application](#run-multi-container-docker-application)
-    + [Version](#version)
-    + [Images](#images)
-    + [Bind mount](#bind-mount)
-    + [Environment variables](#environment-variables)
-    + [Basic commands](#basic-commands)
-
-<!-- tocstop -->
-
 # Docker
 
 ## Introduction
