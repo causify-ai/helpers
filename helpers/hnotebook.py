@@ -6,7 +6,7 @@ import helpers.hnotebook as hnotebo
 
 import logging
 
-from typing import Optional
+from typing import Any, Optional, cast
 
 
 def config_notebook(sns_set: bool = True) -> None:
@@ -141,6 +141,73 @@ def _set_all_loggers_to_print() -> None:
     for name in logging.root.manager.loggerDict:
         logger = logging.getLogger(name)
         set_logger_to_print(logger)
+
+
+def get_link_to_code(obj: Any, *, use_master: bool = False) -> str:
+    """
+    Print and return a GitHub link to the source code of a Python object.
+
+    Resolve the source file and starting line number of `obj` (e.g., a
+    function, method, class, or module) via introspection, then build the
+    corresponding GitHub URL using the same logic as
+    `dev_scripts_helpers/github/to_github.py`.
+
+    :param obj: Python object to link to (e.g., function, method, class,
+        module)
+    :param use_master: use `master` branch instead of the current branch
+        - Default: `False`
+    :return: GitHub URL pointing to the object's file and line number, e.g.,
+        `https://github.com/<org>/<repo>/blob/<branch>/<path>#L<line>`
+    """
+    import inspect
+    import os
+
+    import helpers.hdbg as hdbg
+    import helpers.hsystem as hsystem
+
+    # Resolve the source file and starting line number of the object.
+    file_path = None
+    start_line = 0
+    try:
+        file_path = inspect.getsourcefile(obj)
+        _, start_line = inspect.getsourcelines(obj)
+    except (TypeError, OSError) as e:
+        hdbg.dfatal(f"Cannot resolve source for object '{obj}': {e}")
+    hdbg.dassert_is_not(file_path, None,
+        "Cannot find source file for object '%s'", file_path)
+    # Narrow the type for the type checker: `dfatal()` above always raises.
+    file_path = cast(str, file_path)
+    # Get the git root directory.
+    git_root_cmd = "git rev-parse --show-toplevel"
+    _, git_root = hsystem.system_to_string(git_root_cmd)
+    git_root = git_root.strip()
+    # Compute the path relative to the git root.
+    abs_file_path = os.path.abspath(file_path)
+    hdbg.dassert(
+        abs_file_path.startswith(git_root),
+        "File '%s' is not inside git repo '%s'",
+        abs_file_path,
+        git_root,
+    )
+    relative_path = os.path.relpath(abs_file_path, git_root)
+    # Get the repository URL and convert it from SSH to HTTPS.
+    repo_url_cmd = "git remote get-url origin"
+    _, repo_url = hsystem.system_to_string(repo_url_cmd)
+    repo_url = repo_url.strip()
+    if repo_url.startswith("git@github.com:"):
+        repo_url = repo_url.replace("git@github.com:", "https://github.com/")
+    if repo_url.endswith(".git"):
+        repo_url = repo_url[:-4]
+    # Get the branch name.
+    if use_master:
+        branch_name = "master"
+    else:
+        branch_name_cmd = "git branch --show-current"
+        _, branch_name = hsystem.system_to_string(branch_name_cmd)
+        branch_name = branch_name.strip()
+    # Build the GitHub URL, anchored to the object's starting line.
+    github_url = f"{repo_url}/blob/{branch_name}/{relative_path}#L{start_line}"
+    return github_url
 
 
 def init_loggers(

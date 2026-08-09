@@ -55,7 +55,7 @@ def get_function_name(count: int = 0) -> str:
     """
     ptr = inspect.currentframe()
     # count=0 corresponds to the calling function, so we need to add an extra
-    # step walking the call stack.
+    # step to walk the call stack.
     count += 1
     for _ in range(count):
         hdbg.dassert_is_not(ptr, None)
@@ -66,15 +66,16 @@ def get_function_name(count: int = 0) -> str:
 
 def get_name_from_function(func: Callable) -> str:
     """
-    Return the name of the passed function.
+    Return the name of the function passed as an Python object.
 
-    E.g., amp.helpers.test.test_hintrospection.test_function
+    E.g., `amp.helpers.test.test_hintrospection.test_function`
     """
+    hdbg.dassert_callable(func)
     func_name = func.__name__
     #
     module = inspect.getmodule(func)
     hdbg.dassert_is_not(
-        module, None, f"Could not get module for function {func}"
+        module, None, f"Could not get module for function '%s'", str(func)
     )
     assert module is not None
     module_name = module.__name__
@@ -88,7 +89,7 @@ def get_name_from_function(func: Callable) -> str:
 
 def get_function_from_string(func_as_str: str) -> Callable:
     """
-    Return the function from its name including the import.
+    Return the Python function from its name including the import.
 
     E.g., `import im.scripts.AmpTask317_transform_pq_by_date_to_by_asset`
     """
@@ -110,15 +111,20 @@ def get_function_from_string(func_as_str: str) -> Callable:
     return func
 
 
-def get_methods(obj: Any, access: str = "all") -> List[str]:
+# #############################################################################
+
+
+def get_methods(obj: Any, *, access: str = "all") -> List[str]:
     """
-    Return list of names corresponding to class methods of an object `obj`.
+    Return list of class method names for an object `obj`.
 
     :param obj: class or class object
-    :param access: allows to select private, public or all methods of
-        the object.
+    :param access: allows to select "private", "public" or "all" methods of the
+        object
     """
+    # Get all the methods.
     methods = [method for method in dir(obj) if callable(getattr(obj, method))]
+    # Select the desired ones.
     if access == "all":
         pass
     elif access == "private":
@@ -130,14 +136,42 @@ def get_methods(obj: Any, access: str = "all") -> List[str]:
     return methods
 
 
-def print_public_methods(obj: Any, *, use_markdown: bool = False) -> None:
+def get_public_methods_as_str(obj: Any, *, use_markdown: bool = False) -> str:
     """
-    Print all public methods of an object with their docstrings and
-    signatures.
+    Return a string with all public methods of an object with their
+    docstrings and signatures.
 
     :param obj: class or class object to inspect
-    :param use_markdown: format output as a markdown list
+    :param use_markdown: format output as a markdown list, e.g.,
+        - use_markdown=False
+            ```
+            MultiArmedBandit
+            get_empirical_means(self) -> List[float]
+                Get empirical mean reward for each machine.
+
+            pull(self, machine_idx: int) -> float
+                Pull a specific machine and get reward.
+
+            reset(self, seed: Optional[int] = None) -> None
+                Reset all statistics but keep mu values.
+            ```
+        - use_markdown=True
+            ```
+            **MultiArmedBandit**
+            - `get_empirical_means(self) -> List[float]`: Get empirical mean reward for each machine.
+            - `pull(self, machine_idx: int) -> float`: Pull a specific machine and get reward.
+            - `reset(self, seed: Optional[int] = None) -> None`: Reset all statistics but keep mu values.
+            ```
+    :return: string with the class name followed by its public methods
     """
+    # A class object has a `__name__`, while an instance doesn't, so use its
+    # class' name instead.
+    class_name = obj.__name__ if inspect.isclass(obj) else type(obj).__name__
+    lines = []
+    if use_markdown:
+        lines.append(f"**{class_name}**")
+    else:
+        lines.append(class_name)
     methods = get_methods(obj, access="public")
     for method_name in sorted(methods):
         method = getattr(obj, method_name)
@@ -152,16 +186,30 @@ def print_public_methods(obj: Any, *, use_markdown: bool = False) -> None:
                 func_line = f"`{method_name}{sig_str}`"
                 if doc:
                     first_line = doc.split("\n")[0]
-                    print(f"- {func_line}: {first_line}")
+                    lines.append(f"- {func_line}: {first_line}")
                 else:
-                    print(f"- {func_line}")
+                    lines.append(f"- {func_line}")
             else:
-                print(f"{method_name}{sig_str}")
+                # Not markdown.
+                lines.append(f"{method_name}{sig_str}")
                 if doc:
-                    # Print the first line of the docstring.
+                    # Include the first line of the docstring.
                     first_line = doc.split("\n")[0]
-                    print(f"    {first_line}")
-                print()
+                    lines.append(f"    {first_line}")
+                lines.append("")
+    return "\n".join(lines)
+
+
+def print_obj_info(obj: Any) -> None:
+    try:
+        from IPython.display import display, Markdown
+    except ImportError:
+        display = print  # type: ignore
+        Markdown = lambda x: x
+    # Print interface.
+    display(Markdown(get_public_methods_as_str(obj, use_markdown=True)))
+    # Link to the class definition on GitHub, and list its public surface.
+    print(get_link_to_code(obj))
 
 
 # #############################################################################
@@ -176,10 +224,6 @@ def get_link_to_code(obj: Any, *, use_master: bool = False) -> str:
     Resolves the source file and starting line number of `obj` (e.g., a
     function, method, class, or module) via `inspect`, then builds the
     corresponding GitHub URL using the same logic as `to_github.py`
-    (`dev_scripts_helpers/github/to_github.py`), i.e., combining the repo's
-    remote URL, the branch, and the file's path relative to the Git root. A
-    `#L<line>` anchor is appended so the link points directly at the
-    definition of `obj`.
 
     The Git root is resolved from the directory of `obj`'s source file
     (rather than the current working directory), so this correctly handles
@@ -189,9 +233,7 @@ def get_link_to_code(obj: Any, *, use_master: bool = False) -> str:
     :param obj: function, method, class, or module to link to
     :param use_master: use the `master` branch instead of the current
         branch
-        - Default: `False`
-    :return: GitHub URL pointing at the definition of `obj`
-        Example:
+    :return: GitHub URL pointing at the definition of `obj`, e.g.,
         ```
         https://github.com/causify-ai/helpers/blob/master/helpers/hdbg.py#L42
         ```
@@ -233,10 +275,11 @@ def get_link_to_code(obj: Any, *, use_master: bool = False) -> str:
         f"https://{repo_name}/blob/{branch_name}/{relative_path}"
         f"#L{line_number}"
     )
-    print(url)
     return url
 
 
+# #############################################################################
+# Properties.
 # #############################################################################
 
 

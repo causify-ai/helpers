@@ -170,6 +170,24 @@ model: sonnet
     - What is the default value?
     - What type is returned?
 
+### Link to Source Code
+
+- Use `hintros.print_obj_info(obj)` from `helpers/hintrospection.py` whenever a
+  class, function, or method is introduced
+  - `obj` is the Python object itself (class, function, method, or module),
+    not a string
+  - It displays the object's public interface as markdown, then prints a
+    GitHub link to the object's source, pointing at the exact file and line,
+    e.g., `https://github.com/<org>/<repo>/blob/<branch>/<path>#L<line>`
+- Call it right after "Smallest Construction" or "Inspect the Object" so
+  readers can jump straight to the implementation:
+  ```python
+  import helpers.hintrospection as hintros
+
+  # Link to the class definition on GitHub, and list its public surface.
+  hintros.print_obj_info(sim.MultiArmedBandit)
+  ```
+
 ### Summary: the Mental Model
 
 - Synthesize the core mental model

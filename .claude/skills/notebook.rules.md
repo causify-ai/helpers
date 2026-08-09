@@ -753,7 +753,7 @@ For API teaching notebooks, present the library's mental model as a structured m
 
 ## Use Standard Introspection for Public APIs
 
-- When displaying public methods/attributes of a library object, use `hintrospection.print_public_methods()`:
+- When displaying public methods/attributes of a library object, use `hintrospection.print_obj_info()`:
 
   - **Bad** (manual introspection with `inspect` module):
 
@@ -785,10 +785,22 @@ For API teaching notebooks, present the library's mental model as a structured m
 
     ```python
     import helpers.hintrospection as hintros
-    hintros.print_public_methods(explainer, use_markdown=True)
+    hintros.print_obj_info(explainer)
     ```
 
 - **Rationale**: Standardized output, consistent formatting, reduces boilerplate, renders cleanly in notebooks
+
+## Pair GitHub Link with Interface Listing
+
+- When introducing a class in a notebook, pair its GitHub source link with its
+  public interface listing via a single call:
+
+  ```python
+  import helpers.hintrospection as hintros
+
+  # Link to the class definition on GitHub, and list its public surface.
+  hintros.print_obj_info(sim.MultiArmedBandit)
+  ```
 
 # Interactive Cells
 
