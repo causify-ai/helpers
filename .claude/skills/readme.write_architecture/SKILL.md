@@ -1,6 +1,6 @@
 ---
 description: Write architecture documentation for a Python file
-model: haiku
+model: sonnet
 ---
 
 # Goal

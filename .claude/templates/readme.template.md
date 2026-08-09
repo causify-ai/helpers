@@ -6,7 +6,7 @@
 
 ## Structure of the Dir
 
-<List subdirectories if any - optional section if no subdirs>
+<List subdirectories if any: optional section if no subdirs>
 
 - `<subdir1>/`
   - <Brief description of subdirectory (<20 words)>
@@ -15,7 +15,8 @@
 
 ## Description of Files
 
-<List all Python and Markdown files in alphabetical order with 1-line descriptions (<20 words)>
+<List all Python and Markdown files in alphabetical order with 1-line
+descriptions (<20 words)>
 
 - `<file1.py>`
   - <One-line description of what this file does>
@@ -41,17 +42,17 @@
 
 <3-5 realistic usage patterns ordered from simple to complex>
 
-- <Simple use case - short description>:
+- <Simple use case: short description>:
   ```bash
   > ./script_name.py --basic-arg value
   ```
 
-- <Common workflow - short description>:
+- <Common workflow: short description>:
   ```bash
   > ./script_name.py --input file.txt --output result.txt
   ```
 
-- <Advanced usage - short description>:
+- <Advanced usage: short description>:
   ```bash
   > ./script_name.py --input file.txt --output result.txt --verbose --config custom.yaml
   ```
@@ -90,21 +91,20 @@
 
 ## <Workflow Name>
 
-**Purpose**: <What this workflow accomplishes>
+- **Purpose**: <What this workflow accomplishes>
 
-**Steps**:
+- **Steps**:
+  1. <Use tool A to prepare data>
+     ```bash
+     > tool_a.py --prepare input_file
+     ```
 
-1. <Use tool A to prepare data>
-   ```bash
-   > tool_a.py --prepare input_file
-   ```
+  2. <Use tool B to process data>
+     ```bash
+     > tool_b.py --process prepared_file
+     ```
 
-2. <Use tool B to process data>
-   ```bash
-   > tool_b.py --process prepared_file
-   ```
-
-3. <Use tool C to analyze results>
-   ```bash
-   > tool_c.py --analyze processed_file
-   ```
+  3. <Use tool C to analyze results>
+     ```bash
+     > tool_c.py --analyze processed_file
+     ```

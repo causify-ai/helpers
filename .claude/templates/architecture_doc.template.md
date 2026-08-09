@@ -48,19 +48,7 @@
 
 ## C4 (Code)
 
-- Describes how the components are implemented
-
-- Primary call flow as a nested code block, e.g.:
-  ```
-  entry_point()
-    - orchestrator()
-      - stage_a()
-      - stage_b()
-      - finalize() [optional]
-  ```
-
-- Notable code patterns, algorithms, or data structures
-  - Include only what is non-obvious or architecturally significant
+- We don't describe the code since this is often too much detailed
 
 ## Key Functions / Classes
 
@@ -73,29 +61,9 @@
 - One row per public API member; omit private helpers unless central to the
   design
 
-## External Dependencies
-
-- Table of external libraries and modules the component depends on:
-
-  | Module | Purpose |
-  |--------|---------|
-  | `module_name` | What it is used for |
-
-- Include external CLI tools or services as rows when relevant
-
 # Critique and Improvements
-
-## Strengths
-
-- What the design and implementation do well
-- One bullet per strength, tied to a concrete aspect of the code
 
 ## Weaknesses and Assumptions
 
 - One numbered item per issue or limitation, each with:
-  - A short description of the problem
-  - A **Fact** or **Assumption** label:
-    - **Fact** (code-derived)
-    - **Assumption** (inferred): state what is being assumed, e.g. "Assumes a
-      single execution per process"
-  - An **Impact** line: what breaks or degrades because of it
+  - A short description of the problem and a list of possible solutions

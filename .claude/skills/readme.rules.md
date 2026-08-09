@@ -49,7 +49,7 @@ Conventions for writing a README for a directory with executables.
     - Unit testing conventions including test structure, naming patterns, and golden file testing
   ```
 
-## Description of Executables Section
+## Description of Executables Section (if Applicable)
 
 Find all executable files and create one `##` header per tool.
 
@@ -124,8 +124,16 @@ Find all executable files and create one `##` header per tool.
 - Short commands in prose (e.g., `run foo.py`) stay inline with backticks
 - Only standalone usage instructions use bullet + fenced block format
 
-## Description of Workflows (optional)
+## Description of Workflows (if Applicable)
 
 - How executables combine for complex features
 
-## Description of Architecture
+## Description of Architecture (if Applicable)
+
+- TODO(gp): Finish this
+
+# Examples
+- `dev_scripts_helpers/documentation/README.md`
+- `dev_scripts_helpers/llms/README.md`
+- `dev_scripts_helpers/ai/README.md`
+- `dev_scripts_helpers/coding_tools/README.md`
