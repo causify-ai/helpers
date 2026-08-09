@@ -29,7 +29,6 @@ model: haiku
    - Table format for command references
 
 ## Examples
-
 - `dev_scripts_helpers/documentation/README.md`
 - `dev_scripts_helpers/llms/README.md`
 - `dev_scripts_helpers/ai/README.md`

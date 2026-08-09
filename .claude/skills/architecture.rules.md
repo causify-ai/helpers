@@ -1,4 +1,4 @@
-- This file contains conventions for software architecture and code organization
+This file contains conventions for software architecture and code organization.
 
 # Architectural Principles
 

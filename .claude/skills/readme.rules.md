@@ -2,12 +2,15 @@ Conventions for writing a README for a directory with executables.
 
 # Overall Structure
 
-- READMEs should follow this hierarchical organization:
-  1. **Summary**: One paragraph describing the directory's purpose
-  2. **Structure of the Dir**: List subdirectories with <20-word descriptions
-  3. **Description of Files**: Alphabetical list of all files with 1-line descriptions
-  4. **Description of Executables**: Detailed docs for each script/tool
-  5. **Description of Workflows** (optional): How executables combine for complex features
+- READMEs for a directory should follow this hierarchical organization:
+  - **Summary**: One paragraph describing the directory's purpose
+  - **Structure of the Dir**: List subdirectories with <20-word descriptions
+  - **Description of Files**: Alphabetical list of all files with 1-line
+    descriptions
+  - **Description of Executables**: Detailed docs for each script/tool
+  - **Description of Workflows** (optional): How executables combine for complex
+    features
+  - **Description of Architecture**: How code is organized in each directory
 
 # Writing Conventions
 
@@ -21,7 +24,7 @@ Conventions for writing a README for a directory with executables.
 ## Summary Section
 - Single paragraph describing the directory's purpose in terms of 2-3 short
   bullet points
-- Answer: "What does this directory do?"
+- Answer: _"What does this directory do?"_
 
 ## Structure of the Dir Section
 - Bullet list of subdirectories (if any)
@@ -120,3 +123,9 @@ Find all executable files and create one `##` header per tool.
 
 - Short commands in prose (e.g., `run foo.py`) stay inline with backticks
 - Only standalone usage instructions use bullet + fenced block format
+
+## Description of Workflows (optional)
+
+- How executables combine for complex features
+
+## Description of Architecture

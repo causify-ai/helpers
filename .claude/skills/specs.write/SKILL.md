@@ -16,10 +16,6 @@ model: opus
   it to extract the exact scope of the requested PR/feature
 - If an architecture doc already exists for the target directory, read it to
   understand the current design
-- Read `.claude/skills/architecture.rules.md` about how we organize the
-  architecture of software
-- Read the coding and unit test conventions in `.claude/skills/coding.rules.md`
-  and `.claude/skills/testing.rules.md`
 
 ## Step 2: Write the Spec
 - Create a markdown document following the template
@@ -53,6 +49,8 @@ model: opus
   made in this spec
 - Reference actual code artifacts (file, class, function names) instead of
   paraphrasing them generically
+
+- The entire spec should be no longer than 100 lines using 85 wrapped text
 
 # Verification
 - [ ] File saved as `spec.<topic>.md`, not `plan.<topic>.md`

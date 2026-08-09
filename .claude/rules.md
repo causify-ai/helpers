@@ -1,8 +1,54 @@
-This file contains a mapping between file type and file containing rule /
+This file contains a mapping between "file type" and files containing rule /
 conventions and templates
 
 Based on the files that you need to operate, read and follow the corresponding
 rules
+
+# Text
+
+## Structured Text
+- For writing structured bullet-point text you MUST follow instructions in
+  `.claude/skills/text.rules.md`
+
+## Markdown
+- For writing markdown text you MUST follow instructions in
+  `.claude/skills/markdown.rules.md`
+
+## Visuals
+- For diagrams, images, and other illustrations you MUST follow instructions
+  in `.claude/skills/visuals.rules.md`, using:
+  - The template `.claude/templates/graphviz.template.md` for Graphviz
+    diagrams
+  - The template `.claude/templates/image.template.md` for image
+    descriptions
+  - The template `.claude/templates/tikz.template.md` for TikZ diagrams
+- For a publication-quality SVG figure you MUST follow
+  `.claude/skills/svg.rules.md`
+- For a publication-quality TikZ figure you MUST follow
+  `.claude/skills/tikz.rules.md`
+
+# Development Tools
+
+## Agent Skills
+- For skills you MUST follow instructions in `.claude/skills/skill.rules.md`
+
+## AI Instructions
+- For writing an AI task instruction file you MUST follow the patterns in
+  the template `.claude/templates/ai.instruction_template.md`
+
+## Auto Task
+- For writing or reviewing an `auto_task` plan (GitHub issue problem /
+  solution) you MUST follow `.claude/skills/auto_task.rules.md`
+
+## GitHub PR Plan
+- For splitting a branch into a sequence of PRs you MUST follow the template
+  `.claude/templates/github_PR_plan.template.md`
+
+## Cfile
+- For generating a vim quickfix `cfile` you MUST follow
+  `.claude/skills/cfile.rules.md`
+
+# Developing Software
 
 ## Architecture
 - For designing software architecture and organizing code you MUST follow:
@@ -31,6 +77,15 @@ rules
 - For diagnosing and triaging failing pytest runs you MUST follow:
   - The rules `.claude/skills/pytest.rules.md`
 
+## Readme
+- For a README of a directory with executables you MUST follow instructions
+  in `.claude/skills/readme.rules.md` and the template
+  `.claude/templates/readme.template.md`
+- For a README of a single executable / script you MUST follow instructions
+  in `.claude/skills/readme_file.rules.md`
+
+# Tutorials
+
 ## Notebooks
 - For Jupyter notebook (files with a `.ipynb` extension) you MUST follow:
   - The rules `.claude/skills/notebook.rules.md`
@@ -42,20 +97,25 @@ rules
     `.claude/templates/API_notebook.template.ipynb` and
     `.claude/templates/API_notebook.template.py`
 
-## Markdown
-- For writing markdown text you MUST follow instructions in
-  `.claude/skills/markdown.rules.md`
+## Tool Tutorials
+- For a "Learn X in 60 Minutes" tutorial you MUST follow
+  `.claude/skills/tool_X_in_60_mins.rules.md`
+- For a "Learn X in 30 Minutes" tutorial you MUST follow
+  `.claude/skills/tool_X_in_30_mins.rules.md`
 
-## Structured Text
-- For writing structured bullet-point text you MUST follow instructions in
-  `.claude/skills/text.rules.md`
+## Package Landscape
+- For a package/library functionality-cluster comparison doc you MUST
+  follow the template `.claude/templates/package.template.md`
 
-## Readme
-- For a README of a directory with executables you MUST follow instructions
-  in `.claude/skills/readme.rules.md` and the template
-  `.claude/templates/readme.template.md`
-- For a README of a single executable / script you MUST follow instructions
-  in `.claude/skills/readme_file.rules.md`
+# Books and Lectures
+
+## Lectures
+- For a Typst-based lecture notes doc you MUST follow the template
+  `.claude/templates/lectures.template.md`
+
+## Book
+- For a book table of contents / map you MUST follow the template
+  `.claude/templates/book_map.template.md`
 
 ## Slides
 - For creating slides (i.e., files with a `txt` extension) you MUST follow
@@ -77,53 +137,3 @@ rules
 ## References
 - For formatting references to books or papers you MUST follow instructions
   in `.claude/skills/references.rules.md`
-
-## Visuals
-- For diagrams, images, and other illustrations you MUST follow instructions
-  in `.claude/skills/visuals.rules.md`, using:
-  - The template `.claude/templates/graphviz.template.md` for Graphviz
-    diagrams
-  - The template `.claude/templates/image.template.md` for image
-    descriptions
-  - The template `.claude/templates/tikz.template.md` for TikZ diagrams
-- For a publication-quality SVG figure you MUST follow
-  `.claude/skills/svg.rules.md`
-- For a publication-quality TikZ figure you MUST follow
-  `.claude/skills/tikz.rules.md`
-
-## Cfile
-- For generating a vim quickfix `cfile` you MUST follow
-  `.claude/skills/cfile.rules.md`
-
-## Auto Task
-- For writing or reviewing an `auto_task` plan (GitHub issue problem /
-  solution) you MUST follow `.claude/skills/auto_task.rules.md`
-
-## GitHub PR Plan
-- For splitting a branch into a sequence of PRs you MUST follow the template
-  `.claude/templates/github_PR_plan.template.md`
-
-## Tool Tutorials
-- For a "Learn X in 60 Minutes" tutorial you MUST follow
-  `.claude/skills/tool_X_in_60_mins.rules.md`
-- For a "Learn X in 30 Minutes" tutorial you MUST follow
-  `.claude/skills/tool_X_in_30_mins.rules.md`
-
-## Book
-- For a book table of contents / map you MUST follow the template
-  `.claude/templates/book_map.template.md`
-
-## AI Instructions
-- For writing an AI task instruction file you MUST follow the patterns in
-  the template `.claude/templates/ai.instruction_template.md`
-
-## Package Landscape
-- For a package/library functionality-cluster comparison doc you MUST
-  follow the template `.claude/templates/package.template.md`
-
-## Lectures
-- For a Typst-based lecture notes doc you MUST follow the template
-  `.claude/templates/lectures.template.md`
-
-## Agent Skills
-- For skills you MUST follow instructions in `.claude/skills/skill.rules.md`

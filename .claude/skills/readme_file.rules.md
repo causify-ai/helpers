@@ -4,7 +4,7 @@ Conventions for writing a README for a single executable / script.
 
 - Single-file READMEs should follow this hierarchical organization:
   - **Summary**: One paragraph describing the file's purpose and main
-  responsibility
+    responsibility
   - **Examples**: 3-5 realistic usage patterns (simple → complex)
   - **Configuration & Inputs**: Parameters, environment variables, file formats
   - **Output & Side Effects**: What the script produces and any state changes
@@ -25,7 +25,7 @@ Conventions for writing a README for a single executable / script.
 
 - Bullet points describing what the file does
 - Include: Primary purpose, main inputs, main outputs
-- Answer: "What does this file do and when would I use it?"
+- Answer: _"What does this file do and when would I use it?"_
 - Keep under 100 words
 - Example:
   ```markdown
