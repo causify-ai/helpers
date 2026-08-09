@@ -1,23 +1,3 @@
-<!-- toc -->
-
-- [Dockerized Executable Flow](#dockerized-executable-flow)
-  * [The concept of "dockerized" executables](#the-concept-of-dockerized-executables)
-  * [Templates](#templates)
-  * [Examples of Dockerized Executables](#examples-of-dockerized-executables)
-  * [Directory and Module Structure](#directory-and-module-structure)
-    + [Core Infrastructure Modules](#core-infrastructure-modules)
-    + [Script Architecture Pattern](#script-architecture-pattern)
-    + [File Naming Conventions](#file-naming-conventions)
-  * [Running a Dockerized executable](#running-a-dockerized-executable)
-    + [Children- vs Sibling-container](#children--vs-sibling-container)
-    + [Bind Mounting a Directory for Dockerized Executables](#bind-mounting-a-directory-for-dockerized-executables)
-  * [Testing a dockerized executable](#testing-a-dockerized-executable)
-  * [Examples](#examples)
-    + [Example 1: Notebook Image Extraction](#example-1-notebook-image-extraction)
-    + [Example 2: llm_transform](#example-2-llm_transform)
-
-<!-- tocstop -->
-
 # Dockerized Executable Flow
 
 ## The concept of "dockerized" executables
