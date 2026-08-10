@@ -35,6 +35,26 @@ model: sonnet
 
 - Follow the `# Verification` checklist below before returning the result
 
+# File Description
+
+- Print a nested bullet list for each file describing what are the abstractions
+  and functionalities the file contains
+- Keep the files ordered in terms of use relationship
+  - E.g., if file X is imported by Y, then X should come before Y in the list
+
+- E.g.,
+  ```markdown
+  - `batch_call_auction.py`
+    - In-memory order book for a batch call auction
+    - Queues buy/sell orders, buckets by capability tier
+    - Clears each tier at a uniform price once per round
+  - `passthrough_proxy.py`
+    - LLM provider gateway
+    - Routes a prompt to a registered provider
+    - Times the call, estimates cost, and logs every request/response pair for
+      later query
+  ```
+
 # Class Description
 
 - For each file, print one bullet per Python class with a description under
@@ -56,11 +76,6 @@ model: sonnet
     - Outcome of clearing one tier (price, fills, unfilled quantities)
   - `OrderBookStore`
     - Abstract pluggable storage backend for pending bids/asks
-  - `_InMemoryOrderBookStore`
-    - Default in-memory list-based `OrderBookStore`
-  - `OrderBook`
-    - Batch call-auction book
-    - Queues orders and clears tiers per round
 
   ## <file.py>
   ...
@@ -92,18 +107,6 @@ model: sonnet
       - Queue a bid
     - `clear(self) -> None`
       - Abstract, drop every stored bid/ask
-
-  - `_InMemoryOrderBookStore(OrderBookStore)`
-    - `__init__(self) -> None`
-      - Init empty in-memory bid/ask lists
-    - `add_bid(self, bid: Bid) -> None`
-      - Append bid to internal list
-
-  - `OrderBook`
-    - `__init__(self, *, store: Optional[OrderBookStore] = None) -> None`
-      - Init book, defaulting to in-memory store
-    - `clear_round(self) -> Dict[str, TierClearResult]`
-      - Clear every tier present in the book and empty it
 
   ## <file.py>
   ...
