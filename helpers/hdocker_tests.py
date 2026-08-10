@@ -65,19 +65,19 @@ def _run_docker_pytest_cmd(
 
 
 # TODO(gp): Consider making shell_cmd mandatory.
-def run_docker_cmd(script_dir: str, *, shell_cmd: str = "ls /git_root") -> None:
+def run_docker_cmd(docker_script_dir: str, *, shell_cmd: str = "ls /git_root") -> None:
     """
     Run an arbitrary shell command inside Docker via `docker_cmd.sh`.
 
-    :param script_dir: directory containing docker_cmd.sh
+    :param docker_script_dir: directory containing docker_cmd.sh
     :param shell_cmd: shell command to run inside the container
     """
-    hdbg.dassert_path_exists(script_dir)
+    hdbg.dassert_path_exists(docker_script_dir)
     # Look for `docker_cmd.sh`
-    docker_cmd_script = os.path.join(script_dir, "docker_cmd.sh")
+    docker_cmd_script = os.path.join(docker_script_dir, "docker_cmd.sh")
     hdbg.dassert_file_exists(docker_cmd_script)
     #
-    cmd = f"cd {script_dir} && bash {docker_cmd_script} '{shell_cmd}'"
+    cmd = f"cd {docker_script_dir} && bash {docker_cmd_script} '{shell_cmd}'"
     hsystem.system(cmd)
 
 
@@ -124,85 +124,95 @@ class DockerTestCase(hunitest.TestCase):
     Base test class for Docker tests.
 
     Subclasses must set `_test_file = __file__` and may add notebook test
-    methods that call `self._helper(notebook_name)`.
+    methods that call `self.helper(notebook_name)`.
     """
 
     # Assigned by subclasses.
     _test_file: str = ""
 
-    # TODO(gp): This should always be executed first.
+    def _get_docker_docker_script_dir(self) -> str:
+        """
+        Compute the project directory containing the Docker scripts.
+
+        - `self._test_file` is the path of the test file, which lives in a
+          `test/` subdirectory of the project
+            - E.g., `.../my_project/test/test_docker_all.py`
+        - Going up two directory levels from the test file yields the project
+          directory that contains `docker_build.sh`, `docker_cmd.sh`, and
+          `docker_bash.sh`.
+
+        :return: absolute path to the project directory
+        """
+        docker_script_dir = os.path.dirname(
+            os.path.dirname(os.path.abspath(self._test_file))
+        )
+        return docker_script_dir
+
+    @pytest.mark.order(1)
     @pytest.mark.slow
     def test_docker_build(self) -> None:
         """
         Test that `docker_build.sh` runs without error.
         """
         # Prepare inputs.
-        # TODO(ai_gp): Factor out this and explain what it does.
-        script_dir = os.path.dirname(
-            os.path.dirname(os.path.abspath(self._test_file))
-        )
-        docker_build_script = os.path.join(script_dir, "docker_build.sh")
+        docker_script_dir = self._get_docker_docker_script_dir()
+        docker_build_script = os.path.join(docker_script_dir, "docker_build.sh")
         hdbg.dassert_file_exists(docker_build_script)
         # Run test.
-        cmd = f"cd {script_dir} && bash {docker_build_script}"
+        cmd = f"cd {docker_script_dir} && bash {docker_build_script}"
         hsystem.system(cmd)
 
+    @pytest.mark.order(2)
     @pytest.mark.slow
     def test_docker_cmd(self) -> None:
         """
         Test that `docker_cmd.sh 'ls /git_root'` runs without error.
         """
         # Prepare inputs.
-        script_dir = os.path.dirname(
-            os.path.dirname(os.path.abspath(self._test_file))
-        )
-        docker_cmd_script = os.path.join(script_dir, "docker_cmd.sh")
+        docker_script_dir = self._get_docker_docker_script_dir()
+        docker_cmd_script = os.path.join(docker_script_dir, "docker_cmd.sh")
         hdbg.dassert_file_exists(docker_cmd_script)
         # Run test.
-        cmd = f"cd {script_dir} && bash {docker_cmd_script} 'ls /git_root'"
+        cmd = f"cd {docker_script_dir} && bash {docker_cmd_script} 'ls /git_root'"
         hsystem.system(cmd)
 
+    @pytest.mark.order(3)
     def test_docker_bash(self) -> None:
         """
         Test that `docker_bash.sh` runs 'ls /git_root' without error.
         """
         # Prepare inputs.
-        script_dir = os.path.dirname(
-            os.path.dirname(os.path.abspath(self._test_file))
-        )
-        docker_bash_script = os.path.join(script_dir, "docker_bash.sh")
+        docker_script_dir = self._get_docker_docker_script_dir()
+        docker_bash_script = os.path.join(docker_script_dir, "docker_bash.sh")
         if not os.path.exists(docker_bash_script):
-            pytest.skip("docker_bash.sh not found in " + script_dir)
+            pytest.skip("docker_bash.sh not found in " + docker_script_dir)
         # Run test.
         shell_cmd = "ls /git_root"
         cmd = f"echo '{shell_cmd}' | bash {docker_bash_script}"
         hsystem.system(cmd)
 
-    # TODO(ai_gp): -> helper
-    def _helper(self, notebook_name: str) -> None:
+    def helper(self, notebook_name: str) -> None:
         """
         Run a single notebook inside Docker.
 
         :param notebook_name: notebook filename relative to the project dir
         """
         # Prepare inputs.
-        script_dir = os.path.dirname(
-            os.path.dirname(os.path.abspath(self._test_file))
-        )
-        docker_cmd_script = os.path.join(script_dir, "docker_cmd.sh")
+        docker_script_dir = self._get_docker_docker_script_dir()
+        docker_cmd_script = os.path.join(docker_script_dir, "docker_cmd.sh")
         _LOG.debug(hprint.to_str("docker_cmd_script"))
         # Notebook path.
-        notebook_path = os.path.join(script_dir, notebook_name)
+        notebook_path = os.path.join(docker_script_dir, notebook_name)
         hdbg.dassert_file_exists(notebook_path)
         _LOG.debug(hprint.to_str("notebook_path"))
         # Compute the notebook path inside the container via /git_root.
-        git_root = hgit.find_git_root(script_dir)
-        rel_path = os.path.relpath(script_dir, git_root)
+        git_root = hgit.find_git_root(docker_script_dir)
+        rel_path = os.path.relpath(docker_script_dir, git_root)
         container_notebook_path = f"/git_root/{rel_path}/{notebook_name}"
         _LOG.debug(hprint.to_str("container_notebook_path"))
         # Run command.
         cmd = (
-            f"cd {script_dir} && "
+            f"cd {docker_script_dir} && "
             f"bash {docker_cmd_script} "
             f"'jupyter nbconvert --execute --to html "
             f"--ExecutePreprocessor.timeout=-1 {container_notebook_path}'"

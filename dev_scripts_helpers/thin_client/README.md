@@ -1,6 +1,8 @@
 # Thin Client
 
-Scripts for setting up and managing thin client repositories using `helpers_root` as a submodule. Automates configuration linking, environment setup, and testing workflows.
+- Scripts for setting up and managing thin client repositories using
+  `helpers_root` as a submodule
+- Automates configuration linking, environment setup, and testing workflows
 
 ## Structure of the Dir
 
@@ -29,7 +31,7 @@ This directory has no subdirectories.
 
 ### What It Does
 
-- Automates creation of symbolic links to helpers_root configuration files
+- Automates creation of symbolic links to `helpers_root` configuration files
 - Links standard config files to enable repository configuration sharing
 - Reduces duplication and ensures consistency across thin client repos
 - Supports force recreation and dry-run modes
