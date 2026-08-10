@@ -9,7 +9,7 @@
 # Skip extra dirs with -e/--exclude (repeatable):
 # > ctags.sh --exclude node_modules --exclude build
 
-set -eux
+set -eu
 
 # Dirs always excluded.
 EXCLUDE_DIRS=(".git" ".mypy_cache")
