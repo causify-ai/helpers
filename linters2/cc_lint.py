@@ -1447,17 +1447,20 @@ def _build_one_shot_prompt(
         rule_content = hmarsele.extract_rule_from_file(args.rule)
         if add_todos:
             rule_file = args.rule.split(":", 1)[0]
-            # TODO(ai_gp): Use """ and dedent
-            prompt = (
-                f"Check the rule below against file {file_path} for "
-                f"violations (do not fix them):\n{rule_content}\n\n"
+            prompt = f"""
+                Check the rule below against file {file_path} for violations (do not fix them):
+                """
+            prompt = hprint.dedent(prompt)
+            prompt += (
+                "\n" + rule_content + "\n\n"
                 + _build_add_todos_instructions(rule_file)
             )
         else:
-            # TODO(ai_gp): Use """ and dedent
-            prompt = (
-                f"Execute the rule below on file {file_path}:\n{rule_content}"
-            )
+            prompt = f"""
+                Execute the rule below on file {file_path}:
+                """
+            prompt = hprint.dedent(prompt)
+            prompt += "\n" + rule_content
         topic_str = "rule"
         inferred_topic = _infer_topic_from_filename(file_path)
         topic_info = _get_rules_for_topic(inferred_topic)
@@ -1472,22 +1475,21 @@ def _build_one_shot_prompt(
             topic_str = cast(str, topic)
         prompt, topic_info = _build_prompt(topic_str, add_todos=add_todos)
         if add_todos:
-            # TODO(ai_gp): Use """ and dedent
-            prompt += (
-                "\n\n- Check the files below against the rules and "
-                "conventions above and add TODO\n"
-                "  comments for violations without asking questions to the "
-                "user\n"
-                f"  - `{file_path}`"
-            )
+            todo_note = f"""
+                - Check the files below against the rules and conventions above and add TODO
+                  comments for violations without asking questions to the user:
+                  - `{file_path}`
+                """
+            todo_note = hprint.dedent(todo_note)
+            prompt += "\n\n" + todo_note
         else:
-            # TODO(ai_gp): Use """ and dedent
-            prompt += (
-                "\n\n- Process the files below according to the rules and "
-                "conventions above and make the changes without asking "
-                "questions to the user\n"
-                f"  - `{file_path}`"
-            )
+            process_note = f"""
+                - Process the files below according to the rules and conventions above and
+                  make the changes without asking questions to the user:
+                  - `{file_path}`
+                """
+            process_note = hprint.dedent(process_note)
+            prompt += "\n\n" + process_note
     _LOG.debug(
         "return=(prompt_length=%d, topic_str=%s)", len(prompt), topic_str
     )

@@ -218,6 +218,7 @@ class Test_PromptSequencer_chunk_stats(hunitest.TestCase):
             `str(sequencer.get_chunk_stats())` after execution
         """
         _LOG.debug(hprint.to_str("prompts expected_chunk_stats"))
+        expected_chunk_stats = hprint.dedent(expected_chunk_stats)
         with umock.patch("claude_agent_sdk.ClaudeSDKClient") as mock_client_cls:
             mock_client_cls.return_value = fake_client
             asyncio.run(sequencer.execute(prompts))
@@ -282,8 +283,6 @@ class Test_PromptSequencer_chunk_stats(hunitest.TestCase):
         expected = r"""
             [{'outcome': 'NO-OP', 'cost_usd': None, 'num_turns': 0, 'is_error': False, 'usage': None, 'stop_reason': None}]
         """
-        # TODO(ai_gp): Move this in the helper and remove it from the callers.
-        expected = hprint.dedent(expected)
         # Run test.
         self.helper(sequencer, ["prompt A"], fake_client, expected)
 
@@ -321,7 +320,6 @@ class Test_PromptSequencer_chunk_stats(hunitest.TestCase):
         expected = r"""
         [{'outcome': 'CHANGED: fixed x', 'cost_usd': 0.5, 'num_turns': 15, 'is_error': True, 'usage': None, 'stop_reason': None}]
         """
-        expected = hprint.dedent(expected)
         # Run test.
         self.helper(sequencer, ["prompt A"], fake_client, expected)
 
@@ -356,7 +354,6 @@ class Test_PromptSequencer_chunk_stats(hunitest.TestCase):
         expected = r"""
         [{'outcome': 'NO-OP', 'cost_usd': None, 'num_turns': 0, 'is_error': False, 'usage': None, 'stop_reason': None}, {'outcome': 'CHANGED: fixed x', 'cost_usd': None, 'num_turns': 0, 'is_error': False, 'usage': None, 'stop_reason': None}]
         """
-        expected = hprint.dedent(expected)
         # Run test.
         self.helper(sequencer, ["prompt A", "prompt B"], fake_client, expected)
 
@@ -389,7 +386,6 @@ class Test_PromptSequencer_chunk_stats(hunitest.TestCase):
         expected = r"""
         [{'outcome': 'NO-OP', 'cost_usd': None, 'num_turns': 0, 'is_error': False, 'usage': None, 'stop_reason': None}, {'outcome': 'NO-OP', 'cost_usd': None, 'num_turns': 0, 'is_error': False, 'usage': None, 'stop_reason': None}]
         """
-        expected = hprint.dedent(expected)
         # Run test.
         self.helper(sequencer, ["prompt A", "prompt B"], fake_client, expected)
         # Check outputs.

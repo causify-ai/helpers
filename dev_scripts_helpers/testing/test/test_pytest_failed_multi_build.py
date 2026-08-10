@@ -976,7 +976,7 @@ class Test_build_stats_to_str_new_status_conditions(hunitest.TestCase):
         self,
         build_stats: List[Any],
         expected_strings: List[str],
-        # TODO(ai_gp): If this is not used by any test remove it.
+        *,
         unexpected_strings: Optional[List[str]] = None,
     ) -> str:
         """

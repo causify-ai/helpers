@@ -83,6 +83,7 @@ class Test_CustomHelpFormatter_split_lines(hunitest.TestCase):
             "  invocation, shelling out to the `cc` wrapper\n"
             "- 'session' applies incrementally"
         )
+        width = 40
         # Prepare outputs.
         expected = [
             "Execution mode:",
@@ -92,8 +93,7 @@ class Test_CustomHelpFormatter_split_lines(hunitest.TestCase):
             "- 'session' applies incrementally",
         ]
         # Run test.
-        # TODO(ai_gp): Assign width=40 and pass width in all tests.
-        self.helper(text, 40, expected)
+        self.helper(text, width, expected)
 
     def test2(self) -> None:
         """
@@ -107,6 +107,7 @@ class Test_CustomHelpFormatter_split_lines(hunitest.TestCase):
             "  Available: py (Python)\n"
             "  Default: 'py,ipynb,md'"
         )
+        width = 66
         # Prepare outputs.
         expected = [
             "Comma-separated list of file extensions to process (e.g.,",
@@ -115,7 +116,7 @@ class Test_CustomHelpFormatter_split_lines(hunitest.TestCase):
             "  Default: 'py,ipynb,md'",
         ]
         # Run test.
-        self.helper(text, 66, expected)
+        self.helper(text, width, expected)
 
     def test3(self) -> None:
         """
@@ -127,13 +128,14 @@ class Test_CustomHelpFormatter_split_lines(hunitest.TestCase):
             "Model name to use using cc conventions (default: "
             "claude-haiku-4-5-20251001)"
         )
+        width = 40
         # Prepare outputs.
         expected = [
             "Model name to use using cc conventions",
             "(default: claude-haiku-4-5-20251001)",
         ]
         # Run test.
-        self.helper(text, 40, expected)
+        self.helper(text, width, expected)
 
     def test4(self) -> None:
         """
@@ -142,10 +144,11 @@ class Test_CustomHelpFormatter_split_lines(hunitest.TestCase):
         """
         # Prepare inputs.
         text = "Para one\n\nPara two"
+        width = 40
         # Prepare outputs.
         expected = ["Para one", "", "Para two"]
         # Run test.
-        self.helper(text, 40, expected)
+        self.helper(text, width, expected)
 
 
 # #############################################################################

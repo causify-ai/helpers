@@ -1723,7 +1723,30 @@ class Test_mock_apply_llm(hunitest.TestCase):
     Test mock_apply_llm context manager.
     """
 
-    # TODO(ai_gp): Use an helper and assert_equal.
+    def helper(
+        self, input_str: str, system_prompt: str, expected_hash: str
+    ) -> None:
+        """
+        Test helper for `hllmcli.apply_llm()` under `hllmcli.mock_apply_llm()`.
+
+        :param input_str: input string passed to the mocked LLM call
+        :param system_prompt: system prompt passed to the mocked LLM call
+        :param expected_hash: expected MD5 hash of `input_str +
+            system_prompt`
+        """
+        # Run test.
+        with hllmcli.mock_apply_llm():
+            actual_response, actual_token_stats = hllmcli.apply_llm(
+                input_str,
+                "gpt-5-nano",
+                system_prompt=system_prompt,
+            )
+        # Check outputs.
+        self.assert_equal(actual_response, expected_hash)
+        self.assertIsInstance(actual_token_stats, hllmcli.TokenStats)
+        actual_cost = actual_token_stats.to_float()
+        self.assertEqual(actual_cost, 0.0)
+
     def test1(self) -> None:
         """
         Test mock_apply_llm with input and system_prompt.
@@ -1735,17 +1758,7 @@ class Test_mock_apply_llm(hunitest.TestCase):
             (input_str + system_prompt).encode()
         ).hexdigest()
         # Run test.
-        with hllmcli.mock_apply_llm():
-            actual_response, actual_token_stats = hllmcli.apply_llm(
-                input_str,
-                "gpt-5-nano",
-                system_prompt=system_prompt,
-            )
-        # Check outputs.
-        self.assertEqual(actual_response, expected_hash)
-        self.assertIsInstance(actual_token_stats, hllmcli.TokenStats)
-        actual_cost = actual_token_stats.to_float()
-        self.assertEqual(actual_cost, 0.0)
+        self.helper(input_str, system_prompt, expected_hash)
 
     def test2(self) -> None:
         """
@@ -1753,17 +1766,10 @@ class Test_mock_apply_llm(hunitest.TestCase):
         """
         # Prepare inputs.
         input_str = "test input"
+        system_prompt = ""
         expected_hash = hashlib.md5(input_str.encode()).hexdigest()
         # Run test.
-        with hllmcli.mock_apply_llm():
-            actual_response, actual_token_stats = hllmcli.apply_llm(
-                input_str, "gpt-5-nano"
-            )
-        # Check outputs.
-        self.assertEqual(actual_response, expected_hash)
-        self.assertIsInstance(actual_token_stats, hllmcli.TokenStats)
-        actual_cost = actual_token_stats.to_float()
-        self.assertEqual(actual_cost, 0.0)
+        self.helper(input_str, system_prompt, expected_hash)
 
     def test3(self) -> None:
         """
@@ -1807,89 +1813,101 @@ class Test_add_llm_prompt_arg(hunitest.TestCase):
     Test add_llm_prompt_arg function.
     """
 
-    # TODO(ai_gp): Use an helper and assert_equal.
-    def test1(self) -> None:
+    def helper(
+        self,
+        default_prompt: str,
+        is_required: bool,
+        argv: List[str],
+        expected: str,
+    ) -> None:
         """
-        Test basic argument addition with is_required=True.
+        Test helper for `hllmcli.add_llm_prompt_arg()`.
+
+        Adds the prompt argument to a fresh parser, parses `argv`, and
+        checks the resulting `Namespace` against `expected`.
+
+        :param default_prompt: default prompt to pass to
+            `add_llm_prompt_arg()`
+        :param is_required: whether `--prompt` is required
+        :param argv: command line arguments to parse
+        :param expected: expected string representation of the parsed
+            `Namespace`
         """
         # Prepare inputs.
         parser = argparse.ArgumentParser(
             formatter_class=hparser.CustomHelpFormatter
         )
-        is_required = True
-        default_prompt = ""
         # Run test.
         result_parser = hllmcli.add_llm_prompt_arg(
             parser,
             default_prompt=default_prompt,
             is_required=is_required,
         )
-        # Check outputs: parser should have all arguments.
         self.assertIs(result_parser, parser)
-        # Try parsing with required arguments.
-        args = parser.parse_args(
-            ["--prompt", "test prompt", "--debug", "--fast_model"]
+        args = parser.parse_args(argv)
+        # Check outputs.
+        actual = str(dict(sorted(vars(args).items())))
+        self.assert_equal(actual, expected)
+
+    def test1(self) -> None:
+        """
+        Test basic argument addition with is_required=True.
+        """
+        # Prepare inputs.
+        default_prompt = ""
+        is_required = True
+        argv = ["--prompt", "test prompt", "--debug", "--fast_model"]
+        # Prepare outputs.
+        expected = str(
+            {"debug": True, "fast_model": True, "prompt": "test prompt"}
         )
-        self.assertEqual(args.prompt, "test prompt")
-        self.assertTrue(args.debug)
-        self.assertTrue(args.fast_model)
+        # Run test.
+        self.helper(default_prompt, is_required, argv, expected)
 
     def test2(self) -> None:
         """
         Test with default_prompt and is_required=False.
         """
         # Prepare inputs.
-        parser = argparse.ArgumentParser(
-            formatter_class=hparser.CustomHelpFormatter
-        )
         default_prompt = "default test prompt"
         is_required = True
-        # Run test.
-        hllmcli.add_llm_prompt_arg(
-            parser,
-            default_prompt=default_prompt,
-            is_required=is_required,
+        argv: List[str] = []
+        # Prepare outputs: prompt should not be required when default is set.
+        expected = str(
+            {"debug": False, "fast_model": False, "prompt": default_prompt}
         )
-        # Check outputs: prompt should not be required when default is set.
-        args = parser.parse_args([])
-        self.assertEqual(args.prompt, default_prompt)
+        # Run test.
+        self.helper(default_prompt, is_required, argv, expected)
 
     def test3(self) -> None:
         """
         Test all arguments are added correctly.
         """
         # Prepare inputs.
-        parser = argparse.ArgumentParser(
-            formatter_class=hparser.CustomHelpFormatter
+        default_prompt = ""
+        is_required = True
+        argv = ["--prompt", "test", "--debug", "--fast_model"]
+        # Prepare outputs.
+        expected = str(
+            {"debug": True, "fast_model": True, "prompt": "test"}
         )
         # Run test.
-        hllmcli.add_llm_prompt_arg(parser)
-        # Check outputs: parse without errors.
-        args = parser.parse_args(["--prompt", "test", "--debug", "--fast_model"])
-        # All flags should be present.
-        self.assertTrue(hasattr(args, "debug"))
-        self.assertTrue(hasattr(args, "prompt"))
-        self.assertTrue(hasattr(args, "fast_model"))
+        self.helper(default_prompt, is_required, argv, expected)
 
     def test4(self) -> None:
         """
         Test default values for optional flags.
         """
         # Prepare inputs.
-        parser = argparse.ArgumentParser(
-            formatter_class=hparser.CustomHelpFormatter
+        default_prompt = "default"
+        is_required = False
+        argv = ["--prompt", "custom"]
+        # Prepare outputs.
+        expected = str(
+            {"debug": False, "fast_model": False, "prompt": "custom"}
         )
         # Run test.
-        hllmcli.add_llm_prompt_arg(
-            parser,
-            default_prompt="default",
-            is_required=False,
-        )
-        args = parser.parse_args(["--prompt", "custom"])
-        # Check outputs.
-        self.assertEqual(args.prompt, "custom")
-        self.assertFalse(args.debug)
-        self.assertFalse(args.fast_model)
+        self.helper(default_prompt, is_required, argv, expected)
 
 
 # #############################################################################
@@ -1902,10 +1920,17 @@ class Test_add_llm_args(hunitest.TestCase):
     Test add_llm_args function.
     """
 
-    # TODO(ai_gp): Use an helper and assert_equal.
-    def test1(self) -> None:
+    def helper(self, argv: List[str], expected: str) -> None:
         """
-        Test basic LLM arguments with defaults.
+        Test helper for `hllmcli.add_llm_args()` with default kwargs.
+
+        Adds arguments to a fresh parser via `hllmcli.add_llm_args(parser)`,
+        parses `argv`, and checks the resulting `input`, `model`, and
+        `backend` values.
+
+        :param argv: command line arguments to parse
+        :param expected: expected string representation of `(input, model,
+            backend)`
         """
         # Prepare inputs.
         parser = argparse.ArgumentParser(
@@ -1913,13 +1938,24 @@ class Test_add_llm_args(hunitest.TestCase):
         )
         # Run test.
         result_parser = hllmcli.add_llm_args(parser)
-        # Check outputs.
         self.assertIs(result_parser, parser)
-        # Parse with input file.
-        args = parser.parse_args(["--input", "test.txt"])
-        self.assertEqual(args.input, "test.txt")
-        self.assertEqual(args.model, "openrouter/deepseek/deepseek-v4-flash")
-        self.assertEqual(args.backend, "library")
+        args = parser.parse_args(argv)
+        # Check outputs.
+        actual = str((args.input, args.model, args.backend))
+        self.assert_equal(actual, expected)
+
+    def test1(self) -> None:
+        """
+        Test basic LLM arguments with defaults.
+        """
+        # Prepare inputs.
+        argv = ["--input", "test.txt"]
+        # Prepare outputs.
+        expected = str(
+            ("test.txt", "openrouter/deepseek/deepseek-v4-flash", "library")
+        )
+        # Run test.
+        self.helper(argv, expected)
 
     def test2(self) -> None:
         """
@@ -2107,21 +2143,19 @@ class Test_expand_referenced_files(hunitest.TestCase):
         # Run test.
         self.helper(prompt, expected)
 
-    # TODO(ai_gp): Can we use self.helper
     def test5(self) -> None:
         """
         Test expanding a reference that contains a directory path.
         """
-        # Prepare inputs.
+        # Prepare inputs: `helper()` uses the same scratch space, so the
+        # nested file is visible when `expand_referenced_files()` runs.
         repo_dir = self.get_scratch_space()
         hio.to_file(os.path.join(repo_dir, "sub", "nested.md"), "nested content")
         prompt = "See @sub/nested.md"
         # Prepare outputs.
         expected = "See <!-- From sub/nested.md -->\nnested content"
         # Run test.
-        actual = hllmcli.expand_referenced_files(prompt, repo_dir=repo_dir)
-        # Check outputs.
-        self.assert_equal(actual, expected)
+        self.helper(prompt, expected)
 
     def test6(self) -> None:
         """

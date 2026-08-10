@@ -55,6 +55,34 @@ class Test_llm_cli_py(hunitest.TestCase):
     End-to-end tests for llm_cli.py executable.
     """
 
+    def helper(
+        self,
+        argv: List[str],
+        expected: str,
+        *,
+        output_basename: str = "",
+        dedent: bool = False,
+    ) -> None:
+        """
+        Run `llm_cli.py` with a mocked LLM and check the output.
+
+        :param argv: command-line argument list to inject via
+            `mock.patch("sys.argv", ...)`
+        :param expected: expected content of the output
+        :param output_basename: if provided, reads and checks the content
+            of this file in the scratch space; otherwise checks the empty
+            string returned when no output file is produced
+        :param dedent: if True, dedent `expected` before comparing
+        """
+        # Run test.
+        actual = _run_llm_cli_with_mock(
+            argv,
+            scratch_space=self.get_scratch_space(),
+            output_basename=output_basename,
+        )
+        # Check outputs.
+        self.assert_equal(actual, expected, dedent=dedent)
+
     def _get_script_path(self) -> str:
         """
         Get path to the llm_cli.py script.
@@ -79,7 +107,6 @@ class Test_llm_cli_py(hunitest.TestCase):
         hio.to_file(input_file, hprint.dedent(content))
         return input_file
 
-    # TODO(ai_gp): Factor out a helper and do the checking inside.
     def test1(self) -> None:
         """
         Test basic help output.
@@ -106,16 +133,12 @@ class Test_llm_cli_py(hunitest.TestCase):
             f"--output={output_file}",
             "--system_prompt=Test prompt",
         ]
-        # Run test with mocked LLM.
-        actual = _run_llm_cli_with_mock(
-            argv,
-            scratch_space=self.get_scratch_space(),
-            output_basename="output.md",
-        )
+        # Prepare outputs.
         expected = """
         4cefdd211c4f3a83dbb505a8269b0df9
         """
-        self.assert_equal(actual, expected, dedent=True)
+        # Run test and check outputs.
+        self.helper(argv, expected, output_basename="output.md", dedent=True)
 
     def test4(self) -> None:
         """
@@ -130,14 +153,10 @@ class Test_llm_cli_py(hunitest.TestCase):
             f"--output={output_file}",
             "--system_prompt=Test prompt",
         ]
-        # Run test with mocked LLM.
-        actual = _run_llm_cli_with_mock(
-            argv,
-            scratch_space=self.get_scratch_space(),
-            output_basename="output.txt",
-        )
+        # Prepare outputs.
         expected = "28cc170b019a2f19c81096da11d44835"
-        self.assert_equal(actual, expected)
+        # Run test and check outputs.
+        self.helper(argv, expected, output_basename="output.txt")
 
     def test5(self) -> None:
         """
@@ -154,13 +173,13 @@ class Test_llm_cli_py(hunitest.TestCase):
             "--modify_in_place",
             "--system_prompt=Transform",
         ]
-        # Run test with mocked LLM.
-        _run_llm_cli_with_mock(argv, scratch_space=self.get_scratch_space())
-        # Check outputs.
-        # Expected: --modify_in_place modifies file in-place with transformed content.
-        actual = hio.from_file(input_file)
+        # Prepare outputs.
+        # Expected: --modify_in_place modifies file in-place with
+        # transformed content, so the output file is the input file itself.
         expected = "3cf0b39c3f35475ec51020426b19f8ca"
-        self.assert_equal(actual, expected)
+        output_basename = os.path.basename(input_file)
+        # Run test and check outputs.
+        self.helper(argv, expected, output_basename=output_basename)
 
     def test6(self) -> None:
         """
@@ -177,16 +196,12 @@ class Test_llm_cli_py(hunitest.TestCase):
             f"--output={output_file}",
             f"--system_prompt_file={prompt_file}",
         ]
-        # Run test with mocked LLM.
-        actual = _run_llm_cli_with_mock(
-            argv,
-            scratch_space=self.get_scratch_space(),
-            output_basename="output.txt",
-        )
+        # Prepare outputs.
         expected = """
         64e37ab448ad7f67cd85825553bb1a6c
         """
-        self.assert_equal(actual, expected, dedent=True)
+        # Run test and check outputs.
+        self.helper(argv, expected, output_basename="output.txt", dedent=True)
 
     def test7(self) -> None:
         """
@@ -203,16 +218,12 @@ class Test_llm_cli_py(hunitest.TestCase):
             "-v",
             "DEBUG",
         ]
-        # Run test with mocked LLM.
-        actual = _run_llm_cli_with_mock(
-            argv,
-            scratch_space=self.get_scratch_space(),
-            output_basename="output.txt",
-        )
+        # Prepare outputs.
         expected = """
         24deded3cba2982bbc822f6c159020b3
         """
-        self.assert_equal(actual, expected, dedent=True)
+        # Run test and check outputs.
+        self.helper(argv, expected, output_basename="output.txt", dedent=True)
 
     def test8(self) -> None:
         """
@@ -238,16 +249,12 @@ class Test_llm_cli_py(hunitest.TestCase):
             "--select=Section 2:Section 3",
             "--system_prompt=Process",
         ]
-        # Run test with mocked LLM.
-        actual = _run_llm_cli_with_mock(
-            argv,
-            scratch_space=self.get_scratch_space(),
-            output_basename="output.txt",
-        )
+        # Prepare outputs.
         expected = """
         e90271897868ca4acf82b3c77a14a996
         """
-        self.assert_equal(actual, expected, dedent=True)
+        # Run test and check outputs.
+        self.helper(argv, expected, output_basename="output.txt", dedent=True)
 
     def test9(self) -> None:
         """
@@ -263,14 +270,10 @@ class Test_llm_cli_py(hunitest.TestCase):
             "--system_prompt=Transform",
             "--progress_bar",
         ]
-        # Run test with mocked LLM.
-        actual = _run_llm_cli_with_mock(
-            argv,
-            scratch_space=self.get_scratch_space(),
-            output_basename="output.txt",
-        )
+        # Prepare outputs.
         expected = "9053c4164b6a086e755eea157ecaa6f2"
-        self.assert_equal(actual, expected)
+        # Run test and check outputs.
+        self.helper(argv, expected, output_basename="output.txt")
 
     def test10(self) -> None:
         """
@@ -288,18 +291,14 @@ class Test_llm_cli_py(hunitest.TestCase):
             f"--output={output_file}",
             "--system_prompt=Simple prompt",
         ]
-        # Run test with mocked LLM to avoid actual API calls.
-        actual = _run_llm_cli_with_mock(
-            argv,
-            scratch_space=self.get_scratch_space(),
-            output_basename="output.txt",
-        )
+        # Prepare outputs.
+        # Verify the LLM mock produces deterministic output.
+        expected = "8ab2fffdb92e144a56658973a32a54a0"
+        # Run test and check outputs (avoids actual API calls).
+        self.helper(argv, expected, output_basename="output.txt")
         # Check outputs.
         # Expected: file transformation produces output file.
         self.assertTrue(os.path.exists(output_file))
-        # Verify the LLM mock produces deterministic output.
-        expected = "8ab2fffdb92e144a56658973a32a54a0"
-        self.assert_equal(actual, expected)
 
     def test11(self) -> None:
         """
