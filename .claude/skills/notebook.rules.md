@@ -263,6 +263,46 @@ description: Conventions and standards for interactive Jupyter notebook structur
     print(f"This means knowing the weather reduces uncertainty about activity by {mi:.4f} bits")
     ```
 
+## Split API Example Cells by Outcome
+
+- When creating notebooks that explain functions (especially APIs), put each
+  distinct outcome in its own cell instead of stacking multiple API calls in
+  one cell
+- Document the expected result with a trailing `# Outcome: ...` comment so
+  each cell is self-contained
+
+- **Bad** (one cell mixes 2 outcomes):
+  ```python
+  # List every book in the catalog.
+  response = httpx.get(f"{BASE_URL}/books")
+  response.raise_for_status()
+  _LOG.info("All books: %s", [book["title"] for book in response.json()])
+  # Outcome: all 3 seeded books, in insertion order.
+
+  # Filter to only out-of-stock books via the `in_stock` query parameter.
+  response = httpx.get(f"{BASE_URL}/books", params={"in_stock": False})
+  _LOG.info("Out-of-stock books: %s", [book["title"] for book in response.json()])
+  # Outcome: just "Designing Data-Intensive Applications", the only seed book
+  # marked out of stock.
+  ```
+
+- **Good** (3 cells, one outcome each):
+  ```python
+  # List every book in the catalog.
+  response = httpx.get(f"{BASE_URL}/books")
+  response.raise_for_status()
+  _LOG.info("All books: %s", [book["title"] for book in response.json()])
+  # Outcome: all 3 seeded books, in insertion order.
+  ```
+
+  ```python
+  # Filter to only out-of-stock books via the `in_stock` query parameter.
+  response = httpx.get(f"{BASE_URL}/books", params={"in_stock": False})
+  _LOG.info("Out-of-stock books: %s", [book["title"] for book in response.json()])
+  # Outcome: just "Designing Data-Intensive Applications", the only seed book
+  # marked out of stock.
+  ```
+
 ## Code Cell Structure
 
 - Use this standard structure in every code cell:
@@ -623,6 +663,28 @@ For API teaching notebooks, present the library's mental model as a structured m
       - Compares it with the expected distribution from the Law of Large Numbers
         and Central Limit Theorem
     ```
+
+## Convert Inline Comma Lists to Bullets
+
+- Applies to both markdown cells and code comments
+- When a sentence ends with a comma-separated list of items, break it into a
+  lead-in sentence followed by one bullet per item instead of keeping the
+  list inline
+- **Bad** (list buried inline in prose):
+  ```
+  A runnable walkthrough of the core `FastAPI` building blocks path operations,
+  request validation, dependency injection, error handling, and the automatic
+  interactive docs
+  ```
+- **Good** (lead-in sentence plus bullets):
+  ```
+  A runnable walkthrough of the core `FastAPI` building blocks:
+  - Path operations
+  - Request validation
+  - Dependency injection
+  - Error handling
+  - The automatic interactive docs
+  ```
 
 ## Use LaTeX Notation
 

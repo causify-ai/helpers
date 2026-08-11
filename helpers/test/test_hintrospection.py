@@ -5,6 +5,7 @@ import logging
 import os
 import sys
 import types
+import unittest.mock as umock
 from typing import Any, Callable, cast, Dict
 
 import helpers.hdbg as hdbg
@@ -400,6 +401,346 @@ class Test_get_function_from_string1(hunitest.TestCase):
         self.assert_equal(
             actual, expected, purify_text=True, purify_expected_text=True
         )
+
+
+# #############################################################################
+# Test_get_public_methods_as_str
+# #############################################################################
+
+
+class _SampleClassWithMethods:
+    """
+    Sample class used to test `get_public_methods_as_str()`.
+    """
+
+    def method_with_docstring(self, x: int) -> int:
+        """
+        Double the input value.
+
+        Uses simple multiplication.
+        """
+        return x * 2
+
+    def method_no_docstring(self) -> None:
+        pass
+
+
+class Test_get_public_methods_as_str(hunitest.TestCase):
+    """
+    Test `hintrospection.get_public_methods_as_str()` function.
+    """
+
+    def helper(self, obj: Any, use_markdown: bool, expected: str) -> None:
+        """
+        Check the public-methods listing generated for `obj`.
+
+        :param obj: class or instance to inspect
+        :param use_markdown: whether to format the output as markdown
+        :param expected: expected listing string
+        """
+        # Run test.
+        actual = hintros.get_public_methods_as_str(
+            obj, use_markdown=use_markdown
+        )
+        # Check outputs.
+        # `remove_lead_trail_empty_lines` also drops the trailing blank
+        # line that `get_public_methods_as_str()` appends after the last
+        # method entry in non-markdown mode.
+        self.assert_equal(
+            actual, expected, dedent=True, remove_lead_trail_empty_lines=True
+        )
+
+    def test1(self) -> None:
+        """
+        Test a class rendered as markdown.
+
+        Methods are listed alphabetically, and a multi-line docstring is
+        truncated to its first line with `...`.
+        """
+        # Prepare inputs.
+        obj = _SampleClassWithMethods
+        use_markdown = True
+        # Prepare outputs.
+        expected = """
+        **_SampleClassWithMethods**
+        - `method_no_docstring(self) -> None`
+        - `method_with_docstring(self, x: int) -> int`: Double the input value...
+        """
+        # Run test.
+        self.helper(obj, use_markdown, expected)
+
+    def test2(self) -> None:
+        """
+        Test the same class rendered as plain text (not markdown).
+        """
+        # Prepare inputs.
+        obj = _SampleClassWithMethods
+        use_markdown = False
+        # Prepare outputs.
+        expected = """
+        _SampleClassWithMethods
+        method_no_docstring(self) -> None
+
+        method_with_docstring(self, x: int) -> int
+            Double the input value...
+        """
+        # Run test.
+        self.helper(obj, use_markdown, expected)
+
+    def test3(self) -> None:
+        """
+        Test that an instance (not a class) is labeled with its class name.
+
+        Methods look up as bound methods on an instance, so their
+        signatures drop the leading `self` parameter.
+        """
+        # Prepare inputs.
+        obj = _SampleClassWithMethods()
+        use_markdown = True
+        # Prepare outputs.
+        expected = """
+        **_SampleClassWithMethods**
+        - `method_no_docstring() -> None`
+        - `method_with_docstring(x: int) -> int`: Double the input value...
+        """
+        # Run test.
+        self.helper(obj, use_markdown, expected)
+
+
+# #############################################################################
+# Test_get_function_info_as_str
+# #############################################################################
+
+
+def _sample_function_with_docstring(x: int, y: str = "a") -> bool:
+    """
+    Do something with x and y.
+
+    This second line should be truncated away.
+    """
+    return bool(x) and bool(y)
+
+
+def _sample_function_one_line_docstring() -> None:
+    """
+    Do one simple thing.
+    """
+
+
+def _sample_function_no_docstring(x: int) -> int:
+    return x
+
+
+class Test_get_function_info_as_str(hunitest.TestCase):
+    """
+    Test `hintrospection.get_function_info_as_str()` function.
+    """
+
+    def helper(self, obj: Callable, use_markdown: bool, expected: str) -> None:
+        """
+        Check the info string generated for `obj`.
+
+        :param obj: function to describe
+        :param use_markdown: whether to format the output as markdown
+        :param expected: expected info string
+        """
+        # Run test.
+        actual = hintros.get_function_info_as_str(
+            obj, use_markdown=use_markdown
+        )
+        # Check outputs.
+        self.assert_equal(actual, expected, dedent=True)
+
+    def test1(self) -> None:
+        """
+        Test a function with a multi-line docstring rendered as markdown.
+
+        The docstring summary is truncated to its first line with `...`.
+        """
+        # Prepare inputs.
+        obj = _sample_function_with_docstring
+        use_markdown = True
+        # Prepare outputs.
+        expected = (
+            "- `_sample_function_with_docstring(x: int, y: str = 'a') -> bool`  \n"
+            "  Do something with x and y..."
+        )
+        # Run test.
+        self.helper(obj, use_markdown, expected)
+
+    def test2(self) -> None:
+        """
+        Test the same function rendered as plain text (not markdown).
+        """
+        # Prepare inputs.
+        obj = _sample_function_with_docstring
+        use_markdown = False
+        # Prepare outputs.
+        expected = """
+        _sample_function_with_docstring(x: int, y: str = 'a') -> bool
+            Do something with x and y...
+        """
+        # Run test.
+        self.helper(obj, use_markdown, expected)
+
+    def test3(self) -> None:
+        """
+        Test a function whose docstring is only one line.
+
+        Since there's nothing to truncate, no `...` is appended.
+        """
+        # Prepare inputs.
+        obj = _sample_function_one_line_docstring
+        use_markdown = True
+        # Prepare outputs.
+        expected = (
+            "- `_sample_function_one_line_docstring() -> None`  \n"
+            "  Do one simple thing."
+        )
+        # Run test.
+        self.helper(obj, use_markdown, expected)
+
+    def test4(self) -> None:
+        """
+        Test a function with no docstring at all.
+        """
+        # Prepare inputs.
+        obj = _sample_function_no_docstring
+        use_markdown = True
+        # Prepare outputs.
+        expected = "- `_sample_function_no_docstring(x: int) -> int`"
+        # Run test.
+        self.helper(obj, use_markdown, expected)
+
+    def test5(self) -> None:
+        """
+        Test `verbose=True` rendered as markdown.
+
+        The entire docstring is printed, not just its first line.
+        """
+        # Prepare inputs.
+        obj = _sample_function_with_docstring
+        # Prepare outputs.
+        expected = (
+            "- `_sample_function_with_docstring(x: int, y: str = 'a') -> bool`  \n"
+            "  Do something with x and y.\n"
+            "\n"
+            "  This second line should be truncated away."
+        )
+        # Run test.
+        actual = hintros.get_function_info_as_str(
+            obj, use_markdown=True, verbose=True
+        )
+        self.assert_equal(actual, expected)
+
+    def test6(self) -> None:
+        """
+        Test `verbose=True` rendered as plain text (not markdown).
+        """
+        # Prepare inputs.
+        obj = _sample_function_with_docstring
+        # Prepare outputs.
+        expected = (
+            "_sample_function_with_docstring(x: int, y: str = 'a') -> bool\n"
+            "    Do something with x and y.\n"
+            "\n"
+            "    This second line should be truncated away."
+        )
+        # Run test.
+        actual = hintros.get_function_info_as_str(
+            obj, use_markdown=False, verbose=True
+        )
+        self.assert_equal(actual, expected)
+
+
+# #############################################################################
+# Test_print_obj_info
+# #############################################################################
+
+
+def _sample_function_for_print_obj_info(x: int) -> int:
+    """
+    Return x unchanged.
+
+    Used only to check that `print_obj_info()` renders a function via
+    `get_function_info_as_str()`.
+    """
+    return x
+
+
+class _SampleClassForPrintObjInfo:
+    """
+    Sample class used to check that `print_obj_info()` renders a class via
+    `get_public_methods_as_str()`.
+    """
+
+    def method1(self, x: int) -> int:
+        """
+        Double x.
+        """
+        return x * 2
+
+
+class Test_print_obj_info(hunitest.TestCase):
+    """
+    Test `hintrospection.print_obj_info()` function.
+    """
+
+    def helper(self, obj: Any, expected: str, **kwargs: Any) -> None:
+        """
+        Check the Markdown text `print_obj_info()` passes to `display()`.
+
+        :param obj: object passed to `print_obj_info()`
+        :param expected: expected Markdown text
+        :param kwargs: extra options passed through to `print_obj_info()`
+        """
+        # Run test: mock only the external `IPython.display.display()` call
+        # so the Markdown text it receives can be inspected; everything
+        # else (including the real `get_link_to_code()` call) executes
+        # normally.
+        with umock.patch("IPython.display.display") as display_mock:
+            hintros.print_obj_info(obj, **kwargs)
+        # Check outputs.
+        actual = display_mock.call_args[0][0].data
+        self.assert_equal(actual, expected)
+
+    def test1(self) -> None:
+        """
+        Test that a function is rendered via `get_function_info_as_str()`.
+        """
+        # Prepare inputs.
+        obj = _sample_function_for_print_obj_info
+        # Prepare outputs.
+        expected = hintros.get_function_info_as_str(obj, use_markdown=True)
+        # Run test.
+        self.helper(obj, expected)
+
+    def test2(self) -> None:
+        """
+        Test that a class is rendered via `get_public_methods_as_str()`.
+        """
+        # Prepare inputs.
+        obj = _SampleClassForPrintObjInfo
+        # Prepare outputs.
+        expected = hintros.get_public_methods_as_str(obj, use_markdown=True)
+        # Run test.
+        self.helper(obj, expected)
+
+    def test3(self) -> None:
+        """
+        Test that `**kwargs` are forwarded to `get_function_info_as_str()`.
+
+        `verbose=True` should print the entire docstring, not just its
+        first line.
+        """
+        # Prepare inputs.
+        obj = _sample_function_for_print_obj_info
+        # Prepare outputs.
+        expected = hintros.get_function_info_as_str(
+            obj, use_markdown=True, verbose=True
+        )
+        # Run test.
+        self.helper(obj, expected, verbose=True)
 
 
 # #############################################################################

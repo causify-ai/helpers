@@ -74,7 +74,7 @@ model: sonnet
   .claude/templates/API_notebook.template.ipynb
   ```
 
-### 1. Library Overview
+### Library Overview
 
 - Briefly explain:
   - What problem the library solves
@@ -82,34 +82,29 @@ model: sonnet
   - The most important classes
   - A conceptual diagram of how the pieces fit together
 
-### 2. Primitive-by-Primitive Exploration
+### Primitive-by-Primitive Exploration
 
 - For each important primitive:
 
   - Mental Model
-
     - Explain what the object "means"
     - Present as a **markdown table** (see section 2a below)
 
   - Smallest Construction
-
     ```
-    python # minimal example
+    # Minimal example in Python
     ```
+  - Explain the important Methods
+  - Inspect the Object using `type`, `dir`, and 
+    `hintros.get_public_methods_as_str(obj)` from `helpers/hintrospection.py`
 
-  - Inspect the Object
+- Synthesize the core mental model
+  - What are the fundamental abstractions?
+  - How do they fit together?
 
-    ```
-    python type(obj) dir(obj)
-    ```
+- This should be 2-4 sentences capturing the essence of the library's design
 
-  - Important Methods
-
-    ```
-    python obj.method(...)
-    ```
-
-### 2a. Mental Model as Markdown Table
+### Mental Model as Markdown Table
 
 - Present the mental model as a **markdown table** instead of bullet points:
   - **Why**: Tables are scannable, visually distinct, and structure complex API
@@ -130,7 +125,7 @@ model: sonnet
     | `Result.values` | Data array | shape (n, m) |
     ```
 
-### 3. Composition Examples
+### Composition Examples
 
 - Build progressively:
 
@@ -145,7 +140,7 @@ model: sonnet
 
 - Each example should fit within roughly 10–20 lines
 
-### 4. API Patterns
+### API Patterns
 
 - Identify recurring patterns:
 
@@ -159,13 +154,10 @@ model: sonnet
 
 - Show the smallest example of each pattern
 
-### 5. Interactive Exploration
+### Interactive Exploration
 
-- Provide cells that encourage experimentation:
-  ```
-  python dir(obj) help(obj.method)
-  ```
-  - And questions such as:
+- Provide cells that encourage experimentation
+- Add questions such as:
     - What happens if you remove this argument?
     - What is the default value?
     - What type is returned?
@@ -180,7 +172,7 @@ model: sonnet
     GitHub link to the object's source, pointing at the exact file and line,
     e.g., `https://github.com/<org>/<repo>/blob/<branch>/<path>#L<line>`
 - Call it right after "Smallest Construction" or "Inspect the Object" so
-  readers can jump straight to the implementation:
+  readers can jump straight to the implementation, e.g.,
   ```python
   import helpers.hintrospection as hintros
 
@@ -188,14 +180,18 @@ model: sonnet
   hintros.print_obj_info(sim.MultiArmedBandit)
   ```
 
-### Summary: the Mental Model
-
-- Synthesize the core mental model
-
-  - What are the fundamental abstractions?
-  - How do they fit together?
-
-- This should be 2-4 sentences capturing the essence of the library's design
+### Comment Each Function
+- For each function invocation, make sure that each function call has an
+  explanation of what it will do and then a comment on its outcome
+- E.g.,
+  ```python
+  # Call `GET /openapi.json` to fetch the schema `FastAPI` generated automatically.
+  response = demo_client.get("/openapi.json")
+  schema = response.json()
+  _LOG.info("OpenAPI title: %s", schema["info"]["title"])
+  _LOG.info("Registered paths: %s", sorted(schema["paths"].keys()))
+  # Outcome: 200 OK; the schema lists every route registered on `demo_app` above.
+  ```
 
 ## Special Instructions
 
