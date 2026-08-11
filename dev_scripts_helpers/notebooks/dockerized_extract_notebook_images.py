@@ -24,8 +24,16 @@ _LOG = logging.getLogger(__name__)
 
 class _NotebookImageExtractor:
     """
-    Extract marked regions from a Jupyter notebook, convert them to HTML and
-    capture screenshots.
+    Extract regions or cells from a Jupyter notebook, convert them to HTML,
+    and capture screenshots.
+
+    Two extraction modes are supported:
+    - Marker-based (`extract_and_capture`): only the code cells wrapped in
+      `# start_extract/# end_extract` markers are captured, one region at a
+      time, each region converted to its own small HTML doc.
+    - Whole-notebook (`extract_all_cells_and_capture`): every cell (code and
+      markdown, no markers required) is captured by converting the full
+      notebook to HTML once and screenshotting each cell's DOM element.
 
     See documentation at:
     //helpers/docs/tools/documentation_toolchain/all.extract_notebook_images.*
@@ -282,6 +290,97 @@ class _NotebookImageExtractor:
             _LOG.info("Saved screenshot to %s", screenshot_path)
         return screenshot_files
 
+    def _capture_cell_element_screenshots(
+        self,
+        html_file: str,
+        output_dir: str,
+        *,
+        timeout: int = 2000,
+        min_height: int = 0,
+    ) -> List[str]:
+        """
+        Capture one screenshot per notebook cell directly from the full
+        notebook HTML, without needing extraction markers.
+
+        Every cell (code or markdown) is rendered by nbconvert's "lab" HTML
+        template as a `.jp-Cell` DOM element. Each such element is
+        screenshotted with Playwright's element-level `screenshot()`, which
+        auto-crops to the element's bounding box, so no manual region
+        cropping is needed.
+
+        :param html_file: path to the full-notebook HTML file
+        :param output_dir: directory to save the per-cell screenshots
+        :param timeout: time in milliseconds to wait for the page to render
+            (e.g., for MathJax / markdown to settle)
+        :param min_height: skip cells whose rendered bounding box height (in
+            pixels) is below this threshold (e.g., to skip empty cells with
+            no input and no output); 0 means keep all cells
+        :return: list of paths to the screenshot files, in cell order
+        """
+        # Import playwright only when this function is called.
+        from playwright.sync_api import sync_playwright
+
+        file_url = "file:///" + os.path.abspath(html_file)
+        screenshot_files = []
+        with sync_playwright() as p:
+            # Launch a headless Chromium browser.
+            browser = p.chromium.launch(headless=True)
+            # Open the HTML file.
+            page = browser.new_page(viewport={"width": 1200, "height": 800})
+            page.goto(file_url)
+            # Wait for a specified timeout to ensure the page is rendered.
+            page.wait_for_timeout(timeout)
+            cells = page.query_selector_all(".jp-Cell")
+            _LOG.info("Found %s cells in the rendered notebook", len(cells))
+            for idx, cell in enumerate(cells):
+                box = cell.bounding_box()
+                if box is None or box["height"] < min_height:
+                    _LOG.debug(
+                        "Skipping cell %s (height=%s < min_height=%s)",
+                        idx,
+                        box["height"] if box else None,
+                        min_height,
+                    )
+                    continue
+                screenshot_path = os.path.join(
+                    output_dir, f"cell_{idx + 1:02d}.png"
+                )
+                cell.screenshot(path=screenshot_path)
+                screenshot_files.append(screenshot_path)
+                _LOG.info("Saved screenshot to %s", screenshot_path)
+            browser.close()
+        return screenshot_files
+
+    def extract_all_cells_and_capture(
+        self, *, min_height: int = 0
+    ) -> List[str]:
+        """
+        Convert the whole notebook to HTML once and capture one screenshot
+        per cell (code and markdown), without requiring extraction markers.
+
+        This is cheaper and simpler than `extract_and_capture` when the goal
+        is to get an image for every cell: it runs `nbconvert` a single time
+        instead of once per marked region, doesn't require editing the
+        notebook to add markers, and also covers markdown-only cells (which
+        `extract_and_capture` always skips).
+
+        :param min_height: skip cells whose rendered height is below this
+            threshold; 0 means keep all cells
+        :return: list of paths to the screenshot files, in cell order
+        """
+        hdbg.dassert_file_exists(self.notebook_path)
+        nb = nbformat.read(self.notebook_path, as_version=4)
+        hio.create_dir(self.output_dir, incremental=True)
+        temp_html = "tmp.dockerized_extract_notebook_images.full.html"
+        self._convert_notebook_to_html(nb, temp_html)
+        try:
+            screenshot_files = self._capture_cell_element_screenshots(
+                temp_html, self.output_dir, min_height=min_height
+            )
+        finally:
+            os.remove(temp_html)
+        return screenshot_files
+
 
 # #############################################################################
 
@@ -303,6 +402,20 @@ def _parse() -> argparse.ArgumentParser:
         type=str,
         help="Output image directory",
     )
+    parser.add_argument(
+        "--extract_all_cells",
+        action="store_true",
+        help="Capture one screenshot per notebook cell (code and markdown) "
+        "directly from the full-notebook HTML, without requiring "
+        "start_extract/end_extract markers",
+    )
+    parser.add_argument(
+        "--min_cell_height",
+        type=int,
+        default=0,
+        help="With --extract_all_cells, skip cells whose rendered height in "
+        "pixels is below this threshold (0 disables filtering)",
+    )
     hparser.add_verbosity_arg(parser, log_level="CRITICAL")
     return parser
 
@@ -315,7 +428,12 @@ def _main(parser: argparse.ArgumentParser) -> None:
         args.in_notebook_filename,
         args.out_image_dir,
     )
-    extractor.extract_and_capture()
+    if args.extract_all_cells:
+        extractor.extract_all_cells_and_capture(
+            min_height=args.min_cell_height
+        )
+    else:
+        extractor.extract_and_capture()
     _LOG.info("Extraction completed. Images saved in '%s'", args.out_image_dir)
 
 

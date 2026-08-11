@@ -48,6 +48,20 @@ def _parse() -> argparse.ArgumentParser:
         type=str,
         help="Output image directory",
     )
+    parser.add_argument(
+        "--extract_all_cells",
+        action="store_true",
+        help="Capture one screenshot per notebook cell (code and markdown) "
+        "directly from the full-notebook HTML, without requiring "
+        "start_extract/end_extract markers",
+    )
+    parser.add_argument(
+        "--min_cell_height",
+        type=int,
+        default=0,
+        help="With --extract_all_cells, skip cells whose rendered height in "
+        "pixels is below this threshold (0 disables filtering)",
+    )
     hdocker.add_dockerized_script_arg(parser)
     hparser.add_verbosity_arg(parser)
     return parser
@@ -57,6 +71,8 @@ def _run_dockerized_extract_notebook_images(
     notebook_path: str,
     output_dir: str,
     *,
+    extract_all_cells: bool = False,
+    min_cell_height: int = 0,
     force_rebuild: bool = False,
     use_sudo: bool = False,
 ) -> None:
@@ -65,6 +81,11 @@ def _run_dockerized_extract_notebook_images(
 
     :param notebook_path: Path to the input Jupyter notebook
     :param output_dir: Directory for output images
+    :param extract_all_cells: If True, capture every cell (code and
+        markdown) directly from the full-notebook HTML instead of relying
+        on start_extract/end_extract markers
+    :param min_cell_height: With `extract_all_cells`, skip cells whose
+        rendered height in pixels is below this threshold
     :param force_rebuild: If True, rebuild the container image
     :param use_sudo: If True, run the container with sudo
     """
@@ -199,6 +220,9 @@ def _run_dockerized_extract_notebook_images(
         f"--in_notebook_filename {notebook_path}",
         f"--out_image_dir {output_dir}",
     ]
+    if extract_all_cells:
+        cmd.append("--extract_all_cells")
+        cmd.append(f"--min_cell_height {min_cell_height}")
     cmd = " ".join(cmd)
     # Build the Docker command.
     docker_executable = hdocker.get_docker_executable(use_sudo)
@@ -224,6 +248,8 @@ def _main(parser: argparse.ArgumentParser) -> None:
     _run_dockerized_extract_notebook_images(
         args.in_notebook_filename,
         args.out_image_dir,
+        extract_all_cells=args.extract_all_cells,
+        min_cell_height=args.min_cell_height,
         force_rebuild=args.dockerized_force_rebuild,
         use_sudo=args.dockerized_use_sudo,
     )
