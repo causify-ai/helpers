@@ -168,17 +168,26 @@ def git_pull(ctx):  # type: ignore
 
 # TODO(gp): Seems thin.
 @task
-def git_fetch_master(ctx):  # type: ignore
+def git_fetch_master(ctx, submodules=True):  # type: ignore
     """
     Fetch master branch from remote without switching to it.
 
     Updates the local master branch to track the latest remote master without
     affecting the current branch.
+
+    :param submodules: also fetch master in all submodules (e.g.,
+        `helpers_root`). Set to `False` to avoid errors like "refusing
+        to fetch into branch ... checked out" when a submodule has its
+        master branch checked out in its own git dir (e.g., when the
+        submodule is used as a standalone repo)
     """
     hltltaut.report_task()
     # Fetch remote master directly into local master ref (colon syntax).
     cmd = "git fetch origin master:master"
-    run_git_recursively(ctx, cmd)
+    if submodules:
+        run_git_recursively(ctx, cmd)
+    else:
+        hltltaut.run(ctx, cmd)
 
 
 @task
@@ -188,6 +197,7 @@ def git_merge_master(
     abort_if_not_clean=True,
     skip_fetch=False,
     auto_merge=True,  # type: ignore
+    submodules=True,
 ):
     """
     Merge `origin/master` into the current branch.
@@ -197,13 +207,15 @@ def git_merge_master(
     :param skip_fetch: skip fetching master
     :param auto_merge: automatically commit and push if merge is
         successful
+    :param submodules: also fetch master in submodules (see
+        `git_fetch_master`)
     """
     hltltaut.report_task()
     # Verify working directory is clean before merging to avoid losing changes.
     hgit.is_client_clean(dir_name=".", abort_if_not_clean=abort_if_not_clean)
     # Fetch latest master from remote to ensure we merge the latest changes.
     if not skip_fetch:
-        git_fetch_master(ctx)
+        git_fetch_master(ctx, submodules=submodules)
     # Perform merge, optionally restricting to fast-forward only to maintain linear history.
     cmd = "git merge master"
     if abort_if_not_ff:
@@ -824,6 +836,7 @@ def git_branch_copy(  # type: ignore
     use_patch=False,
     check_branch_name=True,
     method="auto",
+    submodules=True,
 ):
     """
     Create a new branch with the same content of the current branch.
@@ -837,6 +850,11 @@ def git_branch_copy(  # type: ignore
         - 'auto' (default): tries GitHub API first, falls back to linear scan
         - 'github_api': use only GitHub API method (fast)
         - 'linear_scan': use only linear scan method (always works)
+    :param submodules: also fetch/merge master in submodules when syncing
+        with master. Set to `False` to avoid errors like "refusing to
+        fetch into branch ... checked out" when a submodule (e.g.,
+        `helpers_root`) has its master branch checked out in its own
+        git dir
     """
     # Patch-based copying is not yet implemented.
     hdbg.dassert(
@@ -856,6 +874,8 @@ def git_branch_copy(  # type: ignore
     # Sync with master first to ensure new branch includes latest changes (if requested).
     if not skip_git_merge_master:
         cmd = "invoke git_merge_master --abort-if-not-ff --no-auto-merge"
+        if not submodules:
+            cmd += " --no-submodules"
         hltltaut.run(ctx, cmd)
     else:
         _LOG.warning("Skipping git_merge_master as requested")
