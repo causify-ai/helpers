@@ -218,7 +218,7 @@ The toolchain supports multiple documentation workflows:
 
 - Skip the final viewer **open** step
   ```bash
-  > ... --skip_action open`
+  > ... --skip_action open_pdf`
   ```
 
 - **Tip**: Run with `--preview_actions` to print the exact steps without

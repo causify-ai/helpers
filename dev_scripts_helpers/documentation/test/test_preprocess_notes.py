@@ -367,6 +367,24 @@ class Test_colorize_backticks_typst(hunitest.TestCase):
         # Run test.
         self.helper(txt_in, expected)
 
+    def test10(self) -> None:
+        r"""
+        Test backticks containing angle brackets in Typst are escaped.
+
+        Typst parses unescaped `<name>` as a label reference, which
+        silently drops the text instead of rendering it, so `<` must be
+        escaped to `\<`.
+        """
+        # Prepare inputs.
+        txt_in = "Training sequences become `<prompt><plan>` pairs."
+        # Prepare outputs.
+        expected = (
+            r"Training sequences become "
+            r"`#text(fill: blue)[\<prompt>\<plan>]`{=typst} pairs."
+        )
+        # Run test.
+        self.helper(txt_in, expected)
+
 
 # #############################################################################
 # Test_colorize_backticks_integration

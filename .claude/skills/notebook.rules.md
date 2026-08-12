@@ -142,6 +142,40 @@ description: Conventions and standards for interactive Jupyter notebook structur
         # ... full visualization code ...
     ```
 
+## Sync Function Names with Cell Numbers
+
+- Function names in `*_utils.py` must match the cell number in notebook headers:
+  - **Bad**: Cell 1.2 header calls `utils.cell15_create_widget()`
+  - **Good**: Cell 2 header calls `utils.cell2_create_widget()`
+  - **Good**: Cell 1.2 header calls `utils.cell1_2_create_widget()`
+- The cell number in the header is authoritative; update function names to match
+- When cells are renumbered, update all matching function names
+
+## Organize Code by Cell Order
+
+- In `*_utils.py`, organize functions in the same order as notebook cells:
+  - Group all functions for Cell 1.1, then Cell 1.2, etc.
+  - Use section dividers to separate each cell's code:
+    ```python
+    # #############################################################################
+    # Cell 1.1: Visual Bin: Population of Marbles
+    # #############################################################################
+
+    def cell1_1_calculate_entropy(...):
+        ...
+
+    # #############################################################################
+    # Cell 1.2: Entropy vs Variance
+    # #############################################################################
+
+    def cell1_2_plot_distribution_with_stats(...):
+        ...
+    ```
+  - `cell1_1_*()` functions first
+  - `cell1_2_*()` functions next
+  - Continue in ascending order by Part and Cell ID
+  - Group related cell functions together
+
 # Code Cell Design and Content
 
 ## Single Responsibility Per Cell
@@ -402,34 +436,6 @@ description: Conventions and standards for interactive Jupyter notebook structur
   print(getattr(contract_out["messages"][-1], "content", ""))
   ```
 
-## Use Bullet-Point Comments for Structured Explanations
-
-- When a comment describes multiple related points (mental models, parameters,
-  observations, or key takeaways), use bullet-point format with each point on
-  its own line instead of a single inline paragraph:
-  - **Bad**: inline paragraph style
-    ```python
-    # **Mental model**: a `Space` is a typed contract. It knows the shape,
-    # dtype, and bounds of valid data. It can sample random valid values and
-    # check membership.
-    ```
-  - **Good**: bullet-point style with each point on its own indented line
-    ```python
-    # - **Mental model**:
-    #   - A `Space` is a typed contract
-    #   - It knows the shape, dtype, and bounds of valid data
-    #   - It can sample random valid values and check membership
-    ```
-- **Rationale**: Bullet-point comments are easier to scan quickly, work better
-  with diff tools (each point is a separate change), and align with the nested
-  bullet style used throughout notebook markdown cells
-
-## Rules for Bullet-Points
-
-- Follow rules from `.claude/skills/text.rules.md`
-  - `## Use Nested Bullets`
-  - `## Structure Bullet-Points using Multiple Levels`
-
 # Notebook Organization
 
 ## API Notebook Overview and Summary Sections
@@ -482,6 +488,56 @@ For API teaching notebooks, present the library's mental model as a structured m
   ```
 
 - **Rationale**: Tables compress related concepts into scannable format; easier than prose or bullet lists for API reference
+
+## Use Introspection Code for Public APIs
+
+- When displaying public methods/attributes of a library object, use `hintrospection.print_obj_info()`:
+
+  - **Bad** (manual introspection with `inspect` module):
+    ```python
+    import inspect
+    for name in dir(explainer):
+        if not name.startswith("_"):
+            attr = getattr(explainer, name)
+            if callable(attr):
+                sig = inspect.signature(attr)
+                doc = inspect.getdoc(attr)
+                print(f"{name}: {sig}")
+    ```
+
+  - **Bad** (bare `dir()` with no context):
+
+    ```python
+    dir(library_module)
+    ```
+
+  - **Bad** (manually printing method names):
+
+    ```python
+    methods = [m for m in dir(library_module) if not m.startswith("_") and callable(getattr(library_module, m))]
+    print(methods)
+    ```
+
+  - **Good** (standardized helper):
+
+    ```python
+    import helpers.hintrospection as hintros
+    hintros.print_obj_info(explainer)
+    ```
+
+- **Rationale**: Standardized output, consistent formatting, reduces boilerplate, renders cleanly in notebooks
+
+## Pair GitHub Link with Interface Listing
+
+- When introducing a class in a notebook, pair its GitHub source link with its
+  public interface listing via a single call:
+
+  ```python
+  import helpers.hintrospection as hintros
+
+  # Link to the class definition on GitHub, and list its public surface.
+  hintros.print_obj_info(sim.MultiArmedBandit)
+  ```
 
 ## Cell Triplet Structure
 
@@ -611,42 +667,6 @@ For API teaching notebooks, present the library's mental model as a structured m
 
 - **Rationale**: Clarifies prerequisites and design decisions before readers encounter them in code
 
-# Utility File Organization
-
-## Sync Function Names with Cell Numbers
-
-- Function names in `*_utils.py` must match the cell number in notebook headers:
-  - **Bad**: Cell 1.2 header calls `utils.cell15_create_widget()`
-  - **Good**: Cell 2 header calls `utils.cell2_create_widget()`
-  - **Good**: Cell 1.2 header calls `utils.cell1_2_create_widget()`
-- The cell number in the header is authoritative; update function names to match
-- When cells are renumbered, update all matching function names
-
-## Organize Code by Cell Order
-
-- In `*_utils.py`, organize functions in the same order as notebook cells:
-  - Group all functions for Cell 1.1, then Cell 1.2, etc.
-  - Use section dividers to separate each cell's code:
-    ```python
-    # #############################################################################
-    # Cell 1.1: Visual Bin: Population of Marbles
-    # #############################################################################
-
-    def cell1_1_calculate_entropy(...):
-        ...
-
-    # #############################################################################
-    # Cell 1.2: Entropy vs Variance
-    # #############################################################################
-
-    def cell1_2_plot_distribution_with_stats(...):
-        ...
-    ```
-  - `cell1_1_*()` functions first
-  - `cell1_2_*()` functions next
-  - Continue in ascending order by Part and Cell ID
-  - Group related cell functions together
-
 # Text and Markdown Formatting
 
 ## Use Nested Bullet Lists
@@ -663,6 +683,34 @@ For API teaching notebooks, present the library's mental model as a structured m
       - Compares it with the expected distribution from the Law of Large Numbers
         and Central Limit Theorem
     ```
+
+## Use Bullet-Point Comments for Structured Explanations
+
+- When a comment describes multiple related points (mental models, parameters,
+  observations, or key takeaways), use bullet-point format with each point on
+  its own line instead of a single inline paragraph:
+  - **Bad**: inline paragraph style
+    ```python
+    # **Mental model**: a `Space` is a typed contract. It knows the shape,
+    # dtype, and bounds of valid data. It can sample random valid values and
+    # check membership.
+    ```
+  - **Good**: bullet-point style with each point on its own indented line
+    ```python
+    # - **Mental model**:
+    #   - A `Space` is a typed contract
+    #   - It knows the shape, dtype, and bounds of valid data
+    #   - It can sample random valid values and check membership
+    ```
+- **Rationale**: Bullet-point comments are easier to scan quickly, work better
+  with diff tools (each point is a separate change), and align with the nested
+  bullet style used throughout notebook markdown cells
+
+## Rules for Bullet-Points
+
+- Follow rules from `.claude/skills/text.rules.md`
+  - `## Use Nested Bullets`
+  - `## Structure Bullet-Points using Multiple Levels`
 
 ## Convert Inline Comma Lists to Bullets
 
@@ -812,57 +860,6 @@ For API teaching notebooks, present the library's mental model as a structured m
 
 - It is acceptable to keep a `func??` introspection line to display a function's
   source or signature
-
-## Use Standard Introspection for Public APIs
-
-- When displaying public methods/attributes of a library object, use `hintrospection.print_obj_info()`:
-
-  - **Bad** (manual introspection with `inspect` module):
-
-    ```python
-    import inspect
-    for name in dir(explainer):
-        if not name.startswith("_"):
-            attr = getattr(explainer, name)
-            if callable(attr):
-                sig = inspect.signature(attr)
-                doc = inspect.getdoc(attr)
-                print(f"{name}: {sig}")
-    ```
-
-  - **Bad** (bare `dir()` with no context):
-
-    ```python
-    dir(library_module)
-    ```
-
-  - **Bad** (manually printing method names):
-
-    ```python
-    methods = [m for m in dir(library_module) if not m.startswith("_") and callable(getattr(library_module, m))]
-    print(methods)
-    ```
-
-  - **Good** (standardized helper):
-
-    ```python
-    import helpers.hintrospection as hintros
-    hintros.print_obj_info(explainer)
-    ```
-
-- **Rationale**: Standardized output, consistent formatting, reduces boilerplate, renders cleanly in notebooks
-
-## Pair GitHub Link with Interface Listing
-
-- When introducing a class in a notebook, pair its GitHub source link with its
-  public interface listing via a single call:
-
-  ```python
-  import helpers.hintrospection as hintros
-
-  # Link to the class definition on GitHub, and list its public surface.
-  hintros.print_obj_info(sim.MultiArmedBandit)
-  ```
 
 # Interactive Cells
 

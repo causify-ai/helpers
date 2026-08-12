@@ -19,7 +19,7 @@ typst compile --root $GIT_ROOT $GIT_ROOT/dev_scripts_helpers/documentation/test/
 \cp -af $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf_typst_abbrevs.test_end_to_end/tmp.scratch/tmp.notes_to_pdf.render_image2.pdf $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf_typst_abbrevs.test_end_to_end/tmp.scratch/output.slides
 # copy_to_gdrive
 ## skipping this action
-# open
+# open_pdf
 ## skipping this action
 # cleanup_after
 ## skipping this action

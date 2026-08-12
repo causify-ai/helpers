@@ -55,7 +55,7 @@ _VALID_ACTIONS = [
     "run_pandoc",
     "compress_pdf",
     "copy_to_gdrive",
-    "open",
+    "open_pdf",
     "cleanup_after",
 ]
 
@@ -66,7 +66,7 @@ _DEFAULT_ACTIONS = [
     "render_images",
     "run_pandoc",
     # "compress_pdf",
-    # "open",
+    # "open_pdf",
     # "cleanup_after",
 ]
 
@@ -228,8 +228,8 @@ def _run_all(args: argparse.Namespace) -> None:
     if to_execute:
         ext = args.type
         dshdlntpd.copy_to_gdrive(file_final, ext, args.input, args.gdrive_dir)
-    # - Open
-    action = "open"
+    # - Open_pdf
+    action = "open_pdf"
     to_execute, actions = dshdlntpd.mark_action(action, actions)
     if to_execute:
         hopen.open_file(file_final)
@@ -408,12 +408,12 @@ def _main(parser: argparse.ArgumentParser) -> None:
     hdbg.init_logger(verbosity=args.log_level, use_exec_path=True)
     _LOG.info("%s", hprint.color_highlight(f"> {cmd_line}", "green"))
     if args.daemon:
-        # Skip "open" action on watch runs (viewer auto-reloads).
+        # Skip "open_pdf" action on watch runs (viewer auto-reloads).
         hdaemon.run_daemon_mode(
             args.input,
             cmd_line,
             "notes_to_pdf",
-            watch_cmd_suffix=" --skip_action=open",
+            watch_cmd_suffix=" --skip_action=open_pdf",
         )
     else:
         _run_all(args)

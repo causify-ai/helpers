@@ -23,13 +23,13 @@
 - **Contrast approaches**: Show what doesn't work vs what does
 
 ## Problem-Solution Arc
-- Introduce hard topics as a progression
-  `@Problem@$\to$ `@Naive Solution@` $\to$ `@Solution@`
+- Introduce hard topics as a progression:
+  Problem $\to$ Naive Solution $\to$ Solution
   so students see why the final approach is needed
 - Make the naive solution's weaknesses explicit with `Cons:` sub-bullets, then
   let the real solution address them
 
-- Example arc (from Lesson 06.1):
+- Example arc
   ```
   - Slide 1: `@Problem@`: logic-based AI fails under uncertainty (partial
     observability, non-determinism, ...)
@@ -50,11 +50,24 @@
   one to show generality
   - E.g., medical diagnosis, finance, car insurance
 
+## Do Not Cross-Reference Other Lessons
+- Do not sprinkle inline `Lesson X.Y` back-references inside bullets (e.g.,
+  `Lesson 16.4 studied...`, `... (Lesson 16.2)`)
+  - State the concept directly instead of citing where it was first taught
+  - Cross-lesson continuity belongs in the roadmap/motivation slide, not
+    repeated throughout the body
+- Strip forward-looking asides too, e.g. `(previewed for later lessons)` or
+  `revisited in the ... lesson`
+  - Exception: a single dedicated `**Remark**: <topic> is covered in detail
+    in Lesson X.Y` is acceptable to defer a full treatment to its own lesson
+
 ## Slide Density Guidelines
 - Maximum 5-7 bullet points per slide (excluding sub-points)
 - Maximum 2-3 lines per bullet point
 - Use diagrams instead of long text descriptions
 - Break complex topics across multiple slides
+- Do not spin up an extra slide (or table) purely to restate a distinction
+  already conveyed by nearby bullets; fold it inline instead
 
 # Document Organization
 
@@ -69,6 +82,9 @@
   ## Subsection Title
   ```
 
+- Do not wrap `##` section headers in decorative comment banners
+  (`## ###########...`); a bare `## Section Title` is enough
+
 - Individual slides: use `*` with no leading spaces
   ```markdown
   * <Slide Title>
@@ -78,6 +94,13 @@
       - Further nesting (4-space indent)
   ```
 
+## Slide and Section Titles
+- Drop generic label words that duplicate the first bold body-label (e.g.,
+  `Problem:`, `Motivation:`, `Question:`, `Implication:`, `Recap:`)
+  - E.g., `* Problem: Why X Struggles` $\to$ `* Why X Struggles`
+  - Keep `Step N:` prefixes for ordered algorithm slides
+  - Titles should be short noun phrases (2-6 words)
+
 # Slide Organization
 
 ## General Formatting Rules
@@ -85,6 +108,19 @@
 - Don't use page separators
 - Don't use unicode characters but use LaTeX symbols if needed
   - Instead of `→` use `$\to$`
+
+## First Slide
+- Use the metadata-comment block, not a LaTeX title slide
+  - Start the file with, in order:
+    ```
+    // type=UMD_slides
+    // course_title=<course>
+    // lesson_title=<Lesson X.Y: Title>
+    // slides_engine=typst
+
+    // References:
+    // - ...
+    ```
 
 ## Use 80 columns
 - Wrap text into 80 columns
@@ -246,6 +282,7 @@
 #### Traditional Mathematical Tags
 
 - _Question_: A question to introduce a problem
+  - Phrase it as an actual question ending in `?`
   - E.g.,
     ```
     - @Question@: does the data provide evidence for or against a specific
@@ -288,6 +325,9 @@
     - @Key idea@: shipping a prediction when the business needs a decision delivers
       little or no business value, however accurate the prediction is
     ```
+  - One **Key idea**/**Interpretation** bullet per slide is enough; do not add
+    a second bullet at the end that just restates the same point in different
+    words
 
 - _Remark_: A simple but useful fact
   - E.g.,
@@ -444,6 +484,13 @@
   - Variable names
   - Implementation-oriented notation
 
+## Abbreviations and Acronyms
+- Do not introduce a parenthetical abbreviation you will not reuse; spell out
+  the term instead (e.g., drop `(open IE)`, `(PPR)`, `(BPE)`, `(nucleus)` if
+  it is not used again)
+- Conversely, expand an acronym on first use when it aids reading, e.g.
+  `MLP` $\to$ `two-layer MLP (multi-layer perceptron)`
+
 ## Typst Tables
 - Create tables using the `styled-table` function from
   `./dev_scripts_helpers/documentation/pandoc_touying.typ` to maintain
@@ -485,6 +532,8 @@
 - Use `bold-first-col: true` when the first column contains row labels
 - Adjust `col-widths` when column content varies significantly in length
 - Always include `headers` to make table structure clear
+- Order rows in the natural reading order (e.g., cheap$\to$expensive,
+  zero-shot$\to$few-shot), not the order they happened to be written
 
 ### Example
 - **Good** (labeled data with consistent styling)
@@ -547,9 +596,14 @@ Use these commands consistently across all slides:
 - `\cancel{...}`: Cross out conditioning variables made irrelevant, e.g.,
   `$\Pr(Call | Alarm, \cancel{Fire, Toast}) = \Pr(Call | Alarm)$`
 - `Parents(X_i)`, `parents(X_i)`: parent set of a node in a Bayesian network
-- `\vx`, `\vy`, `\vE`, `\ve`: Vectors (if defined in preamble)
+- `\vx`, `\vy`, `\vE`, `\ve`: Vectors; `\mW`, ...: Matrices (if defined in
+  preamble) — use these instead of `\mathbf{...}` for vectors and matrices
+  in equations
 - `\alpha` as a normalization constant in inference, e.g.,
   `$\Pr(X | \ve) = \alpha \Pr(X, \ve)$`
+- Prefer compact multiplicative notation over verbal forms, e.g.
+  `2x the context length $\implies$ 4x the attention cost`, not `doubling
+  the context length _quadruples_ the attention cost`
 
 - Express conditional independence statements compactly, optionally pairing the
   `\perp` form with its factorization or an arrow form:
@@ -631,8 +685,20 @@ Use these commands consistently across all slides:
 
 # Visuals
 
-## Type of Visuals
-- Follow the instructions from `.claude/skills/visuals.rules.md`
+- Always add visuals to help explain the concepts
+  - Follow the instructions from `.claude/skills/visuals.rules.md`
+- When a slide pairs prose with a figure (graphviz/diagram) or a table, put
+  them side by side in columns rather than stacking:
+  ```
+  ::: columns
+  :::: {.column width=50%}
+  (text)
+  :::: {.column width=45%}
+  (figure)
+
+  ::::
+  :::
+  ```
 
 # Examples and Templates
 - See examples `.claude/templates/slides.template.md`
