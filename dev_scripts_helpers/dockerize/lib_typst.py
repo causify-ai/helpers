@@ -20,6 +20,7 @@ _LOG = logging.getLogger(__name__)
 
 # Version pins for tools.
 _ALPINE_VERSION = "3.23"
+# TODO(ai_gp): Need to update to 0.15.1 or newer
 _TYPST_VERSION = "0.14.2"
 # Touying presentation package (and its dependencies) pre-cached into the image
 # so that `notes_to_pdf.py --slides_engine typst` compiles offline.
