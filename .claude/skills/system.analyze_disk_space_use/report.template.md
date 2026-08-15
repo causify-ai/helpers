@@ -4,28 +4,42 @@
 - Volume: `<VOLUME>`: total `<SIZE>`, free `<FREE>` (`<PERCENT>` full)
 - Status: <e.g. "critical: under 5% free" / "healthy">
 
-## Top Space Consumers
-| Location | Size | Reclaimable | Notes |
-|---|---|---|---|
-| `<PATH>` | `<SIZE>` | `<SIZE>` or `-` | <one-line reason> |
+## Commands To Reclaim Space
+| Command | Frees | Risk |
+|:------|:------|:------|
+| `<COMMAND>` | `<SIZE>` | <low/medium/high> |
+| `<COMMAND>` | `<SIZE>` | <low/medium/high> |
+
+- Total if every command above is run: `<SIZE>`
+
+## Top 10 Directories By Size
+| Rank | Directory | Size |
+|:----|:------|:----|
+| 1 | `<PATH>` | `<SIZE>` |
+| 2 | `<PATH>` | `<SIZE>` |
+| 3 | `<PATH>` | `<SIZE>` |
+| 4 | `<PATH>` | `<SIZE>` |
+| 5 | `<PATH>` | `<SIZE>` |
+| 6 | `<PATH>` | `<SIZE>` |
+| 7 | `<PATH>` | `<SIZE>` |
+| 8 | `<PATH>` | `<SIZE>` |
+| 9 | `<PATH>` | `<SIZE>` |
+| 10 | `<PATH>` | `<SIZE>` |
 
 ## Reclaimable Breakdown
-
-### <Engine Or Category Name, e.g. "Docker Desktop">
-- On-disk size: `<SIZE>`
-- Reclaimable: `<SIZE>`
-- Command (not run): `<COMMAND>`
-- Notes: <what makes this reclaimable, e.g. "0 containers reference any of
-  the N images">
-
-<Repeat one `###` subsection per engine/category found>
+- **<Engine or category name>** (`<PATH>`, `<SIZE>` on disk):
+  - Reclaimable: `<SIZE>`
+  - Command:
+    ```bash
+    > <command>
+    ```
+  - Notes: <what makes this reclaimable, e.g. "0 containers reference any
+    of the N images">
+- <Repeat one bullet per engine/category found, ordered by size freed,
+  largest first>
 
 ## Needs Manual Review
 - `<PATH>` (`<SIZE>`): <why it might still be needed; can't auto-recommend>
-
-## Recommendation (Ranked By Impact, Then Risk)
-1. `<COMMAND>` → frees `<SIZE>`, risk: <low/medium/high>, reason: <why safe>
-2. `<COMMAND>` → frees `<SIZE>`, risk: <low/medium/high>, reason: <why safe>
 
 ## Verification
 - Nothing was deleted or modified; this is analysis only
