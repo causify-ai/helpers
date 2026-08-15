@@ -19,16 +19,18 @@ model: haiku
 
 ## Step 2: Survey The Home Directory
 - List top-level home directory usage, largest first:
-  ```
+  ```bash
   > du -sh ~/* 2>/dev/null | sort -rh
   ```
 - Recurse one level at a time into whichever directory dominates (on
   macOS this is typically `~/Library`), always sorting by size, until you
   reach the actual large items instead of just a big parent directory
   name:
-  ```
+  ```bash
   > /usr/bin/du -sh ~/Library/* 2>/dev/null | sort -rh | head -30
   ```
+- Track every directory measured along the way: it feeds the top-10 list
+  in Step 6
 
 ## Step 3: Check Container And VM Engines First
 - On a dev machine these are usually the single biggest consumer, because
@@ -76,10 +78,21 @@ model: haiku
   reclaimable (rebuildable / re-pullable / re-cacheable) or needs manual
   review (may hold unique data)
 - Fill in the template
-  `.claude/skills/system.analyze_disk_space_use/report.template.md`
+  `.claude/skills/system.analyze_disk_space_use/report.template.md`,
+  formatted per `.claude/skills/markdown.rules.md`
+- List the top 10 directories measured in Steps 2-3 by size, largest
+  first; prefer the most specific directory that explains the bytes over
+  a vague ancestor (e.g. list the Docker VM disk itself, not just
+  `~/Library`)
 - Every reclaim command in the report must come from the tool's own
-  output (e.g. `docker system df`), never be guessed
-- Rank recommendations by impact (space freed) first, then by risk
+  output (e.g. `docker system df`), never be guessed, and must be paired
+  with the size it frees
+- Because the report describes commands, lead with a summary table of
+  every command and its estimated savings, then give the full nested
+  breakdown per `.claude/skills/markdown.rules.md` "List of Items"
+  convention: one bold-labeled bullet per reclaimable item, with the
+  command and size nested underneath it
+- Rank the breakdown by impact (space freed) first, then by risk
 
 # Constraints
 - Only run read-only commands: `df`, `du`, `*system df`, `*ls`,
