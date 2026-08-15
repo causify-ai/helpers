@@ -50,6 +50,8 @@ if __name__ == "__main__":
     #
     dshgghout.check_merged_branch()
     #
+    dshgghout.check_merge_conflict_markers()
+    #
     dshgghout.check_author()
     #
     dshgghout.check_file_size()

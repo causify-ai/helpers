@@ -24,7 +24,6 @@ _LOG = logging.getLogger(__name__)
 # https://github.com/pre-commit/pre-commit-hooks/tree/master/pre_commit_hooks
 # https://github.com/pre-commit/pre-commit-hooks/blob/master/pre_commit_hooks/check_ast.py
 # https://github.com/pre-commit/pre-commit-hooks/blob/master/pre_commit_hooks/check_added_large_files.py
-# https://github.com/pre-commit/pre-commit-hooks/blob/master/pre_commit_hooks/check_merge_conflict.py
 # https://code-maven.com/enforcing-commit-message-format-in-git
 
 # TODO(gp): Add a check for "Do not commit" or "Do not merge".
@@ -309,6 +308,121 @@ def check_merged_branch(abort_on_error: bool = True) -> None:
                 default_branch,
             )
             error = True
+    # Handle error.
+    _handle_error(func_name, error, abort_on_error)
+
+
+# #############################################################################
+# check_merge_conflict_markers
+# #############################################################################
+
+
+# Prefixes used by Git for the "ours" / "theirs" markers of a conflict (e.g.,
+# "<<<<<<< HEAD", ">>>>>>> feature-branch", and the diff3 "|||||||" base
+# marker). The separator between the two sides ("=======") has no suffix, so
+# it is matched as an exact line below instead.
+_MERGE_CONFLICT_MARKER_PREFIXES = ("<<<<<<< ", "||||||| ", ">>>>>>> ")
+_MERGE_CONFLICT_SEPARATOR = "======="
+
+
+def _is_merge_conflict_marker(line: str) -> bool:
+    """
+    Return whether `line` is a leftover Git merge / rebase conflict marker.
+    """
+    line = line.rstrip("\r\n")
+    is_marker = line.startswith(
+        _MERGE_CONFLICT_MARKER_PREFIXES
+    ) or line == _MERGE_CONFLICT_SEPARATOR
+    return is_marker
+
+
+def _check_merge_conflict_markers_in_text(
+    file_name: str, lines: List[str]
+) -> List[str]:
+    """
+    Look for leftover merge conflict markers in the content `lines` of
+    `file_name`.
+
+    :return: violations in cfile format
+    """
+    violations = []
+    for i, line in enumerate(lines):
+        if _is_merge_conflict_marker(line):
+            i_tmp = i + 1
+            violation = (
+                f"{file_name}:{i_tmp}: Found leftover merge conflict "
+                f"marker '{line.rstrip()}'"
+            )
+            violations.append(violation)
+    return violations
+
+
+def _check_merge_conflict_markers_files(file_list: List[str]) -> bool:
+    """
+    Look for merge conflict markers in the passed files.
+
+    :return: error
+    """
+    _LOG.debug("Processing %d files", len(file_list))
+    # Scan all the files.
+    violations = []
+    for file_name in file_list:
+        if any(file_name.endswith(ext) for ext in "jpg png zip pkl gz".split()):
+            _LOG.warning("Skipping '%s'", file_name)
+            continue
+        if not os.path.exists(file_name):
+            _LOG.warning("Skipping '%s' since it doesn't exist", file_name)
+            continue
+        if os.path.isdir(file_name):
+            _LOG.warning("Skipping '%s' since it is a dir", file_name)
+            continue
+        _LOG.info(file_name)
+        try:
+            with open(file_name) as f:
+                lines = f.readlines()
+        except (UnicodeDecodeError, ValueError):
+            # Skip binary files that can't be decoded as text.
+            _LOG.warning("Skipping binary file '%s'", file_name)
+            continue
+        violations.extend(
+            _check_merge_conflict_markers_in_text(file_name, lines)
+        )
+    #
+    error = False
+    if violations:
+        file_content = "\n".join(map(str, violations))
+        _LOG.error(
+            "There are %d merge conflict markers:\n%s",
+            len(violations),
+            file_content,
+        )
+        # Write file.
+        file_name = "cfile"
+        with open(file_name, "w") as f:
+            f.write(file_content)
+        _LOG.warning("Saved cfile in '%s'", file_name)
+        error = True
+    return error
+
+
+def check_merge_conflict_markers(
+    abort_on_error: bool = True, file_list: Optional[List[str]] = None
+) -> None:
+    """
+    Check that no leftover Git conflict markers (e.g., "<<<<<<<",
+    "=======", ">>>>>>>") are present in the files being committed.
+
+    This catches markers left behind after resolving a merge, a rebase, or a
+    cherry-pick, regardless of which Git operation caused the conflict, in
+    the same way `check_master` prevents committing directly to `master`.
+    """
+    func_name = _report()
+    # Get the files.
+    if file_list is None:
+        file_list = _get_files()
+    _LOG.info("Files:\n%s", "\n".join(file_list))
+    #
+    error = _check_merge_conflict_markers_files(file_list)
     # Handle error.
     _handle_error(func_name, error, abort_on_error)
 
