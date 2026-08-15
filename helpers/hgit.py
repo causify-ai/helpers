@@ -874,16 +874,17 @@ def get_submodule_paths() -> List[str]:
 
     :return: list of submodule paths, e.g., ["amp"] or []
     """
-    # Get the git repo root to find .gitmodules reliably.
+    # Get the git repo root to find .gitmodules reliably. This must be the
+    # repo rooted at the current dir, not an outer repo it may itself be a
+    # submodule of: callers treat the returned paths as relative to the
+    # current dir, so falling back to a parent's .gitmodules would return
+    # paths relative to the wrong root (e.g., running from inside
+    # `helpers_root`, itself a submodule with no submodules of its own, must
+    # report `[]`, not the outer repo's submodule list).
     repo_root_cmd = "git rev-parse --show-toplevel"
     _, repo_root = hsystem.system_to_string(repo_root_cmd)
     repo_root = repo_root.strip()
     gitmodules_path = os.path.join(repo_root, ".gitmodules")
-    # Handle case where repo_root is a submodule (e.g., helpers_root)
-    # by checking parent directories for .gitmodules.
-    if not os.path.exists(gitmodules_path):
-        parent_root = os.path.dirname(repo_root)
-        gitmodules_path = os.path.join(parent_root, ".gitmodules")
     # Query .gitmodules to get submodule paths.
     # > git config --file .gitmodules --get-regexp path
     # submodule.amp.path amp
