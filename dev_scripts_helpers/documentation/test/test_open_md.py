@@ -672,6 +672,7 @@ class Test_open_md_py_main(hunitest.TestCase):
         expected_backend = "global"
         expected_force_rebuild = False
         expected_use_sudo = False
+        expected_style_file = None
         # Run test.
         with (
             mock.patch.object(dshdopmd, "_render_with_pandoc") as mock_fn,
@@ -684,6 +685,7 @@ class Test_open_md_py_main(hunitest.TestCase):
             backend=expected_backend,
             force_rebuild=expected_force_rebuild,
             use_sudo=expected_use_sudo,
+            style_file=expected_style_file,
         )
 
     def test4(self) -> None:

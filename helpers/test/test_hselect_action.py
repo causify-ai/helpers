@@ -8,6 +8,7 @@ import argparse
 import logging
 from typing import List
 
+import helpers.hprint as hprint
 import helpers.hselect_action as hselacti
 import helpers.hunit_test as hunitest
 
@@ -134,8 +135,8 @@ class Test_actions_to_string(hunitest.TestCase):
             {border}
             # Action selected:
             {border}
-            a: Yes
-            b: -
+                a: Yes
+                b: -
             """)
         # Run test.
         actual = hselacti.actions_to_string(

@@ -518,6 +518,11 @@ class Test_lint_python_files(hunitest.TestCase):
         'args': ('linters2/fix_comments.py --no_report_command_line foo.py bar.py',),
         'kwargs': {'print_command': False, 'abort_on_error': True, 'suppress_output': False},
         },
+        {
+        'function': hsystem.system,
+        'args': ('linters2/pyright_cfile.py foo.py bar.py',),
+        'kwargs': {'print_command': False, 'abort_on_error': True, 'suppress_output': False, 'output_file': 'cfile', 'tee': True},
+        },
         ]"""
         # Run test.
         with hunteuti.capture_sys_calls() as sys_calls:

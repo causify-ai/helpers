@@ -9,7 +9,7 @@
 //   new slide, mirroring the beamer `--slide-level 4` convention. Headings of
 //   level 1-3 become section/structure slides
 // - See https://github.com/touying-typ/touying
-#import "@preview/touying:0.6.1": *
+#import "@preview/touying:0.7.4": *
 #import themes.simple: *
 
 //#include "/dev_scripts_helpers/documentation/typst_abbrevs.typ"

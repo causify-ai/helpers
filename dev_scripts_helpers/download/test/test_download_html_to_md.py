@@ -29,7 +29,7 @@ def _run_script(
         f"--input {html_file}",
         f"--output {md_file}",
         f"--converter {converter}",
-        "-e cleanup",
+        "--action cleanup",
     ]
     cmd_str = " ".join(cmd)
     hsystem.system(cmd_str)
