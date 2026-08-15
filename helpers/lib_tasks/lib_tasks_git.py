@@ -1661,7 +1661,6 @@ def gh_watch(ctx, *, interval=60):  # type: ignore
             # Use `--` so `tmux` does not misinterpret a name starting with `-`
             # as an option flag. E.g., `tmux rename-window '---helpers1---'`
             hsystem.system(f"tmux rename-window -- '{old_pane_title}'")
-=======
 
     def _run() -> None:
         # Clear screen before displaying updated workflow status.
@@ -1670,7 +1669,6 @@ def gh_watch(ctx, *, interval=60):  # type: ignore
     hdaemon.run_periodic_daemon_mode(
         _run, interval, window_name_str="*GH_WATCH*"
     )
->>>>>>> 57f91ae1 (UmdTask517_Get_regressions_to_pass_1 (#1341))
 
 
 # #############################################################################
