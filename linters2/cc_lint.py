@@ -1430,9 +1430,7 @@ def _build_one_shot_prompt(
     # `args` is the full CLI namespace: log only the fields this function
     # branches on instead of the whole object.
     _LOG.debug(
-        hprint.to_str(
-            "file_path args.skill args.rule args.topic args.add_todos"
-        )
+        hprint.to_str("file_path args.skill args.rule args.topic args.add_todos")
     )
     add_todos = args.add_todos
     if args.skill:
@@ -1455,7 +1453,9 @@ def _build_one_shot_prompt(
                 """
             prompt = hprint.dedent(prompt)
             prompt += (
-                "\n" + rule_content + "\n\n"
+                "\n"
+                + rule_content
+                + "\n\n"
                 + _build_add_todos_instructions(rule_file)
             )
         else:
@@ -1493,9 +1493,7 @@ def _build_one_shot_prompt(
                 """
             process_note = hprint.dedent(process_note)
             prompt += "\n\n" + process_note
-    _LOG.debug(
-        "return=(prompt_length=%d, topic_str=%s)", len(prompt), topic_str
-    )
+    _LOG.debug("return=(prompt_length=%d, topic_str=%s)", len(prompt), topic_str)
     return prompt, topic_str, topic_info
 
 

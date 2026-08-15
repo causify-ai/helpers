@@ -173,8 +173,9 @@ def get_link_to_code(obj: Any, *, use_master: bool = False) -> str:
         _, start_line = inspect.getsourcelines(obj)
     except (TypeError, OSError) as e:
         hdbg.dfatal(f"Cannot resolve source for object '{obj}': {e}")
-    hdbg.dassert_is_not(file_path, None,
-        "Cannot find source file for object '%s'", file_path)
+    hdbg.dassert_is_not(
+        file_path, None, "Cannot find source file for object '%s'", file_path
+    )
     # Narrow the type for the type checker: `dfatal()` above always raises.
     file_path = cast(str, file_path)
     # Get the git root directory.

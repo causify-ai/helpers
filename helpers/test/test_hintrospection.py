@@ -404,7 +404,7 @@ class Test_get_function_from_string1(hunitest.TestCase):
 
 
 # #############################################################################
-# Test_get_public_methods_as_str
+# _SampleClassWithMethods
 # #############################################################################
 
 
@@ -423,6 +423,11 @@ class _SampleClassWithMethods:
 
     def method_no_docstring(self) -> None:
         pass
+
+
+# #############################################################################
+# Test_get_public_methods_as_str
+# #############################################################################
 
 
 class Test_get_public_methods_as_str(hunitest.TestCase):
@@ -531,6 +536,11 @@ def _sample_function_no_docstring(x: int) -> int:
     return x
 
 
+# #############################################################################
+# Test_get_function_info_as_str
+# #############################################################################
+
+
 class Test_get_function_info_as_str(hunitest.TestCase):
     """
     Test `hintrospection.get_function_info_as_str()` function.
@@ -545,9 +555,7 @@ class Test_get_function_info_as_str(hunitest.TestCase):
         :param expected: expected info string
         """
         # Run test.
-        actual = hintros.get_function_info_as_str(
-            obj, use_markdown=use_markdown
-        )
+        actual = hintros.get_function_info_as_str(obj, use_markdown=use_markdown)
         # Check outputs.
         self.assert_equal(actual, expected, dedent=True)
 
@@ -668,6 +676,11 @@ def _sample_function_for_print_obj_info(x: int) -> int:
     return x
 
 
+# #############################################################################
+# _SampleClassForPrintObjInfo
+# #############################################################################
+
+
 class _SampleClassForPrintObjInfo:
     """
     Sample class used to check that `print_obj_info()` renders a class via
@@ -679,6 +692,11 @@ class _SampleClassForPrintObjInfo:
         Double x.
         """
         return x * 2
+
+
+# #############################################################################
+# Test_print_obj_info
+# #############################################################################
 
 
 class Test_print_obj_info(hunitest.TestCase):
@@ -769,9 +787,7 @@ def _init_git_repo(git_repo: str, *, branch_name: str, remote_url: str) -> None:
         hsystem.system(
             "git config user.email 'test@test.com'", suppress_output=True
         )
-        hsystem.system(
-            "git config user.name 'Test User'", suppress_output=True
-        )
+        hsystem.system("git config user.name 'Test User'", suppress_output=True)
         # Check out a known branch name so the test doesn't depend on the
         # host's `init.defaultBranch` config (e.g., `main` vs `master`).
         hsystem.system(f"git checkout -b {branch_name}", suppress_output=True)
@@ -791,14 +807,10 @@ def _commit_all(git_repo: str) -> None:
     """
     with hsystem.cd(git_repo):
         hsystem.system("git add -A", suppress_output=True)
-        hsystem.system(
-            "git commit -m 'initial commit'", suppress_output=True
-        )
+        hsystem.system("git commit -m 'initial commit'", suppress_output=True)
 
 
-def _load_module_from_file(
-    file_path: str, module_name: str
-) -> types.ModuleType:
+def _load_module_from_file(file_path: str, module_name: str) -> types.ModuleType:
     """
     Import `file_path` as a standalone module named `module_name`.
 
@@ -827,6 +839,11 @@ def _load_module_from_file(
     sys.modules[module_name] = module
     loader.exec_module(module)
     return module
+
+
+# #############################################################################
+# Test_get_link_to_code
+# #############################################################################
 
 
 class Test_get_link_to_code(hunitest.TestCase):
@@ -964,8 +981,7 @@ class Test_get_link_to_code(hunitest.TestCase):
         module = self._create_repo_with_module(file_content)
         # Prepare outputs.
         expected = (
-            "https://github.com/test_owner/test_repo/blob/master/"
-            "module.py#L1"
+            "https://github.com/test_owner/test_repo/blob/master/module.py#L1"
         )
         # Run test.
         actual = hintros.get_link_to_code(module.foo, use_master=True)

@@ -351,9 +351,7 @@ class _NotebookImageExtractor:
             browser.close()
         return screenshot_files
 
-    def extract_all_cells_and_capture(
-        self, *, min_height: int = 0
-    ) -> List[str]:
+    def extract_all_cells_and_capture(self, *, min_height: int = 0) -> List[str]:
         """
         Convert the whole notebook to HTML once and capture one screenshot
         per cell (code and markdown), without requiring extraction markers.
@@ -429,9 +427,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
         args.out_image_dir,
     )
     if args.extract_all_cells:
-        extractor.extract_all_cells_and_capture(
-            min_height=args.min_cell_height
-        )
+        extractor.extract_all_cells_and_capture(min_height=args.min_cell_height)
     else:
         extractor.extract_and_capture()
     _LOG.info("Extraction completed. Images saved in '%s'", args.out_image_dir)

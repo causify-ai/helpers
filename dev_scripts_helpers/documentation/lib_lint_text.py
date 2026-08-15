@@ -5,7 +5,7 @@ Provides transformation functions and file processing logic used by lint_text.py
 
 Import as:
 
-import dev_scripts_helpers.documentation.lib_lint_text as dshdllitx
+import dev_scripts_helpers.documentation.lib_lint_text as dshdllite
 """
 
 import argparse
@@ -505,12 +505,14 @@ def _format_smd_fence_spacing(lines: List[str]) -> List[str]:
     hdbg.dassert_isinstance(lines_new, list)
     return lines_new
 
+
 # #############################################################################
 
 # TODO(ai_gp): Removing trailing white spaces and empty lines at the beginning
 # and at the end is a transform step by itself for all the formats. This will
 # change `postprocess` behavior for `md`/`tex`/`txt` files too (e.g.,
 # markdown's trailing double-space hard line break)
+
 
 def _smd_format(lines: List[str]) -> List[str]:
     """

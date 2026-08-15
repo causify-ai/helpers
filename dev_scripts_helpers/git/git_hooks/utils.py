@@ -330,9 +330,10 @@ def _is_merge_conflict_marker(line: str) -> bool:
     Return whether `line` is a leftover Git merge / rebase conflict marker.
     """
     line = line.rstrip("\r\n")
-    is_marker = line.startswith(
-        _MERGE_CONFLICT_MARKER_PREFIXES
-    ) or line == _MERGE_CONFLICT_SEPARATOR
+    is_marker = (
+        line.startswith(_MERGE_CONFLICT_MARKER_PREFIXES)
+        or line == _MERGE_CONFLICT_SEPARATOR
+    )
     return is_marker
 
 

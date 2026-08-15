@@ -61,9 +61,7 @@ class Test_read_failed_tests(hunitest.TestCase):
     Test `_read_failed_tests` function for reading failed test files.
     """
 
-    def helper(
-        self, build_name: str, content: str, expected: List[str]
-    ) -> Any:
+    def helper(self, build_name: str, content: str, expected: List[str]) -> Any:
         """
         Helper method to run test in scratch directory and check outputs.
 
