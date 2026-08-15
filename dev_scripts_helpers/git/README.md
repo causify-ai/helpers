@@ -22,7 +22,7 @@ This directory contains several categories of Git utilities:
 | `gcl`            | Clean the client by stashing and removing untracked files, creating a backup |
 | `gcours`         | Accept our version of conflicted files (checkout --ours)                     |
 | `gctheirs`       | Accept their version of conflicted files (checkout --theirs)                 |
-| `gco`            | Checkout a branch and pull with submodule updates                            |
+| `gco`            | Checkout a branch and pull with submodule updates (`-s` to force submodules to the pinned commit) |
 | `gd`             | Run git difftool on specified files                                          |
 | `gdc`            | Run git difftool on cached/staged changes                                    |
 | `gdpy`           | Git diff for all Python files in the repository                              |
@@ -129,8 +129,14 @@ This directory contains several categories of Git utilities:
   - Focus on actual content changes rather than notebook formatting changes
 
 - **Examples**
-  - Diff current notebook against HEAD: `bash     > gd_notebook.py notebook.ipynb     `
-  - Diff notebook with specific revision: `bash     > gd_notebook.py --rev HEAD~1 notebook.ipynb     `
+  - Diff current notebook against HEAD:
+    ```bash
+    > gd_notebook.py notebook.ipynb
+    ```
+  - Diff notebook with specific revision:
+    ```bash
+    > gd_notebook.py --rev HEAD~1 notebook.ipynb
+    ```
 
 ## Branch Management
 
@@ -148,9 +154,24 @@ This directory contains several categories of Git utilities:
   - Checkout a branch and automatically pull updates with submodule support
   - Replaces the standard `git checkout` with enhanced functionality
   - Ensures submodules are also updated when switching branches
+  - By default, `git pull --recurse-submodules` rebases whatever branch each
+    submodule currently has checked out. If a submodule was left on a stale
+    branch (e.g., from a different task), this rebases unrelated commits and
+    can conflict
+  - `-s` avoids this: after checkout, it pulls the super-repo and then forces
+    submodules to the exact commit recorded by the super-repo (detached HEAD,
+    no rebase)
 
 - **Examples**
-  - Switch to an existing branch: `bash     > gco branch_name     `
+  - Switch to an existing branch:
+    ```bash
+    > gco branch_name
+    ```
+  - Switch and force submodules to the pinned commit (avoids stale-submodule-branch
+    conflicts):
+    ```bash
+    > gco -s branch_name
+    ```
 
 ## Stashing and Cleaning
 
@@ -162,8 +183,14 @@ This directory contains several categories of Git utilities:
   - Both create backups to prevent accidental loss of work
 
 - **Examples**
-  - Stash current changes: `bash     > gsp.py     `
-  - Clean client with backup: `bash     > gcl     `
+  - Stash current changes:
+    ```bash
+    > gsp.py
+    ```
+  - Clean client with backup:
+    ```bash
+    > gcl
+    ```
 
 ### `gsl`
 - **What It Does**
@@ -181,9 +208,18 @@ This directory contains several categories of Git utilities:
   - All use autostash to prevent loss of uncommitted work during pull/rebase
 
 - **Examples**
-  - Full sync and push: `bash     > gp     `
-  - Pull only without pushing: `bash     > gpa     `
-  - Manual update with stash and rebase: `bash     > gup.py     `
+  - Full sync and push:
+    ```bash
+    > gp
+    ```
+  - Pull only without pushing:
+    ```bash
+    > gpa
+    ```
+  - Manual update with stash and rebase:
+    ```bash
+    > gup.py
+    ```
 
 ### `git_submodules_pull.sh`
 - **What It Does**
@@ -211,7 +247,10 @@ This directory contains several categories of Git utilities:
   - Helpful for understanding the nature of conflicts
 
 - **Examples**
-  - Show conflict versions: `bash     > git_conflict_show.sh conflicted_file.py     `
+  - Show conflict versions:
+    ```bash
+    > git_conflict_show.sh conflicted_file.py
+    ```
 
 ## Rebase Operations
 
@@ -230,9 +269,18 @@ This directory contains several categories of Git utilities:
   - Useful for projects with multiple git submodules
 
 - **Examples**
-  - Show status of all submodules: `bash     > git_submodules.py --action status     `
-  - Pull all submodules: `bash     > git_submodules.py --action pull     `
-  - Commit changes in all submodules: `bash     > git_submodules.py --action commit --message "Update submodules"     `
+  - Show status of all submodules:
+    ```bash
+    > git_submodules.py --action status
+    ```
+  - Pull all submodules:
+    ```bash
+    > git_submodules.py --action pull
+    ```
+  - Commit changes in all submodules:
+    ```bash
+    > git_submodules.py --action commit --message "Update submodules"
+    ```
 
 ### Submodule Helpers
 - `git_submodules_are_updated.sh`: Check if all submodules are synchronized
@@ -269,9 +317,18 @@ This directory contains several categories of Git utilities:
   - Helpful for visualizing branch structure and relationships
 
 - **Examples**
-  - Show basic branch graph: `bash     > git_graph.sh 1     `
-  - Show detailed branch information: `bash     > git_graph.sh 2     `
-  - Show most detailed view: `bash     > git_graph.sh 3     `
+  - Show basic branch graph:
+    ```bash
+    > git_graph.sh 1
+    ```
+  - Show detailed branch information:
+    ```bash
+    > git_graph.sh 2
+    ```
+  - Show most detailed view:
+    ```bash
+    > git_graph.sh 3
+    ```
 
 ### `git_backup.sh`
 - **What It Does**
