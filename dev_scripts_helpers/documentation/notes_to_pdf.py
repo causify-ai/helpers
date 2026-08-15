@@ -408,13 +408,8 @@ def _main(parser: argparse.ArgumentParser) -> None:
     hdbg.init_logger(verbosity=args.log_level, use_exec_path=True)
     _LOG.info("%s", hprint.color_highlight(f"> {cmd_line}", "green"))
     if args.daemon:
-<<<<<<< HEAD
-        # Skip "open_pdf" action on watch runs (viewer auto-reloads).
-        hdaemon.run_daemon_mode(
-=======
         # Skip "open" action on watch runs (viewer auto-reloads).
         hdaemon.run_reactive_daemon_mode(
->>>>>>> 57f91ae1 (UmdTask517_Get_regressions_to_pass_1 (#1341))
             args.input,
             cmd_line,
             "notes_to_pdf",

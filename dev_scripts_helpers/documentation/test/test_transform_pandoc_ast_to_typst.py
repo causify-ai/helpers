@@ -170,11 +170,7 @@ class Test__extract_columns(hunitest.TestCase):
         outcome.
 
         :param markdown_input: Markdown text to convert
-<<<<<<< HEAD
-        :param expected: Expected formatted outcome string
-=======
         :param expected: expected formatted outcome string
->>>>>>> 57f91ae1 (UmdTask517_Get_regressions_to_pass_1 (#1341))
         """
         scratch_dir = self.get_scratch_space()
         outcome = {}
@@ -318,11 +314,7 @@ class Test__extract_columns(hunitest.TestCase):
         ################################################################################
         [('55%', [{'t': 'Para', 'c': [{'t': 'Str', 'c': 'Left'}]}]), ('45%', [{'t': 'Para', 'c': [{'t': 'Str', 'c': 'Right'}]}])]
         """
-<<<<<<< HEAD
-        # Run test.
-=======
         # Run test and check outputs.
->>>>>>> 57f91ae1 (UmdTask517_Get_regressions_to_pass_1 (#1341))
         self.helper(markdown_input, expected)
 
     def test2(self) -> None:
@@ -413,11 +405,7 @@ class Test__extract_columns(hunitest.TestCase):
         ################################################################################
         [('1fr', [{'t': 'Para', 'c': [{'t': 'Str', 'c': 'Default'}, {'t': 'Space'}, {'t': 'Str', 'c': 'width'}]}])]
         """
-<<<<<<< HEAD
-        # Run test.
-=======
         # Run test and check outputs.
->>>>>>> 57f91ae1 (UmdTask517_Get_regressions_to_pass_1 (#1341))
         self.helper(markdown_input, expected)
 
     def test3(self) -> None:
@@ -537,11 +525,7 @@ class Test__extract_columns(hunitest.TestCase):
         ################################################################################
         [('50%', [{'t': 'Para', 'c': [{'t': 'Str', 'c': 'Included'}]}])]
         """
-<<<<<<< HEAD
-        # Run test.
-=======
         # Run test and check outputs.
->>>>>>> 57f91ae1 (UmdTask517_Get_regressions_to_pass_1 (#1341))
         self.helper(markdown_input, expected)
 
 
@@ -659,11 +643,7 @@ class Test__transform_elem(hunitest.TestCase):
         outcome.
 
         :param markdown_input: Markdown text to convert
-<<<<<<< HEAD
-        :param expected: Expected formatted outcome string
-=======
         :param expected: expected formatted outcome string
->>>>>>> 57f91ae1 (UmdTask517_Get_regressions_to_pass_1 (#1341))
         """
         scratch_dir = self.get_scratch_space()
         outcome = {}
@@ -742,11 +722,7 @@ class Test__transform_elem(hunitest.TestCase):
           ]
         }
         """
-<<<<<<< HEAD
-        # Run test.
-=======
         # Run test and check outputs.
->>>>>>> 57f91ae1 (UmdTask517_Get_regressions_to_pass_1 (#1341))
         self.helper(markdown_input, expected)
 
     def test2(self) -> None:
@@ -814,11 +790,7 @@ class Test__transform_elem(hunitest.TestCase):
           ]
         }
         """
-<<<<<<< HEAD
-        # Run test.
-=======
         # Run test and check outputs.
->>>>>>> 57f91ae1 (UmdTask517_Get_regressions_to_pass_1 (#1341))
         self.helper(markdown_input, expected)
 
     def test3(self) -> None:
@@ -858,11 +830,7 @@ class Test__transform_elem(hunitest.TestCase):
           ]
         }
         """
-<<<<<<< HEAD
-        # Run test.
-=======
         # Run test and check outputs.
->>>>>>> 57f91ae1 (UmdTask517_Get_regressions_to_pass_1 (#1341))
         self.helper(markdown_input, expected)
 
     def test4(self) -> None:
@@ -958,11 +926,7 @@ class Test__transform_elem(hunitest.TestCase):
           ]
         }
         """
-<<<<<<< HEAD
-        # Run test.
-=======
         # Run test and check outputs.
->>>>>>> 57f91ae1 (UmdTask517_Get_regressions_to_pass_1 (#1341))
         self.helper(markdown_input, expected)
 
 
@@ -982,11 +946,7 @@ class Test__transform_ast(hunitest.TestCase):
         outcome.
 
         :param markdown_input: Markdown text to convert
-<<<<<<< HEAD
-        :param expected: Expected formatted outcome string
-=======
         :param expected: expected formatted outcome string
->>>>>>> 57f91ae1 (UmdTask517_Get_regressions_to_pass_1 (#1341))
         """
         scratch_dir = self.get_scratch_space()
         outcome = {}
@@ -1074,11 +1034,7 @@ class Test__transform_ast(hunitest.TestCase):
           ]
         }
         """
-<<<<<<< HEAD
-        # Run test.
-=======
         # Run test and check outputs.
->>>>>>> 57f91ae1 (UmdTask517_Get_regressions_to_pass_1 (#1341))
         self.helper(markdown_input, expected)
 
     def test2(self) -> None:
@@ -1118,11 +1074,7 @@ class Test__transform_ast(hunitest.TestCase):
           ]
         }
         """
-<<<<<<< HEAD
-        # Run test.
-=======
         # Run test and check outputs.
->>>>>>> 57f91ae1 (UmdTask517_Get_regressions_to_pass_1 (#1341))
         self.helper(markdown_input, expected)
 
 
@@ -1142,11 +1094,7 @@ class Test_end_to_end(hunitest.TestCase):
         check the outcome.
 
         :param markdown_input: Markdown text to convert
-<<<<<<< HEAD
-        :param expected: Expected formatted outcome string
-=======
         :param expected: expected formatted outcome string
->>>>>>> 57f91ae1 (UmdTask517_Get_regressions_to_pass_1 (#1341))
         """
         scratch_dir = self.get_scratch_space()
         outcome = {}
@@ -1228,11 +1176,7 @@ class Test_end_to_end(hunitest.TestCase):
           ]
         )
         """
-<<<<<<< HEAD
-        # Run test.
-=======
         # Run test and check outputs.
->>>>>>> 57f91ae1 (UmdTask517_Get_regressions_to_pass_1 (#1341))
         self.helper(markdown_input, expected)
 
     def test2(self) -> None:
@@ -1298,11 +1242,7 @@ class Test_end_to_end(hunitest.TestCase):
           ]
         )
         """
-<<<<<<< HEAD
-        # Run test.
-=======
         # Run test and check outputs.
->>>>>>> 57f91ae1 (UmdTask517_Get_regressions_to_pass_1 (#1341))
         self.helper(markdown_input, expected)
 
 
@@ -1317,21 +1257,6 @@ class Test__find_textcolor_calls(hunitest.TestCase):
     """
 
     def helper(
-<<<<<<< HEAD
-        self, latex_string: str, expected: List[Tuple[int, int, str, str]]
-    ) -> None:
-        """
-        Test helper for `_find_textcolor_calls()`.
-
-        :param latex_string: LaTeX formula to parse
-        :param expected: expected list of `(start, end, color, content)`
-            tuples
-        """
-        # Run test.
-        actual = dshdtpatt._find_textcolor_calls(latex_string)
-        # Check outputs.
-        self.assert_equal(str(actual), str(expected))
-=======
         self, latex_string: str, expected_calls: List[Tuple[str, str]]
     ) -> None:
         r"""
@@ -1353,7 +1278,6 @@ class Test__find_textcolor_calls(hunitest.TestCase):
         for start, end, color, content in calls:
             expected_span = r"\textcolor{%s}{%s}" % (color, content)
             self.assert_equal(latex_string[start:end], expected_span)
->>>>>>> 57f91ae1 (UmdTask517_Get_regressions_to_pass_1 (#1341))
 
     def test1(self) -> None:
         r"""
@@ -1362,15 +1286,9 @@ class Test__find_textcolor_calls(hunitest.TestCase):
         # Prepare inputs.
         latex_string = r"\textcolor{red}{hello}"
         # Prepare outputs.
-<<<<<<< HEAD
-        expected = [(0, len(latex_string), "red", "hello")]
-        # Run test.
-        self.helper(latex_string, expected)
-=======
         expected_calls = [("red", "hello")]
         # Run test and check outputs.
         self.helper(latex_string, expected_calls)
->>>>>>> 57f91ae1 (UmdTask517_Get_regressions_to_pass_1 (#1341))
 
     def test2(self) -> None:
         r"""
@@ -1383,15 +1301,9 @@ class Test__find_textcolor_calls(hunitest.TestCase):
         # Prepare inputs.
         latex_string = r"\textcolor{blue}{x_1, ..., x_{n-1}}"
         # Prepare outputs.
-<<<<<<< HEAD
-        expected = [(0, len(latex_string), "blue", "x_1, ..., x_{n-1}")]
-        # Run test.
-        self.helper(latex_string, expected)
-=======
         expected_calls = [("blue", "x_1, ..., x_{n-1}")]
         # Run test and check outputs.
         self.helper(latex_string, expected_calls)
->>>>>>> 57f91ae1 (UmdTask517_Get_regressions_to_pass_1 (#1341))
 
     def test3(self) -> None:
         r"""
@@ -1400,15 +1312,9 @@ class Test__find_textcolor_calls(hunitest.TestCase):
         # Prepare inputs.
         latex_string = r"\Pr(\textcolor{blue}{x}, \textcolor{red}{y})"
         # Prepare outputs.
-<<<<<<< HEAD
-        expected = [(4, 23, "blue", "x"), (25, 43, "red", "y")]
-        # Run test.
-        self.helper(latex_string, expected)
-=======
         expected_calls = [("blue", "x"), ("red", "y")]
         # Run test and check outputs.
         self.helper(latex_string, expected_calls)
->>>>>>> 57f91ae1 (UmdTask517_Get_regressions_to_pass_1 (#1341))
 
     def test4(self) -> None:
         r"""
@@ -1417,15 +1323,9 @@ class Test__find_textcolor_calls(hunitest.TestCase):
         # Prepare inputs.
         latex_string = "x + y"
         # Prepare outputs.
-<<<<<<< HEAD
-        expected: List[Tuple[int, int, str, str]] = []
-        # Run test.
-        self.helper(latex_string, expected)
-=======
         expected_calls: List[Tuple[str, str]] = []
         # Run test and check outputs.
         self.helper(latex_string, expected_calls)
->>>>>>> 57f91ae1 (UmdTask517_Get_regressions_to_pass_1 (#1341))
 
 
 # #############################################################################

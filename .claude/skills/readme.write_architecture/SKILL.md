@@ -46,14 +46,7 @@ model: sonnet
 
 - Write the results to `<FILE>.README.md` in the same directory as `<FILE>`
 
-<<<<<<< HEAD
 - Wrap the text in 85 columns
-=======
-## Step 5: Lint Document
-  ```bash
-  > lint_text.py -i `<FILE>.README.md`
-  ```
->>>>>>> 57f91ae1 (UmdTask517_Get_regressions_to_pass_1 (#1341))
 
 # Conventions
 

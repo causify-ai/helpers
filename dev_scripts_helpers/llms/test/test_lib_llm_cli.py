@@ -71,11 +71,7 @@ class Test_selected_text(hunitest.TestCase):
         system_prompt: str,
         expected: str,
         *,
-<<<<<<< HEAD
-        output_file: Optional[str] = None,
-=======
         output_file: str = "",
->>>>>>> 57f91ae1 (UmdTask517_Get_regressions_to_pass_1 (#1341))
     ) -> None:
         """
         Run `_process_selected_text()` with mocked LLM and check the output.
@@ -97,11 +93,7 @@ class Test_selected_text(hunitest.TestCase):
             output_file=output_file,
         )
         # Check outputs.
-<<<<<<< HEAD
-        self.assert_equal(actual, expected)
-=======
         self.assert_equal(actual, expected, dedent=True)
->>>>>>> 57f91ae1 (UmdTask517_Get_regressions_to_pass_1 (#1341))
 
     def test1(self) -> None:
         """
@@ -206,15 +198,11 @@ class Test_selected_text(hunitest.TestCase):
         """
         # Run test.
         self.helper(
-<<<<<<< HEAD
-            input_content, select, system_prompt, expected, output_file=output_file
-=======
             input_content,
             select,
             system_prompt,
             expected,
             output_file=output_file,
->>>>>>> 57f91ae1 (UmdTask517_Get_regressions_to_pass_1 (#1341))
         )
 
 
@@ -238,7 +226,6 @@ class Test_get_system_prompt(hunitest.TestCase):
         expand_referenced_files: bool = True,
     ) -> None:
         """
-<<<<<<< HEAD
         Run `_get_system_prompt()` and check the output.
 
         :param system_prompt_file: path to file containing system prompt
@@ -249,16 +236,6 @@ class Test_get_system_prompt(hunitest.TestCase):
         :param expected: expected resolved system prompt
         :param expand_referenced_files: whether to expand `@file` references
             in the resolved prompt into file content
-=======
-        Check `_get_system_prompt()`'s output.
-
-        :param system_prompt_file: path to file containing system prompt
-        :param rule: rule specification to use as system prompt
-        :param system_prompt: system prompt passed directly as a string
-        :param expected: expected resolved system prompt
-        :param expand_referenced_files: whether to expand `@file`
-            references in the resolved system prompt
->>>>>>> 57f91ae1 (UmdTask517_Get_regressions_to_pass_1 (#1341))
         """
         # Run test.
         actual = dshllllcl._get_system_prompt(
@@ -268,10 +245,7 @@ class Test_get_system_prompt(hunitest.TestCase):
             expand_referenced_files=expand_referenced_files,
         )
         # Check outputs.
-<<<<<<< HEAD
         # TODO(ai_gp): Use assert_equal
-=======
->>>>>>> 57f91ae1 (UmdTask517_Get_regressions_to_pass_1 (#1341))
         self.assertEqual(actual, expected)
 
     def test1(self) -> None:
@@ -360,11 +334,7 @@ class Test_limit_input_text(hunitest.TestCase):
 
     def helper(self, text: str, max_chars: int, expected: str) -> None:
         """
-<<<<<<< HEAD
         Run `_limit_input_text()` and check the output.
-=======
-        Check `_limit_input_text()`'s output.
->>>>>>> 57f91ae1 (UmdTask517_Get_regressions_to_pass_1 (#1341))
 
         :param text: input text to limit
         :param max_chars: maximum number of characters
@@ -373,10 +343,7 @@ class Test_limit_input_text(hunitest.TestCase):
         # Run test.
         actual = dshllllcl._limit_input_text(text, max_chars)
         # Check outputs.
-<<<<<<< HEAD
         # TODO(ai_gp): Use assert_equal
-=======
->>>>>>> 57f91ae1 (UmdTask517_Get_regressions_to_pass_1 (#1341))
         self.assertEqual(actual, expected)
 
     def test1(self) -> None:
@@ -420,28 +387,17 @@ class Test_get_input_output_files(hunitest.TestCase):
         input_text_arg: str,
         output_arg: str,
         modify_in_place: bool,
-<<<<<<< HEAD
         expected: Tuple[str, str, str],
     ) -> None:
         """
         Run `_get_input_output_files()` and check the output.
-=======
-        expected: str,
-    ) -> None:
-        """
-        Check `_get_input_output_files()`'s output.
->>>>>>> 57f91ae1 (UmdTask517_Get_regressions_to_pass_1 (#1341))
 
         :param input_arg: input file path or '-' for stdin
         :param input_text_arg: input text from command line
         :param output_arg: output file path or '-' for stdout
         :param modify_in_place: whether to modify input file in place
         :param expected: expected `(input_file, input_text, output_file)`
-<<<<<<< HEAD
             tuple
-=======
-            tuple, as a string
->>>>>>> 57f91ae1 (UmdTask517_Get_regressions_to_pass_1 (#1341))
         """
         # Run test.
         actual = dshllllcl._get_input_output_files(
@@ -451,11 +407,7 @@ class Test_get_input_output_files(hunitest.TestCase):
             modify_in_place,
         )
         # Check outputs.
-<<<<<<< HEAD
         self.assert_equal(str(actual), str(expected))
-=======
-        self.assert_equal(str(actual), expected)
->>>>>>> 57f91ae1 (UmdTask517_Get_regressions_to_pass_1 (#1341))
 
     def test1(self) -> None:
         """
@@ -467,11 +419,7 @@ class Test_get_input_output_files(hunitest.TestCase):
         output_arg = ""
         modify_in_place = False
         # Prepare outputs.
-<<<<<<< HEAD
         expected = ("test.txt", "", "-")
-=======
-        expected = str(("test.txt", "", "-"))
->>>>>>> 57f91ae1 (UmdTask517_Get_regressions_to_pass_1 (#1341))
         # Run test.
         self.helper(
             input_arg, input_text_arg, output_arg, modify_in_place, expected
@@ -487,11 +435,7 @@ class Test_get_input_output_files(hunitest.TestCase):
         output_arg = "output.txt"
         modify_in_place = False
         # Prepare outputs.
-<<<<<<< HEAD
         expected = ("", "Test input", "output.txt")
-=======
-        expected = str(("", "Test input", "output.txt"))
->>>>>>> 57f91ae1 (UmdTask517_Get_regressions_to_pass_1 (#1341))
         # Run test.
         self.helper(
             input_arg, input_text_arg, output_arg, modify_in_place, expected

@@ -1634,33 +1634,6 @@ def gh_watch(ctx, *, interval=60):  # type: ignore
     :param interval: Update interval in seconds
     """
     hltltaut.report_task()
-<<<<<<< HEAD
-    # Check if running inside tmux and save original window name.
-    old_pane_title = None
-    if os.environ.get("TMUX"):
-        _LOG.info("Running in tmux, saving window name")
-        _, old_pane_title = hsystem.system_to_one_line(
-            "tmux display-message -p '#W'"
-        )
-        _LOG.info("Original window name: %s", old_pane_title)
-        # Rename window to indicate we're watching workflows.
-        # Use `--` so `tmux` does not misinterpret a name starting with
-        # `-` as an option flag.
-        hsystem.system("tmux rename-window -- '*GH_WATCH*'")
-    try:
-        # Watch workflows by repeatedly running gh_workflow_list.
-        while True:
-            # Clear screen before displaying updated workflow status.
-            subprocess.run("clear; invoke gh_workflow_list", shell=True)
-            _LOG.info("Sleeping for %d seconds before next update", interval)
-            time.sleep(interval)
-    finally:
-        # Restore original tmux window name if it was changed.
-        if old_pane_title is not None:
-            _LOG.info("Restoring window name: %s", old_pane_title)
-            # Use `--` so `tmux` does not misinterpret a name starting with `-`
-            # as an option flag. E.g., `tmux rename-window '---helpers1---'`
-            hsystem.system(f"tmux rename-window -- '{old_pane_title}'")
 
     def _run() -> None:
         # Clear screen before displaying updated workflow status.

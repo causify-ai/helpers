@@ -667,28 +667,6 @@ def _parse() -> argparse.ArgumentParser:
 
 
 def _run_summarize_action(
-<<<<<<< HEAD
-    in_file_name: str, out_file_name: str, args: argparse.Namespace
-) -> str:
-    """
-    Run the "summarize" action: extract sections and summarize via LLM.
-
-    Reads the input markdown file, extracts headers at `args.md_level`,
-    summarizes each section (via LLM, or SHA1 digest in test mode), and
-    writes the results to the output file. Prints input/output statistics to
-    stdout.
-
-    :param in_file_name: Path to input markdown file
-    :param out_file_name: Output file path
-        - Empty string: auto-generate from `in_file_name`
-    :param args: Parsed command-line arguments
-        - Uses `md_level`, `overwrite`, `select`, `model`, `test`,
-          `max_words`, `pct_words`, `dry_run`
-    :return: Path to the output file that was actually written (may differ
-        from the input `out_file_name` when auto-generated)
-    """
-    _LOG.debug(hprint.to_str("in_file_name out_file_name"))
-=======
     args: argparse.Namespace, in_file_name: str, out_file_name: str
 ) -> str:
     """
@@ -701,7 +679,6 @@ def _run_summarize_action(
         empty)
     :return: the resolved output file path that was written to
     """
->>>>>>> 57f91ae1 (UmdTask517_Get_regressions_to_pass_1 (#1341))
     hdbg.dassert_lte(-1, args.md_level, "--md_level must be >= -1")
     out_file_name = _prepare_output_file(
         in_file_name, out_file_name, args.overwrite
@@ -791,11 +768,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
             continue
         if action == "summarize":
             out_file_name = _run_summarize_action(
-<<<<<<< HEAD
-                in_file_name, out_file_name, args
-=======
                 args, in_file_name, out_file_name
->>>>>>> 57f91ae1 (UmdTask517_Get_regressions_to_pass_1 (#1341))
             )
         elif action == "lint":
             if not args.test:
