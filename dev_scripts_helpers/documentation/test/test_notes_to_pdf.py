@@ -694,7 +694,7 @@ class Test_notes_to_pdf_toc_options(hunitest.TestCase):
         \cp -af $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf_toc_options.test1/tmp.scratch/tmp.notes_to_pdf.pdf $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf_toc_options.test1/tmp.scratch/output.pdf
         # copy_to_gdrive
         ## skipping this action
-        # open
+        # open_pdf
         ## skipping this action
         # cleanup_after
         ## skipping this action
@@ -735,7 +735,7 @@ class Test_notes_to_pdf_toc_options(hunitest.TestCase):
         \cp -af $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf_toc_options.test2/tmp.scratch/tmp.notes_to_pdf.pdf $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf_toc_options.test2/tmp.scratch/output.pdf
         # copy_to_gdrive
         ## skipping this action
-        # open
+        # open_pdf
         ## skipping this action
         # cleanup_after
         ## skipping this action
@@ -794,7 +794,7 @@ class Test_notes_to_pdf_toc_options(hunitest.TestCase):
         \cp -af $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf_toc_options.test3/tmp.scratch/tmp.notes_to_pdf.render_image2.pdf $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf_toc_options.test3/tmp.scratch/output.pdf
         # copy_to_gdrive
         ## skipping this action
-        # open
+        # open_pdf
         ## skipping this action
         # cleanup_after
         ## skipping this action
@@ -834,7 +834,7 @@ class Test_notes_to_pdf_toc_options(hunitest.TestCase):
         \cp -af $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf_toc_options.test4/tmp.scratch/tmp.notes_to_pdf.pdf $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf_toc_options.test4/tmp.scratch/output.pdf
         # copy_to_gdrive
         ## skipping this action
-        # open
+        # open_pdf
         ## skipping this action
         # cleanup_after
         ## skipping this action
@@ -950,7 +950,7 @@ class Test_notes_to_pdf_actions(hunitest.TestCase):
         \cp -af $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf_actions.test1/tmp.scratch/tmp.notes_to_pdf.pdf $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf_actions.test1/tmp.scratch/output.pdf
         # copy_to_gdrive
         ## skipping this action
-        # open
+        # open_pdf
         ## skipping this action
         # cleanup_after
         ## skipping this action
@@ -995,7 +995,7 @@ class Test_notes_to_pdf_actions(hunitest.TestCase):
         \cp -af $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf_actions.test2/tmp.scratch/tmp.notes_to_pdf.pdf $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf_actions.test2/tmp.scratch/output.pdf
         # copy_to_gdrive
         ## skipping this action
-        # open
+        # open_pdf
         ## skipping this action
         # cleanup_after
         ## skipping this action
@@ -1113,7 +1113,7 @@ class Test_notes_to_pdf_script_generation(hunitest.TestCase):
         \cp -af $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf_script_generation.test1/tmp.scratch/tmp.notes_to_pdf.pdf $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf_script_generation.test1/tmp.scratch/output.pdf
         # copy_to_gdrive
         ## skipping this action
-        # open
+        # open_pdf
         ## skipping this action
         # cleanup_after
         ## skipping this action
@@ -1153,7 +1153,7 @@ class Test_notes_to_pdf_script_generation(hunitest.TestCase):
         \cp -af $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf_script_generation.test2/tmp.scratch/tmp.notes_to_pdf.pdf $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf_script_generation.test2/tmp.scratch/output.pdf
         # copy_to_gdrive
         ## skipping this action
-        # open
+        # open_pdf
         ## skipping this action
         # cleanup_after
         ## skipping this action
@@ -1296,7 +1296,7 @@ class Test_notes_to_pdf_edge_cases(hunitest.TestCase):
         \cp -af $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf_edge_cases.test1/tmp.scratch/tmp.notes_to_pdf.pdf $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf_edge_cases.test1/tmp.scratch/output.pdf
         # copy_to_gdrive
         ## skipping this action
-        # open
+        # open_pdf
         ## skipping this action
         # cleanup_after
         ## skipping this action
@@ -1340,7 +1340,7 @@ class Test_notes_to_pdf_edge_cases(hunitest.TestCase):
         \cp -af $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf_edge_cases.test2/tmp.scratch/tmp.notes_to_pdf.pdf $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf_edge_cases.test2/tmp.scratch/output.pdf
         # copy_to_gdrive
         ## skipping this action
-        # open
+        # open_pdf
         ## skipping this action
         # cleanup_after
         ## skipping this action
@@ -1397,7 +1397,7 @@ class Test_notes_to_pdf_edge_cases(hunitest.TestCase):
         \cp -af $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf_edge_cases.test3/tmp.scratch/tmp.notes_to_pdf.pdf $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf_edge_cases.test3/tmp.scratch/output.pdf
         # copy_to_gdrive
         ## skipping this action
-        # open
+        # open_pdf
         ## skipping this action
         # cleanup_after
         ## skipping this action
@@ -1466,7 +1466,7 @@ class Test_notes_to_pdf_edge_cases(hunitest.TestCase):
         \cp -af $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf_edge_cases.test4/tmp.scratch/tmp.notes_to_pdf.pdf $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf_edge_cases.test4/tmp.scratch/output.pdf
         # copy_to_gdrive
         ## skipping this action
-        # open
+        # open_pdf
         ## skipping this action
         # cleanup_after
         ## skipping this action
@@ -1573,7 +1573,7 @@ class Test_notes_to_pdf_pandoc_ast(hunitest.TestCase):
         \cp -af $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf_pandoc_ast.test1/tmp.scratch/tmp.notes_to_pdf.pdf $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf_pandoc_ast.test1/tmp.scratch/output.pdf
         # copy_to_gdrive
         ## skipping this action
-        # open
+        # open_pdf
         ## skipping this action
         # cleanup_after
         ## skipping this action
@@ -1782,7 +1782,7 @@ class Test_notes_to_pdf_latex_options(hunitest.TestCase):
         \cp -af $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf_latex_options.test1/tmp.scratch/tmp.notes_to_pdf.pdf $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf_latex_options.test1/tmp.scratch/output.pdf
         # copy_to_gdrive
         ## skipping this action
-        # open
+        # open_pdf
         ## skipping this action
         # cleanup_after
         ## skipping this action
@@ -1824,7 +1824,7 @@ class Test_notes_to_pdf_latex_options(hunitest.TestCase):
         \cp -af $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf_latex_options.test2/tmp.scratch/tmp.notes_to_pdf.pdf $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf_latex_options.test2/tmp.scratch/output.pdf
         # copy_to_gdrive
         ## skipping this action
-        # open
+        # open_pdf
         ## skipping this action
         # cleanup_after
         ## skipping this action
