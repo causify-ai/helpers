@@ -267,7 +267,9 @@ class Test_build_pandoc_container1(hunitest.TestCase):
         )
         _, output = hsystem.system_to_string(cmd)
         # Check version output.
-        expected = "pandoc 3.9.0.2\n"
+        # Keep in sync with the `pandoc=` version pin in the
+        # `_PANDOC_TEXLIVE_DOCKERFILE` in `lib_pandoc.py`.
+        expected = "pandoc 3.10\n"
         self.assert_equal(output, expected, purify_text=True)
 
 
