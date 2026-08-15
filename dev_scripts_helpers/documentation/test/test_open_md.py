@@ -661,7 +661,8 @@ class Test_open_md_py_main(hunitest.TestCase):
     def test3(self) -> None:
         """
         Test `--mode pandoc` dispatches to `_render_with_pandoc()`
-        with the dockerized-force-rebuild arguments.
+        with the dockerized-force-rebuild arguments and defaults to
+        the bundled GitHub-like style.
         """
         # Prepare inputs.
         input_file = "readme.md"
@@ -672,10 +673,13 @@ class Test_open_md_py_main(hunitest.TestCase):
         expected_backend = "global"
         expected_force_rebuild = False
         expected_use_sudo = False
-        expected_style_file = None
+        expected_style_file = "/some/path/github_style.html"
         # Run test.
         with (
             mock.patch.object(dshdopmd, "_render_with_pandoc") as mock_fn,
+            mock.patch(
+                "helpers.hgit.find_file", return_value=expected_style_file
+            ),
             mock.patch("sys.argv", argv),
         ):
             dshdopmd._main(parser)
@@ -685,6 +689,74 @@ class Test_open_md_py_main(hunitest.TestCase):
             backend=expected_backend,
             force_rebuild=expected_force_rebuild,
             use_sudo=expected_use_sudo,
+            style_file=expected_style_file,
+        )
+
+    def test3a(self) -> None:
+        """
+        Test `--mode pandoc --css` overrides the default GitHub-like
+        style with the custom CSS file.
+        """
+        # Prepare inputs.
+        input_file = "readme.md"
+        mode = "pandoc"
+        css_file = "my_style.html"
+        argv = [
+            "open_md.py",
+            "--input",
+            input_file,
+            "--mode",
+            mode,
+            "--css",
+            css_file,
+        ]
+        parser = dshdopmd._parse()
+        # Prepare outputs.
+        expected_backend = "global"
+        expected_force_rebuild = False
+        expected_use_sudo = False
+        # Run test.
+        with (
+            mock.patch.object(dshdopmd, "_render_with_pandoc") as mock_fn,
+            mock.patch("helpers.hgit.find_file") as mock_find_file,
+            mock.patch("sys.argv", argv),
+        ):
+            dshdopmd._main(parser)
+        # Check outputs: `--css` wins, so `find_file()` is never called.
+        mock_find_file.assert_not_called()
+        mock_fn.assert_called_once_with(
+            input_file,
+            backend=expected_backend,
+            force_rebuild=expected_force_rebuild,
+            use_sudo=expected_use_sudo,
+            style_file=css_file,
+        )
+
+    def test3b(self) -> None:
+        """
+        Test omitting `--mode` defaults to `pandoc`.
+        """
+        # Prepare inputs.
+        input_file = "readme.md"
+        argv = ["open_md.py", "--input", input_file]
+        parser = dshdopmd._parse()
+        # Prepare outputs.
+        expected_style_file = "/some/path/github_style.html"
+        # Run test.
+        with (
+            mock.patch.object(dshdopmd, "_render_with_pandoc") as mock_fn,
+            mock.patch(
+                "helpers.hgit.find_file", return_value=expected_style_file
+            ),
+            mock.patch("sys.argv", argv),
+        ):
+            dshdopmd._main(parser)
+        # Check outputs.
+        mock_fn.assert_called_once_with(
+            input_file,
+            backend="global",
+            force_rebuild=False,
+            use_sudo=False,
             style_file=expected_style_file,
         )
 

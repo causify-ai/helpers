@@ -18,15 +18,15 @@ Render and open markdown files in different modes.
 - Open a file on GitHub in the browser:
 > open_md.py --input xyz.md --mode github
 
-- Convert the file to HTML with pandoc using locally installed tools:
-> open_md.py --input xyz.md --mode pandoc --backend global
+- Convert the file to HTML with pandoc using locally installed tools
+  (pandoc is the default mode, and the output is automatically styled to
+  look like GitHub's rendering: bigger font, yellowish verbatim, wider
+  layout):
+> open_md.py --input xyz.md --backend global
 
-- Convert the file to HTML with pandoc, styled to look like GitHub's
-  rendering (bigger font, yellowish verbatim, wider layout):
-> open_md.py --input xyz.md --mode pandoc --backend global --github_style
-
-- Same, with a custom CSS/HTML header-include instead of the bundled style:
-> open_md.py --input xyz.md --mode pandoc --backend global --css my_style.html
+- Same, with a custom CSS/HTML header-include instead of the bundled
+  GitHub-like style:
+> open_md.py --input xyz.md --backend global --css my_style.html
 
 - Export the file to HTML with grip using locally installed tools:
 > open_md.py --input xyz.md --mode grip --backend global
@@ -323,7 +323,7 @@ def _parse() -> argparse.ArgumentParser:
         "--mode",
         type=str,
         choices=["github", "pandoc", "grip", "grip_daemon"],
-        required=True,
+        default="pandoc",
         help="Rendering mode",
     )
     parser.add_argument(
@@ -334,19 +334,13 @@ def _parse() -> argparse.ArgumentParser:
         help="Backend to use for rendering",
     )
     parser.add_argument(
-        "--github_style",
-        action="store_true",
-        help="(pandoc mode only) Style the output HTML to look like "
-        "GitHub's markdown rendering (bigger font, yellowish verbatim, "
-        "wider layout), using the bundled github_style.html",
-    )
-    parser.add_argument(
         "--css",
         type=str,
         default=None,
         help="(pandoc mode only) Path to a custom HTML snippet (e.g., a "
         "`<style>` block) to inject into the output via pandoc's "
-        "--include-in-header; overrides --github_style",
+        "--include-in-header, overriding the default GitHub-like style "
+        "(bigger font, yellowish verbatim, wider layout)",
     )
     hdocker.add_dockerized_script_arg(parser)
     hparser.add_verbosity_arg(parser)
@@ -361,9 +355,9 @@ def _main(parser: argparse.ArgumentParser) -> None:
         _open_on_github(args.input)
     elif args.mode == "pandoc":
         # Resolve the style/header-include: explicit --css wins, otherwise
-        # fall back to the bundled GitHub-like style if requested.
+        # default to the bundled GitHub-like style.
         style_file = args.css
-        if style_file is None and args.github_style:
+        if style_file is None:
             style_file = hgit.find_file("github_style.html")
         _render_with_pandoc(
             args.input,
