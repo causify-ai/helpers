@@ -53,6 +53,11 @@ Rules for writing structured text using bullet lists
 
 # Formatting
 
+## Wrap Lines at 85 Characters
+
+- Wrap text and markdown prose lines at 85 characters
+- Fenced code blocks are exempt: preserve their content without rewrapping
+
 ## Use Only Text
 
 - Avoid emojis and icons
@@ -145,7 +150,8 @@ Rules for writing structured text using bullet lists
 - Use nested structure with maximal clarity and fewer words
   - Use `-` for first-level bullets
   - Use indented `-` for sub-bullets
-  - Organize hierarchically: general rule first, then example, then mathematical formulation
+  - Organize hierarchically: general rule first, then example, then mathematical
+    formulation
 - Use LaTeX notation for formulas
 - Avoid non-ASCII symbols (use `->` not `→`)
 - Extract concrete examples
@@ -183,9 +189,13 @@ Rules for writing structured text using bullet lists
 
 ## Lists Over Prose
 
-- Use lists to structure text and improve legibility
-- Explode a bullet that chains parallel or sequential clauses with `;`, commas,
-  or "and" into one sub-bullet per clause
+- Structure all text as nested bullet lists by default, not narrative prose,
+  regardless of content type (documentation, notes, explanations, and so on)
+- Whenever a bullet bundles more than one idea, attribute, capability, or step,
+  split it into a parent bullet that introduces the group and one child bullet
+  per item
+  - This applies no matter how the ideas are packed together: chained with
+    `;`, commas, or "and", or simply written as one long clause
   - **Bad**:
     ```markdown
     - The agent runs a test (Act), observes a failure (Perceive), reasons about
@@ -232,6 +242,24 @@ Rules for writing structured text using bullet lists
       - Overly helpful
       - Friends with chaotic lives
       - Seemingly stable men who suddenly fall apart
+    ```
+
+- Example: a component description packs several responsibilities into one
+  bullet with commas and "and"
+  - **Bad**
+    ```markdown
+    - Build a lightweight LLM API gateway (modeled on OpenRouter) that proxies
+      requests to multiple providers, logs every prompt/response pair, adds
+      difficulty-aware routing, and serves as the fulfillment/monitoring layer
+      for `NoesisMarket`
+    ```
+  - **Good**
+    ```markdown
+    - Build a lightweight LLM API gateway (modeled on OpenRouter) that:
+      - Proxies requests to multiple providers
+      - Logs every prompt/response pair
+      - Adds difficulty-aware routing
+      - Serves as the fulfillment/monitoring layer for `NoesisMarket`
     ```
 
 ## Keep Number Lists in Order

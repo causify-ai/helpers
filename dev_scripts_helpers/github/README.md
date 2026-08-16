@@ -204,7 +204,7 @@ with Dockerized execution for dependency isolation.
 
 - Run without master branch check:
   ```bash
-  > run_local_ci.py --no_master_check
+  > run_local_ci.py --no_abort_if_not_master
   ```
 
 - Run on specific directories:

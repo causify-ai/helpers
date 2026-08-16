@@ -1,22 +1,24 @@
 ---
-description: Create a detailed markdown outline for a Jupyter notebook, specifying each cell's content, purpose, visuals, and interactivity to teach concepts through example and discovery
+description: Create a detailed markdown outline for a Jupyter notebook, to teach concepts through example and discovery
 model: sonnet
 ---
 
 # Goal
 
 - Create a comprehensive outline for an interactive Jupyter notebook that teaches
-  a concept through visualization and hands-on exploration
-- The outline describes what each the notebook will contain without writing any
-  code, serving as a blueprint for implementation
-- The output is a `notebook_outline.<tag>.md` markdown file that describes the
-  notebook units
+  a concept (passed from the user) through visualization and hands-on exploration
+- The outline is a markdown file that:
+  - Describes what each cell in the the notebook will contain without
+  - Writing any code, serving as a blueprint for implementation
 
 # Key Principles
 
 - Make sure to follow the section `Effective Notebook Design Principles` from the
   file `.claude/skills/notebook.rules.md`
-- Describe cells in markdown structure (`notebook_outline.<tag>.md`), not in code
+- The output is a `notebook_outline.<tag>.md` markdown file that describes the
+  notebook units
+- Save markdown file in the current dir
+- Do not write any code
 
 # Outline Unit Structure
 

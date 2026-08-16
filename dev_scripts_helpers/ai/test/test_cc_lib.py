@@ -7,6 +7,7 @@ import dev_scripts_helpers.ai.test.test_cc_lib as daiattccl
 """
 
 import asyncio
+import logging
 import os
 import unittest.mock as umock
 from typing import Any, Dict, List
@@ -22,6 +23,8 @@ pytest.importorskip("claude_agent_sdk")
 import claude_agent_sdk
 
 import dev_scripts_helpers.ai.cc_lib as dshaccli
+
+_LOG = logging.getLogger(__name__)
 
 
 # #############################################################################
@@ -50,9 +53,13 @@ class Test_PromptSequencer_execute(hunitest.TestCase):
         :return: the mock replacing `claude_agent_sdk.ClaudeSDKClient`, for
             tests that need to inspect its `call_args`
         """
+        _LOG.debug(hprint.to_str("prompts"))
+        # Patch the SDK client class so `sequencer.execute()` drives
+        # `fake_client` instead of making a real network call.
         with umock.patch("claude_agent_sdk.ClaudeSDKClient") as mock_client_cls:
             mock_client_cls.return_value = fake_client
             asyncio.run(sequencer.execute(prompts))
+        _LOG.debug("return=%s", mock_client_cls)
         return mock_client_cls
 
     def test1(self) -> None:
@@ -60,6 +67,8 @@ class Test_PromptSequencer_execute(hunitest.TestCase):
         Test that execute() drives the SDK client with the expected options.
         """
         # Prepare inputs.
+        # Two fake assistant replies, one per prompt, so the fake client can
+        # simulate a two-turn conversation.
         msg1 = claude_agent_sdk.AssistantMessage(
             content=[claude_agent_sdk.TextBlock(text="response A")],
             model="claude-test",
@@ -68,6 +77,8 @@ class Test_PromptSequencer_execute(hunitest.TestCase):
             content=[claude_agent_sdk.TextBlock(text="response B")],
             model="claude-test",
         )
+        # Exercise every constructor option so the test also verifies that
+        # each one is forwarded into `ClaudeAgentOptions`.
         sequencer = dshaccli.PromptSequencer(
             allowed_tools=["Read", "Edit"],
             disallowed_tools=["Bash"],
@@ -106,6 +117,8 @@ class Test_PromptSequencer_execute(hunitest.TestCase):
         Test that `system_prompt` is forwarded to `ClaudeAgentOptions`.
         """
         # Prepare inputs.
+        # The reply text does not matter here: only the forwarded
+        # `system_prompt` option is checked.
         msg1 = claude_agent_sdk.AssistantMessage(
             content=[claude_agent_sdk.TextBlock(text="LLM> NO-OP")],
             model="claude-test",
@@ -129,6 +142,8 @@ class Test_PromptSequencer_execute(hunitest.TestCase):
         Test that `get_outcomes()` records the no-op contract per prompt.
         """
         # Prepare inputs.
+        # First prompt is a no-op reply, second is a `CHANGED` reply, so
+        # `get_outcomes()` can be checked for both contract variants.
         msg1 = claude_agent_sdk.AssistantMessage(
             content=[claude_agent_sdk.TextBlock(text="LLM> NO-OP")],
             model="claude-test",
@@ -202,6 +217,8 @@ class Test_PromptSequencer_chunk_stats(hunitest.TestCase):
         :param expected_chunk_stats: expected
             `str(sequencer.get_chunk_stats())` after execution
         """
+        _LOG.debug(hprint.to_str("prompts expected_chunk_stats"))
+        expected_chunk_stats = hprint.dedent(expected_chunk_stats)
         with umock.patch("claude_agent_sdk.ClaudeSDKClient") as mock_client_cls:
             mock_client_cls.return_value = fake_client
             asyncio.run(sequencer.execute(prompts))
@@ -217,6 +234,8 @@ class Test_PromptSequencer_chunk_stats(hunitest.TestCase):
             content=[claude_agent_sdk.TextBlock(text="LLM> NO-OP")],
             model="claude-test",
         )
+        # `ResultMessage` follows the assistant reply in the same stream, the
+        # way the real SDK terminates a turn with cost/turn/error stats.
         result1 = claude_agent_sdk.ResultMessage(
             subtype="success",
             duration_ms=100,
@@ -237,7 +256,7 @@ class Test_PromptSequencer_chunk_stats(hunitest.TestCase):
         # Prepare outputs.
         expected = (
             "[{'outcome': 'NO-OP', 'cost_usd': 0.05, 'num_turns': 3, "
-            "'is_error': False}]"
+            "'is_error': False, 'usage': None, 'stop_reason': None}]"
         )
         # Run test.
         self.helper(sequencer, ["prompt A"], fake_client, expected)
@@ -259,10 +278,11 @@ class Test_PromptSequencer_chunk_stats(hunitest.TestCase):
         )
         fake_client = dshaccli.FakeClaudeSDKClient(responses_by_call=[[msg1]])
         # Prepare outputs.
-        expected = (
-            "[{'outcome': 'NO-OP', 'cost_usd': None, 'num_turns': 0, "
-            "'is_error': False}]"
-        )
+        # No `ResultMessage` in the stream: stats must fall back to defaults
+        # (None cost, 0 turns) instead of raising.
+        expected = r"""
+            [{'outcome': 'NO-OP', 'cost_usd': None, 'num_turns': 0, 'is_error': False, 'usage': None, 'stop_reason': None}]
+        """
         # Run test.
         self.helper(sequencer, ["prompt A"], fake_client, expected)
 
@@ -276,6 +296,9 @@ class Test_PromptSequencer_chunk_stats(hunitest.TestCase):
             content=[claude_agent_sdk.TextBlock(text="LLM> CHANGED: fixed x")],
             model="claude-test",
         )
+        # `is_error=True` with `subtype="error_max_turns"` verifies that the
+        # error flag is captured independently of the (otherwise normal)
+        # `CHANGED` outcome text.
         result1 = claude_agent_sdk.ResultMessage(
             subtype="error_max_turns",
             duration_ms=100,
@@ -295,9 +318,8 @@ class Test_PromptSequencer_chunk_stats(hunitest.TestCase):
         )
         # Prepare outputs.
         expected = r"""
-        [{'outcome': 'CHANGED: fixed x', 'cost_usd': 0.5, 'num_turns': 15, 'is_error': True}]
+        [{'outcome': 'CHANGED: fixed x', 'cost_usd': 0.5, 'num_turns': 15, 'is_error': True, 'usage': None, 'stop_reason': None}]
         """
-        expected = hprint.dedent(expected)
         # Run test.
         self.helper(sequencer, ["prompt A"], fake_client, expected)
 
@@ -315,6 +337,8 @@ class Test_PromptSequencer_chunk_stats(hunitest.TestCase):
             content=[claude_agent_sdk.TextBlock(text="LLM> CHANGED: fixed x")],
             model="claude-test",
         )
+        # Records every `(idx, stats)` pair passed to `on_chunk_done`, in
+        # call order, so ordering and per-prompt stats can be inspected.
         calls: List = []
         sequencer = dshaccli.PromptSequencer(
             cwd=self.get_scratch_space(),
@@ -328,9 +352,8 @@ class Test_PromptSequencer_chunk_stats(hunitest.TestCase):
         )
         # Prepare outputs.
         expected = r"""
-        [{'outcome': 'NO-OP', 'cost_usd': None, 'num_turns': 0, 'is_error': False}, {'outcome': 'CHANGED: fixed x', 'cost_usd': None, 'num_turns': 0, 'is_error': False}]
+        [{'outcome': 'NO-OP', 'cost_usd': None, 'num_turns': 0, 'is_error': False, 'usage': None, 'stop_reason': None}, {'outcome': 'CHANGED: fixed x', 'cost_usd': None, 'num_turns': 0, 'is_error': False, 'usage': None, 'stop_reason': None}]
         """
-        expected = hprint.dedent(expected)
         # Run test.
         self.helper(sequencer, ["prompt A", "prompt B"], fake_client, expected)
 
@@ -361,12 +384,13 @@ class Test_PromptSequencer_chunk_stats(hunitest.TestCase):
         )
         # Prepare outputs.
         expected = r"""
-        [{'outcome': 'NO-OP', 'cost_usd': None, 'num_turns': 0, 'is_error': False}, {'outcome': 'NO-OP', 'cost_usd': None, 'num_turns': 0, 'is_error': False}]
+        [{'outcome': 'NO-OP', 'cost_usd': None, 'num_turns': 0, 'is_error': False, 'usage': None, 'stop_reason': None}, {'outcome': 'NO-OP', 'cost_usd': None, 'num_turns': 0, 'is_error': False, 'usage': None, 'stop_reason': None}]
         """
-        expected = hprint.dedent(expected)
         # Run test.
         self.helper(sequencer, ["prompt A", "prompt B"], fake_client, expected)
         # Check outputs.
+        # `idx` must be 1-based and strictly increasing, proving the callback
+        # fires once per prompt even though each prompt gets a fresh client.
         self.assertEqual([idx for idx, _ in calls], [1, 2])
 
 
@@ -389,6 +413,7 @@ class Test_PromptSequencer_context_strategy(hunitest.TestCase):
         :param expected_call_count: expected `ClaudeSDKClient` construction
             count
         """
+        _LOG.debug(hprint.to_str("context_strategy expected_call_count"))
         # Prepare inputs.
         msg1 = claude_agent_sdk.AssistantMessage(
             content=[claude_agent_sdk.TextBlock(text="LLM> NO-OP")],
@@ -412,6 +437,7 @@ class Test_PromptSequencer_context_strategy(hunitest.TestCase):
             mock_client_cls.return_value = fake_client
             asyncio.run(sequencer.execute(["prompt A", "prompt B"]))
         # Check outputs.
+        _LOG.debug("mock_client_cls.call_count=%s", mock_client_cls.call_count)
         self.assertEqual(mock_client_cls.call_count, expected_call_count)
         self.assertEqual(sequencer._prompts_executed, 2)
 
@@ -422,6 +448,8 @@ class Test_PromptSequencer_context_strategy(hunitest.TestCase):
         # Prepare inputs.
         context_strategy = "session"
         # Prepare outputs.
+        # `"session"` strategy keeps one client across prompts, so exactly
+        # one `ClaudeSDKClient` construction is expected.
         expected_call_count = 1
         # Run test.
         self.helper(context_strategy, expected_call_count)
@@ -433,6 +461,8 @@ class Test_PromptSequencer_context_strategy(hunitest.TestCase):
         # Prepare inputs.
         context_strategy = "stateless"
         # Prepare outputs.
+        # `"stateless"` strategy opens a fresh client per prompt, so the
+        # construction count matches the number of prompts (2).
         expected_call_count = 2
         # Run test.
         self.helper(context_strategy, expected_call_count)
@@ -442,6 +472,8 @@ class Test_PromptSequencer_context_strategy(hunitest.TestCase):
         Test that an invalid context strategy is rejected at construction.
         """
         # Run test and check outputs.
+        # Only `"session"` and `"stateless"` are valid; the constructor must
+        # reject anything else via `dassert_in()`-style validation.
         with self.assertRaises(AssertionError):
             dshaccli.PromptSequencer(context_strategy="bogus")
 
@@ -491,13 +523,16 @@ class Test_PromptSequencer_execute_end_to_end(hunitest.TestCase):
         :return: sequencer configured with `_NO_TOOLS` and `_MODEL`, ready
             for `execute()`
         """
-        return dshaccli.PromptSequencer(
+        _LOG.debug(hprint.to_str("self._MODEL"))
+        sequencer = dshaccli.PromptSequencer(
             disallowed_tools=self._NO_TOOLS,
             permission_mode="bypassPermissions",
             cwd=self.get_scratch_space(),
             model=self._MODEL,
             print_output=False,
         )
+        _LOG.debug("return=%s", sequencer)
+        return sequencer
 
     def test1(self) -> None:
         """
@@ -547,7 +582,8 @@ class Test_PromptSequencer_execute_end_to_end(hunitest.TestCase):
         hio.to_file(target_file, "target\n")
         other_file = os.path.join(scratch_dir, "other.txt")
         hio.to_file(other_file, "other\n")
-        #
+        # Configure the sequencer like production `_process_file_incrementally()`
+        # so this test exercises the same file-scope guard end-to-end.
         sequencer = dshaccli.PromptSequencer(
             allowed_tools=["Edit", "Write"],
             disallowed_tools=["Bash", "Task", "WebFetch"],
@@ -564,6 +600,8 @@ class Test_PromptSequencer_execute_end_to_end(hunitest.TestCase):
         # Run test.
         asyncio.run(sequencer.execute([prompt]))
         # Check outputs.
+        # The guard must have denied the Write on `other_file`, so its
+        # content must remain exactly what it was seeded with above.
         self.assertEqual(hio.from_file(other_file), "other\n")
 
 
@@ -587,6 +625,7 @@ class Test_save_session_log(hunitest.TestCase):
         :param responses: List of responses to save
         :param expected_output: Expected file content
         """
+        _LOG.debug(hprint.to_str("prompts responses"))
         # Prepare inputs.
         output_dir = self.get_output_dir()
         output_file = os.path.join(output_dir, "session.log")
@@ -596,6 +635,7 @@ class Test_save_session_log(hunitest.TestCase):
         self.assertTrue(os.path.exists(output_file))
         actual = hio.from_file(output_file)
         expected_output = hprint.dedent(expected_output)
+        _LOG.debug(hprint.to_str("actual expected_output"))
         self.assert_equal(actual, expected_output)
 
     def test1(self) -> None:
@@ -681,10 +721,14 @@ class Test_make_file_scope_guard(hunitest.TestCase):
         :param expected_type: expected type of the permission result
         :return: permission result returned by the guard callback
         """
+        _LOG.debug(hprint.to_str("target_file tool_name tool_input"))
         guard = dshaccli._make_file_scope_guard(target_file)
+        # `context` is unused by the guard callback but is required by the
+        # SDK's permission-callback signature.
         context = None
         result = asyncio.run(guard(tool_name, tool_input, context))  # type: ignore
         self.assertIsInstance(result, expected_type)
+        _LOG.debug("return=%s", result)
         return result
 
     def test1(self) -> None:
@@ -733,6 +777,8 @@ class Test_make_file_scope_guard(hunitest.TestCase):
         }
         file_modifying_tools = ("Edit", "Write", "NotebookEdit", "MultiEdit")
         # Run test and check outputs.
+        # Every modifying tool is checked individually: the guard must not
+        # be keyed off a single hardcoded tool name.
         for tool_name in file_modifying_tools:
             self.helper(
                 target_file,
@@ -751,6 +797,8 @@ class Test_make_file_scope_guard(hunitest.TestCase):
             "file_path": os.path.join(self.get_scratch_space(), "other.py")
         }
         # Run test and check outputs.
+        # Read-only/shell tools bypass the file-scope guard entirely,
+        # regardless of the file path in `tool_input`.
         for tool_name in ("Read", "Bash"):
             self.helper(
                 target_file,
@@ -798,6 +846,8 @@ class Test_make_file_scope_guard(hunitest.TestCase):
         tool_name = "Edit"
         tool_input = {"file_path": ""}
         # Run test and check outputs.
+        # An empty string is treated the same as a missing `file_path` key,
+        # so the guard allows it rather than denying.
         self.helper(
             target_file,
             tool_name,
@@ -813,6 +863,8 @@ class Test_make_file_scope_guard(hunitest.TestCase):
         target_file = "target.py"
         tool_input = {"file_path": os.path.abspath("target.py")}
         # Run test and check outputs.
+        # The guard must normalize paths before comparing, so a relative
+        # `target_file` still matches its absolute equivalent.
         self.helper(
             target_file,
             "Edit",
@@ -838,9 +890,11 @@ class Test_parse_rule_outcome(hunitest.TestCase):
         :param assistant_text: assistant reply text to parse
         :param expected: expected parsed outcome
         """
+        _LOG.debug(hprint.to_str("assistant_text expected"))
         # Run test.
         actual = dshaccli._parse_rule_outcome(assistant_text)
         # Check outputs.
+        _LOG.debug(hprint.to_str("actual"))
         self.assertEqual(actual, expected)
 
     def test1(self) -> None:

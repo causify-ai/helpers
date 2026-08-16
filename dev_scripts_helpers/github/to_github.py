@@ -136,6 +136,7 @@ def _parse() -> argparse.ArgumentParser:
         formatter_class=hparser.CustomHelpFormatter,
     )
     parser.add_argument(
+        "-i",
         "--input",
         action="store",
         required=True,

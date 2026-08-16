@@ -7,19 +7,19 @@
 
   1) Run inside the Docker Dev container:
      ```
-     > manage_cache.py --action clear_all
+     > manage_cache.py --clear_actions --action clear_all
      > (export CSFY_DOCKER_ENGINE="docker"; i docker_cmd --stage=local -v 1.6.0 --cmd "pytest $TARGET") 2>&1 | tee build1.txt
      ```
 
   2) Run outside the Dev container but using Docker:
      ```
-     > manage_cache.py --action clear_all
+     > manage_cache.py --clear_actions --action clear_all
      > (export CSFY_DOCKER_ENGINE="docker"; pytest_log $TARGET) 2>&1 | tee build2.txt
      ```
 
   3) Run outside the Dev container but using Apple Containers:
      ```
-     > manage_cache.py --action clear_all
+     > manage_cache.py --clear_actions --action clear_all
      > (export CSFY_DOCKER_ENGINE="apple"; pytest_log $TARGET) 2>&1 | tee build3.txt
      ```
 

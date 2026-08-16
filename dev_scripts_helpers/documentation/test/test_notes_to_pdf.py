@@ -177,7 +177,7 @@ class Test_notes_to_pdf1(hunitest.TestCase):
             f"--script {script_file}",
             f"--output {out_file}",
             cmd_opts,
-            "--skip_action open",
+            "--skip_action open_pdf",
         ]
         cmd = " ".join(cmd)
         _LOG.debug("cmd=%s", cmd)
@@ -381,7 +381,7 @@ class Test_notes_to_pdf_filters(hunitest.TestCase):
             f"--script {script_file}",
             f"--output {out_file}",
             cmd_opts,
-            "--skip_action open",
+            "--skip_action open_pdf",
         ]
         cmd = " ".join(cmd)
         _LOG.debug("cmd=%s", cmd)
@@ -532,7 +532,7 @@ class Test_notes_to_pdf_output_types(hunitest.TestCase):
             f"--output {out_file}",
             f"--script {script_file}",
             cmd_opts,
-            "--skip_action open",
+            "--skip_action open_pdf",
         ]
         cmd = " ".join(cmd)
         _LOG.debug("cmd=%s", cmd)
@@ -650,7 +650,7 @@ class Test_notes_to_pdf_toc_options(hunitest.TestCase):
             f"--toc_type {toc_type}",
             f"--output {out_file}",
             f"--script {script_file}",
-            "--skip_action open",
+            "--skip_action open_pdf",
         ]
         cmd = " ".join(cmd)
         _LOG.debug("cmd=%s", cmd)
@@ -694,7 +694,7 @@ class Test_notes_to_pdf_toc_options(hunitest.TestCase):
         \cp -af $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf_toc_options.test1/tmp.scratch/tmp.notes_to_pdf.pdf $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf_toc_options.test1/tmp.scratch/output.pdf
         # copy_to_gdrive
         ## skipping this action
-        # open
+        # open_pdf
         ## skipping this action
         # cleanup_after
         ## skipping this action
@@ -735,7 +735,7 @@ class Test_notes_to_pdf_toc_options(hunitest.TestCase):
         \cp -af $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf_toc_options.test2/tmp.scratch/tmp.notes_to_pdf.pdf $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf_toc_options.test2/tmp.scratch/output.pdf
         # copy_to_gdrive
         ## skipping this action
-        # open
+        # open_pdf
         ## skipping this action
         # cleanup_after
         ## skipping this action
@@ -764,7 +764,7 @@ class Test_notes_to_pdf_toc_options(hunitest.TestCase):
             "--toc_type navigation",
             f"--output {out_file}",
             f"--script {script_file}",
-            "--skip_action open",
+            "--skip_action open_pdf",
         ]
         cmd = " ".join(cmd)
         _LOG.debug("cmd=%s", cmd)
@@ -794,7 +794,7 @@ class Test_notes_to_pdf_toc_options(hunitest.TestCase):
         \cp -af $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf_toc_options.test3/tmp.scratch/tmp.notes_to_pdf.render_image2.pdf $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf_toc_options.test3/tmp.scratch/output.pdf
         # copy_to_gdrive
         ## skipping this action
-        # open
+        # open_pdf
         ## skipping this action
         # cleanup_after
         ## skipping this action
@@ -834,7 +834,7 @@ class Test_notes_to_pdf_toc_options(hunitest.TestCase):
         \cp -af $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf_toc_options.test4/tmp.scratch/tmp.notes_to_pdf.pdf $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf_toc_options.test4/tmp.scratch/output.pdf
         # copy_to_gdrive
         ## skipping this action
-        # open
+        # open_pdf
         ## skipping this action
         # cleanup_after
         ## skipping this action
@@ -883,7 +883,7 @@ class Test_notes_to_pdf_actions(hunitest.TestCase):
 
         :param cmd_opts: Additional command line options
         :param generate_script: Whether to generate script file (--script flag)
-        :param skip_action_open: Whether to add --skip_action open
+        :param skip_action_open: Whether to add --skip_action open_pdf
         :return: Tuple of (script_txt, output_txt)
         """
         # Prepare inputs.
@@ -905,7 +905,7 @@ class Test_notes_to_pdf_actions(hunitest.TestCase):
         if cmd_opts:
             cmd.append(cmd_opts)
         if skip_action_open:
-            cmd.append("--skip_action open")
+            cmd.append("--skip_action open_pdf")
         cmd = " ".join(cmd)
         _LOG.debug("cmd=%s", cmd)
         # Run test.
@@ -950,7 +950,7 @@ class Test_notes_to_pdf_actions(hunitest.TestCase):
         \cp -af $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf_actions.test1/tmp.scratch/tmp.notes_to_pdf.pdf $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf_actions.test1/tmp.scratch/output.pdf
         # copy_to_gdrive
         ## skipping this action
-        # open
+        # open_pdf
         ## skipping this action
         # cleanup_after
         ## skipping this action
@@ -995,7 +995,7 @@ class Test_notes_to_pdf_actions(hunitest.TestCase):
         \cp -af $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf_actions.test2/tmp.scratch/tmp.notes_to_pdf.pdf $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf_actions.test2/tmp.scratch/output.pdf
         # copy_to_gdrive
         ## skipping this action
-        # open
+        # open_pdf
         ## skipping this action
         # cleanup_after
         ## skipping this action
@@ -1088,7 +1088,7 @@ class Test_notes_to_pdf_script_generation(hunitest.TestCase):
         Test script file is generated with correct shebang.
         """
         # Prepare inputs.
-        skip_actions = ["open"]
+        skip_actions = ["open_pdf"]
         # Run test.
         script_txt, output_txt = self.helper(skip_actions)
         # Check outputs.
@@ -1113,7 +1113,7 @@ class Test_notes_to_pdf_script_generation(hunitest.TestCase):
         \cp -af $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf_script_generation.test1/tmp.scratch/tmp.notes_to_pdf.pdf $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf_script_generation.test1/tmp.scratch/output.pdf
         # copy_to_gdrive
         ## skipping this action
-        # open
+        # open_pdf
         ## skipping this action
         # cleanup_after
         ## skipping this action
@@ -1128,7 +1128,7 @@ class Test_notes_to_pdf_script_generation(hunitest.TestCase):
         Test script contains all executed actions in sequence.
         """
         # Prepare inputs.
-        skip_actions = ["cleanup_before", "cleanup_after", "open"]
+        skip_actions = ["cleanup_before", "cleanup_after", "open_pdf"]
         # Run test.
         script_txt, output_txt = self.helper(skip_actions)
         # Check outputs.
@@ -1153,7 +1153,7 @@ class Test_notes_to_pdf_script_generation(hunitest.TestCase):
         \cp -af $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf_script_generation.test2/tmp.scratch/tmp.notes_to_pdf.pdf $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf_script_generation.test2/tmp.scratch/output.pdf
         # copy_to_gdrive
         ## skipping this action
-        # open
+        # open_pdf
         ## skipping this action
         # cleanup_after
         ## skipping this action
@@ -1252,7 +1252,7 @@ class Test_notes_to_pdf_edge_cases(hunitest.TestCase):
             "--type pdf",
             f"--output {out_file}",
             f"--script {script_file}",
-            "--skip_action open",
+            "--skip_action open_pdf",
         ]
         cmd = " ".join(cmd)
         _LOG.debug("cmd=%s", cmd)
@@ -1296,7 +1296,7 @@ class Test_notes_to_pdf_edge_cases(hunitest.TestCase):
         \cp -af $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf_edge_cases.test1/tmp.scratch/tmp.notes_to_pdf.pdf $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf_edge_cases.test1/tmp.scratch/output.pdf
         # copy_to_gdrive
         ## skipping this action
-        # open
+        # open_pdf
         ## skipping this action
         # cleanup_after
         ## skipping this action
@@ -1340,7 +1340,7 @@ class Test_notes_to_pdf_edge_cases(hunitest.TestCase):
         \cp -af $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf_edge_cases.test2/tmp.scratch/tmp.notes_to_pdf.pdf $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf_edge_cases.test2/tmp.scratch/output.pdf
         # copy_to_gdrive
         ## skipping this action
-        # open
+        # open_pdf
         ## skipping this action
         # cleanup_after
         ## skipping this action
@@ -1397,7 +1397,7 @@ class Test_notes_to_pdf_edge_cases(hunitest.TestCase):
         \cp -af $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf_edge_cases.test3/tmp.scratch/tmp.notes_to_pdf.pdf $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf_edge_cases.test3/tmp.scratch/output.pdf
         # copy_to_gdrive
         ## skipping this action
-        # open
+        # open_pdf
         ## skipping this action
         # cleanup_after
         ## skipping this action
@@ -1466,7 +1466,7 @@ class Test_notes_to_pdf_edge_cases(hunitest.TestCase):
         \cp -af $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf_edge_cases.test4/tmp.scratch/tmp.notes_to_pdf.pdf $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf_edge_cases.test4/tmp.scratch/output.pdf
         # copy_to_gdrive
         ## skipping this action
-        # open
+        # open_pdf
         ## skipping this action
         # cleanup_after
         ## skipping this action
@@ -1530,7 +1530,7 @@ class Test_notes_to_pdf_pandoc_ast(hunitest.TestCase):
             "--use_pandoc_ast_transform",
             f"--output {out_file}",
             f"--script {script_file}",
-            "--skip_action open",
+            "--skip_action open_pdf",
         ]
         cmd = " ".join(cmd)
         _LOG.debug("cmd=%s", cmd)
@@ -1573,7 +1573,7 @@ class Test_notes_to_pdf_pandoc_ast(hunitest.TestCase):
         \cp -af $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf_pandoc_ast.test1/tmp.scratch/tmp.notes_to_pdf.pdf $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf_pandoc_ast.test1/tmp.scratch/output.pdf
         # copy_to_gdrive
         ## skipping this action
-        # open
+        # open_pdf
         ## skipping this action
         # cleanup_after
         ## skipping this action
@@ -1671,7 +1671,7 @@ class Test_notes_to_pdf_pandoc_ast(hunitest.TestCase):
             "--use_pandoc_ast_transform",
             f"--output {out_file}",
             f"--script {script_file}",
-            "--skip_action open",
+            "--skip_action open_pdf",
         ]
         cmd = " ".join(cmd)
         _LOG.debug("cmd=%s", cmd)
@@ -1742,7 +1742,7 @@ class Test_notes_to_pdf_latex_options(hunitest.TestCase):
             cmd_opts,
             f"--output {out_file}",
             f"--script {script_file}",
-            "--skip_action open",
+            "--skip_action open_pdf",
         ]
         cmd = " ".join(cmd)
         _LOG.debug("cmd=%s", cmd)
@@ -1782,7 +1782,7 @@ class Test_notes_to_pdf_latex_options(hunitest.TestCase):
         \cp -af $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf_latex_options.test1/tmp.scratch/tmp.notes_to_pdf.pdf $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf_latex_options.test1/tmp.scratch/output.pdf
         # copy_to_gdrive
         ## skipping this action
-        # open
+        # open_pdf
         ## skipping this action
         # cleanup_after
         ## skipping this action
@@ -1824,7 +1824,7 @@ class Test_notes_to_pdf_latex_options(hunitest.TestCase):
         \cp -af $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf_latex_options.test2/tmp.scratch/tmp.notes_to_pdf.pdf $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf_latex_options.test2/tmp.scratch/output.pdf
         # copy_to_gdrive
         ## skipping this action
-        # open
+        # open_pdf
         ## skipping this action
         # cleanup_after
         ## skipping this action
@@ -1912,7 +1912,7 @@ class Test_notes_to_pdf_typst_abbrevs(hunitest.TestCase):
             f"--type {type_}",
             "--slides_engine typst",
             "--use_host_tools",
-            "--skip_action open",
+            "--skip_action open_pdf",
         ]
         cmd = " ".join(cmd)
         # Run end-to-end, capturing output without aborting on failure so we can
@@ -2076,7 +2076,7 @@ class Test_notes_to_pdf_latex_colors(hunitest.TestCase):
             "--use_pandoc_ast_transform",
             f"--type {type_}",
             f"--slides_engine {slides_engine}",
-            "--skip_action open",
+            "--skip_action open_pdf",
         ]
         cmd.extend(cmd_opts)
         if no_pdf:
@@ -2261,7 +2261,7 @@ class Test_notes_to_pdf_color_abbrevs_in_math(hunitest.TestCase):
             "--use_pandoc_ast_transform",
             "--use_host_tools",
             "--no_pdf",
-            "--skip_action open",
+            "--skip_action open_pdf",
         ]
         cmd = " ".join(cmd)
         _LOG.debug("cmd=%s", cmd)
@@ -2439,7 +2439,7 @@ class Test_notes_to_pdf_tilde_in_code(hunitest.TestCase):
             "--use_pandoc_ast_transform",
             "--type slides",
             "--slides_engine typst",
-            "--skip_action open",
+            "--skip_action open_pdf",
             "--no_pdf",
         ]
         cmd = " ".join(cmd)
@@ -2500,7 +2500,7 @@ class Test_notes_to_pdf_latex_cancel(hunitest.TestCase):
             "--type pdf",
             f"--script {script_file}",
             f"--output {out_file}",
-            "--skip_action open",
+            "--skip_action open_pdf",
         ]
         cmd = " ".join(cmd)
         _LOG.debug("cmd=%s", cmd)
@@ -2653,7 +2653,7 @@ class Test_small_font_code_typst(hunitest.TestCase):
             "--slides_engine typst",
             f"--script {script_file}",
             f"--output {pdf_file}",
-            "--skip_action open",
+            "--skip_action open_pdf",
         ]
         cmd = " ".join(cmd)
         _LOG.debug("cmd=%s", cmd)

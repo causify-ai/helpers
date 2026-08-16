@@ -19,18 +19,12 @@ model: haiku
    - Summary
    - Structure of the Dir
    - Description of Files
-   - Description of Executables
+   - Description of Executables (if applicable)
    - Description of Workflows (if applicable)
+   - Description of Architecture (if applicable)
 
 - Follow all formatting rules from `.claude/skills/readme.rules.md`:
    - Description limits (e.g., <20 words for subdirs, 1-line for files)
    - Command formatting with `> ` prefix and proper code blocks
    - Example ordering (simple → complex)
    - Table format for command references
-
-## Examples
-
-- `dev_scripts_helpers/documentation/README.md`
-- `dev_scripts_helpers/llms/README.md`
-- `dev_scripts_helpers/ai/README.md`
-- `dev_scripts_helpers/coding_tools/README.md`

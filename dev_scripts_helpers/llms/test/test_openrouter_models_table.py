@@ -445,6 +445,10 @@ class Test_openrouter_models_table_py(hunitest.TestCase):
         if actions is None:
             actions = []
         cmd_parts = [executable, f"--models_from_file={models_file}"]
+        if actions:
+            # `--action` adds on top of the default actions, so clear them
+            # first to run only the actions requested by the caller.
+            cmd_parts.append("--clear_actions")
         for action in actions:
             cmd_parts.extend(["--action", action])
         cmd_parts.append("--cache_mode=DISABLE_CACHE")

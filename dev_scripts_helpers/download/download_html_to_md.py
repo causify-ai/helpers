@@ -83,11 +83,11 @@ def _download_html(
     )
     if dry_run:
         _LOG.info("[DRY RUN] Would download HTML from '%s'", input_url)
-        _LOG.info("[DRY RUN] Would save HTML to: %s", output_html_file)
+        _LOG.info("[DRY RUN] Would save HTML to: '%s'", output_html_file)
         _LOG.debug("return: dry run, nothing written")
         return
     if os.path.exists(output_html_file) and not no_incremental:
-        _LOG.info("HTML already exists, skipping: %s", output_html_file)
+        _LOG.warning("HTML already exists, skipping: '%s'", output_html_file)
         return
     # Lazy imports to run unit tests.
     import requests
@@ -240,11 +240,11 @@ def _convert_html(
             input_html_file,
             converter,
         )
-        _LOG.info("[DRY RUN] Would save markdown to: %s", output_md_file)
+        _LOG.info("[DRY RUN] Would save markdown to: '%s'", output_md_file)
         _LOG.debug("return: dry run, nothing written")
         return
     if os.path.exists(output_md_file) and not no_incremental:
-        _LOG.info("Markdown already exists, skipping: %s", output_md_file)
+        _LOG.warning("Markdown already exists, skipping: '%s'", output_md_file)
         return
     import markdownify  # type: ignore
 
@@ -335,7 +335,7 @@ def _cleanup(md_file: str, *, dry_run: bool = False) -> None:
     """
     _LOG.debug(hprint.to_str("md_file dry_run"))
     if dry_run:
-        _LOG.info("[DRY RUN] Would clean up markdown file: %s", md_file)
+        _LOG.info("[DRY RUN] Would clean up markdown file: '%s'", md_file)
         _LOG.debug("return: dry run, nothing written")
         return
     _cleanup_markdown_file(md_file)
@@ -356,7 +356,7 @@ def _lint(output_md_file: str, *, dry_run: bool = False) -> None:
     """
     _LOG.debug(hprint.to_str("output_md_file dry_run"))
     if dry_run:
-        _LOG.info("[DRY RUN] Would lint markdown file: %s", output_md_file)
+        _LOG.info("[DRY RUN] Would lint markdown file: '%s'", output_md_file)
         _LOG.debug("return: dry run, nothing written")
         return
     _LOG.info("Linting markdown file: '%s'...", output_md_file)
@@ -392,7 +392,7 @@ def _summarize(
     _LOG.debug(hprint.to_str("output_md_file dry_run no_incremental"))
     summary_file = f"{output_md_file}.summary.md"
     if not dry_run and os.path.exists(summary_file) and not no_incremental:
-        _LOG.info("Summary already exists, skipping: %s", summary_file)
+        _LOG.warning("Summary already exists, skipping: '%s'", summary_file)
         return
     _LOG.info("Summarizing markdown file: '%s'...", output_md_file)
     dshddut.summarize_text_with_llm(

@@ -12,9 +12,9 @@ are synchronized with cell headers
 ## Step 1
 - Read all existing cell headers and identify the current numbering
 - Make sure to follow the sections from `.claude/skills/notebook.rules.md`:
-  - `## Notebook Organization` (Markdown Header Structure and Naming, Sequential
+  - `# Notebook Organization` (Markdown Header Structure and Naming, Sequential
     Cell Numbering)
-  - `## Utility File Organization` (Sync Function Names with Cell Numbers, Organize
+  - `# Setup and Initialization` (Sync Function Names with Cell Numbers, Organize
     Code by Cell Order)
 - Identify gaps, duplicates, or out-of-order cell numbers
 

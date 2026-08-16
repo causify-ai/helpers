@@ -13,10 +13,10 @@ This script provides two actions:
 > check_ai_slop.py -i input.txt --action detect
 
 - Humanize AI content and save to output file:
-> check_ai_slop.py -i input.txt -o output.txt --action fix
+> check_ai_slop.py -i input.txt -o output.txt --clear_actions --action fix
 
 - Process with specific humanization settings:
-> check_ai_slop.py -i input.txt -o output.txt --action fix --readability "University" --purpose "Essay"
+> check_ai_slop.py -i input.txt -o output.txt --clear_actions --action fix --readability "University" --purpose "Essay"
 
 Import as:
 
@@ -59,7 +59,7 @@ def _get_api_key() -> str:
         os.environ,
         "Environment variable API_UNDETECTABLE is not set",
     )
-    api_key = os.getenv(key)
+    api_key = os.environ[key]
     return api_key
 
 
@@ -96,6 +96,7 @@ def _poll_detection_result(
         "Detection timed out after %s attempts",
         max_attempts,
     )
+    return {}  # pragma: no cover
 
 
 def _detect_ai_content(text: str, api_key: str) -> Dict[str, Any]:
@@ -222,6 +223,7 @@ def _poll_humanization_result(
         "Humanization timed out after %s attempts",
         max_attempts,
     )
+    return {}  # pragma: no cover
 
 
 # #############################################################################

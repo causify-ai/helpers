@@ -1439,7 +1439,7 @@
       "--type slides",
       "--toc_type navigation",
       "--skip_action cleanup_after",
-      "--skip_action open",
+      "--skip_action open_pdf",
   ]
   cmd = " ".join(cmd)
   ```

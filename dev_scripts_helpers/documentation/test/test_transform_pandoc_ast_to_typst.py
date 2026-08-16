@@ -187,6 +187,7 @@ class Test__extract_columns(hunitest.TestCase):
         # Extract columns.
         actual = dshdtpatt._extract_columns(container)
         outcome["3. extracted_columns"] = str(actual)
+        # Run test.
         actual_outcome = outcome_to_str(outcome)
         # Check outputs.
         self.assert_equal(actual_outcome, expected, dedent=True)
@@ -655,6 +656,7 @@ class Test__transform_elem(hunitest.TestCase):
         # Transform AST.
         actual_ast = dshdtpatt._transform_ast_divved_fence(ast)
         outcome["2. ast_output"] = dshdtpatt.ast_to_str(actual_ast)
+        # Run test.
         actual_outcome = outcome_to_str(outcome)
         # Check outputs.
         self.assert_equal(actual_outcome, expected, dedent=True)
@@ -957,6 +959,7 @@ class Test__transform_ast(hunitest.TestCase):
         # Transform AST.
         actual_ast = dshdtpatt._transform_ast_divved_fence(ast)
         outcome["2. ast_output"] = dshdtpatt.ast_to_str(actual_ast)
+        # Run test.
         actual_outcome = outcome_to_str(outcome)
         # Check outputs.
         self.assert_equal(actual_outcome, expected, dedent=True)
@@ -1111,6 +1114,7 @@ class Test_end_to_end(hunitest.TestCase):
             transformed_ast_file, scratch_dir
         )
         outcome["2. typst_output"] = actual_typst
+        # Run test.
         actual_outcome = outcome_to_str(outcome)
         # Check outputs.
         self.assert_equal(actual_outcome, expected, dedent=True)

@@ -436,6 +436,7 @@ class Test_run_latex_py(hunitest.TestCase):
             "run_latex.py",
             "--input",
             in_file_path,
+            "--clear_actions",
             "--action",
             "copy_to_gdrive",
         ]

@@ -1,0 +1,22 @@
+{%- extends 'lab/index.html.j2' -%}
+
+{% block header %}
+{{ super() }}
+<style type="text/css">
+/* Show anchor links on header hover (nbconvert lab template hides them by default) */
+a.anchor-link {
+  display: none;
+  margin-left: 8px;
+  text-decoration: none;
+  color: #aaa;
+}
+h1:hover a.anchor-link,
+h2:hover a.anchor-link,
+h3:hover a.anchor-link,
+h4:hover a.anchor-link,
+h5:hover a.anchor-link,
+h6:hover a.anchor-link {
+  display: inline;
+}
+</style>
+{% endblock header %}

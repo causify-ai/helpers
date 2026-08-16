@@ -1082,7 +1082,7 @@ class Test_build_add_todos_instructions(hunitest.TestCase):
         # Prepare inputs.
         rule_file = ""
         expected_in = [
-            "# TODO(...): <what to do and why> (<rule_file>:<rule header line>)",
+            "# TODO(ai_gp): <what to do and why> (<rule_file>:<rule header line>)",
             "the rule file",
         ]
         expected_not_in: List[str] = []
@@ -1211,7 +1211,7 @@ class Test_build_incremental_system_prompt(hunitest.TestCase):
         _, system_prompt = self.helper(topic, add_todos=True)
         # Check outputs.
         self.assertIn(
-            "# TODO(...): <what to do and why> (<rule_file>:<rule header line>)",
+            "# TODO(ai_gp): <what to do and why> (<rule_file>:<rule header line>)",
             system_prompt,
         )
 
@@ -1715,7 +1715,7 @@ class Test_process_file_one_shot_with_cc(hunitest.TestCase):
         rule = ""
         # Prepare outputs.
         expected_prompt_substring = (
-            "# TODO(...): <what to do and why> (<rule_file>:<rule header line>)"
+            "# TODO(ai_gp): <what to do and why> (<rule_file>:<rule header line>)"
         )
         # Run test.
         self.helper(

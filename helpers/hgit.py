@@ -141,15 +141,18 @@ def _get_branch_next_name_via_github_api(
 
 
 @functools.lru_cache()
-def _get_gh_pr_list() -> str:
+def _get_gh_pr_list(dir_name: str = ".") -> str:
     """
     Get a cached list of all pull requests from GitHub (merged and open).
 
-    Results are cached via functools.lru_cache to avoid repeated GitHub API calls.
+    Results are cached via functools.lru_cache (keyed on `dir_name`) to avoid
+    repeated GitHub API calls.
 
+    :param dir_name: directory containing the git repository to query (e.g.,
+        a submodule has its own, disjoint GitHub repo and PR list)
     :return: raw output from `gh pr list` command
     """
-    cmd = "gh pr list -s all --limit 1000"
+    cmd = f"cd {dir_name} && gh pr list -s all --limit 1000"
     rc, txt = hsystem.system_to_string(cmd)
     _ = rc
     return txt
@@ -202,7 +205,7 @@ def does_branch_exist(
         _LOG.debug("branch_name='%s' on git: exists=%s", branch_name, exists)
     # Check on GitHub.
     if mode == "github":
-        txt = _get_gh_pr_list()
+        txt = _get_gh_pr_list(dir_name)
         # ```
         # > gh pr list -s all --limit 10000 | grep AmpTask2163
         # 347     AmpTask2163_Implement_tiled_backtesting_1  AmpTask2163 ... MERGED
@@ -871,16 +874,17 @@ def get_submodule_paths() -> List[str]:
 
     :return: list of submodule paths, e.g., ["amp"] or []
     """
-    # Get the git repo root to find .gitmodules reliably.
+    # Get the git repo root to find .gitmodules reliably. This must be the
+    # repo rooted at the current dir, not an outer repo it may itself be a
+    # submodule of: callers treat the returned paths as relative to the
+    # current dir, so falling back to a parent's .gitmodules would return
+    # paths relative to the wrong root (e.g., running from inside
+    # `helpers_root`, itself a submodule with no submodules of its own, must
+    # report `[]`, not the outer repo's submodule list).
     repo_root_cmd = "git rev-parse --show-toplevel"
     _, repo_root = hsystem.system_to_string(repo_root_cmd)
     repo_root = repo_root.strip()
     gitmodules_path = os.path.join(repo_root, ".gitmodules")
-    # Handle case where repo_root is a submodule (e.g., helpers_root)
-    # by checking parent directories for .gitmodules.
-    if not os.path.exists(gitmodules_path):
-        parent_root = os.path.dirname(repo_root)
-        gitmodules_path = os.path.join(parent_root, ".gitmodules")
     # Query .gitmodules to get submodule paths.
     # > git config --file .gitmodules --get-regexp path
     # submodule.amp.path amp

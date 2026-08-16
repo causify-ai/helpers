@@ -25,6 +25,9 @@ import helpers.hprint as hprint
 
 _LOG = logging.getLogger(__name__)
 
+# Signature for `ClaudeAgentOptions.can_use_tool`: given `(tool_name,
+# tool_input, context)`, return a `PermissionResultAllow` /
+# `PermissionResultDeny`.
 CanUseToolFn = Callable[
     [str, Dict[str, Any], Any],
     Awaitable[Any],
@@ -48,26 +51,35 @@ def message_to_str(message: Any) -> str:
     :return: human-readable rendering of `message`, or `""` if there is
         nothing to print
     """
+    _LOG.debug("message type=%s", type(message).__name__)
     if not isinstance(message, claude_agent_sdk.AssistantMessage):
+        # Results and system metadata messages carry nothing printable.
+        _LOG.debug("return='' (non-AssistantMessage)")
         return ""
     # Render each content block in the message with appropriate formatting.
     chunks = []
     for block in message.content:
         if isinstance(block, claude_agent_sdk.TextBlock):
+            # Plain assistant reply text.
             header = hprint.color_highlight("=== ASSISTANT ===", "bright_white")
             body = hprint.color_highlight(block.text, "bright_white")
         elif isinstance(block, claude_agent_sdk.ThinkingBlock):
+            # Chain-of-thought reasoning, not the final reply.
             header = hprint.color_highlight("=== THINKING ===", "gray")
             body = hprint.color_highlight(block.thinking, "gray")
         elif isinstance(block, claude_agent_sdk.ToolUseBlock):
+            # Tool invocation, with its name and input parameters.
             header = hprint.color_highlight(
                 f"=== TOOL: {block.name} ===", "yellow"
             )
             body = hprint.color_highlight(block.input, "yellow")
         else:
+            # Skip content blocks we don't render (e.g., tool results).
             continue
         chunks.append(f"\n{header}\n{body}")
-    return "".join(chunks)
+    result = "".join(chunks)
+    _LOG.debug("return=%d chars", len(result))
+    return result
 
 
 def _extract_assistant_text(message: Any) -> str:
@@ -77,14 +89,20 @@ def _extract_assistant_text(message: Any) -> str:
     :param message: message received from the Claude SDK
     :return: joined text blocks, or `""` for non-assistant messages
     """
+    _LOG.debug("message type=%s", type(message).__name__)
     if not isinstance(message, claude_agent_sdk.AssistantMessage):
+        # Only assistant messages carry text blocks worth extracting.
+        _LOG.debug("return='' (non-AssistantMessage)")
         return ""
+    # Keep only the text blocks, dropping thinking and tool-use blocks.
     parts = [
         block.text
         for block in message.content
         if isinstance(block, claude_agent_sdk.TextBlock)
     ]
-    return "\n".join(parts)
+    result = "\n".join(parts)
+    _LOG.debug("return=%d chars", len(result))
+    return result
 
 
 # #############################################################################
@@ -114,6 +132,7 @@ def _parse_rule_outcome(assistant_text: str) -> str:
         "I did something" -> "UNKNOWN"
         ```
     """
+    _LOG.debug("assistant_text length=%d", len(assistant_text))
     changed_match = _CHANGED_RE.search(assistant_text)
     if changed_match:
         outcome = "CHANGED: " + changed_match.group(1).strip()
@@ -140,6 +159,7 @@ def _make_file_scope_guard(target_file: str) -> CanUseToolFn:
     :param target_file: the only file that file-modifying tools may target
     :return: async callback usable as `ClaudeAgentOptions.can_use_tool`
     """
+    _LOG.debug(hprint.to_str("target_file"))
     # Tools that can modify file content, and therefore must be scoped to
     # `target_file` below.
     file_modifying_tools = ("Edit", "Write", "NotebookEdit", "MultiEdit")
@@ -150,6 +170,9 @@ def _make_file_scope_guard(target_file: str) -> CanUseToolFn:
         tool_input: Dict[str, Any],
         _context: Any,
     ) -> Any:
+        _LOG.debug(hprint.to_str("tool_name"))
+        # Only file-modifying tools need scope checking: everything else
+        # (reads, searches, etc.) is allowed unconditionally.
         if tool_name in file_modifying_tools:
             file_path = tool_input.get("file_path", "")
             if file_path and os.path.abspath(file_path) != target_abspath:
@@ -164,8 +187,10 @@ def _make_file_scope_guard(target_file: str) -> CanUseToolFn:
                         f"Only '{target_file}' may be modified in this session"
                     ),
                 )
+        _LOG.debug("Allowing '%s'", tool_name)
         return claude_agent_sdk.types.PermissionResultAllow()
 
+    _LOG.debug("return=can_use_tool guard for '%s'", target_file)
     return can_use_tool
 
 
@@ -236,7 +261,7 @@ class PromptSequencer:
             default (no limit)
         :param on_chunk_done: if set, called after each prompt completes with
             `(prompt_idx, stats)`, where `stats` has `outcome`, `cost_usd`,
-            `num_turns`, and `is_error`
+            `num_turns`, `is_error`, `usage`, and `stop_reason`
         """
         _LOG.debug(
             hprint.to_str(
@@ -283,6 +308,8 @@ class PromptSequencer:
         self._cost_usd: List[Optional[float]] = []
         self._num_turns: List[int] = []
         self._is_error: List[bool] = []
+        self._usage: List[Optional[Dict[str, Any]]] = []
+        self._stop_reason: List[Optional[str]] = []
 
     async def _execute_one_prompt(
         self,
@@ -299,6 +326,13 @@ class PromptSequencer:
         :param prompt_idx: 1-based index of `prompt` in the overall sequence
         :param total_prompts: total number of prompts in the sequence
         """
+        # `client` and `prompt` are omitted from the entry log below:
+        # `client` is an opaque session object and `prompt` can be
+        # arbitrarily long text, so only its length is logged.
+        _LOG.debug(hprint.to_str("prompt_idx total_prompts"))
+        _LOG.debug("prompt length=%d chars", len(prompt))
+        # Build a framed banner showing which prompt in the sequence is
+        # about to run, for easier log tracing.
         msg = []
         msg.append(
             hprint.frame(f"Executing prompt {prompt_idx}/{total_prompts}")
@@ -308,43 +342,65 @@ class PromptSequencer:
         _LOG.debug("\n%s", msg_as_str)
         # Query Claude with prompt and collect response asynchronously.
         await client.query(prompt)
-        # Collect response messages from stream.
-        response_parts: List[str] = []
+        # Collect response messages from stream. Only the extracted
+        # assistant text is kept (not `str(message)` for every message,
+        # which would also embed full tool inputs and be discarded after
+        # logging its length).
         text_parts: List[str] = []
         cost_usd: Optional[float] = None
         num_turns = 0
         is_error = False
+        usage: Optional[Dict[str, Any]] = None
+        stop_reason: Optional[str] = None
         async for message in client.receive_response():
+            # Print each message to the console/log as it streams in, if
+            # enabled.
             if self.print_output:
                 text = message_to_str(message)
                 if text:
                     _LOG.debug("\n%s", text)
-            response_parts.append(str(message))
+            # Accumulate assistant text across the whole stream.
             text = _extract_assistant_text(message)
             if text:
                 text_parts.append(text)
+            # The final `ResultMessage` in the stream carries this prompt's
+            # cost/turn/error stats, so capture it once seen.
             if isinstance(message, claude_agent_sdk.ResultMessage):
                 cost_usd = message.total_cost_usd
                 num_turns = message.num_turns
                 is_error = message.is_error
-        response_text = "".join(response_parts)
+                usage = message.usage
+                stop_reason = message.stop_reason
+        # Record this prompt's response text, parsed no-op outcome, and
+        # `ResultMessage` stats, all indexed in step with `prompts`.
+        response_text = "\n".join(text_parts)
         self._last_response = response_text
         self._responses.append(response_text)
-        outcome = _parse_rule_outcome("\n".join(text_parts))
+        outcome = _parse_rule_outcome(response_text)
         self._outcomes.append(outcome)
         self._cost_usd.append(cost_usd)
         self._num_turns.append(num_turns)
         self._is_error.append(is_error)
+        self._usage.append(usage)
+        self._stop_reason.append(stop_reason)
         self._prompts_executed += 1
         # Log prompt completion with response metrics.
-        _LOG.info("Prompt %d completed successfully", prompt_idx)
+        _LOG.info(
+            "Prompt %d completed successfully (cost=$%s, turns=%s)",
+            prompt_idx,
+            cost_usd,
+            num_turns,
+        )
         _LOG.debug("Response length: %d chars", len(response_text))
+        # Notify the caller's callback with this prompt's outcome and stats.
         if self.on_chunk_done is not None:
             stats = {
                 "outcome": outcome,
                 "cost_usd": cost_usd,
                 "num_turns": num_turns,
                 "is_error": is_error,
+                "usage": usage,
+                "stop_reason": stop_reason,
             }
             self.on_chunk_done(prompt_idx, stats)
 
@@ -438,17 +494,27 @@ class PromptSequencer:
         Get the per-prompt outcome and `ResultMessage` stats.
 
         :return: one dict per executed prompt, each with `outcome`,
-            `cost_usd`, `num_turns`, and `is_error`
+            `cost_usd`, `num_turns`, `is_error`, `usage`, and `stop_reason`
+            (same shape as the `on_chunk_done` callback's `stats` argument)
         """
+        # Zip the six parallel per-prompt attribute lists together, one dict
+        # per executed prompt.
         stats = [
             {
                 "outcome": outcome,
                 "cost_usd": cost_usd,
                 "num_turns": num_turns,
                 "is_error": is_error,
+                "usage": usage,
+                "stop_reason": stop_reason,
             }
-            for outcome, cost_usd, num_turns, is_error in zip(
-                self._outcomes, self._cost_usd, self._num_turns, self._is_error
+            for outcome, cost_usd, num_turns, is_error, usage, stop_reason in zip(
+                self._outcomes,
+                self._cost_usd,
+                self._num_turns,
+                self._is_error,
+                self._usage,
+                self._stop_reason,
             )
         ]
         _LOG.debug("get_chunk_stats() returning %d entries", len(stats))
@@ -461,11 +527,31 @@ class PromptSequencer:
         :return: Dictionary with execution metadata
             - `prompts_executed`: Number of prompts executed
             - `session_started`: Whether async session started
+            - `last_response_length`: length of the last prompt's response
+              text
+            - `total_cost_usd`: sum of every chunk's `cost_usd`, or `None` if
+              no chunk carried a `ResultMessage` (e.g., fake-client tests)
+            - `total_num_turns`: sum of every chunk's `num_turns`
+            - `any_error`: `True` if any chunk's `ResultMessage` had
+              `is_error`
+            - `last_usage`: the last chunk's `usage` dict, or `None`
+            - `last_stop_reason`: the last chunk's `stop_reason`, or `None`
         """
+        # `cost_usd` is `None` per chunk when its stream carried no
+        # `ResultMessage`, so sum only the chunks that did.
+        known_costs = [cost for cost in self._cost_usd if cost is not None]
+        total_cost_usd = sum(known_costs) if known_costs else None
         stats = {
             "prompts_executed": self._prompts_executed,
             "session_started": self._session_started,
             "last_response_length": len(self._last_response),
+            "total_cost_usd": total_cost_usd,
+            "total_num_turns": sum(self._num_turns),
+            "any_error": any(self._is_error),
+            "last_usage": self._usage[-1] if self._usage else None,
+            "last_stop_reason": self._stop_reason[-1]
+            if self._stop_reason
+            else None,
         }
         _LOG.debug("return=%s", hprint.to_str("stats"))
         return stats
@@ -485,8 +571,13 @@ class FakeClaudeSDKClient:
     """
 
     def __init__(self, responses_by_call: list) -> None:
+        _LOG.debug("num_calls=%d", len(responses_by_call))
+        # Messages to yield from `receive_response()`, one list per `query()`
+        # call, in call order.
         self._responses_by_call = responses_by_call
+        # Every prompt passed to `query()`, in order, for test assertions.
         self.queried_prompts: List = []
+        # Whether `__aenter__`/`__aexit__` (the `async with` protocol) fired.
         self.aenter_called = False
         self.aexit_called = False
         # Populated by the caller from the `options` a mocked
@@ -495,10 +586,13 @@ class FakeClaudeSDKClient:
         self.options: Any = None
 
     async def query(self, prompt: str) -> None:
+        _LOG.debug("call #%d", len(self.queried_prompts) + 1)
         self.queried_prompts.append(prompt)
 
     async def receive_response(self):
+        # Replay the messages recorded for the matching `query()` call.
         idx = len(self.queried_prompts) - 1
+        _LOG.debug(hprint.to_str("idx"))
         for message in self._responses_by_call[idx]:
             yield message
 
@@ -521,6 +615,9 @@ class FakeClaudeSDKClient:
         :return: string with `options`, `queried_prompts`, `aenter_called`, and
             `aexit_called`
         """
+        # Pull out only the handful of `options` fields useful for test
+        # assertions: the full `ClaudeAgentOptions` repr carries many defaulted
+        # fields that would clutter assertion diffs.
         options = None
         if self.options is not None:
             options = (
@@ -530,12 +627,14 @@ class FakeClaudeSDKClient:
                 self.options.model,
                 self.options.setting_sources,
             )
-        return (
+        result = (
             f"options={options!r}, "
             f"queried_prompts={self.queried_prompts!r}, "
             f"aenter_called={self.aenter_called!r}, "
             f"aexit_called={self.aexit_called!r}"
         )
+        _LOG.debug("return=%d chars", len(result))
+        return result
 
 
 # #############################################################################

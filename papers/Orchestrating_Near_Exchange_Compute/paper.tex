@@ -150,9 +150,9 @@ Neither design is absurd. One pays in latency. The other pays in operations. The
 \subsection{Geography is not an implementation detail}
 
 Cross-region latency is bounded by propagation delay, path length, and network topology. Engineering can improve routing and remove avoidable overhead, but it cannot make Tokyo and Singapore occupy the same point in space~\cite{singla_speed_of_light,bhattacherjee_fast_networks}. For a pipeline that ingests from a remote source, the end-to-end time from data arrival to query visibility is roughly
-\[
+$$
 T \approx T_{\mathrm{network}} + T_{\mathrm{collector}} + T_{\mathrm{queue}} + T_{\mathrm{db}} + T_{\mathrm{availability}}.
-\]
+$$
 When the collector sits in the wrong region, both $T_{\mathrm{network}}$ and often $T_{\mathrm{queue}}$ grow. The rest of the architecture can be elegant and still lose freshness through placement.
 
 \subsection{The third design}
@@ -216,9 +216,9 @@ Recoverable cases receive bounded retries. Terminal cases fail clearly. The sche
 \subsection{P5. Freshness as the metric}
 
 We define \kmetric{} $K$ as
-\[
+$$
 K = t_{\mathrm{commit}} - t_{\mathrm{receive}},
-\]
+$$
 where $t_{\mathrm{receive}}$ is the timestamp when a data point enters collector memory and $t_{\mathrm{commit}}$ is when the corresponding record becomes query-visible. This captures transport, buffering, serialization, database write, retry cost, and final availability. It measures the thing users actually care about: when the system knows.
 
 % ##############################################################################
@@ -405,9 +405,9 @@ Network RTT is easy to measure and too easy to overrate. What the platform deliv
 \subsection{Instrumentation}
 
 The ingestion path records the timestamp when a data point reaches collector memory, for example an \code{end_download_timestamp}. The storage path records the timestamp when the record becomes query-visible, for example a \code{knowledge_timestamp}. The difference is the metric:
-\[
+$$
 K = t_{\mathrm{knowledge}} - t_{\mathrm{end\_download}}.
-\]
+$$
 This can be computed with ordinary database queries. It does not require a distributed tracing system everywhere, although tracing can make root-cause analysis easier.
 
 \subsection{Exchange API timing}

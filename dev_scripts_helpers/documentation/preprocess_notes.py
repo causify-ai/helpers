@@ -104,6 +104,10 @@ def _colorize_backticks(
             # Wrap in backticks with {=typst} so pandoc treats it as raw typst code.
             # Escape tildes (~) since they have special meaning in typst.
             escaped_text = matched_text.replace("~", r"\~")
+            # Escape `<` since Typst parses `<name>` as a label reference
+            # (e.g., `<prompt>`), which silently drops the text instead of
+            # rendering it literally.
+            escaped_text = escaped_text.replace("<", r"\<")
             txt = f"`#text(fill: {color})[{escaped_text}]`{{=typst}}"
         return txt
 

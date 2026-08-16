@@ -10,9 +10,13 @@ import os
 import sys
 
 # We need to tweak `PYTHONPATH` directly since we are bootstrapping the system.
-# sys.path.append("helpers_root")
-sys.path.append(
-    os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+# Insert (not append) so this repo's `helpers` package takes priority over any
+# stale `helpers_root` left in an inherited `PYTHONPATH` (e.g., from a
+# previously sourced `setenv.sh` of a different repo in the same shell).
+# sys.path.insert(0, "helpers_root")
+sys.path.insert(
+    0,
+    os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))),
 )
 import helpers.hdbg as hdbg
 import helpers.hparser as hparser

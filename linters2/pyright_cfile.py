@@ -89,9 +89,12 @@ def _parse() -> argparse.ArgumentParser:
     return parser
 
 
-def _main(parser: argparse.ArgumentParser) -> None:
+def _main(parser: argparse.ArgumentParser) -> int:
     """
     Run pyright with --outputjson and transform output to cfile format.
+
+    :return: `pyright`'s exit code (0 if no errors were found, non-zero if
+        at least one error was reported)
     """
     args, remaining = parser.parse_known_args()
     hparser.parse_verbosity_args(args)
@@ -106,7 +109,10 @@ def _main(parser: argparse.ArgumentParser) -> None:
     # Run pyright.
     _LOG.debug("Running pyright")
     cmd = f"pyright {' '.join(cmd_args)} > tmp.pyright.txt"
-    hsystem.system(cmd, abort_on_error=False)
+    # `pyright` exits with a non-zero code when it reports at least one
+    # error, so capture the return code to propagate it as this script's
+    # exit status instead of discarding it.
+    rc = hsystem.system(cmd, abort_on_error=False)
     # Parse output of pyright.
     _LOG.debug("Reading output from file 'tmp.pyright.txt'")
     output = hio.from_file("tmp.pyright.txt")
@@ -117,8 +123,9 @@ def _main(parser: argparse.ArgumentParser) -> None:
     _LOG.debug("Printing cfile output")
     if cfile_output:
         print(cfile_output)
+    return rc
 
 
 if __name__ == "__main__":
     parser = _parse()
-    _main(parser)
+    sys.exit(_main(parser))

@@ -3,7 +3,7 @@ description: Write a practical technical tutorial for engineers, covering one to
 model: opus
 ---
 
-# Purpose
+# Goal
 
 - Write clear, hands-on tutorials that help engineers quickly learn a new tool,
   technique, or concept
@@ -89,4 +89,4 @@ model: opus
   - `website/docs/blog/posts/mdm_unified_markdown_manager.md`: Multi-tool
     tutorial
 
-- Study these for structure, tone, depth, and length.
+- Study these for structure, tone, depth, and length

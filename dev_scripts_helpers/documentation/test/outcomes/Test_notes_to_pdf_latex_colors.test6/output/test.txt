@@ -17,7 +17,7 @@ $DOCKER_EXECUTABLE run --rm --user $(id -u):$(id -g) -e ... --workdir $GIT_ROOT 
 \cp -af $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf_latex_colors.test6/tmp.scratch/tmp.notes_to_pdf.render_image2.typ $GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf_latex_colors.test6/tmp.scratch/output.typ
 # copy_to_gdrive
 ## skipping this action
-# open
+# open_pdf
 ## skipping this action
 # cleanup_after
 ## skipping this action
@@ -35,7 +35,7 @@ output_txt
 //   new slide, mirroring the beamer `--slide-level 4` convention. Headings of
 //   level 1-3 become section/structure slides
 // - See https://github.com/touying-typ/touying
-#import "@preview/touying:0.6.1": *
+#import "@preview/touying:0.7.4": *
 #import themes.simple: *
 
 //#include "/dev_scripts_helpers/documentation/typst_abbrevs.typ"

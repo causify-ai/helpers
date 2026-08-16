@@ -65,7 +65,9 @@ def _run_docker_pytest_cmd(
 
 
 # TODO(gp): Consider making shell_cmd mandatory.
-def run_docker_cmd(docker_script_dir: str, *, shell_cmd: str = "ls /git_root") -> None:
+def run_docker_cmd(
+    docker_script_dir: str, *, shell_cmd: str = "ls /git_root"
+) -> None:
     """
     Run an arbitrary shell command inside Docker via `docker_cmd.sh`.
 
@@ -173,7 +175,9 @@ class DockerTestCase(hunitest.TestCase):
         docker_cmd_script = os.path.join(docker_script_dir, "docker_cmd.sh")
         hdbg.dassert_file_exists(docker_cmd_script)
         # Run test.
-        cmd = f"cd {docker_script_dir} && bash {docker_cmd_script} 'ls /git_root'"
+        cmd = (
+            f"cd {docker_script_dir} && bash {docker_cmd_script} 'ls /git_root'"
+        )
         hsystem.system(cmd)
 
     @pytest.mark.order(3)

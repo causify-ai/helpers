@@ -1,5 +1,5 @@
 import os
-from typing import Optional
+from typing import Optional, Tuple
 
 import helpers.hio as hio
 import helpers.hllm_cli as hllmcli
@@ -226,14 +226,16 @@ class Test_get_system_prompt(hunitest.TestCase):
         expand_referenced_files: bool = True,
     ) -> None:
         """
-        Check `_get_system_prompt()`'s output.
+        Run `_get_system_prompt()` and check the output.
 
         :param system_prompt_file: path to file containing system prompt
-        :param rule: rule specification to use as system prompt
-        :param system_prompt: system prompt passed directly as a string
+            (empty string if not provided)
+        :param rule: rule specification to extract system prompt from
+            (empty string if not provided)
+        :param system_prompt: default system prompt text
         :param expected: expected resolved system prompt
-        :param expand_referenced_files: whether to expand `@file`
-            references in the resolved system prompt
+        :param expand_referenced_files: whether to expand `@file` references
+            in the resolved prompt into file content
         """
         # Run test.
         actual = dshllllcl._get_system_prompt(
@@ -243,6 +245,7 @@ class Test_get_system_prompt(hunitest.TestCase):
             expand_referenced_files=expand_referenced_files,
         )
         # Check outputs.
+        # TODO(ai_gp): Use assert_equal
         self.assertEqual(actual, expected)
 
     def test1(self) -> None:
@@ -331,7 +334,7 @@ class Test_limit_input_text(hunitest.TestCase):
 
     def helper(self, text: str, max_chars: int, expected: str) -> None:
         """
-        Check `_limit_input_text()`'s output.
+        Run `_limit_input_text()` and check the output.
 
         :param text: input text to limit
         :param max_chars: maximum number of characters
@@ -340,6 +343,7 @@ class Test_limit_input_text(hunitest.TestCase):
         # Run test.
         actual = dshllllcl._limit_input_text(text, max_chars)
         # Check outputs.
+        # TODO(ai_gp): Use assert_equal
         self.assertEqual(actual, expected)
 
     def test1(self) -> None:
@@ -383,17 +387,17 @@ class Test_get_input_output_files(hunitest.TestCase):
         input_text_arg: str,
         output_arg: str,
         modify_in_place: bool,
-        expected: str,
+        expected: Tuple[str, str, str],
     ) -> None:
         """
-        Check `_get_input_output_files()`'s output.
+        Run `_get_input_output_files()` and check the output.
 
         :param input_arg: input file path or '-' for stdin
         :param input_text_arg: input text from command line
         :param output_arg: output file path or '-' for stdout
         :param modify_in_place: whether to modify input file in place
         :param expected: expected `(input_file, input_text, output_file)`
-            tuple, as a string
+            tuple
         """
         # Run test.
         actual = dshllllcl._get_input_output_files(
@@ -403,7 +407,7 @@ class Test_get_input_output_files(hunitest.TestCase):
             modify_in_place,
         )
         # Check outputs.
-        self.assert_equal(str(actual), expected)
+        self.assert_equal(str(actual), str(expected))
 
     def test1(self) -> None:
         """
@@ -415,7 +419,7 @@ class Test_get_input_output_files(hunitest.TestCase):
         output_arg = ""
         modify_in_place = False
         # Prepare outputs.
-        expected = str(("test.txt", "", "-"))
+        expected = ("test.txt", "", "-")
         # Run test.
         self.helper(
             input_arg, input_text_arg, output_arg, modify_in_place, expected
@@ -431,7 +435,7 @@ class Test_get_input_output_files(hunitest.TestCase):
         output_arg = "output.txt"
         modify_in_place = False
         # Prepare outputs.
-        expected = str(("", "Test input", "output.txt"))
+        expected = ("", "Test input", "output.txt")
         # Run test.
         self.helper(
             input_arg, input_text_arg, output_arg, modify_in_place, expected

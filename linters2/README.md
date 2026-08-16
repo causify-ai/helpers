@@ -124,13 +124,13 @@ Claude Code integration for intelligent formatting.
 - Run specific actions on modified Python files only:
   ```bash
   > lint.py --modified --file_types "py" \
-      --action pre-commit normalize_import
+      --clear_actions --action pre-commit --action normalize_import
   ```
 
 - Fix pyright type errors via Claude Code:
   ```bash
   > lint.py --modified --file_types "py" \
-      --action fix_pyright
+      --clear_actions --action fix_pyright
   ```
 
 - Preview commands without executing (dry-run):

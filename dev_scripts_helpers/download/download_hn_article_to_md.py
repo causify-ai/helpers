@@ -32,7 +32,7 @@ bash-unfriendly characters replaced with underscores.
 - Only fetch HN comments, skip the linked article:
 > download_hn_article_to_md.py \
     --input "https://news.ycombinator.com/item?id=12345" \
-    --action download_hn_url \
+    --clear_actions --action download_hn_url \
     --action summarize_hn_url
 
 - Download without summarizing:
@@ -309,11 +309,11 @@ def _download_hn_url(
     _LOG.debug(hprint.to_str("item_id output_file dry_run no_incremental"))
     if dry_run:
         _LOG.info("[DRY RUN] Would fetch HN comments for item: %s", item_id)
-        _LOG.info("[DRY RUN] Would write HN comments to: %s", output_file)
+        _LOG.info("[DRY RUN] Would write HN comments to: '%s'", output_file)
         _LOG.debug("return: dry run, nothing written")
         return
     if os.path.exists(output_file) and not no_incremental:
-        _LOG.info("HN comments already exist, skipping: %s", output_file)
+        _LOG.info("HN comments already exist, skipping: '%s'", output_file)
         return
     _LOG.info("Fetching HN comments for item: %s", item_id)
     hn_comments = _fetch_hn_comments(item_id, max_depth=10)
@@ -321,7 +321,7 @@ def _download_hn_url(
     _LOG.info("Fetched %d total comments", total_comments)
     formatted_comments = _format_hn_comments_as_text(hn_comments)
     hio.to_file(output_file, formatted_comments)
-    _LOG.info("Successfully saved HN comments to: %s", output_file)
+    _LOG.info("Successfully saved HN comments to: '%s'", output_file)
 
 
 def _download_article_url(
@@ -356,15 +356,17 @@ def _download_article_url(
             article_url,
             downloader,
         )
-        _LOG.info("[DRY RUN] Would write article content to: %s", output_file)
+        _LOG.info("[DRY RUN] Would write article content to: '%s'", output_file)
         _LOG.debug("return: dry run, nothing written")
         return
     if os.path.exists(output_file) and not no_incremental:
-        _LOG.info("Article content already exists, skipping: %s", output_file)
+        _LOG.warning(
+            "Article content already exists, skipping: '%s'", output_file
+        )
         return
     _LOG.info("Downloading article from '%s' via %s", article_url, downloader)
     dshddut.download_article(article_url, output_file)
-    _LOG.info("Successfully saved article to: %s", output_file)
+    _LOG.info("Successfully saved article to: '%s'", output_file)
 
 
 # #############################################################################
@@ -384,8 +386,8 @@ _HN_COMMENTS_PROMPT = hprint.dedent("""
     - Do not include commenter names
 
     - Format as plain text without markdown following the conventions in:
-      - @.claude/skills/markdown.rules.txt
-      - @.claude/skills/text.rules.txt
+      - @.claude/skills/markdown.rules.md
+      - @.claude/skills/text.rules.md
     """)
 
 
@@ -411,8 +413,8 @@ def _summarize_hn_url(
     if not dry_run:
         hdbg.dassert_file_exists(comments_file)
     if os.path.exists(summary_file) and not no_incremental:
-        _LOG.info(
-            "HN comments summary already exists, skipping: %s", summary_file
+        _LOG.warning(
+            "HN comments summary already exists, skipping: '%s'", summary_file
         )
         return
     dshddut.summarize_text_with_llm(
@@ -443,7 +445,9 @@ def _summarize_article_url(
     if not dry_run:
         hdbg.dassert_file_exists(article_file)
     if os.path.exists(summary_file) and not no_incremental:
-        _LOG.info("Article summary already exists, skipping: %s", summary_file)
+        _LOG.warning(
+            "Article summary already exists, skipping: '%s'", summary_file
+        )
         return
     dshddut.summarize_text_with_llm(
         article_file,
@@ -530,7 +534,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
     _LOG.debug(hprint.to_str("item_id title article_url"))
     # Restrict the defaults to HN-only actions when the submission has no
     # linked article (e.g., Show HN / Ask HN / text posts); overridable
-    # explicitly via --action/--skip_action/--enable.
+    # explicitly via --action/--skip_action.
     default_actions = DEFAULT_ACTIONS
     if not article_url:
         _LOG.info(

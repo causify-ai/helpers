@@ -34,8 +34,9 @@ See `dev_scripts_helpers/documentation/render_images.README.md`.
 - Render a standalone typst file to PNG:
 > render_images.py -i ABC.typ -o ABC.png --action render
 
-- Open rendered images from a Markdown file in HTML to preview:
-> render_images.py -i ABC.md --action open
+- Open rendered images from a Markdown file in HTML to preview (without
+  re-rendering):
+> render_images.py -i ABC.md --clear_actions --action open
 
 - Render images in SVG format (diagrams only):
 > render_images.py -i ABC.md --action render --output_format svg

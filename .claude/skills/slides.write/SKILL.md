@@ -13,7 +13,7 @@ model: opus
 
 ## Input
 - The user will provide:
-  - Information, a topic, or a file `<TOPIC>`
+  - Information, a topic, or a file `<TOPIC>` about the topic to describe
   - (Optional) Number of slides `<NUM_SLIDES>` otherwise assume
     `<NUM_SLIDES> = 3`
 - If the user has passed you a file `<TOPIC>` read it
@@ -31,7 +31,8 @@ model: opus
 
 ## Save Result
 - Do not print anything on the screen
-- Save the result in a output file `<OUTPUT_FILE>` like `<file>.slides.md`
-  - E.g., for an input like `books/dir/text_7.md` use
-    `books/dir/text_7.slides.md`
-  - If the file already exists, delete it and create a new one
+- Save the result in an output file `<OUTPUT_FILE>`
+  - If there was no input file then create a new file `<TOPIC>.slides.md`
+    in the current dir
+  - If a file `<FILE>` was provided then create a file like `<FILE>.slides.md`
+  - If the destination file already exists, delete it and create a new one

@@ -942,6 +942,12 @@ def run_pandoc_to_typst_slides(
         r'#text(fill: black, weight: "bold")[\1]',
         txt,
     )
+    # Pandoc's LaTeX->Typst math writer still emits `angle.l` / `angle.r` for
+    # `\langle` / `\rangle`, which recent Typst versions deprecate in favor of
+    # `chevron.l` / `chevron.r`. Rewrite them to avoid `typst compile`
+    # deprecation warnings.
+    txt = re.sub(r"\bangle\.l\b", "chevron.l", txt)
+    txt = re.sub(r"\bangle\.r\b", "chevron.r", txt)
     hio.to_file(typ_file, txt)
     # Return the `.typ` file if typst_only mode is requested.
     if typst_only:

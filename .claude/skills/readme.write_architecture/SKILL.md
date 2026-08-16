@@ -1,6 +1,6 @@
 ---
 description: Write architecture documentation for a Python file
-model: haiku
+model: sonnet
 ---
 
 # Goal
@@ -46,10 +46,7 @@ model: haiku
 
 - Write the results to `<FILE>.README.md` in the same directory as `<FILE>`
 
-## Step 5: Lint Document
-  ```bash
-  > lint_text.py -i `<FILE>.README.md`
-  ```
+- Wrap the text in 85 columns
 
 # Conventions
 

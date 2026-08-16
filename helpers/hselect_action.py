@@ -58,6 +58,17 @@ _LOG = logging.getLogger(__name__)
 #       hdbg.dassert_eq(len(actions), 0,
 #         "There are unprocessed actions: %s", str(actions))
 #   ```
+#
+# The list of actions to execute is built as follows:
+# 1) Select the starting list:
+#    - `--all_actions`: start from all `valid_actions`
+#    - `--clear_actions`: start from an empty list
+#    - otherwise: start from `default_actions`
+# 2) `--action <name>`: add `name` to the list (warn if already present)
+# 3) `--skip_action <name>`: remove `name` from the list (warn if not
+#    present)
+# `--action` and `--skip_action` can be repeated and used together, but the
+# same action can't be passed to both at the same time.
 
 
 def add_action_arg(
@@ -66,12 +77,15 @@ def add_action_arg(
     default_actions: List[str],
 ) -> argparse.ArgumentParser:
     """
-    Add command line options to select actions to execute, skip, or enable.
+    Add command line options to select the actions to execute.
 
-    The function creates a mutually exclusive group with three options:
-    - `-a/--action`: specify exact actions to execute
-    - `-sa/--skip_action`: skip specific actions from default set
-    - `-e/--enable`: enable additional actions on top of defaults
+    The starting list of actions is `default_actions`, unless overridden by
+    `--all_actions` (start from `valid_actions`) or `--clear_actions` (start
+    from an empty list).
+    - `--all_actions` and `--clear_actions` are mutually exclusive since they
+      both set the starting list.
+    - `--action` and `--skip_action` then add / remove actions from that starting
+      list and can be freely combined (see `select_actions()`)
 
     Available actions are listed once in the help epilog to avoid repetition.
 
@@ -88,33 +102,32 @@ def add_action_arg(
     default_list = "\n".join([f"- {action}" for action in default_actions])
     epilog += f"\n\n## Default actions:\n{default_list}"
     parser.epilog = epilog
-    # Create mutually exclusive group for action selection.
-    group = parser.add_mutually_exclusive_group(required=False)
-    group.add_argument(
+    hdbg.dassert_is_subset(default_actions, valid_actions)
+    parser.add_argument(
         "--action",
         action="append",
         dest="action",
-        help="Actions to execute (see available actions below)",
+        help="Add an action to the list of actions to execute",
     )
-    group.add_argument(
+    parser.add_argument(
         "--skip_action",
         action="append",
         dest="skip_action",
-        help="Actions to skip from default set (see available actions below)",
+        help="Remove an action from the list of actions to execute",
     )
+    # Create mutually exclusive group for the starting list of actions.
+    group = parser.add_mutually_exclusive_group(required=False)
     group.add_argument(
-        "-e",
-        "--enable",
-        action="append",
-        dest="enable_action",
-        help="Enable additional actions on top of defaults (see available actions below)",
-    )
-    hdbg.dassert_is_subset(default_actions, valid_actions)
-    parser.add_argument(
         "--all_actions",
         action="store_true",
         dest="all_actions",
-        help=f"Run all the actions ({' '.join(default_actions)})",
+        help="Run all the valid actions",
+    )
+    group.add_argument(
+        "--clear_actions",
+        action="store_true",
+        dest="clear_actions",
+        help="Start from an empty list of actions",
     )
     return parser
 
@@ -152,85 +165,75 @@ def select_actions(
     """
     Select actions based on the command line arguments.
 
-    Supports three mutually exclusive modes:
-    - `--action`: run only specified actions
-    - `--skip_action`: run default actions minus specified ones
-    - `--enable`: run default actions plus specified additional ones
+    The starting list of actions is:
+    - `valid_actions` if `--all_actions` is specified
+    - an empty list if `--clear_actions` is specified
+    - `default_actions` otherwise
+
+    `--action` then adds actions to that list (warning if an action is
+    already present) and `--skip_action` removes actions from it (warning if
+    an action is not present). The same action can't be passed to both
+    `--action` and `--skip_action`.
 
     :param args: command line arguments
     :param valid_actions: list of valid actions
     :param default_actions: list of default actions to execute
     :return: list of selected actions
     """
+    hdbg.dassert_is_subset(default_actions, valid_actions)
     hdbg.dassert(
-        not (args.action and args.all_actions),
-        "You can't specify together --action and --all_actions",
+        not (args.all_actions and args.clear_actions),
+        "You can't specify together --all_actions and --clear_actions",
     )
-    hdbg.dassert(
-        not (args.action and args.skip_action),
-        "You can't specify together --action and --skip_action",
+    # Convert to lists since through some code paths they can be tuples.
+    action = list(args.action) if args.action else []
+    skip_action = list(args.skip_action) if args.skip_action else []
+    # Validate the actions specified by the user.
+    for curr_action in action + skip_action:
+        hdbg.dassert_in(
+            curr_action,
+            valid_actions,
+            "Invalid action '%s'",
+            curr_action,
+        )
+    # An action can't be added and removed at the same time.
+    overlap = set(action) & set(skip_action)
+    hdbg.dassert_eq(
+        len(overlap),
+        0,
+        "The following actions are passed to both --action and "
+        "--skip_action: %s",
+        sorted(overlap),
     )
-    # Check for enable_action attribute (added for backward compatibility).
-    has_enable = hasattr(args, "enable_action")
-    if has_enable:
-        hdbg.dassert(
-            not (args.action and args.enable_action),
-            "You can't specify together --action and --enable",
-        )
-        hdbg.dassert(
-            not (args.skip_action and args.enable_action),
-            "You can't specify together --skip_action and --enable",
-        )
-    # Select actions.
-    if not args.action or args.all_actions:
-        hdbg.dassert_is_subset(default_actions, valid_actions)
-        # Convert it into list since through some code paths it can be a tuple.
-        actions = list(default_actions)
+    # Select the starting list of actions.
+    if args.all_actions:
+        actions = list(valid_actions)
+    elif args.clear_actions:
+        actions = []
     else:
-        # Validate actions specified by user.
-        for action in args.action:
-            hdbg.dassert_in(
-                action,
-                valid_actions,
-                "Invalid action '%s'",
-                action,
-            )
-        actions = args.action[:]
-    hdbg.dassert_isinstance(actions, list)
+        actions = list(default_actions)
     hdbg.dassert_no_duplicates(actions)
-    # Remove actions, if needed.
-    if args.skip_action:
-        hdbg.dassert_isinstance(args.skip_action, list)
-        for skip_action in args.skip_action:
-            # Validate that skip_action is a valid action.
-            hdbg.dassert_in(
-                skip_action,
-                valid_actions,
-                "Invalid action '%s'",
-                skip_action,
+    # Add the requested actions.
+    for curr_action in action:
+        if curr_action in actions:
+            _LOG.warning(
+                "Action '%s' is already in the list of actions='%s'",
+                curr_action,
+                actions,
             )
-            # Validate that skip_action is in the current action list.
-            if skip_action not in actions:
-                _LOG.warning(
-                    "Skipping action '%s' since it's already not in actions='%s'",
-                    skip_action,
-                    actions,
-                )
-            actions = [a for a in actions if a != skip_action]
-    # Add enabled actions on top of defaults.
-    if has_enable and args.enable_action:
-        hdbg.dassert_isinstance(args.enable_action, list)
-        for enable_action in args.enable_action:
-            hdbg.dassert_in(
-                enable_action,
-                valid_actions,
-                "Invalid action '%s'",
-                enable_action,
+        else:
+            actions.append(curr_action)
+    # Remove the requested actions.
+    for curr_action in skip_action:
+        if curr_action not in actions:
+            _LOG.warning(
+                "Skipping action '%s' since it's already not in actions='%s'",
+                curr_action,
+                actions,
             )
-            if enable_action not in actions:
-                actions.append(enable_action)
+        actions = [a for a in actions if a != curr_action]
     # Reorder actions according to 'valid_actions'.
-    actions = [action for action in valid_actions if action in actions]
+    actions = [a for a in valid_actions if a in actions]
     return actions
 
 

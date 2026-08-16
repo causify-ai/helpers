@@ -2,9 +2,33 @@
 
 # """
 # Checkout a branch and pull.
+#
+# By default `--recurse-submodules` pulls each submodule by rebasing whatever
+# branch it currently has checked out. If a submodule was left on a stale
+# branch (e.g., from a different task), this can trigger rebase conflicts
+# inside the submodule that have nothing to do with the branch being checked
+# out here.
+#
+# Use `-s` to instead force submodules to the exact commit recorded by the
+# super-repo (detached HEAD, no rebase), which avoids that class of conflict.
 # """
 
 source helpers.sh
 
+SYNC_SUBMODULES=0
+while getopts ":s" opt; do
+  case "$opt" in
+    s) SYNC_SUBMODULES=1 ;;
+    \?) echo "Error: invalid option '-$OPTARG'"; exit 1 ;;
+  esac
+done
+shift $((OPTIND - 1))
+
 execute "git checkout $1"
-execute "git pull --recurse-submodules"
+if [[ $SYNC_SUBMODULES == 1 ]]; then
+  execute "git pull"
+  execute "git submodule sync --recursive"
+  execute "git submodule update --init --recursive"
+else
+  execute "git pull --recurse-submodules"
+fi
