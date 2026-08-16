@@ -136,6 +136,7 @@ def download_from_gsheet(url: str, output_file: str) -> str:
     rows = read_csv(output_file)
     num_cols = len(rows[0].keys()) if rows else 0
     _LOG.info("Loaded %d rows and %d columns", len(rows), num_cols)
+    # TODO(ai_gp): _LOG.info the content of the first 3 lines
     _LOG.debug(hprint.to_str("output_file"))
     return output_file
 

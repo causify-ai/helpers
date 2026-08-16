@@ -6,15 +6,17 @@
 # ]
 # ///
 
+# TODO(ai_gp): Rename link_gsheet -> gsheet_data
+
 r"""
-Download Raindrop.io links and sync with Google Sheets.
+Update Google Sheets data with Raindrop.io data.
 
 This script manages four actions:
-1. download_link_gsheet: Download data from Google Sheets to CSV
-2. download_raindrop_data: Fetch links from Raindrop.io after the latest
-   timestamp and save to CSV
-3. combine: Transform and combine Raindrop data with gsheet structure
-4. upload_link_gsheet: Upload the combined CSV to a new tab in Google Sheets
+- Download_link_gsheet: Download data from Google Sheets to CSV
+- Download_raindrop_data: Fetch links from Raindrop.io after the latest
+  timestamp and save to CSV
+- Combine: Transform and combine Raindrop data with gsheet structure
+- Upload_link_gsheet: Upload the combined CSV to a new tab in Google Sheets
 
 # Usage Example
 
@@ -68,12 +70,28 @@ COMBINED_CSV_FILE = "combined_data.csv"
 # #############################################################################
 
 
+def _resolve_gsheet_url(url: str) -> str:
+    """
+    Resolve the Google Sheets URL from the CLI arg or the `LINKS_GSHEET` env
+    variable.
+
+    :param url: URL passed via `--url` (empty string if not passed)
+    :return: resolved, non-empty URL
+    """
+    if not url:
+        url = os.environ.get("LINKS_GSHEET", "")
+    hdbg.dassert_ne(
+        url,
+        "",
+        "Specify --url or set the LINKS_GSHEET environment variable",
+    )
+    return url
+
+
+# TODO(ai_gp): -> _download_gsheet_data
 def _download_from_gsheet(url: str) -> str:
     """
     Download data from Google Sheets and save to a temporary CSV file.
-
-    Retrieves data from the 'All' tab and saves it to a temporary CSV
-    for later processing and combination with Raindrop data.
 
     :param url: URL of the Google Sheets document
     :return: Path to the saved CSV file
@@ -88,6 +106,7 @@ def _download_from_gsheet(url: str) -> str:
     return output_file
 
 
+# TODO(ai_gp): -> _download_raindrop_data
 def _download_from_raindrop() -> str:
     """
     Download links from Raindrop.io after the latest timestamp from the
@@ -99,6 +118,8 @@ def _download_from_raindrop() -> str:
     :return: Path to the CSV file with combined data
     """
     _LOG.debug(hprint.func_signature_to_str())
+
+    # TODO(ai_gp): Create a function from file to last timestamp
     # Load the gsheet CSV to find the cutoff timestamp for filtering new bookmarks.
     gsheet_csv = dshdlgsut.get_tmp_file_path(
         GSHEET_CSV_FILE, "update_link_gsheet_from_raindrop"
@@ -107,17 +128,19 @@ def _download_from_raindrop() -> str:
     _LOG.info("Loading gsheet CSV to find latest timestamp")
     rows_gsheet = dshdlgsut.read_csv(gsheet_csv)
     _LOG.debug(hprint.to_str("len(rows_gsheet)"))
+    # The gsheet CSV must have a `timestamp` column to compute the cutoff.
+    hdbg.dassert(
+        bool(rows_gsheet) and "timestamp" in rows_gsheet[0],
+        "gsheet CSV '%s' is missing the required 'timestamp' column",
+        gsheet_csv,
+    )
     # Determine the latest timestamp in existing data to avoid re-downloading duplicates.
-    if rows_gsheet and "timestamp" in rows_gsheet[0]:
-        latest_timestamp = max(
-            float(row.get("timestamp", 0)) for row in rows_gsheet
-        )
-        _LOG.info("Latest timestamp in gsheet: '%s'", latest_timestamp)
-    else:
-        # If no timestamp column exists, fetch all bookmarks from Raindrop.
-        latest_timestamp = None
-        _LOG.info("No timestamp column found, fetching all bookmarks")
+    latest_timestamp = max(
+        float(row.get("timestamp", 0)) for row in rows_gsheet
+    )
+    _LOG.info("Latest timestamp in gsheet: '%s'", latest_timestamp)
     _LOG.debug(hprint.to_str("latest_timestamp"))
+
     # Retrieve Raindrop API token from environment and validate it exists.
     raindrop_token = os.environ.get("RAINDROP_API_TOKEN")
     hdbg.dassert_is_not(
@@ -144,13 +167,9 @@ def _download_from_raindrop() -> str:
         _LOG.info("Fetched %d items from Raindrop", len(items))
         # Filter bookmarks: keep only those created after the latest gsheet timestamp.
         for item in items:
-            if "created" in item:
-                if (
-                    latest_timestamp is None
-                    or float(item["created"]) > latest_timestamp
-                ):
-                    all_bookmarks.append(item)
-                    count += 1
+            if "created" in item and float(item["created"]) > latest_timestamp:
+                all_bookmarks.append(item)
+                count += 1
         # Update URL to next page if pagination link exists.
         url = data.get("pagination", {}).get("nextLink")
         _LOG.debug("Next page url='%s'", url)
@@ -184,6 +203,7 @@ def _download_from_raindrop() -> str:
     return raindrop_csv
 
 
+# TODO(ai_gp): -> _combine_raindrop_with_gsheet_data
 def _combine_raindrop_with_gsheet() -> str:
     """
     Transform and combine Raindrop data with gsheet structure.
@@ -298,9 +318,12 @@ def _upload_to_gsheet(url: str) -> None:
 
 # Define the four-step pipeline: download gsheet, download raindrop, combine, and upload.
 _VALID_ACTIONS = [
+    # TODO(ai_gp): download_gsheet_data
     "download_link_gsheet",
     "download_raindrop_data",
+    # TODO(ai_gp): -> combine data
     "combine",
+    # TODO(ai_gp): upload_gsheet_data
     "upload_link_gsheet",
 ]
 # By default, execute all actions in order.
@@ -318,7 +341,8 @@ def _parse() -> argparse.ArgumentParser:
         action="store",
         default="",
         help="URL of the Google Sheets document (required for "
-        "download_link_gsheet and upload_link_gsheet actions)",
+        "download_link_gsheet and upload_link_gsheet actions); falls back "
+        "to the LINKS_GSHEET environment variable if not specified",
     )
     hselacti.add_action_arg(parser, _VALID_ACTIONS, _DEFAULT_ACTIONS)
     hparser.add_verbosity_arg(parser)
@@ -349,23 +373,15 @@ def _main(parser: argparse.ArgumentParser) -> None:
         _LOG.debug("Executing action: '%s'", action)
         # Execute each action with required argument validation.
         if action == "download_link_gsheet":
-            hdbg.dassert_is_not(
-                args.url,
-                None,
-                "--url is required for download_link_gsheet action",
-            )
-            _download_from_gsheet(args.url)
+            url = _resolve_gsheet_url(args.url)
+            _download_from_gsheet(url)
         elif action == "download_raindrop_data":
             _download_from_raindrop()
         elif action == "combine":
             _combine_raindrop_with_gsheet()
         elif action == "upload_link_gsheet":
-            hdbg.dassert_is_not(
-                args.url,
-                None,
-                "--url is required for upload_link_gsheet action",
-            )
-            _upload_to_gsheet(args.url)
+            url = _resolve_gsheet_url(args.url)
+            _upload_to_gsheet(url)
         else:
             raise ValueError(f"Invalid action='{action}'")
     hdbg.dassert_eq(

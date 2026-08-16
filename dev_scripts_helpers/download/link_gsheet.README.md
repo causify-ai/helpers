@@ -22,24 +22,24 @@
 
 - The master Google Sheets document contains the following columns:
   - `Title`: Article title
-    - Example: "Rust is not a good C replacement"
+    - _Example_: "Rust is not a good C replacement"
   - `Url`: Source URL
     - Can be: direct article URL, paper link, or Hacker News submission URL
-    - Examples:
+    - _Example_:
       https://drewdevault.com/2019/03/25/Rust-is-not-a-good-C-replacement.html,
       https://news.ycombinator.com/item?id=40212490
   - `Timestamp`: Date and time when added
     - Format: YYYY-MM-DD HH:MM:SS
-    - Example: 2024-04-30 22:23:54
+    - _Example_: 2024-04-30 22:23:54
   - `Article_url`: URL of the actual article (extracted from HN submission if applicable)
-    - Example:
+    - _Example_:
       https://medium.com/airbnb-engineering/chronon-airbnbs-ml-feature-platform-is-now-open-source-d9c4dba859e8
   - `Article_title`: Title of the actual article (extracted from HN submission if applicable)
     - Typically same as `Title` for HN submissions
   - `Article_tag`: Categorized topic/tag for the article
-    - Example: "Automated Theorem Proving", "AI Infrastructure", "Python Ecosystem"
+    - _Example_: "Automated Theorem Proving", "AI Infrastructure", "Python Ecosystem"
   - `Article_cluster`: High-level cluster grouping topics
-    - Example: "AI", "Data/Infra", "Dev tools", "Finance", "Math", "Business",
+    - _Example_: "AI", "Data/Infra", "Dev tools", "Finance", "Math", "Business",
       "CyberSec", "SwEng"
   - `Interesting`: Relevance rating (1 to 5)
   - `Notes`: Additional notes and comments
@@ -56,22 +56,22 @@
   1. **download_link_gsheet**: Downloads current data from Google Sheets to CSV
   2. **download_raindrop_data**: Fetches new bookmarks from Raindrop.io API (only
      items created after the latest timestamp in the gsheet)
-  3. **combine**: Transforms and combines Raindrop data into gsheet schema
+  3. **combine**: Transforms and combines `Raindrop.io` data into gsheet schema
   4. **upload_link_gsheet**: Uploads combined data back to Google Sheets in a new
      timestamped tab
 
 - Features:
   - Incremental sync: only fetches new bookmarks by comparing timestamps
-  - Field mapping: converts Raindrop fields to gsheet columns
+  - Field mapping: converts `Raindrop.io` fields to gsheet columns
   - Timestamp normalization: converts ISO 8601 format to YYYY-MM-DD HH:MM:SS
-  - Title cleanup: strips "| HackerNews" suffix from Raindrop titles
-  - Prepends new data: Raindrop bookmarks appear at the top of the gsheet
-  - Automatic pagination: handles Raindrop API pagination to fetch all bookmarks
+  - Title cleanup: strips "| HackerNews" suffix from `Raindrop.io` titles
+  - Prepends new data: `Raindrop.io` bookmarks appear at the top of the gsheet
+  - Automatic pagination: handles `Raindrop.io` API pagination to fetch all bookmarks
   - Fault tolerance: graceful handling of malformed timestamps
 
 #### Example Usage
 
-- Sync all new bookmarks from Raindrop to Google Sheets:
+- Sync all new bookmarks from `Raindrop.io` to Google Sheets:
   ```bash
   > update_link_gsheet_from_raindrop.py \
       --url "$LINKS_GSHEET" \
@@ -83,20 +83,27 @@
   # Just download from Google Sheets
   > update_link_gsheet_from_raindrop.py \
       --url "$LINKS_GSHEET" \
+      --clear_actions \
       --action download_link_gsheet
 
-  # Just fetch from Raindrop (requires RAINDROP_API_TOKEN env var)
+  # Just fetch from `Raindrop.io` (requires RAINDROP_API_TOKEN env var)
   > update_link_gsheet_from_raindrop.py \
+      --url "$LINKS_GSHEET" \
+      --clear_actions \
       --action download_raindrop_data
 
   # Combine data without uploading
   > update_link_gsheet_from_raindrop.py \
+      --url "$LINKS_GSHEET" \
+      --clear_actions \
+      --action download_link_gsheet \
+      --action download_raindrop_data \
       --action combine
   ```
 
 - Requirements:
   - `RAINDROP_API_TOKEN` environment variable must be set to authenticate with
-    Raindrop API
+    `Raindrop.io` API
   - Google Sheets URL with data
 
 ### `process_link_gsheet.py`
@@ -245,33 +252,33 @@
 
 ## Complete Workflow Example
 
-A typical workflow for enriching links from multiple sources:
+- A typical workflow is
 
 1. Download links from Raindrop.io and merge with existing gsheet:
    ```bash
-   > update_link_gsheet_from_raindrop.py --url <sheet_url> --all_actions
+   > update_link_gsheet_from_raindrop.py --url $LINKS_GSHEET --all_actions
    ```
 
 2. Process HN articles to extract URLs and classify by topic:
    ```bash
-   > process_link_gsheet.py --url <sheet_url> --all_actions
+   > process_link_gsheet.py --url $LINKS_GSHEET --all_actions
    ```
 
 3. Download HN comments and article content:
    ```bash
    > download_link_articles.py \
-       --url <sheet_url> \
+       --url $LINKS_GSHEET \
        --all_actions
    ```
 
 4. Summarize articles and HN comments using LLM:
    ```bash
    > download_link_articles.py \
-       --url <sheet_url> \
+       --url $LINKS_GSHEET \
        --action summarize_article_url
    
    > download_link_articles.py \
-       --url <sheet_url> \
+       --url $LINKS_GSHEET \
        --action summarize_url
    ```
 
