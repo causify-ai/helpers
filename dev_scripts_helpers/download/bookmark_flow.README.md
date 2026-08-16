@@ -46,18 +46,18 @@
 
 ## Description of Files
 
-### `update_link_gsheet_from_raindrop.py`
+### `update_gsheet_links_from_raindrop.py`
 
 #### What It Does
 
 - Synchronizes bookmarks from `Raindrop.io` with a Google Sheets document
 
 - Implements a four-action pipeline:
-  1. **download_link_gsheet**: Downloads current data from Google Sheets to CSV
+  1. **download_gsheet_links**: Downloads current data from Google Sheets to CSV
   2. **download_raindrop_data**: Fetches new bookmarks from Raindrop.io API (only
      items created after the latest timestamp in the gsheet)
-  3. **combine**: Transforms and combines `Raindrop.io` data into gsheet schema
-  4. **upload_link_gsheet**: Uploads combined data back to Google Sheets in a new
+  3. **combine_data**: Transforms and combines `Raindrop.io` data into gsheet schema
+  4. **upload_gsheet_links**: Uploads combined data back to Google Sheets in a new
      timestamped tab
 
 - Features:
@@ -73,7 +73,7 @@
 
 - Sync all new bookmarks from `Raindrop.io` to Google Sheets:
   ```bash
-  > update_link_gsheet_from_raindrop.py \
+  > update_gsheet_links_from_raindrop.py \
       --url "$LINKS_GSHEET" \
       --all_actions
   ```
@@ -81,24 +81,24 @@
 - Run individual actions:
   ```bash
   # Just download from Google Sheets
-  > update_link_gsheet_from_raindrop.py \
+  > update_gsheet_links_from_raindrop.py \
       --url "$LINKS_GSHEET" \
       --clear_actions \
-      --action download_link_gsheet
+      --action download_gsheet_links
 
   # Just fetch from `Raindrop.io` (requires RAINDROP_API_TOKEN env var)
-  > update_link_gsheet_from_raindrop.py \
+  > update_gsheet_links_from_raindrop.py \
       --url "$LINKS_GSHEET" \
       --clear_actions \
       --action download_raindrop_data
 
   # Combine data without uploading
-  > update_link_gsheet_from_raindrop.py \
+  > update_gsheet_links_from_raindrop.py \
       --url "$LINKS_GSHEET" \
       --clear_actions \
-      --action download_link_gsheet \
+      --action download_gsheet_links \
       --action download_raindrop_data \
-      --action combine
+      --action combine_data
   ```
 
 - Requirements:
@@ -106,7 +106,7 @@
     `Raindrop.io` API
   - Google Sheets URL with data
 
-### `process_link_gsheet.py`
+### `process_gsheet_links.py`
 
 #### What It Does
 
@@ -130,7 +130,7 @@
 
 - Run the complete pipeline on a Google Sheets document:
   ```bash
-  > process_link_gsheet.py \
+  > process_gsheet_links.py \
       --url "$LINKS_GSHEET" \
       --all_actions
   ```
@@ -138,17 +138,17 @@
 - Run specific actions:
   ```bash
   # Just download data from Google Sheets:
-  > process_link_gsheet.py \
+  > process_gsheet_links.py \
       --url "$LINKS_GSHEET" \
       --action download
 
   # Extract article URLs only:
-  > process_link_gsheet.py \
+  > process_gsheet_links.py \
       --url "$LINKS_GSHEET" \
       --action update_article_url
 
   # Tag articles using LLM with custom model
-  > process_link_gsheet.py \
+  > process_gsheet_links.py \
       --url "$LINKS_GSHEET" \
       --action update_article_tag \
       --model gpt-4
@@ -256,12 +256,12 @@
 
 1. Download links from Raindrop.io and merge with existing gsheet:
    ```bash
-   > update_link_gsheet_from_raindrop.py --url $LINKS_GSHEET --all_actions
+   > update_gsheet_links_from_raindrop.py --url $LINKS_GSHEET --all_actions
    ```
 
 2. Process HN articles to extract URLs and classify by topic:
    ```bash
-   > process_link_gsheet.py --url $LINKS_GSHEET --all_actions
+   > process_gsheet_links.py --url $LINKS_GSHEET --all_actions
    ```
 
 3. Download HN comments and article content:

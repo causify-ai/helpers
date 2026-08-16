@@ -123,7 +123,7 @@ import helpers.hselect_action as hselacti
 import helpers.hsystem as hsystem
 import dev_scripts_helpers.download.download_to_md as dshddtomd
 import dev_scripts_helpers.download.download_utils as dshddut
-import dev_scripts_helpers.download.link_gsheet_utils as dshdlgsut
+import dev_scripts_helpers.download.bookmark_utils as dshdbou
 
 _LOG = logging.getLogger(__name__)
 
@@ -141,12 +141,12 @@ def _load_rows_from_gsheet(url: str) -> List[Dict[str, Any]]:
     :return: List of data rows
     """
     _LOG.debug(hprint.func_signature_to_str())
-    gsheet_csv = dshdlgsut.get_tmp_file_path(
+    gsheet_csv = dshdbou.get_tmp_file_path(
         "gsheet.csv", "download_link_articles"
     )
     _LOG.debug("Downloading from Google Sheets '%s' to '%s'", url, gsheet_csv)
-    dshdlgsut.download_from_gsheet(url, gsheet_csv)
-    rows = dshdlgsut.read_csv(gsheet_csv)
+    dshdbou.download_from_gsheet(url, gsheet_csv)
+    rows = dshdbou.read_csv(gsheet_csv)
     hdbg.dassert_lt(0, len(rows), "No rows in downloaded CSV")
     # Verify expected columns exist.
     expected_columns = {
@@ -208,9 +208,9 @@ def _build_row_from_hn_url(hn_url: str) -> List[Dict[str, Any]]:
     """
     _LOG.debug(hprint.func_signature_to_str())
     hdbg.dassert(
-        dshdlgsut.is_hackernews_url(hn_url), "Not a Hacker News URL: %s", hn_url
+        dshdbou.is_hackernews_url(hn_url), "Not a Hacker News URL: %s", hn_url
     )
-    item_id = dshdlgsut.extract_item_id(hn_url)
+    item_id = dshdbou.extract_item_id(hn_url)
     item_data = _fetch_hn_item(item_id)
     title = item_id
     # Link posts have a "url" field pointing to the external article; Show
@@ -309,7 +309,7 @@ def _build_row_from_input(input_arg: str) -> List[Dict[str, Any]]:
     :return: List containing a single row with Title, Article_url, Hn_url
     """
     _LOG.debug(hprint.func_signature_to_str())
-    if dshdlgsut.is_hackernews_url(input_arg):
+    if dshdbou.is_hackernews_url(input_arg):
         rows = _build_row_from_hn_url(input_arg)
     else:
         rows = _build_row_from_article_url(input_arg)
@@ -585,11 +585,11 @@ def _download_hn_urls(
             _LOG.warning("Row %d missing Url or Title, skipping", idx)
             continue
         # Validate URL is from HN and extract the submission item ID.
-        if not dshdlgsut.is_hackernews_url(url):
+        if not dshdbou.is_hackernews_url(url):
             _LOG.info("Row %d: URL is not HN URL, skipping", idx)
             continue
         _LOG.debug("Processing row %d: %s", idx, title)
-        item_id = dshdlgsut.extract_item_id(url)
+        item_id = dshdbou.extract_item_id(url)
         # Generate filename from title and check if it already exists.
         sanitized_title = _sanitize_title_for_filename(title)
         output_file = f"{sanitized_title}.3.hn_url.txt"
@@ -961,7 +961,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
     # (type auto-detected) or from the full Google Sheets document.
     is_hn_input = False
     if args.input:
-        is_hn_input = dshdlgsut.is_hackernews_url(args.input)
+        is_hn_input = dshdbou.is_hackernews_url(args.input)
         rows = _build_row_from_input(args.input)
         if args.output:
             # Override the derived title so downstream filenames use the

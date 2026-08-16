@@ -8,7 +8,7 @@ and working with CSV files.
 
 Import as:
 
-import dev_scripts_helpers.download.link_gsheet_utils as dslgu
+import dev_scripts_helpers.download.bookmark_utils as dshdbou
 """
 
 import csv
@@ -136,7 +136,11 @@ def download_from_gsheet(url: str, output_file: str) -> str:
     rows = read_csv(output_file)
     num_cols = len(rows[0].keys()) if rows else 0
     _LOG.info("Loaded %d rows and %d columns", len(rows), num_cols)
-    # TODO(ai_gp): _LOG.info the content of the first 3 lines
+    # Log the first 3 lines of the downloaded file to spot obvious issues
+    # (e.g., wrong sheet, malformed header) without dumping the whole file.
+    with open(output_file, "r") as f:
+        first_lines = [next(f, "") for _ in range(3)]
+    _LOG.info("First 3 lines of '%s':\n%s", output_file, "".join(first_lines))
     _LOG.debug(hprint.to_str("output_file"))
     return output_file
 
