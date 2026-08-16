@@ -618,7 +618,7 @@ def _postprocess_txt(lines: List[str], in_file_name: str) -> List[str]:
 
 # This is different than `hselacti.mark_action()` since it only checks membership
 # without mutating the state.
-def _to_execute_action(action: str, actions: List[str]) -> bool:
+def _to_execute_action(action: str, actions: Optional[List[str]]) -> bool:
     to_execute = actions is None or action in actions
     if not to_execute:
         _LOG.debug("Skipping %s", action)
@@ -716,7 +716,9 @@ def _is_action_supported_for_format(action: str, extension: str) -> bool:
     return extension in VALID_ACTIONS[action]
 
 
-def _filter_actions_by_format(actions: List[str], extension: str) -> List[str]:
+def _filter_actions_by_format(
+    actions: Optional[List[str]], extension: str
+) -> Optional[List[str]]:
     """
     Filter actions to keep only those supported by the given format.
 
@@ -726,6 +728,8 @@ def _filter_actions_by_format(actions: List[str], extension: str) -> List[str]:
     :param extension: The file extension (md, tex, txt, smd).
     :return: Filtered list of actions, or None if input was None.
     """
+    if actions is None:
+        return None
     hdbg.dassert_isinstance(actions, list)
     filtered = [
         a for a in actions if _is_action_supported_for_format(a, extension)
