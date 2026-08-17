@@ -18,8 +18,8 @@ from typing import Any, Dict, List
 
 import helpers.hdbg as hdbg
 import helpers.hprint as hprint
-import helpers.hcache_simple as hcacsimp
 import helpers.hsystem as hsystem
+import helpers.htable as htable
 
 _LOG = logging.getLogger(__name__)
 
@@ -111,12 +111,9 @@ def extract_item_id(hn_url: str) -> str:
     return result
 
 
-@hcacsimp.simple_cache(cache_type="json", write_through=True)
 def download_from_gsheet(url: str, output_file: str) -> str:
     """
     Download data from Google Sheets and save to a CSV file.
-
-    Results are cached to avoid redundant downloads of the same sheet.
 
     :param url: URL of the Google Sheets document
     :param output_file: Path where CSV will be saved
@@ -136,11 +133,13 @@ def download_from_gsheet(url: str, output_file: str) -> str:
     rows = read_csv(output_file)
     num_cols = len(rows[0].keys()) if rows else 0
     _LOG.info("Loaded %d rows and %d columns", len(rows), num_cols)
-    # Log the first 3 lines of the downloaded file to spot obvious issues
+    # Log the first 3 rows of the downloaded file to spot obvious issues
     # (e.g., wrong sheet, malformed header) without dumping the whole file.
-    with open(output_file, "r") as f:
-        first_lines = [next(f, "") for _ in range(3)]
-    _LOG.info("First 3 lines of '%s':\n%s", output_file, "".join(first_lines))
+    _LOG.info(
+        "First 3 rows of '%s':\n%s",
+        output_file,
+        htable.csv_to_str(output_file, max_rows=3),
+    )
     _LOG.debug(hprint.to_str("output_file"))
     return output_file
 

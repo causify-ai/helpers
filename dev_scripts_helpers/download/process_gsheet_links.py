@@ -49,6 +49,7 @@ import dev_scripts_helpers.download.process_gsheet_links as dsgl
 import argparse
 import datetime
 import logging
+import os
 
 import pandas as pd
 import requests
@@ -124,7 +125,40 @@ topic_to_cluster = {
 _CLASSIFICATION_PROMPT = """
 Given the title and URL of an article, emit the tag among the ones below that represents
 the article best. Consider both the title and URL when making your classification.
+
+Respond with ONLY the exact tag text, copied verbatim from the list below. Do
+not add any explanation, preamble, markdown formatting, quotes, or trailing
+punctuation.
 """
+
+
+def _normalize_tag(raw_tag: str) -> str:
+    """
+    Normalize a raw LLM tag response to a canonical `topic_to_cluster` key.
+
+    Despite the prompt asking for a bare tag, the LLM sometimes wraps the
+    answer in an explanatory sentence and/or markdown bold (e.g., "The best
+    tag ... is **Open Source**."). This extracts the canonical tag by
+    looking for a known tag inside the raw response.
+
+    :param raw_tag: raw text returned by the LLM
+    :return: canonical tag from `topic_to_cluster`, or the stripped input if
+        no known tag can be recognized (e.g., the LLM invented a new tag)
+    """
+    cleaned = raw_tag.strip().strip("\"'").rstrip(".").strip()
+    # Prefer an exact (case-insensitive) match.
+    for tag in topic_to_cluster:
+        if cleaned.casefold() == tag.casefold():
+            return tag
+    # Fall back to a substring match.
+    # - E.g., "... is **Open Source**."
+    # Check longest tags first so a short tag can't shadow a longer one that
+    # also appears in the list
+    # - E.g., "AI Agents" vs "Multi-Agent Systems"
+    for tag in sorted(topic_to_cluster, key=len, reverse=True):
+        if tag.casefold() in cleaned.casefold():
+            return tag
+    return cleaned
 
 
 @hcacsimp.simple_cache(cache_type="json", write_through=True)
@@ -203,7 +237,7 @@ def _update_article_urls() -> str:
     )
     hdbg.dassert(rows, "No rows in CSV: %s", hn_csv)
     columns = list(rows[0].keys()) if rows else []
-    hdbg.dassert_in("Url", columns, "CSV must have 'Url' column")
+    hdbg.dassert_in("Hn_url", columns, "CSV must have 'Hn_url' column")
     hdbg.dassert_in("Article_url", columns, "CSV must have 'Article_url' column")
     # Create a mask of rows with empty Article_url cells.
     rows_to_process = []
@@ -220,7 +254,7 @@ def _update_article_urls() -> str:
         total=len(rows_to_process),
         desc="Extracting article URLs",
     ):
-        url = row["Url"]  # type: ignore[index]
+        url = row["Hn_url"]  # type: ignore[index]
         if dshdbou.is_hackernews_url(url):
             _LOG.debug(
                 "Processing row %d: Extracting from HN URL", row_indices[idx]
@@ -338,7 +372,7 @@ def _update_article_tags(
         _LOG.debug("Received %d tags from LLM", len(batch_tags))
         # Update dataframe with batch results.
         for idx, tag in zip(batch_indices, batch_tags):
-            df.at[idx, "Article_tag"] = tag.strip()
+            df.at[idx, "Article_tag"] = _normalize_tag(tag)
         # Update output file after each batch.
         _LOG.info("Writing batch results to: '%s'", tags_csv)
         df.to_csv(tags_csv, index=False)
@@ -391,7 +425,11 @@ def _update_article_clusters() -> str:
         total=len(rows_to_process),
         desc="Assigning clusters",
     ):
-        tag = row["Article_tag"].strip()  # type: ignore[index]
+        # Re-normalize defensively: `tags_csv` may hold tags written before
+        # `_normalize_tag` was applied at the tagging stage (e.g., "The best
+        # tag ... is **Open Source**."), so this recovers them here too
+        # without needing to re-run the (paid, slow) LLM tagging step.
+        tag = _normalize_tag(row["Article_tag"].strip())  # type: ignore[index]
         hdbg.dassert_isinstance(tag, str)
         if tag in topic_to_cluster:
             cluster = topic_to_cluster[tag]
@@ -436,6 +474,25 @@ def _upload_to_gsheet(url: str) -> None:
     _LOG.debug("Upload to gsheet tab '%s' complete", tabname)
 
 
+# TODO(ai_gp): Move to utils.py and use that copy everywhere.
+def _resolve_gsheet_url(url: str) -> str:
+    """
+    Resolve the Google Sheets URL from the CLI arg or the `LINKS_GSHEET` env
+    variable.
+
+    :param url: URL passed via `--url` (empty string if not passed)
+    :return: resolved, non-empty URL
+    """
+    if not url:
+        url = os.environ.get("LINKS_GSHEET", "")
+    hdbg.dassert_ne(
+        url,
+        "",
+        "Specify --url or set the LINKS_GSHEET environment variable",
+    )
+    return url
+
+
 # #############################################################################
 # CLI
 # #############################################################################
@@ -463,7 +520,9 @@ def _parse() -> argparse.ArgumentParser:
         "--url",
         action="store",
         default="",
-        help="URL of the Google Sheets document (required for download_link_gsheet and upload_link_gsheet actions)",
+        help="URL of the Google Sheets document (required for "
+        "download_link_gsheet and upload_link_gsheet actions); falls back "
+        "to the LINKS_GSHEET environment variable if not specified",
     )
     parser.add_argument(
         "--model",
@@ -488,6 +547,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
     args = parser.parse_args()
     hdbg.init_logger(verbosity=args.log_level, use_exec_path=True)
     hloggin.shutup_chatty_modules(verbosity=logging.ERROR)
+    hllmcli.shutup_llm_logging()
     # Silence noisy third-party HTTP and LLM client loggers so INFO output
     # stays readable.
     for module_name in ["httpcore", "httpx", "_base_client", "_trace", "openai"]:
@@ -510,12 +570,8 @@ def _main(parser: argparse.ArgumentParser) -> None:
         _LOG.debug("Executing action: '%s'", action)
         # Dispatch to the appropriate handler based on the current action.
         if action == "download_link_gsheet":
-            hdbg.dassert_is_not(
-                args.url,
-                None,
-                f"--url is required for {action} action",
-            )
-            _download_from_gsheet(args.url)
+            url = _resolve_gsheet_url(args.url)
+            _download_from_gsheet(url)
         elif action == "update_article_url":
             _update_article_urls()
         elif action == "update_article_tag":
@@ -523,12 +579,8 @@ def _main(parser: argparse.ArgumentParser) -> None:
         elif action == "update_article_cluster":
             _update_article_clusters()
         elif action == "upload_link_gsheet":
-            hdbg.dassert_is_not(
-                args.url,
-                None,
-                f"--url is required for {action} action",
-            )
-            _upload_to_gsheet(args.url)
+            url = _resolve_gsheet_url(args.url)
+            _upload_to_gsheet(url)
         else:
             raise ValueError(f"Invalid action='{action}'")
     hdbg.dassert_eq(

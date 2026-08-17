@@ -112,11 +112,11 @@
 
 - A pipeline for enriching and processing Hacker News articles from a Google
   Sheets document, performing:
-  1. **download**: Downloads data from Google Sheets to CSV
-  2. **update_article_url**: Extracts article URLs from HN links using the HN API
-  3. **update_article_tag**: Classifies articles using LLM into predefined topics
-  4. **update_article_cluster**: Maps topics to higher-level cluster categories
-  5. **upload**: Uploads processed CSV back to Google Sheets with results
+  - **download**: Downloads data from Google Sheets to CSV
+  - **update_article_url**: Extracts article URLs from HN links using the HN API
+  - **update_article_tag**: Classifies articles using LLM into predefined topics
+  - **update_article_cluster**: Maps topics to higher-level cluster categories
+  - **upload**: Uploads processed CSV back to Google Sheets with results
 
 - Features:
   - Incremental processing with progress bars using tqdm

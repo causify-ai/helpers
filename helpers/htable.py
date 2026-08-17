@@ -7,7 +7,7 @@ import helpers.htable as htable
 import copy
 import csv
 import logging
-from typing import Any, List, Tuple
+from typing import Any, List, Optional, Tuple
 
 import helpers.hdbg as hdbg
 import helpers.hprint as hprint
@@ -161,13 +161,16 @@ class Table:
         # Convert the cells to strings.
         table_as_str = [[str(cell) for cell in row] for row in table]
 
-        # Compute the visible length of a cell, i.e., ignoring ANSI color codes
-        # (e.g., from `hprint.color_highlight()`). Using the raw `len()` would
-        # inflate the width of columns with colored cells (e.g., "Status")
-        # since escape codes count as characters but are not displayed, which
-        # misaligns the table when rendered.
-        # TODO(ai_gp): Inline since thin.
         def _visible_len(cell: str) -> int:
+            """
+            Compute the visible length of a cell, i.e., ignoring ANSI color codes
+            (e.g., from `hprint.color_highlight()`). 
+
+            Using the raw `len()` would inflate the width of columns with
+            colored cells (e.g., "Status") since escape codes count as
+            characters but are not displayed, which misaligns the table when
+            rendered.
+            """
             return len(hprint.remove_non_printable_chars(cell))
 
         # Find the visible length of each column, looping over rows and
@@ -198,3 +201,31 @@ class Table:
         res = "\n".join(rows_as_str)
         # res += "\nsize=" + str(self.size())
         return res
+
+
+# #############################################################################
+
+
+# TODO(ai_gp): Do not read the file but pass it. This function only prints.
+def csv_to_str(csv_file: str, *, max_rows: Optional[int] = None) -> str:
+    """
+    Read a CSV file and render it as an aligned table string.
+
+    This is typically used to log a quick preview of a CSV file (e.g., the
+    first 3 rows) right after it is read, written, or combined.
+
+    :param csv_file: path to the CSV file
+    :param max_rows: max number of data rows to render (the header row is
+        not counted); `None` renders all rows
+    :return: table-formatted string, or a placeholder if the file is empty
+    """
+    hdbg.dassert_path_exists(csv_file)
+    with open(csv_file) as f:
+        rows = list(csv.reader(f))
+    if not rows:
+        return "<empty CSV file>"
+    column_names, data_rows = rows[0], rows[1:]
+    if max_rows is not None:
+        data_rows = data_rows[:max_rows]
+    table = Table(data_rows, column_names)
+    return str(table)
