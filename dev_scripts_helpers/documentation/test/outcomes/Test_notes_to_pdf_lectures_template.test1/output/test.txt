@@ -270,7 +270,7 @@ Normal
 <width>
 #box(image("/msml610/lectures_source/figures/Binomial_distribution.png", height: 50.0%))
 
-#box(image("/tmp.notes_to_pdf.preprocess_notes.txt.figs/tmp.notes_to_pdf.render_image.1.png", width: 50.0%))
+#box(image("/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf_lectures_template.test1/tmp.scratch/tmp.notes_to_pdf.preprocess_notes.txt.figs/tmp.notes_to_pdf.render_image.1.png", width: 50.0%))
 
 ==== Figure in the center
 <figure-in-the-center>
@@ -444,29 +444,29 @@ Normal
 )
 ==== Mermaid1
 <mermaid1>
-#box(image("/tmp.notes_to_pdf.preprocess_notes.txt.figs/tmp.notes_to_pdf.render_image.2.png"))
+#box(image("/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf_lectures_template.test1/tmp.scratch/tmp.notes_to_pdf.preprocess_notes.txt.figs/tmp.notes_to_pdf.render_image.2.png"))
 
 ==== Styled graphviz
 <styled-graphviz>
-#box(image("/tmp.notes_to_pdf.preprocess_notes.txt.figs/tmp.notes_to_pdf.render_image.3.png"))
+#box(image("/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf_lectures_template.test1/tmp.scratch/tmp.notes_to_pdf.preprocess_notes.txt.figs/tmp.notes_to_pdf.render_image.3.png"))
 
 ==== Graphviz1
 <graphviz1>
-#box(image("/tmp.notes_to_pdf.preprocess_notes.txt.figs/tmp.notes_to_pdf.render_image.4.png"))
+#box(image("/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf_lectures_template.test1/tmp.scratch/tmp.notes_to_pdf.preprocess_notes.txt.figs/tmp.notes_to_pdf.render_image.4.png"))
 
 ==== Graphviz2
 <graphviz2>
-#box(image("/tmp.notes_to_pdf.preprocess_notes.txt.figs/tmp.notes_to_pdf.render_image.5.png"))
+#box(image("/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf_lectures_template.test1/tmp.scratch/tmp.notes_to_pdf.preprocess_notes.txt.figs/tmp.notes_to_pdf.render_image.5.png"))
 
-#box(image("/tmp.notes_to_pdf.preprocess_notes.txt.figs/tmp.notes_to_pdf.render_image.6.png"))
+#box(image("/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf_lectures_template.test1/tmp.scratch/tmp.notes_to_pdf.preprocess_notes.txt.figs/tmp.notes_to_pdf.render_image.6.png"))
 
 ==== Latex
 <latex>
-#box(image("/tmp.notes_to_pdf.preprocess_notes.txt.figs/tmp.notes_to_pdf.render_image.7.png", width: 50.0%))
+#box(image("/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf_lectures_template.test1/tmp.scratch/tmp.notes_to_pdf.preprocess_notes.txt.figs/tmp.notes_to_pdf.render_image.7.png", width: 50.0%))
 
 ==== Latex figure
 <latex-figure>
-#box(image("/tmp.notes_to_pdf.preprocess_notes.txt.figs/tmp.notes_to_pdf.render_image.8.png"))
+#box(image("/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf_lectures_template.test1/tmp.scratch/tmp.notes_to_pdf.preprocess_notes.txt.figs/tmp.notes_to_pdf.render_image.8.png"))
 
 ==== Table
 <table-1>

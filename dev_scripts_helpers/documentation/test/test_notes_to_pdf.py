@@ -6,6 +6,7 @@ from typing import List, Tuple
 
 import pytest
 
+import helpers.hcache_simple as hcacsimp
 import helpers.hdbg as hdbg
 import helpers.hdocker as hdocker
 import helpers.hgit as hgit
@@ -2532,6 +2533,7 @@ class Test_notes_to_pdf_latex_cancel(hunitest.TestCase):
         # Run test.
         output_txt = self.helper(markdown_content)
         # Check outputs.
+        # TODO(ai_gp): Move check_string in the helper
         self.check_string(output_txt, fuzzy_match=True)
         self.assertIn(r"\cancel{", output_txt)
         self.assertIn("Y_1", output_txt)
@@ -2731,17 +2733,48 @@ class Test_notes_to_pdf_lectures_template(hunitest.TestCase):
     `typst` and `beamer` (LaTeX) slide engines.
     """
 
-    def helper(self, slides_engine: str) -> str:
+    @pytest.fixture(autouse=True)
+    def setup_teardown_test(self):
         """
-        Run `notes_to_pdf.py --type slides` on `lectures.template.md` through
-        the full pipeline (compiling to PDF) and verify the PDF was generated.
+        Setup and teardown for each test.
+        """
+        self.set_up_test()
+        yield
+
+    def set_up_test(self) -> None:
+        """
+        Reset the `_render_image_code()` disk cache before each test.
+
+        `render_images.py` caches rendered images with `write_through=True`
+        (persisted to disk, keyed in part on this test's scratch dir path,
+        which is deterministic across runs). `tearDown()` deletes the
+        scratch dir after every run, so a cache entry written by an earlier
+        local run can outlive the PNG file it points to; a later run would
+        then resolve a root-absolute image path to a file that no longer
+        exists and the Typst/LaTeX compile would abort. Resetting the cache
+        avoids that staleness (`lectures.template.md` has real tikz/LaTeX
+        image code blocks, unlike most other fixtures in this file).
+        """
+        hcacsimp.reset_cache(func_name="_render_image_code", interactive=False)
+
+    def helper(self, slides_engine: str, *, no_pdf: bool = False) -> str:
+        """
+        Run `notes_to_pdf.py --type slides` on `lectures.template.md`.
+
+        When `no_pdf` is `False` (the default), compile all the way to PDF
+        and verify the PDF was generated. When `no_pdf` is `True`, stop at
+        the intermediate source file (`.typ` for `typst`, `.tex` for
+        `beamer`) and return its content instead.
 
         :param slides_engine: value for `--slides_engine` (`beamer` or
             `typst`)
-        :return: scratch dir with the generated files (PDF and, for
-            `typst`, the intermediate `.typ` source)
+        :param no_pdf: if `True`, generate only the intermediate source
+            file instead of compiling to PDF
+        :return: scratch dir with the generated files (when `no_pdf=False`)
+            or the content of the intermediate source file (when
+            `no_pdf=True`)
         """
-        _LOG.debug(hprint.to_str("slides_engine"))
+        _LOG.debug(hprint.to_str("slides_engine no_pdf"))
         # Prepare inputs.
         in_file = hgit.find_file_in_git_tree("lectures.template.md")
         hdbg.dassert_path_exists(in_file)
@@ -2749,26 +2782,35 @@ class Test_notes_to_pdf_lectures_template(hunitest.TestCase):
         hdbg.dassert_path_exists(exec_path)
         # Prepare outputs.
         out_dir = self.get_scratch_space()
-        pdf_file = os.path.join(out_dir, "lectures.pdf")
+        source_ext = "typ" if slides_engine == "typst" else "tex"
+        out_ext = source_ext if no_pdf else "pdf"
+        out_file = os.path.join(out_dir, f"lectures.{out_ext}")
         script_file = os.path.join(out_dir, "script.sh")
         # Construct command.
         cmd = [
             exec_path,
             f"--input {in_file}",
-            f"--output {pdf_file}",
+            f"--output {out_file}",
             f"--script {script_file}",
             "--type slides",
-            # TODO(ai_gp): Don't we need a --use_ast_...?
             f"--slides_engine {slides_engine}",
             "--skip_action open_pdf",
         ]
+        if no_pdf:
+            cmd.append("--no_pdf")
         cmd = " ".join(cmd)
         _LOG.debug("cmd=%s", cmd)
         # Run test.
         hsystem.system(cmd)
-        # Check outputs: the PDF was generated.
-        hdbg.dassert_path_exists(pdf_file, "PDF file was not created")
-        self.assertGreater(os.path.getsize(pdf_file), 0, "PDF file is empty")
+        # Check outputs: the output file was generated.
+        hdbg.dassert_path_exists(
+            out_file, f"'.{out_ext}' file was not created"
+        )
+        self.assertGreater(
+            os.path.getsize(out_file), 0, f"'.{out_ext}' file is empty"
+        )
+        if no_pdf:
+            return hio.from_file(out_file)
         return out_dir
 
     @pytest.mark.superslow
@@ -2781,7 +2823,9 @@ class Test_notes_to_pdf_lectures_template(hunitest.TestCase):
         """
         # Prepare inputs.
         slides_engine = "typst"
-        # Run test.
+        # Run test: full compile verifies the PDF is generated. Typst
+        # always leaves the intermediate `.typ` file on disk too, even when
+        # compiling all the way to PDF.
         out_dir = self.helper(slides_engine)
         # Check outputs: locate and freeze the intermediate Typst source.
         typ_files = glob.glob(os.path.join(out_dir, "*.typ"))
@@ -2799,10 +2843,18 @@ class Test_notes_to_pdf_lectures_template(hunitest.TestCase):
         """
         Test `--slides_engine beamer` (LaTeX).
 
-        Verify the PDF is generated.
+        Verify the PDF is generated and freeze the intermediate LaTeX
+        source for regression testing.
         """
-        # TODO(ai_gp): Same check of output for tex file.
         # Prepare inputs.
         slides_engine = "beamer"
-        # Run test.
+        # Run test: full compile verifies the PDF is generated. Unlike
+        # `typst`, the beamer/slides pipeline calls pandoc directly to
+        # produce the PDF and leaves no intermediate `.tex` file on disk,
+        # so a separate `--no_pdf` run is needed to capture the
+        # intermediate LaTeX source (mirroring the `.typ` check in test1).
+        # TODO(gp): We should make the two flows equivalent.
         self.helper(slides_engine)
+        tex_txt = self.helper(slides_engine, no_pdf=True)
+        # Check outputs: freeze the intermediate LaTeX source.
+        self.check_string(tex_txt, purify_text=True)

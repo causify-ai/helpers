@@ -796,16 +796,11 @@ def _perform_actions(
     yaml_frontmatter: List[str] = []
     if is_md_file:
         yaml_frontmatter, lines = hmartoc.extract_yaml_frontmatter(lines)
-    # #########################################################################
     # Pre-process text (including protected content extraction).
     action = "preprocess"
     protected_map: dict = {}
     if _to_execute_action(action, actions):
-        # `htext_protect` only understands `md`/`txt`/`tex`; treat `smd` as
-        # `txt` for the purpose of protecting fenced blocks and comments.
-        preprocess_extension = "txt" if is_smd_file else extension
-        lines, protected_map = _preprocess_txt(lines, preprocess_extension)
-    # #########################################################################
+        lines, protected_map = _preprocess_txt(lines, extension)
     # Beautify.
     action = "beautify"
     if _to_execute_action(action, actions):
@@ -825,53 +820,43 @@ def _perform_actions(
                 txt, file_type=prettier_extension, **kwargs
             )
         lines = txt.split("\n")
-    # #########################################################################
     # Post-process text.
     action = "postprocess"
     if _to_execute_action(action, actions):
         lines = _postprocess_txt(lines, in_file_name)
-    # #########################################################################
     # Remove page separators.
     action = "remove_page_separators"
     if _to_execute_action(action, actions):
         lines = _remove_page_separators(lines)
-    # #########################################################################
     # Handle empty lines.
     action = "handle_empty_lines"
     if _to_execute_action(action, actions):
         lines = _handle_empty_lines(lines)
-    # #########################################################################
     # Add blank lines between consecutive headers.
     action = "add_blank_lines_between_headers"
     if _to_execute_action(action, actions):
         lines = _add_blank_lines_between_headers(lines)
-    # #########################################################################
     # Convert asterisk bullets to dashes.
     action = "convert_asterisk_bullets_to_dashes"
     if _to_execute_action(action, actions):
         lines = _convert_asterisk_bullets_to_dashes(lines)
-    # #########################################################################
     # Remove trailing periods.
     action = "remove_trailing_periods"
     if _to_execute_action(action, actions):
         lines = _remove_trailing_periods(lines)
-    # #########################################################################
     # Replace em dash with colon.
     action = "replace_em_dash_with_colon"
     if _to_execute_action(action, actions):
         lines = _replace_em_dash_with_colon(lines)
-    # #########################################################################
     # Apply smd-specific formatting (tag colons, capitalization, fence spacing).
     action = "smd_format"
     if _to_execute_action(action, actions):
         if is_smd_file:
             lines = _smd_format(lines)
-    # #########################################################################
     # Remove markdown formatting.
     action = "remove_markdown_formatting"
     if _to_execute_action(action, actions):
         lines = _remove_markdown_formatting(lines)
-    # #########################################################################
     # Frame chapters.
     action = "frame_chapters"
     if _to_execute_action(action, actions):
@@ -885,18 +870,15 @@ def _perform_actions(
             pass
         else:
             raise ValueError("Invalid format")
-    # #########################################################################
     # Improve header and slide titles.
     action = "capitalize_header"
     if _to_execute_action(action, actions):
         lines = hmarkdo.capitalize_header(lines)
-    # #########################################################################
     # Refresh table of content.
     action = "refresh_toc"
     if _to_execute_action(action, actions):
         if is_md_file:
             lines = hmartoc.refresh_toc(lines, **kwargs)
-    # #########################################################################
     # Check links.
     action = "check_links"
     if _to_execute_action(action, actions):
@@ -905,15 +887,12 @@ def _perform_actions(
             _check_links(in_file_name)
         else:
             _LOG.debug("Skipping link check for non-text file type")
-    # #########################################################################
     # Restore protected content.
     lines = htexprot.restore_protected_content(lines, protected_map)
-    # #########################################################################
     # Remove extra indentation from code blocks (after restore).
     action = "remove_code_block_extra_indentation"
     if _to_execute_action(action, actions):
         lines = _remove_code_block_extra_indentation(lines)
-    # #########################################################################
     # Reattach YAML front matter if it was extracted.
     lines = hmartoc.reattach_yaml_frontmatter(yaml_frontmatter, lines)
     return lines
