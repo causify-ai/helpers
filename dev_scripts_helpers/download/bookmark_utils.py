@@ -13,6 +13,7 @@ import dev_scripts_helpers.download.bookmark_utils as dshdbou
 
 import csv
 import logging
+import os
 import re
 from typing import Any, Dict, List
 
@@ -22,6 +23,24 @@ import helpers.hsystem as hsystem
 import helpers.htable as htable
 
 _LOG = logging.getLogger(__name__)
+
+
+def resolve_gsheet_url(url: str) -> str:
+    """
+    Resolve the Google Sheets URL from the CLI arg or the `LINKS_GSHEET` env
+    variable.
+
+    :param url: URL passed via `--url` (empty string if not passed)
+    :return: resolved, non-empty URL
+    """
+    if not url:
+        url = os.environ.get("LINKS_GSHEET", "")
+    hdbg.dassert_ne(
+        url,
+        "",
+        "Specify --url or set the LINKS_GSHEET environment variable",
+    )
+    return url
 
 
 def get_tmp_file_path(filename: str, prefix: str) -> str:
@@ -135,10 +154,15 @@ def download_from_gsheet(url: str, output_file: str) -> str:
     _LOG.info("Loaded %d rows and %d columns", len(rows), num_cols)
     # Log the first 3 rows of the downloaded file to spot obvious issues
     # (e.g., wrong sheet, malformed header) without dumping the whole file.
+    # Reuse the rows already loaded above instead of re-reading the file.
+    csv_rows: List[List[Any]] = []
+    if rows:
+        csv_rows.append(list(rows[0].keys()))
+        csv_rows.extend(list(row.values()) for row in rows)
     _LOG.info(
         "First 3 rows of '%s':\n%s",
         output_file,
-        htable.csv_to_str(output_file, max_rows=3),
+        htable.csv_to_str(csv_rows, max_rows=3),
     )
     _LOG.debug(hprint.to_str("output_file"))
     return output_file

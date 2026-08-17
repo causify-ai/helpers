@@ -46,6 +46,7 @@ import dev_scripts_helpers.download.update_gsheet_links_from_raindrop as dsglfr
 """
 
 import argparse
+import csv
 import logging
 import os
 from datetime import datetime
@@ -86,30 +87,14 @@ def _log_first_rows(csv_file: str, *, action_desc: str) -> None:
     :param action_desc: short description of what just happened to the file
         (e.g., "Read", "Wrote"), used in the log message
     """
+    with open(csv_file) as f:
+        rows = list(csv.reader(f))
     _LOG.info(
         "%s '%s', first 3 rows:\n%s",
         action_desc,
         csv_file,
-        htable.csv_to_str(csv_file, max_rows=3),
+        htable.csv_to_str(rows, max_rows=3),
     )
-
-
-def _resolve_gsheet_url(url: str) -> str:
-    """
-    Resolve the Google Sheets URL from the CLI arg or the `LINKS_GSHEET` env
-    variable.
-
-    :param url: URL passed via `--url` (empty string if not passed)
-    :return: resolved, non-empty URL
-    """
-    if not url:
-        url = os.environ.get("LINKS_GSHEET", "")
-    hdbg.dassert_ne(
-        url,
-        "",
-        "Specify --url or set the LINKS_GSHEET environment variable",
-    )
-    return url
 
 
 def _download_gsheet_links(url: str) -> str:
@@ -482,14 +467,14 @@ def _main(parser: argparse.ArgumentParser) -> None:
                 continue
         # Execute each action with required argument validation.
         if action == "download_gsheet_links":
-            url = _resolve_gsheet_url(args.url)
+            url = dshdbou.resolve_gsheet_url(args.url)
             _download_gsheet_links(url)
         elif action == "download_raindrop_data":
             _download_raindrop_data()
         elif action == "combine_data":
             _combine_raindrop_with_gsheet_links()
         elif action == "upload_gsheet_links":
-            url = _resolve_gsheet_url(args.url)
+            url = dshdbou.resolve_gsheet_url(args.url)
             _upload_to_gsheet(url)
         else:
             raise ValueError(f"Invalid action='{action}'")

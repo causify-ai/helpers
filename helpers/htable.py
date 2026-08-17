@@ -206,22 +206,20 @@ class Table:
 # #############################################################################
 
 
-# TODO(ai_gp): Do not read the file but pass it. This function only prints.
-def csv_to_str(csv_file: str, *, max_rows: Optional[int] = None) -> str:
+def csv_to_str(rows: TableType, *, max_rows: Optional[int] = None) -> str:
     """
-    Read a CSV file and render it as an aligned table string.
+    Render parsed CSV rows as an aligned table string.
 
     This is typically used to log a quick preview of a CSV file (e.g., the
-    first 3 rows) right after it is read, written, or combined.
+    first 3 rows) right after it is read, written, or combined. The caller
+    is responsible for reading the CSV file (or otherwise obtaining the
+    rows), since this function only formats data it is given.
 
-    :param csv_file: path to the CSV file
+    :param rows: parsed CSV rows, including the header as the first row
     :param max_rows: max number of data rows to render (the header row is
         not counted); `None` renders all rows
-    :return: table-formatted string, or a placeholder if the file is empty
+    :return: table-formatted string, or a placeholder if there are no rows
     """
-    hdbg.dassert_path_exists(csv_file)
-    with open(csv_file) as f:
-        rows = list(csv.reader(f))
     if not rows:
         return "<empty CSV file>"
     column_names, data_rows = rows[0], rows[1:]

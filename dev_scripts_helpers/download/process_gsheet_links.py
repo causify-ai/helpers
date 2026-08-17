@@ -49,7 +49,6 @@ import dev_scripts_helpers.download.process_gsheet_links as dsgl
 import argparse
 import datetime
 import logging
-import os
 
 import pandas as pd
 import requests
@@ -474,25 +473,6 @@ def _upload_to_gsheet(url: str) -> None:
     _LOG.debug("Upload to gsheet tab '%s' complete", tabname)
 
 
-# TODO(ai_gp): Move to utils.py and use that copy everywhere.
-def _resolve_gsheet_url(url: str) -> str:
-    """
-    Resolve the Google Sheets URL from the CLI arg or the `LINKS_GSHEET` env
-    variable.
-
-    :param url: URL passed via `--url` (empty string if not passed)
-    :return: resolved, non-empty URL
-    """
-    if not url:
-        url = os.environ.get("LINKS_GSHEET", "")
-    hdbg.dassert_ne(
-        url,
-        "",
-        "Specify --url or set the LINKS_GSHEET environment variable",
-    )
-    return url
-
-
 # #############################################################################
 # CLI
 # #############################################################################
@@ -570,7 +550,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
         _LOG.debug("Executing action: '%s'", action)
         # Dispatch to the appropriate handler based on the current action.
         if action == "download_link_gsheet":
-            url = _resolve_gsheet_url(args.url)
+            url = dshdbou.resolve_gsheet_url(args.url)
             _download_from_gsheet(url)
         elif action == "update_article_url":
             _update_article_urls()
@@ -579,7 +559,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
         elif action == "update_article_cluster":
             _update_article_clusters()
         elif action == "upload_link_gsheet":
-            url = _resolve_gsheet_url(args.url)
+            url = dshdbou.resolve_gsheet_url(args.url)
             _upload_to_gsheet(url)
         else:
             raise ValueError(f"Invalid action='{action}'")

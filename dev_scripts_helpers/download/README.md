@@ -53,11 +53,11 @@
 - Synchronizes bookmarks from `Raindrop.io` with a Google Sheets document
 
 - Implements a four-action pipeline:
-  1. **download_gsheet_links**: Downloads current data from Google Sheets to CSV
-  2. **download_raindrop_data**: Fetches new bookmarks from Raindrop.io API (only
+  - **download_gsheet_links**: Downloads current data from Google Sheets to CSV
+  - **download_raindrop_data**: Fetches new bookmarks from Raindrop.io API (only
      items created after the latest timestamp in the gsheet)
-  3. **combine_data**: Transforms and combines `Raindrop.io` data into gsheet schema
-  4. **upload_gsheet_links**: Uploads combined data back to Google Sheets in a new
+  - **combine_data**: Transforms and combines `Raindrop.io` data into gsheet schema
+  - **upload_gsheet_links**: Uploads combined data back to Google Sheets in a new
      timestamped tab
 
 - Features:

@@ -245,8 +245,7 @@ class Test_get_system_prompt(hunitest.TestCase):
             expand_referenced_files=expand_referenced_files,
         )
         # Check outputs.
-        # TODO(ai_gp): Use assert_equal
-        self.assertEqual(actual, expected)
+        self.assert_equal(actual, expected)
 
     def test1(self) -> None:
         """
@@ -343,8 +342,7 @@ class Test_limit_input_text(hunitest.TestCase):
         # Run test.
         actual = dshllllcl._limit_input_text(text, max_chars)
         # Check outputs.
-        # TODO(ai_gp): Use assert_equal
-        self.assertEqual(actual, expected)
+        self.assert_equal(actual, expected)
 
     def test1(self) -> None:
         """
