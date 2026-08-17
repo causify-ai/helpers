@@ -869,7 +869,7 @@ def git_branch_rename(ctx, new_branch_name):  # type: ignore
         )
         cmd = (
             f"gh pr comment {pr_info['number']} "
-            f'--body "Renamed to \'{new_branch_name}\': see the new PR."'
+            f"--body \"Renamed to '{new_branch_name}': see the new PR.\""
         )
         hltltaut.run(ctx, cmd)
     print("Done")

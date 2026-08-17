@@ -62,7 +62,7 @@ import helpers.hparser as hparser
 import helpers.hprint as hprint
 import helpers.hselect_action as hselacti
 import helpers.hcache_simple as hcacsimp
-import dev_scripts_helpers.download.bookmark_utils as dshdbou
+import dev_scripts_helpers.download.bookmark_utils as dshdbout
 
 _LOG = logging.getLogger(__name__)
 
@@ -182,11 +182,11 @@ def _extract_article_url(hn_url: str) -> str:
     _LOG.debug(hprint.to_str("hn_url"))
     hdbg.dassert_isinstance(hn_url, str)
     hdbg.dassert(
-        dshdbou.is_hackernews_url(hn_url), "Not a Hacker News URL: %s", hn_url
+        dshdbout.is_hackernews_url(hn_url), "Not a Hacker News URL: %s", hn_url
     )
     _LOG.debug("Processing HN URL: %s", hn_url)
     # Extract the numeric item ID from the HN URL.
-    item_id = dshdbou.extract_item_id(hn_url)
+    item_id = dshdbout.extract_item_id(hn_url)
     _LOG.debug("Extracted item ID: %s", item_id)
     # Query the HN API for the item details which includes the actual article URL.
     api_url = f"https://hacker-news.firebaseio.com/v0/item/{item_id}.json"
@@ -218,9 +218,9 @@ def _download_from_gsheet(url: str) -> str:
     _LOG.debug(hprint.to_str("url"))
     # Use a fixed temp path so downstream actions (e.g., `update_article_url`)
     # can find the downloaded data without passing it explicitly.
-    output_file = dshdbou.get_tmp_file_path(HN_CSV_FILE, "process_gsheet_links")
+    output_file = dshdbout.get_tmp_file_path(HN_CSV_FILE, "process_gsheet_links")
     _LOG.debug("Downloading gsheet '%s' to '%s'", url, output_file)
-    dshdbou.download_from_gsheet(url, output_file)
+    dshdbout.download_from_gsheet(url, output_file)
     _LOG.debug("return=%s", output_file)
     return output_file
 
@@ -237,10 +237,10 @@ def _update_article_urls() -> str:
     """
     _LOG.debug(hprint.func_signature_to_str())
     # Load and validate the HN CSV from the previous download step.
-    hn_csv = dshdbou.get_tmp_file_path(HN_CSV_FILE, "process_gsheet_links")
+    hn_csv = dshdbout.get_tmp_file_path(HN_CSV_FILE, "process_gsheet_links")
     hdbg.dassert_path_exists(hn_csv, "Must download from gsheet first")
     _LOG.info("Loading CSV '%s' to extract article URLs", hn_csv)
-    rows = dshdbou.read_csv(hn_csv)
+    rows = dshdbout.read_csv(hn_csv)
     num_cols = len(rows[0].keys()) if rows else 0
     _LOG.info(
         "Loaded %d rows and %d columns from '%s'", len(rows), num_cols, hn_csv
@@ -265,7 +265,7 @@ def _update_article_urls() -> str:
         desc="Extracting article URLs",
     ):
         url = row["Hn_url"]  # type: ignore[index]
-        if dshdbou.is_hackernews_url(url):
+        if dshdbout.is_hackernews_url(url):
             _LOG.debug(
                 "Processing row %d: Extracting from HN URL", row_indices[idx]
             )
@@ -277,9 +277,9 @@ def _update_article_urls() -> str:
             )
             row["Article_url"] = url  # type: ignore[index]
     # Write the updated rows with extracted article URLs to a new CSV file for the next processing stage.
-    urls_csv = dshdbou.get_tmp_file_path(URLS_CSV_FILE, "process_gsheet_links")
+    urls_csv = dshdbout.get_tmp_file_path(URLS_CSV_FILE, "process_gsheet_links")
     _LOG.info("Writing updated data to CSV file: '%s'", urls_csv)
-    dshdbou.write_csv(urls_csv, rows, fieldnames=columns)
+    dshdbout.write_csv(urls_csv, rows, fieldnames=columns)
     _LOG.info(
         "Wrote %d rows with %d columns to '%s'",
         len(rows),
@@ -307,7 +307,7 @@ def _update_article_tags(
     """
     _LOG.debug(hprint.to_str("model batch_size"))
     hdbg.dassert_lt(0, batch_size)
-    urls_csv = dshdbou.get_tmp_file_path(URLS_CSV_FILE, "process_gsheet_links")
+    urls_csv = dshdbout.get_tmp_file_path(URLS_CSV_FILE, "process_gsheet_links")
     hdbg.dassert_path_exists(urls_csv, "Must update article URLs first")
     _LOG.info("Loading CSV '%s' for tagging", urls_csv)
     df = pd.read_csv(urls_csv)
@@ -358,7 +358,7 @@ def _update_article_tags(
         num_batches,
         batch_size,
     )
-    tags_csv = dshdbou.get_tmp_file_path(TAGS_CSV_FILE, "process_gsheet_links")
+    tags_csv = dshdbout.get_tmp_file_path(TAGS_CSV_FILE, "process_gsheet_links")
     # Append the full list of valid topic tags to the base prompt so the LLM
     # knows exactly which labels it is allowed to choose from.
     prompt = _CLASSIFICATION_PROMPT
@@ -401,10 +401,10 @@ def _update_article_clusters() -> str:
     """
     _LOG.debug(hprint.func_signature_to_str())
     # Load the CSV from the previous tagging step.
-    tags_csv = dshdbou.get_tmp_file_path(TAGS_CSV_FILE, "process_gsheet_links")
+    tags_csv = dshdbout.get_tmp_file_path(TAGS_CSV_FILE, "process_gsheet_links")
     hdbg.dassert_path_exists(tags_csv, "Must update article tags first")
     _LOG.info("Loading CSV to assign clusters from: '%s'", tags_csv)
-    rows = dshdbou.read_csv(tags_csv)
+    rows = dshdbout.read_csv(tags_csv)
     hdbg.dassert(rows, "No rows in CSV: %s", tags_csv)
     columns = list(rows[0].keys()) if rows else []
     _LOG.info(
@@ -448,11 +448,11 @@ def _update_article_clusters() -> str:
             _LOG.warning(f"Tag '{tag}' not found in topic_to_cluster mapping")
             row["Article_cluster"] = ""  # type: ignore[index]
     # Write the clustered data to a new CSV file for final upload.
-    clusters_csv = dshdbou.get_tmp_file_path(
+    clusters_csv = dshdbout.get_tmp_file_path(
         CLUSTERS_CSV_FILE, "process_gsheet_links"
     )
     _LOG.info("Writing clustered data to CSV file: '%s'", clusters_csv)
-    dshdbou.write_csv(clusters_csv, rows, fieldnames=columns)
+    dshdbout.write_csv(clusters_csv, rows, fieldnames=columns)
     _LOG.info(
         "Assigned clusters to %d rows and %d columns, wrote to '%s'",
         len(rows_to_process),
@@ -475,12 +475,12 @@ def _upload_to_gsheet(url: str) -> None:
     tabname = "process_gsheet_links." + datetime.datetime.now().strftime(
         "%Y-%m-%d"
     )
-    clusters_csv = dshdbou.get_tmp_file_path(
+    clusters_csv = dshdbout.get_tmp_file_path(
         CLUSTERS_CSV_FILE, "process_gsheet_links"
     )
     hdbg.dassert_path_exists(clusters_csv, "clusters CSV file not found")
     _LOG.debug("Uploading '%s' to tab '%s'", clusters_csv, tabname)
-    dshdbou.upload_to_gsheet(url, clusters_csv, tabname)
+    dshdbout.upload_to_gsheet(url, clusters_csv, tabname)
     _LOG.debug("Upload to gsheet tab '%s' complete", tabname)
 
 
@@ -561,7 +561,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
         _LOG.debug("Executing action: '%s'", action)
         # Dispatch to the appropriate handler based on the current action.
         if action == "download_link_gsheet":
-            url = dshdbou.resolve_gsheet_url(args.url)
+            url = dshdbout.resolve_gsheet_url(args.url)
             _download_from_gsheet(url)
         elif action == "update_article_url":
             _update_article_urls()
@@ -570,7 +570,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
         elif action == "update_article_cluster":
             _update_article_clusters()
         elif action == "upload_link_gsheet":
-            url = dshdbou.resolve_gsheet_url(args.url)
+            url = dshdbout.resolve_gsheet_url(args.url)
             _upload_to_gsheet(url)
         else:
             raise ValueError(f"Invalid action='{action}'")

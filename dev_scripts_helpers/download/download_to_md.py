@@ -49,7 +49,7 @@ import helpers.hprint as hprint
 import helpers.hsystem as hsystem
 import dev_scripts_helpers.download.download_academic_paper_to_md as dshddaptm
 import dev_scripts_helpers.download.download_utils as dshddut
-import dev_scripts_helpers.download.bookmark_utils as dshdbou
+import dev_scripts_helpers.download.bookmark_utils as dshdbout
 
 _LOG = logging.getLogger(__name__)
 
@@ -85,7 +85,7 @@ def detect_input_type(input_arg: str) -> str:
     _LOG.debug(hprint.to_str("input_arg"))
     # Classify the input in priority order: Hacker News submissions first,
     # then academic-paper-like URLs (arXiv/DOI/PDF), else a generic web page.
-    if dshdbou.is_hackernews_url(input_arg):
+    if dshdbout.is_hackernews_url(input_arg):
         input_type = "hn"
     elif (
         dshddut.is_arxiv_url(input_arg)

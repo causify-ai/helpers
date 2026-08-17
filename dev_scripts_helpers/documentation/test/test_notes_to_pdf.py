@@ -2717,3 +2717,92 @@ class Test_small_font_code_typst(hunitest.TestCase):
         _LOG.info("Typst file generated: %s", typst_filename)
         typst_content = hio.from_file(typst_file)
         self.check_string(typst_content, purify_text=True)
+
+
+# #############################################################################
+# Test_notes_to_pdf_lectures_template
+# #############################################################################
+
+
+class Test_notes_to_pdf_lectures_template(hunitest.TestCase):
+    """
+    Test `notes_to_pdf.py --type slides` on
+    `.claude/templates/lectures.template.md` lecture template, for both the
+    `typst` and `beamer` (LaTeX) slide engines.
+    """
+
+    def helper(self, slides_engine: str) -> str:
+        """
+        Run `notes_to_pdf.py --type slides` on `lectures.template.md` through
+        the full pipeline (compiling to PDF) and verify the PDF was generated.
+
+        :param slides_engine: value for `--slides_engine` (`beamer` or
+            `typst`)
+        :return: scratch dir with the generated files (PDF and, for
+            `typst`, the intermediate `.typ` source)
+        """
+        _LOG.debug(hprint.to_str("slides_engine"))
+        # Prepare inputs.
+        in_file = hgit.find_file_in_git_tree("lectures.template.md")
+        hdbg.dassert_path_exists(in_file)
+        exec_path = hgit.find_file_in_git_tree("notes_to_pdf.py")
+        hdbg.dassert_path_exists(exec_path)
+        # Prepare outputs.
+        out_dir = self.get_scratch_space()
+        pdf_file = os.path.join(out_dir, "lectures.pdf")
+        script_file = os.path.join(out_dir, "script.sh")
+        # Construct command.
+        cmd = [
+            exec_path,
+            f"--input {in_file}",
+            f"--output {pdf_file}",
+            f"--script {script_file}",
+            "--type slides",
+            # TODO(ai_gp): Don't we need a --use_ast_...?
+            f"--slides_engine {slides_engine}",
+            "--skip_action open_pdf",
+        ]
+        cmd = " ".join(cmd)
+        _LOG.debug("cmd=%s", cmd)
+        # Run test.
+        hsystem.system(cmd)
+        # Check outputs: the PDF was generated.
+        hdbg.dassert_path_exists(pdf_file, "PDF file was not created")
+        self.assertGreater(os.path.getsize(pdf_file), 0, "PDF file is empty")
+        return out_dir
+
+    @pytest.mark.superslow
+    def test1(self) -> None:
+        """
+        Test `--slides_engine typst`.
+
+        Verify the PDF is generated and freeze the intermediate Typst
+        source for regression testing.
+        """
+        # Prepare inputs.
+        slides_engine = "typst"
+        # Run test.
+        out_dir = self.helper(slides_engine)
+        # Check outputs: locate and freeze the intermediate Typst source.
+        typ_files = glob.glob(os.path.join(out_dir, "*.typ"))
+        hdbg.dassert_eq(
+            len(typ_files),
+            1,
+            "Expected 1 .typ file, found:\n%s",
+            "\n".join(typ_files),
+        )
+        typst_txt = hio.from_file(typ_files[0])
+        self.check_string(typst_txt, purify_text=True)
+
+    @pytest.mark.superslow
+    def test2(self) -> None:
+        """
+        Test `--slides_engine beamer` (LaTeX).
+
+        Verify the PDF is generated.
+        """
+        # TODO(ai_gp): Same check of output for tex file.
+        # Prepare inputs.
+        slides_engine = "beamer"
+        # Run test.
+        self.helper(slides_engine)

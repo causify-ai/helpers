@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 """
 Shared utilities for Google Sheets link processing scripts.
 
@@ -8,7 +6,7 @@ and working with CSV files.
 
 Import as:
 
-import dev_scripts_helpers.download.bookmark_utils as dshdbou
+import dev_scripts_helpers.download.bookmark_utils as dshdbout
 """
 
 import csv

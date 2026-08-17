@@ -164,7 +164,7 @@ class Table:
         def _visible_len(cell: str) -> int:
             """
             Compute the visible length of a cell, i.e., ignoring ANSI color codes
-            (e.g., from `hprint.color_highlight()`). 
+            (e.g., from `hprint.color_highlight()`).
 
             Using the raw `len()` would inflate the width of columns with
             colored cells (e.g., "Status") since escape codes count as

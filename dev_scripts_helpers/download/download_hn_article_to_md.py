@@ -72,7 +72,7 @@ import helpers.hprint as hprint
 import helpers.hcache_simple as hcacsimp
 import helpers.hselect_action as hselacti
 import dev_scripts_helpers.download.download_utils as dshddut
-import dev_scripts_helpers.download.bookmark_utils as dshdbou
+import dev_scripts_helpers.download.bookmark_utils as dshdbout
 
 _LOG = logging.getLogger(__name__)
 
@@ -265,9 +265,9 @@ def _fetch_submission(hn_url: str) -> Dict[str, str]:
     """
     _LOG.debug(hprint.func_signature_to_str())
     hdbg.dassert(
-        dshdbou.is_hackernews_url(hn_url), "Not a Hacker News URL: %s", hn_url
+        dshdbout.is_hackernews_url(hn_url), "Not a Hacker News URL: %s", hn_url
     )
-    item_id = dshdbou.extract_item_id(hn_url)
+    item_id = dshdbout.extract_item_id(hn_url)
     _LOG.debug(hprint.to_str("item_id"))
     item_data = _fetch_hn_item(item_id)
     title = item_id
