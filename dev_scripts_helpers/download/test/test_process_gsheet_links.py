@@ -193,6 +193,7 @@ class Test__update_article_urls(hunitest.TestCase):
                 "Article_url": "",
             },
         ]
+        # TODO(ai_gp): Add "Prepare outputs." section to define expected values explicitly (testing.rules.md:## Use Three Sections in Testing Methods)
         # Run test.
         actual_rows = self.helper(rows)
         # Check outputs.
@@ -212,6 +213,7 @@ class Test__update_article_urls(hunitest.TestCase):
                 "Article_url": "",
             },
         ]
+        # TODO(ai_gp): Add "Prepare outputs." section to define expected values explicitly (testing.rules.md:## Use Three Sections in Testing Methods)
         # Run test.
         with umock.patch.object(
             dsgl,
@@ -236,6 +238,7 @@ class Test__update_article_urls(hunitest.TestCase):
                 "Article_url": "https://example.com/existing",
             },
         ]
+        # TODO(ai_gp): Add "Prepare outputs." section to define expected values explicitly (testing.rules.md:## Use Three Sections in Testing Methods)
         # Run test.
         actual_rows = self.helper(rows)
         # Check outputs.
@@ -254,6 +257,7 @@ class Test__update_article_clusters(hunitest.TestCase):
     Test `process_gsheet_links._update_article_clusters()`.
     """
 
+    # TODO(ai_gp): Rename helper method from `_run_with_tags` to `helper` to follow naming convention for helper methods (testing.rules.md:## Order Helper Methods First in Test Classes)
     def _run_with_tags(self, rows: list) -> list:
         """
         Write `rows` as the tags CSV, run `_update_article_clusters()`, and
@@ -302,6 +306,7 @@ class Test__update_article_clusters(hunitest.TestCase):
                 "Article_cluster": "",
             },
         ]
+        # TODO(ai_gp): Add "Prepare outputs." section to define expected values explicitly (testing.rules.md:## Use Three Sections in Testing Methods)
         # Run test.
         actual_rows = self._run_with_tags(rows)
         # Check outputs. The raw tag is left as-is; only the cluster is
@@ -326,6 +331,7 @@ class Test__update_article_clusters(hunitest.TestCase):
                 "Article_cluster": "Dev tools",
             },
         ]
+        # TODO(ai_gp): Add "Prepare outputs." section to define expected values explicitly (testing.rules.md:## Use Three Sections in Testing Methods)
         # Run test.
         actual_rows = self._run_with_tags(rows)
         # Check outputs.
@@ -345,6 +351,7 @@ class Test__update_article_clusters(hunitest.TestCase):
                 "Article_cluster": "",
             },
         ]
+        # TODO(ai_gp): Add "Prepare outputs." section to define expected values explicitly (testing.rules.md:## Use Three Sections in Testing Methods)
         # Run test.
         actual_rows = self._run_with_tags(rows)
         # Check outputs.

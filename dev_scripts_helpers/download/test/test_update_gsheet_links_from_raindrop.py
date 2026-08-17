@@ -254,8 +254,10 @@ class Test__combine_raindrop_with_gsheet_links(hunitest.TestCase):
                 "created": "2024-06-01T12:30:00.000Z",
             },
         ]
+        # TODO(ai_gp): Add "# Prepare outputs." section with expected values before "# Run test." (testing.rules.md:## Use Three Sections in Testing Methods)
         # Run test.
         actual_rows = self.helper(gsheet_columns, gsheet_rows, raindrop_rows)
+        # TODO(ai_gp): Compare whole output with assert_equal instead of piecewise checks on individual fields (testing.rules.md:## Compare Whole Output with `assert_equal`, Not Piecewise)
         # Check outputs. The raindrop row is prepended before the existing
         # gsheet row.
         self.assertEqual(len(actual_rows), 2)
@@ -290,8 +292,10 @@ class Test__combine_raindrop_with_gsheet_links(hunitest.TestCase):
                 "created": "2024-06-01T00:00:00.000Z",
             },
         ]
+        # TODO(ai_gp): Add "# Prepare outputs." section with expected values before "# Run test." (testing.rules.md:## Use Three Sections in Testing Methods)
         # Run test.
         actual_rows = self.helper(gsheet_columns, gsheet_rows, raindrop_rows)
+        # TODO(ai_gp): Compare whole output with assert_equal instead of piecewise checks on individual fields (testing.rules.md:## Compare Whole Output with `assert_equal`, Not Piecewise)
         # Check outputs.
         self.assertEqual(len(actual_rows), 2)
         self.assert_equal(actual_rows[0]["Title"], "New")
@@ -386,8 +390,10 @@ class Test__download_raindrop_data(hunitest.TestCase):
             },
         ]
         response = self._build_response(items)
+        # TODO(ai_gp): Add "# Prepare outputs." section with expected values before "# Run test." (testing.rules.md:## Use Three Sections in Testing Methods)
         # Run test.
         actual_rows = self.helper(gsheet_timestamp, get_return_value=response)
+        # TODO(ai_gp): Compare whole output with assert_equal instead of piecewise checks on individual fields (testing.rules.md:## Compare Whole Output with `assert_equal`, Not Piecewise)
         # Check outputs.
         self.assertEqual(len(actual_rows), 1)
         self.assert_equal(actual_rows[0]["title"], "New bookmark")
@@ -410,8 +416,10 @@ class Test__download_raindrop_data(hunitest.TestCase):
             },
         ]
         response = self._build_response(items)
+        # TODO(ai_gp): Add "# Prepare outputs." section with expected values before "# Run test." (testing.rules.md:## Use Three Sections in Testing Methods)
         # Run test.
         actual_rows = self.helper(gsheet_timestamp, get_return_value=response)
+        # TODO(ai_gp): Compare whole output with assert_equal instead of piecewise checks (testing.rules.md:## Compare Whole Output with `assert_equal`, Not Piecewise)
         # Check outputs.
         self.assertEqual(len(actual_rows), 0)
 
@@ -446,5 +454,6 @@ class Test__download_raindrop_data(hunitest.TestCase):
         actual_rows = self.helper(
             gsheet_timestamp, get_side_effect=get_side_effect
         )
+        # TODO(ai_gp): Compare whole output with assert_equal instead of only checking length (testing.rules.md:## Compare Whole Output with `assert_equal`, Not Piecewise)
         # Check outputs.
         self.assertEqual(len(actual_rows), expected_num_rows)

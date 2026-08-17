@@ -1,10 +1,13 @@
 #!/usr/bin/env python
 
+import logging
 import os
 import unittest.mock as umock
 
 import helpers.hunit_test as hunitest
 import dev_scripts_helpers.download.bookmark_utils as dshdbou
+
+_LOG = logging.getLogger(__name__)
 
 
 # #############################################################################
@@ -101,8 +104,7 @@ class Test_download_from_gsheet(hunitest.TestCase):
 
     def test1(self) -> None:
         """
-        Test the downloaded CSV path is returned and the file exists on
-        disk.
+        Test the downloaded CSV path is returned correctly.
         """
         # Prepare inputs.
         columns = ["Title", "Url"]
@@ -113,9 +115,20 @@ class Test_download_from_gsheet(hunitest.TestCase):
         actual = self.helper(rows, columns)
         # Check outputs.
         self.assert_equal(actual, expected)
-        self.assertTrue(os.path.exists(actual))
 
     def test2(self) -> None:
+        """
+        Test that download_from_gsheet creates a file on disk.
+        """
+        # Prepare inputs.
+        columns = ["Title", "Url"]
+        rows = [{"Title": "A", "Url": "https://example.com"}]
+        # Run test.
+        actual = self.helper(rows, columns)
+        # Check outputs.
+        self.assertTrue(os.path.exists(actual), "Downloaded file should exist on disk")
+
+    def test3(self) -> None:
         """
         Test an empty downloaded CSV (header only, no data rows) does not
         raise while building the row preview.
@@ -123,9 +136,7 @@ class Test_download_from_gsheet(hunitest.TestCase):
         # Prepare inputs.
         columns = ["Title", "Url"]
         rows: list = []
-        # Prepare outputs.
-        expected = os.path.join(self.get_scratch_space(), "gsheet.csv")
-        # Run test.
+        # Run test - should not raise
         actual = self.helper(rows, columns)
         # Check outputs.
-        self.assert_equal(actual, expected)
+        self.assertTrue(os.path.exists(actual), "File should exist even with empty CSV")
