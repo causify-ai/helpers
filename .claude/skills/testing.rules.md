@@ -333,13 +333,17 @@
     self.assert_equal(actual, expected, dedent=True)
     ```
 
-### Move Dedent into the Helper Method
+### Move Dedent and Checking into the Helper Method
 
 - When a test class uses a helper method (see `## Use Helper Methods When You
-  Have Repetitive Tests`), call `hprint.dedent()` inside the helper, not in
-  each test method
-- Reason: avoids repeating the `hprint.dedent()` call at every call site and
-  keeps test methods focused on providing raw input data
+  Have Repetitive Tests`), call `hprint.dedent()` and `self.assert_equal()`
+  (or other checking) inside the helper, not in each test method
+- Reason: avoids repeating the `hprint.dedent()` and assertion calls at every
+  call site and keeps test methods focused on providing raw input and
+  expected data
+- Test methods should only prepare inputs, prepare expected outputs, and call
+  the helper; the helper does dedenting, running the function under test, and
+  checking the result
 
 - **Bad**: `hprint.dedent()` called in every test method
   ```python
