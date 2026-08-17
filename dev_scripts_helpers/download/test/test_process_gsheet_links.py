@@ -193,13 +193,12 @@ class Test__update_article_urls(hunitest.TestCase):
                 "Article_url": "",
             },
         ]
-        # TODO(ai_gp): Add "Prepare outputs." section to define expected values explicitly (testing.rules.md:## Use Three Sections in Testing Methods)
+        # Prepare outputs.
+        expected = "https://example.com/a"
         # Run test.
         actual_rows = self.helper(rows)
         # Check outputs.
-        self.assert_equal(
-            actual_rows[0]["Article_url"], "https://example.com/a"
-        )
+        self.assert_equal(actual_rows[0]["Article_url"], expected)
 
     def test2(self) -> None:
         """
@@ -213,18 +212,17 @@ class Test__update_article_urls(hunitest.TestCase):
                 "Article_url": "",
             },
         ]
-        # TODO(ai_gp): Add "Prepare outputs." section to define expected values explicitly (testing.rules.md:## Use Three Sections in Testing Methods)
+        # Prepare outputs.
+        expected = "https://example.com/extracted"
         # Run test.
         with umock.patch.object(
             dsgl,
             "_extract_article_url",
-            return_value="https://example.com/extracted",
+            return_value=expected,
         ):
             actual_rows = self.helper(rows)
         # Check outputs.
-        self.assert_equal(
-            actual_rows[0]["Article_url"], "https://example.com/extracted"
-        )
+        self.assert_equal(actual_rows[0]["Article_url"], expected)
 
     def test3(self) -> None:
         """
@@ -238,13 +236,12 @@ class Test__update_article_urls(hunitest.TestCase):
                 "Article_url": "https://example.com/existing",
             },
         ]
-        # TODO(ai_gp): Add "Prepare outputs." section to define expected values explicitly (testing.rules.md:## Use Three Sections in Testing Methods)
+        # Prepare outputs.
+        expected = "https://example.com/existing"
         # Run test.
         actual_rows = self.helper(rows)
         # Check outputs.
-        self.assert_equal(
-            actual_rows[0]["Article_url"], "https://example.com/existing"
-        )
+        self.assert_equal(actual_rows[0]["Article_url"], expected)
 
 
 # #############################################################################
@@ -257,8 +254,7 @@ class Test__update_article_clusters(hunitest.TestCase):
     Test `process_gsheet_links._update_article_clusters()`.
     """
 
-    # TODO(ai_gp): Rename helper method from `_run_with_tags` to `helper` to follow naming convention for helper methods (testing.rules.md:## Order Helper Methods First in Test Classes)
-    def _run_with_tags(self, rows: list) -> list:
+    def helper(self, rows: list) -> list:
         """
         Write `rows` as the tags CSV, run `_update_article_clusters()`, and
         return the resulting clustered rows.
@@ -306,16 +302,15 @@ class Test__update_article_clusters(hunitest.TestCase):
                 "Article_cluster": "",
             },
         ]
-        # TODO(ai_gp): Add "Prepare outputs." section to define expected values explicitly (testing.rules.md:## Use Three Sections in Testing Methods)
+        # Prepare outputs.
+        expected_tag = "The best tag for this article is **AI Agents**."
+        expected_cluster = "AI"
         # Run test.
-        actual_rows = self._run_with_tags(rows)
+        actual_rows = self.helper(rows)
         # Check outputs. The raw tag is left as-is; only the cluster is
         # filled in via the normalized tag.
-        self.assert_equal(
-            actual_rows[0]["Article_tag"],
-            "The best tag for this article is **AI Agents**.",
-        )
-        self.assert_equal(actual_rows[0]["Article_cluster"], "AI")
+        self.assert_equal(actual_rows[0]["Article_tag"], expected_tag)
+        self.assert_equal(actual_rows[0]["Article_cluster"], expected_cluster)
 
     def test2(self) -> None:
         """
@@ -331,11 +326,12 @@ class Test__update_article_clusters(hunitest.TestCase):
                 "Article_cluster": "Dev tools",
             },
         ]
-        # TODO(ai_gp): Add "Prepare outputs." section to define expected values explicitly (testing.rules.md:## Use Three Sections in Testing Methods)
+        # Prepare outputs.
+        expected = "Dev tools"
         # Run test.
-        actual_rows = self._run_with_tags(rows)
+        actual_rows = self.helper(rows)
         # Check outputs.
-        self.assert_equal(actual_rows[0]["Article_cluster"], "Dev tools")
+        self.assert_equal(actual_rows[0]["Article_cluster"], expected)
 
     def test3(self) -> None:
         """
@@ -351,8 +347,9 @@ class Test__update_article_clusters(hunitest.TestCase):
                 "Article_cluster": "",
             },
         ]
-        # TODO(ai_gp): Add "Prepare outputs." section to define expected values explicitly (testing.rules.md:## Use Three Sections in Testing Methods)
+        # Prepare outputs.
+        expected = ""
         # Run test.
-        actual_rows = self._run_with_tags(rows)
+        actual_rows = self.helper(rows)
         # Check outputs.
-        self.assert_equal(actual_rows[0]["Article_cluster"], "")
+        self.assert_equal(actual_rows[0]["Article_cluster"], expected)
