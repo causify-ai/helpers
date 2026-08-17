@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+# TODO(ai_gp): Add 'import logging' and '_LOG = logging.getLogger(__name__)' to match the template structure (testing.rules.md:## Unit Test Code Structure)
 import os
 import unittest.mock as umock
 from typing import Callable, Optional
@@ -13,11 +14,13 @@ import dev_scripts_helpers.download.update_gsheet_links_from_raindrop as dsglfr
 # Test__parse_timestamp
 # #############################################################################
 
+# TODO(ai_gp): Test public-facing behavior before testing internal helpers (_parse_timestamp is a private function) (testing.rules.md:## Test From the Outside-In)
 
 class Test__parse_timestamp(hunitest.TestCase):
     """
     Test `update_gsheet_links_from_raindrop._parse_timestamp()`.
     """
+    # TODO(ai_gp): Add tests for edge cases (e.g., empty input, malformed timestamps, None values) (testing.rules.md:## What to Test)
 
     def helper(self, ts_str: str, expected: str) -> None:
         """
@@ -58,6 +61,7 @@ class Test__parse_timestamp(hunitest.TestCase):
 # Test__get_latest_timestamp_from_file
 # #############################################################################
 
+# TODO(ai_gp): Test public-facing behavior before testing internal helpers (_get_latest_timestamp_from_file is a private function) (testing.rules.md:## Test From the Outside-In)
 
 class Test__get_latest_timestamp_from_file(hunitest.TestCase):
     """
@@ -116,11 +120,13 @@ class Test__get_latest_timestamp_from_file(hunitest.TestCase):
 # Test__get_action_output_file
 # #############################################################################
 
+# TODO(ai_gp): Test public-facing behavior before testing internal helpers (_get_action_output_file is a private function) (testing.rules.md:## Test From the Outside-In)
 
 class Test__get_action_output_file(hunitest.TestCase):
     """
     Test `update_gsheet_links_from_raindrop._get_action_output_file()`.
     """
+    # TODO(ai_gp): Add tests for edge cases (e.g., unknown/invalid action names) (testing.rules.md:## What to Test)
 
     def helper(self, action: str, expected: str) -> None:
         """
@@ -177,11 +183,13 @@ class Test__get_action_output_file(hunitest.TestCase):
 # Test__combine_raindrop_with_gsheet_links
 # #############################################################################
 
+# TODO(ai_gp): Test public-facing behavior before testing internal helpers (_combine_raindrop_with_gsheet_links is a private function) (testing.rules.md:## Test From the Outside-In)
 
 class Test__combine_raindrop_with_gsheet_links(hunitest.TestCase):
     """
     Test `update_gsheet_links_from_raindrop._combine_raindrop_with_gsheet_links()`.
     """
+    # TODO(ai_gp): Add tests for edge cases (e.g., empty raindrop rows, empty gsheet rows, single item) (testing.rules.md:## What to Test)
 
     def helper(
         self, gsheet_columns: list, gsheet_rows: list, raindrop_rows: list
@@ -220,6 +228,7 @@ class Test__combine_raindrop_with_gsheet_links(hunitest.TestCase):
             raindrop_rows,
             fieldnames=["id", "title", "url", "created"],
         )
+        # TODO(ai_gp): Avoid mocking internal helper dshdbou.get_tmp_file_path; instead use test infrastructure to redirect paths without mocking internal functions (testing.rules.md:## Mock Only External Dependencies)
         with umock.patch.object(
             dsglfr.dshdbou,
             "get_tmp_file_path",
@@ -306,6 +315,7 @@ class Test__combine_raindrop_with_gsheet_links(hunitest.TestCase):
 # Test__download_raindrop_data
 # #############################################################################
 
+# TODO(ai_gp): Test public-facing behavior before testing internal helpers (_download_raindrop_data is a private function) (testing.rules.md:## Test From the Outside-In)
 
 class Test__download_raindrop_data(hunitest.TestCase):
     """
@@ -344,6 +354,7 @@ class Test__download_raindrop_data(hunitest.TestCase):
             [{"Timestamp": gsheet_timestamp}],
             fieldnames=["Timestamp"],
         )
+        # TODO(ai_gp): Avoid mocking internal helper dshdbou.get_tmp_file_path; instead use test infrastructure to redirect paths without mocking internal functions (testing.rules.md:## Mock Only External Dependencies)
         with (
             umock.patch.object(
                 dsglfr.dshdbou,

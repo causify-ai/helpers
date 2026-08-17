@@ -20,6 +20,7 @@ class Test_resolve_gsheet_url(hunitest.TestCase):
     Test `bookmark_utils.resolve_gsheet_url()`.
     """
 
+    # TODO(ai_gp): test1 and test2 have repetitive structure with only different input (url) and expected values; consolidate using a helper method (testing.rules.md:## Use Helper Methods When You Have Repetitive Tests)
     def test1(self) -> None:
         """
         Test an explicit URL is returned unchanged, taking precedence over
@@ -59,11 +60,14 @@ class Test_resolve_gsheet_url(hunitest.TestCase):
         """
         # Prepare inputs.
         url = ""
+        # TODO(ai_gp): Missing "# Check outputs." section comment; the check via self.assertRaises() should be in a "# Run test and check outputs." or preceded by explicit "# Check outputs." comment (testing.rules.md:## Use Three Sections in Testing Methods)
         # Run test.
         with umock.patch.dict(os.environ, {}, clear=False):
             os.environ.pop("LINKS_GSHEET", None)
             with self.assertRaises(AssertionError):
                 dshdbou.resolve_gsheet_url(url)
+
+    # TODO(ai_gp): Missing edge case test for large input (e.g., very long URL) (testing.rules.md:## What to Test)
 
 
 # #############################################################################
@@ -96,6 +100,7 @@ class Test_download_from_gsheet(hunitest.TestCase):
             return 0
 
         # Run test.
+        # TODO(ai_gp): Mock the external subprocess module instead of the internal hsystem wrapper; avoid mocking internal helpers (testing.rules.md:## Mock Only External Dependencies)
         with umock.patch.object(
             dshdbou.hsystem, "system", side_effect=_fake_system
         ):
@@ -140,3 +145,5 @@ class Test_download_from_gsheet(hunitest.TestCase):
         actual = self.helper(rows, columns)
         # Check outputs.
         self.assertTrue(os.path.exists(actual), "File should exist even with empty CSV")
+
+    # TODO(ai_gp): Missing edge case test for large input (e.g., many rows to test performance/memory) (testing.rules.md:## What to Test)

@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+# TODO(ai_gp): Add missing import logging and _LOG = logging.getLogger(__name__) to match template structure (testing.rules.md:## Unit Test Code Structure)
 
 import pytest
 
@@ -18,6 +19,7 @@ class Test_detect_input_type(hunitest.TestCase):
     """
     Test `download_to_md.detect_input_type()`.
     """
+    # TODO(ai_gp): Add edge case tests for empty input, single character, and large input (testing.rules.md:## What to Test)
 
     def helper(self, input_arg: str, expected: str) -> None:
         """

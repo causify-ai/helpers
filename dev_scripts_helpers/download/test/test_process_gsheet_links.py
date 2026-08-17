@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 
+# TODO(ai_gp): Follow standard test file structure from template: add 'import logging' and '_LOG = logging.getLogger(__name__)' after imports (testing.rules.md:## Unit Test Code Structure)
+
 import os
 import unittest.mock as umock
 
@@ -16,6 +18,8 @@ import dev_scripts_helpers.download.process_gsheet_links as dsgl
 # Test__normalize_tag
 # #############################################################################
 
+# TODO(ai_gp): Test public-facing interface instead of internal implementation (testing.rules.md:## Test From the Outside-In)
+# TODO(ai_gp): Add edge case tests for empty string input (testing.rules.md:## What to Test)
 
 class Test__normalize_tag(hunitest.TestCase):
     """
@@ -41,6 +45,7 @@ class Test__normalize_tag(hunitest.TestCase):
         # Prepare inputs.
         raw_tag = "AI Agents"
         # Prepare outputs.
+        # TODO(ai_gp): Use expected = raw_tag to avoid replicated assignment (testing.rules.md:## Avoid Replicated Assignment)
         expected = "AI Agents"
         # Run test.
         self.helper(raw_tag, expected)
@@ -103,6 +108,7 @@ class Test__normalize_tag(hunitest.TestCase):
         # Prepare inputs.
         raw_tag = "Programming Languages"
         # Prepare outputs.
+        # TODO(ai_gp): Use expected = raw_tag to avoid replicated assignment (testing.rules.md:## Avoid Replicated Assignment)
         expected = "Programming Languages"
         # Run test.
         self.helper(raw_tag, expected)
@@ -133,6 +139,7 @@ class Test__normalize_tag(hunitest.TestCase):
         # Prepare outputs.
         expected = "AI Agents"
         # Run test.
+        # TODO(ai_gp): Avoid mocking internal data/helpers; test through public interface instead (testing.rules.md:## Mock Only External Dependencies)
         with umock.patch.object(
             dsgl, "topic_to_cluster", fake_topic_to_cluster
         ):
@@ -145,6 +152,8 @@ class Test__normalize_tag(hunitest.TestCase):
 # Test__update_article_urls
 # #############################################################################
 
+# TODO(ai_gp): Test public-facing interface instead of internal implementation (testing.rules.md:## Test From the Outside-In)
+# TODO(ai_gp): Add edge case tests for empty rows list and multiple rows (testing.rules.md:## What to Test)
 
 class Test__update_article_urls(hunitest.TestCase):
     """
@@ -172,6 +181,7 @@ class Test__update_article_urls(hunitest.TestCase):
         columns = list(rows[0].keys())
         hn_csv = _get_tmp_file_path(dsgl.HN_CSV_FILE, "process_gsheet_links")
         dshdbou.write_csv(hn_csv, rows, fieldnames=columns)
+        # TODO(ai_gp): Avoid mocking internal helpers; consider refactoring to avoid mock dependency (testing.rules.md:## Mock Only External Dependencies)
         with umock.patch.object(
             dsgl.dshdbou,
             "get_tmp_file_path",
@@ -215,6 +225,7 @@ class Test__update_article_urls(hunitest.TestCase):
         # Prepare outputs.
         expected = "https://example.com/extracted"
         # Run test.
+        # TODO(ai_gp): Avoid mocking internal helpers; test through public interface or without mocking (testing.rules.md:## Mock Only External Dependencies)
         with umock.patch.object(
             dsgl,
             "_extract_article_url",
@@ -248,6 +259,8 @@ class Test__update_article_urls(hunitest.TestCase):
 # Test__update_article_clusters
 # #############################################################################
 
+# TODO(ai_gp): Test public-facing interface instead of internal implementation (testing.rules.md:## Test From the Outside-In)
+# TODO(ai_gp): Add edge case tests for empty rows list and multiple rows (testing.rules.md:## What to Test)
 
 class Test__update_article_clusters(hunitest.TestCase):
     """
@@ -277,6 +290,7 @@ class Test__update_article_clusters(hunitest.TestCase):
             dsgl.TAGS_CSV_FILE, "process_gsheet_links"
         )
         dshdbou.write_csv(tags_csv, rows, fieldnames=columns)
+        # TODO(ai_gp): Avoid mocking internal helpers; consider refactoring to avoid mock dependency (testing.rules.md:## Mock Only External Dependencies)
         with umock.patch.object(
             dsgl.dshdbou,
             "get_tmp_file_path",
@@ -303,12 +317,14 @@ class Test__update_article_clusters(hunitest.TestCase):
             },
         ]
         # Prepare outputs.
+        # TODO(ai_gp): Use expected_tag = rows[0]["Article_tag"] to avoid replicated assignment (testing.rules.md:## Avoid Replicated Assignment)
         expected_tag = "The best tag for this article is **AI Agents**."
         expected_cluster = "AI"
         # Run test.
         actual_rows = self.helper(rows)
         # Check outputs. The raw tag is left as-is; only the cluster is
         # filled in via the normalized tag.
+        # TODO(ai_gp): Compare whole row output instead of checking each field separately; use str() or pprint.pformat() (testing.rules.md:## Compare Whole Output with `assert_equal`, Not Piecewise)
         self.assert_equal(actual_rows[0]["Article_tag"], expected_tag)
         self.assert_equal(actual_rows[0]["Article_cluster"], expected_cluster)
 

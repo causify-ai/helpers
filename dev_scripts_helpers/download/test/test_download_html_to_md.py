@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 
+# TODO(ai_gp): Add missing logging import and _LOG definition. Template requires `import logging` and `_LOG = logging.getLogger(__name__)` after shebang and before other imports. (testing.rules.md:## Unit Test Code Structure)
 
+import logging
 import os
 
 import helpers.hgit as hgit
@@ -9,6 +11,8 @@ import helpers.hprint as hprint
 import helpers.hsystem as hsystem
 import helpers.hunit_test as hunitest
 import dev_scripts_helpers.download.download_html_to_md as dshddhtmd
+
+_LOG = logging.getLogger(__name__)
 
 
 def _run_script(
@@ -63,6 +67,7 @@ def _test_html_to_md_conversion(
 # Test_remove_data_uri_images
 # #############################################################################
 
+# TODO(ai_gp): Test from outside-in: `_remove_data_uri_images()` is an internal function (starts with underscore). Test public-facing behavior (end-to-end script behavior) before testing implementation helpers. (testing.rules.md:## Test From the Outside-In)
 
 class Test_remove_data_uri_images(hunitest.TestCase):
     """
@@ -280,16 +285,20 @@ class Test_remove_data_uri_images(hunitest.TestCase):
 # Test_download_html_to_md_py_bs
 # #############################################################################
 
+# TODO(ai_gp): Missing edge case test for empty HTML input (boundary condition). Add test for empty HTML string to ensure converter handles empty input gracefully. (testing.rules.md:## What to Test)
 
 class Test_download_html_to_md_py_bs(hunitest.TestCase):
     """
     End-to-end test for script using BeautifulSoup converter.
     """
 
+    # TODO(ai_gp): Factor test code via helper method within this class. Multiple test methods (test1, test2, test3) call the same module-level function with the same converter mode. Create a `helper` method within the class to factor this shared logic. (testing.rules.md:## Factor Test Code via Helper Methods, Not Setup)
+
     def test1(self) -> None:
         """
         Test script with BeautifulSoup converter on HTML with main tag.
         """
+        # TODO(ai_gp): Add section comments to organize test logic. Test methods should have "# Prepare inputs.", "# Prepare outputs.", and "# Run test." sections for consistent structure. (testing.rules.md:## Use Three Sections in Testing Methods)
         html_content = """
         <html>
         <body>
@@ -312,6 +321,7 @@ class Test_download_html_to_md_py_bs(hunitest.TestCase):
         """
         Test script with main container and nested content.
         """
+        # TODO(ai_gp): Add section comments to organize test logic. Test methods should have "# Prepare inputs.", "# Prepare outputs.", and "# Run test." sections for consistent structure. (testing.rules.md:## Use Three Sections in Testing Methods)
         html_content = """
         <html>
         <body>
@@ -337,6 +347,7 @@ class Test_download_html_to_md_py_bs(hunitest.TestCase):
         """
         Test script with role='main' selector.
         """
+        # TODO(ai_gp): Add section comments to organize test logic. Test methods should have "# Prepare inputs.", "# Prepare outputs.", and "# Run test." sections for consistent structure. (testing.rules.md:## Use Three Sections in Testing Methods)
         html_content = """
         <html>
         <body>
@@ -360,16 +371,20 @@ class Test_download_html_to_md_py_bs(hunitest.TestCase):
 # Test_download_html_to_md_py_readability
 # #############################################################################
 
+# TODO(ai_gp): Missing edge case test for empty HTML input (boundary condition). Add test for empty HTML string to ensure readability converter handles empty input gracefully. (testing.rules.md:## What to Test)
 
 class Test_download_html_to_md_py_readability(hunitest.TestCase):
     """
     End-to-end test for script using readability converter.
     """
 
+    # TODO(ai_gp): Factor test code via helper method within this class. Multiple test methods (test1, test2) call the same module-level function with the same converter mode. Create a `helper` method within the class to factor this shared logic. (testing.rules.md:## Factor Test Code via Helper Methods, Not Setup)
+
     def test1(self) -> None:
         """
         Test script with readability converter on article-like content.
         """
+        # TODO(ai_gp): Add section comments to organize test logic. Test methods should have "# Prepare inputs.", "# Prepare outputs.", and "# Run test." sections for consistent structure. (testing.rules.md:## Use Three Sections in Testing Methods)
         html_content = """
         <html>
         <head><title>Article</title></head>
@@ -400,6 +415,7 @@ class Test_download_html_to_md_py_readability(hunitest.TestCase):
         """
         Test script with readability converter on dense text content.
         """
+        # TODO(ai_gp): Add section comments to organize test logic. Test methods should have "# Prepare inputs.", "# Prepare outputs.", and "# Run test." sections for consistent structure. (testing.rules.md:## Use Three Sections in Testing Methods)
         html_content = """
         <html>
         <body>
@@ -427,16 +443,20 @@ class Test_download_html_to_md_py_readability(hunitest.TestCase):
 # Test_download_html_to_md_py_auto
 # #############################################################################
 
+# TODO(ai_gp): Missing edge case test for empty HTML input (boundary condition). Add test for empty HTML string to ensure auto converter handles empty input gracefully. (testing.rules.md:## What to Test)
 
 class Test_download_html_to_md_py_auto(hunitest.TestCase):
     """
     End-to-end test for script using auto converter mode.
     """
 
+    # TODO(ai_gp): Factor test code via helper method within this class. Multiple test methods (test1, test2, test3) call the same module-level function with the same converter mode. Create a `helper` method within the class to factor this shared logic. (testing.rules.md:## Factor Test Code via Helper Methods, Not Setup)
+
     def test1(self) -> None:
         """
         Test script with auto mode uses BeautifulSoup first when main exists.
         """
+        # TODO(ai_gp): Add section comments to organize test logic. Test methods should have "# Prepare inputs.", "# Prepare outputs.", and "# Run test." sections for consistent structure. (testing.rules.md:## Use Three Sections in Testing Methods)
         html_content = """
         <html>
         <body>
@@ -459,6 +479,7 @@ class Test_download_html_to_md_py_auto(hunitest.TestCase):
         """
         Test script with auto mode falls back to readability.
         """
+        # TODO(ai_gp): Add section comments to organize test logic. Test methods should have "# Prepare inputs.", "# Prepare outputs.", and "# Run test." sections for consistent structure. (testing.rules.md:## Use Three Sections in Testing Methods)
         html_content = """
         <html>
         <body>
@@ -481,6 +502,7 @@ class Test_download_html_to_md_py_auto(hunitest.TestCase):
         """
         Test script preserves heading structure in markdown.
         """
+        # TODO(ai_gp): Add section comments to organize test logic. Test methods should have "# Prepare inputs.", "# Prepare outputs.", and "# Run test." sections for consistent structure. (testing.rules.md:## Use Three Sections in Testing Methods)
         html_content = """
         <html>
         <body>
