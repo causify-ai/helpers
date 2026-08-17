@@ -49,6 +49,7 @@ import dev_scripts_helpers.download.process_gsheet_links as dsgl
 import argparse
 import datetime
 import logging
+from typing import Dict, Optional
 
 import pandas as pd
 import requests
@@ -131,9 +132,11 @@ punctuation.
 """
 
 
-def _normalize_tag(raw_tag: str) -> str:
+def _normalize_tag(
+    raw_tag: str, *, tag_map: Optional[Dict[str, str]] = None
+) -> str:
     """
-    Normalize a raw LLM tag response to a canonical `topic_to_cluster` key.
+    Normalize a raw LLM tag response to a canonical `tag_map` key.
 
     Despite the prompt asking for a bare tag, the LLM sometimes wraps the
     answer in an explanatory sentence and/or markdown bold (e.g., "The best
@@ -141,12 +144,20 @@ def _normalize_tag(raw_tag: str) -> str:
     looking for a known tag inside the raw response.
 
     :param raw_tag: raw text returned by the LLM
-    :return: canonical tag from `topic_to_cluster`, or the stripped input if
-        no known tag can be recognized (e.g., the LLM invented a new tag)
+    :param tag_map: mapping from canonical tag to cluster name to match
+        against
+        - Default: a copy of the module-level `topic_to_cluster` (a copy
+          avoids using the mutable module-level dict as a default value)
+        - Tests can inject a small local mapping instead of monkey-patching
+          the module-level dict
+    :return: canonical tag from `tag_map`, or the stripped input if no known
+        tag can be recognized (e.g., the LLM invented a new tag)
     """
+    if tag_map is None:
+        tag_map = topic_to_cluster.copy()
     cleaned = raw_tag.strip().strip("\"'").rstrip(".").strip()
     # Prefer an exact (case-insensitive) match.
-    for tag in topic_to_cluster:
+    for tag in tag_map:
         if cleaned.casefold() == tag.casefold():
             return tag
     # Fall back to a substring match.
@@ -154,7 +165,7 @@ def _normalize_tag(raw_tag: str) -> str:
     # Check longest tags first so a short tag can't shadow a longer one that
     # also appears in the list
     # - E.g., "AI Agents" vs "Multi-Agent Systems"
-    for tag in sorted(topic_to_cluster, key=len, reverse=True):
+    for tag in sorted(tag_map, key=len, reverse=True):
         if tag.casefold() in cleaned.casefold():
             return tag
     return cleaned

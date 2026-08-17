@@ -1608,6 +1608,8 @@ class Test_process_file_one_shot_with_cc(hunitest.TestCase):
             add_todos=add_todos,
         )
         # Run test.
+        # TODO(ai_gp): Use hunteuti.capture_sys_calls() instead of mocking
+        #  `lcclint.hsystem.system` directly.
         with (
             umock.patch.object(lcclint.hsystem, "system") as mock_system,
             umock.patch.object(

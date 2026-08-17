@@ -1,5 +1,6 @@
 #!/usr/bin/env python
-# TODO(ai_gp): Add missing import logging and _LOG = logging.getLogger(__name__) to match template structure (testing.rules.md:## Unit Test Code Structure)
+
+import logging
 
 import pytest
 
@@ -8,6 +9,8 @@ pytest.importorskip("fitz")
 
 import helpers.hunit_test as hunitest
 import dev_scripts_helpers.download.download_to_md as dshddtomd
+
+_LOG = logging.getLogger(__name__)
 
 
 # #############################################################################
@@ -19,7 +22,6 @@ class Test_detect_input_type(hunitest.TestCase):
     """
     Test `download_to_md.detect_input_type()`.
     """
-    # TODO(ai_gp): Add edge case tests for empty input, single character, and large input (testing.rules.md:## What to Test)
 
     def helper(self, input_arg: str, expected: str) -> None:
         """
@@ -105,6 +107,39 @@ class Test_detect_input_type(hunitest.TestCase):
         """
         # Prepare inputs.
         input_arg = "https://example.com/some/article"
+        # Prepare outputs.
+        expected = "html"
+        # Run test.
+        self.helper(input_arg, expected)
+
+    def test8(self) -> None:
+        """
+        Test an empty input is detected as `html`.
+        """
+        # Prepare inputs.
+        input_arg = ""
+        # Prepare outputs.
+        expected = "html"
+        # Run test.
+        self.helper(input_arg, expected)
+
+    def test9(self) -> None:
+        """
+        Test a single character input is detected as `html`.
+        """
+        # Prepare inputs.
+        input_arg = "a"
+        # Prepare outputs.
+        expected = "html"
+        # Run test.
+        self.helper(input_arg, expected)
+
+    def test10(self) -> None:
+        """
+        Test a large URL with a long query string is detected as `html`.
+        """
+        # Prepare inputs.
+        input_arg = "https://example.com/article?" + "a" * 10000
         # Prepare outputs.
         expected = "html"
         # Run test.
