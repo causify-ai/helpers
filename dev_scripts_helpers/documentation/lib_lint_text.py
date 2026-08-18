@@ -224,7 +224,9 @@ def _add_blank_lines_between_headers(lines: List[str]) -> List[str]:
     return lines_new
 
 
-def _convert_asterisk_bullets_to_dashes(lines: List[str]) -> List[str]:
+def _convert_asterisk_bullets_to_dashes(
+    lines: List[str], *, is_smd_file: bool = False
+) -> List[str]:
     """
     Convert bullet points from asterisk format to dash format.
 
@@ -232,7 +234,20 @@ def _convert_asterisk_bullets_to_dashes(lines: List[str]) -> List[str]:
     whitespace) to use `- ` instead. This ensures consistent bullet point
     formatting across the document.
 
+    Lines that end with a closing `*` (optionally followed by trailing
+    whitespace) are skipped, since these are `*emphasis*` spans (e.g.,
+    `* Some Title *`) rather than bullet points.
+
+    In `.smd` (slide markdown) files, a top-level `* <slide title>` line
+    (i.e., no leading whitespace) is a slide-title marker, not a bullet
+    point (see the `Slide Structure` convention: every real bullet starts
+    with `- `, while a bare `*` at the start of a line introduces a new
+    slide). Such lines are left unchanged when `is_smd_file` is True.
+
     :param lines: The lines to be processed.
+    :param is_smd_file: whether `lines` come from a `.smd` slide file, in
+        which case top-level `* <title>` lines are slide titles and are
+        not converted.
     :return: The lines with asterisk bullets converted to dash bullets.
     """
     _LOG.debug("lines=%s", lines)
@@ -241,7 +256,13 @@ def _convert_asterisk_bullets_to_dashes(lines: List[str]) -> List[str]:
         # Convert asterisk bullets to dash bullets.
         # Match: optional whitespace + * + space/tab + content.
         m = re.match(r"^(\s*)\*(\s+.*)$", line)
-        if m:
+        # Skip lines that end with a closing `*` (e.g., `*emphasis*`), since
+        # those are not bullet points.
+        is_emphasis = re.search(r"\*\s*$", line) is not None
+        # Skip top-level `* <slide title>` lines in `.smd` files, since
+        # those are slide-title markers, not bullet points.
+        is_slide_title = is_smd_file and m is not None and not m.group(1)
+        if m and not is_emphasis and not is_slide_title:
             line = m.group(1) + "-" + m.group(2)
         lines_new.append(line)
     hdbg.dassert_isinstance(lines_new, list)
@@ -839,7 +860,9 @@ def _perform_actions(
     # Convert asterisk bullets to dashes.
     action = "convert_asterisk_bullets_to_dashes"
     if _to_execute_action(action, actions):
-        lines = _convert_asterisk_bullets_to_dashes(lines)
+        lines = _convert_asterisk_bullets_to_dashes(
+            lines, is_smd_file=is_smd_file
+        )
     # Remove trailing periods.
     action = "remove_trailing_periods"
     if _to_execute_action(action, actions):

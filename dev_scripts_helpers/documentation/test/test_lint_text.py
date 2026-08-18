@@ -958,6 +958,57 @@ class Test_convert_asterisk_bullets_to_dashes(hunitest.TestCase):
         # Run test.
         self.helper(txt, expected)
 
+    def test11(self) -> None:
+        """
+        Test that emphasis lines ending with `*` are not converted.
+        """
+        # Prepare inputs.
+        txt = """
+        * Why Distributed Systems Need Consensus *
+        * Trailing space after closing asterisk *
+        * Real bullet item
+        """
+        # Prepare outputs.
+        expected = """
+        * Why Distributed Systems Need Consensus *
+        * Trailing space after closing asterisk *
+        - Real bullet item
+        """
+        # Run test.
+        self.helper(txt, expected)
+
+    def test12(self) -> None:
+        """
+        Test that top-level `* <title>` lines are preserved for smd files.
+
+        In `.smd` slide files, a top-level `* <slide title>` line is a
+        slide-title marker, not a bullet point, so it should not be
+        converted, while indented (nested) asterisk bullets still are.
+        """
+        # Prepare inputs.
+        txt = """
+        * Why Distributed Systems Need Consensus
+
+        - @Motivation@: many independent parties want to share one record
+          * Nested asterisk bullet
+        """
+        # Prepare outputs.
+        expected = """
+        * Why Distributed Systems Need Consensus
+
+        - @Motivation@: many independent parties want to share one record
+          - Nested asterisk bullet
+        """
+        # Run test.
+        _helper_process_lines(
+            self,
+            txt,
+            expected,
+            lambda lines: dshdllite._convert_asterisk_bullets_to_dashes(
+                lines, is_smd_file=True
+            ),
+        )
+
 
 # #############################################################################
 # Test_remove_trailing_periods
