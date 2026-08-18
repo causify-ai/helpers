@@ -10,7 +10,7 @@
 
 ## Follow the Coding Style From the Template
 
-- Use the coding style in `.claude/templates/coding.template.py`
+- Follow the template `.claude/templates/coding.template.py`
 
 ## Use `typing` Module Style for Type Hints
 

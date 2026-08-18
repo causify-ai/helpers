@@ -31,7 +31,7 @@ description: Conventions and standards for interactive Jupyter notebook structur
 
 ## Use Standard Template Structure
 
-- Use the structure from `.claude/templates/notebook.template.py` for consistent
+- Follow the template `.claude/templates/notebook.template.py` for consistent
   notebook initialization
 
 - First Cell: Include autoreload, logging, and core dependencies

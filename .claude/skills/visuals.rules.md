@@ -81,7 +81,8 @@
 - When to use: flowcharts, networks, agent interactions, system relationships,
   process flows
 
-- Follow the template `.claude/templates/graphviz.template.md`
+- Follow the rules `.claude/skills/graphviz.rules.md` and the template
+  `.claude/templates/graphviz.template.md`
 
 ## GraphViz Architecture Diagram Style
 
@@ -92,7 +93,8 @@
   `.claude/templates/graphviz.template.md`, tuned for professional
   architecture diagrams rather than causal or flowchart diagrams
 
-- Follow the template `.claude/templates/graphviz_architecture.template.md`
+- Follow the rules `.claude/skills/graphviz.rules.md` and the template
+  `.claude/templates/graphviz_architecture.template.md`
 
 ## Text and Typography
 

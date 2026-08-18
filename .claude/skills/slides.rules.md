@@ -753,4 +753,4 @@ Use these commands consistently across all slides:
   ```
 
 # Examples and Templates
-- See examples `.claude/templates/slides.template.md`
+- Follow the template `.claude/templates/slides.template.md`

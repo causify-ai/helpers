@@ -1,4 +1,6 @@
 - Maintain the structure of the text as it is
+- For the conventions behind this template (color strategy, shape/edge
+  semantics, typography, palettes), see `.claude/skills/graphviz.rules.md`
 
 ## Template
 - All graphviz dot diagram must follow the template below
@@ -37,7 +39,7 @@
 
 - Use `xlabel` to display conditional probability expressions inline on GraphViz
   nodes:
-  ```graphviz
+  ```
   Rain [label="Rain", fillcolor="#A6C8F4", xlabel="P(R | W)"];
   ```
   - The `xlabel` text appears outside the node box, not inside
@@ -77,11 +79,6 @@ digraph MyGraph {
 }
 ```
 
-- Use `splines=spline` for organic, curved edges; `orthogonal` for grid-like diagrams
-- Adjust `nodesep` and `ranksep` based on diagram complexity
-- Set `compound=true` for complex edge routing with subgraphs
-- Use `newrank=true` for better layout when mixing rank-constrained nodes
-
 ### Node Styling
 
 #### Standard Node Attributes
@@ -97,32 +94,6 @@ node [
 ];
 ```
 
-#### Common Shapes & Use Cases
-
-- **`box`**: Default for most nodes, decision points
-- **`ellipse`**: State, concepts, inputs/outputs
-- **`diamond`**: Decision outcomes, rewards, final values
-- **`circle`**: Compact nodes, simple states
-- **`plaintext`**: Labels without borders
-- **`Mrecord`**: Structured data with ports
-
-#### Color Strategy
-
-Use semantic color mapping:
-
-```
-fillcolor="#A9DDB0", color="#4F9A5C"    # Green → states, inputs
-fillcolor="#FFC98A", color="#D98E2B"    # Orange → actions, processes
-fillcolor="#9CC4F2", color="#3C6FB0"    # Blue → outputs, rewards
-fillcolor="#FFB3B3", color="#D64545"    # Red → errors, warnings
-fillcolor="#E8D9F7", color="#9B7DB1"    # Purple → metadata, annotations
-```
-
-- `fillcolor`: Interior color
-- `color`: Border/outline color
-- Use darker shade of fillcolor for the border
-- Avoid high-contrast combinations that strain eyes
-
 #### Individual Node Styling
 
 ```
@@ -130,10 +101,6 @@ N1 [label="Label", shape="ellipse", fillcolor="#A9DDB0", color="#4F9A5C"];
 N2 [label="Multi\nLine\nLabel", shape="box", style="filled,rounded"];
 N3 [label="Important", style="filled,bold", penwidth=2.0];
 ```
-
-- Use `\n` for line breaks in labels
-- Add `rounded` style to box shapes for softer appearance
-- Increase `penwidth` for emphasis or importance
 
 ### Edge Styling
 
@@ -149,15 +116,6 @@ edge [
 ];
 ```
 
-#### Edge Styles & Semantics
-
-```
-N1 -> N2 [label="normal"];                              # Solid, regular flow
-N1 -> N3 [style="dashed", color="#8C8C8C"];            # Weak link, optional
-N1 -> N4 [style="dotted", color="#AAAAAA"];            # Implied, reference
-N1 -> N5 [style="bold", penwidth=2.0, color="#B23A48"]; # Strong, critical
-```
-
 #### Label Positioning
 
 ```
@@ -167,20 +125,6 @@ E1 -> E2 [
     fontcolor="#B23A48",
     fontsize=10
 ];
-```
-
-- Center label text with spaces: `"  label  "` (looks better than default)
-- Use `fontcolor` to match or contrast with edge `color`
-- `labelpos="t"` places label at top; useful for tall diagrams
-
-#### Arrow Types
-
-```
-A -> B [arrowhead="normal"];     # Standard arrow (default)
-A -> B [arrowhead="diamond"];    # Diamond-headed
-A -> B [arrowhead="none"];       # No arrow (directional via position)
-A -> B [dir="both"];             # Bidirectional arrows
-A -> B [dir="back"];             # Reverse direction
 ```
 
 ### Subgraph Clustering
@@ -198,29 +142,20 @@ subgraph cluster_name {
     color="#B8C4D9";
     penwidth=1.4;
     margin=18;
-    
+
     N1 [label="Node in cluster"];
     N2 [label="Another node"];
 }
 ```
 
-**Rules:**
-- Cluster name must start with `cluster_` prefix
-- `label` is displayed title
-- `style="rounded,filled"` gives modern appearance
-- `margin=18` adds padding inside cluster box
-- `fontcolor` should contrast with `fillcolor`
-
 #### Nested Clusters
-
-Use multiple subgraphs for hierarchical organization:
 
 ```
 subgraph cluster_level1 {
     label="Outer";
     style="rounded,filled";
     fillcolor="#EEEEEE";
-    
+
     subgraph cluster_level2 {
         label="Inner";
         style="rounded,filled";
@@ -240,91 +175,6 @@ S1 -> S2 [style=invis];          # Invisible edge for alignment
 { rank=min; START; }             # Force to top
 { rank=max; END; }               # Force to bottom
 ```
-
-Use invisible edges to guide layout without visual noise:
-
-```
-R1 -> R2 [style=invis];          # Aligns R1 and R2 vertically
-A1 -> A2 [style=invis];          # Without showing connection
-```
-
-#### Alignment & Spacing
-
-```
-newrank=true;                     # Better rank handling
-compound=true;                    # Enable compound edge routing
-constraint=false;                 # Don't use edge for ranking
-```
-
-### Typography & Labels
-
-#### Font Choices
-
-```
-fontname="Helvetica"              # Clean, professional
-fontname="Courier"                # Code, monospace
-fontname="Times"                  # Formal, serif
-```
-
-Use consistent font across graphs. Helvetica is default recommended.
-
-#### Unicode & Special Characters
-
-```
-label="State →"                   # Arrow
-label="π₁"                        # Greek letter pi with subscript
-label="≤ 0.5"                     # Mathematical symbols
-label="●"                         # Bullet
-label="◆"                         # Diamond
-```
-
-Most Unicode works; test in your PDF viewer before final render.
-
-#### HTML-like Labels
-
-For complex formatting, avoid HTML labels — they render inconsistently. Instead use multiple lines with `\n`.
-
-## Color Palettes for Different Domains
-
-### Machine Learning / Reinforcement Learning
-
-```
-State:      fillcolor="#A9DDB0", color="#4F9A5C"      # Soft green
-Action:     fillcolor="#FFC98A", color="#D98E2B"      # Warm orange
-Reward:     fillcolor="#9CC4F2", color="#3C6FB0"      # Cool blue
-Value:      fillcolor="#E8D9F7", color="#9B7DB1"      # Purple
-Policy:     fillcolor="#FFD4D4", color="#B23A48"      # Soft red
-```
-
-### Data Flow / ETL
-
-```
-Source:     fillcolor="#C8E6C9", color="#2E7D32"      # Green
-Transform:  fillcolor="#FFECB3", color="#F57F17"      # Amber
-Sink:       fillcolor="#BBDEFB", color="#1565C0"      # Blue
-Error:      fillcolor="#FFCDD2", color="#C62828"      # Red
-```
-
-### System Architecture
-
-```
-Frontend:   fillcolor="#E1BEE7", color="#6A1B9A"      # Purple
-Backend:    fillcolor="#B3E5FC", color="#0277BD"      # Light blue
-Database:   fillcolor="#C8E6C9", color="#558B2F"      # Dark green
-Cache:      fillcolor="#FFE0B2", color="#E65100"      # Orange
-External:   fillcolor="#F8BBD0", color="#AD1457"      # Pink
-```
-
-### Legacy Simple Palette
-
-Use consistently throughout all diagrams (for backward compatibility):
-- **Red/Pink** `#F4A6A6`: Agents, actors, primary entities
-- **Orange** `#FFD1A6`: Input data, sources
-- **Green** `#B2E2B2`: Processed data, environments
-- **Teal** `#A0D6D1`: Algorithms, processes, transformations
-- **Light Blue** `#A6E7F4`: Parameters, configuration, settings
-- **Blue** `#A6C8F4`: Outputs, results, final states
-- **Purple** `#C6A6F4`: External entities, mixed dependencies
 
 # Complete Example Structure
 
