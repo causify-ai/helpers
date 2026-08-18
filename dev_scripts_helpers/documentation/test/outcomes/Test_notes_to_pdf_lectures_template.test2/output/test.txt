@@ -11,6 +11,25 @@
 \setbeamertemplate{caption label separator}{: }
 \setbeamercolor{caption name}{fg=normal text.fg}
 \beamertemplatenavigationsymbolsempty
+% remove section numbering
+\setbeamertemplate{part page}{
+  \centering
+  \begin{beamercolorbox}[sep=16pt,center]{part title}
+    \usebeamerfont{part title}\insertpart\par
+  \end{beamercolorbox}
+}
+\setbeamertemplate{section page}{
+  \centering
+  \begin{beamercolorbox}[sep=12pt,center]{section title}
+    \usebeamerfont{section title}\insertsection\par
+  \end{beamercolorbox}
+}
+\setbeamertemplate{subsection page}{
+  \centering
+  \begin{beamercolorbox}[sep=8pt,center]{subsection title}
+    \usebeamerfont{subsection title}\insertsubsection\par
+  \end{beamercolorbox}
+}
 % Prevent slide breaks in the middle of a paragraph
 \widowpenalties 1 10000
 \raggedbottom
@@ -58,6 +77,7 @@
   \KOMAoptions{parskip=half}}
 \makeatother
 \usepackage{longtable,booktabs,array}
+\newcounter{none} % for unnumbered tables
 \usepackage{calc} % for calculating minipage widths
 \usepackage{caption}
 % Make caption package work with longtable
@@ -497,11 +517,15 @@
 \usepackage{bookmark}
 \IfFileExists{xurl.sty}{\usepackage{xurl}}{} % add URL line breaks if available
 \urlstyle{same}
+% fallback for those not using the hyperref driver hyperxmp:
+\makeatletter
+\@ifundefined{xmpquote}{\newcommand{\xmpquote}[1]{#1}}{}
+\makeatother
 \hypersetup{
   hidelinks,
   pdfcreator={LaTeX via pandoc}}
 
-\author{}
+\author{\texorpdfstring{}{}}
 \date{}
 
 \begin{document}
@@ -811,6 +835,7 @@ Normal
 \protect\phantomsection\label{table}
 \begingroup \scriptsize
 
+{\def\LTcaptype{none} % do not increment counter
 \begin{longtable}[]{@{}ll@{}}
 \toprule\noalign{}
 Level & Symbol \\
@@ -821,6 +846,7 @@ Level & Symbol \\
 3. Counterfactuals & \(P(y_x | x', y')\) \\
 \bottomrule\noalign{}
 \end{longtable}
+}
 
 \endgroup
 \end{frame}
@@ -997,6 +1023,7 @@ Figure 4
 \begin{column}{0.48\linewidth}
 \begingroup \scriptsize
 
+{\def\LTcaptype{none} % do not increment counter
 \begin{longtable}[]{@{}lll@{}}
 \toprule\noalign{}
 \textbf{Alarm (A)} & \textbf{P(JohnCalls\textbar{} .)} &
@@ -1007,11 +1034,13 @@ True & 0.90 & 0.10 \\
 False & 0.05 & 0.95 \\
 \bottomrule\noalign{}
 \end{longtable}
+}
 
 \endgroup
 
 \begingroup \scriptsize
 
+{\def\LTcaptype{none} % do not increment counter
 \begin{longtable}[]{@{}ll@{}}
 \toprule\noalign{}
 \textbf{Alarm (A)} & \textbf{P(JohnCalls\textbar{} .)} \\
@@ -1021,11 +1050,13 @@ True & 0.90 \\
 False & 0.05 \\
 \bottomrule\noalign{}
 \end{longtable}
+}
 
 \endgroup
 
 \begingroup \scriptsize
 
+{\def\LTcaptype{none} % do not increment counter
 \begin{longtable}[]{@{}l@{}}
 \toprule\noalign{}
 \textbf{P(Burglary)} \\
@@ -1034,11 +1065,13 @@ False & 0.05 \\
 .001 \\
 \bottomrule\noalign{}
 \end{longtable}
+}
 
 \endgroup
 
 \begingroup \scriptsize
 
+{\def\LTcaptype{none} % do not increment counter
 \begin{longtable}[]{@{}lll@{}}
 \toprule\noalign{}
 \textbf{Burglary} & \textbf{Earthquake} & \textbf{P(Alarm \textbar{}
@@ -1050,6 +1083,7 @@ T & F & .94 \\
 \ldots{} & \ldots{} & \ldots{} \\
 \bottomrule\noalign{}
 \end{longtable}
+}
 
 \endgroup
 \end{column}

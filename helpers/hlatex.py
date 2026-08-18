@@ -5,8 +5,8 @@ import helpers.hlatex as hlatex
 """
 
 import logging
+import os
 import re
-import uuid
 from typing import List, Optional
 
 import helpers.hdbg as hdbg
@@ -21,19 +21,23 @@ _LOG = logging.getLogger(__name__)
 
 
 # TODO(gp): Add a switch to keep the tmp files or delete them.
-def convert_pandoc_md_to_latex(txt: str) -> str:
+def convert_pandoc_md_to_latex(txt: str, *, tmp_dir: str = ".") -> str:
     """
     Run pandoc to convert a markdown file to a latex file.
+
+    :param txt: the markdown text to convert
+    :param tmp_dir: dir where to save the tmp files used to interact with
+        `pandoc`; unit tests should pass `self.get_scratch_space()` so that
+        each test uses its own dir and doesn't collide with other tests
+        using the same file names
+    :return: the converted latex text
     """
     hdbg.dassert_isinstance(txt, str)
-    # Save to tmp file with unique name to avoid collisions.
-    #uid = uuid.uuid4().hex[:8]
-    #in_file_name = f"tmp.run_pandoc_in.{uid}.md"
-    in_file_name = "tmp.run_pandoc_in.md"
+    # Save to tmp file.
+    in_file_name = os.path.join(tmp_dir, "tmp.run_pandoc_in.md")
     hio.to_file(in_file_name, txt)
     # Run Pandoc.
-    #out_file_name = f"tmp.run_pandoc_out.{uid}.tex"
-    out_file_name = "tmp.run_pandoc_out.tex"
+    out_file_name = os.path.join(tmp_dir, "tmp.run_pandoc_out.tex")
     cmd = (
         f"pandoc {in_file_name} -o {out_file_name} --read=markdown --write=latex"
     )
@@ -52,11 +56,13 @@ def convert_pandoc_md_to_latex(txt: str) -> str:
     return res
 
 
-def markdown_list_to_latex(markdown: str) -> str:
+def markdown_list_to_latex(markdown: str, *, tmp_dir: str = ".") -> str:
     """
     Convert a Markdown list to LaTeX format.
 
     :param markdown: The Markdown text to convert
+    :param tmp_dir: dir where to save the tmp files used to interact with
+        `pandoc` (see `convert_pandoc_md_to_latex()`)
     :return: The converted LaTeX text
     """
     hdbg.dassert_isinstance(markdown, str)
@@ -71,7 +77,7 @@ def markdown_list_to_latex(markdown: str) -> str:
         title = ""
     markdown = "\n".join(markdown_lines)
     # Convert.
-    txt = convert_pandoc_md_to_latex(markdown)
+    txt = convert_pandoc_md_to_latex(markdown, tmp_dir=tmp_dir)
     # Remove `\tightlist` and empty lines.
     lines = txt.splitlines()
     lines = [line for line in lines if "\\tightlist" not in line]
