@@ -46,6 +46,7 @@ course lecture materials.
   Materials` can draw from, one bullet pair per course:
   ```markdown
   - `course/all_tocs.md`
+  - `course/resources.md`
   - `course/lectures_source/*.txt`
   ```
 - Regenerate with the pointed-to script (e.g., `./generate_all_tocs.sh`) instead
@@ -54,7 +55,7 @@ course lecture materials.
 # Chapter Template
 
 - Each chapter (`## <NN>: <Chapter Title>`) uses this fixed set of `###`
-subsections, in this order:
+  subsections, in this order:
   - `Goals`
   - `Topics`
   - `TODO` (optional)
@@ -83,7 +84,7 @@ subsections, in this order:
 - Optional; open items for the chapter as a checkbox list (`- [ ] ...`)
 
 ## Slides
-- Pointer(s) to the `lectures_source/*.txt` (or `.md`) file(s) holding the
+- Pointer(s) to the `lectures_source/*.txt` (or `.smd`) file(s) holding the
   chapter's slide deck
 - Each deck should be about 30-35 slides
 
@@ -122,8 +123,8 @@ subsections, in this order:
 
 # Roadmap Section
 
-- Tracking tables use `|`-delimited Markdown tables with a bold `**Part
-  Title**` row (all other columns empty) separating parts
+- Tracking tables use `|`-delimited Markdown tables with a bold
+  `**Part Title**` row (all other columns empty) separating parts
 - Typical columns: chapter/slide name, source slide file, and one column per
   pipeline stage (e.g., `Slides %`, `Criticize`, `Tutorial`, `Book`), each cell
   a completion percentage or `yes`/blank

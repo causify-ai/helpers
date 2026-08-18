@@ -118,6 +118,7 @@ class Test__update_article_urls(hunitest.TestCase):
         # Run test.
         actual_rows = self.helper_mock_hn_api(rows, expected)
         # Check outputs.
+        # TODO(ai_gp): Move the assert_equal in the helper
         self.assert_equal(actual_rows[0]["Article_url"], expected)
 
     def test3(self) -> None:
@@ -256,6 +257,7 @@ class Test__update_article_clusters(hunitest.TestCase):
         # Run test.
         actual_rows = self.helper(rows)
         # Check outputs.
+        # TODO(ai_gp): Move the assert_equal in the helper
         self.assert_equal(str(actual_rows[0]), str(expected))
 
     def test2(self) -> None:

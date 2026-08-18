@@ -143,6 +143,7 @@ class Test__combine_raindrop_with_gsheet_links(hunitest.TestCase):
         # Run test.
         actual_rows = self.helper(gsheet_columns, gsheet_rows, raindrop_rows)
         # Check outputs.
+        # TODO(ai_gp): Move the assert_equal in the helper
         self.assert_equal(str(actual_rows), str(expected_rows))
 
     def test3(self) -> None:
@@ -316,6 +317,7 @@ class Test__download_raindrop_data(hunitest.TestCase):
         # Run test.
         actual_rows = self.helper(gsheet_timestamp, get_return_value=response)
         # Check outputs.
+        # TODO(ai_gp): Move the assert_equal in the helper
         self.assert_equal(str(actual_rows), str(expected_rows))
 
     def test3(self) -> None:

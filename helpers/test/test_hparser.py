@@ -71,6 +71,7 @@ class Test_CustomHelpFormatter_split_lines(hunitest.TestCase):
         # Check outputs.
         self.assert_equal(actual, expected, dedent=True)
 
+    # TODO(ai_gp): Move all the dedent in the helper
     def test1(self) -> None:
         """
         Test that a bullet hand-wrapped across several physical lines is
@@ -535,6 +536,7 @@ class Test_CustomHelpFormatter_format_help(hunitest.TestCase):
         )
         return parser
 
+    # TODO(ai_gp): Factor common code and assert_equal in an helper.
     def test1(self) -> None:
         """
         Test that `CustomHelpFormatter` wraps to 90 columns by default,

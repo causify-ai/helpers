@@ -25,7 +25,8 @@ class Test_markdown_to_latex1(hunitest.TestCase):
         # 1) Prepare inputs.
         markdown = hprint.dedent(markdown)
         # 2) Run tests.
-        actual = hlatex.markdown_list_to_latex(markdown)
+        tmp_dir = self.get_scratch_space()
+        actual = hlatex.markdown_list_to_latex(markdown, tmp_dir=tmp_dir)
         # 3) Check.
         expected = hprint.dedent(expected)
         self.assert_equal(actual, expected)
