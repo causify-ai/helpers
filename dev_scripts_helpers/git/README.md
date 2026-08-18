@@ -382,14 +382,34 @@ The git_hooks subdirectory contains the implementation of custom git hooks:
 
 - **`install_hooks.py`**: Install git hooks in the repository's `.git/hooks/`
   directory
-- **`pre-commit.py`**: Pre-commit hook that runs checks before commits are
-  allowed
+- **`pre-commit.py`**: Pre-commit hook that runs all the checks below in
+  sequence before a commit is allowed
+  - Use `--check <name>` to run a single check phase on its own (e.g., to
+    debug it), instead of the full sequence, e.g.:
+    ```bash
+    > pre-commit.py --check gitleaks
+    ```
+  - Available `<name>` values: `master`, `merged_branch`,
+    `merge_conflict_markers`, `author`, `file_size`, `python_compile`,
+    `gitleaks`
 - **`pre-commit-dry-run.py`**: Dry-run version of pre-commit hook for testing
 - **`commit-msg.py`**: Validate commit message format and content
-- **`gitleaks.py`**: Secret detection hook preventing sensitive data from being
-  committed
 - **`translate.py`**: Helper script for hook translations/transformations
-- **`utils.py`**: Shared utilities for hook implementations
+- **`utils.py`**: Shared utilities for hook implementations, including one
+  `check_*()` function per check run by `pre-commit.py`:
+  - `check_master()`: Block commits made directly on `master` instead of a
+    branch
+  - `check_merged_branch()`: Block commits on a branch that has already been
+    merged into the default branch
+  - `check_merge_conflict_markers()`: Detect leftover Git conflict markers
+    (`<<<<<<<`, `=======`, `>>>>>>>`) in staged files
+  - `check_author()`: Ensure the committer is using a valid personal email
+    (not a corporate account)
+  - `check_file_size()`: Block staged files above a size threshold
+    (notebooks exempted)
+  - `check_python_compile()`: Ensure staged Python files compile
+  - `check_gitleaks()`: Secret detection preventing sensitive data from being
+    committed
 
 ### `gitleaks/` Directory
 Configuration for gitleaks secret scanning:
@@ -412,40 +432,35 @@ For keeping your branch up-to-date with the main branch:
   ```
 
 ## Handling Merge Conflicts
-When merge conflicts occur:
-
-1. Run `git_conflict_files.sh` to identify files with conflicts
-2. Use `git_conflict_show.sh` to view all versions (base, ours, theirs)
-3. Resolve conflicts manually in your editor
-4. Use `gcours` to accept your version or `gctheirs` for theirs
-5. Continue with `grc` once resolved
+- When merge conflicts occur:
+  - Run `git_conflict_files.sh` to identify files with conflicts
+  - Use `git_conflict_show.sh` to view all versions (base, ours, theirs)
+  - Resolve conflicts manually in your editor
+  - Use `gcours` to accept your version or `gctheirs` for theirs
+  - Continue with `grc` once resolved
 
 ## Working with Submodules
-For projects with git submodules:
-
-1. Use `git_submodules.py --action status` to check submodule status
-2. Use `git_submodules_pull.sh` to update all submodules
-3. Use `git_submodules_commit.sh` to commit submodule changes
-4. Use `gco` to checkout branches (handles submodule updates automatically)
+- For projects with git submodules:
+  - Use `git_submodules.py --action status` to check submodule status
+  - Use `git_submodules_pull.sh` to update all submodules
+  - Use `git_submodules_commit.sh` to commit submodule changes
+  - Use `gco` to checkout branches (handles submodule updates automatically)
 
 ## Branch Analysis and Comparison
-Compare your branch with main:
-
-- View commits in both directions: `gd_master.sh`
-- List only changed files: `gd_names.sh`
-- Visualize branch relationships: `git_graph.sh`
+- Compare your branch with main:
+  - View commits in both directions: `gd_master.sh`
+  - List only changed files: `gd_names.sh`
+  - Visualize branch relationships: `git_graph.sh`
 
 ## Notebook Development
-When working with Jupyter notebooks:
-
-- Use `gd_notebook.py` to see actual content changes vs metadata changes
-- This removes notebook artifacts like execution counters and output cells
-- Makes it easier to understand what actually changed in the notebook
+- When working with Jupyter notebooks:
+  - Use `gd_notebook.py` to see actual content changes vs metadata changes
+  - This removes notebook artifacts like execution counters and output cells
+  - Makes it easier to understand what actually changed in the notebook
 
 ## Repository Maintenance
-For large repositories that have accumulated large files:
-
-1. Use `git_shrink_repo.sh` to remove large files from history
-2. Use `git_backup.sh` before major operations
-3. Use `git_revert.sh` to discard unwanted changes
-4. Use `git_clone.sh` with hooks for fresh, properly configured clones
+- For large repositories that have accumulated large files:
+  - Use `git_shrink_repo.sh` to remove large files from history
+  - Use `git_backup.sh` before major operations
+  - Use `git_revert.sh` to discard unwanted changes
+  - Use `git_clone.sh` with hooks for fresh, properly configured clones
