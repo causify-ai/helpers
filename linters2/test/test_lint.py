@@ -409,6 +409,8 @@ class Test_run_python_linting_actions(hunitest.TestCase):
             expected,
         )
 
+    # TODO(ai_gp): Use hunteuti.capture_sys_calls() instead of mocking
+    #  `helpers.hsystem.system` directly.
     @umock.patch("helpers.hsystem.system")
     def test3(self, mock_system: umock.MagicMock) -> None:
         """

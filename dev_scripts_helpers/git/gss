@@ -11,10 +11,12 @@ if [[ -f .gitmodules ]]; then
   echo "===================== supermodule ====================="
 fi;
 
+execute "git branch --show-current"
 execute "git status $*"
 
 if [[ -f .gitmodules ]]; then
   echo
   echo "===================== submodule ====================="
+  execute "git submodule foreach git branch --show-current"
   execute "git submodule foreach git status $*"
 fi;

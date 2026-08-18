@@ -6,8 +6,8 @@ Conventions for writing a README for a directory with executables.
   - **Summary**: One paragraph describing the directory's purpose
   - **Structure of the Dir**: List subdirectories with <20-word descriptions
   - **Description of Files**: Alphabetical list of all files with 1-line
-    descriptions
-  - **Description of Executables**: Detailed docs for each script/tool
+    descriptions in a table
+  - **Description of Executables**: Detailed docs for each script/tool in a table
   - **Description of Workflows** (optional): How executables combine for complex
     features
   - **Description of Architecture**: How code is organized in each directory
@@ -27,26 +27,30 @@ Conventions for writing a README for a directory with executables.
 - Answer: _"What does this directory do?"_
 
 ## Structure of the Dir Section
-- Bullet list of subdirectories (if any)
-- Format: `- <dirname>/` followed by description (<20 words)
+- Bullet list of subdirectories (if any) in a markdown table
+- Format: `<dirname>/` followed by description (<20 words)
 - Example:
   ```markdown
-  - `ai.claude_code.how_to_guide_figs/`
-    - Screenshots and images for Claude Code setup and usage guide
-  - `ai.github_copilot_review.how_to_guide_figs/`
-    - Screenshots demonstrating GitHub Copilot review workflow
+  | File                                   | Description    |
+  | -------------------------------------- | ---------------|
+  | `ai.claude_code.how_to_guide_figs/`    | Screenshots and images for Claude Code setup and usage guide |
+  | `ai.github_copilot_review.how_to_guide_figs/` | Screenshots demonstrating GitHub Copilot review workflow |
   ```
 
 ## Description of Files Section
-- List all Python and Markdown files in directory
+- List all Python and Markdown files in directory formatted in a markdown table
 - Alphabetical order for consistency
-- Format: `- <filename>` with description (<20 words)
+- `Description` is a <20 words description
+- `Cluster` is the functionality
 - Example:
   ```markdown
-  - `ai.coding.prompt.md`
-    - Python coding standards including assertions, logging patterns, and script templates
-  - `ai.unit_test.prompt.md`
-    - Unit testing conventions including test structure, naming patterns, and golden file testing
+  | File                                   | Description                                                                  | Cluster             |
+  | -------------------------------------- | ---------------------------------------------------------------------------- | ------------------- |
+  | `bookmark_utils.py`                    | Shared helpers for downloading/uploading Google Sheets data and CSV files    | Shared Utilities    |
+  | `download_academic_paper_to_md.py`     | Download an academic paper (arXiv/DOI/PDF), convert to Markdown, summarize   | Content Downloaders |
+  | `download_to_md.py`                    | Detect input type and dispatch to the matching `download_*_to_md.py` script  | Content Downloaders |
+  | `download_utils.py`                    | Shared helpers for fetching article titles and summarizing text via an LLM   | Shared Utilities    |
+  | `podcast_dl.py`                        | Download and format a podcast transcript from various sources                | Podcast Tools       |
   ```
 
 ## Description of Executables Section (if Applicable)

@@ -1,49 +1,90 @@
 ---
-description: Add a rule to the set of rules, automatically inferring new rules
-model: haiku
+description: Update a skill or prompt so it captures the lessons learned from how a file changed across Git versions
+argument-hint: <FILE> <PROMPT>
+model: sonnet
 ---
 
 # Goal
-- The user passes you a file `<FILE>` and you need to find the changes between
-  the generation of the file from LLM and the human corrections
+
+- The user gives you two arguments:
+  - `<FILE>`: a path to a file that has been edited across one or more Git
+    commits
+  - `<PROMPT>`: a path to a skill (`SKILL.md`) or prompt file to improve
+- The edits to `<FILE>` encode a lesson: someone had to fix something by hand
+  that `<PROMPT>` should have gotten right the first time
+- Your job is to update `<PROMPT>` so that, given the original `<FILE>`, it would
+  now produce the final `<FILE>`
+- Generalize: infer the underlying *rule*, do not hard-code the specific strings
+  from this one diff
+
+# Inputs
+
+- If `<FILE>` or `<PROMPT>` is missing or ambiguous, stop and ask the user rather
+  than guessing
+- If `<FILE>` has no committed changes, report that and stop
 
 # Workflow
 
-## Step 1: Determined the Changes
-- Look at the changes in Git to `<FILE>` and determine when the file was
-  first generated and when the file was corrected by the human
-- Print a Git command to diff `<FILE>`
+## Step 1: Determine the changes
+
+- Find the commits that touched `<FILE>`:
   ```bash
-  > git difftool ...
+  > git log --oneline --follow -- <FILE>
   ```
-
-<!--
-## Step 1: Read Skill Rules
-- Read `.claude/skills/skill.rules.md` about conventions and rules to write
-  skills
-
-## Step 2: Determine Target Rule File
-- If the user didn't specify `<TARGET_RULE_FILE>`, decide in which of the files
-  `<TARGET_RULE_FILE>` the new rule needs to be added based on the content of
-  `<CONTENT>`
-- The available rules are:
+- Identify the *first* and *last* relevant revisions. Default to the full history
+  of the file; if the user named a range, use that instead
+- Extract `<CHANGES>` as a unified diff:
   ```bash
-  > ls -1 .claude/skills/*.rules.md
+  > git diff <FIRST_SHA> <LAST_SHA> -- <FILE>
   ```
+  - If the diff is large, also read the final version in full so you
+    understand the intended end state, not just the deltas:
+    ```bash
+    > git show <LAST_SHA>:<FILE>
+    ```
+- Do not use interactive commands (e.g. `git difftool`): they block
 
-## Step 3: Read Target Rule File
-- Read the target rules file `<TARGET_RULE_FILE>` to understand its structure and
-  existing rules
+## Step 2: Read the prompt and the conventions
 
-## Step 4: Update the Rules
-- Create the proposed rule `<CONTENT>` to be added, following the conventions in:
-  - `.claude/skills/markdown.rules.md`
-  - `.claude/skills/text.rules.md`
+- Read `<PROMPT>` in full
+- Read `.claude/skills/skill.rules.md` for the conventions and rules that
+  govern how skills and prompts must be written
+- Read any files `<PROMPT>` references, so you don't duplicate a rule that
+  already lives elsewhere
 
-## Step 5: Add the new Rule
-- Find the proper header H1 that is related to the `<CONTENT>`
-  - See `.claude/skills/skill.rules.md` `## Keep Rules Organized in the Rule File`
-- Add the rule `<CONTENT>` to the file `<TARGET_RULE_FILE>` following the conventions in
-  `.claude/skills/skill.rules.md`
-- Make sure there is no overlap with other rules
--->
+## Step 3: Infer the rules
+
+- For each meaningful hunk in `<CHANGES>`, write down:
+  - what changed (before → after)
+  - the general rule it implies
+  - whether `<PROMPT>` already covers it (fully / partially / not at all)
+- Drop hunks that are one-off content edits rather than repeatable rules
+  (e.g. fixing a specific typo, updating a date): say explicitly which
+  hunks you dropped and why
+- Merge rules that are restatements of each other. Prefer one sharp rule
+  over three overlapping ones
+
+## Step 4: Improve the prompt
+
+- Draft the minimal edit to `<PROMPT>` that encodes the inferred rules:
+  - Amend an existing rule when one is close but imprecise
+  - Add a new rule only when no existing rule covers the case
+  - Keep the existing structure, heading style, and voice of `<PROMPT>`
+  - State rules as imperatives, with a short before/after example when the
+    rule is easy to misread
+- Do not grow the prompt unnecessarily: if the new rule makes an old one
+  redundant, remove the old one
+
+## Step 5: Apply via skill.add
+
+- Follow the approach in `.claude/skills/skill.add/SKILL.md`: propose the
+  change to the user first, then apply it once approved
+
+# Output
+
+Report, in this order:
+
+1. The commit range and files inspected
+2. A table of inferred rules: change observed → rule → covered / new
+3. The proposed diff to `<PROMPT>`
+4. Anything you deliberately did not encode, and why

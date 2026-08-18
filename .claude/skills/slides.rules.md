@@ -108,6 +108,10 @@
 - Don't use page separators
 - Don't use unicode characters but use LaTeX symbols if needed
   - Instead of `→` use `$\to$`
+- Do not join two independent clauses inside one bullet with a mid-sentence
+  dash (`... - ...`); put each clause on its own sub-bullet instead
+  - For a short inline list illustrating one point, use `(e.g., item1,
+    item2, ...)` instead of bracketing it with dashes
 
 ## First Slide
 - Use the metadata-comment block, not a LaTeX title slide
@@ -146,6 +150,22 @@
   - @Solution@:
     - ...
   ```
+- Separate every top-level tagged bullet (`- @Tag@: ...`) from the next with
+  a blank line; keep sub-bullets under the same tag tight (no blank line)
+  - A `// From ...` attribution comment also gets a blank line before it, and
+    is indented to the level of the bullet it introduces (top-level comment
+    at column 0, nested comment indented under its parent bullet)
+  - **Bad** (no separation between tag groups)
+    ```markdown
+    - @Problem@: ...
+    - @Solution@: ...
+    ```
+  - **Good**
+    ```markdown
+    - @Problem@: ...
+
+    - @Solution@: ...
+    ```
 
 ## Use Tags for Slide Sections
 - Every first level bullet point (starting with `- ` and not `*`) should start
@@ -204,6 +224,9 @@
 
 - _Example_ (singular): A single concrete illustration
   - Use for one specific example with detail
+  - Use `@Example@` (not `@Definition@`) when introducing a specific named
+    system, tool, or paper as an instance of a broader concept; reserve
+    `@Definition@` for the general term itself
   - E.g.,
     ```
     - @Example@: _"All students take some course"_:
@@ -328,6 +351,8 @@
   - One **Key idea**/**Interpretation** bullet per slide is enough; do not add
     a second bullet at the end that just restates the same point in different
     words
+    - More generally, delete any bullet that only restates a point already
+      made under another tag on the same slide
 
 - _Remark_: A simple but useful fact
   - E.g.,
@@ -346,6 +371,28 @@
 - **Input** / **Output**: What an algorithm consumes and produces
 - **Limitations**: Conditions under which the approach fails or is weak
 - **Counterexample**: Shows what doesn't work
+
+### Fold Supporting Content, Don't Promote It
+- A bullet that only exemplifies, illustrates, or elaborates a nearby bullet
+  is a sub-bullet of that bullet, not a new top-level tag
+  - Give it its own `@Example@`/`@Remark@`/`@Intuition@` tag only when it makes
+    an independent point the slide has not already made
+  - **Bad** (illustration promoted to its own tag)
+    ```markdown
+    - @Fact@: providing a handful of example pairs measurably improves
+      accuracy over instruction-only prompting
+    - @Example@: pasting two existing test functions from a repo before
+      asking for a third steers the model toward that repo's style
+    ```
+  - **Good** (illustration folded in, prefixed `E.g.,`)
+    ```markdown
+    - @Fact@: providing a handful of example pairs measurably improves
+      accuracy over instruction-only prompting
+      - E.g., pasting two existing test functions from a repo before asking
+        for a third steers the model toward that repo's style
+    ```
+- Delete, rather than fold, a bullet whose only content restates a point
+  already made by a nearby bullet in different words
 
 ### Tag Ordering Convention
 
@@ -438,11 +485,15 @@
     2. Non-determinism
        - Actions don't always have predictable outcomes
   ```
+- Do not enumerate items inline in prose with `1) ... 2) ... 3) ...`; break
+  them into a bullet sub-list instead
 
 ## Use Bold
 - Use bold **term** when
   - Defining a term as part of `@Definition` tag
   - Highlighting a term that is particular important
+  - Naming a specific system, tool, model, or paper on first mention in an
+    `@Example@` bullet (e.g., **StarCoder 2**, **Codex**)
 
 ## Use Italic
 - Use _italic_ (`_text_`) for:
@@ -483,6 +534,7 @@
   - Function names
   - Variable names
   - Implementation-oriented notation
+  - Pair/tuple notation, e.g., `(input, output)` or `input -> output`
 
 ## Abbreviations and Acronyms
 - Do not introduce a parenthetical abbreviation you will not reuse; spell out

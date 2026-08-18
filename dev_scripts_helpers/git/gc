@@ -30,3 +30,6 @@ execute "git pull --autostash --rebase"
 
 echo "==================== git push ===================="
 execute "git push"
+
+echo "==================== last commit ===================="
+execute "git log -1 --stat"

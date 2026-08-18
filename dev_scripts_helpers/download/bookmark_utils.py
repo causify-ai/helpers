@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 """
 Shared utilities for Google Sheets link processing scripts.
 
@@ -8,20 +6,39 @@ and working with CSV files.
 
 Import as:
 
-import dev_scripts_helpers.download.link_gsheet_utils as dslgu
+import dev_scripts_helpers.download.bookmark_utils as dshdbout
 """
 
 import csv
 import logging
+import os
 import re
 from typing import Any, Dict, List
 
 import helpers.hdbg as hdbg
 import helpers.hprint as hprint
-import helpers.hcache_simple as hcacsimp
 import helpers.hsystem as hsystem
+import helpers.htable as htable
 
 _LOG = logging.getLogger(__name__)
+
+
+def resolve_gsheet_url(url: str) -> str:
+    """
+    Resolve the Google Sheets URL from the CLI arg or the `LINKS_GSHEET` env
+    variable.
+
+    :param url: URL passed via `--url` (empty string if not passed)
+    :return: resolved, non-empty URL
+    """
+    if not url:
+        url = os.environ.get("LINKS_GSHEET", "")
+    hdbg.dassert_ne(
+        url,
+        "",
+        "Specify --url or set the LINKS_GSHEET environment variable",
+    )
+    return url
 
 
 def get_tmp_file_path(filename: str, prefix: str) -> str:
@@ -111,12 +128,9 @@ def extract_item_id(hn_url: str) -> str:
     return result
 
 
-@hcacsimp.simple_cache(cache_type="json", write_through=True)
 def download_from_gsheet(url: str, output_file: str) -> str:
     """
     Download data from Google Sheets and save to a CSV file.
-
-    Results are cached to avoid redundant downloads of the same sheet.
 
     :param url: URL of the Google Sheets document
     :param output_file: Path where CSV will be saved
@@ -136,6 +150,18 @@ def download_from_gsheet(url: str, output_file: str) -> str:
     rows = read_csv(output_file)
     num_cols = len(rows[0].keys()) if rows else 0
     _LOG.info("Loaded %d rows and %d columns", len(rows), num_cols)
+    # Log the first 3 rows of the downloaded file to spot obvious issues
+    # (e.g., wrong sheet, malformed header) without dumping the whole file.
+    # Reuse the rows already loaded above instead of re-reading the file.
+    csv_rows: List[List[Any]] = []
+    if rows:
+        csv_rows.append(list(rows[0].keys()))
+        csv_rows.extend(list(row.values()) for row in rows)
+    _LOG.info(
+        "First 3 rows of '%s':\n%s",
+        output_file,
+        htable.csv_to_str(csv_rows, max_rows=3),
+    )
     _LOG.debug(hprint.to_str("output_file"))
     return output_file
 

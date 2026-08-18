@@ -559,6 +559,104 @@ class Test__handle_empty_lines(hunitest.TestCase):
 
 
 # #############################################################################
+# Test__add_blank_line_before_smd_comment_placeholder
+# #############################################################################
+
+
+class Test__add_blank_line_before_smd_comment_placeholder(hunitest.TestCase):
+    """
+    Test the _add_blank_line_before_smd_comment_placeholder function.
+    """
+
+    def helper(self, txt: str, expected: str) -> None:
+        """
+        Test helper for _add_blank_line_before_smd_comment_placeholder.
+
+        :param txt: Input text to process
+        :param expected: Expected output
+        """
+        _helper_process_lines(
+            self,
+            txt,
+            expected,
+            dshdllite._add_blank_line_before_smd_comment_placeholder,
+        )
+
+    def test1(self) -> None:
+        """
+        Test that a blank line is added before a comment placeholder that
+        directly follows non-comment content.
+        """
+        # Prepare inputs.
+        txt = """
+        - @Definition@: some text
+        <!--<<<PROTECTED_LINE_COMMENT_001>>>-->
+        """
+        # Prepare outputs.
+        expected = """
+        - @Definition@: some text
+
+        <!--<<<PROTECTED_LINE_COMMENT_001>>>-->
+        """
+        # Run test.
+        self.helper(txt, expected)
+
+    def test2(self) -> None:
+        """
+        Test that consecutive comment placeholders stay adjacent: only the
+        first placeholder of a run gets a blank line before it.
+        """
+        # Prepare inputs.
+        txt = """
+        - @Definition@: some text
+        <!--<<<PROTECTED_LINE_COMMENT_001>>>-->
+        <!--<<<PROTECTED_LINE_COMMENT_002>>>-->
+        <!--<<<PROTECTED_LINE_COMMENT_003>>>-->
+        """
+        # Prepare outputs.
+        expected = """
+        - @Definition@: some text
+
+        <!--<<<PROTECTED_LINE_COMMENT_001>>>-->
+        <!--<<<PROTECTED_LINE_COMMENT_002>>>-->
+        <!--<<<PROTECTED_LINE_COMMENT_003>>>-->
+        """
+        # Run test.
+        self.helper(txt, expected)
+
+    def test3(self) -> None:
+        """
+        Test that no blank line is added when the placeholder is the very
+        first line (nothing precedes it).
+        """
+        # Prepare inputs.
+        txt = """
+        <!--<<<PROTECTED_LINE_COMMENT_001>>>-->
+        Text after.
+        """
+        # Prepare outputs: no changes needed.
+        expected = txt
+        # Run test.
+        self.helper(txt, expected)
+
+    def test4(self) -> None:
+        """
+        Test that no extra blank line is added when a blank line already
+        separates the content from the placeholder.
+        """
+        # Prepare inputs.
+        txt = """
+        - @Definition@: some text
+
+        <!--<<<PROTECTED_LINE_COMMENT_001>>>-->
+        """
+        # Prepare outputs: no changes needed.
+        expected = txt
+        # Run test.
+        self.helper(txt, expected)
+
+
+# #############################################################################
 # Test_add_blank_lines_between_headers
 # #############################################################################
 
@@ -957,6 +1055,57 @@ class Test_convert_asterisk_bullets_to_dashes(hunitest.TestCase):
         """
         # Run test.
         self.helper(txt, expected)
+
+    def test11(self) -> None:
+        """
+        Test that emphasis lines ending with `*` are not converted.
+        """
+        # Prepare inputs.
+        txt = """
+        * Why Distributed Systems Need Consensus *
+        * Trailing space after closing asterisk *
+        * Real bullet item
+        """
+        # Prepare outputs.
+        expected = """
+        * Why Distributed Systems Need Consensus *
+        * Trailing space after closing asterisk *
+        - Real bullet item
+        """
+        # Run test.
+        self.helper(txt, expected)
+
+    def test12(self) -> None:
+        """
+        Test that top-level `* <title>` lines are preserved for smd files.
+
+        In `.smd` slide files, a top-level `* <slide title>` line is a
+        slide-title marker, not a bullet point, so it should not be
+        converted, while indented (nested) asterisk bullets still are.
+        """
+        # Prepare inputs.
+        txt = """
+        * Why Distributed Systems Need Consensus
+
+        - @Motivation@: many independent parties want to share one record
+          * Nested asterisk bullet
+        """
+        # Prepare outputs.
+        expected = """
+        * Why Distributed Systems Need Consensus
+
+        - @Motivation@: many independent parties want to share one record
+          - Nested asterisk bullet
+        """
+        # Run test.
+        _helper_process_lines(
+            self,
+            txt,
+            expected,
+            lambda lines: dshdllite._convert_asterisk_bullets_to_dashes(
+                lines, is_smd_file=True
+            ),
+        )
 
 
 # #############################################################################
@@ -2743,6 +2892,9 @@ class Test_smd_format(hunitest.TestCase):
     def test1(self) -> None:
         """
         Test removing white spaces before the newline.
+
+        The two lines are also two level-1 bullets, so a blank line is
+        inserted between them (see `Test_add_blank_lines_between_top_level_bullets`).
         """
         # Prepare inputs.
         txt = "\n".join(
@@ -2755,6 +2907,7 @@ class Test_smd_format(hunitest.TestCase):
         expected = "\n".join(
             [
                 "- Some text with trailing spaces",
+                "",
                 "- Another line",
             ]
         )
@@ -2982,17 +3135,233 @@ class Test_smd_format(hunitest.TestCase):
 
     def test13(self) -> None:
         """
-        Test that text without any fenced div blocks is left unchanged.
+        Test that text without any fenced div blocks is left unchanged,
+        except that a blank line is added before the level-1 bullet.
         """
         # Prepare inputs.
         txt = """
         Regular text
         - Bullet point
         """
-        # Prepare outputs: no changes needed.
-        expected = txt
+        # Prepare outputs.
+        expected = """
+        Regular text
+
+        - Bullet point
+        """
         # Run test.
         self.helper(txt, expected)
+
+    def test14(self) -> None:
+        """
+        Test the instructions example: one blank line is added between
+        blocks of level-1 bullets, while nested bullets stay glued to their
+        parent with no blank line.
+        """
+        # Prepare inputs.
+        txt = """
+        - @Motivation@: many independent parties want to share one evolving record (e.g.,
+          who owns what, what happened, in what order) with no central party controlling
+          it
+        - @Problem@: _without a trusted intermediary_, how do _mutually distrusting nodes
+          agree_ on a single, consistent history?
+          - Nodes can be slow, offline, or actively malicious
+          - Network messages can be delayed, dropped, or reordered
+        - @Key idea@: **consensus** is the mechanism that lets independent nodes converge
+          on the same ledger despite these failures
+        - @Example@:
+          - A bank's database is the single source of truth for account balances
+          - A blockchain replaces the single database with thousands of independently
+            operated copies that must all agree
+        """
+        # Prepare outputs.
+        expected = """
+        - @Motivation@: Many independent parties want to share one evolving record (e.g.,
+          who owns what, what happened, in what order) with no central party controlling
+          it
+
+        - @Problem@: _Without a trusted intermediary_, how do _mutually distrusting nodes
+          agree_ on a single, consistent history?
+          - Nodes can be slow, offline, or actively malicious
+          - Network messages can be delayed, dropped, or reordered
+
+        - @Key idea@: **Consensus** is the mechanism that lets independent nodes converge
+          on the same ledger despite these failures
+
+        - @Example@
+          - A bank's database is the single source of truth for account balances
+          - A blockchain replaces the single database with thousands of independently
+            operated copies that must all agree
+        """
+        # Run test.
+        self.helper(txt, expected)
+
+    def test15(self) -> None:
+        """
+        Test that there is exactly one blank line before and after every
+        header, including between two consecutive headers.
+        """
+        # Prepare inputs.
+        txt = """
+        # Title
+        ## Subtitle
+        Some prose text
+        """
+        # Prepare outputs.
+        expected = """
+        # Title
+
+        ## Subtitle
+
+        Some prose text
+        """
+        # Run test.
+        self.helper(txt, expected)
+
+    def test16(self) -> None:
+        """
+        Test that a fence line is separated from a preceding header by a
+        blank line, even though no blank line was present in the input.
+        """
+        # Prepare inputs.
+        txt = """
+        ## Title
+        ::: columns
+        content
+        :::
+        """
+        # Prepare outputs.
+        expected = """
+        ## Title
+
+        ::: columns
+
+        content
+
+        :::
+        """
+        # Run test.
+        self.helper(txt, expected)
+
+    def test17(self) -> None:
+        """
+        Test that `_smd_format` is idempotent: running it a second time on
+        its own output produces no further changes.
+        """
+        # Prepare inputs.
+        txt = """
+        - @Motivation@: some text
+        - @Problem@: some other text
+          - Nested point
+        - @Key idea@: final text
+        """
+        lines = hprint.dedent(
+            txt.split("\n"), remove_lead_trail_empty_lines_=True
+        )
+        # Run test.
+        once = dshdllite._smd_format(lines)
+        twice = dshdllite._smd_format(once)
+        # Check outputs.
+        self.assertEqual(once, twice)
+
+    def test18(self) -> None:
+        """
+        Test that a blank line is added between a header and a following
+        slide-title marker, when a blank line already separates the two
+        headers above it.
+        """
+        # Prepare inputs.
+        txt = """
+        # Blockchain Consensus Foundations
+
+        ## Agreement Without a Trusted Party
+        * Why Distributed Systems Need Consensus
+        """
+        # Prepare outputs.
+        expected = """
+        # Blockchain Consensus Foundations
+
+        ## Agreement Without a Trusted Party
+
+        * Why Distributed Systems Need Consensus
+        """
+        # Run test.
+        self.helper(txt, expected)
+
+    def test19(self) -> None:
+        """
+        Test that a blank line is added between a header and a following
+        slide-title marker, and between the two headers, when none of the
+        input lines have any blank line separating them.
+        """
+        # Prepare inputs.
+        txt = """
+        # Blockchain Consensus Foundations
+        ## Agreement Without a Trusted Party
+        * Why Distributed Systems Need Consensus
+        """
+        # Prepare outputs.
+        expected = """
+        # Blockchain Consensus Foundations
+
+        ## Agreement Without a Trusted Party
+
+        * Why Distributed Systems Need Consensus
+        """
+        # Run test.
+        self.helper(txt, expected)
+
+    def test20(self) -> None:
+        """
+        Test that there is exactly one blank line both before and after a
+        header, and both before and after a slide-title marker, even when
+        neither is adjacent to another header/title (e.g., a header preceded
+        by plain text, or a slide title followed by bullet content).
+        """
+        # Prepare inputs.
+        txt = """
+        Some intro text
+        # Title
+        * Slide One
+        - @Tag@: content
+        """
+        # Prepare outputs.
+        expected = """
+        Some intro text
+
+        # Title
+
+        * Slide One
+
+        - @Tag@: Content
+        """
+        # Run test.
+        self.helper(txt, expected)
+
+    def test21(self) -> None:
+        """
+        Test that `_smd_format` is idempotent with headers and slide titles
+        in the mix: running it a second time on its own output produces no
+        further changes.
+        """
+        # Prepare inputs.
+        txt = """
+        # Title
+        ## Subtitle
+        * Slide One
+        - @Tag@: content
+        ## Another Subtitle
+        * Slide Two
+        - @Tag@: more content
+        """
+        lines = hprint.dedent(
+            txt.split("\n"), remove_lead_trail_empty_lines_=True
+        )
+        # Run test.
+        once = dshdllite._smd_format(lines)
+        twice = dshdllite._smd_format(once)
+        # Check outputs.
+        self.assertEqual(once, twice)
 
 
 # #############################################################################
