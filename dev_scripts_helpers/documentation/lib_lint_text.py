@@ -32,6 +32,55 @@ _LOG = logging.getLogger(__name__)
 # #############################################################################
 
 
+_SMD_LINE_COMMENT_PLACEHOLDER_RE = re.compile(
+    r"^<!--<<<PROTECTED_LINE_COMMENT_\d+>>>-->$"
+)
+
+
+def _add_blank_line_before_smd_comment_placeholder(
+    lines: List[str],
+) -> List[str]:
+    """
+    Add a blank line before a `//`-comment placeholder run that directly
+    follows non-comment content.
+
+    `htexprot.extract_protected_content()` disguises `.smd` `//` comments as
+    an HTML comment (`<!--<<<PROTECTED_LINE_COMMENT_NNN>>>-->`) so `beautify`
+    (a markdown-aware formatter) never merges/reflows them. Per CommonMark,
+    an HTML comment block can interrupt a paragraph without a blank line
+    before it, and empirically `beautify`'s formatter then fails to reflow
+    (re-indent) the *preceding* wrapped list-item continuation line when the
+    comment placeholder immediately follows it with no blank line, e.g.:
+    ```
+    - @Definition@: some long text that wraps onto a
+    second line              <- stays unindented, should be `  second line`
+    // a trailing comment right after the bullet, no blank line
+    ```
+    Forcing a blank line in front of the *first* placeholder of a comment
+    run (not before every placeholder, so consecutive `//` lines stay
+    adjacent) avoids this. This is deliberately not done inside
+    `extract_protected_content()`/`restore_protected_content()` themselves,
+    since those two are an exact roundtrip pair elsewhere in the codebase;
+    this is a `lint_text.py`-specific workaround for `beautify`.
+
+    :param lines: The lines to be processed.
+    :return: The lines with a blank line added before each comment-run
+        start.
+    """
+    _LOG.debug("lines=%s", lines)
+    lines_new: List[str] = []
+    for line in lines:
+        if _SMD_LINE_COMMENT_PLACEHOLDER_RE.match(line):
+            prev_line = lines_new[-1] if lines_new else ""
+            if prev_line.strip() and not _SMD_LINE_COMMENT_PLACEHOLDER_RE.match(
+                prev_line
+            ):
+                lines_new.append("")
+        lines_new.append(line)
+    hdbg.dassert_isinstance(lines_new, list)
+    return lines_new
+
+
 def _preprocess_txt(
     lines: List[str], extension: str
 ) -> Tuple[List[str], Dict[str, Any]]:
@@ -44,6 +93,9 @@ def _preprocess_txt(
 
     E.g.,
     - Extract protected content (fenced blocks, comments, math blocks)
+    - For `.smd` files, add a blank line before a `//`-comment placeholder
+      run that directly follows content, working around a `beautify`
+      reflow bug (see `_add_blank_line_before_smd_comment_placeholder()`)
     - Handle stars `*` from txt files
     - Remove various artifacts (e.g., from Google Docs)
     - Format math equations
@@ -57,6 +109,11 @@ def _preprocess_txt(
     _LOG.debug("lines=%s", lines)
     # 0) Extract protected content (fenced blocks, comments, math blocks).
     lines, protected_map = htexprot.extract_protected_content(lines, extension)
+    if extension == "smd":
+        # Work around `beautify` failing to reflow a wrapped list-item line
+        # that's immediately followed (no blank line) by a `//`-comment
+        # placeholder; see the function's docstring for why.
+        lines = _add_blank_line_before_smd_comment_placeholder(lines)
     # 1) Remove some artifacts when copying from Google Docs.
     # TODO(gp): Extract this into remove_google_docs_artifacts() since it is
     # used in other places.
@@ -481,6 +538,99 @@ def _is_smd_fence_line(line: str) -> bool:
     return bool(re.match(r"^\s*:{3,}", line))
 
 
+def _is_smd_slide_title_line(line: str) -> bool:
+    """
+    Check if a line is a top-level `* <slide title>` marker.
+
+    A top-level `*` line (i.e., no leading whitespace) followed by a space
+    and text is a slide-title marker in `.smd` files, not a bullet point
+    (see `_convert_asterisk_bullets_to_dashes`).
+
+    :param line: The line to check.
+    :return: True if the line is a top-level slide-title marker.
+    """
+    return bool(re.match(r"^\*\s+.*$", line))
+
+
+def _is_smd_header_or_title_line(line: str) -> bool:
+    """
+    Check if a line is a markdown header or a top-level slide-title marker.
+
+    :param line: The line to check.
+    :return: True if the line is a header (`#`, `##`, ...) or a slide-title
+        marker (`* <title>`).
+    """
+    return bool(re.match(r"^#+\s+", line)) or _is_smd_slide_title_line(line)
+
+
+def _format_smd_header_and_title_spacing(lines: List[str]) -> List[str]:
+    """
+    Normalize blank lines around headers and slide-title markers.
+
+    Ensures there is exactly one blank line immediately before and after
+    every header (`#`, `##`, ...) and every top-level slide-title marker
+    (`* <title>`), including when two such lines are directly adjacent to
+    each other (e.g., a header followed by another header, or by a slide
+    title).
+
+    E.g.,
+    ```
+    # Blockchain Consensus Foundations
+    ## Agreement Without a Trusted Party
+    * Why Distributed Systems Need Consensus
+    ```
+    ->
+    ```
+    # Blockchain Consensus Foundations
+
+    ## Agreement Without a Trusted Party
+
+    * Why Distributed Systems Need Consensus
+    ```
+
+    :param lines: The lines to be processed.
+    :return: The lines with normalized spacing around headers and slide
+        titles.
+    """
+    _LOG.debug("lines=%s", lines)
+    # 1) Drop every blank line that borders a header/title line (on either
+    # side): it will be re-inserted (at most once) in the next step.
+    no_blank_near_special: List[str] = []
+    i = 0
+    n = len(lines)
+    while i < n:
+        line = lines[i]
+        if line.strip() == "":
+            prev_line = no_blank_near_special[-1] if no_blank_near_special else ""
+            # Look past the run of blank lines to find the next real line.
+            j = i
+            while j < n and lines[j].strip() == "":
+                j += 1
+            next_line = lines[j] if j < n else ""
+            if _is_smd_header_or_title_line(
+                prev_line
+            ) or _is_smd_header_or_title_line(next_line):
+                i = j
+                continue
+        no_blank_near_special.append(line)
+        i += 1
+    # 2) Re-insert exactly one blank line at every boundary touching a
+    # header/title line, on either side. Unlike fenced div blocks, two
+    # consecutive header/title lines still get a blank between them (they
+    # don't stay glued together).
+    lines_new: List[str] = []
+    for idx, line in enumerate(no_blank_near_special):
+        if idx > 0:
+            prev_line = no_blank_near_special[idx - 1]
+            if _is_smd_header_or_title_line(
+                prev_line
+            ) or _is_smd_header_or_title_line(line):
+                lines_new.append("")
+        lines_new.append(line)
+    hdbg.dassert_isinstance(lines_new, list)
+    return lines_new
+
+
 def _format_smd_fence_spacing(lines: List[str]) -> List[str]:
     """
     Normalize blank lines around smd fenced div blocks (e.g., `::: columns`).
@@ -550,6 +700,12 @@ def _smd_format(lines: List[str]) -> List[str]:
     - Make sure there is exactly one empty line between a fenced div block
       (a line starting with at least 3 `:`, e.g., `::: columns`) and the
       surrounding chunk of code, while consecutive fence lines stay adjacent
+    - Rebuild blank-line spacing from scratch: strip every blank line and then
+      re-derive exactly the ones smd formatting needs, i.e., one blank line
+      between blocks of level-1 bullets (nested bullets stay glued to their
+      parent, with no blank line), around fenced div blocks, and exactly one
+      blank line before and after every header (`#`, `##`, ...) and every
+      slide-title marker (`* <title>`)
 
     :param lines: The lines to be processed.
     :return: The lines formatted according to the smd conventions.
@@ -573,8 +729,23 @@ def _smd_format(lines: List[str]) -> List[str]:
                 line,
             )
         lines_new.append(line)
-    # Normalize the blank lines around fenced div blocks (`:::`).
+    # Rebuild all blank-line spacing from scratch, instead of reconciling
+    # separate add/remove rules that can drift out of sync. Strip every blank
+    # line, then re-derive exactly the ones needed.
+    lines_new = [line for line in lines_new if line.strip()]
+    # Add a blank line before every level-1 bullet (i.e., between blocks of
+    # level-1 bullets), leaving nested bullets glued to their parent.
+    lines_new = hmarform.format_first_level_bullets(lines_new)
+    # Normalize the blank lines around fenced div blocks (`:::`). This only
+    # touches blanks bordering a fence line, so it can't undo the bullet
+    # spacing just added, and it fixes spacing where a fence sits next to a
+    # bullet with no blank line yet.
     lines_new = _format_smd_fence_spacing(lines_new)
+    # Ensure exactly one blank line before and after every header and slide
+    # title. Runs last: like `_format_smd_fence_spacing()`, it drops and
+    # re-derives the blanks it cares about, so it correctly cleans up after
+    # (and is unaffected by) whatever the bullet/fence steps above did.
+    lines_new = _format_smd_header_and_title_spacing(lines_new)
     hdbg.dassert_isinstance(lines_new, list)
     return lines_new
 
@@ -707,7 +878,9 @@ VALID_ACTIONS = {
     # - Remove trailing white spaces
     # - Remove the `:` after a lone `@tag@`
     # - Capitalize the first letter after a `:`
-    # - Normalize blank lines around fenced div blocks (`:::`)
+    # - Rebuild blank-line spacing: one blank line between blocks of level-1
+    #   bullets, around fenced div blocks (`:::`), and exactly one blank line
+    #   before/after every header and slide-title marker (`* <title>`)
     "smd_format": ["smd"],
 }
 
