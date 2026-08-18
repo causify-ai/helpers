@@ -377,7 +377,9 @@ class Test_format_markdown_slide(hunitest.TestCase):
         :param expected_text: Expected formatted output
         """
         lines = hprint.dedent(input_text).strip().split("\n")
-        actual = hmarform.format_markdown_slide(lines)
+        actual = hmarform.format_markdown_slide(
+            lines, tmp_dir=self.get_scratch_space()
+        )
         actual = "\n".join(actual)
         expected = hprint.dedent(expected_text).strip()
         _LOG.debug("actual=\n%s", actual)

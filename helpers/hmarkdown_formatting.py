@@ -504,11 +504,13 @@ def format_column_blocks(lines: List[str]) -> List[str]:
     return lines
 
 
-def format_markdown_slide(lines: List[str]) -> List[str]:
+def format_markdown_slide(lines: List[str], *, tmp_dir: str = ".") -> List[str]:
     """
     Format markdown text for a slide.
 
     :param lines: input lines to format
+    :param tmp_dir: directory (e.g., a test's scratch space) to save the
+        tmp file used internally by `prettier_on_str()`
     :return: formatted slide text
     """
     hdbg.dassert_isinstance(lines, list)
@@ -523,7 +525,7 @@ def format_markdown_slide(lines: List[str]) -> List[str]:
     #
     file_type = "md"
     txt = "\n".join(lines)
-    txt = dshdlipr.prettier_on_str(txt, file_type)
+    txt = dshdlipr.prettier_on_str(txt, file_type, tmp_dir=tmp_dir)
     #
     lines = txt.split("\n")
     lines = hmarslid.convert_markdown_to_slide(lines)
