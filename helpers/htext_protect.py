@@ -98,6 +98,16 @@ def _is_latex_comment(line: str) -> bool:
     return bool(re.match(r"^\s*%", line))
 
 
+def _is_smd_line_comment(line: str) -> bool:
+    """
+    Check if line is a smd line comment (starts with //).
+
+    :param line: Line to check
+    :return: True if line starts with //
+    """
+    return bool(re.match(r"^\s*//", line))
+
+
 # #############################################################################
 # Main functions
 # #############################################################################
@@ -111,18 +121,19 @@ def extract_protected_content(
     Extract protected content and replace with placeholders.
 
     Protected content includes:
-    - Fenced code blocks (``` ... ```) for .md and .txt files
+    - Fenced code blocks (``` ... ```) for .md, .txt, and .smd files
     - Math blocks ($$ ... $$) for all file types
-    - HTML comments (<!-- ... -->) for .md and .txt files
+    - HTML comments (<!-- ... -->) for .md, .txt, and .smd files
     - LaTeX comments (% ...) for .tex files
+    - `//` line comments for .smd files
 
     :param lines: The lines to be processed
-    :param file_type: File extension ('md', 'txt', or 'tex')
+    :param file_type: File extension ('md', 'txt', 'tex', or 'smd')
     :return: Tuple of (lines with placeholders, mapping of placeholders to
         original content)
     """
     hdbg.dassert_isinstance(lines, list)
-    hdbg.dassert_in(file_type, ["md", "txt", "tex"])
+    hdbg.dassert_in(file_type, ["md", "txt", "tex", "smd"])
     _LOG.debug("Extracting protected content for file_type=%s", file_type)
     #
     protected_map: Dict[str, str] = {}
@@ -137,8 +148,10 @@ def extract_protected_content(
     html_comment_lines: List[str] = []
     # Process each line.
     for line in lines:
-        # Handle fenced blocks (for .md and .txt files).
-        if file_type in ["md", "txt"] and _is_fenced_block_delimiter(line):
+        # Handle fenced blocks (for .md, .txt, and .smd files).
+        if file_type in ["md", "txt", "smd"] and _is_fenced_block_delimiter(
+            line
+        ):
             if not in_fenced_block:
                 # Opening delimiter.
                 in_fenced_block = True
@@ -179,8 +192,8 @@ def extract_protected_content(
         if in_math_block:
             math_block_lines.append(line)
             continue
-        # Handle HTML comments (for .md and .txt files).
-        if file_type in ["md", "txt"]:
+        # Handle HTML comments (for .md, .txt, and .smd files).
+        if file_type in ["md", "txt", "smd"]:
             # Single-line HTML comment.
             single_line_comment = _extract_single_line_html_comment(line)
             if single_line_comment:
@@ -217,6 +230,17 @@ def extract_protected_content(
             # this line as a comment and never reflows/joins it with neighbors.
             lines_new.append(f"%{placeholder}")
             continue
+        # Handle `//` line comments (for .smd files).
+        if file_type == "smd" and _is_smd_line_comment(line):
+            placeholder = f"<<<PROTECTED_LINE_COMMENT_{counter:03d}>>>"
+            protected_map[placeholder] = line
+            counter += 1
+            # Disguise the placeholder as an HTML comment so the `beautify`
+            # step (which runs the text through a markdown-aware formatter,
+            # even for `smd`/`txt` files) recognizes it as an HTML block and
+            # never reflows/merges it with neighboring `//` comment lines.
+            lines_new.append(f"<!--{placeholder}-->")
+            continue
         # Regular line: keep as-is.
         lines_new.append(line)
     # Check for unclosed blocks.
@@ -252,9 +276,15 @@ def restore_protected_content(
         for placeholder, original in protected_map.items():
             if placeholder in line:
                 stripped = line.strip()
-                # Exact match or LaTeX comment with '%' prefix (and optional space).
-                if stripped == placeholder or re.fullmatch(
-                    rf"%\s*{re.escape(placeholder)}", stripped
+                # Exact match, LaTeX comment with '%' prefix (and optional
+                # space), or `//` line comment disguised as an HTML comment
+                # (`<!--...-->`).
+                if (
+                    stripped == placeholder
+                    or re.fullmatch(rf"%\s*{re.escape(placeholder)}", stripped)
+                    or re.fullmatch(
+                        rf"<!--\s*{re.escape(placeholder)}\s*-->", stripped
+                    )
                 ):
                     # Placeholder is entire line: replace with multi-line content.
                     lines_new.extend(original.split("\n"))

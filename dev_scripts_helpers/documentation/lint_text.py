@@ -20,6 +20,7 @@ import logging
 import os
 
 import helpers.hdocker as hdocker
+import helpers.hprint as hprint
 import helpers.hselect_input_output as hseinout
 import helpers.hparser as hparser
 import helpers.hselect_action as hselacti
@@ -137,6 +138,8 @@ def _parser() -> argparse.ArgumentParser:
 def _main(parser: argparse.ArgumentParser) -> None:
     args = parser.parse_args()
     hseinout.init_logger_for_input_output_transform(args)
+    # Print the backend and mode used to format markdown files.
+    _LOG.info(hprint.to_str("args.backend args.mode"))
     # Handle --revert option.
     if args.revert:
         files = hseinout.parse_input_output_files(args)

@@ -889,7 +889,9 @@ def run_pandoc_to_typst_slides(
     # project root.
     # 4) So we rewrite the paths to be root-absolute and compile with `--root`
     #    set to the repo root so they resolve correctly.
-    root = os.getcwd()
+    # Use the outermost Git root since it matches the Docker mount root used by
+    # `hdocker.get_docker_mount_info()`.
+    root = hgit.find_git_root()
     txt = hio.from_file(typ_file)
     # `pandoc_touying.typ` includes `typst_abbrevs.typ` via a relative path that
     # assumes the generated `.typ` sits exactly 2 levels below the repo root.

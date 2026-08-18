@@ -4,12 +4,13 @@ Import as:
 import helpers.lib_tasks.lib_tasks_git as hltltagi
 """
 
+import json
 import logging
 import os
 import re
 import stat
 import subprocess
-from typing import Any, List
+from typing import Any, Dict, List, Optional
 
 import tqdm
 from invoke.tasks import task
@@ -762,10 +763,39 @@ def git_branch_delete_merged(ctx, confirm_delete=True):  # type: ignore
     hltltaut.run(ctx, cmd)
 
 
+def _get_open_pr_info(branch_name: str) -> Optional[Dict[str, Any]]:
+    """
+    Return info about the open PR whose head is `branch_name`.
+
+    :param branch_name: name of the branch to look up the PR for
+    :return: PR info (number, title, body, ...) or `None` if there is
+        no open PR for `branch_name`
+    """
+    cmd = (
+        f"gh pr view {branch_name} --json "
+        "number,title,body,isDraft,labels,assignees,reviewRequests,state"
+    )
+    rc, txt = hsystem.system_to_string(cmd, abort_on_error=False)
+    if rc != 0:
+        # No PR (open or otherwise) is associated with this branch.
+        return None
+    pr_info: Dict[str, Any] = json.loads(txt)
+    if pr_info["state"] != "OPEN":
+        # A merged or already-closed PR is not something to carry forward.
+        return None
+    return pr_info
+
+
 @task
 def git_branch_rename(ctx, new_branch_name):  # type: ignore
     """
     Rename current branch both locally and remotely.
+
+    If an open PR exists for the current branch and its title still
+    matches the branch name (i.e., it was not customized), the PR is
+    recreated under the new branch name, since GitHub always closes a
+    PR once its head branch is deleted and there is no way to migrate
+    an existing PR to a differently-named branch.
     """
     hltltaut.report_task()
     old_branch_name = hgit.get_branch_name(".")
@@ -780,12 +810,27 @@ def git_branch_rename(ctx, new_branch_name):  # type: ignore
         f"'{new_branch_name}'"
     )
     hsystem.query_yes_no(msg, abort_on_no=True)
+    # Look up the PR before touching anything, since deleting the old
+    # remote branch below auto-closes it. Only PRs whose title still
+    # matches the branch name are carried over, to avoid clobbering a
+    # title the user customized on purpose.
+    pr_info = _get_open_pr_info(old_branch_name)
+    if pr_info is not None and pr_info["title"] != old_branch_name:
+        _LOG.warning(
+            "PR #%s for '%s' has a custom title '%s': skipping PR rename",
+            pr_info["number"],
+            old_branch_name,
+            pr_info["title"],
+        )
+        pr_info = None
     # https://stackoverflow.com/questions/30590083
     # Rename the local branch to the new name.
     # > git branch -m <old_name> <new_name>
     cmd = f"git branch -m {new_branch_name}"
     hltltaut.run(ctx, cmd)
-    # Delete the old branch on remote.
+    # Delete the old branch on remote. This auto-closes the PR captured in
+    # `pr_info` above, if any, since GitHub always closes a PR when its
+    # head branch is deleted.
     # > git push <remote> --delete <old_name>
     cmd = f"git push origin --delete {old_branch_name}"
     hltltaut.run(ctx, cmd)
@@ -800,8 +845,33 @@ def git_branch_rename(ctx, new_branch_name):  # type: ignore
     hltltaut.run(ctx, cmd)
     # Reset the upstream branch for the new_name local branch.
     # > git push <remote> -u <new_name>
-    cmd = f"git push origin u {new_branch_name}"
+    cmd = f"git push origin -u {new_branch_name}"
     hltltaut.run(ctx, cmd)
+    # Recreate the PR under the new branch name, carrying over its body,
+    # draft status, labels, reviewers, and assignees, and point back to it
+    # from the old (now closed) PR.
+    if pr_info is not None:
+        labels = ",".join(label["name"] for label in pr_info["labels"])
+        reviewers = ",".join(
+            reviewer["login"] for reviewer in pr_info["reviewRequests"]
+        )
+        assignees = ",".join(
+            assignee["login"] for assignee in pr_info["assignees"]
+        )
+        hltltagh.gh_create_pr(
+            ctx,
+            body=pr_info["body"],
+            draft=pr_info["isDraft"],
+            title=new_branch_name,
+            reviewer=reviewers,
+            labels=labels,
+            assignee=assignees,
+        )
+        cmd = (
+            f"gh pr comment {pr_info['number']} "
+            f"--body \"Renamed to '{new_branch_name}': see the new PR.\""
+        )
+        hltltaut.run(ctx, cmd)
     print("Done")
 
 

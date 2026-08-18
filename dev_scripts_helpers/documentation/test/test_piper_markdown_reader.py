@@ -734,6 +734,8 @@ class Test__generate_audio(hunitest.TestCase):
         mock_process.communicate.return_value = ("", "piper error")
         mock_process.returncode = 1
         # Run test and check output.
+        # TODO(ai_gp): Use hunteuti.capture_sys_calls() instead of mocking
+        #  `subprocess.Popen` directly, once it supports Popen.
         with (
             mock.patch.object(
                 dshdpmare, "_get_voice_path", return_value=voice_path
@@ -765,6 +767,8 @@ class Test__apply_speed_with_ffmpeg(hunitest.TestCase):
         output_file = "output.wav"
         speed = 1.0
         # Run test.
+        # TODO(ai_gp): Use hunteuti.capture_sys_calls() instead of mocking
+        #  `subprocess.Popen` directly, once it supports Popen.
         with mock.patch("subprocess.Popen") as mock_popen:
             dshdpmare._apply_speed_with_ffmpeg(
                 input_file, output_file=output_file, speed=speed
@@ -825,6 +829,8 @@ class Test__apply_speed_with_ffmpeg(hunitest.TestCase):
         mock_process.communicate.return_value = ("", "ffmpeg error")
         mock_process.returncode = 1
         # Run test and check output.
+        # TODO(ai_gp): Use hunteuti.capture_sys_calls() instead of mocking
+        #  `subprocess.Popen` directly, once it supports Popen.
         with mock.patch("subprocess.Popen", return_value=mock_process):
             with self.assertRaises(AssertionError):
                 dshdpmare._apply_speed_with_ffmpeg(

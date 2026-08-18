@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-
+import logging
 import os
 
 import helpers.hgit as hgit
@@ -9,6 +9,8 @@ import helpers.hprint as hprint
 import helpers.hsystem as hsystem
 import helpers.hunit_test as hunitest
 import dev_scripts_helpers.download.download_html_to_md as dshddhtmd
+
+_LOG = logging.getLogger(__name__)
 
 
 def _run_script(
@@ -60,6 +62,342 @@ def _test_html_to_md_conversion(
 
 
 # #############################################################################
+# Test_download_html_to_md_py_bs
+# #############################################################################
+
+
+class Test_download_html_to_md_py_bs(hunitest.TestCase):
+    """
+    End-to-end test for script using BeautifulSoup converter.
+    """
+
+    def helper(self, html_content: str, expected_md: str) -> None:
+        """
+        Test helper for the script using the BeautifulSoup converter.
+
+        :param html_content: raw HTML input to convert
+        :param expected_md: expected markdown output
+        """
+        # Run test and check outputs.
+        converter = "bs"
+        _test_html_to_md_conversion(
+            self, html_content, expected_md, converter=converter
+        )
+
+    def test1(self) -> None:
+        """
+        Test script with BeautifulSoup converter on HTML with main tag.
+        """
+        # Prepare inputs.
+        html_content = """
+        <html>
+        <body>
+        <nav>Navigation</nav>
+        <main>
+            <h1>Title Here</h1>
+            <p>Content paragraph</p>
+        </main>
+        </body>
+        </html>
+        """
+        # Prepare outputs.
+        expected = """
+        # Title Here
+
+        Content paragraph
+        """
+        # Run test.
+        self.helper(html_content, expected)
+
+    def test2(self) -> None:
+        """
+        Test script with main container and nested content.
+        """
+        # Prepare inputs.
+        html_content = """
+        <html>
+        <body>
+        <nav>Navigation</nav>
+        <main>
+            <h1>Article Title</h1>
+            <h2>Section</h2>
+            <p>Nested content here</p>
+        </main>
+        </body>
+        </html>
+        """
+        # Prepare outputs.
+        expected = """
+        # Article Title
+
+        ## Section
+
+        Nested content here
+        """
+        # Run test.
+        self.helper(html_content, expected)
+
+    def test3(self) -> None:
+        """
+        Test script with role='main' selector.
+        """
+        # Prepare inputs.
+        html_content = """
+        <html>
+        <body>
+        <nav>Navigation</nav>
+        <div role="main">
+            <h2>Documentation</h2>
+            <p>Content in role main</p>
+        </div>
+        </body>
+        </html>
+        """
+        # Prepare outputs.
+        expected = """
+        ## Documentation
+
+        Content in role main
+        """
+        # Run test.
+        self.helper(html_content, expected)
+
+    def test4(self) -> None:
+        """
+        Test script with BeautifulSoup converter on empty HTML input.
+        """
+        # Prepare inputs.
+        html_content = ""
+        # Prepare outputs.
+        expected = ""
+        # Run test.
+        self.helper(html_content, expected)
+
+
+# #############################################################################
+# Test_download_html_to_md_py_readability
+# #############################################################################
+
+
+class Test_download_html_to_md_py_readability(hunitest.TestCase):
+    """
+    End-to-end test for script using readability converter.
+    """
+
+    def helper(self, html_content: str, expected_md: str) -> None:
+        """
+        Test helper for the script using the readability converter.
+
+        :param html_content: raw HTML input to convert
+        :param expected_md: expected markdown output
+        """
+        # Run test and check outputs.
+        converter = "readability"
+        _test_html_to_md_conversion(
+            self, html_content, expected_md, converter=converter
+        )
+
+    def test1(self) -> None:
+        """
+        Test script with readability converter on article-like content.
+        """
+        # Prepare inputs.
+        html_content = """
+        <html>
+        <head><title>Article</title></head>
+        <body>
+        <nav>Navigation</nav>
+        <article>
+            <h1>Article Title</h1>
+            <p>This is article content that readability should extract.</p>
+            <p>More paragraph content here.</p>
+        </article>
+        <footer>Footer</footer>
+        </body>
+        </html>
+        """
+        # Prepare outputs.
+        expected = """
+        Navigation
+
+        # Article Title
+        This is article content that readability should extract
+
+        More paragraph content here
+        """
+        # Run test.
+        self.helper(html_content, expected)
+
+    def test2(self) -> None:
+        """
+        Test script with readability converter on dense text content.
+        """
+        # Prepare inputs.
+        html_content = """
+        <html>
+        <body>
+        <div>
+            <h2>Documentation Section</h2>
+            <p>First paragraph of content.</p>
+            <p>Second paragraph with more information.</p>
+            <p>Third paragraph continuing the documentation.</p>
+        </div>
+        </body>
+        </html>
+        """
+        # Prepare outputs.
+        expected = """
+        ## Documentation Section
+        First paragraph of content
+        Second paragraph with more information
+        Third paragraph continuing the documentation
+        """
+        # Run test.
+        self.helper(html_content, expected)
+
+    def test3(self) -> None:
+        """
+        Test script with readability converter on empty HTML input.
+
+        Empty input is not handled gracefully: `readability.Document()` raises
+        `Unparseable` (`Document is empty`) when parsing an empty document,
+        which surfaces as the script exiting with a non-zero return code, and
+        `hsystem.system()` (called with the default `abort_on_error=True`)
+        raises `RuntimeError`.
+        """
+        # Prepare inputs.
+        html_content = ""
+        expected = ""
+        # Run test.
+        with self.assertRaises(RuntimeError):
+            self.helper(html_content, expected)
+
+
+# #############################################################################
+# Test_download_html_to_md_py_auto
+# #############################################################################
+
+
+class Test_download_html_to_md_py_auto(hunitest.TestCase):
+    """
+    End-to-end test for script using auto converter mode.
+    """
+
+    def helper(
+        self,
+        html_content: str,
+        expected_md: str,
+        *,
+        converter: str = "auto",
+    ) -> None:
+        """
+        Test helper for the script using auto converter mode.
+
+        :param html_content: raw HTML input to convert
+        :param expected_md: expected markdown output
+        :param converter: converter mode to use (defaults to "auto")
+        """
+        # Run test and check outputs.
+        _test_html_to_md_conversion(
+            self, html_content, expected_md, converter=converter
+        )
+
+    def test1(self) -> None:
+        """
+        Test script with auto mode uses BeautifulSoup first when main exists.
+        """
+        # Prepare inputs.
+        html_content = """
+        <html>
+        <body>
+        <nav>Navigation</nav>
+        <main>
+            <h1>Auto Mode Test</h1>
+            <p>Content found by BS selector</p>
+        </main>
+        </body>
+        </html>
+        """
+        # Prepare outputs.
+        expected = """
+        # Auto Mode Test
+
+        Content found by BS selector
+        """
+        # Run test.
+        self.helper(html_content, expected)
+
+    def test2(self) -> None:
+        """
+        Test script with auto mode falls back to readability.
+        """
+        # Prepare inputs.
+        html_content = """
+        <html>
+        <body>
+        <div>
+            <h2>Fallback Test Section</h2>
+            <p>This should be extracted by readability fallback.</p>
+            <p>Additional paragraph content for readability to process.</p>
+        </div>
+        </body>
+        </html>
+        """
+        # Prepare outputs.
+        expected = """
+        ## Fallback Test Section
+        This should be extracted by readability fallback
+        Additional paragraph content for readability to process
+        """
+        # Run test.
+        self.helper(html_content, expected)
+
+    def test3(self) -> None:
+        """
+        Test script preserves heading structure in markdown.
+        """
+        # Prepare inputs.
+        html_content = """
+        <html>
+        <body>
+        <main>
+            <h1>Main Heading</h1>
+            <h2>Subheading</h2>
+            <p>Paragraph text</p>
+        </main>
+        </body>
+        </html>
+        """
+        # Prepare outputs.
+        expected = """
+        # Main Heading
+
+        ## Subheading
+
+        Paragraph text
+        """
+        # Run test.
+        self.helper(html_content, expected, converter="bs")
+
+    def test4(self) -> None:
+        """
+        Test script with auto converter mode on empty HTML input.
+
+        Empty input is not handled gracefully: BeautifulSoup finds no content
+        container and returns an empty string, so auto mode falls back to
+        readability, which raises `Unparseable` (`Document is empty`). The
+        script then exits with a non-zero return code, and `hsystem.system()`
+        (called with the default `abort_on_error=True`) raises `RuntimeError`.
+        """
+        # Prepare inputs.
+        html_content = ""
+        expected = ""
+        # Run test.
+        with self.assertRaises(RuntimeError):
+            self.helper(html_content, expected)
+
+
+# #############################################################################
 # Test_remove_data_uri_images
 # #############################################################################
 
@@ -76,6 +414,8 @@ class Test_remove_data_uri_images(hunitest.TestCase):
         :param input_content: Markdown content to process
         :param expected: Expected output after cleanup
         """
+        input_content = hprint.dedent(input_content)
+        expected = hprint.dedent(expected)
         # Run test.
         actual = dshddhtmd._remove_data_uri_images(input_content)
         # Check outputs.
@@ -94,7 +434,7 @@ class Test_remove_data_uri_images(hunitest.TestCase):
 
         """
         # Run test.
-        self.helper(hprint.dedent(input_content), hprint.dedent(expected))
+        self.helper(input_content, expected)
 
     def test2(self) -> None:
         """
@@ -109,7 +449,7 @@ class Test_remove_data_uri_images(hunitest.TestCase):
 
         """
         # Run test.
-        self.helper(hprint.dedent(input_content), hprint.dedent(expected))
+        self.helper(input_content, expected)
 
     def test3(self) -> None:
         """
@@ -132,7 +472,7 @@ class Test_remove_data_uri_images(hunitest.TestCase):
         Some content.
         """
         # Run test.
-        self.helper(hprint.dedent(input_content), hprint.dedent(expected))
+        self.helper(input_content, expected)
 
     def test4(self) -> None:
         """
@@ -148,7 +488,6 @@ class Test_remove_data_uri_images(hunitest.TestCase):
 
         ![](data:image/svg+xml;base64,def){.icon}
         """
-        input_content = hprint.dedent(input_content)
         # Prepare outputs.
         expected = """
 
@@ -158,7 +497,6 @@ class Test_remove_data_uri_images(hunitest.TestCase):
 
 
         """
-        expected = hprint.dedent(expected)
         # Run test.
         self.helper(input_content, expected)
 
@@ -189,7 +527,7 @@ class Test_remove_data_uri_images(hunitest.TestCase):
         # Prepare outputs.
         expected = input_content
         # Run test.
-        self.helper(hprint.dedent(input_content), hprint.dedent(expected))
+        self.helper(input_content, expected)
 
     def test7(self) -> None:
         """
@@ -201,13 +539,11 @@ class Test_remove_data_uri_images(hunitest.TestCase):
 
         Content.
         """
-        input_content = hprint.dedent(input_content)
         # Prepare outputs.
         expected = """
 
         Content.
         """
-        expected = hprint.dedent(expected)
         # Run test.
         self.helper(input_content, expected)
 
@@ -221,13 +557,11 @@ class Test_remove_data_uri_images(hunitest.TestCase):
 
         Text.
         """
-        input_content = hprint.dedent(input_content)
         # Prepare outputs.
         expected = """
 
         Text.
         """
-        expected = hprint.dedent(expected)
         # Run test.
         self.helper(input_content, expected)
 
@@ -243,7 +577,6 @@ class Test_remove_data_uri_images(hunitest.TestCase):
 
         Text.
         """
-        input_content = hprint.dedent(input_content)
         # Prepare outputs.
         expected = """
 
@@ -251,7 +584,6 @@ class Test_remove_data_uri_images(hunitest.TestCase):
 
         Text.
         """
-        expected = hprint.dedent(expected)
         # Run test.
         self.helper(input_content, expected)
 
@@ -265,238 +597,10 @@ class Test_remove_data_uri_images(hunitest.TestCase):
 
         ![alt](https://example.com/pic.png)
         """
-        input_content = hprint.dedent(input_content)
         # Prepare outputs.
         expected = """
 
         ![alt](https://example.com/pic.png)
         """
-        expected = hprint.dedent(expected)
         # Run test.
         self.helper(input_content, expected)
-
-
-# #############################################################################
-# Test_download_html_to_md_py_bs
-# #############################################################################
-
-
-class Test_download_html_to_md_py_bs(hunitest.TestCase):
-    """
-    End-to-end test for script using BeautifulSoup converter.
-    """
-
-    def test1(self) -> None:
-        """
-        Test script with BeautifulSoup converter on HTML with main tag.
-        """
-        html_content = """
-        <html>
-        <body>
-        <nav>Navigation</nav>
-        <main>
-            <h1>Title Here</h1>
-            <p>Content paragraph</p>
-        </main>
-        </body>
-        </html>
-        """
-        expected = """
-        # Title Here
-
-        Content paragraph
-        """
-        _test_html_to_md_conversion(self, html_content, expected, converter="bs")
-
-    def test2(self) -> None:
-        """
-        Test script with main container and nested content.
-        """
-        html_content = """
-        <html>
-        <body>
-        <nav>Navigation</nav>
-        <main>
-            <h1>Article Title</h1>
-            <h2>Section</h2>
-            <p>Nested content here</p>
-        </main>
-        </body>
-        </html>
-        """
-        expected = """
-        # Article Title
-
-        ## Section
-
-        Nested content here
-        """
-        _test_html_to_md_conversion(self, html_content, expected, converter="bs")
-
-    def test3(self) -> None:
-        """
-        Test script with role='main' selector.
-        """
-        html_content = """
-        <html>
-        <body>
-        <nav>Navigation</nav>
-        <div role="main">
-            <h2>Documentation</h2>
-            <p>Content in role main</p>
-        </div>
-        </body>
-        </html>
-        """
-        expected = """
-        ## Documentation
-
-        Content in role main
-        """
-        _test_html_to_md_conversion(self, html_content, expected, converter="bs")
-
-
-# #############################################################################
-# Test_download_html_to_md_py_readability
-# #############################################################################
-
-
-class Test_download_html_to_md_py_readability(hunitest.TestCase):
-    """
-    End-to-end test for script using readability converter.
-    """
-
-    def test1(self) -> None:
-        """
-        Test script with readability converter on article-like content.
-        """
-        html_content = """
-        <html>
-        <head><title>Article</title></head>
-        <body>
-        <nav>Navigation</nav>
-        <article>
-            <h1>Article Title</h1>
-            <p>This is article content that readability should extract.</p>
-            <p>More paragraph content here.</p>
-        </article>
-        <footer>Footer</footer>
-        </body>
-        </html>
-        """
-        expected = """
-        Navigation
-
-        # Article Title
-        This is article content that readability should extract
-
-        More paragraph content here
-        """
-        _test_html_to_md_conversion(
-            self, html_content, expected, converter="readability"
-        )
-
-    def test2(self) -> None:
-        """
-        Test script with readability converter on dense text content.
-        """
-        html_content = """
-        <html>
-        <body>
-        <div>
-            <h2>Documentation Section</h2>
-            <p>First paragraph of content.</p>
-            <p>Second paragraph with more information.</p>
-            <p>Third paragraph continuing the documentation.</p>
-        </div>
-        </body>
-        </html>
-        """
-        expected = """
-        ## Documentation Section
-        First paragraph of content
-        Second paragraph with more information
-        Third paragraph continuing the documentation
-        """
-        _test_html_to_md_conversion(
-            self, html_content, expected, converter="readability"
-        )
-
-
-# #############################################################################
-# Test_download_html_to_md_py_auto
-# #############################################################################
-
-
-class Test_download_html_to_md_py_auto(hunitest.TestCase):
-    """
-    End-to-end test for script using auto converter mode.
-    """
-
-    def test1(self) -> None:
-        """
-        Test script with auto mode uses BeautifulSoup first when main exists.
-        """
-        html_content = """
-        <html>
-        <body>
-        <nav>Navigation</nav>
-        <main>
-            <h1>Auto Mode Test</h1>
-            <p>Content found by BS selector</p>
-        </main>
-        </body>
-        </html>
-        """
-        expected = """
-        # Auto Mode Test
-
-        Content found by BS selector
-        """
-        _test_html_to_md_conversion(self, html_content, expected)
-
-    def test2(self) -> None:
-        """
-        Test script with auto mode falls back to readability.
-        """
-        html_content = """
-        <html>
-        <body>
-        <div>
-            <h2>Fallback Test Section</h2>
-            <p>This should be extracted by readability fallback.</p>
-            <p>Additional paragraph content for readability to process.</p>
-        </div>
-        </body>
-        </html>
-        """
-        expected = """
-        ## Fallback Test Section
-        This should be extracted by readability fallback
-        Additional paragraph content for readability to process
-        """
-        _test_html_to_md_conversion(self, html_content, expected)
-
-    def test3(self) -> None:
-        """
-        Test script preserves heading structure in markdown.
-        """
-        html_content = """
-        <html>
-        <body>
-        <main>
-            <h1>Main Heading</h1>
-            <h2>Subheading</h2>
-            <p>Paragraph text</p>
-        </main>
-        </body>
-        </html>
-        """
-        expected = """
-        # Main Heading
-
-        ## Subheading
-
-        Paragraph text
-        """
-        _test_html_to_md_conversion(self, html_content, expected, converter="bs")

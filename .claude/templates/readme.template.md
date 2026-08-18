@@ -8,24 +8,31 @@
 
 <List subdirectories if any: optional section if no subdirs>
 
-- `<subdir1>/`
-  - <Brief description of subdirectory (<20 words)>
-- `<subdir2>/`
-  - <Brief description of subdirectory (<20 words)>
+- `<subdir1>/`, <Brief description of subdirectory (<20 words)>
+- Example:
+  ```markdown
+  | File                                   | Description    |
+  | -------------------------------------- | ---------------|
+  | `ai.claude_code.how_to_guide_figs/`    | Screenshots and images for Claude Code setup and usage guide |
+  | `ai.github_copilot_review.how_to_guide_figs/` | Screenshots demonstrating GitHub Copilot review workflow |
+  ```
 
 ## Description of Files
 
 <List all Python and Markdown files in alphabetical order with 1-line
 descriptions (<20 words)>
 
-- `<file1.py>`
-  - <One-line description of what this file does>
-- `<file2.md>`
-  - <One-line description of what this file contains>
-- `<script.py>`
-  - <One-line description of script's purpose>
-- `<utility.sh>`
-  - <One-line description of shell script>
+- `<file1.py>`, <One-line description of what this file does>
+- Example:
+  ```markdown
+  | File                                   | Description                                                                  | Cluster             |
+  | -------------------------------------- | ---------------------------------------------------------------------------- | ------------------- |
+  | `bookmark_utils.py`                    | Shared helpers for downloading/uploading Google Sheets data and CSV files    | Shared Utilities    |
+  | `download_academic_paper_to_md.py`     | Download an academic paper (arXiv/DOI/PDF), convert to Markdown, summarize   | Content Downloaders |
+  | `download_to_md.py`                    | Detect input type and dispatch to the matching `download_*_to_md.py` script  | Content Downloaders |
+  | `download_utils.py`                    | Shared helpers for fetching article titles and summarizing text via an LLM   | Shared Utilities    |
+  | `podcast_dl.py`                        | Download and format a podcast transcript from various sources                | Podcast Tools       |
+  ```
 
 # Description of Executables
 

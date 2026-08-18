@@ -1,0 +1,1205 @@
+% Options for packages loaded elsewhere
+\PassOptionsToPackage{unicode}{hyperref}
+\PassOptionsToPackage{hyphens}{url}
+\documentclass[
+  10pt,
+  ignorenonframetext,
+]{beamer}
+\newif\ifbibliography
+\usepackage{pgfpages}
+\setbeamertemplate{caption}[numbered]
+\setbeamertemplate{caption label separator}{: }
+\setbeamercolor{caption name}{fg=normal text.fg}
+\beamertemplatenavigationsymbolsempty
+% Prevent slide breaks in the middle of a paragraph
+\widowpenalties 1 10000
+\raggedbottom
+\AtBeginPart{
+  \frame{\partpage}
+}
+\AtBeginSection{
+  \ifbibliography
+  \else
+    \frame{\sectionpage}
+  \fi
+}
+\AtBeginSubsection{
+  \frame{\subsectionpage}
+}
+\usepackage{iftex}
+\ifPDFTeX
+  \usepackage[T1]{fontenc}
+  \usepackage[utf8]{inputenc}
+  \usepackage{textcomp} % provide euro and other symbols
+\else % if luatex or xetex
+  \usepackage{unicode-math} % this also loads fontspec
+  \defaultfontfeatures{Scale=MatchLowercase}
+  \defaultfontfeatures[\rmfamily]{Ligatures=TeX,Scale=1}
+\fi
+\usepackage{lmodern}
+\usetheme[]{SimplePlus}
+\ifPDFTeX\else
+  % xetex/luatex font selection
+\fi
+% Use upquote if available, for straight quotes in verbatim environments
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+\IfFileExists{microtype.sty}{% use microtype if available
+  \usepackage[]{microtype}
+  \UseMicrotypeSet[protrusion]{basicmath} % disable protrusion for tt fonts
+}{}
+\makeatletter
+\@ifundefined{KOMAClassName}{% if non-KOMA class
+  \IfFileExists{parskip.sty}{%
+    \usepackage{parskip}
+  }{% else
+    \setlength{\parindent}{0pt}
+    \setlength{\parskip}{6pt plus 2pt minus 1pt}}
+}{% if KOMA class
+  \KOMAoptions{parskip=half}}
+\makeatother
+\usepackage{longtable,booktabs,array}
+\usepackage{calc} % for calculating minipage widths
+\usepackage{caption}
+% Make caption package work with longtable
+\makeatletter
+\def\fnum@table{\tablename~\thetable}
+\makeatother
+\usepackage{graphicx}
+\makeatletter
+\newsavebox\pandoc@box
+\newcommand*\pandocbounded[1]{% scales image to fit in text height/width
+  \sbox\pandoc@box{#1}%
+  \Gscale@div\@tempa{\textheight}{\dimexpr\ht\pandoc@box+\dp\pandoc@box\relax}%
+  \Gscale@div\@tempb{\linewidth}{\wd\pandoc@box}%
+  \ifdim\@tempb\p@<\@tempa\p@\let\@tempa\@tempb\fi% select the smaller of both
+  \ifdim\@tempa\p@<\p@\scalebox{\@tempa}{\usebox\pandoc@box}%
+  \else\usebox{\pandoc@box}%
+  \fi%
+}
+% Set default figure placement to htbp
+\def\fps@figure{htbp}
+\makeatother
+\setlength{\emergencystretch}{3em} % prevent overfull lines
+\providecommand{\tightlist}{%
+  \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+% From https://tex.stackexchange.com/questions/75667/change-colour-on-chapter-section-headings-lyx
+\usepackage{xcolor}
+\definecolor{darkgreen}{rgb}{0,0.5,0}
+\definecolor{violet}{rgb}{0.93,0.51,0.93}
+\definecolor{cyan}{rgb}{0,1,1}
+\definecolor{teal}{rgb}{0,0.5,0.5}
+
+\usepackage{cancel}
+\usepackage{listings}
+
+%\usepackage{sectsty}
+%\chapterfont{\color{blue}}
+%\sectionfont{\color{red}}
+%\subsectionfont{\color{purple}}
+%\subsubsectionfont{\color{blue}}
+
+% From https://tex.stackexchange.com/questions/1455/how-to-set-the-font-for-a-section-title-and-chapter-etc
+%\usepackage{titlesec}
+%\titleformat{\chapter}[display]
+%  {\normalfont\sffamily\huge\bfseries\color{blue}}
+%  {\chaptertitlename\ \thechapter}{20pt}{\Huge}
+%\titleformat{\section}
+%  {\normalfont\sffamily\Large\bfseries\color{cyan}}
+%  {\thesection}{1em}{}
+
+% Work-around for too deeply nested error.
+\usepackage{enumitem}
+% NOTE: `\renewlist` resets the label of every level back to enumitem's
+% "Undefined label" placeholder, so it must run before the per-level
+% `\setlist` calls below (not after), otherwise it wipes out this
+% configuration.
+%
+% NOTE: AMS document classes (e.g., `amsart`) measure the width of
+% `\labelenumi` / `\labelitemi` at `\begin{document}` to compute list
+% margins. If `\renewlist` has already replaced those labels with
+% enumitem's lazy "Undefined label" placeholder by then, that measurement
+% expands the placeholder and aborts with
+% "Package enumitem Error: Undefined label." To avoid the clash, defer
+% this whole block to `\AtBeginDocument`, so it runs after the class's own
+% `\AtBeginDocument` hook (registered earlier, when the class was loaded)
+% and before any list is actually typeset in the body.
+\AtBeginDocument{%
+\setlistdepth{9}
+\renewlist{itemize}{itemize}{9}
+\setlist[itemize,1]{label=\textendash}
+\setlist[itemize,2]{label=\textendash}
+\setlist[itemize,3]{label=\textendash}
+\setlist[itemize,4]{label=\textendash}
+\setlist[itemize,5]{label=\textendash}
+\setlist[itemize,6]{label=\textendash}
+\setlist[itemize,7]{label=\textendash}
+\setlist[itemize,8]{label=\textendash}
+\setlist[itemize,9]{label=\textendash}
+
+% \setlist[itemize,1]{label=\textbullet}
+% \setlist[itemize,2]{label=\textendash}
+% \setlist[itemize,3]{label=\textasteriskcentered}
+% \setlist[itemize,4]{label=\textperiodcentered}
+% setlist[itemize,5]{label=\textbullet}
+% \setlist[itemize,6]{label=\textbullet}
+% \setlist[itemize,7]{label=\textbullet}
+% \setlist[itemize,8]{label=\textbullet}
+% \setlist[itemize,9]{label=\textbullet}
+
+% Configure enumerate lists to prevent infinite recursion in Beamer themes.
+\renewlist{enumerate}{enumerate}{9}
+\setlist[enumerate,1]{label=\arabic*.,ref=\arabic*}
+\setlist[enumerate,2]{label=\alph*.,ref=\theenumi.\alph*}
+\setlist[enumerate,3]{label=\roman*.,ref=\theenumi.\theenumii.\roman*}
+\setlist[enumerate,4]{label=\Alph*.,ref=\theenumi.\theenumii.\theenumiii.\Alph*}
+\setlist[enumerate,5]{label=\Roman*.,ref=\theenumi.\theenumii.\theenumiii.\theenumiv.\Roman*}
+\setlist[enumerate,6]{label=\arabic*.,ref=\theenumi.\theenumii.\theenumiii.\theenumiv.\theenumv.\arabic*}
+\setlist[enumerate,7]{label=\alph*.,ref=\theenumi.\theenumii.\theenumiii.\theenumiv.\theenumv.\theenumvi.\alph*}
+\setlist[enumerate,8]{label=\roman*.,ref=\theenumi.\theenumii.\theenumiii.\theenumiv.\theenumv.\theenumvi.\theenumvii.\roman*}
+\setlist[enumerate,9]{label=\arabic*.,ref=\theenumi.\theenumii.\theenumiii.\theenumiv.\theenumv.\theenumvi.\theenumvii.\theenumviii.\arabic*}%
+}
+
+% #############################################################################
+% Vector / matrix notation
+% #############################################################################
+
+% \vec is already defined so we use \vv
+
+% Use bold.
+%\newcommand{\vv}[1]{\boldsymbol{#1}}
+%\newcommand{\mat}[1]{\boldsymbol{#1}}
+
+% Use underline.
+% From https://latex.org/forum/viewtopic.php?t=17798
+% ulem doesn't work well in math mode.
+%\newcommand{\vv}[1]{\boldsymbol{\uline{#1}}}
+%\newcommand{\mat}[1]{\boldsymbol{\uuline{#1}}}
+\newcommand{\vv}[1]{\boldsymbol{\underline{#1}}}
+\newcommand{\mat}[1]{\boldsymbol{\underline{\underline{#1}}}}
+
+% TODO(saggese): Remove this and use \quad.
+\newcommand{\eqspace}{\hspace{1cm}}
+\newcommand{\norm}[1]{\left\lVert#1\right\rVert}
+
+% NOTE: These shortcuts are not only to make the latex code easier but also to
+% make easy to find out what the standard representation is.
+% In general we prefer to put \vv{} and \mat{} at outermost.
+
+% #############################################################################
+% Newshortcuts for matrices and vectors.
+% #############################################################################
+
+% - v* for vectors, e.g., va, vb, ..., vmu, vA, vGamma
+% - m* for matrices, e.g., mA, ..., mSigma
+
+% Vector.
+\newcommand{\vA}{\vv{A}}
+\newcommand{\vB}{\vv{B}}
+\newcommand{\vC}{\vv{C}}
+\newcommand{\vD}{\vv{D}}
+\newcommand{\vDelta}{\vv{\Delta}}
+\newcommand{\vE}{\vv{E}}
+\newcommand{\vF}{\vv{F}}
+\newcommand{\vG}{\vv{G}}
+\newcommand{\vGamma}{\vv{\Gamma}}
+\newcommand{\vH}{\vv{H}}
+\newcommand{\vI}{\vv{I}}
+\newcommand{\vJ}{\vv{J}}
+\newcommand{\vK}{\vv{K}}
+\newcommand{\vL}{\vv{L}}
+\newcommand{\vLambda}{\vv{\Lambda}}
+\newcommand{\vM}{\vv{M}}
+\newcommand{\vN}{\vv{N}}
+\newcommand{\vO}{\vv{O}}
+\newcommand{\vOmega}{\vv{\Omega}}
+\newcommand{\vP}{\vv{P}}
+\newcommand{\vPhi}{\vv{\Phi}}
+\newcommand{\vPi}{\vv{\Pi}}
+\newcommand{\vPsi}{\vv{\Psi}}
+\newcommand{\vQ}{\vv{Q}}
+\newcommand{\vR}{\vv{R}}
+\newcommand{\vS}{\vv{S}}
+\newcommand{\vSigma}{\vv{\Sigma}}
+\newcommand{\vT}{\vv{T}}
+\newcommand{\vU}{\vv{U}}
+\newcommand{\vUpsilon}{\vv{\Upsilon}}
+\newcommand{\vV}{\vv{V}}
+\newcommand{\vW}{\vv{W}}
+\newcommand{\vX}{\vv{X}}
+\newcommand{\vXi}{\vv{\Xi}}
+\newcommand{\vY}{\vv{Y}}
+\newcommand{\vZ}{\vv{Z}}
+\newcommand{\va}{\vv{a}}
+\newcommand{\valpha}{\vv{\alpha}}
+\newcommand{\vb}{\vv{b}}
+\newcommand{\vbeta}{\vv{\beta}}
+\newcommand{\vc}{\vv{c}}
+\newcommand{\vchi}{\vv{\chi}}
+\newcommand{\vd}{\vv{d}}
+\newcommand{\vdelta}{\vv{\delta}}
+\newcommand{\ve}{\vv{e}}
+\newcommand{\vepsilon}{\vv{\epsilon}}
+\newcommand{\veta}{\vv{\eta}}
+\newcommand{\vf}{\vv{f}}
+\newcommand{\vg}{\vv{g}}
+\newcommand{\vgamma}{\vv{\gamma}}
+\newcommand{\vh}{\vv{h}}
+\newcommand{\vi}{\vv{i}}
+\newcommand{\viota}{\vv{\iota}}
+\newcommand{\vj}{\vv{j}}
+\newcommand{\vk}{\vv{k}}
+\newcommand{\vkappa}{\vv{\kappa}}
+\newcommand{\vl}{\vv{l}}
+\newcommand{\vlambda}{\vv{\lambda}}
+\newcommand{\vm}{\vv{m}}
+\newcommand{\vmu}{\vv{\mu}}
+\newcommand{\vn}{\vv{n}}
+\newcommand{\vnu}{\vv{\nu}}
+\newcommand{\vo}{\vv{o}}
+\newcommand{\vomega}{\vv{\omega}}
+\newcommand{\vp}{\vv{p}}
+\newcommand{\vphi}{\vv{\phi}}
+\newcommand{\vpi}{\vv{\pi}}
+\newcommand{\vpsi}{\vv{\psi}}
+\newcommand{\vq}{\vv{q}}
+\newcommand{\vr}{\vv{r}}
+\newcommand{\vrho}{\vv{\rho}}
+\newcommand{\vs}{\vv{s}}
+\newcommand{\vsigma}{\vv{\sigma}}
+\newcommand{\vt}{\vv{t}}
+\newcommand{\vtau}{\vv{\tau}}
+\newcommand{\vtheta}{\vv{\theta}}
+\newcommand{\vu}{\vv{u}}
+\newcommand{\vupsilon}{\vv{\upsilon}}
+\newcommand{\vvarepsilon}{\vv{\varepsilon}}
+\newcommand{\vvarphi}{\vv{\varphi}}
+\newcommand{\vvarrho}{\vv{\varrho}}
+\newcommand{\vvartheta}{\vv{\vartheta}}
+\newcommand{\vvv}{\vv{v}}
+\newcommand{\vw}{\vv{w}}
+\newcommand{\vx}{\vv{x}}
+\newcommand{\vxi}{\vv{\xi}}
+\newcommand{\vy}{\vv{y}}
+\newcommand{\vz}{\vv{z}}
+\newcommand{\vzeta}{\vv{\zeta}}
+
+% Matrix.
+% \mat -> \mm?
+\newcommand{\mA}{\mat{A}}
+\newcommand{\mB}{\mat{B}}
+\newcommand{\mC}{\mat{C}}
+\newcommand{\mD}{\mat{D}}
+\newcommand{\mDelta}{\mat{\Delta}}
+\newcommand{\mE}{\mat{E}}
+\newcommand{\mF}{\mat{F}}
+\newcommand{\mG}{\mat{G}}
+\newcommand{\mGamma}{\mat{\Gamma}}
+\newcommand{\mH}{\mat{H}}
+\newcommand{\mI}{\mat{I}}
+\newcommand{\mJ}{\mat{J}}
+\newcommand{\mK}{\mat{K}}
+\newcommand{\mL}{\mat{L}}
+\newcommand{\mLambda}{\mat{\Lambda}}
+\newcommand{\mM}{\mat{M}}
+\newcommand{\mN}{\mat{N}}
+\newcommand{\mO}{\mat{O}}
+\newcommand{\mOmega}{\mat{\Omega}}
+\newcommand{\mP}{\mat{P}}
+\newcommand{\mPi}{\mat{\Pi}}
+\newcommand{\mPsi}{\mat{\Psi}}
+\newcommand{\mQ}{\mat{Q}}
+\newcommand{\mR}{\mat{R}}
+\newcommand{\mS}{\mat{S}}
+\newcommand{\mSigma}{\mat{\Sigma}}
+\newcommand{\mT}{\mat{T}}
+\newcommand{\mU}{\mat{U}}
+\newcommand{\mUpsilon}{\mat{\Upsilon}}
+\newcommand{\mV}{\mat{V}}
+\newcommand{\mW}{\mat{W}}
+\newcommand{\mX}{\mat{X}}
+\newcommand{\mXi}{\mat{\Xi}}
+\newcommand{\mY}{\mat{Y}}
+\newcommand{\mZ}{\mat{Z}}
+
+% #############################################################################
+% Other shortcuts
+% #############################################################################
+
+% Number fields
+% TODO: use \R, \N, ... and the standard symbols (see
+% http://oeis.org/wiki/List_of_LaTeX_mathematical_symbols)
+\newcommand{\bbB}{\mathbb{B}}
+\newcommand{\bbC}{\mathbb{C}}
+\newcommand{\bbF}{\mathbb{F}}
+\newcommand{\bbL}{\mathbb{L}}
+\newcommand{\bbN}{\mathbb{N}}
+\newcommand{\bbQ}{\mathbb{Q}}
+\newcommand{\bbR}{\mathbb{R}}
+\newcommand{\bbS}{\mathbb{S}}
+\newcommand{\bbZ}{\mathbb{Z}}
+
+% Script vars.
+\newcommand{\cala}{\mathcal{a}}
+\newcommand{\calb}{\mathcal{b}}
+\newcommand{\calc}{\mathcal{c}}
+\newcommand{\cald}{\mathcal{d}}
+\newcommand{\cale}{\mathcal{e}}
+\newcommand{\calf}{\mathcal{f}}
+\newcommand{\calg}{\mathcal{g}}
+\newcommand{\calh}{\mathcal{h}}
+\newcommand{\cali}{\mathcal{i}}
+\newcommand{\calj}{\mathcal{j}}
+\newcommand{\calk}{\mathcal{k}}
+\newcommand{\call}{\mathcal{l}}
+\newcommand{\calm}{\mathcal{m}}
+\newcommand{\caln}{\mathcal{n}}
+\newcommand{\calo}{\mathcal{o}}
+\newcommand{\calp}{\mathcal{p}}
+\newcommand{\calq}{\mathcal{q}}
+\newcommand{\calr}{\mathcal{r}}
+\newcommand{\cals}{\mathcal{s}}
+\newcommand{\calt}{\mathcal{t}}
+\newcommand{\calu}{\mathcal{u}}
+\newcommand{\calv}{\mathcal{v}}
+\newcommand{\calw}{\mathcal{w}}
+\newcommand{\calx}{\mathcal{x}}
+\newcommand{\caly}{\mathcal{y}}
+\newcommand{\calz}{\mathcal{z}}
+\newcommand{\calA}{\mathcal{A}}
+\newcommand{\calB}{\mathcal{B}}
+\newcommand{\calC}{\mathcal{C}}
+\newcommand{\calD}{\mathcal{D}}
+\newcommand{\calE}{\mathcal{E}}
+\newcommand{\calF}{\mathcal{F}}
+\newcommand{\calG}{\mathcal{G}}
+\newcommand{\calH}{\mathcal{H}}
+\newcommand{\calI}{\mathcal{I}}
+\newcommand{\calJ}{\mathcal{J}}
+\newcommand{\calK}{\mathcal{K}}
+\newcommand{\calL}{\mathcal{L}}
+\newcommand{\calM}{\mathcal{M}}
+\newcommand{\calN}{\mathcal{N}}
+\newcommand{\calO}{\mathcal{O}}
+\newcommand{\calP}{\mathcal{P}}
+\newcommand{\calQ}{\mathcal{Q}}
+\newcommand{\calR}{\mathcal{R}}
+\newcommand{\calS}{\mathcal{S}}
+\newcommand{\calT}{\mathcal{T}}
+\newcommand{\calU}{\mathcal{U}}
+\newcommand{\calV}{\mathcal{V}}
+\newcommand{\calW}{\mathcal{W}}
+\newcommand{\calX}{\mathcal{X}}
+\newcommand{\calY}{\mathcal{Y}}
+\newcommand{\calZ}{\mathcal{Z}}
+
+% tilde
+% TODO(gp): Expand this.
+\newcommand{\ttau}{\tilde{\tau}}
+% Irregular to avoid conflict.
+\newcommand{\ttt}{\tilde{t}}
+\newcommand{\ty}{\tilde{y}}
+
+% TODO(gp): Expand this.
+\newcommand{\hF}{\widehat{F}}
+\newcommand{\hvF}{\vv{\widehat{F}}}
+\newcommand{\hG}{\widehat{G}}
+\newcommand{\hvG}{\vv{\widehat{G}}}
+\newcommand{\hX}{\widehat{X}}
+\newcommand{\hvX}{\vv{\widehat{X}}}
+
+% Unit vector.
+% Same as the vector name with unit
+% TODO(gp): Merge with above.
+\newcommand{\vvvhat}{\vv{\hat{v}}}
+\newcommand{\uuhat}{\vv{\hat{u}}}
+\newcommand{\xxhat}{\vv{\hat{x}}}
+%
+\newcommand{\tildeAAA}{\mat{\tilde{A}}}
+
+% Basic.
+
+% Define.
+%\def\defeq{\overset{\begin{tiny}def\end{tiny}}{=}}
+\def\defeq{\triangleq}
+% TODO: This is already defined, but not clear where
+%\newcommand{\gcd}{\text{gcd}}
+\newcommand{\lcm}{\text{lcm}}
+
+% Mean and variance.
+\newcommand{\EE}{\mathbb{E}}
+\newcommand{\VV}{\mathbb{V}}
+\newcommand{\Cov}{\text{Cov}}
+\newcommand{\Corr}{\text{Corr}}
+%\newcommand{\Pr}{\mathbb{P}}
+
+% Color shortcuts for slides.
+\newcommand{\black}[1]{\textcolor{black}{#1}}
+\newcommand{\blue}[1]{\textcolor{blue}{#1}}
+\newcommand{\brown}[1]{\textcolor{brown}{#1}}
+\newcommand{\cyan}[1]{\textcolor{cyan}{#1}}
+\newcommand{\gray}[1]{\textcolor{gray}{#1}}
+\newcommand{\green}[1]{\textcolor{green}{#1}}
+\newcommand{\olive}[1]{\textcolor{olive}{#1}}
+\newcommand{\orange}[1]{\textcolor{orange}{#1}}
+\newcommand{\purple}[1]{\textcolor{purple}{#1}}
+\newcommand{\red}[1]{\textcolor{red}{#1}}
+\newcommand{\teal}[1]{\textcolor{teal}{#1}}
+\newcommand{\violet}[1]{\textcolor{violet}{#1}}
+
+% Distributions.
+% text{} or textsf
+\def\Bernoulli{\textsf{Bernoulli}}
+\def\Beta{\textsf{Beta}}
+\def\Binomial{\textsf{Binomial}}
+\def\Exponential{\textsf{Exponential}}
+\def\LogNormal{\textsf{LogNormal}}
+\def\N{\textsf{N}}
+\def\Poisson{\textsf{Poisson}}
+\def\Uniform{\textsf{Uniform}}
+\def\WN{\textsf{WN}}
+\def\GWN{\textsf{GWN}}
+
+% Linear algebra.
+\def\Col{\textsf{Col}}
+\def\Dim{\textsf{Dim}}
+\def\Re{\textsf{Re}}
+\def\Im{\textsf{Im}}
+\def\Ker{\textsf{Ker}}
+\def\Null{\textsf{Null}}
+\def\Rank{\textsf{Rank}}
+\def\Row{\textsf{Row}}
+\def\Span{\textsf{Span}}
+\def\Det{\textsf{Det}}
+\def\Tr{\textsf{Tr}}
+\def\Diag{\textsf{Diag}}
+\def\sign{\textsf{sign}}
+\def\argmin{\textsf{argmin}}
+\def\argmax{\textsf{argmax}}
+\def\mod{\textsf{ mod }}
+\def\min{\textsf{min}}
+\def\max{\textsf{max}}
+\def\avg{\textsf{avg}}
+
+% Derivative at a point
+% https://tex.stackexchange.com/questions/64176/derivative-at-a-point
+\newcommand{\at}[2][]{#1|_{#2}}
+
+% Logic operators.
+\def\NOT{\textsf{\begin{footnotesize}NOT\end{footnotesize}}}
+\def\OR{\textsf{\begin{footnotesize} OR \end{footnotesize}}}
+\def\AND{\textsf{\begin{footnotesize} AND \end{footnotesize}}}
+\def\XOR{\textsf{\begin{footnotesize} XOR \end{footnotesize}}}
+\def\IFF{\textsf{\begin{footnotesize} IFF \end{footnotesize}}}
+
+% For some reasons new commands can't end with a number.
+%\newcommand{\v0}{\vv{0}}
+%\newcommand{\v1}{\vv{1}}
+\usepackage{bookmark}
+\IfFileExists{xurl.sty}{\usepackage{xurl}}{} % add URL line breaks if available
+\urlstyle{same}
+\hypersetup{
+  hidelinks,
+  pdfcreator={LaTeX via pandoc}}
+
+\author{}
+\date{}
+
+\begin{document}
+
+\begin{frame}
+\let\emph\textit
+\let\uline\underline
+\let\ul\underline
+\end{frame}
+
+\section{Link}\label{link}
+
+\begin{frame}{Link}
+\href{www.hello.com}{\textcolor{blue}{\underline{Hello}}}
+\end{frame}
+
+\section{Color}\label{color}
+
+\begin{frame}{Color text}
+\protect\phantomsection\label{color-text}
+\begin{itemize}
+\tightlist
+\item
+  Arthur Samuel (1959): Machine learning: field of study that gives
+  computers the ability to
+  \textit{learn without being explicitly programmed}
+\item
+  Tom Mitchell (1998): A computer program is said to learn from
+  experience E with respect to some task T and some performance measure
+  P, if P(T) improves with experience E
+\item
+  E.g. a computer can play to learn checkers (by playing against itself)
+  memorizing which positions lead to winning a game
+\item
+  \textcolor{red}{\text{data}}
+\end{itemize}
+\end{frame}
+
+\begin{frame}{All colors}
+\protect\phantomsection\label{all-colors}
+\begin{itemize}
+\tightlist
+\item
+  \textbf{\textcolor{red}{\text{red}}}
+\item
+  \textbf{\textcolor{orange}{\text{orange}}}
+\item
+  \textbf{\textcolor{brown}{\text{brown}}}
+\item
+  \textbf{\textcolor{olive}{\text{olive}}}
+\item
+  \textbf{\textcolor{darkgreen}{\text{green}}}
+\item
+  \textbf{\textcolor{teal}{\text{teal}}}
+\item
+  \textbf{\textcolor{cyan}{\text{cyan}}}
+\item
+  \textbf{\textcolor{blue}{\text{blue}}}
+\item
+  \textbf{\textcolor{violet}{\text{violet}}}
+\item
+  \textbf{\textcolor{darkgray}{\text{darkgray}}}
+\item
+  \textbf{\textcolor{gray}{\text{gray}}}
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Colors 4}
+\protect\phantomsection\label{colors-4}
+\begin{itemize}
+\tightlist
+\item
+  \textcolor{red}{\text{Red}}
+\item
+  \textcolor{teal}{\text{Teal}}
+\item
+  \textcolor{blue}{\text{Cyan}}
+\item
+  \textcolor{violet}{\text{Violet}}
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Colors 5}
+\protect\phantomsection\label{colors-5}
+\begin{itemize}
+\tightlist
+\item
+  \textcolor{red}{\text{Red}}
+\item
+  \textcolor{teal}{\text{Teal}}
+\item
+  \textcolor{cyan}{\text{Cyan}}
+\item
+  \textcolor{blue}{\text{Cyan}}
+\item
+  \textcolor{violet}{\text{Violet}}
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Colors 8}
+\protect\phantomsection\label{colors-8}
+\begin{itemize}
+\tightlist
+\item
+  \textcolor{red}{\text{Red}}
+\item
+  \textcolor{orange}{\text{Orange}}
+\item
+  \textcolor{darkgreen}{\text{Green}}
+\item
+  \textcolor{teal}{\text{Teal}}
+\item
+  \textcolor{cyan}{\text{Cyan}}
+\item
+  \textcolor{blue}{\text{Blue}}
+\item
+  \textcolor{violet}{\text{Violet}}
+\item
+  \textcolor{brown}{\text{Brown}}
+\end{itemize}
+\end{frame}
+
+\section{Lists}\label{lists}
+
+\begin{frame}{Enumerated list}
+\protect\phantomsection\label{enumerated-list}
+\begin{enumerate}
+\tightlist
+\item
+  Specify models using code
+\item
+  Solve models using numerical techniques
+
+  \begin{itemize}
+  \tightlist
+  \item
+    Compute results, even if there is no analytical closed form
+  \item
+    Solving the model can be considered a black box
+  \end{itemize}
+\end{enumerate}
+\end{frame}
+
+\begin{frame}{Emoji}
+\protect\phantomsection\label{emoji}
+\begin{itemize}
+\tightlist
+\item
+  Applications
+\item
+  Bad
+  \includegraphics[width=0.125in,height=\textheight,keepaspectratio,alt={Smile Emoji}]{assets/emoji/angry_devil.png}
+\item
+  Challenges
+\item
+  Check mark
+  \includegraphics[width=0.125in,height=\textheight,keepaspectratio]{assets/emoji/check_mark.png}
+\item
+  Cons
+\item
+  Counterpoints
+  \includegraphics[width=0.14583in,height=\textheight,keepaspectratio]{assets/emoji/balance_scale.png}
+\item
+  E.g.,
+  \includegraphics[width=0.14583in,height=\textheight,keepaspectratio]{assets/emoji/backhand_pointing_right.png}
+\item
+  E.g.,
+  \includegraphics[width=0.125in,height=\textheight,keepaspectratio]{assets/emoji/pushpin_tack.png}
+\item
+  Fail
+  \includegraphics[width=0.14583in,height=\textheight,keepaspectratio]{assets/emoji/skull.png}
+\item
+  Good
+  \includegraphics[width=0.125in,height=\textheight,keepaspectratio]{assets/emoji/emoji_smile.png}
+\item
+  Idea
+  \includegraphics[width=0.14583in,height=\textheight,keepaspectratio]{assets/emoji/lightbulb.png}
+\item
+  Intuition
+  \includegraphics[width=0.14583in,height=\textheight,keepaspectratio]{assets/emoji/lightbulb.png}
+\item
+  Issues
+  \includegraphics[width=0.14583in,height=\textheight,keepaspectratio]{assets/emoji/warning.png}
+\item
+  Problem
+  \includegraphics[width=0.14583in,height=\textheight,keepaspectratio]{assets/emoji/puzzle.png}
+\item
+  Pros
+\item
+  Question
+  \includegraphics[width=0.14583in,height=\textheight,keepaspectratio]{assets/emoji/question_mark.png}
+\item
+  Remark
+  \includegraphics[width=0.14583in,height=\textheight,keepaspectratio]{assets/emoji/exclamation_mark.png}
+\item
+  Solution
+  \includegraphics[width=0.14583in,height=\textheight,keepaspectratio]{assets/emoji/lightbulb.png}
+\item
+  Wrong
+  \includegraphics[width=0.125in,height=\textheight,keepaspectratio]{assets/emoji/wrong.png}
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Emoji (Mac)}
+\protect\phantomsection\label{emoji-mac}
+\begin{itemize}
+\tightlist
+\item
+  Good
+  \includegraphics[width=0.125in,height=\textheight,keepaspectratio,alt={Smile Emoji}]{assets/emoji/emoji_smile.png}
+\end{itemize}
+\end{frame}
+
+\section{Listings}\label{listings}
+
+\section{Formulas}\label{formulas}
+
+\begin{frame}{Sizes}
+\protect\phantomsection\label{sizes}
+\tiny tiny \scriptsize scriptsize \footnotesize footnotesize
+\small small \normalsize normalsize \large large \Large Large
+\LARGE LARGE \huge huge \Huge Huge
+\end{frame}
+
+\begin{frame}{Aligned equation}
+\protect\phantomsection\label{aligned-equation}
+\begin{itemize}
+\tightlist
+\item
+  Hello
+\end{itemize}
+
+\begin{align*}
+  a &= b + c \\
+  d &= e + f
+\end{align*}
+
+\begin{align*}
+\end{align*}
+
+\begin{itemize}
+\tightlist
+\item
+  World
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Formula with cases}
+\protect\phantomsection\label{formula-with-cases}
+\[
+f(x) =
+\begin{cases}
+  x^2 & \text{if } x > 0 \\
+  0 & \text{otherwise}
+\end{cases}
+\]
+\end{frame}
+
+\begin{frame}{System of equations}
+\protect\phantomsection\label{system-of-equations}
+\begin{equation*}
+  \begin{cases}
+    3x + 5y + z = 3 \\
+    7x - 2y + 4z = 4 \\
+    -6x + 3y + 2z = 2
+  \end{cases}
+\end{equation*}
+\end{frame}
+
+\begin{frame}{Aligned stacked equation}
+\protect\phantomsection\label{aligned-stacked-equation}
+\begin{itemize}
+\tightlist
+\item
+  We can use PPIE and independence: \begin{align*}
+  &\Pr(A=6 \cup B=6) \\
+  &\hspace{1cm} = \Pr(A=6) + \Pr(B=6) - \Pr(A=6 \cap B=6) \\
+  &\hspace{1cm} = \Pr(6) + \Pr(6) - \Pr(A=6) \cdot \Pr(B=6) \\
+  \end{align*}
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Equation}
+\protect\phantomsection\label{equation}
+\begin{equation}
+\begin{aligned}
+  a &= b + c \\
+  d &= e + f
+\end{aligned}
+\end{equation}
+\end{frame}
+
+\begin{frame}{Different font size}
+\protect\phantomsection\label{different-font-size}
+\begingroup \scriptsize
+\endgroup
+
+\begingroup
+\small
+
+\ldots{} small \ldots{} \endgroup
+
+Normal
+\end{frame}
+
+\begin{frame}{Table}
+\protect\phantomsection\label{table}
+\begingroup \scriptsize
+
+\begin{longtable}[]{@{}ll@{}}
+\toprule\noalign{}
+Level & Symbol \\
+\midrule\noalign{}
+\endhead
+1. Association & \(P(y|x)\) \\
+2. Intervention & \(P(y|do(x), z)\) \\
+3. Counterfactuals & \(P(y_x | x', y')\) \\
+\bottomrule\noalign{}
+\end{longtable}
+
+\endgroup
+\end{frame}
+
+\begin{frame}{Align on multiple columns}
+\protect\phantomsection\label{align-on-multiple-columns}
+\small
+
+\begin{alignat*}{2}
+& \textcolor{red}{\text{Divide up the evidence}}
+&\quad
+&= \Pr(X_{t+1} | \textcolor{red}{e_{1:t}, e_{t+1}})
+\\
+& \textcolor{darkgreen}{\text{Bayes rule given }} \textcolor{darkgreen}{e_{1:t}}
+&\quad
+&= \alpha \Pr(e_{t+1}|X_{t+1},\textcolor{darkgreen}{e_{1:t}}) \Pr(X_{t+1}|\textcolor{darkgreen}{e_{1:t}})
+\\
+& \text{\textcolor{cyan}{\text{Markov sensor assumption}}}
+&\quad
+&= \alpha \Pr(e_{t+1}|X_{t+1}) \Pr(X_{t+1}|e_{1:t})
+\\
+& \text{\textcolor{blue}{\text{Condition on current state}}}
+&\quad
+&= \alpha \Pr(e_{t+1}|X_{t+1}) \sum_{x_t} \Pr(X_{t+1}|\textcolor{blue}{x_t},\textcolor{violet}{e_{1:t}}) \Pr(\textcolor{blue}{x_t} | e_{1:t})
+\\
+& \text{\textcolor{violet}{\text{Markov assumption}}}
+&\quad
+&= \alpha \Pr(e_{t+1}|X_{t+1}) \sum_{x_t} \Pr(X_{t+1}|x_t) \Pr(x_t | e_{1:t})
+\\
+&
+&\quad
+&= \text{Sensor model} \times \text{Transition model} \times \text{Recursive state}
+\\
+\end{alignat*}
+\end{frame}
+
+\section{Images}\label{images}
+
+\begin{frame}{Width}
+\protect\phantomsection\label{width}
+\begin{center}
+  \includegraphics[width=0.6\textwidth]{msml610/lectures_source/figures/Binomial_distribution.png}
+\end{center}
+
+\includegraphics[width=\linewidth,height=0.5\textheight,keepaspectratio]{msml610/lectures_source/figures/Binomial_distribution.png}
+
+\includegraphics[width=0.5\linewidth,height=\textheight,keepaspectratio]{tmp.notes_to_pdf.preprocess_notes.txt.figs/tmp.notes_to_pdf.render_image.1.png}
+\end{frame}
+
+\begin{frame}[fragile]{Figure in the center}
+\protect\phantomsection\label{figure-in-the-center}
+\begin{verbatim}
+\vspace{-1cm}
+
+\begin{align*}
+  X & \sim Binomial(n, p) \\
+  \Pr(k) & = \frac{n!}{k! (n - k)!} p^k (1 - p)^{n-k} \\
+\end{align*}
+
+\vspace{-1cm}
+
+\begin{center}
+  \includegraphics[width=0.6\textwidth]{msml610/lectures_source/figures/Binomial_distribution.png}
+\end{center}
+
+#### Figure scaled down
+![](msml610/lectures_source/figures/Binomial_distribution.png){ height=50%}
+![](msml610/lectures_source/figures/Binomial_distribution.png)
+\end{verbatim}
+\end{frame}
+
+\section{Page formatting}\label{page-formatting}
+
+\begin{frame}{Two columns (template)}
+\protect\phantomsection\label{two-columns-template}
+\begin{columns}[T]
+\begin{column}{0.55\linewidth}
+\end{column}
+
+\begin{column}{0.4\linewidth}
+\end{column}
+\end{columns}
+\end{frame}
+
+\begin{frame}{Two columns of equal width (example)}
+\protect\phantomsection\label{two-columns-of-equal-width-example}
+\begin{columns}[T]
+\begin{column}{0.48\linewidth}
+\begin{itemize}
+\tightlist
+\item
+  What should we do?
+\item
+  Simulation / optimization
+
+  \begin{itemize}
+  \tightlist
+  \item
+    What's the best we can do?
+  \end{itemize}
+\end{itemize}
+\end{column}
+
+\begin{column}{0.48\linewidth}
+\begin{itemize}
+\tightlist
+\item
+  Item 1.
+\item
+  Item 2.
+\item
+  Item 3.
+  \pandocbounded{\includegraphics[keepaspectratio,alt={Analytical sophistication}]{msml610/lectures_source/figures/L07.2.Chemical_shift_pymc_solution1.png}}
+\end{itemize}
+\end{column}
+\end{columns}
+\end{frame}
+
+\begin{frame}{Two columns commenting a figure}
+\protect\phantomsection\label{two-columns-commenting-a-figure}
+\begin{columns}[T]
+\begin{column}{0.6\linewidth}
+\pandocbounded{\includegraphics[keepaspectratio]{msml610/lectures_source/figures/L07.2.Savage_Dickey.png}}
+\end{column}
+
+\begin{column}{0.48\linewidth}
+\begin{itemize}
+\tightlist
+\item
+  E.g., posterior / prior = 0.76
+\end{itemize}
+\end{column}
+\end{columns}
+\end{frame}
+
+\begin{frame}{Four pieces}
+\protect\phantomsection\label{four-pieces}
+\begin{itemize}
+\tightlist
+\item
+  Create model
+\end{itemize}
+
+\begin{columns}[T]
+\begin{column}{0.5\linewidth}
+Figure 1
+\end{column}
+
+\begin{column}{0.5\linewidth}
+Figure 2
+\end{column}
+\end{columns}
+
+\begin{itemize}
+\tightlist
+\item
+  Solve model
+\end{itemize}
+
+\begin{columns}[T]
+\begin{column}{0.5\linewidth}
+Figure 3
+\end{column}
+
+\begin{column}{0.5\linewidth}
+Figure 4
+\end{column}
+\end{columns}
+\end{frame}
+
+\begin{frame}{Tables and comments on two columns}
+\protect\phantomsection\label{tables-and-comments-on-two-columns}
+\begin{columns}[T]
+\begin{column}{0.48\linewidth}
+\begingroup \scriptsize
+
+\begin{longtable}[]{@{}lll@{}}
+\toprule\noalign{}
+\textbf{Alarm (A)} & \textbf{P(JohnCalls\textbar{} .)} &
+\textbf{P(-JohnCalls \textbar{} .)} \\
+\midrule\noalign{}
+\endhead
+True & 0.90 & 0.10 \\
+False & 0.05 & 0.95 \\
+\bottomrule\noalign{}
+\end{longtable}
+
+\endgroup
+
+\begingroup \scriptsize
+
+\begin{longtable}[]{@{}ll@{}}
+\toprule\noalign{}
+\textbf{Alarm (A)} & \textbf{P(JohnCalls\textbar{} .)} \\
+\midrule\noalign{}
+\endhead
+True & 0.90 \\
+False & 0.05 \\
+\bottomrule\noalign{}
+\end{longtable}
+
+\endgroup
+
+\begingroup \scriptsize
+
+\begin{longtable}[]{@{}l@{}}
+\toprule\noalign{}
+\textbf{P(Burglary)} \\
+\midrule\noalign{}
+\endhead
+.001 \\
+\bottomrule\noalign{}
+\end{longtable}
+
+\endgroup
+
+\begingroup \scriptsize
+
+\begin{longtable}[]{@{}lll@{}}
+\toprule\noalign{}
+\textbf{Burglary} & \textbf{Earthquake} & \textbf{P(Alarm \textbar{}
+.)} \\
+\midrule\noalign{}
+\endhead
+T & T & .95 \\
+T & F & .94 \\
+\ldots{} & \ldots{} & \ldots{} \\
+\bottomrule\noalign{}
+\end{longtable}
+
+\endgroup
+\end{column}
+
+\begin{column}{0.48\linewidth}
+\begin{itemize}
+\tightlist
+\item
+  The sum of probabilities of the actions must be 1
+\end{itemize}
+
+\vspace{1em}
+
+\begin{itemize}
+\tightlist
+\item
+  Removing the redundancy
+\end{itemize}
+
+\vspace{1em}
+
+\begin{itemize}
+\tightlist
+\item
+  A node without parents has an unconditional probability
+\end{itemize}
+
+\vspace{1em}
+
+\begin{itemize}
+\tightlist
+\item
+  A node with \(k\) parents has \(2^k\) possible rows in the table
+\end{itemize}
+\end{column}
+\end{columns}
+\end{frame}
+
+\section{Pictures}\label{pictures}
+
+\begin{frame}{Multiple images with captions}
+\protect\phantomsection\label{multiple-images-with-captions}
+\begin{columns}[T]
+\begin{column}{0.7\linewidth}
+Hello
+\end{column}
+
+\begin{column}{0.25\linewidth}
+\pandocbounded{\includegraphics[keepaspectratio]{msml610/lectures_source/figures/L12.4x3_environment1.png}}
+
+\vspace{0.5cm}
+
+\begin{center}
+\includegraphics[width=0.5\textwidth]{msml610/lectures_source/figures/L12.4x3_environment2.png}
+{\scriptsize\text{Valid actions}}
+\end{center}
+
+\vspace{0.5cm}
+
+\begin{center}
+\includegraphics[width=1.0\textwidth]{msml610/lectures_source/figures/L12.4x3_environment3.png}
+{\scriptsize\text{Example of optimal policy}}
+\end{center}
+\end{column}
+\end{columns}
+\end{frame}
+
+\begin{frame}{Mermaid1}
+\protect\phantomsection\label{mermaid1}
+\pandocbounded{\includegraphics[keepaspectratio]{tmp.notes_to_pdf.preprocess_notes.txt.figs/tmp.notes_to_pdf.render_image.2.png}}
+\end{frame}
+
+\begin{frame}{Styled graphviz}
+\protect\phantomsection\label{styled-graphviz}
+\pandocbounded{\includegraphics[keepaspectratio]{tmp.notes_to_pdf.preprocess_notes.txt.figs/tmp.notes_to_pdf.render_image.3.png}}
+\end{frame}
+
+\begin{frame}{Graphviz1}
+\protect\phantomsection\label{graphviz1}
+\pandocbounded{\includegraphics[keepaspectratio]{tmp.notes_to_pdf.preprocess_notes.txt.figs/tmp.notes_to_pdf.render_image.4.png}}
+\end{frame}
+
+\begin{frame}{Graphviz2}
+\protect\phantomsection\label{graphviz2}
+\pandocbounded{\includegraphics[keepaspectratio]{tmp.notes_to_pdf.preprocess_notes.txt.figs/tmp.notes_to_pdf.render_image.5.png}}
+
+\pandocbounded{\includegraphics[keepaspectratio]{tmp.notes_to_pdf.preprocess_notes.txt.figs/tmp.notes_to_pdf.render_image.6.png}}
+\end{frame}
+
+\begin{frame}{Latex}
+\protect\phantomsection\label{latex}
+\includegraphics[width=0.5\linewidth,height=\textheight,keepaspectratio]{tmp.notes_to_pdf.preprocess_notes.txt.figs/tmp.notes_to_pdf.render_image.7.png}
+\end{frame}
+
+\begin{frame}{Latex figure}
+\protect\phantomsection\label{latex-figure}
+\pandocbounded{\includegraphics[keepaspectratio]{tmp.notes_to_pdf.preprocess_notes.txt.figs/tmp.notes_to_pdf.render_image.8.png}}
+\end{frame}
+
+\begin{frame}{Table}
+\protect\phantomsection\label{table-1}
+\begingroup \scriptsize
+\begin{tabular}{|c|c|c|c|}
+\hline
+  \textbf{Definition} &
+  \textbf{Univariate (Bayesian)} &
+  \textbf{Univariate (Kalman)} &
+  \textbf{Multivariate (Kalman)} \\
+\hline
+\hline
+  State update &
+  $\overline{\mu} = \mu + \mu_{f}$ &
+  $\overline{x} = x + dx$ &
+  $\overline{\vx} = \mF \vx + \mB \vu$ \\
+
+\hline
+  State uncertainty &
+  $\overline{\sigma}^2 = \sigma^2 + \sigma_f^2$ &
+  $\overline{P} = P + Q$ &
+  $\overline{\mP} = \mF \mP \mF^T + \mQ$ \\
+
+\hline
+  Residual &
+  &
+  $y = z - \overline{x}$ &
+  $\vy = \vz - \mH \overline{\vx}$ \\
+
+\hline
+  Kalman gain &
+  &
+  $K = \frac{\overline{P}}{\overline{P} + R}$ &
+  $\mK = \overline{\mP} \mH^T (\mH \overline{\mP} \mH^T + \mR)^{-1}$ \\
+
+\hline
+  Updated state &
+  $\hat{\mu}
+  = \frac{\overline{\sigma}^2 \mu_z + \sigma_z^2 \overline{\mu}}
+    {\overline{\sigma}^2 + \sigma_z^2}$ &
+  $x = \overline{x} + K y$ &
+  $\vx = \overline{\vx} + \mK \vy$ \\
+
+\hline
+  Upd. state uncertainty &
+  $\sigma^2
+  = \frac{\overline{\sigma}^2 \sigma_z^2}{\overline{\sigma}^2 + \sigma_z^2}$ &
+  $P = (1 - K) \overline{P}$ &
+  $\mP = (\mI - \mK \mH) \overline{\mP}$ \\
+\hline
+\end{tabular}
+\endgroup
+\end{frame}
+
+\end{document}
