@@ -568,6 +568,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
         # Re-run the consolidation every `--interval` seconds, reporting
         # only the build statistics table.
         def _run() -> None:
+            hprint.clear_screen()
             _run_once(build_names, in_build_tag, out_build_tag, quiet=True)
 
         hdaemon.run_periodic_daemon_mode(

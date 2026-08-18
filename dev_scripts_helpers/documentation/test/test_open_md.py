@@ -690,6 +690,7 @@ class Test_open_md_py_main(hunitest.TestCase):
             force_rebuild=expected_force_rebuild,
             use_sudo=expected_use_sudo,
             style_file=expected_style_file,
+            skip_open=False,
         )
 
     def test3a(self) -> None:
@@ -730,6 +731,7 @@ class Test_open_md_py_main(hunitest.TestCase):
             force_rebuild=expected_force_rebuild,
             use_sudo=expected_use_sudo,
             style_file=css_file,
+            skip_open=False,
         )
 
     def test3b(self) -> None:
@@ -758,6 +760,7 @@ class Test_open_md_py_main(hunitest.TestCase):
             force_rebuild=False,
             use_sudo=False,
             style_file=expected_style_file,
+            skip_open=False,
         )
 
     def test4(self) -> None:
@@ -777,4 +780,6 @@ class Test_open_md_py_main(hunitest.TestCase):
         ):
             dshdopmd._main(parser)
         # Check outputs.
-        mock_fn.assert_called_once_with(input_file, backend=backend)
+        mock_fn.assert_called_once_with(
+            input_file, backend=backend, skip_open=False
+        )

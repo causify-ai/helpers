@@ -76,7 +76,10 @@ def color_highlight(text: str, color: str) -> str:
 
 
 def clear_screen() -> None:
-    print((chr(27) + "[2J"))
+    """
+    Clear the screen and move the cursor to the top-left corner.
+    """
+    print((chr(27) + "[2J" + chr(27) + "[H"))
 
 
 def line(char: Optional[str] = None, num_chars: Optional[int] = None) -> str:

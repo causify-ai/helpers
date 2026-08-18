@@ -160,7 +160,7 @@ if not hasattr(hut, "_CONFTEST_ALREADY_PARSED"):
                     ]
 
     def pytest_ignore_collect(
-        collection_path: pathlib.Path, path: Any, config: Any
+        collection_path: pathlib.Path, config: Any
     ) -> Optional[bool]:
         """
         Skip runnable directories.
@@ -168,11 +168,9 @@ if not hasattr(hut, "_CONFTEST_ALREADY_PARSED"):
         We use the `runnable_dir` file as a marker to identify runnable directories.
 
         :param collection_path: path to analyze
-        :param path: path to analyze (deprecated)
         :param config: pytest config object
         :return: True if the path should be ignored
         """
-        _ = path
         _ = config
         # Ref: https://docs.pytest.org/en/stable/_modules/_pytest/hookspec.html#pytest_ignore_collect
         # Return `True` to ignore this path for collection.
