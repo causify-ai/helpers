@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 
+import logging
+
 import pytest
 
 pytest.importorskip("feedparser")
@@ -7,6 +9,8 @@ pytest.importorskip("fitz")
 
 import helpers.hunit_test as hunitest
 import dev_scripts_helpers.download.download_to_md as dshddtomd
+
+_LOG = logging.getLogger(__name__)
 
 
 # #############################################################################
@@ -103,6 +107,39 @@ class Test_detect_input_type(hunitest.TestCase):
         """
         # Prepare inputs.
         input_arg = "https://example.com/some/article"
+        # Prepare outputs.
+        expected = "html"
+        # Run test.
+        self.helper(input_arg, expected)
+
+    def test8(self) -> None:
+        """
+        Test an empty input is detected as `html`.
+        """
+        # Prepare inputs.
+        input_arg = ""
+        # Prepare outputs.
+        expected = "html"
+        # Run test.
+        self.helper(input_arg, expected)
+
+    def test9(self) -> None:
+        """
+        Test a single character input is detected as `html`.
+        """
+        # Prepare inputs.
+        input_arg = "a"
+        # Prepare outputs.
+        expected = "html"
+        # Run test.
+        self.helper(input_arg, expected)
+
+    def test10(self) -> None:
+        """
+        Test a large URL with a long query string is detected as `html`.
+        """
+        # Prepare inputs.
+        input_arg = "https://example.com/article?" + "a" * 10000
         # Prepare outputs.
         expected = "html"
         # Run test.

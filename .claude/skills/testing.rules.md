@@ -333,6 +333,65 @@
     self.assert_equal(actual, expected, dedent=True)
     ```
 
+### Move Dedent and Checking into the Helper Method
+
+- When a test class uses a helper method (see `## Use Helper Methods When You
+  Have Repetitive Tests`), call `hprint.dedent()` and `self.assert_equal()`
+  (or other checking) inside the helper, not in each test method
+- Reason: avoids repeating the `hprint.dedent()` and assertion calls at every
+  call site and keeps test methods focused on providing raw input and
+  expected data
+- Test methods should only prepare inputs, prepare expected outputs, and call
+  the helper; the helper does dedenting, running the function under test, and
+  checking the result
+
+- **Bad**: `hprint.dedent()` called in every test method
+  ```python
+  class TestFunctionName(hunitest.TestCase):
+      def helper(self, input_val: str, expected: str) -> None:
+          actual = function_under_test(input_val)
+          self.assert_equal(actual, expected)
+
+      def test1(self) -> None:
+          # Prepare inputs.
+          input_val = hprint.dedent(
+              """
+              line1
+              line2
+              """
+          )
+          # Prepare outputs.
+          expected = hprint.dedent(
+              """
+              output1
+              """
+          )
+          # Run test.
+          self.helper(input_val, expected)
+  ```
+- **Good**: `hprint.dedent()` called once inside the helper
+  ```python
+  class TestFunctionName(hunitest.TestCase):
+      def helper(self, input_val: str, expected: str) -> None:
+          input_val = hprint.dedent(input_val)
+          expected = hprint.dedent(expected)
+          actual = function_under_test(input_val)
+          self.assert_equal(actual, expected)
+
+      def test1(self) -> None:
+          # Prepare inputs.
+          input_val = """
+          line1
+          line2
+          """
+          # Prepare outputs.
+          expected = """
+          output1
+          """
+          # Run test.
+          self.helper(input_val, expected)
+  ```
+
 ### Avoid Replicated Assignment
 
 - If a variable `var` and `expected` need to always be the same (e.g., to show

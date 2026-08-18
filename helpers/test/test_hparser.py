@@ -5,7 +5,7 @@ import helpers.test.test_hparser as httehpar
 """
 
 import argparse
-from typing import Any, Dict
+from typing import Any, Dict, List, Optional
 
 import helpers.hparser as hparser
 import helpers.hprint as hprint
@@ -71,6 +71,7 @@ class Test_CustomHelpFormatter_split_lines(hunitest.TestCase):
         # Check outputs.
         self.assert_equal(actual, expected, dedent=True)
 
+    # TODO(ai_gp): Move all the dedent in the helper
     def test1(self) -> None:
         """
         Test that a bullet hand-wrapped across several physical lines is
@@ -78,13 +79,13 @@ class Test_CustomHelpFormatter_split_lines(hunitest.TestCase):
         words.
         """
         # Prepare inputs.
-        # TODO(ai_gp): Use """ and dedent.
-        text = (
-            "Execution mode:\n"
-            "- 'one_shot_with_cc' applies all rules in a single Claude Code\n"
-            "  invocation, shelling out to the `cc` wrapper\n"
-            "- 'session' applies incrementally"
-        )
+        text = """
+        Execution mode:
+        - 'one_shot_with_cc' applies all rules in a single Claude Code
+          invocation, shelling out to the `cc` wrapper
+        - 'session' applies incrementally
+        """
+        text = hprint.dedent(text)
         width = 40
         # Prepare outputs.
         expected = """
@@ -103,13 +104,12 @@ class Test_CustomHelpFormatter_split_lines(hunitest.TestCase):
         their own line instead of being merged with neighboring lines.
         """
         # Prepare inputs.
-        # TODO(ai_gp): Use """ and dedent.
-        text = (
-            "Comma-separated list of file extensions to process (e.g., "
-            "'py,ipynb,md,txt')\n"
-            "  Available: py (Python)\n"
-            "  Default: 'py,ipynb,md'"
-        )
+        text = """
+        Comma-separated list of file extensions to process (e.g., 'py,ipynb,md,txt')
+          Available: py (Python)
+          Default: 'py,ipynb,md'
+        """
+        text = hprint.dedent(text)
         width = 66
         # Prepare outputs.
         expected = """
@@ -168,20 +168,32 @@ class Test_CustomHelpFormatter_reflow_help_paragraphs(hunitest.TestCase):
     Test `hparser.CustomHelpFormatter._reflow_help_paragraphs()`.
     """
 
-    # TODO(ai_gp): Factor out an helper
+    def helper(self, text: str, expected: List[Optional[Any]]) -> None:
+        """
+        Run `_reflow_help_paragraphs()` and check the output.
+
+        :param text: help text to group into paragraphs
+        :param expected: expected list of `(indent, paragraph_text)` or
+            `None` for blank lines
+        """
+        # Run test.
+        actual = hparser.CustomHelpFormatter._reflow_help_paragraphs(text)
+        # Check outputs.
+        self.assertEqual(actual, expected)
+
     def test1(self) -> None:
         """
         Test that non-bullet lines following a "- " bullet are folded
         into it as continuations of the same logical paragraph.
         """
         # Prepare inputs.
-        # TODO(ai_gp): Use """ and dedent.
-        text = (
-            "- 'a' bullet one line one\n"
-            "  continuation of bullet one\n"
-            "  more continuation\n"
-            "- 'b' bullet two"
-        )
+        text = """
+        - 'a' bullet one line one
+          continuation of bullet one
+          more continuation
+        - 'b' bullet two
+        """
+        text = hprint.dedent(text)
         # Prepare outputs.
         expected = [
             (
@@ -192,9 +204,7 @@ class Test_CustomHelpFormatter_reflow_help_paragraphs(hunitest.TestCase):
             ("", "- 'b' bullet two"),
         ]
         # Run test.
-        actual = hparser.CustomHelpFormatter._reflow_help_paragraphs(text)
-        # Check outputs.
-        self.assertEqual(actual, expected)
+        self.helper(text, expected)
 
     def test2(self) -> None:
         """
@@ -210,9 +220,7 @@ class Test_CustomHelpFormatter_reflow_help_paragraphs(hunitest.TestCase):
             ("  ", "Default: 'py'"),
         ]
         # Run test.
-        actual = hparser.CustomHelpFormatter._reflow_help_paragraphs(text)
-        # Check outputs.
-        self.assertEqual(actual, expected)
+        self.helper(text, expected)
 
     def test3(self) -> None:
         """
@@ -228,9 +236,7 @@ class Test_CustomHelpFormatter_reflow_help_paragraphs(hunitest.TestCase):
             ("", "- 'b' bullet"),
         ]
         # Run test.
-        actual = hparser.CustomHelpFormatter._reflow_help_paragraphs(text)
-        # Check outputs.
-        self.assertEqual(actual, expected)
+        self.helper(text, expected)
 
 
 # #############################################################################
@@ -530,6 +536,7 @@ class Test_CustomHelpFormatter_format_help(hunitest.TestCase):
         )
         return parser
 
+    # TODO(ai_gp): Factor common code and assert_equal in an helper.
     def test1(self) -> None:
         """
         Test that `CustomHelpFormatter` wraps to 90 columns by default,

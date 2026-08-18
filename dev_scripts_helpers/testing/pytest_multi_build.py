@@ -230,8 +230,12 @@ def _main(parser: argparse.ArgumentParser) -> None:
 
 
 if __name__ == "__main__":
-    with htmux.window_name("pytest_multi_build"):
-        parser = _parse()
-        args = parser.parse_args()
+    parser = _parse()
+    args = parser.parse_args()
+    if args.target:
+        window_name_str = f"pytest_multi_build: {' '.join(args.target)}"
+    else:
+        window_name_str = f"pytest_multi_build: {args.script}"
+    with htmux.window_name(window_name_str):
         with hnotify.notify(title="pytest_multi_build", timeout=args.timeout):
             _main(parser)

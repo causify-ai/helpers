@@ -338,6 +338,54 @@ class Test__extract_protected_content(hunitest.TestCase):
         # Run test.
         self.helper(txt, file_type, expected, expected_map_size)
 
+    def test12(self) -> None:
+        """
+        Test consecutive `//` line comments are protected individually.
+
+        Regression test: ensure consecutive `//` comment lines each get
+        their own HTML-comment-disguised placeholder and stay on separate
+        lines (not collapsed or merged by a downstream markdown-aware
+        formatter).
+        """
+        # Prepare inputs.
+        txt = """
+        // type=UMD_slides
+        // course_title=Foo
+        // lesson_title=Bar
+        """
+        file_type = "smd"
+        # Prepare outputs: each line gets its own placeholder, disguised as
+        # an HTML comment.
+        expected = """
+        <!--<<<PROTECTED_LINE_COMMENT_001>>>-->
+        <!--<<<PROTECTED_LINE_COMMENT_002>>>-->
+        <!--<<<PROTECTED_LINE_COMMENT_003>>>-->
+        """
+        expected_map_size = 3
+        # Run test.
+        self.helper(txt, file_type, expected, expected_map_size)
+
+    def test13(self) -> None:
+        """
+        Test `//` line comments are not extracted for non-smd files.
+        """
+        # Prepare inputs.
+        txt = """
+        Text before.
+        // This looks like a comment but isn't one in txt files.
+        Text after.
+        """
+        file_type = "txt"
+        # Prepare outputs.
+        expected = """
+        Text before.
+        // This looks like a comment but isn't one in txt files.
+        Text after.
+        """
+        expected_map_size = 0
+        # Run test.
+        self.helper(txt, file_type, expected, expected_map_size)
+
 
 # #############################################################################
 # Test__restore_protected_content
@@ -547,6 +595,32 @@ class Test__restore_protected_content(hunitest.TestCase):
         # Run test.
         self.helper(txt, protected_map, expected)
 
+    def test8(self) -> None:
+        """
+        Test restoring `//` line comment disguised as an HTML comment.
+
+        Regression test: verify that the `<!--...-->`-disguised placeholder
+        used to protect `//` line comments is correctly restored to the
+        original `//` line.
+        """
+        # Prepare inputs.
+        txt = """
+        Text before.
+        <!--<<<PROTECTED_LINE_COMMENT_001>>>-->
+        Text after.
+        """
+        protected_map = {
+            "<<<PROTECTED_LINE_COMMENT_001>>>": "// This is a smd comment"
+        }
+        # Prepare outputs.
+        expected = """
+        Text before.
+        // This is a smd comment
+        Text after.
+        """
+        # Run test.
+        self.helper(txt, protected_map, expected)
+
 
 # #############################################################################
 # Test_extract_restore_roundtrip
@@ -645,5 +719,25 @@ class Test_extract_restore_roundtrip(hunitest.TestCase):
         Just plain paragraphs.
         """
         file_type = "md"
+        # Run test.
+        self.helper(txt, file_type)
+
+    def test5(self) -> None:
+        """
+        Test roundtrip with consecutive `//` line comments in smd files.
+        """
+        # Prepare inputs.
+        txt = """
+        // type=UMD_slides
+        // course_title=Foo
+
+        // References:
+        // - Some paper: https://example.com/paper
+        //   Continuation line.
+
+        # Title
+        Regular text.
+        """
+        file_type = "smd"
         # Run test.
         self.helper(txt, file_type)

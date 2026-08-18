@@ -66,6 +66,8 @@ class _DockerFlowTestHelper(hunitest.TestCase):
 
     def set_up_test(self) -> None:
         # Mock system calls.
+        # TODO(ai_gp): Use hunteuti.capture_sys_calls() instead of mocking
+        #  `helpers.hsystem.system` directly.
         self.system_patcher = umock.patch("helpers.hsystem.system")
         self.mock_system = self.system_patcher.start()
         # Mock run.

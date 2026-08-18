@@ -7,41 +7,50 @@
 # ///
 
 r"""
-Download Raindrop.io links and sync with Google Sheets.
+Update Google Sheets data with Raindrop.io data.
 
 This script manages four actions:
-1. download_link_gsheet: Download data from Google Sheets to CSV
-2. download_raindrop_data: Fetch links from Raindrop.io after the latest
-   timestamp and save to CSV
-3. combine: Transform and combine Raindrop data with gsheet structure
-4. upload_link_gsheet: Upload the combined CSV to a new tab in Google Sheets
+- Download_gsheet_links: Download data from Google Sheets to CSV
+- Download_raindrop_data: Fetch links from Raindrop.io after the latest
+  timestamp and save to CSV
+- Combine_data: Transform and combine Raindrop data with gsheet structure
+- Upload_gsheet_links: Upload the combined CSV to a new tab in Google Sheets
 
 # Usage Example
 
 - Download data from Google Sheets (only that action):
-> update_link_gsheet_from_raindrop.py \
+> update_gsheet_links_from_raindrop.py \
     --url "https://docs.google.com/spreadsheets/d/1i6Z7v2..." \
-    --clear_actions --action download_link_gsheet
+    --clear_actions --action download_gsheet_links
 
 - Run all actions:
-> update_link_gsheet_from_raindrop.py \
+> update_gsheet_links_from_raindrop.py \
     --url "https://docs.google.com/spreadsheets/d/1i6Z7v2..." \
     --all_actions
 
 - Skip the upload action:
-> update_link_gsheet_from_raindrop.py \
+> update_gsheet_links_from_raindrop.py \
     --url "https://docs.google.com/spreadsheets/d/1i6Z7v2..." \
-    --skip_action upload_link_gsheet
+    --skip_action upload_gsheet_links
+
+Each action (other than `upload_gsheet_links`, which has no local output
+file) is skipped automatically if its output file already exists. Pass
+`--no_incremental` to force every selected action to re-run:
+> update_gsheet_links_from_raindrop.py \
+    --url "https://docs.google.com/spreadsheets/d/1i6Z7v2..." \
+    --all_actions --no_incremental
 
 Import as:
 
-import dev_scripts_helpers.download.update_link_gsheet_from_raindrop as dshlufr
+import dev_scripts_helpers.download.update_gsheet_links_from_raindrop as dsglfr
 """
 
 import argparse
+import csv
 import logging
 import os
 from datetime import datetime
+from typing import Optional
 
 import requests
 
@@ -49,7 +58,8 @@ import helpers.hdbg as hdbg
 import helpers.hparser as hparser
 import helpers.hprint as hprint
 import helpers.hselect_action as hselacti
-import dev_scripts_helpers.download.link_gsheet_utils as dshdlgsut
+import helpers.htable as htable
+import dev_scripts_helpers.download.bookmark_utils as dshdbout
 
 _LOG = logging.getLogger(__name__)
 
@@ -68,27 +78,89 @@ COMBINED_CSV_FILE = "combined_data.csv"
 # #############################################################################
 
 
-def _download_from_gsheet(url: str) -> str:
+def _log_first_rows(csv_file: str, *, action_desc: str) -> None:
+    """
+    Log the first 3 rows of a CSV file right after it was read, written, or
+    combined, to spot obvious issues (wrong sheet, malformed header) early.
+
+    :param csv_file: path to the CSV file to preview
+    :param action_desc: short description of what just happened to the file
+        (e.g., "Read", "Wrote"), used in the log message
+    """
+    with open(csv_file) as f:
+        rows = list(csv.reader(f))
+    _LOG.info(
+        "%s '%s', first 3 rows:\n%s",
+        action_desc,
+        csv_file,
+        htable.csv_to_str(rows, max_rows=3),
+    )
+
+
+def _download_gsheet_links(url: str) -> str:
     """
     Download data from Google Sheets and save to a temporary CSV file.
-
-    Retrieves data from the 'All' tab and saves it to a temporary CSV
-    for later processing and combination with Raindrop data.
 
     :param url: URL of the Google Sheets document
     :return: Path to the saved CSV file
     """
     _LOG.debug(hprint.func_signature_to_str())
     # Compute the shared temporary path used by the rest of the pipeline.
-    output_file = dshdlgsut.get_tmp_file_path(
-        GSHEET_CSV_FILE, "update_link_gsheet_from_raindrop"
+    output_file = dshdbout.get_tmp_file_path(
+        GSHEET_CSV_FILE, "update_gsheet_links_from_raindrop"
     )
-    dshdlgsut.download_from_gsheet(url, output_file)
+    dshdbout.download_from_gsheet(url, output_file)
     _LOG.debug("return=%s", output_file)
     return output_file
 
 
-def _download_from_raindrop() -> str:
+def _parse_timestamp(ts_str: str) -> datetime:
+    """
+    Parse a timestamp string in either ISO 8601 (Raindrop) or gsheet format.
+
+    :param ts_str: timestamp string, e.g. "2021-05-01T12:00:00.000Z" (Raindrop
+        `created` field) or "2021-05-01 12:00:00" (gsheet `Timestamp` column)
+    :return: parsed, timezone-naive datetime (in UTC)
+    """
+    try:
+        iso_str = ts_str.replace("Z", "+00:00")
+        dt = datetime.fromisoformat(iso_str).replace(tzinfo=None)
+    except ValueError:
+        dt = datetime.strptime(ts_str, "%Y-%m-%d %H:%M:%S")
+    return dt
+
+
+def _get_latest_timestamp_from_file(gsheet_csv: str) -> datetime:
+    """
+    Get the latest `Timestamp` value from a gsheet CSV file.
+
+    :param gsheet_csv: path to the gsheet CSV file
+    :return: latest timestamp found in the file
+    """
+    _LOG.debug(hprint.to_str("gsheet_csv"))
+    hdbg.dassert_path_exists(gsheet_csv, "Must download from gsheet first")
+    _LOG.info("Loading gsheet CSV to find latest timestamp")
+    rows_gsheet = dshdbout.read_csv(gsheet_csv)
+    _log_first_rows(gsheet_csv, action_desc="Read")
+    _LOG.debug(hprint.to_str("len(rows_gsheet)"))
+    # The gsheet CSV must have a `Timestamp` column to compute the cutoff.
+    hdbg.dassert(
+        bool(rows_gsheet) and "Timestamp" in rows_gsheet[0],
+        "gsheet CSV '%s' is missing the required 'Timestamp' column",
+        gsheet_csv,
+    )
+    # Determine the latest timestamp in existing data to avoid re-downloading duplicates.
+    latest_timestamp = max(
+        _parse_timestamp(row["Timestamp"])
+        for row in rows_gsheet
+        if row.get("Timestamp")
+    )
+    _LOG.info("Latest timestamp in gsheet: '%s'", latest_timestamp)
+    _LOG.debug("return=%s", latest_timestamp)
+    return latest_timestamp
+
+
+def _download_raindrop_data() -> str:
     """
     Download links from Raindrop.io after the latest timestamp from the
     gsheet CSV.
@@ -100,24 +172,11 @@ def _download_from_raindrop() -> str:
     """
     _LOG.debug(hprint.func_signature_to_str())
     # Load the gsheet CSV to find the cutoff timestamp for filtering new bookmarks.
-    gsheet_csv = dshdlgsut.get_tmp_file_path(
-        GSHEET_CSV_FILE, "update_link_gsheet_from_raindrop"
+    gsheet_csv = dshdbout.get_tmp_file_path(
+        GSHEET_CSV_FILE, "update_gsheet_links_from_raindrop"
     )
-    hdbg.dassert_path_exists(gsheet_csv, "Must download from gsheet first")
-    _LOG.info("Loading gsheet CSV to find latest timestamp")
-    rows_gsheet = dshdlgsut.read_csv(gsheet_csv)
-    _LOG.debug(hprint.to_str("len(rows_gsheet)"))
-    # Determine the latest timestamp in existing data to avoid re-downloading duplicates.
-    if rows_gsheet and "timestamp" in rows_gsheet[0]:
-        latest_timestamp = max(
-            float(row.get("timestamp", 0)) for row in rows_gsheet
-        )
-        _LOG.info("Latest timestamp in gsheet: '%s'", latest_timestamp)
-    else:
-        # If no timestamp column exists, fetch all bookmarks from Raindrop.
-        latest_timestamp = None
-        _LOG.info("No timestamp column found, fetching all bookmarks")
-    _LOG.debug(hprint.to_str("latest_timestamp"))
+    latest_timestamp = _get_latest_timestamp_from_file(gsheet_csv)
+
     # Retrieve Raindrop API token from environment and validate it exists.
     raindrop_token = os.environ.get("RAINDROP_API_TOKEN")
     hdbg.dassert_is_not(
@@ -125,14 +184,19 @@ def _download_from_raindrop() -> str:
     )
     _LOG.info("Downloading bookmarks from Raindrop.io")
     headers = {"Authorization": f"Bearer {raindrop_token}"}
-    # Initialize pagination state for walking through all Raindrop pages.
+    # The Raindrop API paginates via `page`/`perpage` query params (max
+    # `perpage` is 50); it does not return a `pagination.nextLink` field.
     url = "https://api.raindrop.io/rest/v1/raindrops/0"
+    perpage = 50
+    page = 0
     all_bookmarks = []
     count = 0
-    # Paginate through all Raindrop bookmarks using pagination links.
-    while url:
-        _LOG.debug("Fetching Raindrop page: '%s'", url)
-        response = requests.get(url, headers=headers)
+    # Paginate through all Raindrop bookmarks, newest first, until a short
+    # page (fewer than `perpage` items) signals the last page.
+    while True:
+        _LOG.debug("Fetching Raindrop page %d", page)
+        params = {"sort": "-created", "page": page, "perpage": perpage}
+        response = requests.get(url, headers=headers, params=params)
         hdbg.dassert_eq(
             response.status_code,
             200,
@@ -141,24 +205,24 @@ def _download_from_raindrop() -> str:
         )
         data = response.json()
         items = data.get("items", [])
-        _LOG.info("Fetched %d items from Raindrop", len(items))
+        _LOG.info("Fetched %d items from Raindrop (page %d)", len(items), page)
         # Filter bookmarks: keep only those created after the latest gsheet timestamp.
         for item in items:
-            if "created" in item:
-                if (
-                    latest_timestamp is None
-                    or float(item["created"]) > latest_timestamp
-                ):
-                    all_bookmarks.append(item)
-                    count += 1
-        # Update URL to next page if pagination link exists.
-        url = data.get("pagination", {}).get("nextLink")
-        _LOG.debug("Next page url='%s'", url)
+            if (
+                "created" in item
+                and _parse_timestamp(item["created"]) > latest_timestamp
+            ):
+                all_bookmarks.append(item)
+                count += 1
+        # Stop once we hit a short page (last page) or an empty page.
+        if len(items) < perpage:
+            break
+        page += 1
     _LOG.info("Downloaded %d new bookmarks after timestamp", count)
     _LOG.debug(hprint.to_str("len(all_bookmarks) count"))
     # Extract relevant fields and write bookmarks to CSV.
-    raindrop_csv = dshdlgsut.get_tmp_file_path(
-        RAINDROP_CSV_FILE, "update_link_gsheet_from_raindrop"
+    raindrop_csv = dshdbout.get_tmp_file_path(
+        RAINDROP_CSV_FILE, "update_gsheet_links_from_raindrop"
     )
     _LOG.info("Writing Raindrop data to CSV file: '%s'", raindrop_csv)
     if all_bookmarks:
@@ -174,17 +238,19 @@ def _download_from_raindrop() -> str:
             }
             rows_to_write.append(row)
         _LOG.debug(hprint.to_str("len(rows_to_write)"))
-        dshdlgsut.write_csv(
+        dshdbout.write_csv(
             raindrop_csv, rows_to_write, fieldnames=fields_to_keep
         )
     else:
         # If no new bookmarks, write empty CSV with appropriate structure.
-        dshdlgsut.write_csv(raindrop_csv, [], fieldnames=[])
+        dshdbout.write_csv(raindrop_csv, [], fieldnames=[])
+    if all_bookmarks:
+        _log_first_rows(raindrop_csv, action_desc="Wrote")
     _LOG.debug("return=%s", raindrop_csv)
     return raindrop_csv
 
 
-def _combine_raindrop_with_gsheet() -> str:
+def _combine_raindrop_with_gsheet_links() -> str:
     """
     Transform and combine Raindrop data with gsheet structure.
 
@@ -201,36 +267,41 @@ def _combine_raindrop_with_gsheet() -> str:
     """
     _LOG.debug(hprint.func_signature_to_str())
     # Load both CSV files and extract the gsheet column schema.
-    gsheet_csv = dshdlgsut.get_tmp_file_path(
-        GSHEET_CSV_FILE, "update_link_gsheet_from_raindrop"
+    gsheet_csv = dshdbout.get_tmp_file_path(
+        GSHEET_CSV_FILE, "update_gsheet_links_from_raindrop"
     )
-    raindrop_csv = dshdlgsut.get_tmp_file_path(
-        RAINDROP_CSV_FILE, "update_link_gsheet_from_raindrop"
+    raindrop_csv = dshdbout.get_tmp_file_path(
+        RAINDROP_CSV_FILE, "update_gsheet_links_from_raindrop"
     )
     hdbg.dassert_path_exists(gsheet_csv, "gsheet CSV file not found")
     hdbg.dassert_path_exists(raindrop_csv, "raindrop CSV file not found")
     _LOG.info("Loading gsheet CSV to get schema")
-    rows_gsheet = dshdlgsut.read_csv(gsheet_csv)
+    rows_gsheet = dshdbout.read_csv(gsheet_csv)
+    _log_first_rows(gsheet_csv, action_desc="Read")
     gsheet_columns = list(rows_gsheet[0].keys()) if rows_gsheet else []
     _LOG.info("Gsheet schema: %s", gsheet_columns)
     _LOG.info("Loading Raindrop CSV data")
-    rows_raindrop = dshdlgsut.read_csv(raindrop_csv)
+    rows_raindrop = dshdbout.read_csv(raindrop_csv)
+    if rows_raindrop:
+        _log_first_rows(raindrop_csv, action_desc="Read")
     _LOG.debug(hprint.to_str("len(rows_raindrop)"))
     # Transform Raindrop rows to match gsheet structure: map fields and convert timestamps.
     rows_combined = []
     for row in rows_raindrop:
         # Initialize combined row with empty strings for all gsheet columns.
         combined_row = {col: "" for col in gsheet_columns}
-        # Map Raindrop title field: strip "| HackerNews" suffix if present.
+        # Map Raindrop title field: strip "| Hacker News" suffix if present.
         if "title" in row:
             title = row["title"]
-            # Remove "| HackerNews" suffix from the title.
-            if title.endswith("| HackerNews"):
-                title = title[: -len("| HackerNews")].strip()
+            # Remove "| Hacker News" suffix from the title.
+            if title.endswith("| Hacker News"):
+                title = title[: -len("| Hacker News")].strip()
             combined_row["Title"] = title
-        # Map Raindrop URL field directly.
+        # Raindrop's "url" is the HN item link (e.g., these bookmarks are of
+        # the HN discussion page, not the linked article), so it maps to the
+        # gsheet's "Hn_url" column; "Article_url" is left empty (unknown).
         if "url" in row:
-            combined_row["Url"] = row["url"]
+            combined_row["Hn_url"] = row["url"]
         # Convert Raindrop ISO 8601 timestamp to gsheet format: YYYY-MM-DD HH:MM:SS.
         if "created" in row:
             try:
@@ -249,8 +320,8 @@ def _combine_raindrop_with_gsheet() -> str:
     # Prepend Raindrop data (newest first) and append existing gsheet data.
     rows_combined.extend(rows_gsheet)
     _LOG.debug(hprint.to_str("len(rows_combined)"))
-    combined_csv = dshdlgsut.get_tmp_file_path(
-        COMBINED_CSV_FILE, "update_link_gsheet_from_raindrop"
+    combined_csv = dshdbout.get_tmp_file_path(
+        COMBINED_CSV_FILE, "update_gsheet_links_from_raindrop"
     )
     _LOG.info(
         "Combining data: %d raindrop items, %d gsheet items",
@@ -260,11 +331,13 @@ def _combine_raindrop_with_gsheet() -> str:
     _LOG.info("Writing combined data to CSV file: '%s'", combined_csv)
     # Write combined data preserving gsheet column order.
     if rows_combined:
-        dshdlgsut.write_csv(
+        dshdbout.write_csv(
             combined_csv, rows_combined, fieldnames=gsheet_columns
         )
     else:
-        dshdlgsut.write_csv(combined_csv, [], fieldnames=gsheet_columns)
+        dshdbout.write_csv(combined_csv, [], fieldnames=gsheet_columns)
+    if rows_combined:
+        _log_first_rows(combined_csv, action_desc="Combined into")
     _LOG.info("Combined CSV created with %d rows", len(rows_combined))
     _LOG.debug("return=%s", combined_csv)
     return combined_csv
@@ -281,15 +354,40 @@ def _upload_to_gsheet(url: str) -> None:
     """
     _LOG.debug(hprint.to_str("url"))
     # Build a dated tab name so re-runs on the same day overwrite the same tab.
-    tabname = "update_link_gsheet_from_raindrop." + datetime.now().strftime(
+    tabname = "update_gsheet_links_from_raindrop." + datetime.now().strftime(
         "%Y-%m-%d"
     )
-    combined_csv = dshdlgsut.get_tmp_file_path(
-        COMBINED_CSV_FILE, "update_link_gsheet_from_raindrop"
+    combined_csv = dshdbout.get_tmp_file_path(
+        COMBINED_CSV_FILE, "update_gsheet_links_from_raindrop"
     )
     hdbg.dassert_path_exists(combined_csv, "combined CSV file not found")
     _LOG.debug(hprint.to_str("tabname combined_csv"))
-    dshdlgsut.upload_to_gsheet(url, combined_csv, tabname)
+    dshdbout.upload_to_gsheet(url, combined_csv, tabname)
+
+
+def _get_action_output_file(action: str) -> Optional[str]:
+    """
+    Get the output file that an action produces, if any.
+
+    Used to support incremental runs: an action is skipped when its output
+    file already exists (unless `--no_incremental` is passed).
+
+    :param action: name of the action
+    :return: path to the action's output file, or `None` if the action has
+        no local output file to check against (e.g., `upload_gsheet_links`,
+        which only has a side effect on the remote gsheet)
+    """
+    action_to_filename = {
+        "download_gsheet_links": GSHEET_CSV_FILE,
+        "download_raindrop_data": RAINDROP_CSV_FILE,
+        "combine_data": COMBINED_CSV_FILE,
+    }
+    filename = action_to_filename.get(action)
+    if filename is None:
+        return None
+    return dshdbout.get_tmp_file_path(
+        filename, "update_gsheet_links_from_raindrop"
+    )
 
 
 # #############################################################################
@@ -298,10 +396,10 @@ def _upload_to_gsheet(url: str) -> None:
 
 # Define the four-step pipeline: download gsheet, download raindrop, combine, and upload.
 _VALID_ACTIONS = [
-    "download_link_gsheet",
+    "download_gsheet_links",
     "download_raindrop_data",
-    "combine",
-    "upload_link_gsheet",
+    "combine_data",
+    "upload_gsheet_links",
 ]
 # By default, execute all actions in order.
 _DEFAULT_ACTIONS = _VALID_ACTIONS[:]
@@ -318,7 +416,15 @@ def _parse() -> argparse.ArgumentParser:
         action="store",
         default="",
         help="URL of the Google Sheets document (required for "
-        "download_link_gsheet and upload_link_gsheet actions)",
+        "download_gsheet_links and upload_gsheet_links actions); falls back "
+        "to the LINKS_GSHEET environment variable if not specified",
+    )
+    parser.add_argument(
+        "--no_incremental",
+        action="store_true",
+        help="Force re-execution of every selected action even if its "
+        "output file already exists (by default, an action is skipped "
+        "when its output file is already present)",
     )
     hselacti.add_action_arg(parser, _VALID_ACTIONS, _DEFAULT_ACTIONS)
     hparser.add_verbosity_arg(parser)
@@ -347,25 +453,29 @@ def _main(parser: argparse.ArgumentParser) -> None:
         if not to_execute:
             continue
         _LOG.debug("Executing action: '%s'", action)
+        # Skip the action if its output file already exists (incremental
+        # mode), unless the caller forced a full re-run.
+        if not args.no_incremental:
+            output_file = _get_action_output_file(action)
+            if output_file is not None and os.path.exists(output_file):
+                _LOG.warning(
+                    "Skipping action '%s': output file '%s' already exists "
+                    "(use --no_incremental to force)",
+                    action,
+                    output_file,
+                )
+                continue
         # Execute each action with required argument validation.
-        if action == "download_link_gsheet":
-            hdbg.dassert_is_not(
-                args.url,
-                None,
-                "--url is required for download_link_gsheet action",
-            )
-            _download_from_gsheet(args.url)
+        if action == "download_gsheet_links":
+            url = dshdbout.resolve_gsheet_url(args.url)
+            _download_gsheet_links(url)
         elif action == "download_raindrop_data":
-            _download_from_raindrop()
-        elif action == "combine":
-            _combine_raindrop_with_gsheet()
-        elif action == "upload_link_gsheet":
-            hdbg.dassert_is_not(
-                args.url,
-                None,
-                "--url is required for upload_link_gsheet action",
-            )
-            _upload_to_gsheet(args.url)
+            _download_raindrop_data()
+        elif action == "combine_data":
+            _combine_raindrop_with_gsheet_links()
+        elif action == "upload_gsheet_links":
+            url = dshdbout.resolve_gsheet_url(args.url)
+            _upload_to_gsheet(url)
         else:
             raise ValueError(f"Invalid action='{action}'")
     hdbg.dassert_eq(
