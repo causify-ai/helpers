@@ -21,8 +21,13 @@ Output filenames share a base name, with
 - `{base}.3.hn_url.txt`: Raw HN comments (plain indented text, not markdown)
 - `{base}.4.hn_url.summary.md`: Summarized HN comments
 
-where `{base}` is `--output` if specified, otherwise the submission title with
-bash-unfriendly characters replaced with underscores.
+where `{base}` is `<date>.hn_<item_id>.<title>`: `<date>` is the submission's
+`YYYY-MM-DD` submission date, `<item_id>` is the HN item ID, and `<title>` is
+`--output` if specified, otherwise the submission title with bash-unfriendly
+characters replaced with underscores. Files are written under `--output_dir`
+(current directory if not specified). Each generated file starts with a
+plain-text backlink header pointing to the article URL (if any) and the HN
+submission URL.
 
 # Usage Example
 
@@ -46,6 +51,11 @@ bash-unfriendly characters replaced with underscores.
     --input "https://news.ycombinator.com/item?id=12345" \
     --output my_submission
 
+- Save the generated files under a given directory:
+> download_hn_article_to_md.py \
+    --input "https://news.ycombinator.com/item?id=12345" \
+    --output_dir ./hn_downloads
+
 - Overwrite existing output files instead of skipping:
 > download_hn_article_to_md.py \
     --input "https://news.ycombinator.com/item?id=12345" \
@@ -57,6 +67,7 @@ import dev_scripts_helpers.download.download_hn_article_to_md as dsdhatm
 """
 
 import argparse
+import datetime
 import html
 import logging
 import os
@@ -255,13 +266,16 @@ def _format_hn_comments_as_text(comments: List[Dict[str, Any]]) -> str:
 # #############################################################################
 
 
-def _fetch_submission(hn_url: str) -> Dict[str, str]:
+def _fetch_submission(hn_url: str) -> Dict[str, Any]:
     """
-    Fetch a HN submission's title and linked article URL (if any).
+    Fetch a HN submission's title, timestamp, and linked article URL (if
+    any).
 
     :param hn_url: Hacker News item URL
-    :return: dict with 'item_id', 'title', 'article_url' keys; 'article_url'
-        is empty for Show HN / Ask HN / text posts (no linked article)
+    :return: dict with 'item_id', 'title', 'article_url', 'time' keys (all
+        str except 'time', an int unix timestamp); 'article_url' is empty
+        for Show HN / Ask HN / text posts (no linked article); 'time' is
+        `""` if unavailable
     """
     _LOG.debug(hprint.func_signature_to_str())
     hdbg.dassert(
@@ -275,14 +289,47 @@ def _fetch_submission(hn_url: str) -> Dict[str, str]:
     # HN / Ask HN / text posts have no "url" (only "text"), so article_url
     # stays empty and article download/summarize is skipped for those.
     article_url = ""
+    time_ = ""
     if item_data:
         title = item_data.get("title", item_id)
         article_url = item_data.get("url", "")
+        time_ = item_data.get("time", "")
     _LOG.info(
         "Fetched submission: title='%s' article_url='%s'", title, article_url
     )
-    _LOG.debug(hprint.to_str("item_id title article_url"))
-    return {"item_id": item_id, "title": title, "article_url": article_url}
+    _LOG.debug(hprint.to_str("item_id title article_url time_"))
+    return {
+        "item_id": item_id,
+        "title": title,
+        "article_url": article_url,
+        "time": time_,
+    }
+
+
+# #############################################################################
+# Backlinks
+# #############################################################################
+
+
+def _prepend_backlinks(
+    output_file: str, article_url: str, hn_url: str
+) -> None:
+    """
+    Prepend a plain-text backlink header to a freshly-written output file.
+
+    :param output_file: Path to the file to prepend the header to
+    :param article_url: URL of the linked article; skipped if empty (e.g.,
+        Show HN / Ask HN / text posts)
+    :param hn_url: URL of the HN submission
+    """
+    _LOG.debug(hprint.to_str("output_file article_url hn_url"))
+    header_lines = []
+    if article_url:
+        header_lines.append(f"Article: {article_url}")
+    header_lines.append(f"HN: {hn_url}")
+    header = "\n".join(header_lines) + "\n\n"
+    content = hio.from_file(output_file)
+    hio.to_file(output_file, header + content)
 
 
 # #############################################################################
@@ -294,6 +341,8 @@ def _download_hn_url(
     item_id: str,
     output_file: str,
     *,
+    article_url: str = "",
+    hn_url: str = "",
     dry_run: bool = False,
     no_incremental: bool = False,
 ) -> None:
@@ -302,6 +351,8 @@ def _download_hn_url(
 
     :param item_id: HN item ID
     :param output_file: Path to save the formatted comments to
+    :param article_url: URL of the linked article, for the backlink header
+    :param hn_url: URL of the HN submission, for the backlink header
     :param dry_run: If True, show what would be done without executing
     :param no_incremental: If True, overwrite `output_file` even if it
         already exists
@@ -321,6 +372,7 @@ def _download_hn_url(
     _LOG.info("Fetched %d total comments", total_comments)
     formatted_comments = _format_hn_comments_as_text(hn_comments)
     hio.to_file(output_file, formatted_comments)
+    _prepend_backlinks(output_file, article_url, hn_url)
     _LOG.info("Successfully saved HN comments to: '%s'", output_file)
 
 
@@ -328,6 +380,7 @@ def _download_article_url(
     article_url: str,
     output_file: str,
     *,
+    hn_url: str = "",
     dry_run: bool = False,
     no_incremental: bool = False,
 ) -> None:
@@ -336,6 +389,7 @@ def _download_article_url(
 
     :param article_url: Article URL
     :param output_file: Path to save the article content to
+    :param hn_url: URL of the HN submission, for the backlink header
     :param dry_run: If True, show what would be done without executing
     :param no_incremental: If True, overwrite `output_file` even if it
         already exists
@@ -366,6 +420,7 @@ def _download_article_url(
         return
     _LOG.info("Downloading article from '%s' via %s", article_url, downloader)
     dshddut.download_article(article_url, output_file)
+    _prepend_backlinks(output_file, article_url, hn_url)
     _LOG.info("Successfully saved article to: '%s'", output_file)
 
 
@@ -395,6 +450,8 @@ def _summarize_hn_url(
     comments_file: str,
     summary_file: str,
     *,
+    article_url: str = "",
+    hn_url: str = "",
     dry_run: bool = False,
     no_incremental: bool = False,
 ) -> None:
@@ -403,6 +460,8 @@ def _summarize_hn_url(
 
     :param comments_file: Path to the raw HN comments file
     :param summary_file: Path to save the summary to
+    :param article_url: URL of the linked article, for the backlink header
+    :param hn_url: URL of the HN submission, for the backlink header
     :param dry_run: If True, show what would be done without executing
     :param no_incremental: If True, overwrite `summary_file` even if it
         already exists
@@ -423,12 +482,16 @@ def _summarize_hn_url(
         _HN_COMMENTS_PROMPT,
         dry_run=dry_run,
     )
+    if not dry_run:
+        _prepend_backlinks(summary_file, article_url, hn_url)
 
 
 def _summarize_article_url(
     article_file: str,
     summary_file: str,
     *,
+    article_url: str = "",
+    hn_url: str = "",
     dry_run: bool = False,
     no_incremental: bool = False,
 ) -> None:
@@ -437,6 +500,8 @@ def _summarize_article_url(
 
     :param article_file: Path to the raw article content file
     :param summary_file: Path to save the summary to
+    :param article_url: URL of the linked article, for the backlink header
+    :param hn_url: URL of the HN submission, for the backlink header
     :param dry_run: If True, show what would be done without executing
     :param no_incremental: If True, overwrite `summary_file` even if it
         already exists
@@ -455,6 +520,8 @@ def _summarize_article_url(
         dshddut.ARTICLE_SUMMARY_PROMPT,
         dry_run=dry_run,
     )
+    if not dry_run:
+        _prepend_backlinks(summary_file, article_url, hn_url)
 
 
 # #############################################################################
@@ -498,6 +565,16 @@ def _parse() -> argparse.ArgumentParser:
             "If not specified, the sanitized submission title is used"
         ),
     )
+    parser.add_argument(
+        "-d",
+        "--output_dir",
+        type=str,
+        default="",
+        help=(
+            "Directory to save the generated files to (created if it "
+            "doesn't exist). If not specified, the current directory is used"
+        ),
+    )
     # Add action selection arguments (download_hn_url, download_article_url, etc).
     hselacti.add_action_arg(parser, VALID_ACTIONS, DEFAULT_ACTIONS)
     # Add cache control argument.
@@ -526,12 +603,15 @@ def _main(parser: argparse.ArgumentParser) -> None:
     args = parser.parse_args()
     hdbg.init_logger(verbosity=args.log_level, use_exec_path=True)
     hcacsimp.parse_cache_control_args(args)
-    # Fetch the submission to get its title and (optional) linked article URL.
+    # Fetch the submission to get its title, timestamp, and (optional)
+    # linked article URL.
     submission = _fetch_submission(args.input)
     title = submission["title"]
     article_url = submission["article_url"]
     item_id = submission["item_id"]
-    _LOG.debug(hprint.to_str("item_id title article_url"))
+    time_ = submission["time"]
+    hn_url = f"https://news.ycombinator.com/item?id={item_id}"
+    _LOG.debug(hprint.to_str("item_id title article_url time_ hn_url"))
     # Restrict the defaults to HN-only actions when the submission has no
     # linked article (e.g., Show HN / Ask HN / text posts); overridable
     # explicitly via --action/--skip_action.
@@ -546,9 +626,22 @@ def _main(parser: argparse.ArgumentParser) -> None:
         "Actions to execute:\n%s",
         hselacti.actions_to_string(actions, VALID_ACTIONS, add_frame=True),
     )
-    # Compute output filenames from `--output` if specified, otherwise from
-    # the sanitized title.
-    base_name = args.output or dshddut.sanitize_title_for_filename(title)
+    # Compute the shared base name as `<date>.hn_<item_id>.<title>`, where
+    # `<date>` is the submission date and `<title>` is `--output` if
+    # specified, otherwise the sanitized submission title.
+    if time_:
+        date_str = datetime.datetime.fromtimestamp(
+            time_, tz=datetime.timezone.utc
+        ).strftime("%Y-%m-%d")
+    else:
+        date_str = "unknown_date"
+    title_slug = args.output or dshddut.sanitize_title_for_filename(title)
+    base_name = f"{date_str}.hn_{item_id}.{title_slug}"
+    # Prepend the output directory, creating it if needed.
+    if args.output_dir:
+        if not args.dry_run:
+            hio.create_dir(args.output_dir, incremental=True)
+        base_name = os.path.join(args.output_dir, base_name)
     article_file = f"{base_name}.1.article_url.md"
     article_summary_file = f"{base_name}.2.article_url.summary.md"
     hn_file = f"{base_name}.3.hn_url.txt"
@@ -575,6 +668,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
             _download_article_url(
                 article_url,
                 article_file,
+                hn_url=hn_url,
                 dry_run=args.dry_run,
                 no_incremental=args.no_incremental,
             )
@@ -582,6 +676,8 @@ def _main(parser: argparse.ArgumentParser) -> None:
             _download_hn_url(
                 item_id,
                 hn_file,
+                article_url=article_url,
+                hn_url=hn_url,
                 dry_run=args.dry_run,
                 no_incremental=args.no_incremental,
             )
@@ -594,6 +690,8 @@ def _main(parser: argparse.ArgumentParser) -> None:
             _summarize_article_url(
                 article_file,
                 article_summary_file,
+                article_url=article_url,
+                hn_url=hn_url,
                 dry_run=args.dry_run,
                 no_incremental=args.no_incremental,
             )
@@ -601,6 +699,8 @@ def _main(parser: argparse.ArgumentParser) -> None:
             _summarize_hn_url(
                 hn_file,
                 hn_summary_file,
+                article_url=article_url,
+                hn_url=hn_url,
                 dry_run=args.dry_run,
                 no_incremental=args.no_incremental,
             )
