@@ -47,7 +47,6 @@ import helpers.hgit as hgit
 import helpers.hparser as hparser
 import helpers.hprint as hprint
 import helpers.hsystem as hsystem
-import dev_scripts_helpers.download.download_academic_paper_to_md as dshddaptm
 import dev_scripts_helpers.download.download_utils as dshddut
 import dev_scripts_helpers.download.bookmark_utils as dshdbout
 
@@ -57,22 +56,6 @@ _LOG = logging.getLogger(__name__)
 # #############################################################################
 # Input type detection
 # #############################################################################
-
-
-def _is_pdf_url(url: str) -> bool:
-    """
-    Check if a URL points directly to a PDF file.
-
-    :param url: input URL
-    :return: True if the URL path (ignoring query string/fragment) ends in
-        `.pdf`
-    """
-    _LOG.debug(hprint.to_str("url"))
-    # Strip query string and fragment before checking the file extension.
-    path = url.split("?")[0].split("#")[0]
-    result = path.lower().endswith(".pdf")
-    _LOG.debug("return=%s", result)
-    return result
 
 
 def detect_input_type(input_arg: str) -> str:
@@ -87,11 +70,7 @@ def detect_input_type(input_arg: str) -> str:
     # then academic-paper-like URLs (arXiv/DOI/PDF), else a generic web page.
     if dshdbout.is_hackernews_url(input_arg):
         input_type = "hn"
-    elif (
-        dshddut.is_arxiv_url(input_arg)
-        or dshddaptm.detect_doi(input_arg)
-        or _is_pdf_url(input_arg)
-    ):
+    elif dshddut.is_academic_paper_url(input_arg):
         input_type = "academic_paper"
     else:
         input_type = "html"

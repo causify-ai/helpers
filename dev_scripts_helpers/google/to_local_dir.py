@@ -71,7 +71,7 @@ def _is_folder_url(url: str) -> bool:
     :param url: URL to check
     :return: True if it's a folder URL, False otherwise
     """
-    # Folder URLs have the pattern: /folders/FOLDER_ID
+    # Folder URLs have the pattern: /folders/FOLDER_ID.
     return "/folders/" in url
 
 
@@ -84,7 +84,7 @@ def _extract_folder_id_from_url(url: str) -> str:
     :param url: URL of the Google Drive folder
     :return: Folder ID extracted from the URL
     """
-    # Handle URLs like: https://drive.google.com/drive/u/0/folders/FOLDER_ID
+    # Handle URLs like: https://drive.google.com/drive/u/0/folders/FOLDER_ID.
     pattern = r"/folders/([a-zA-Z0-9-_]+)"
     match = re.search(pattern, url)
     hdbg.dassert(match, "Invalid folder URL format: %s", url)
@@ -138,7 +138,7 @@ def _get_local_gdrive_path(account: str) -> str:
         list(GOOGLE_DRIVE_ACCOUNTS.keys()),
     )
     base_path = GOOGLE_DRIVE_ACCOUNTS[account]
-    # Verify that the base path exists
+    # Verify that the base path exists.
     if not os.path.exists(base_path):
         _LOG.warning(
             "Google Drive path for account '%s' does not exist: %s",
@@ -168,14 +168,14 @@ def _find_file_in_account(
         )
         return None
     _LOG.debug("Searching for '%s' in account '%s'", file_name, account)
-    # Walk through the directory tree to find the file or folder
+    # Walk through the directory tree to find the file or folder.
     for root, dirs, files in os.walk(base_path):
-        # Check if it's a file
+        # Check if it's a file.
         if file_name in files:
             full_path = os.path.join(root, file_name)
             _LOG.info("Found file: %s", full_path)
             return full_path
-        # Check if it's a directory
+        # Check if it's a directory.
         if file_name in dirs:
             full_path = os.path.join(root, file_name)
             _LOG.info("Found folder: %s", full_path)
@@ -268,7 +268,7 @@ def convert_url_to_local_path(
             file_name = _get_folder_name_from_id(credentials, file_id)
         except Exception as e:
             _LOG.warning("Could not get file name from URL: %s", e)
-            # Use the file ID as fallback
+            # Use the file ID as fallback.
             file_name = f"file_{file_id}"
         folder_name = file_name
         _LOG.info("File name: %s", file_name)
@@ -304,14 +304,14 @@ def convert_file_name_to_local_path(
     :param account: Account name (causify, gmail, umd), or None for auto-detection
     :return: Local file system path
     """
-    # Auto-detect account if not specified
+    # Auto-detect account if not specified.
     if account is None or account == "auto":
         account = _auto_detect_account(file_name)
         if account is None:
             raise ValueError(
                 f"File/folder '{file_name}' not found in any account"
             )
-    # Find the file or folder in the specified account
+    # Find the file or folder in the specified account.
     file_path = _find_file_in_account(file_name, account)
     if file_path is None:
         raise ValueError(
@@ -325,7 +325,7 @@ def _parse() -> argparse.ArgumentParser:
         description=__doc__,
         formatter_class=hparser.CustomHelpFormatter,
     )
-    # Either URL or file_name must be provided
+    # Either URL or file_name must be provided.
     group = parser.add_mutually_exclusive_group(required=True)
     group.add_argument(
         "--url",
@@ -353,18 +353,18 @@ def _main(parser: argparse.ArgumentParser) -> None:
     hdbg.init_logger(verbosity=args.log_level, use_exec_path=True)
     try:
         if args.url:
-            # Convert URL to local path
+            # Convert URL to local path.
             local_path = convert_url_to_local_path(
                 args.url,
                 account=args.account,
             )
         else:
-            # Convert file name to local path
+            # Convert file name to local path.
             local_path = convert_file_name_to_local_path(
                 args.file_name,
                 account=args.account,
             )
-        # Check if the path exists
+        # Check if the path exists.
         if os.path.exists(local_path):
             path_type = "folder" if os.path.isdir(local_path) else "file"
             _LOG.info("%s found at: %s", path_type.capitalize(), local_path)

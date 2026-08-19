@@ -18,8 +18,13 @@ Output filenames share a base name, with
 - `{base}.1.article_url.md`: Article content (actual markdown, as produced
   by the PDF-to-markdown or HTML-to-markdown converters)
 - `{base}.2.article_url.summary.md`: Summarized article
+  - `{base}.2.article_url.summary.stat.json`: LLM usage stats for that
+    summarization (model, char counts, wallclock time, cost; see
+    `download_utils.summarize_text_with_llm()`)
 - `{base}.3.hn_url.txt`: Raw HN comments (plain indented text, not markdown)
 - `{base}.4.hn_url.summary.md`: Summarized HN comments
+  - `{base}.4.hn_url.summary.stat.json`: LLM usage stats for that
+    summarization
 
 where `{base}` is `<date>.hn_<item_id>.<title>`: `<date>` is the submission's
 `YYYY-MM-DD` submission date, `<item_id>` is the HN item ID, and `<title>` is
@@ -439,6 +444,8 @@ _HN_COMMENTS_PROMPT = hprint.dedent("""
     - Avoid comments that are: simple jokes, memes, very short reactions,
       repetitive or low-effort
     - Do not include commenter names
+    - Start the summary with the heading `# HN Comments Summary`, followed by
+      one `##` subheading per theme
 
     - Format as plain text without markdown following the conventions in:
       - @.claude/skills/markdown.rules.md

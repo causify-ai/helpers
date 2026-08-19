@@ -141,32 +141,6 @@ def _detect_arxiv_id(url: str) -> str:
 # #############################################################################
 
 
-def detect_doi(url: str) -> Optional[str]:
-    """
-    Detect DOI from URL or bare DOI string.
-
-    :param url: URL or bare DOI (e.g., "https://doi.org/10.xxx" or "10.xxx/yyy")
-    :return: DOI if detected, None otherwise
-    """
-    _LOG.debug(hprint.to_str("url"))
-    _DOI_URL_PATTERN = r"(?:https?://)?(?:dx\.)?doi\.org/(.+)"
-    _DOI_BARE_PATTERN = r"^(10\.\d{4,}/\S+)$"
-    # Try URL pattern.
-    match = re.search(_DOI_URL_PATTERN, url)
-    if match:
-        doi = match.group(1)
-        _LOG.debug(hprint.to_str("doi"))
-        return doi
-    # Try bare DOI pattern.
-    match = re.search(_DOI_BARE_PATTERN, url)
-    if match:
-        doi = match.group(1)
-        _LOG.debug(hprint.to_str("doi"))
-        return doi
-    _LOG.debug("return=None")
-    return None
-
-
 @hretry.sync_retry(
     (requests.RequestException,),
     retry_delay_in_sec=_RETRY_DELAY_SEC,
@@ -392,7 +366,7 @@ def _resolve_metadata_and_content(
     _LOG.info("Resolving metadata for: %s", url)
     # Try to resolve via DOI first, then arXiv ID, falling back to
     # downloading the raw PDF and extracting metadata locally.
-    doi = detect_doi(url)
+    doi = dshddut.detect_doi(url)
     pdf_content = None
     pdf_url = None
     if doi:

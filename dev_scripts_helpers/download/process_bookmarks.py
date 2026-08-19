@@ -19,7 +19,11 @@ For each row without the `Done` flag set (up to `--limit` rows), this:
    `<date>.hn_<item_id>.<title>.summary.md` file, prefixed with a backlink
    header (`Article: <url>` / `HN: <url>`)
 3) Copies the merged file to `--gdrive_dir`
-4) Sets `Done` for that row and saves the CSV in place
+4) Saves a `<date>.hn_<item_id>.<title>.stats.json` file under
+   `--output_dir` with the wallclock time spent downloading and the LLM
+   usage stats (model, char counts, wallclock time, cost) for both
+   summarization phases
+5) Sets `Done` for that row and saves the CSV in place
 
 # Usage Example
 
@@ -35,16 +39,23 @@ For each row without the `Done` flag set (up to `--limit` rows), this:
   output files:
 > process_bookmarks.py --input bookmarks.csv --no_incremental
 
+- Keep the merged summaries local (under --output_dir`) instead of copying them
+  to Google Drive:
+> process_bookmarks.py --input bookmarks.csv -o ./tmp.hn_downloads \
+    --no_save_to_google_drive
+
 Import as:
 
 import dev_scripts_helpers.download.process_bookmarks as dshdprbo
 """
 
 import argparse
+import dataclasses
 import glob
 import logging
 import os
 import shutil
+import time
 from typing import Any, Dict, List, Optional, Tuple
 
 from tqdm import tqdm
@@ -52,6 +63,7 @@ from tqdm import tqdm
 import helpers.hdbg as hdbg
 import helpers.hgit as hgit
 import helpers.hio as hio
+import helpers.hllm_cli as hllmcli
 import helpers.hparser as hparser
 import helpers.hprint as hprint
 import helpers.hsystem as hsystem
@@ -113,12 +125,65 @@ def _parse_backlink_header(content: str) -> Tuple[str, str, str]:
     return article_url, hn_url, rest
 
 
+def _strip_leading_h1(text: str) -> str:
+    """
+    Drop a leading top-level (`# ...`) heading line from `text`, if present.
+
+    Used to avoid duplicating the LLM's own top-level heading (e.g., `#
+    Article Summary`, `# HN Comments Summary`) underneath the hardcoded
+    section heading `_build_merged_summary` already adds.
+
+    :param text: section content, optionally starting with a `# ...` heading
+    :return: `text` with the leading `# ...` heading (and the blank line
+        after it) removed, if present
+    """
+    lines = text.split("\n")
+    if lines and lines[0].startswith("# "):
+        lines = lines[1:]
+        if lines and lines[0] == "":
+            lines = lines[1:]
+    return "\n".join(lines)
+
+
+def _build_info_section(
+    row: Dict[str, Any], article_url: str, hn_url: str
+) -> str:
+    """
+    Build the `# Info` section listing the row's metadata.
+
+    :param row: CSV row dict (`Title`, `Timestamp`, `Article_tag`,
+        `Article_cluster` are read from it, if present)
+    :param article_url: article URL, empty for Show HN / Ask HN / text posts
+    :param hn_url: HN submission URL
+    :return: `# Info` section text (no trailing blank line)
+    """
+    lines = ["# Info"]
+    title = (row.get("Title") or "").strip()
+    if title:
+        lines.append(f"Title: {title}")
+    if article_url:
+        lines.append(f"Article: {article_url}")
+    lines.append(f"HN: {hn_url}")
+    for key, label in (
+        ("Timestamp", "Timestamp"),
+        ("Article_tag", "Article_tag"),
+        ("Article_cluster", "Article_cluster"),
+    ):
+        value = (row.get(key) or "").strip()
+        if value:
+            lines.append(f"{label}: {value}")
+    return "\n".join(lines)
+
+
 def _build_merged_summary(
-    hn_summary_file: str, article_summary_file: Optional[str]
+    row: Dict[str, Any],
+    hn_summary_file: str,
+    article_summary_file: Optional[str],
 ) -> Tuple[str, str]:
     """
     Merge the article summary and HN comments summary into a single file.
 
+    :param row: CSV row dict, used to populate the `# Info` section
     :param hn_summary_file: path to the `*.4.hn_url.summary.md` file
         (always present)
     :param article_summary_file: path to the `*.2.article_url.summary.md`
@@ -145,20 +210,110 @@ def _build_merged_summary(
         article_url = article_url2 or article_url
     else:
         article_rest = "No linked article (Show HN / Ask HN / text post)."
-    header_lines = []
-    if article_url:
-        header_lines.append(f"Article: {article_url}")
-    header_lines.append(f"HN: {hn_url}")
+    info_section = _build_info_section(row, article_url, hn_url)
     sections = [
-        "# Article Summary\n\n" + article_rest.strip(),
-        "# HN Comments Summary\n\n" + hn_rest.strip(),
+        "# Article Summary\n\n" + _strip_leading_h1(article_rest.strip()),
+        "# HN Comments Summary\n\n" + _strip_leading_h1(hn_rest.strip()),
     ]
-    merged_content = (
-        "\n".join(header_lines) + "\n\n" + "\n\n".join(sections) + "\n"
-    )
+    merged_content = info_section + "\n\n" + "\n\n".join(sections) + "\n"
     merged_filename = f"{base_name}.summary.md"
     _LOG.debug(hprint.to_str("merged_filename"))
     return merged_filename, merged_content
+
+
+# #############################################################################
+# Stats
+# #############################################################################
+
+
+def _get_stat_file_path(summary_file: str) -> str:
+    """
+    Derive the stats JSON file path for a summary file.
+
+    Duplicates `download_utils.get_stat_file_path()` rather than importing
+    it: `download_utils.py` pulls in `bs4`/`requests`, which aren't in this
+    script's `uv run` inline dependency list (kept minimal since this script
+    only shells out to `download_hn_article_to_md.py` instead of fetching
+    content itself).
+
+    :param summary_file: path to a `*.summary.md` file produced by
+        `download_utils.summarize_text_with_llm()`
+    :return: path to the sibling stats file (e.g.,
+        `foo.summary.md` -> `foo.summary.stat.json`)
+    """
+    hdbg.dassert(
+        summary_file.endswith(".md"),
+        "Summary file must end in '.md': %s",
+        summary_file,
+    )
+    return summary_file[: -len(".md")] + ".stat.json"
+
+
+def _load_stats(stat_file: str) -> Optional[Dict[str, Any]]:
+    """
+    Load a `TokenStats` JSON file saved by `llm_cli.py --stat_file`.
+
+    :param stat_file: path to the stats JSON file
+    :return: stats as a dict, or None if the file doesn't exist (e.g., the
+        summarization was skipped because the summary already existed)
+    """
+    if not os.path.exists(stat_file):
+        _LOG.warning("Stats file not found, skipping: '%s'", stat_file)
+        return None
+    token_stats = hllmcli.TokenStats.from_file(stat_file)
+    return dataclasses.asdict(token_stats)
+
+
+def _build_stats(
+    merged_filename: str,
+    total_wallclock_time_in_seconds: float,
+    hn_summary_file: str,
+    article_summary_file: Optional[str],
+) -> Tuple[str, Dict[str, Any]]:
+    """
+    Build the per-row stats file name and content.
+
+    :param merged_filename: name of the merged summary file (as returned by
+        `_build_merged_summary()`), used to derive the stats file name
+    :param total_wallclock_time_in_seconds: wallclock time of the whole
+        `download_hn_article_to_md.py` invocation (download + summarize)
+    :param hn_summary_file: path to the `*.4.hn_url.summary.md` file
+    :param article_summary_file: path to the `*.2.article_url.summary.md`
+        file, or None if the submission has no linked article
+    :return: (stats file name, stats dict)
+    """
+    hn_stats = _load_stats(_get_stat_file_path(hn_summary_file))
+    article_stats = (
+        _load_stats(_get_stat_file_path(article_summary_file))
+        if article_summary_file
+        else None
+    )
+    # The download wallclock time is the total time minus the time spent in
+    # the 2 LLM summarization calls (already reported individually in
+    # `hn_stats` / `article_stats`).
+    summarize_time = sum(
+        stats["elapsed_time_in_seconds"]
+        for stats in (hn_stats, article_stats)
+        if stats
+    )
+    download_wallclock_time_in_seconds = max(
+        0.0, total_wallclock_time_in_seconds - summarize_time
+    )
+    stats = {
+        "total_wallclock_time_in_seconds": total_wallclock_time_in_seconds,
+        "download_wallclock_time_in_seconds": (
+            download_wallclock_time_in_seconds
+        ),
+        "article_summary_stats": article_stats,
+        "hn_summary_stats": hn_stats,
+    }
+    hdbg.dassert(
+        merged_filename.endswith(".summary.md"),
+        "Unexpected merged filename: %s",
+        merged_filename,
+    )
+    stats_filename = merged_filename[: -len(".summary.md")] + ".stats.json"
+    return stats_filename, stats
 
 
 # #############################################################################
@@ -206,6 +361,7 @@ def _process_row(
     output_dir: str,
     gdrive_dir: str,
     no_incremental: bool,
+    no_save_to_google_drive: bool,
     dry_run: bool,
 ) -> bool:
     """
@@ -213,31 +369,58 @@ def _process_row(
 
     :param row: CSV row dict; mutated in place (`Done` is set on success)
     :param script: path to `download_hn_article_to_md.py`
-    :param output_dir: local dir for the raw per-item files
+    :param output_dir: local dir for the raw per-item files and the merged
+        summary
     :param gdrive_dir: Google Drive dir the merged summary is copied to
     :param no_incremental: if True, force `download_hn_article_to_md.py` to
         overwrite existing local per-item files
+    :param no_save_to_google_drive: if True, keep the merged summary in
+        `output_dir` only, without copying it to `gdrive_dir`
     :param dry_run: if True, log what would be done without doing it
     :return: True if the row was successfully processed (and `Done` set)
     """
-    _LOG.debug(hprint.to_str("output_dir gdrive_dir no_incremental dry_run"))
+    _LOG.debug(
+        hprint.to_str(
+            "output_dir gdrive_dir no_incremental no_save_to_google_drive "
+            "dry_run"
+        )
+    )
     hn_url = (row.get("Hn_url") or "").strip()
     if not hn_url or not dshdbout.is_hackernews_url(hn_url):
         _LOG.warning("Skipping row with invalid Hn_url: '%s'", hn_url)
         return False
     item_id = dshdbout.extract_item_id(hn_url)
-    _LOG.info("Processing item %s: '%s'", item_id, hn_url)
+    title = (row.get("Title") or "").strip()
     if dry_run:
         _LOG.info(
+            "[DRY_RUN] Processing item %s: '%s', '%s'",
+            item_id,
+            hn_url,
+            title,
+        )
+        _LOG.debug(
             "[DRY RUN] Would download+summarize '%s' into '%s'",
             hn_url,
             output_dir,
         )
-        _LOG.info(
-            "[DRY RUN] Would save merged summary to '%s' and set Done",
-            gdrive_dir,
-        )
+        if no_save_to_google_drive:
+            _LOG.debug(
+                "[DRY RUN] Would keep merged summary in '%s' "
+                "(--no_save_to_google_drive) and set Done",
+                output_dir,
+            )
+        else:
+            _LOG.debug(
+                "[DRY RUN] Would save merged summary to '%s' and set Done",
+                gdrive_dir,
+            )
         return False
+    _LOG.info(
+        "Processing item %s: '%s', '%s'",
+        item_id,
+        hn_url,
+        title,
+    )
     # Download and summarize the submission (article + HN comments).
     cmd_parts = [
         script,
@@ -247,7 +430,9 @@ def _process_row(
     if no_incremental:
         cmd_parts.append("--no_incremental")
     cmd = " ".join(cmd_parts)
+    download_start_time = time.time()
     hsystem.system(cmd, print_command=True)
+    total_wallclock_time_in_seconds = time.time() - download_start_time
     # Locate the generated summary files: `download_hn_article_to_md.py` owns
     # the exact `<date>.hn_<item_id>.<title>` naming, so glob for it by
     # `item_id` instead of re-deriving the title slug/date here.
@@ -271,13 +456,30 @@ def _process_row(
     )
     article_summary_file = article_matches[-1] if article_matches else None
     merged_filename, merged_content = _build_merged_summary(
-        hn_summary_file, article_summary_file
+        row, hn_summary_file, article_summary_file
     )
     local_merged_file = os.path.join(output_dir, merged_filename)
     hio.to_file(local_merged_file, merged_content)
-    gdrive_file = os.path.join(gdrive_dir, merged_filename)
-    shutil.copy2(local_merged_file, gdrive_file)
-    _LOG.info("Saved merged summary to '%s'", gdrive_file)
+    # Save the per-row stats (download wallclock time + both summarization
+    # phases' LLM stats) locally, next to the merged summary.
+    stats_filename, stats = _build_stats(
+        merged_filename,
+        total_wallclock_time_in_seconds,
+        hn_summary_file,
+        article_summary_file,
+    )
+    local_stats_file = os.path.join(output_dir, stats_filename)
+    hio.to_json(local_stats_file, stats)
+    _LOG.info("Saved stats to '%s'", local_stats_file)
+    if no_save_to_google_drive:
+        _LOG.info(
+            "Keeping merged summary in '%s' (--no_save_to_google_drive)",
+            local_merged_file,
+        )
+    else:
+        gdrive_file = os.path.join(gdrive_dir, merged_filename)
+        shutil.copy2(local_merged_file, gdrive_file)
+        _LOG.info("Saved merged summary to '%s'", gdrive_file)
     row["Done"] = "yes"
     return True
 
@@ -312,11 +514,13 @@ def _parse() -> argparse.ArgumentParser:
         f"{_DEFAULT_LIMIT})",
     )
     parser.add_argument(
+        "-o",
         "--output_dir",
         type=str,
         default=_DEFAULT_OUTPUT_DIR,
         help="Local dir for the raw per-item files from "
-        f"download_hn_article_to_md.py (default: {_DEFAULT_OUTPUT_DIR})",
+        "download_hn_article_to_md.py and the merged summary, before it's "
+        f"saved to Google Drive (default: {_DEFAULT_OUTPUT_DIR})",
     )
     parser.add_argument(
         "--gdrive_dir",
@@ -330,6 +534,12 @@ def _parse() -> argparse.ArgumentParser:
         action="store_true",
         help="Reprocess rows even if already marked Done, overwriting "
         "existing local per-item output files",
+    )
+    parser.add_argument(
+        "--no_save_to_google_drive",
+        action="store_true",
+        help="Keep the merged summary in --output_dir only, without "
+        "copying it to --gdrive_dir",
     )
     parser.add_argument(
         "--dry_run",
@@ -357,11 +567,12 @@ def _main(parser: argparse.ArgumentParser) -> None:
         rows, no_incremental=args.no_incremental, limit=args.limit
     )
     if args.dry_run:
-        _LOG.info("DRY RUN MODE: showing what would be done without executing")
+        _LOG.warning("DRY RUN MODE: showing what would be done without executing")
     script = hgit.find_file_in_git_tree("download_hn_article_to_md.py")
     if not args.dry_run:
         hio.create_dir(args.output_dir, incremental=True)
-        hio.create_dir(args.gdrive_dir, incremental=True)
+        if not args.no_save_to_google_drive:
+            hio.create_dir(args.gdrive_dir, incremental=True)
     num_processed = 0
     for row in tqdm(selected_rows, desc="Processing bookmarks"):
         was_processed = _process_row(
@@ -370,6 +581,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
             output_dir=args.output_dir,
             gdrive_dir=args.gdrive_dir,
             no_incremental=args.no_incremental,
+            no_save_to_google_drive=args.no_save_to_google_drive,
             dry_run=args.dry_run,
         )
         if was_processed:

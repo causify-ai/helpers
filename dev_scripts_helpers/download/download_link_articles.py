@@ -93,6 +93,12 @@ characters replaced with underscores:
     --url "https://docs.google.com/spreadsheets/d/..." \
     --clear_actions --action summarize_hn_url
 
+- Summarize articles with a specific LLM model instead of the default:
+> download_link_articles.py \
+    --url "https://docs.google.com/spreadsheets/d/..." \
+    --clear_actions --action summarize_article_url \
+    --model gpt-4o
+
 - Show what would be done without downloading or summarizing:
 > download_link_articles.py \
     --url "https://docs.google.com/spreadsheets/d/..." \
@@ -121,11 +127,14 @@ import helpers.hprint as hprint
 import helpers.hcache_simple as hcacsimp
 import helpers.hselect_action as hselacti
 import helpers.hsystem as hsystem
-import dev_scripts_helpers.download.download_to_md as dshddtomd
 import dev_scripts_helpers.download.download_utils as dshddut
 import dev_scripts_helpers.download.bookmark_utils as dshdbout
 
 _LOG = logging.getLogger(__name__)
+
+# Default LLM model used by `summarize_article_url` / `summarize_hn_url`,
+# overridable via `--model`.
+_DEFAULT_MODEL = "gpt-4o-mini"
 
 
 # #############################################################################
@@ -645,16 +654,12 @@ def _download_article_urls(
         # Generate filename from title and check if it already exists.
         sanitized_title = _sanitize_title_for_filename(title)
         output_file = f"{sanitized_title}.1.article_url.txt"
-        # TODO(ai_gp): Consider using directly
-        # dev_scripts_helpers/download/download_to_md.py
-        # Use `download_to_md.py`'s shared, already-correct URL-type detection
-        # (arXiv/DOI/PDF) instead of maintaining a separate, narrower check
-        # here; the actual download still dispatches via
-        # `dshddut.download_article()` below.
-        input_type = dshddtomd.detect_input_type(article_url)
+        # Only used to name the downloader in the log/dry-run messages below;
+        # the actual dispatch happens inside `dshddut.download_article()`,
+        # which uses this same shared check to decide the downloader.
         downloader = (
             "download_academic_paper_to_md.py"
-            if input_type == "academic_paper"
+            if dshddut.is_academic_paper_url(article_url)
             else "download_html_to_md.py"
         )
         if dry_run:
@@ -738,81 +743,11 @@ def _summarize_text_with_llm(
     _LOG.info("Summary saved to: '%s'", output_file)
 
 
-def _summarize_hn_url(
-    rows: List[Dict[str, Any]],
-    *,
-    indices: List[int],
-    dry_run: bool = False,
-    no_incremental: bool = False,
-) -> None:
-    """
-    Summarize HN comments using llm_cli.py.
-
-    Creates a summary file per article:
-    - title.4.hn_url.summary.txt: Summary of HN comments
-
-    :param rows: List of data rows
-    :param indices: List of row indices to process
-    :param dry_run: If True, show what would be done without executing
-    :param no_incremental: If True, overwrite the summary even if it
-        already exists
-    """
-    _LOG.debug(hprint.to_str("len(indices)"))
-    _LOG.info(
-        "Summarizing comments for %d rows%s",
-        len(indices),
-        " (DRY RUN)" if dry_run else "",
-    )
-    comments_prompt = """
-        Analyze the Hacker News comment section.
-        From all comments, summarize the 5 most interesting ones based on:
-        1. Thought-provoking or insightful content
-        2. Unique perspective or uncommon knowledge
-        3. Sparks discussion or debate
-        4. Technically informative or educational
-        5. Controversial but well-argued.
-        Avoid comments that are: simple jokes, memes, very short reactions,
-        repetitive or low-effort.
-        Do not include commenter names.
-        Format as plain text without markdown.
-    """
-    comments_prompt = hprint.dedent(comments_prompt)
-    for idx in tqdm(indices, desc="Summarizing comments"):
-        row = rows[idx]
-        title = row.get("Title", "").strip()
-        hdbg.dassert(title)
-        _LOG.debug("Processing row %d: %s", idx, title)
-        # Generate sanitized filename from title.
-        sanitized_title = _sanitize_title_for_filename(title)
-        # Summarize HN comments if .hn_url.txt file exists.
-        comments_file = f"{sanitized_title}.3.hn_url.txt"
-        if not dry_run:
-            hdbg.dassert_file_exists(comments_file)
-        comments_summary_file = f"{sanitized_title}.4.hn_url.summary.txt"
-        if (
-            not dry_run
-            and os.path.exists(comments_summary_file)
-            and not no_incremental
-        ):
-            _LOG.warning(
-                "HN comments summary already exists, skipping: '%s'",
-                comments_summary_file,
-            )
-            continue
-        _LOG.info("Summarizing HN comments for: %s", title)
-        _summarize_text_with_llm(
-            comments_file,
-            comments_summary_file,
-            comments_prompt,
-            "gpt-4o-mini",
-            dry_run=dry_run,
-        )
-
-
 def _summarize_articles(
     rows: List[Dict[str, Any]],
     *,
     indices: List[int],
+    model: str = _DEFAULT_MODEL,
     dry_run: bool = False,
     no_incremental: bool = False,
 ) -> None:
@@ -824,6 +759,7 @@ def _summarize_articles(
 
     :param rows: List of data rows
     :param indices: List of row indices to process
+    :param model: LLM model to use for summarization
     :param dry_run: If True, show what would be done without executing
     :param no_incremental: If True, overwrite the summary even if it
         already exists
@@ -865,7 +801,80 @@ def _summarize_articles(
             article_file,
             article_summary_file,
             article_prompt,
-            "gpt-4o-mini",
+            model,
+            dry_run=dry_run,
+        )
+
+
+def _summarize_hn_url(
+    rows: List[Dict[str, Any]],
+    *,
+    indices: List[int],
+    model: str = _DEFAULT_MODEL,
+    dry_run: bool = False,
+    no_incremental: bool = False,
+) -> None:
+    """
+    Summarize HN comments using llm_cli.py.
+
+    Creates a summary file per article:
+    - title.4.hn_url.summary.txt: Summary of HN comments
+
+    :param rows: List of data rows
+    :param indices: List of row indices to process
+    :param model: LLM model to use for summarization
+    :param dry_run: If True, show what would be done without executing
+    :param no_incremental: If True, overwrite the summary even if it
+        already exists
+    """
+    _LOG.debug(hprint.to_str("len(indices)"))
+    _LOG.info(
+        "Summarizing comments for %d rows%s",
+        len(indices),
+        " (DRY RUN)" if dry_run else "",
+    )
+    comments_prompt = """
+        - Analyze the Hacker News comment section
+        - From all comments, summarize the 5 most interesting ones based on:
+            - Thought-provoking or insightful content
+            - Unique perspective or uncommon knowledge
+            - Sparks discussion or debate
+            - Technically informative or educational
+            - Controversial but well-argued
+        - Avoid comments that are: simple jokes, memes, very short reactions,
+          repetitive or low-effort
+        - Do not include commenter names
+        - Format as plain text without markdown wrapping words in 85 characters
+    """
+    comments_prompt = hprint.dedent(comments_prompt)
+    for idx in tqdm(indices, desc="Summarizing comments"):
+        row = rows[idx]
+        title = row.get("Title", "").strip()
+        hdbg.dassert(title)
+        _LOG.debug("Processing row %d: %s", idx, title)
+        # Generate sanitized filename from title.
+        sanitized_title = _sanitize_title_for_filename(title)
+        # Summarize HN comments if .hn_url.txt file exists.
+        comments_file = f"{sanitized_title}.3.hn_url.txt"
+        if not dry_run:
+            hdbg.dassert_file_exists(comments_file)
+        comments_summary_file = f"{sanitized_title}.4.hn_url.summary.txt"
+        if (
+            not dry_run
+            and os.path.exists(comments_summary_file)
+            and not no_incremental
+        ):
+            _LOG.warning(
+                "HN comments summary already exists, skipping: '%s'",
+                comments_summary_file,
+            )
+            continue
+        _LOG.info("Summarizing HN comments for: %s", title)
+        _summarize_text_with_llm(
+            comments_file,
+            comments_summary_file,
+            comments_prompt,
+            model,
             dry_run=dry_run,
         )
 
@@ -931,6 +940,12 @@ def _parse() -> argparse.ArgumentParser:
     )
     # Add action selection arguments (download_hn_url, download_article_url, etc).
     hselacti.add_action_arg(parser, _VALID_ACTIONS, _DEFAULT_ACTIONS)
+    parser.add_argument(
+        "--model",
+        action="store",
+        default=_DEFAULT_MODEL,
+        help="LLM model to use for summarize_article_url / summarize_hn_url",
+    )
     # Add cache control argument.
     hcacsimp.add_cache_control_arg(parser)
     # Dry run mode: show what would happen without executing.
@@ -1020,6 +1035,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
             _summarize_articles(
                 rows,
                 indices=indices,
+                model=args.model,
                 dry_run=args.dry_run,
                 no_incremental=args.no_incremental,
             )
@@ -1027,6 +1043,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
             _summarize_hn_url(
                 rows,
                 indices=indices,
+                model=args.model,
                 dry_run=args.dry_run,
                 no_incremental=args.no_incremental,
             )

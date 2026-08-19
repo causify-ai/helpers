@@ -22,6 +22,7 @@
 | `download_utils.py`                    | Shared helpers for fetching article titles and summarizing text via an LLM   | Shared Utilities    |
 | `podcast_dl.py`                        | Download and format a podcast transcript from various sources                | Podcast Tools       |
 | `podcast_dl_example.sh`                | Example invocations of `podcast_dl.py` for each supported source type        | Podcast Tools       |
+| `process_bookmarks.py`                 | Download, summarize, and archive to Google Drive HN bookmarks from a CSV     | Bookmark Pipeline   |
 | `process_gsheet_links.py`              | Pipeline to extract HN article URLs and classify articles by topic/cluster   | Gsheet Pipelines    |
 | `process_one_off_gsheet_links.py`      | One-off pipeline to rename topic tags in the Gsheet (data migration)         | Gsheet Pipelines    |
 | `update_gsheet_links_from_raindrop.py` | Sync new bookmarks from `Raindrop.io` into the Gsheet                        | Gsheet Pipelines    |
@@ -369,6 +370,58 @@
   > download_link_articles.py --url "$LINKS_GSHEET" --action summarize_article_url
   ```
 
+### `process_bookmarks.py`
+
+#### What It Does
+
+- Processes unprocessed rows (no `Done` flag) from a local bookmarks CSV
+  (columns: `Title`, `Article_url`, `Hn_url`, `Timestamp`, `Article_tag`,
+  `Article_cluster`, `Done`), up to `--limit` rows
+- For each row:
+  1. Calls `download_hn_article_to_md.py` to download and summarize the
+     submission (article + HN comments) under `--output_dir`
+  2. Merges the article summary and HN comments summary into a single
+     `<date>.hn_<item_id>.<title>.summary.md` file, with an `# Info` section
+     (`Title`, `Article`, `HN`, `Timestamp`, `Article_tag`,
+     `Article_cluster`) followed by `# Article Summary` and `# HN Comments
+     Summary` sections
+  3. Copies the merged file to `--gdrive_dir` (skip with
+     `--no_save_to_google_drive`)
+  4. Sets `Done` on the row and saves the CSV in place, so an interrupted
+     run can resume
+- Unlike `process_gsheet_links.py`/`download_link_articles.py`, this reads
+  and writes a local CSV directly instead of a live Google Sheet
+
+#### Examples
+
+- Process up to 3 unprocessed rows from a CSV, keeping raw per-item files
+  under `bookmarks/` (merged summaries still go to `--gdrive_dir`):
+  ```bash
+  > process_bookmarks.py \
+      -i /Users/saggese/src/notes1/bookmarks/update_gsheet_links_from_raindrop.combined_data.csv \
+      -o bookmarks \
+      --limit 3
+  ```
+
+- Preview what would be done without downloading or writing anything:
+  ```bash
+  > process_bookmarks.py --input bookmarks.csv --dry_run
+  ```
+
+- Reprocess rows even if already marked `Done`, overwriting existing local
+  output files:
+  ```bash
+  > process_bookmarks.py --input bookmarks.csv --no_incremental
+  ```
+
+- Keep the merged summaries local instead of copying them to Google Drive:
+  ```bash
+  > process_bookmarks.py \
+      --input bookmarks.csv \
+      -o ./tmp.hn_downloads \
+      --no_save_to_google_drive
+  ```
+
 ### `process_one_off_gsheet_links.py`
 
 #### What It Does
@@ -412,3 +465,59 @@
      ```
   5. Review the results in the new timestamped tabs in Google Sheets and the
      downloaded files (articles, comments, summaries) in the local directory
+
+### CSV-Based Bookmark Processing Workflow
+
+// TODO(ai_gp): Too detailed. It should go in the README of the file or as a
+// comment in the file
+
+- **Purpose**: process bookmarks tracked in a local CSV (e.g., the
+  `combined_data.csv` produced by `update_gsheet_links_from_raindrop.py`'s
+  `combine_data` action) instead of a live Google Sheet, and archive the
+  results to Google Drive
+
+- **Command**:
+  ```bash
+  > process_bookmarks.py \
+      -i /Users/saggese/src/notes1/bookmarks/update_gsheet_links_from_raindrop.combined_data.csv \
+      -o bookmarks \
+      --limit 3
+  ```
+
+- **What it does, step by step**:
+  1. Reads the CSV at `-i` and asserts it has `Hn_url` and `Done` columns
+  2. Selects the first 3 rows (`--limit 3`) whose `Done` cell is empty
+  3. For each selected row (`item_id` extracted from `Hn_url`):
+     - Runs `download_hn_article_to_md.py --input "<Hn_url>" --output_dir
+       "bookmarks"`, which writes 4 raw files into `bookmarks/`:
+       `<base>.1.article_url.md`, `<base>.2.article_url.summary.md`,
+       `<base>.3.hn_url.txt`, `<base>.4.hn_url.summary.md`, where `<base>` is
+       `<date>.hn_<item_id>.<title>`
+     - Globs `bookmarks/` for the `*.2.article_url.summary.md` and
+       `*.4.hn_url.summary.md` files just produced (matched by `item_id`)
+     - Merges them into `bookmarks/<base>.summary.md`: an `# Info` section
+       (`Title`/`Article`/`HN`/`Timestamp`/`Article_tag`/`Article_cluster`
+       from the CSV row), then `# Article Summary`, then `# HN Comments
+       Summary`
+     - Copies `<base>.summary.md` to the default `--gdrive_dir`
+       (`.../GoogleDrive-saggese@gmail.com/My Drive/HN`); pass
+       `--no_save_to_google_drive` to keep it in `bookmarks/` only
+     - Sets `Done=yes` on the row and rewrites the CSV at `-i` in place, so a
+       later run (or a rerun after an interruption) skips it
+  4. Logs how many of the 3 selected rows were successfully processed
+
+- **Output for each processed row** (under `bookmarks/`):
+  - `<base>.1.article_url.md` — raw article content
+  - `<base>.2.article_url.summary.md` — LLM article summary
+  - `<base>.3.hn_url.txt` — raw HN comment tree
+  - `<base>.4.hn_url.summary.md` — LLM HN comments summary
+  - `<base>.summary.md` — merged summary (also copied to Google Drive)
+
+- **Notes**:
+  - Rerunning the same command later only processes the next unprocessed
+    rows (`Done` still unset), since the CSV is updated in place after each
+    row
+  - Use `--dry_run` first to see which rows would be picked up without
+    downloading or writing anything
+  - Use `--no_incremental` to force re-download and re-summarize rows
+    already marked `Done`

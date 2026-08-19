@@ -69,7 +69,7 @@ def _parser() -> argparse.ArgumentParser:
         "--width",
         action="store",
         type=int,
-        default=80,
+        default=85,
         help="The maximum line width for the formatted text.",
     )
     parser.add_argument(
