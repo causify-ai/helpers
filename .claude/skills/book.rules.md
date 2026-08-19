@@ -2,6 +2,36 @@ Conventions for maintaining a book map (`map.md`) that tracks a book's title,
 audience, roadmap, and chapter-by-chapter table of contents mapped to existing
 course lecture materials.
 
+# Concepts
+- `map.md`: the map of a book / course, e.g.,
+  - `/Users/saggese/src/umd_classes2/book_springer/map.md`
+  - `/Users/saggese/src/umd_classes1/book.AI_for_data_science/map.md`
+  - `/Users/saggese/src/umd_classes1/book.Modern_AI_for_Finance/map.md`
+  - `/Users/saggese/src/umd_classes1/msml610/map.md`
+  ...
+- `chap_toc`: contains a description of a book chapter
+  - It is `### topics` in a map
+- `skeleton_slides`
+  - describes the high level flow of slides
+  - contain only H1, H2, * and optionally `// From <file>:<slide title>`
+- `lesson_slides`: complete slides on a topic
+  - E.g., data605, msml610, book_springer
+  - The slides can be on a topic (e.g., from data605, msml610) or merged slides
+    from existing lesson slides (e.g., book_springer)
+- `slide_tutorials`: notebooks associated with `lesson_slides`
+- `book_chap`: a tex / typst file storing the text of the book corresponding to
+   the `lesson_slides`
+
+## Invariants
+- We need to maintain in sync the following data:
+  - `map`
+  - `chap_toc`
+  - `lesson_slides`
+  - `slide_tutorials`
+  - `book_chap`
+  since they are representation at different levels of abstraction of the same
+  content (i.e., a book / course)
+
 # Overall Structure
 
 - A book map follows this top-level section order:
