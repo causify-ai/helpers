@@ -2458,7 +2458,7 @@ class Test_notes_to_pdf_tilde_in_code(hunitest.TestCase):
         # Tildes are escaped as \~ in typst since they have special meaning in
         # #text()[...] blocks.
         self.assertIn(
-            r"default \~ credit_limit + credit_score + account_age", out_txt
+            r"default \~ credit\_limit + credit\_score + account\_age", out_txt
         )
         self.assertIn(r"a \~ b \~ c", out_txt)
 

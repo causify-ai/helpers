@@ -292,12 +292,12 @@ class Test_colorize_backticks_typst(hunitest.TestCase):
 
     def test3(self) -> None:
         """
-        Test backticks with underscores in Typst (no escaping needed).
+        Test backticks with underscores in Typst (always escaped).
         """
         # Prepare inputs.
         txt_in = "Use the `_private_func` naming."
         # Prepare outputs.
-        expected = "Use the `#text(fill: blue)[_private_func]`{=typst} naming."
+        expected = r"Use the `#text(fill: blue)[\_private\_func]`{=typst} naming."
         # Run test.
         self.helper(txt_in, expected)
 
@@ -550,7 +550,7 @@ class Test_colorize_backticks_typst_integration(hunitest.TestCase):
         expected = r"""
         # Chapter 1
         The `#text(fill: blue)[variable]`{=typst} is used here.
-        And `#text(fill: blue)[function_name]`{=typst} is called next.
+        And `#text(fill: blue)[function\_name]`{=typst} is called next.
         """
         # Run test.
         self.helper(txt_in, type_, expected)
@@ -568,7 +568,7 @@ class Test_colorize_backticks_typst_integration(hunitest.TestCase):
         # Prepare outputs.
         expected = r"""
         # A/B Testing
-        Use `#text(fill: blue)[no_email]`{=typst} as control and `#text(fill: blue)[long]`{=typst} as treatment.
+        Use `#text(fill: blue)[no\_email]`{=typst} as control and `#text(fill: blue)[long]`{=typst} as treatment.
         """
         # Run test.
         self.helper(txt_in, type_, expected)

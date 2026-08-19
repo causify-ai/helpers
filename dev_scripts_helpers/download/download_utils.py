@@ -138,7 +138,7 @@ def summarize_text_with_llm(
     hio.to_file(prompt_file, prompt)
     _LOG.debug("Saved prompt to: '%s'", prompt_file)
     # Build command to call llm_cli.py with the given prompt file.
-    llm_cli_path = "dev_scripts_helpers/llms/llm_cli.py"
+    llm_cli_path = hsystem.find_file_in_repo("llm_cli.py")
     cmd_parts = [
         llm_cli_path,
         f"--input={input_file}",

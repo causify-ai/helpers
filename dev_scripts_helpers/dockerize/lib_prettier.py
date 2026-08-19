@@ -228,6 +228,7 @@ def prettier(
     width: Optional[int] = None,
     use_dockerized_prettier: bool = True,
     tmp_dir: str = ".",
+    use_hash: bool = False,
     # TODO(gp): Remove this.
     **kwargs: Any,
 ) -> None:
@@ -245,6 +246,9 @@ def prettier(
         intermediate tmp file used to pre-process `md` / `txt` files. It
         must be reachable from the Docker mount (e.g., a dir under the Git
         root), since it is passed to the dockerized `prettier`
+    :param use_hash: whether to append a random hash to the intermediate
+        tmp file name to avoid collisions with concurrent / overlapping
+        calls. If False, a fixed name is reused (and overwritten) instead.
     :return: The formatted text.
     """
     _LOG.debug(hprint.func_signature_to_str())
@@ -286,11 +290,17 @@ def prettier(
         lines = txt.split("\n")
         lines = hmadiblo.add_prettier_ignore_to_div_blocks(lines)
         txt = "\n".join(lines)
-        # Save to tmp file with a unique name (inside `tmp_dir`) to avoid
-        # collisions with other concurrent / overlapping calls.
-        tmp_file_name = os.path.join(
-            tmp_dir, f"tmp.prettier.{uuid.uuid4().hex[:8]}.{file_type}"
-        )
+        # Save to tmp file, optionally with a unique hash suffix (inside
+        # `tmp_dir`) to avoid collisions with other concurrent / overlapping
+        # calls.
+        if use_hash:
+            tmp_file_name = os.path.join(
+                tmp_dir, f"tmp.prettier.{uuid.uuid4().hex[:8]}.{file_type}"
+            )
+        else:
+            tmp_file_name = os.path.join(
+                tmp_dir, f"tmp.prettier.{file_type}"
+            )
         hio.to_file(tmp_file_name, txt)
         in_file_path = tmp_file_name
     # Run prettier.
@@ -337,6 +347,7 @@ def prettier_on_str(
     file_type: str,
     *args: Any,
     tmp_dir: str = ".",
+    use_hash: bool = False,
     **kwargs: Any,
 ) -> str:
     """
@@ -344,21 +355,36 @@ def prettier_on_str(
 
     :param tmp_dir: directory (e.g., a test's scratch space) to save the
         tmp file used to pass `txt` in and out of `prettier()`
+    :param use_hash: whether to append a random hash to the tmp file name
+        to avoid collisions with concurrent / overlapping calls. If False,
+        a fixed name is reused (and overwritten) instead.
     """
     timer_ = htimer.Timer()
     _LOG.debug("txt=\n%s", txt)
     hdbg.dassert_isinstance(txt, str)
-    # Save string as input with a unique name (inside `tmp_dir`) to avoid
-    # collisions with other concurrent / overlapping calls.
+    # Save string as input, optionally with a unique hash suffix (inside
+    # `tmp_dir`) to avoid collisions with other concurrent / overlapping
+    # calls.
     # TODO(gp): Use a context manager.
     hdbg.dassert_in(file_type, ["md", "tex", "txt"])
-    tmp_file_name = os.path.join(
-        tmp_dir, f"tmp.prettier_on_str.{uuid.uuid4().hex[:8]}.{file_type}"
-    )
+    if use_hash:
+        tmp_file_name = os.path.join(
+            tmp_dir, f"tmp.prettier_on_str.{uuid.uuid4().hex[:8]}.{file_type}"
+        )
+    else:
+        tmp_file_name = os.path.join(
+            tmp_dir, f"tmp.prettier_on_str.{file_type}"
+        )
     hio.to_file(tmp_file_name, txt)
     # Call `prettier` in-place.
     prettier(
-        tmp_file_name, tmp_file_name, file_type, *args, tmp_dir=tmp_dir, **kwargs
+        tmp_file_name,
+        tmp_file_name,
+        file_type,
+        *args,
+        tmp_dir=tmp_dir,
+        use_hash=use_hash,
+        **kwargs,
     )
     # Read result into a string.
     txt = hio.from_file(tmp_file_name)

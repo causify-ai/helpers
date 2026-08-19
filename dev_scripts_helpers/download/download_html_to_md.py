@@ -45,7 +45,6 @@ import os
 import re
 
 import helpers.hdbg as hdbg
-import helpers.hcache_simple as hcacsimp
 import helpers.hgit as hgit
 import helpers.hio as hio
 import helpers.hparser as hparser
@@ -61,7 +60,6 @@ _LOG = logging.getLogger(__name__)
 # #############################################################################
 
 
-@hcacsimp.simple_cache(write_through=True)
 def _download_html(
     input_url: str,
     output_html_file: str,
