@@ -25,6 +25,10 @@ For each row without the `Done` flag set (up to `--limit` rows), this:
    summarization phases
 5) Sets `Done` for that row and saves the CSV in place
 
+The cost of each row's 2 summarization phases (article + HN comments) is
+summed into a running total, shown in the progress bar and logged at the
+end as the total summarization cost for the run.
+
 # Usage Example
 
 - Process up to 10 unprocessed rows (default):
@@ -264,12 +268,32 @@ def _load_stats(stat_file: str) -> Optional[Dict[str, Any]]:
     return dataclasses.asdict(token_stats)
 
 
+def _get_cost(stats: Optional[Dict[str, Any]]) -> float:
+    """
+    Extract the cost in dollars from a `TokenStats`-shaped dict.
+
+    Prefers `cost_from_tokencost`, falling back to `cost_from_llm_library`
+    (mirrors `hllmcli.TokenStats.to_float()`).
+
+    :param stats: `TokenStats` dict (e.g., `article_summary_stats` or
+        `hn_summary_stats`), or None if that summarization phase was skipped
+    :return: cost in dollars, or 0.0 if `stats` is None
+    """
+    if not stats:
+        return 0.0
+    cost_from_tokencost = stats.get("cost_from_tokencost") or 0.0
+    cost_from_llm_library = stats.get("cost_from_llm_library") or 0.0
+    if cost_from_tokencost > 0:
+        return float(cost_from_tokencost)
+    return float(cost_from_llm_library)
+
+
 def _build_stats(
     merged_filename: str,
     total_wallclock_time_in_seconds: float,
     hn_summary_file: str,
     article_summary_file: Optional[str],
-) -> Tuple[str, Dict[str, Any]]:
+) -> Tuple[str, Dict[str, Any], float]:
     """
     Build the per-row stats file name and content.
 
@@ -280,7 +304,8 @@ def _build_stats(
     :param hn_summary_file: path to the `*.4.hn_url.summary.md` file
     :param article_summary_file: path to the `*.2.article_url.summary.md`
         file, or None if the submission has no linked article
-    :return: (stats file name, stats dict)
+    :return: (stats file name, stats dict, total cost in dollars of the 2
+        summarization phases)
     """
     hn_stats = _load_stats(_get_stat_file_path(hn_summary_file))
     article_stats = (
@@ -299,11 +324,14 @@ def _build_stats(
     download_wallclock_time_in_seconds = max(
         0.0, total_wallclock_time_in_seconds - summarize_time
     )
+    # Sum the cost of both summarization phases (article + HN comments).
+    total_cost_in_dollars = _get_cost(article_stats) + _get_cost(hn_stats)
     stats = {
         "total_wallclock_time_in_seconds": total_wallclock_time_in_seconds,
         "download_wallclock_time_in_seconds": (
             download_wallclock_time_in_seconds
         ),
+        "total_cost_in_dollars": total_cost_in_dollars,
         "article_summary_stats": article_stats,
         "hn_summary_stats": hn_stats,
     }
@@ -313,7 +341,7 @@ def _build_stats(
         merged_filename,
     )
     stats_filename = merged_filename[: -len(".summary.md")] + ".stats.json"
-    return stats_filename, stats
+    return stats_filename, stats, total_cost_in_dollars
 
 
 # #############################################################################
@@ -363,7 +391,7 @@ def _process_row(
     no_incremental: bool,
     no_save_to_google_drive: bool,
     dry_run: bool,
-) -> bool:
+) -> Tuple[bool, Optional[Dict[str, Any]]]:
     """
     Download, summarize, and save the merged summary for a single row.
 
@@ -377,7 +405,10 @@ def _process_row(
     :param no_save_to_google_drive: if True, keep the merged summary in
         `output_dir` only, without copying it to `gdrive_dir`
     :param dry_run: if True, log what would be done without doing it
-    :return: True if the row was successfully processed (and `Done` set)
+    :return: a tuple
+        - True if the row was successfully processed (and `Done` set)
+        - the full contents of the saved `*.stats.json` file (read back from
+          disk), or None if the row wasn't processed)
     """
     _LOG.debug(
         hprint.to_str(
@@ -388,7 +419,7 @@ def _process_row(
     hn_url = (row.get("Hn_url") or "").strip()
     if not hn_url or not dshdbout.is_hackernews_url(hn_url):
         _LOG.warning("Skipping row with invalid Hn_url: '%s'", hn_url)
-        return False
+        return False, None
     item_id = dshdbout.extract_item_id(hn_url)
     title = (row.get("Title") or "").strip()
     if dry_run:
@@ -414,7 +445,7 @@ def _process_row(
                 "[DRY RUN] Would save merged summary to '%s' and set Done",
                 gdrive_dir,
             )
-        return False
+        return False, None
     _LOG.info(
         "Processing item %s: '%s', '%s'",
         item_id,
@@ -445,7 +476,7 @@ def _process_row(
         _LOG.warning(
             "No HN comments summary generated for item %s, skipping", item_id
         )
-        return False
+        return False, None
     hn_summary_file = hn_matches[-1]
     article_matches = sorted(
         glob.glob(
@@ -462,7 +493,7 @@ def _process_row(
     hio.to_file(local_merged_file, merged_content)
     # Save the per-row stats (download wallclock time + both summarization
     # phases' LLM stats) locally, next to the merged summary.
-    stats_filename, stats = _build_stats(
+    stats_filename, stats, row_cost_in_dollars = _build_stats(
         merged_filename,
         total_wallclock_time_in_seconds,
         hn_summary_file,
@@ -470,7 +501,15 @@ def _process_row(
     )
     local_stats_file = os.path.join(output_dir, stats_filename)
     hio.to_json(local_stats_file, stats)
-    _LOG.info("Saved stats to '%s'", local_stats_file)
+    # Read back the stats file (instead of reusing the in-memory `stats`
+    # dict) so the caller gets exactly what was persisted to disk, and
+    # decides what to do with it (e.g., extract the cost, log fields).
+    row_stats = hio.from_json(local_stats_file)
+    _LOG.info(
+        "Saved stats to '%s' (cost: $%.6f)",
+        local_stats_file,
+        row_cost_in_dollars,
+    )
     if no_save_to_google_drive:
         _LOG.info(
             "Keeping merged summary in '%s' (--no_save_to_google_drive)",
@@ -481,7 +520,7 @@ def _process_row(
         shutil.copy2(local_merged_file, gdrive_file)
         _LOG.info("Saved merged summary to '%s'", gdrive_file)
     row["Done"] = "yes"
-    return True
+    return True, row_stats
 
 
 # #############################################################################
@@ -574,8 +613,10 @@ def _main(parser: argparse.ArgumentParser) -> None:
         if not args.no_save_to_google_drive:
             hio.create_dir(args.gdrive_dir, incremental=True)
     num_processed = 0
-    for row in tqdm(selected_rows, desc="Processing bookmarks"):
-        was_processed = _process_row(
+    total_cost_in_dollars = 0.0
+    progress_bar = tqdm(selected_rows, desc="Processing bookmarks")
+    for row in progress_bar:
+        was_processed, row_stats = _process_row(
             row,
             script=script,
             output_dir=args.output_dir,
@@ -584,8 +625,11 @@ def _main(parser: argparse.ArgumentParser) -> None:
             no_save_to_google_drive=args.no_save_to_google_drive,
             dry_run=args.dry_run,
         )
-        if was_processed:
+        if was_processed and row_stats is not None:
             num_processed += 1
+            # `row_stats` is the full stats.json content; pull out the cost.
+            total_cost_in_dollars += row_stats.get("total_cost_in_dollars", 0.0)
+            progress_bar.set_postfix_str(f"Cost: ${total_cost_in_dollars:.4f}")
             # Persist after each row so an interrupted run can resume.
             dshdbout.write_csv(args.input, rows, fieldnames=columns)
     _LOG.info(
@@ -593,6 +637,9 @@ def _main(parser: argparse.ArgumentParser) -> None:
         num_processed,
         len(selected_rows),
         args.limit,
+    )
+    _LOG.info(
+        "Total summarization cost for this run: $%.6f", total_cost_in_dollars
     )
 
 

@@ -1,7 +1,7 @@
 #!/usr/bin/env -S uv run
 
 # /// script
-# dependencies = ["readability-lxml", "markdownify", "requests", "beautifulsoup4", "tqdm"]
+# dependencies = ["readability-lxml", "markdownify", "requests", "beautifulsoup4", "tqdm", "playwright"]
 # ///
 
 r"""
@@ -60,6 +60,39 @@ _LOG = logging.getLogger(__name__)
 # #############################################################################
 
 
+def _download_html_with_browser(input_url: str) -> str:
+    """
+    Download HTML from URL using a headless browser.
+
+    This bypasses bot-protection (e.g., Cloudflare/Akamai challenges) that
+    reject plain HTTP clients like `requests`, since a real browser engine
+    executes JS challenges and sends a genuine TLS/HTTP fingerprint.
+
+    :param input_url: URL to download from
+    :return: rendered HTML content
+    """
+    # Lazy import to run unit tests and to avoid the dependency unless
+    # needed.
+    from playwright.sync_api import sync_playwright
+
+    _LOG.info("Downloading HTML from '%s' using headless browser...", input_url)
+    with sync_playwright() as p:
+        browser = p.chromium.launch()
+        try:
+            page = browser.new_page(
+                user_agent=(
+                    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+                    "AppleWebKit/537.36 (KHTML, like Gecko) "
+                    "Chrome/124.0.0.0 Safari/537.36"
+                )
+            )
+            page.goto(input_url, wait_until="networkidle", timeout=60000)
+            html_content = page.content()
+        finally:
+            browser.close()
+    return html_content
+
+
 def _download_html(
     input_url: str,
     output_html_file: str,
@@ -111,10 +144,22 @@ def _download_html(
             "Accept-Language": "en-US,en;q=0.9",
         }
         _LOG.debug("Sending HTTP GET request to '%s'", input_url)
-        response = requests.get(input_url, headers=headers, timeout=30)
-        response.raise_for_status()
-        html_content = response.text
-        _LOG.debug("Received response: status_code=%s", response.status_code)
+        try:
+            response = requests.get(input_url, headers=headers, timeout=30)
+            response.raise_for_status()
+            html_content = response.text
+            _LOG.debug(
+                "Received response: status_code=%s", response.status_code
+            )
+        except requests.exceptions.HTTPError as e:
+            # Some sites (e.g., behind Cloudflare/Akamai) reject plain HTTP
+            # clients regardless of headers. Fall back to a headless
+            # browser, which executes JS challenges and presents a
+            # genuine browser fingerprint.
+            _LOG.warning(
+                "Request failed (%s), retrying with headless browser...", e
+            )
+            html_content = _download_html_with_browser(input_url)
     hio.to_file(output_html_file, html_content)
     _LOG.info("Saved HTML to '%s'", output_html_file)
 

@@ -2465,12 +2465,15 @@ class Test_lint_text_py1(hunitest.TestCase):
         # Test Document
 
         ## Introduction
+
         This is a test markdown document for lint_text testing
 
         ## Content
+
         Some sample content to test the linting functionality
 
         ### Subsection
+
         More detailed content
         """
         expected = hprint.dedent(expected, remove_lead_trail_empty_lines_=True)
