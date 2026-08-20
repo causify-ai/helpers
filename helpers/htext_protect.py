@@ -146,6 +146,10 @@ def extract_protected_content(
     fenced_block_lines: List[str] = []
     math_block_lines: List[str] = []
     html_comment_lines: List[str] = []
+    # Indentation of the currently open fenced/math block's opening delimiter,
+    # so the placeholder line we emit for its content can be indented to match.
+    fenced_block_indent = 0
+    math_block_indent = 0
     # Process each line.
     for line in lines:
         # Handle fenced blocks (for .md, .txt, and .smd files).
@@ -157,12 +161,15 @@ def extract_protected_content(
                 in_fenced_block = True
                 lines_new.append(line)
                 fenced_block_lines = []
+                fenced_block_indent = len(line) - len(line.lstrip())
             else:
                 # Closing delimiter: protect only content, keep delimiters visible.
                 placeholder = f"<<<PROTECTED_BLOCK_{counter:03d}>>>"
                 protected_map[placeholder] = "\n".join(fenced_block_lines)
                 counter += 1
-                lines_new.append(placeholder)
+                # Indent the placeholder to match the fence's own indentation
+                # (e.g., a code block nested inside a list item).
+                lines_new.append(" " * fenced_block_indent + placeholder)
                 lines_new.append(line)
                 in_fenced_block = False
                 fenced_block_lines = []
@@ -178,12 +185,16 @@ def extract_protected_content(
                 in_math_block = True
                 lines_new.append(line)
                 math_block_lines = []
+                math_block_indent = len(line) - len(line.lstrip())
             else:
-                # Closing delimiter: protect only content, keep delimiters visible.
+                # Closing delimiter: protect only content, keep delimiters
+                # visible. Indent the placeholder to match the delimiter's
+                # indentation, for the same reason as fenced code blocks above
+                # (a math block can likewise be nested inside a list item).
                 placeholder = f"<<<PROTECTED_MATH_{counter:03d}>>>"
                 protected_map[placeholder] = "\n".join(math_block_lines)
                 counter += 1
-                lines_new.append(placeholder)
+                lines_new.append(" " * math_block_indent + placeholder)
                 lines_new.append(line)
                 in_math_block = False
                 math_block_lines = []
@@ -278,7 +289,12 @@ def restore_protected_content(
                 stripped = line.strip()
                 # Exact match, LaTeX comment with '%' prefix (and optional
                 # space), or `//` line comment disguised as an HTML comment
-                # (`<!--...-->`).
+                # (`<!--...-->`). `.strip()` also makes this tolerant of the
+                # leading indentation that `extract_protected_content()` adds
+                # to fenced-code/math-block placeholders (to keep them valid
+                # inside nested lists): the indentation is discarded here and
+                # the original block's own indentation (captured verbatim in
+                # `original`) is restored instead.
                 if (
                     stripped == placeholder
                     or re.fullmatch(rf"%\s*{re.escape(placeholder)}", stripped)
