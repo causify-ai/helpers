@@ -3366,6 +3366,158 @@ class Test_smd_format(hunitest.TestCase):
         # Check outputs.
         self.assertEqual(once, twice)
 
+    def test22(self) -> None:
+        """
+        Test that two `//`-comment blocks separated by a blank line stay
+        separated by exactly one blank line, instead of being merged into a
+        single block.
+        """
+        # Prepare inputs.
+        txt = """
+        <!--<<<PROTECTED_LINE_COMMENT_001>>>-->
+        <!--<<<PROTECTED_LINE_COMMENT_002>>>-->
+
+        <!--<<<PROTECTED_LINE_COMMENT_003>>>-->
+        <!--<<<PROTECTED_LINE_COMMENT_004>>>-->
+        """
+        # Prepare outputs: no changes needed, the two blocks stay separated.
+        expected = txt
+        # Run test.
+        self.helper(txt, expected)
+
+    def test23(self) -> None:
+        """
+        Test that more than one blank line between two `//`-comment blocks
+        is collapsed to exactly one.
+        """
+        # Prepare inputs.
+        txt = """
+        <!--<<<PROTECTED_LINE_COMMENT_001>>>-->
+
+
+        <!--<<<PROTECTED_LINE_COMMENT_002>>>-->
+        """
+        # Prepare outputs.
+        expected = """
+        <!--<<<PROTECTED_LINE_COMMENT_001>>>-->
+
+        <!--<<<PROTECTED_LINE_COMMENT_002>>>-->
+        """
+        # Run test.
+        self.helper(txt, expected)
+
+    def test24(self) -> None:
+        """
+        Test that a blank line is inserted both before and after a
+        `//`-comment block that directly borders bullet content on both
+        sides, even though no blank line was present in the input.
+        """
+        # Prepare inputs.
+        txt = """
+        - @Key idea@: some text
+        <!--<<<PROTECTED_LINE_COMMENT_001>>>-->
+        <!--<<<PROTECTED_LINE_COMMENT_002>>>-->
+        - Next bullet
+        """
+        # Prepare outputs.
+        expected = """
+        - @Key idea@: Some text
+
+        <!--<<<PROTECTED_LINE_COMMENT_001>>>-->
+        <!--<<<PROTECTED_LINE_COMMENT_002>>>-->
+
+        - Next bullet
+        """
+        # Run test.
+        self.helper(txt, expected)
+
+    def test25(self) -> None:
+        """
+        Test that `_smd_format` is idempotent with separate `//`-comment
+        blocks in the mix: running it a second time on its own output
+        produces no further changes.
+        """
+        # Prepare inputs.
+        txt = """
+        - @Key idea@: some text
+        <!--<<<PROTECTED_LINE_COMMENT_001>>>-->
+
+        <!--<<<PROTECTED_LINE_COMMENT_002>>>-->
+        - Next bullet
+        """
+        lines = hprint.dedent(
+            txt.split("\n"), remove_lead_trail_empty_lines_=True
+        )
+        # Run test.
+        once = dshdllite._smd_format(lines)
+        twice = dshdllite._smd_format(once)
+        # Check outputs.
+        self.assertEqual(once, twice)
+
+
+# #############################################################################
+# Test_md_format
+# #############################################################################
+
+
+class Test_md_format(hunitest.TestCase):
+    """
+    Test the _md_format function used for the md file type.
+    """
+
+    def helper(self, txt: str, expected: str) -> None:
+        """
+        Test helper for _md_format.
+
+        :param txt: Input text to process
+        :param expected: Expected output after md formatting
+        """
+        _helper_process_lines(self, txt, expected, dshdllite._md_format)
+
+    def test1(self) -> None:
+        """
+        Test that two comment-placeholder blocks separated by a blank line
+        stay separated by exactly one blank line, instead of being merged
+        into a single block, in a `.md` file.
+        """
+        # Prepare inputs.
+        txt = """
+        Some text
+
+        <<<PROTECTED_COMMENT_001>>>
+
+        <<<PROTECTED_COMMENT_002>>>
+
+        More text
+        """
+        # Prepare outputs: no changes needed, the two blocks stay separated.
+        expected = txt
+        # Run test.
+        self.helper(txt, expected)
+
+    def test2(self) -> None:
+        """
+        Test that a blank line is inserted around a comment-placeholder
+        block that directly borders content on both sides, even though no
+        blank line was present in the input, in a `.md` file.
+        """
+        # Prepare inputs.
+        txt = """
+        Some text
+        <<<PROTECTED_COMMENT_001>>>
+        More text
+        """
+        # Prepare outputs.
+        expected = """
+        Some text
+
+        <<<PROTECTED_COMMENT_001>>>
+
+        More text
+        """
+        # Run test.
+        self.helper(txt, expected)
+
 
 # #############################################################################
 # Test_perform_actions_smd_type

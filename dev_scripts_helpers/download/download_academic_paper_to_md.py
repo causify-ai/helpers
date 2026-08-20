@@ -94,6 +94,10 @@ _DOWNLOAD_TIMEOUT = 300
 # #############################################################################
 
 
+@hretry.sync_retry(
+    (requests.RequestException,),
+    retry_delay_in_sec=_RETRY_DELAY_SEC,
+)
 def _extract_arxiv_metadata(arxiv_id: str) -> Dict[str, Any]:
     """
     Extract metadata from arXiv API.
@@ -102,11 +106,26 @@ def _extract_arxiv_metadata(arxiv_id: str) -> Dict[str, Any]:
     :return: dict with 'year', 'authors', 'title' keys
     """
     _LOG.debug(hprint.to_str("arxiv_id"))
-    _ARXIV_API_URL = "http://export.arxiv.org/api/query?id_list={arxiv_id}"
+    # Use https directly: the plain `http://` endpoint 301-redirects and
+    # `feedparser.parse()` fetches the URL itself with no timeout, so a
+    # slow/failed redirect can silently yield an empty feed instead of
+    # raising.
+    _ARXIV_API_URL = "https://export.arxiv.org/api/query?id_list={arxiv_id}"
     _LOG.debug("Extracting metadata from arXiv for ID: %s", arxiv_id)
     url = _ARXIV_API_URL.format(arxiv_id=arxiv_id)
-    feed = feedparser.parse(url)
-    hdbg.dassert(feed.entries, "No entries found for arXiv ID: %s", arxiv_id)
+    # Fetch via `requests` (with a timeout and retry, like the other API
+    # calls in this file) and hand the raw bytes to `feedparser`, instead of
+    # letting `feedparser.parse()` do its own un-timed, un-retried fetch.
+    resp = requests.get(url, timeout=_API_TIMEOUT)
+    resp.raise_for_status()
+    feed = feedparser.parse(resp.content)
+    hdbg.dassert(
+        feed.entries,
+        "No entries found for arXiv ID: %s (bozo=%s, bozo_exception=%s)",
+        arxiv_id,
+        feed.get("bozo"),
+        feed.get("bozo_exception"),
+    )
     entry = feed.entries[0]
     # Extract year from published date (format: YYYY-MM-DDTHH:MM:SSZ).
     year = entry.published[:4]

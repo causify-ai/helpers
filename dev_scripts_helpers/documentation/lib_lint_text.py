@@ -667,53 +667,145 @@ def _format_header_spacing(
     return lines_new
 
 
-def _format_fence_spacing(
-    lines: List[str], is_fence_line: Callable[[str], bool]
+def _format_block_spacing(
+    lines: List[str], is_block_line: Callable[[str], bool]
 ) -> List[str]:
     """
-    Normalize blank lines around fenced blocks (e.g., `::: columns` for
-    `.smd`, ` ``` ` code fences for `.md`).
+    Normalize blank lines around a run of "block" lines matched by
+    `is_block_line` (e.g., `::: columns` fence markers for `.smd`, ` ``` `
+    code fences for `.md`, or comment-placeholder lines).
 
-    - Consecutive fence lines (e.g., an opening `:::: {.column ...}` right
-      after a `::: columns`, or two closing fences in a row) are kept adjacent,
-      with no blank line between them.
-    - Everywhere a fence line borders a non-fence chunk of code, exactly one
-      blank line is enforced.
+    - Consecutive block lines (e.g., an opening `:::: {.column ...}` right
+      after a `::: columns`, two closing fences in a row, or two `//`
+      comment-placeholder lines in the same block) are kept adjacent, with
+      no blank line between them.
+    - Everywhere a block line borders a chunk of content that doesn't match
+      `is_block_line`, exactly one blank line is enforced.
 
     :param lines: The lines to be processed.
-    :param is_fence_line: predicate marking fence lines (e.g., `:::` markers
-        for `.smd`, code-fence delimiters/placeholders for `.md`).
-    :return: The lines with normalized spacing around fenced blocks.
+    :param is_block_line: predicate marking the "block" lines that should
+        stay glued to each other and get exactly one blank line at their
+        boundary with everything else (e.g., `:::` markers for `.smd`,
+        code-fence delimiters/placeholders for `.md`, comment placeholders).
+    :return: The lines with normalized spacing around the matched blocks.
     """
     _LOG.debug("lines=%s", lines)
-    # 1) Drop every blank line that borders a fence line (on either side): it
+    # 1) Drop every blank line that borders a block line (on either side): it
     # will be re-inserted (at most once) in the next step.
-    no_blank_near_fence: List[str] = []
+    no_blank_near_block: List[str] = []
     i = 0
     n = len(lines)
     while i < n:
         line = lines[i]
         if line.strip() == "":
-            prev_line = no_blank_near_fence[-1] if no_blank_near_fence else ""
+            prev_line = no_blank_near_block[-1] if no_blank_near_block else ""
             # Look past the run of blank lines to find the next real line.
             j = i
             while j < n and lines[j].strip() == "":
                 j += 1
             next_line = lines[j] if j < n else ""
-            if is_fence_line(prev_line) or is_fence_line(next_line):
+            if is_block_line(prev_line) or is_block_line(next_line):
                 i = j
                 continue
-        no_blank_near_fence.append(line)
+        no_blank_near_block.append(line)
         i += 1
-    # 2) Re-insert exactly one blank line wherever a fence line borders a
-    # non-fence chunk of code (but not between two consecutive fences).
+    # 2) Re-insert exactly one blank line wherever a block line borders a
+    # chunk of content that isn't one (but not between two consecutive block
+    # lines).
     lines_new: List[str] = []
-    for idx, line in enumerate(no_blank_near_fence):
+    for idx, line in enumerate(no_blank_near_block):
         if idx > 0:
-            prev_line = no_blank_near_fence[idx - 1]
-            if is_fence_line(prev_line) != is_fence_line(line):
+            prev_line = no_blank_near_block[idx - 1]
+            if is_block_line(prev_line) != is_block_line(line):
                 lines_new.append("")
         lines_new.append(line)
+    hdbg.dassert_isinstance(lines_new, list)
+    return lines_new
+
+
+_COMMENT_PLACEHOLDER_RE = re.compile(
+    r"^(?:<<<PROTECTED_COMMENT_\d+>>>|<!--<<<PROTECTED_LINE_COMMENT_\d+>>>-->)$"
+)
+
+# Sentinel standing in for the blank line separating two distinct
+# comment-placeholder blocks, so it survives `_rebuild_blank_lines()`'s
+# blanket strip; see `_protect_inter_comment_blank_lines()`.
+_COMMENT_BLOCK_BLANK_SENTINEL = "<<<COMMENT_BLOCK_BLANK_SENTINEL>>>"
+
+
+def _is_comment_placeholder_line(line: str) -> bool:
+    """
+    Check if a line is a placeholder standing in for a protected comment: an
+    HTML comment (`.md` and `.smd`) or a `//` line comment (`.smd`).
+
+    :param line: The line to check.
+    :return: True if the line is a comment placeholder.
+    """
+    return bool(_COMMENT_PLACEHOLDER_RE.match(line.strip()))
+
+
+def _is_comment_placeholder_or_sentinel_line(line: str) -> bool:
+    """
+    Check if a line is a comment placeholder, or the sentinel
+    `_protect_inter_comment_blank_lines()` inserts for the blank line
+    between two such blocks.
+
+    The sentinel must be treated the same as a comment placeholder here: it
+    stands in for the single blank line that already separates two comment
+    blocks, so `_format_block_spacing()` must keep it glued to the blocks on
+    either side (not force an extra blank line around it too).
+
+    :param line: The line to check.
+    :return: True if the line is a comment placeholder or the blank-line
+        sentinel.
+    """
+    return (
+        _is_comment_placeholder_line(line)
+        or line.strip() == _COMMENT_BLOCK_BLANK_SENTINEL
+    )
+
+
+def _protect_inter_comment_blank_lines(lines: List[str]) -> List[str]:
+    """
+    Replace the blank-line run separating two distinct comment-placeholder
+    blocks with a single sentinel line.
+
+    `_rebuild_blank_lines()` rebuilds blank-line spacing from scratch by
+    first stripping every blank line, then re-deriving only the ones it
+    recognizes (bullets, fences, headers). Once that strip runs, two comment
+    blocks that were originally separated only by blank line(s) become
+    textually indistinguishable from a single contiguous block of
+    comment-placeholder lines, and get merged. Swapping that blank-line run
+    for a sentinel (a non-blank line, so the strip leaves it alone) before
+    the strip runs preserves the boundary between the two blocks; the
+    sentinel is swapped back for a single blank line at the end of
+    `_rebuild_blank_lines()`.
+
+    :param lines: The lines to be processed.
+    :return: The lines with inter-comment-block blank-line runs replaced by
+        the sentinel.
+    """
+    _LOG.debug("lines=%s", lines)
+    lines_new: List[str] = []
+    i = 0
+    n = len(lines)
+    while i < n:
+        line = lines[i]
+        if line.strip() == "":
+            prev_line = lines_new[-1] if lines_new else ""
+            # Look past the run of blank lines to find the next real line.
+            j = i
+            while j < n and lines[j].strip() == "":
+                j += 1
+            next_line = lines[j] if j < n else ""
+            if _is_comment_placeholder_line(
+                prev_line
+            ) and _is_comment_placeholder_line(next_line):
+                lines_new.append(_COMMENT_BLOCK_BLANK_SENTINEL)
+                i = j
+                continue
+        lines_new.append(line)
+        i += 1
     hdbg.dassert_isinstance(lines_new, list)
     return lines_new
 
@@ -731,6 +823,8 @@ def _rebuild_blank_lines(
     - one blank line between blocks of level-1 bullets (nested bullets stay
       glued to their parent, with no blank line)
     - one blank line around fenced blocks
+    - one blank line around blocks of comment placeholders, so two distinct
+      comment blocks never get merged into one
     - exactly one blank line before and after every header (and, for `.smd`
       files, every slide-title marker).
 
@@ -739,12 +833,16 @@ def _rebuild_blank_lines(
 
     :param lines: The lines to be processed.
     :param is_fence_line: predicate marking fence lines (see
-        `_format_fence_spacing()`).
+        `_format_block_spacing()`).
     :param is_header_or_title_line: predicate marking header (and, for
         `.smd`, slide-title) lines (see `_format_header_spacing()`).
     :return: The lines with rebuilt blank-line spacing.
     """
     _LOG.debug("lines=%s", lines)
+    # Protect the blank line separating two distinct comment-placeholder
+    # blocks before the blanket strip below (see
+    # `_protect_inter_comment_blank_lines()` for why).
+    lines = _protect_inter_comment_blank_lines(lines)
     # Strip every blank line, then re-derive exactly the ones needed.
     lines_new = [line for line in lines if line.strip()]
     # Add a blank line before every level-1 bullet (i.e., between blocks of
@@ -754,12 +852,26 @@ def _rebuild_blank_lines(
     # blanks bordering a fence line, so it can't undo the bullet spacing just
     # added, and it fixes spacing where a fence sits next to a bullet with no
     # blank line yet.
-    lines_new = _format_fence_spacing(lines_new, is_fence_line)
+    lines_new = _format_block_spacing(lines_new, is_fence_line)
+    # Normalize the blank lines around blocks of comment placeholders the
+    # same way: exactly one blank line wherever such a block borders
+    # anything else, while a run of placeholder lines (and the sentinel
+    # protecting the blank line between two originally-separate blocks)
+    # stays glued together.
+    lines_new = _format_block_spacing(
+        lines_new, _is_comment_placeholder_or_sentinel_line
+    )
     # Ensure exactly one blank line before and after every header (and slide
-    # title). Runs last: like `_format_fence_spacing()`, it drops and
+    # title). Runs last: like `_format_block_spacing()`, it drops and
     # re-derives the blanks it cares about, so it correctly cleans up after
-    # (and is unaffected by) whatever the bullet/fence steps above did.
+    # (and is unaffected by) whatever the bullet/fence/comment steps above
+    # did.
     lines_new = _format_header_spacing(lines_new, is_header_or_title_line)
+    # Swap the sentinel back for the single blank line it stands for.
+    lines_new = [
+        "" if line == _COMMENT_BLOCK_BLANK_SENTINEL else line
+        for line in lines_new
+    ]
     hdbg.dassert_isinstance(lines_new, list)
     return lines_new
 
