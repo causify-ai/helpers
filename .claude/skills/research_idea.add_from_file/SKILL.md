@@ -51,9 +51,6 @@ model: sonnet
   - `<Idea_Name>` is `<Title>` in Title_Case_With_Underscores, matching
     existing file names (e.g. `Hierarchical Training` -> `Hierarchical_Training`)
 - Seed the new file with the section's raw content as the seed for `Core Idea`
-- Follow the template `.claude/templates/research_idea.template.md` and the
-  workflow in `.claude/skills/research_idea.format/SKILL.md` to map the seeded
-  content onto the template's sections
 - Skip creating a file for any idea the user chose to skip in Step 3
 
 ## Step 5: Clean Up the Source File
