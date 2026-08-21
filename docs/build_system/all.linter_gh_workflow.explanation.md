@@ -1,17 +1,4 @@
-# Linter Gh Workflow
-
-## Linter Github Action Workflow Explanation
-
-<!-- toc -->
-
-- [Overview](#overview)
-- [How It Works](#how-it-works)
-  * [Fetch Master Branch](#fetch-master-branch)
-  * [Run the Linter and Check the Linter Results](#run-the-linter-and-check-the-linter-results)
-
-<!-- tocstop -->
-
-## Overview
+# Overview
 
 - We want to use linter for all the new code that needs to be merged into the
   `master` branch
@@ -21,9 +8,9 @@
   did not run before.
 - In this case, the workflow will fail, and will not allow the PR to be merged
 
-## How It Works
+# How It Works
 
-### Fetch Master Branch
+## Fetch Master Branch
 
 In order to compare the changed files in the PR with the latest master branch,
 fetch the latest master, e.g.,
@@ -32,7 +19,7 @@ fetch the latest master, e.g.,
 invoke git_fetch_master
 ```
 
-### Run the Linter and Check the Linter Results
+## Run the Linter and Check the Linter Results
 
 - Run the linter against the changed files in the PR branch
 

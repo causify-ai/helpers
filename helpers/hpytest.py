@@ -342,8 +342,8 @@ def parse_failed_tests(lines: List[str]) -> Dict[str, Any]:
     Parse the failed tests from the pytest output.
 
     :param lines: pytest output lines (can be obtained by splitting txt by newline)
-    :return: dict with info about the run, see the inline comments on each
-        field below
+    :return: dict with info about the run, see `helpers/hpytest.README.md`
+        ("Fields Reference") for a description of each field
     """
     hdbg.dassert_isinstance(lines, list)
     # Strip the GitHub Actions per-line tags, if any, and merge the extracted
@@ -356,73 +356,36 @@ def parse_failed_tests(lines: List[str]) -> Dict[str, Any]:
     updated_tests = []
     # From full name of test to duration in secs.
     test_durations: Dict[str, float] = {}
+    # See `helpers/hpytest.README.md` ("Fields Reference") for what each field
+    # below means and where it's parsed from.
     info: Dict[str, Any] = {
-        # Job tag from GitHub or `None` if input is not a GitHub Actions log.
         "github_tag": None,
-        # See `_parse_github_ci_log()`.
         "github_start_timestamp": None,
         "github_end_timestamp": None,
         "github_completed": None,
-        # True if pytest reached the "test session starts" banner.
         "pytest_started": None,
-        # The platform line, like "... -- Python ..., pytest-..., ...".
         "pytest_tag": None,
-        # True if the "collected N items" line was printed.
         "pytest_collection_completed": None,
-        # List of passed tests, parsed from the log.
         "log_passed_tests": None,
-        # List of skipped tests, parsed from the log. When the pytest
-        # "short test summary info" section is present, entries are
-        # synthetic `path[:line]:reason#i` keys (not real pytest node
-        # ids), since that section reports a repeat count and a
-        # file[:line] plus a reason but not the node id. It is used
-        # because it is the only place that reports *every* skipped test:
-        # tests skipped via `@pytest.mark.skip`/`skipif` are never run, so
-        # pytest prints no per-test verbose line (and thus no node id) for
-        # them.
         "log_skipped_tests": None,
-        # List of failed tests, parsed from the log.
         "log_failed_tests": None,
-        # List of tests whose golden outcome file was updated during the
-        # run, parsed from the "(WARNING: Test was updated)" annotation.
         "log_updated_tests": None,
-        # Number of tests collected by pytest.
         "pytest_num_collected": None,
-        # Number of deselected tests from the collection line (optional).
         "pytest_num_deselected": None,
-        # Number of skipped tests at collection (optional).
         "pytest_num_skipped_at_collection": None,
-        # Number of selected tests from the collection line (optional).
         "pytest_num_selected": None,
-        # Dict mapping test names to their durations in seconds.
         "log_test_durations": None,
-        # Dict mapping failed test names to their parsed failure reason,
-        # i.e., the text from a "FAILED <test> - <Error>:" tag up to, but
-        # not including, the next such tag (or the end of the log).
         "log_test_errors": None,
-        # Number of passed tests from the log.
         "log_num_passed": None,
-        # Number of skipped tests.
         "log_num_skipped": None,
-        # Number of failed tests from the log.
         "log_num_failed": None,
-        # Number of files with failed tests.
         "log_num_failed_files": None,
-        # Number of test classes with failed tests.
         "log_num_failed_classes": None,
-        # Number of tests whose golden outcome file was updated during the
-        # run.
         "log_num_updated": None,
-        # True if pytest reached the final summary line "4 failed, 43 passed in
-        # 40.48s".
         "pytest_ended": None,
-        # Number of failed tests from the final summary line.
         "pytest_num_failed": None,
-        # Number of passed tests from the final summary line.
         "pytest_num_passed": None,
-        # Number of skipped tests from the final summary line.
         "pytest_num_skipped": None,
-        # Run duration in seconds from the final summary line.
         "pytest_duration_in_secs": None,
     }
     # Test id printed alone on a line, with nothing else, e.g., when a test's
