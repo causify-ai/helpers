@@ -29,7 +29,7 @@ model: sonnet
 # Constraints
 - Keep the file name and its status prefix unchanged; formatting does not
   change status
-- Fit text in 80-90 character lines, per `.claude/skills/research_idea.rules.md`
+- Fit text in 85 character lines, per `.claude/skills/research_idea.rules.md`
 
 # Examples
 - `research/ideas/in_progress.RL_for_pickleball.md`
@@ -37,4 +37,4 @@ model: sonnet
 # Verification
 - [ ] `<FILE>` follows the section order of `research/ideas/template.research_idea.md`
 - [ ] No fabricated content was added for sections the input did not cover
-- [ ] Lines fit in 80-90 characters
+- [ ] Lines fit in 85 characters
