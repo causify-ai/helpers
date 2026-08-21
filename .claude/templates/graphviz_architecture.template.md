@@ -35,8 +35,6 @@ digraph <name> {
         fontsize=10,
         fontcolor="#7B8794"];
 
-  // <category> : <hue>   |   <category> : <hue>   |   ...
-
   <NodeName> [label=<<b>Main Name</b><br/><font point-size="10" color="DARK_HUE">Smaller subtitle</font>>,
               fillcolor="FILL", color="BORDER", fontcolor="DARK_HUE"];
 
@@ -99,8 +97,6 @@ digraph NoesisArchitecture {
   // ---------------------------------------------------------------
   rankdir=LR;
   newrank=true;
-
-  // actor : rose   |   process : blue   |   fulfillment monitoring : sage green   |   external : violet
 
   subgraph cluster_participants {
     label     = "Market participants";
@@ -250,8 +246,6 @@ digraph AgenticLoop {
 
   // ---------------------------------------------------------------
   rankdir=TB;
-
-  // goal : orange   |   planning : teal   |   tool call : rose   |   observation : cyan   |   result : blue
 
   Goal          [label="Goal", fillcolor="#FBEBD4", color="#D9A85F", fontcolor="#6B4517"];
   Plan          [label="Plan next step", fillcolor="#B7DDD0", color="#6FA890", fontcolor="#1F4E39"];
