@@ -1,24 +1,22 @@
 ---
-description: Given one or more links, find the related research idea or blog file and add a TODO to incorporate it
+description: Find the research idea or blog file related to given links and add a TODO
 ---
 
 # Goal
-- Given one or more links `<LINKS>`, find which file(s) among
+- Given one or more links `<LINKS>`, find which file(s) among the following are
+  related to each link, and add a TODO to the most related file:
   - `research/ideas/*.md`
   - `website/docs/blog/posts/*.md`
-
-  are related to each link, and add a
-  ```
+  ```text
   // TODO(gp): incorporate the link <LINK> to <TOPIC>
   ```
-  to the most related file
 
 # Workflow
 
 ## Step 1: Collect Material
 - Read the title / content of each link in `<LINKS>` (use `WebFetch` if the
   URL alone is not descriptive enough to judge topic)
-- List all candidate files
+- List all candidate files:
   - `research/ideas/*.md`
   - `website/docs/blog/posts/*.md`
 
@@ -32,13 +30,13 @@ description: Given one or more links, find the related research idea or blog fil
     force a match: report this to the user instead of guessing
 
 ## Step 3: Add the TODO
-- In the matched file, add one line
-  ```
+- In the matched file, add one line:
+  ```text
   // TODO(gp): incorporate the link <LINK> to <TOPIC>
   ```
   where `<TOPIC>` is a short (< 15 words) description of what part of the
   link is relevant (e.g., a technique, a result, a quote)
-- Placement
+- Placement:
   - If the file already has a top-of-file `// TODO(gp): ...` block, add the
     new TODO as an adjacent line in that block
   - Otherwise, add it near the section of the file the link is most related

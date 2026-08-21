@@ -1,6 +1,6 @@
-Conventions for maintaining a book map (`map.md`) that tracks a book's title,
-audience, roadmap, and chapter-by-chapter table of contents mapped to existing
-course lecture materials.
+- Conventions for maintaining a book map (`map.md`) that tracks a book's title,
+  audience, roadmap, and chapter-by-chapter table of contents mapped to existing
+  course lecture materials
 
 # Concepts
 - `map.md`: the map of a book / course, e.g.,
@@ -10,10 +10,9 @@ course lecture materials.
   - `/Users/saggese/src/umd_classes1/msml610/map.md`
   ...
 - `chap_toc`: contains a description of a book chapter
-  - It is `### topics` in a map
-- `skeleton_slides`
-  - describes the high level flow of slides
-  - contain only H1, H2, * and optionally `// From <file>:<line number> 'reference'`
+  - It is `### Topics` in a map
+- `skeleton_slides`: describes the high level flow of slides
+  - Contain only H1, H2, * and optionally `// From <file>:<line number> 'reference'`
 - `lesson_slides`: complete slides on a topic
   - E.g., data605, msml610, book_springer
   - The slides can be on a topic (e.g., from data605, msml610) or merged slides
@@ -23,7 +22,7 @@ course lecture materials.
     ("Source Attribution") for the exact syntax
 - `slide_tutorials`: notebooks associated with `lesson_slides`
 - `book_chap`: a tex / typst file storing the text of the book corresponding to
-   the `lesson_slides`
+  the `lesson_slides`
 
 ## Invariants
 - We need to maintain in sync the following data:
