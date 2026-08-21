@@ -25,9 +25,9 @@ rules
 - For diagrams, images, and other illustrations you MUST follow instructions
   in `.claude/skills/visuals.rules.md`, using:
   - The rules `.claude/skills/graphviz.rules.md` and the template
-    `.claude/templates/graphviz.template.md` for Graphviz diagrams, or the
-    template `.claude/templates/graphviz_architecture.template.md` for the
-    hierarchy-aware architecture style
+    `.claude/templates/graphviz.template.md` for Graphviz diagrams, which
+    covers both the default flat style and the hierarchy-aware architecture
+    style
   - The template `.claude/templates/image.template.md` for image
     descriptions
   - The template `.claude/templates/tikz.template.md` for TikZ diagrams

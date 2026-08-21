@@ -2,19 +2,20 @@ These are rules to produce publication-quality GraphViz diagrams: flowcharts,
 causal graphs, networks, and system/architecture diagrams
 
 For the copy-paste skeletons and worked examples, see
-- `.claude/templates/graphviz.template.md` for the default flat style
-- `.claude/templates/graphviz_architecture.template.md` for the hierarchy-aware
-  architecture style
+`.claude/templates/graphviz.template.md`, which covers both styles in
+separate sections: "Flat Style" and "Architecture Style"
 
 # Choosing a Style
 
 ## Flat vs Hierarchy-Aware
-- Use the default flat style (`.claude/templates/graphviz.template.md`) for
-  flowcharts, causal graphs, networks, and process flows
+- Use the default flat style (`.claude/templates/graphviz.template.md`,
+  "Flat Style" section) for flowcharts, causal graphs, networks, and process
+  flows
 - Use the hierarchy-aware architecture style
-  (`.claude/templates/graphviz_architecture.template.md`) when the diagram
-  needs subsystem clustering, a two-tier label (name + subtitle), or a color
-  legend, e.g. service architectures, market/pipeline diagrams, agent loops
+  (`.claude/templates/graphviz.template.md`, "Architecture Style" section)
+  when the diagram needs subsystem clustering, a two-tier label (name +
+  subtitle), or a color legend, e.g. service architectures, market/pipeline
+  diagrams, agent loops
 - The architecture style is a muted, compact variant of the flat style, tuned
   for professional architecture diagrams rather than causal or flowchart
   diagrams
@@ -59,15 +60,25 @@ For the copy-paste skeletons and worked examples, see
   - Reserve `shape=note` only for a document/reference-style node (e.g. an
     external citation or data sheet)
 
-## Color Strategy (Flat Style)
-- Map semantic meaning to color consistently:
-  - `fillcolor="#A9DDB0", color="#4F9A5C"` — green: states, inputs
-  - `fillcolor="#FFC98A", color="#D98E2B"` — orange: actions, processes
-  - `fillcolor="#9CC4F2", color="#3C6FB0"` — blue: outputs, rewards
-  - `fillcolor="#FFB3B3", color="#D64545"` — red: errors, warnings
-  - `fillcolor="#E8D9F7", color="#9B7DB1"` — purple: metadata, annotations
-- `fillcolor` sets the interior color, `color` sets the border/outline color
-- Use a darker shade of `fillcolor` for the border
+## Color Scheme (Flat Style)
+- Give each semantic category a triad, same as the architecture style —
+  `fillcolor`, `color` (border, same hue), `fontcolor` (dark, same hue):
+  - `fillcolor="#A9DDB0", color="#4F9A5C", fontcolor="#1F4E2E"` — green:
+    states, inputs
+  - `fillcolor="#FFC98A", color="#D98E2B", fontcolor="#6B4517"` — orange:
+    actions, processes
+  - `fillcolor="#9CC4F2", color="#3C6FB0", fontcolor="#1F4E79"` — blue:
+    outputs, rewards
+  - `fillcolor="#FFB3B3", color="#D64545", fontcolor="#6B1F1F"` — red:
+    errors, warnings
+  - `fillcolor="#E8D9F7", color="#9B7DB1", fontcolor="#4A2E5C"` — purple:
+    metadata, annotations
+- Flat style may also borrow any triad straight from the Color Scheme
+  (Architecture Style) table below when its hue fits a node better, e.g.
+  coral for a tool/action node, cyan for an observation node, teal for a
+  planning node
+- `fillcolor` sets the interior color, `color` sets the border/outline color,
+  `fontcolor` sets the label text color
 - Avoid high-contrast combinations that strain the eyes
 
 ## Color Scheme (Architecture Style)
@@ -78,15 +89,24 @@ For the copy-paste skeletons and worked examples, see
 
   | Category (example use)               | fill      | border    | font      |
   |---------------------------------------|-----------|-----------|-----------|
+  | Default (uncategorized entity)         | `#FFFFFF` | `#9AA9B8` | `#243B53` |
   | Rose (actor / demand)                  | `#F6E1E8` | `#D98CA8` | `#6B2A44` |
   | Orange (source / goal / supply)        | `#FBEBD4` | `#D9A85F` | `#6B4517` |
   | Blue (core process / pluggable step)   | `#D3E3F3` | `#7CA6CE` | `#1F4E79` |
   | Teal (planning / stateful step)        | `#B7DDD0` | `#6FA890` | `#1F4E39` |
   | Cyan (observation / feedback capture)  | `#C7ECF0` | `#7CC6D0` | `#1F4E56` |
   | Sage green (monitoring / verification) | `#DFEDE0` | `#8FB79A` | `#2E5A3D` |
+  | Coral (tool call / action)             | `#F6C6C6` | `#D98C8C` | `#6B2A2A` |
   | Violet (external reference)            | `#E9E1F7` | `#A88FD9` | `#45296B` |
   | Rose/red (critical feedback edge)      | n/a       | `#C0455B` | `#C0455B` |
-  | Neutral gray (hierarchy/containment)   | `#F7F9FB` | `#C7D0DA` (dotted) | `#3A4A5C` |
+  | Neutral gray (hierarchy/containment)   | `#F7F9FB` | `#C7D0DA` | `#3A4A5C` |
+
+- The default triad (white fill, gray border, navy font) is set once in the
+  `node [...]` graph default and applies to any entity that hasn't been given
+  a category override
+- The default edge (before any narrative bump) is `color="#A3B1C0"`,
+  `fontcolor="#7B8794"` — the same muted blue-gray family as the default node
+  border
 
 - To add a new category not in the table:
   1. Pick a hue not already used in the diagram
@@ -146,7 +166,9 @@ For the copy-paste skeletons and worked examples, see
 - Cluster name must start with the `cluster_` prefix
 - `label` is the displayed title
 - `style="rounded,filled"` gives a modern appearance
-- `margin=18` adds padding inside the cluster box
+- `margin=18` adds padding inside the cluster box; architecture-style
+  clusters use a tighter `margin=16` (`14` for the legend cluster) to stay
+  compact
 - `fontcolor` should contrast with `fillcolor`
 - Use nested subgraphs for hierarchical organization (a cluster inside
   another cluster)
@@ -157,21 +179,23 @@ For the copy-paste skeletons and worked examples, see
   node
 - Fill with a very light neutral gray (`#F7F9FB`, near white, never a
   saturated color) — containment must recede behind the entities it holds
-- Border light gray (`#C7D0DA`), drawn `dotted` (not solid) so the eye reads
-  "this is a boundary/grouping," visually distinct from the solid borders on
-  real entities and from dashed edges (which mean "optional/feedback flow")
+- Border light gray (`#C7D0DA`), same `style="rounded,filled"` as real
+  entities — containment reads as "boundary/grouping" through its
+  unsaturated fill and border, not through a distinct border style, so it
+  stays visually quiet next to the saturated category-color fills on real
+  entities
 - Never fill a hierarchy cluster with a category color — that color budget is
   reserved for the entities inside it
 - Nest clusters for multi-level hierarchy; each level keeps the same gray
-  fill/dotted-border convention, only the label changes
+  fill/border convention, only the label changes
 
 ## Legend
 - For any diagram with 3+ color categories, add a trailing
   `subgraph cluster_legend` with one small swatch node per category (label =
   the category's meaning, not its name), all on `{ rank=same; ... }` so they
   sit in one row
-- Style the legend cluster like any hierarchy container: light-gray dotted
-  border, no title color coding of its own
+- Style the legend cluster like any hierarchy container: light-gray, filled,
+  no title color coding of its own
 
 # Typography
 
@@ -190,8 +214,8 @@ For the copy-paste skeletons and worked examples, see
 - For complex formatting, avoid HTML labels — they render inconsistently
 - Use multiple lines with `\n` instead
 - Reserve HTML-like labels for the two-tier name+subtitle pattern in the
-  architecture style (see
-  `.claude/templates/graphviz_architecture.template.md`)
+  architecture style (see the "Architecture Style" section of
+  `.claude/templates/graphviz.template.md`)
 
 # Color Palettes for Different Domains
 
