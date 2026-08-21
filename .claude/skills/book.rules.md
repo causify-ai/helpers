@@ -13,11 +13,14 @@ course lecture materials.
   - It is `### topics` in a map
 - `skeleton_slides`
   - describes the high level flow of slides
-  - contain only H1, H2, * and optionally `// From <file>:<slide title>`
+  - contain only H1, H2, * and optionally `// From <file>:<line number> 'reference'`
 - `lesson_slides`: complete slides on a topic
   - E.g., data605, msml610, book_springer
   - The slides can be on a topic (e.g., from data605, msml610) or merged slides
     from existing lesson slides (e.g., book_springer)
+  - Merged slides cite their lecture/paper sources with `// From: ...`
+    comments right under the slide title; see `.claude/skills/slides.rules.md`
+    ("Source Attribution") for the exact syntax
 - `slide_tutorials`: notebooks associated with `lesson_slides`
 - `book_chap`: a tex / typst file storing the text of the book corresponding to
    the `lesson_slides`

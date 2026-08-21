@@ -4,7 +4,7 @@ model: sonnet
 ---
 
 # Goal
-- Your task is to review the content of the passed file with slides `<FILE>` and
+- Your task is to review the content of the passed file with slides `<FILE>.smd` and
   add references to books and technical papers
 
 # Workflow
@@ -38,7 +38,6 @@ model: sonnet
 ## Verification
 
 - [ ] Check that the paper reference exist
-
 - [ ] Make sure that the updated document works by running the flow, e.g.,
   `gen_slides.py` or `notes_to_pdf.py` with `--skip_action open_pdf` (since we
   just want to make sure it runs not render it)

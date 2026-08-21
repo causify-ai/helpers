@@ -167,6 +167,44 @@
     - @Solution@: ...
     ```
 
+## Source Attribution (`// From: ...`)
+- Right after `* <slide title>`, one or more `// From: ...` comments record
+  where the slide's content was adapted from; no blank line between the title
+  and the first `// From: ...` line
+- Format: `// From: <file>:<line num> <title>`
+  - `<file>` is a repo-root-relative path to the exact source file (a
+    `lectures_source/*.smd` lecture file, or `<book>/related_papers.md` /
+    `<book>/related_books.md` for a paper or book citation)
+  - `<line num>` is the exact line of the `* <slide title>` (or reference
+    list entry) being cited
+  - `<title>` is the title/citation text found at that `<file>:<line num>`
+    (the source's own title, not this slide's title) — copy it verbatim so
+    the comment is self-descriptive without opening the file
+  - E.g., single lecture source:
+    ```
+    * Why Traditional ML Falls Short
+    // From: msml610/lectures_source/Lesson08.1-Causal_AI_intro.smd:318 '* Where ML Falls Short'
+    ```
+- When a slide draws on more than one source, stack one `// From: ...` line
+  per source, directly under the title, in the order the sources were used
+  - E.g., two lecture sources plus a paper:
+    ```
+    * Correlation Encodes Confounding as Causation
+    // From: msml610/lectures_source/Lesson08.1-Causal_AI_intro.smd:345 '* The Cost of Ignoring Causality (1/2)'
+    // From: msml610/lectures_source/Lesson11.1-Decision_Making_with_Causal_Models.smd:161 '* Confounding: The Root Cause'
+    // From: book_springer/related_papers.md:12 '* A Survey on Causal Inference'
+    ```
+- If a slide has no identifiable source slide for one of its `// From: ...`
+  lines (freshly written content, or no matching source found), leave that
+  line as a bare `// From:` with nothing after the colon, rather than
+  guessing or dropping the line
+  - E.g.,
+    ```
+    * Selection Bias and the Missing Counterfactual
+    // From: ...
+    ```
+- A slide with no source material at all can omit `// From: ...` entirely
+
 ## Use Tags for Slide Sections
 - Every first level bullet point (starting with `- ` and not `*`) should start
   with a bold label `<bold label>` for pedagogical structure
