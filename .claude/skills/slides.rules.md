@@ -171,15 +171,15 @@
 - Right after `* <slide title>`, one or more `// From: ...` comments record
   where the slide's content was adapted from; no blank line between the title
   and the first `// From: ...` line
-- Format: `// From: <file>:<line num> <title>`
+- Format: `// From: <file>:<line num> '<source line>'`
   - `<file>` is a repo-root-relative path to the exact source file (a
     `lectures_source/*.smd` lecture file, or `<book>/related_papers.md` /
     `<book>/related_books.md` for a paper or book citation)
-  - `<line num>` is the exact line of the `* <slide title>` (or reference
-    list entry) being cited
-  - `<title>` is the title/citation text found at that `<file>:<line num>`
-    (the source's own title, not this slide's title) — copy it verbatim so
-    the comment is self-descriptive without opening the file
+  - `<line num>` is the exact line of the `* <slide title>`, `#`/`##`/`###`
+    header, or `- [P<NNN>]`/`- [B<NNN>]` reference-list entry being cited
+  - `'<source line>'` is that exact line's full text, single-quoted verbatim
+    including its leading marker (`* `, `#`, `## `), not just the title with the
+    marker stripped, so the comment is self-descriptive without opening the file
   - E.g., single lecture source:
     ```
     * Why Traditional ML Falls Short
@@ -192,7 +192,7 @@
     * Correlation Encodes Confounding as Causation
     // From: msml610/lectures_source/Lesson08.1-Causal_AI_intro.smd:345 '* The Cost of Ignoring Causality (1/2)'
     // From: msml610/lectures_source/Lesson11.1-Decision_Making_with_Causal_Models.smd:161 '* Confounding: The Root Cause'
-    // From: book_springer/related_papers.md:12 '* A Survey on Causal Inference'
+    // From: book_springer/related_papers.md:12 'Zhang et al., "A Survey on Causal Inference", 2020'
     ```
 - If a slide has no identifiable source slide for one of its `// From: ...`
   lines (freshly written content, or no matching source found), leave that

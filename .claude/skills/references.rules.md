@@ -64,10 +64,34 @@ papers
     ```
 
 # When Searching for References
-- Use academic references (e.g., papers, journals, conference papers, books, or
-  authoritative articles)
-- Prefer sources from Google Scholar, arXiv, IEEE, ACM, Springer, Elsevier,
-  official documentation, and major tech research blogs
-- Add direct arXiv / free-access versions where available
+- Use academic and technical references such as:
+  - **Papers**: journal articles and conference papers
+    - Search Google Scholar, arXiv, IEEE Xplore, ACM Digital Library, Springer, or
+      Elsevier
+  - **Books**: textbooks and monographs
+    - Search Google Books, publisher sites, or library catalogs
+  - **Authoritative articles**: official documentation and major tech research blogs
+    - Search the source's official site directly (e.g., OpenAI, Google Research,
+      Anthropic)
+  - **Technical reports**: lab and industry research reports
+    - Search the lab's official publications page or arXiv (e.g., DeepMind, OpenAI,
+      Google Research, Microsoft Research)
+  - **Whitepapers**: vendor or consortium position papers
+    - Search the vendor's official site (e.g., NVIDIA, AWS whitepapers page)
+  - **Theses and dissertations**: PhD and Master's theses
+    - Search ProQuest Dissertations and Theses, or the university's institutional
+      repository
+  - **Patents**: filed inventions
+    - Search Google Patents or the USPTO database
+  - **Standards and specifications**: formal technical standards
+    - Search IETF RFCs, ISO, W3C, or the IEEE Standards Association
+  - **Preprints**: manuscripts not yet peer-reviewed
+    - Search arXiv, bioRxiv, or SSRN
+  - **Benchmark and dataset papers**: papers introducing a benchmark or dataset
+    - Search Papers With Code, Hugging Face Datasets, or OpenML
+  - **Talks and keynotes**: recorded conference presentations
+    - Search the conference's official channel (e.g., SlidesLive, YouTube) for venues
+      like NeurIPS or ICML
+- Add direct arXiv or free-access versions where available
 - Include working URLs for each reference when possible
-- Prefer recent references rather than old
+- Prefer recent references over old ones
