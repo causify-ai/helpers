@@ -281,6 +281,14 @@
       - _Temporal logic_: facts hold at particular times
     ```
 
+- _Motivation_: Explains why a topic matters before diving into details
+  - Use `@Motivation@` to open a slide or topic with the reason it matters
+  - E.g.,
+    ```
+    - @Motivation@: manually tuning learning rate schedules does not scale
+      to the number of models trained in a modern ML pipeline
+    ```
+
 - _Problem_: A difficulty or open issue that motivates a solution
   - E.g.,
     ```
@@ -391,6 +399,15 @@
     words
     - More generally, delete any bullet that only restates a point already
       made under another tag on the same slide
+
+- _Interpretation_: What a result, formula, or observation means in plain terms
+  - Use to translate a technical finding into its practical reading
+  - E.g.,
+    ```
+    - @Interpretation@: a loss that keeps falling on held-out data past the
+      point where training accuracy saturates signals the model is still
+      learning generalizable structure, not just memorizing
+    ```
 
 - _Remark_: A simple but useful fact
   - E.g.,

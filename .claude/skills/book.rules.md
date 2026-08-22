@@ -3,14 +3,12 @@
   course lecture materials
 
 # Concepts
-- `map.md`: the map of a book / course, e.g.,
-  - `/Users/saggese/src/umd_classes2/book_springer/map.md`
-  - `/Users/saggese/src/umd_classes1/book.AI_for_data_science/map.md`
-  - `/Users/saggese/src/umd_classes1/book.Modern_AI_for_Finance/map.md`
-  - `/Users/saggese/src/umd_classes1/msml610/map.md`
-  ...
+- `map.md`: the map of a book / course
+  - E.g.,
+    - `/Users/saggese/src/umd_classes2/book_springer/map.md`
+    - `/Users/saggese/src/umd_classes1/msml610/map.md`
 - `chap_toc`: contains a description of a book chapter
-  - It is `### Topics` in a map
+  - It corresponds to the `### Topics` in a map
 - `skeleton_slides`: describes the high level flow of slides
   - Contain only H1, H2, * and optionally `// From <file>:<line number> 'reference'`
 - `lesson_slides`: complete slides on a topic
@@ -74,17 +72,30 @@
   `## <NN>:` headings in Detailed TOC
 
 ## All Lesson Materials
-- Inventory of candidate source directories/globs each chapter's `### Lesson
-  Materials` can draw from, one bullet pair per course:
+- Inventory of source directories/globs each chapter's `### Lesson Materials` can
+  draw from
   ```markdown
   - `course/all_tocs.md`
   - `course/resources.md`
   - `course/lectures_source/*.txt`
-  ```
-- Regenerate with the pointed-to script (e.g., `./generate_all_tocs.sh`) instead
-  of hand-editing the list
 
-# Chapter Template
+## Roadmap
+
+- Tracking tables use `|`-delimited Markdown tables with a bold
+  `**Part Title**` row (all other columns empty) separating parts
+- Typical columns: chapter/slide name, source slide file, and one column per
+  pipeline stage (e.g., `Slides %`, `Criticize`, `Tutorial`, `Book`), each cell
+  a completion percentage or `yes`/blank
+- Tutorial inventories are a `>` blockquote with the `find` command used to list
+  them, followed by a fenced (no language) block with the resulting file paths:
+  ```markdown
+  > find book_springer/tutorials -name *.ipynb
+  book_springer/tutorials/LessonNN_topic/notebook.ipynb
+  ```
+- `## TODOs` is a flat bullet list of outstanding cross-chapter work
+
+  ```
+## Chapter Template
 
 - Each chapter (`## <NN>: <Chapter Title>`) uses this fixed set of `###`
   subsections, in this order:
@@ -116,21 +127,23 @@
 - Optional; open items for the chapter as a checkbox list (`- [ ] ...`)
 
 ## Slides
-- Pointer(s) to the `lectures_source/*.txt` (or `.smd`) file(s) holding the
-  chapter's slide deck
+- Pointer(s) to the `<BOOK>/lectures_source/*.smd` file(s) holding the chapter's
+  slide deck
 - Each deck should be about 30-35 slides
 
 ## Lesson Materials
+- There should be no pointer to `<BOOK>/lectures_source/*.smd` since this is
+  the material from other directories that is used to create the slides in
+  `<BOOK>/lectures_source/*.smd`
 - For each chapter, read its `### Topics` and the candidate lecture ToCs listed
   in `## All Lesson Materials`, then list which lectures cover which topics
 - Order lectures by descending coverage percentage
 - Reference the actual lecture files (not just their titles) to verify coverage
-- Close with a `_Not covered_` (or `- Not covered`) bullet naming the topics no
-  lecture addresses
+- Close with a `_Not covered_` bullet naming the topics no lecture addresses
 - Template:
   ```markdown
   ### Lesson Materials
-  - `pointer to a lecture`
+  - `pointer to a lecture in a different directory`
     - [<Amount used>]: topics
   - ...
   - _Not covered_
@@ -152,21 +165,6 @@
 
 ## Notes
 - Optional freeform bullets for open questions or caveats about the chapter
-
-# Roadmap Section
-
-- Tracking tables use `|`-delimited Markdown tables with a bold
-  `**Part Title**` row (all other columns empty) separating parts
-- Typical columns: chapter/slide name, source slide file, and one column per
-  pipeline stage (e.g., `Slides %`, `Criticize`, `Tutorial`, `Book`), each cell
-  a completion percentage or `yes`/blank
-- Tutorial inventories are a `>` blockquote with the `find` command used to list
-  them, followed by a fenced (no language) block with the resulting file paths:
-  ```markdown
-  > find book_springer/tutorials -name *.ipynb
-  book_springer/tutorials/LessonNN_topic/notebook.ipynb
-  ```
-- `## TODOs` is a flat bullet list of outstanding cross-chapter work
 
 # Examples
 - `book_springer/map.md`
