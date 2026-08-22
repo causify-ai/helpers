@@ -19,7 +19,10 @@ container.
   > save_screenshot.py --url https://example.com/image.png
 
 - Save into a specific dir, using a specific file name:
-  > save_screenshot.py --from_clipboard --path msml610/lectures_source/figures --filename Lesson12_4x3_environment.png
+  > save_screenshot.py --from_clipboard --output msml610/lectures_source/figures/Lesson12_4x3_environment.png
+
+- Save into a specific dir, using a timestamped file name:
+  > save_screenshot.py --from_clipboard --output msml610/lectures_source/figures/
 """
 
 import argparse
@@ -64,22 +67,29 @@ def _get_extension_from_url(url: str) -> str:
     return ext
 
 
-def _build_filename(path: str, filename: str, ext: str) -> str:
+def _resolve_output_path(output: str, ext: str) -> str:
     """
-    Build the destination file path.
+    Resolve the destination file path from `--output`.
 
-    :param path: destination directory (e.g., "msml610/lectures_source/figures")
-    :param filename: file name provided by the user
-        - If empty, a timestamped name is generated
-    :param ext: extension to use when `filename` is not provided (e.g., "png")
+    :param output: user-supplied output path
+        - Empty, ending in "/", or naming an existing directory (e.g.,
+          "msml610/lectures_source/figures"): treated as a destination
+          directory, a timestamped file name is generated inside it
+        - Otherwise (e.g., "figures/Lesson12_4x3_environment.png"):
+          treated as the full destination file path
+    :param ext: extension to use when generating a timestamped file name
+        (e.g., "png")
     :return: destination file path, e.g., "figures/screenshot.2026-08-22_10-00-00.png"
     """
-    if not filename:
+    is_dir = not output or output.endswith(os.sep) or os.path.isdir(output)
+    if is_dir:
         timestamp = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
         filename = f"screenshot.{timestamp}.{ext}"
-    if path:
         # E.g., lectures_source/tutorial_msml610/notebooks/figures
-        filename = os.path.join(path, filename)
+        if output:
+            filename = os.path.join(output, filename)
+    else:
+        filename = output
     return filename
 
 
@@ -148,8 +158,12 @@ def _parse() -> argparse.ArgumentParser:
         action="store_true",
         help="Save the image currently on the system clipboard (uses `pngpaste`)",
     )
-    parser.add_argument("--path", type=str, default="", help="Destination directory")
-    parser.add_argument("--filename", type=str, default="", help="File name")
+    parser.add_argument(
+        "--output",
+        type=str,
+        default="",
+        help="Destination file path, or a directory to save a timestamped file into",
+    )
     parser.add_argument(
         "--override", action="store_true", help="Override if file exists"
     )
@@ -166,12 +180,13 @@ def _main(parser: argparse.ArgumentParser) -> None:
         ext = _get_extension_from_url(args.url)
     else:
         ext = "png"
-    filename = _build_filename(args.path, args.filename, ext)
+    filename = _resolve_output_path(args.output, ext)
     _LOG.info("filename: %s", filename)
     if not args.override:
         hdbg.dassert_path_not_exists(filename)
-    if args.path:
-        hio.create_dir(args.path, incremental=True)
+    dst_dir = os.path.dirname(filename)
+    if dst_dir:
+        hio.create_dir(dst_dir, incremental=True)
     # Save the image using the requested source.
     if args.url:
         _download_image(args.url, filename)

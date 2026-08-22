@@ -63,8 +63,8 @@ This directory has no subdirectories.
   - An interactive macOS screen region capture (default)
   - The system clipboard (`--from_clipboard`)
   - A URL (`--url`)
-- Saves the image under `--path` (created if missing), with a custom
-  `--filename` or a timestamped default name
+- Saves the image to `--output`: a full file path, or a directory (created
+  if missing) to save a timestamped default name into
 - For `--url`, infers the `png`, `jpg`, `jpeg` extension from the URL
   - Screenshots and clipboard pastes are always saved as PNG
 - On macOS, copies a Markdown image reference (`![](path)`) to the clipboard
@@ -86,9 +86,14 @@ This directory has no subdirectories.
   > save_screenshot.py --url https://example.com/image.png
   ```
 
-- Save into a specific dir with a specific file name:
+- Save into a specific dir, using a specific file name:
   ```bash
-  > save_screenshot.py --from_clipboard --path msml610/lectures_source/figures --filename Lesson12_4x3_environment.png
+  > save_screenshot.py --from_clipboard --output msml610/lectures_source/figures/Lesson12_4x3_environment.png
+  ```
+
+- Save into a specific dir, using a timestamped file name:
+  ```bash
+  > save_screenshot.py --from_clipboard --output msml610/lectures_source/figures/
   ```
 
 ## `website_screenshot.py`
