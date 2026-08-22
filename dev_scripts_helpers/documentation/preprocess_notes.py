@@ -45,7 +45,7 @@ _NUM_SPACES = 2
 _TRACE = False
 
 
-_DEFAULT_ACTIONS: List[str] = ["colorize_bullets"]
+_DEFAULT_ACTIONS: List[str] = ["process_links", "colorize_bullets"]
 _VALID_ACTIONS = [
     "process_links",
     "colorize_bullets",
@@ -231,37 +231,59 @@ def _process_question_to_slides(
     return do_continue, line
 
 
+def _is_section_boundary(line: str) -> Tuple[bool, str]:
+    """
+    Check if a line starts an include-able section.
+
+    A section can be introduced either by a level-1 Markdown header
+    (`# <title>`) or by a slide marker (`* <title>`), matching the two
+    conventions used across the `.smd` lecture files. The title can contain
+    spaces.
+
+    :param line: line to check
+    :return: tuple (is_boundary, title); title is "" if not a boundary
+    """
+    is_header_, level, header_title = hmarkdo.is_header(line)
+    if is_header_ and level == 1:
+        return True, header_title.strip()
+    m = re.match(r"^\*\s+(.*\S)\s*$", line)
+    if m:
+        return True, m.group(1)
+    return False, ""
+
+
 def _extract_section(lines: List[str], title: str) -> Optional[List[str]]:
     r"""
-    Extract the body content under a level-1 header with the given title.
+    Extract the body content under a section marker with the given title.
 
-    Finds the header `# <title>` and returns the lines immediately following it
-    up to (but not including) the next level-1 header. The header line itself is
-    excluded from the result.
+    A section can be introduced by a level-1 header (`# <title>`) or by a
+    slide marker (`* <title>`). Returns the lines immediately following the
+    marker up to (but not including) the next section boundary of either
+    kind. The marker line itself is excluded from the result.
 
     :param lines: list of lines to search
-    :param title: the header title to find (exact match)
-    :return: list of body lines, or None if header not found
+    :param title: the section title to find (exact match)
+    :return: list of body lines, or None if the title is not found
     """
     hdbg.dassert_isinstance(lines, list)
     hdbg.dassert_isinstance(title, str)
-    # Find the line with `# <title>` (level-1 header).
+    # Find the line starting a section with the given title.
     header_line_idx = None
-    header_pattern = rf"^#\s+{re.escape(title)}\s*$"
     for i, line in enumerate(lines):
-        if re.match(header_pattern, line):
+        is_boundary, line_title = _is_section_boundary(line)
+        if is_boundary and line_title == title:
             header_line_idx = i
             break
     if header_line_idx is None:
         return None
-    # Find the next level-1 header (or end of file).
+    # Find the next section boundary (or end of file).
     end_idx = len(lines)
     for i in range(header_line_idx + 1, len(lines)):
-        is_header, level, _ = hmarkdo.is_header(lines[i])
-        if is_header and level == 1:
+        is_boundary, _ = _is_section_boundary(lines[i])
+        if is_boundary:
             end_idx = i
             break
-    # Return the body lines (excluding the header line itself).
+    # Return the body lines (excluding the marker line itself).
     result = lines[header_line_idx + 1 : end_idx]
     return result
 
@@ -315,7 +337,7 @@ def _generate_title_slide_latex(metadata: Dict[str, str]) -> List[str]:
     # Determine logo path based on course title.
     logo_path = "msml610/lectures_source/figures/UMD_Logo.png"
     if "data605" in course_title.lower() or "DATA605" in course_title:
-        logo_path = "data605/lectures_source/figures/UMD_Logo.png"
+        logo_path = "data605/lectures_source/images/UMD_Logo.png"
     lines = [
         "::: columns",
         ":::: {.column width=20%}",
@@ -354,7 +376,7 @@ def _generate_title_slide_typst(metadata: Dict[str, str]) -> List[str]:
     # Determine logo path based on course title.
     logo_path = "msml610/lectures_source/figures/UMD_Logo.png"
     if "data605" in course_title.lower() or "DATA605" in course_title:
-        logo_path = "data605/lectures_source/figures/UMD_Logo.png"
+        logo_path = "data605/lectures_source/images/UMD_Logo.png"
     txt = r"""
         ====
 
@@ -746,7 +768,9 @@ def _transform_lines(
         to_execute, actions = hselacti.mark_action("process_links", actions)
         # to_execute = False
         if to_execute:
-            out = hmarkdo.format_md_links_to_latex_format(out)
+            out = hmarkdo.format_md_links_to_latex_format(
+                out, output_format=output_format
+            )
         # Colorize bullets in the slides.
 
         def _colorize_bullets(
