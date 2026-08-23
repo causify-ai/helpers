@@ -144,7 +144,7 @@ output_txt
 = Test Tilde
 <test-tilde>
 - #emph[Example];:
-  #text(fill: blue)[default \~ credit_limit + credit_score + account_age]
+  #text(fill: blue)[default \~ credit\_limit + credit\_score + account\_age]
 
 Multiple tildes: #text(fill: blue)[a \~ b \~ c]
 

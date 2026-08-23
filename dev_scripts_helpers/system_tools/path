@@ -16,22 +16,31 @@ Example:
 > path.py system_tools/path.py /Users/saggese/src/helpers2/dev_scripts_helpers/system_tools
 """
 
-import glob
 import os
 import sys
 from typing import Optional
 
 
-# Copied from `hsystem.py`.
 def _find_file(filename: str, *, search_path: str = ".") -> Optional[str]:
     """
     Find a file in a directory and report the absolute path.
+
+    Symlinks are never followed: symlinked directories are not descended
+    into, and symlinked files are not reported as matches.
     """
-    # Recursive glob with hidden dirs included.
-    search_path = os.path.join(search_path, "**", filename)
-    files = glob.glob(search_path, recursive=True, include_hidden=True)
-    # Filter out paths containing .git (but keep other hidden dirs like .claude).
-    files = [f for f in files if "/.git/" not in f and not f.endswith("/.git")]
+    files = []
+    for root, dirnames, filenames in os.walk(search_path, followlinks=False):
+        # Don't descend into symlinked directories (os.walk's followlinks only
+        # stops recursion, but also skip .git explicitly).
+        dirnames[:] = [
+            d
+            for d in dirnames
+            if not os.path.islink(os.path.join(root, d)) and d != ".git"
+        ]
+        if filename in filenames:
+            path_out = os.path.join(root, filename)
+            if not os.path.islink(path_out):
+                files.append(path_out)
     if len(files) == 1:
         return files[0]
     elif len(files) > 1:

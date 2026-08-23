@@ -167,6 +167,44 @@
     - @Solution@: ...
     ```
 
+## Source Attribution (`// From: ...`)
+- Right after `* <slide title>`, one or more `// From: ...` comments record
+  where the slide's content was adapted from; no blank line between the title
+  and the first `// From: ...` line
+- Format: `// From: <file>:<line num> '<source line>'`
+  - `<file>` is a repo-root-relative path to the exact source file (a
+    `lectures_source/*.smd` lecture file, or `<book>/related_papers.md` /
+    `<book>/related_books.md` for a paper or book citation)
+  - `<line num>` is the exact line of the `* <slide title>`, `#`/`##`/`###`
+    header, or `- [P<NNN>]`/`- [B<NNN>]` reference-list entry being cited
+  - `'<source line>'` is that exact line's full text, single-quoted verbatim
+    including its leading marker (`* `, `#`, `## `), not just the title with the
+    marker stripped, so the comment is self-descriptive without opening the file
+  - E.g., single lecture source:
+    ```
+    * Why Traditional ML Falls Short
+    // From: msml610/lectures_source/Lesson08.1-Causal_AI_intro.smd:318 '* Where ML Falls Short'
+    ```
+- When a slide draws on more than one source, stack one `// From: ...` line
+  per source, directly under the title, in the order the sources were used
+  - E.g., two lecture sources plus a paper:
+    ```
+    * Correlation Encodes Confounding as Causation
+    // From: msml610/lectures_source/Lesson08.1-Causal_AI_intro.smd:345 '* The Cost of Ignoring Causality (1/2)'
+    // From: msml610/lectures_source/Lesson11.1-Decision_Making_with_Causal_Models.smd:161 '* Confounding: The Root Cause'
+    // From: book_springer/related_papers.md:12 'Zhang et al., "A Survey on Causal Inference", 2020'
+    ```
+- If a slide has no identifiable source slide for one of its `// From: ...`
+  lines (freshly written content, or no matching source found), leave that
+  line as a bare `// From:` with nothing after the colon, rather than
+  guessing or dropping the line
+  - E.g.,
+    ```
+    * Selection Bias and the Missing Counterfactual
+    // From: ...
+    ```
+- A slide with no source material at all can omit `// From: ...` entirely
+
 ## Use Tags for Slide Sections
 - Every first level bullet point (starting with `- ` and not `*`) should start
   with a bold label `<bold label>` for pedagogical structure
@@ -241,6 +279,14 @@
       - _Propositional logic_: world consists of facts
       - _First-order logic_: objects with relations
       - _Temporal logic_: facts hold at particular times
+    ```
+
+- _Motivation_: Explains why a topic matters before diving into details
+  - Use `@Motivation@` to open a slide or topic with the reason it matters
+  - E.g.,
+    ```
+    - @Motivation@: manually tuning learning rate schedules does not scale
+      to the number of models trained in a modern ML pipeline
     ```
 
 - _Problem_: A difficulty or open issue that motivates a solution
@@ -353,6 +399,15 @@
     words
     - More generally, delete any bullet that only restates a point already
       made under another tag on the same slide
+
+- _Interpretation_: What a result, formula, or observation means in plain terms
+  - Use to translate a technical finding into its practical reading
+  - E.g.,
+    ```
+    - @Interpretation@: a loss that keeps falling on held-out data past the
+      point where training accuracy saturates signals the model is still
+      learning generalizable structure, not just memorizing
+    ```
 
 - _Remark_: A simple but useful fact
   - E.g.,
@@ -753,4 +808,4 @@ Use these commands consistently across all slides:
   ```
 
 # Examples and Templates
-- See examples `.claude/templates/slides.template.md`
+- Follow the template `.claude/templates/slides.template.md`

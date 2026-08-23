@@ -98,24 +98,47 @@ _SUMMARY_MODEL = "gpt-4o-mini"
 # `download_academic_paper_to_md.py` to avoid repeating the same prompt text.
 ARTICLE_SUMMARY_PROMPT = hprint.dedent(
     """
-    - Summarize the main article in 5 bullet points
-    - Format as plain text without markdown following the conventions in:
+    - Summarize the main article in 7-10 bullet points and fewer than about 250
+      words
+    - Format the result as plain text without markdown following the
+      conventions in:
       - @.claude/skills/markdown.rules.md
       - @.claude/skills/text.rules.md
     """
 )
 
 
+def get_stat_file_path(summary_file: str) -> str:
+    """
+    Derive the stats JSON file path for a summary file.
+
+    :param summary_file: path to a `*.summary.md` file produced by
+        `summarize_text_with_llm()`
+    :return: path to the sibling stats file (e.g.,
+        `foo.summary.md` -> `foo.summary.stat.json`)
+    """
+    hdbg.dassert(
+        summary_file.endswith(".md"),
+        "Summary file must end in '.md': %s",
+        summary_file,
+    )
+    return summary_file[: -len(".md")] + ".stat.json"
+
+
 def summarize_text_with_llm(
     input_file: str,
     output_file: str,
     prompt: str,
+    # TODO(ai_gp): Move this to after *
     model: str = _SUMMARY_MODEL,
     *,
     dry_run: bool = False,
 ) -> None:
     """
     Summarize text using llm_cli.py and lint the output.
+
+    Also saves LLM usage stats (model, input/output/prompt char counts,
+    wallclock time, cost) next to `output_file`; see `get_stat_file_path()`.
 
     :param input_file: Path to input text file to summarize
     :param output_file: Path to save the summary
@@ -138,19 +161,22 @@ def summarize_text_with_llm(
     hio.to_file(prompt_file, prompt)
     _LOG.debug("Saved prompt to: '%s'", prompt_file)
     # Build command to call llm_cli.py with the given prompt file.
-    llm_cli_path = "dev_scripts_helpers/llms/llm_cli.py"
+    llm_cli_path = hsystem.find_file_in_repo("llm_cli.py")
+    stat_file = get_stat_file_path(output_file)
     cmd_parts = [
         llm_cli_path,
         f"--input={input_file}",
         f"--output={output_file}",
         f"--pf={prompt_file}",
         f"--model={model}",
+        f"--stat_file={stat_file}",
         "--lint",
     ]
     cmd = " ".join(cmd_parts)
     _LOG.debug("Running command: %s", cmd)
     hsystem.system(cmd, print_command=True)
     _LOG.info("Summary saved to: '%s'", output_file)
+    _LOG.info("Stats saved to: '%s'", stat_file)
 
 
 # #############################################################################
@@ -167,6 +193,67 @@ def is_arxiv_url(url: str) -> bool:
     """
     _LOG.debug(hprint.to_str("url"))
     result = "arxiv.org" in url.lower()
+    _LOG.debug(hprint.to_str("result"))
+    return result
+
+
+def detect_doi(url: str) -> Optional[str]:
+    """
+    Detect DOI from URL or bare DOI string.
+
+    :param url: URL or bare DOI (e.g., "https://doi.org/10.xxx" or
+        "10.xxx/yyy")
+    :return: DOI if detected, None otherwise
+    """
+    _LOG.debug(hprint.to_str("url"))
+    _DOI_URL_PATTERN = r"(?:https?://)?(?:dx\.)?doi\.org/(.+)"
+    _DOI_BARE_PATTERN = r"^(10\.\d{4,}/\S+)$"
+    # Try URL pattern.
+    match = re.search(_DOI_URL_PATTERN, url)
+    if match:
+        doi = match.group(1)
+        _LOG.debug(hprint.to_str("doi"))
+        return doi
+    # Try bare DOI pattern.
+    match = re.search(_DOI_BARE_PATTERN, url)
+    if match:
+        doi = match.group(1)
+        _LOG.debug(hprint.to_str("doi"))
+        return doi
+    _LOG.debug("return=None")
+    return None
+
+
+def is_pdf_url(url: str) -> bool:
+    """
+    Check if a URL points directly to a PDF file.
+
+    :param url: input URL
+    :return: True if the URL path (ignoring query string/fragment) ends
+        in `.pdf`
+    """
+    _LOG.debug(hprint.to_str("url"))
+    # Strip query string and fragment before checking the file extension.
+    path = url.split("?")[0].split("#")[0]
+    result = path.lower().endswith(".pdf")
+    _LOG.debug("return=%s", result)
+    return result
+
+
+def is_academic_paper_url(url: str) -> bool:
+    """
+    Check if a URL points to an academic paper (arXiv, DOI, or PDF).
+
+    Single source of truth for what counts as an "academic paper" URL,
+    shared by `download_to_md.py`'s input-type detection and
+    `download_article()`'s dispatch below, so the two stay consistent.
+
+    :param url: Article URL or bare DOI
+    :return: True if the URL should be routed to
+        `download_academic_paper_to_md.py`
+    """
+    _LOG.debug(hprint.to_str("url"))
+    result = bool(is_arxiv_url(url) or detect_doi(url) or is_pdf_url(url))
     _LOG.debug(hprint.to_str("result"))
     return result
 
@@ -229,13 +316,14 @@ def download_arxiv_article(url: str, output_file: str) -> None:
 
 def download_article(url: str, output_file: str) -> None:
     """
-    Download an article, dispatching to the arXiv or generic downloader.
+    Download an article, dispatching to the academic-paper or generic
+    downloader.
 
     :param url: Article URL
     :param output_file: Path to save the article text to
     """
     _LOG.debug(hprint.to_str("url output_file"))
-    if is_arxiv_url(url):
+    if is_academic_paper_url(url):
         download_arxiv_article(url, output_file)
     else:
         download_website_article(url, output_file)

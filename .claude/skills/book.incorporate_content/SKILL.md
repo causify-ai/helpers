@@ -1,13 +1,18 @@
 ---
-description: Gather information about books
+description: Incorporate content into other material (books, slides, papers, blog ideas)
 model: sonnet
 ---
 
-Given the passed content propose where to include it in the book
+# Goal
+- Given the content `<CONTENT>` passed by the user, propose where to include it in
+  the referred book / slides / blogs `<TARGET>`
 
-- Read the proposed content
-- Read `book.Causal_Probabilistic_ML/book_toc.md` which contains the table of
-  content of the slides (in the format `msml610/lectures_source/LessonXYZ.txt`)
-- Understand which lectures the content is relevant for
-- Read the slides and propose modifications to incorporate some of the
-  interesting points
+# Workflow
+- Read the proposed content `<CONTENT>`
+
+- For a book / course (e.g., `book_springer/map.md`), read the `map.md` to
+  understand the structure of the material covered
+- Find out which part of the `<TARGET>` material the content is relevant for
+
+- Propose how to integrate the `<CONTENT>` in `<TARGET>` using bullet points
+  following `.claude/skills/markdown.rules.md` and `.claude/skills/text.rules.md`

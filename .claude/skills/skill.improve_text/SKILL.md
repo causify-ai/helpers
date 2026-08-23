@@ -1,6 +1,6 @@
 ---
 description: Improve rule or skill file without changing the content
-model: haiku
+model: sonnet
 ---
 
 # Goal
@@ -14,7 +14,8 @@ model: haiku
     `.claude/skills/<TOPIC>.<ACTION>/skill.md`
 
 ## Read the Skill Rules
-- Read `.claude/skills/skill.rules.md`
+- Read `.claude/skills/skill.rules.md` to understand what are the conventions
+  to follow
 
 ## Improve Text
 - Improve the content without changing the intent following the conventions in:

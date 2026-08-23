@@ -2744,14 +2744,14 @@ class Test_parse(hunitest.TestCase):
 
     def test1(self) -> None:
         """
-        Test that `--mode` is required and has no default.
+        Test that `--mode` defaults to `session` when omitted.
         """
         # Prepare inputs.
-        parser = lcclint._parse()
         argv: List[str] = []
-        # Run test and check outputs.
-        with self.assertRaises(SystemExit):
-            parser.parse_args(argv)
+        # Prepare outputs.
+        expected_mode = "session"
+        # Run test.
+        self.helper(argv, expected_mode)
 
     def test2(self) -> None:
         """
@@ -2808,7 +2808,7 @@ class Test_parse(hunitest.TestCase):
         expected = {
             "rule_level": 2,
             "max_chunk_tokens": 1500,
-            "merge_small_rules": False,
+            "merge_small_rules": True,
             "filter_rules_by_relevance": False,
             "order_rules_by_dependency": False,
         }

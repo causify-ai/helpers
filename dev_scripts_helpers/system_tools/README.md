@@ -43,7 +43,7 @@ This directory has no subdirectories.
 - `replace_text.py`
   - Search and replace text across multiple files
 - `save_screenshot.py`
-  - Capture macOS screen regions interactively as PNG
+  - Save an image from an interactive macOS screenshot, the clipboard, or a URL
 - `tg.py`
   - Send notifications via Telegram
 - `tree.sh`
@@ -59,15 +59,41 @@ This directory has no subdirectories.
 
 ### What It Does
 
-- Captures macOS screen regions interactively with mouse selection
-- Saves screenshots as PNG files with customizable output location
-- Supports full screen or region capture with visual feedback
+- Saves an image to a file, from one of three sources:
+  - An interactive macOS screen region capture (default)
+  - The system clipboard (`--from_clipboard`)
+  - A URL (`--url`)
+- Saves the image to `--output`: a full file path, or a directory (created
+  if missing) to save a timestamped default name into
+- For `--url`, infers the `png`, `jpg`, `jpeg` extension from the URL
+  - Screenshots and clipboard pastes are always saved as PNG
+- On macOS, copies a Markdown image reference (`![](path)`) to the clipboard
 
 ### Examples
 
-- Capture screen region and save as PNG:
+- Capture a screen region interactively and save as PNG:
   ```bash
   > save_screenshot.py
+  ```
+
+- Save the image currently on the clipboard:
+  ```bash
+  > save_screenshot.py --from_clipboard
+  ```
+
+- Download an image from a URL:
+  ```bash
+  > save_screenshot.py --url https://example.com/image.png
+  ```
+
+- Save into a specific dir, using a specific file name:
+  ```bash
+  > save_screenshot.py --from_clipboard --output msml610/lectures_source/figures/Lesson12_4x3_environment.png
+  ```
+
+- Save into a specific dir, using a timestamped file name:
+  ```bash
+  > save_screenshot.py --from_clipboard --output msml610/lectures_source/figures/
   ```
 
 ## `website_screenshot.py`

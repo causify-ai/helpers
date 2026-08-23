@@ -386,6 +386,39 @@ class Test__extract_protected_content(hunitest.TestCase):
         # Run test.
         self.helper(txt, file_type, expected, expected_map_size)
 
+    def test14(self) -> None:
+        """
+        Test a fenced block nested inside a list is placeholdered in place.
+        """
+        # Prepare inputs.
+        txt = """
+        - **Steps**:
+          1. Download links:
+             ```bash
+             > some_command --flag
+             ```
+          2. Sync:
+             ```bash
+             > other_command
+             ```
+        """
+        file_type = "md"
+        # Prepare outputs: the placeholder is indented to match the fence.
+        expected = """
+        - **Steps**:
+          1. Download links:
+             ```bash
+             <<<PROTECTED_BLOCK_001>>>
+             ```
+          2. Sync:
+             ```bash
+             <<<PROTECTED_BLOCK_002>>>
+             ```
+        """
+        expected_map_size = 2
+        # Run test.
+        self.helper(txt, file_type, expected, expected_map_size)
+
 
 # #############################################################################
 # Test__restore_protected_content
@@ -739,5 +772,25 @@ class Test_extract_restore_roundtrip(hunitest.TestCase):
         Regular text.
         """
         file_type = "smd"
+        # Run test.
+        self.helper(txt, file_type)
+
+    def test6(self) -> None:
+        """
+        Test roundtrip with a fenced block nested inside a list.
+        """
+        # Prepare inputs.
+        txt = """
+        - **Steps**:
+          1. Download links:
+             ```bash
+             > some_command --flag
+             ```
+          2. Sync:
+             ```bash
+             > other_command
+             ```
+        """
+        file_type = "md"
         # Run test.
         self.helper(txt, file_type)

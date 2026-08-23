@@ -105,6 +105,10 @@ class TokenStats:
     cost_from_llm_library: float = 0.0
     elapsed_time_in_seconds: float = 0.0
     tokens_per_second: float = 0.0
+    model: str = ""
+    num_chars_in: int = 0
+    num_chars_out: int = 0
+    num_chars_prompt: int = 0
 
     def _compute_tokens_per_second(self) -> float:
         """
@@ -133,6 +137,10 @@ class TokenStats:
         hdbg.dassert_lte(0, self.elapsed_time_in_seconds)
         hdbg.dassert_lte(0, self.cost_from_llm_library)
         hdbg.dassert_lte(0, self.tokens_per_second)
+        hdbg.dassert_lte(0, self.num_chars_in)
+        hdbg.dassert_lte(0, self.num_chars_out)
+        hdbg.dassert_lte(0, self.num_chars_prompt)
+        hdbg.dassert_isinstance(self.model, str)
         # Ensure proper types.
         self.input_tokens = int(self.input_tokens)
         self.output_tokens = int(self.output_tokens)
@@ -140,6 +148,9 @@ class TokenStats:
         self.elapsed_time_in_seconds = float(self.elapsed_time_in_seconds)
         self.cost_from_llm_library = float(self.cost_from_llm_library)
         self.tokens_per_second = float(self.tokens_per_second)
+        self.num_chars_in = int(self.num_chars_in)
+        self.num_chars_out = int(self.num_chars_out)
+        self.num_chars_prompt = int(self.num_chars_prompt)
 
     def to_float(self) -> float:
         """
@@ -181,15 +192,22 @@ class TokenStats:
         else:
             cost_str = f"{cost * 1e6:.2f}u$"
         # Show tokens per second when elapsed time is positive.
+        model_str = f"Model: {self.model}, " if self.model else ""
         if self.tokens_per_second > 0:
-            res = f"Cost: {cost_str}, Elapsed: {elapsed_time:.2f}s, {self.tokens_per_second:.2f} tok/s ("
+            res = (
+                f"{model_str}Cost: {cost_str}, Elapsed: {elapsed_time:.2f}s, "
+                f"{self.tokens_per_second:.2f} tok/s ("
+            )
         else:
-            res = f"Cost: {cost_str}, Elapsed: {elapsed_time:.2f}s ("
+            res = f"{model_str}Cost: {cost_str}, Elapsed: {elapsed_time:.2f}s ("
         fields = [
             "input_tokens",
             "output_tokens",
             "cost_from_llm_library",
             "cost_from_tokencost",
+            "num_chars_in",
+            "num_chars_out",
+            "num_chars_prompt",
         ]
         for field in fields:
             val = getattr(self, field, "na")
@@ -218,6 +236,14 @@ class TokenStats:
         total_elapsed_time = sum(
             ts.elapsed_time_in_seconds for ts in token_stats_list
         )
+        total_num_chars_in = sum(ts.num_chars_in for ts in token_stats_list)
+        total_num_chars_out = sum(ts.num_chars_out for ts in token_stats_list)
+        total_num_chars_prompt = sum(
+            ts.num_chars_prompt for ts in token_stats_list
+        )
+        # Use the first non-empty model name; callers typically aggregate
+        # stats from calls that all used the same model.
+        model = next((ts.model for ts in token_stats_list if ts.model), "")
         # tokens_per_second is computed in __post_init__, so pass 0.0 and let
         # the constructor derive it from the aggregated totals.
         return cls(
@@ -227,6 +253,10 @@ class TokenStats:
             cost_from_llm_library=total_cost_from_llm_library,
             elapsed_time_in_seconds=total_elapsed_time,
             tokens_per_second=0.0,
+            model=model,
+            num_chars_in=total_num_chars_in,
+            num_chars_out=total_num_chars_out,
+            num_chars_prompt=total_num_chars_prompt,
         )
 
     @classmethod
@@ -383,6 +413,7 @@ def _calculate_cost_from_usage(
         output_tokens=output_tokens,
         cost_from_tokencost=cost,
         elapsed_time_in_seconds=elapsed_time_in_seconds,
+        model=model,
     )
 
 
@@ -497,7 +528,7 @@ def _apply_llm_via_mock(
     sig_input = _compute_text_signature(input_str)
     concatenated = f"{sig_system}\n{sig_input}"
     digest = hashlib.md5(concatenated.encode()).hexdigest()
-    return digest, TokenStats()
+    return digest, TokenStats(model="mock")
 
 
 def _apply_llm_via_executable(
@@ -559,7 +590,9 @@ def _apply_llm_via_executable(
         _, response = hsystem.system_to_string(cmd_str)
     elapsed_time = time.time() - start_time
     _LOG.debug("Cost calculation not available when using llm executable")
-    return response, TokenStats(elapsed_time_in_seconds=elapsed_time)
+    return response, TokenStats(
+        elapsed_time_in_seconds=elapsed_time, model=model
+    )
 
 
 def _apply_llm_via_library(
@@ -603,7 +636,9 @@ def _apply_llm_via_library(
         response = "".join(response_parts)
         elapsed_time = time.time() - start_time
         _LOG.debug("Cost calculation not available for streaming mode")
-        token_stats = TokenStats(elapsed_time_in_seconds=elapsed_time)
+        token_stats = TokenStats(
+            elapsed_time_in_seconds=elapsed_time, model=llm_model.model_id
+        )
     else:
         # Run without progress bar.
         _LOG.trace("system_prompt=\n%s", system_prompt)
@@ -728,6 +763,11 @@ def apply_llm(
             input_str,
             system_prompt=system_prompt,
         )
+    # Record char counts (approximate token counts) for the input, the
+    # system prompt, and the output, regardless of backend.
+    token_stats.num_chars_in = len(input_str)
+    token_stats.num_chars_out = len(response)
+    token_stats.num_chars_prompt = len(system_prompt) if system_prompt else 0
     _LOG.debug("LLM processing completed")
     return response, token_stats
 

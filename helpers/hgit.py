@@ -1199,6 +1199,9 @@ def find_file_in_git_tree(
     """
     root_dir = get_client_root(super_module=super_module)
     cmd = rf"find {root_dir} -name '{file_name}' -not -path '*/.git/*'"
+    # Exclude vendored Python packages (e.g., from a stray virtual env sitting
+    # under the Git root) so they don't create spurious duplicate matches.
+    cmd += r" -not -path '*/site-packages/*'"
     if remove_tmp_base:
         cmd += r" -not -path '*/tmp\.base/*'"
     _, file_name_out = hsystem.system_to_one_line(cmd)

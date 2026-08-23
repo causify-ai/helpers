@@ -34,7 +34,7 @@ model: opus
 - Evaluate along these axes, reporting only issues you are confident about:
   - **Internal flow**:
     - Order of the `### Topics` bullets
-    - Prerequisite ordering,
+    - Prerequisite ordering
     - Redundant or overlapping bullets
     - A bullet that is really two topics
   - **Cross-chapter flow**:
@@ -47,14 +47,18 @@ model: opus
     - Flag misplaced chapters
   - **Structure conformance**:
     - Compare the structure to `.claude/templates/book_map.template.md`
-    - Report parts that don't follow the 
-    subsections, Lessons without a FULL/PART/WEAK tag, 
-    references not following
-    `.claude/skills/references.rules.md`
-  - **Audience fit**: matches the stated audience; level too high or low, assumed
-    background, unexplained jargon
-  - **Scope and balance**: too much or too little for one chapter; candidates to
-    split or merge
+    - Report:
+      - Parts that don't follow the subsections
+      - Lessons without a FULL/PART/WEAK tag
+      - References not following `.claude/skills/references.rules.md`
+  - **Audience fit**:
+    - Matches the stated audience
+    - Level too high or low
+    - Assumed background
+    - Unexplained jargon
+  - **Scope and balance**:
+    - Too much or too little content for one chapter
+    - Candidates to split or merge
 
 - Rank each issue by severity:
   - **CRITICAL**: breaks the chapter's logic or misplaces it
@@ -63,12 +67,12 @@ model: opus
   - **LOW**: minor polish
 
 ## Step 3: Write Result
-- Write results using the same format and file as in 
+- Write results using the same format and file as in
   `## Step 4: Write the Results` in `.claude/skills/text.criticize/SKILL.md`
 
 ## Step 4: Wait for Approval
 - Present the criticism to the user
 - Wait for the user to select items to apply by index and give corrections
-- Only then edit `book_map.md`
+- Only then edit `map.md`
 - Make sure to update all the sections (e.g., Topics, Lessons, Tutorials, Related
   packages, Related books, Related papers)

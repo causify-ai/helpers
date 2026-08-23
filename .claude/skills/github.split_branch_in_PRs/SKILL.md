@@ -23,7 +23,7 @@ description: Split the current changes in a Git client in small cohesive PRs to 
 
 ## Step 2: Read the changes in the current Git client
 
-- Obtain the files that need to be merged with
+- Obtain the files that need to be merged with:
   ```bash
   git diff --name-status origin/master HEAD
   ...

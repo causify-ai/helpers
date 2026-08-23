@@ -25,6 +25,15 @@ regexes = [
     '''[A-Za-z0-9+/]{1000,}={0,2}''',
 ]
 
+[[allowlists]]
+description = "allowlist for the fake JDBC connection string in the Hydra/OmegaConf interpolation tutorial (config_root/hydra/notebooks/HelpersTask1238_create_hydra_tutorial.{py,ipynb}); host is a placeholder IP, not a real secret"
+regexTarget = "line"
+regexes = [
+    '''jdbc:mysql://\$\{server\.host\}''',
+    '''jdbc:mysql://10\.0\.0\.1''',
+    '''jdbc:mysql://192\.168\.1\.100''',
+]
+
 [extend]
 useDefault = true
 [[rules]]
