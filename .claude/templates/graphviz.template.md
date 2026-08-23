@@ -511,38 +511,38 @@ caption=The agentic loop: an agent plans the next step, calls a tool, and observ
 
 ```graphviz[width=40%]
 digraph deciding_by_search {
-  graph [rankdir=LR, splines=curved, bgcolor="white",
+  graph [rankdir=LR, splines=curved, bgcolor="transparent",
          ranksep="1.1 equally", nodesep=0.26, pad=0.4, fontname="Helvetica"];
-  node  [shape=box, style="filled,rounded", fontname="Helvetica", fontsize=15,
+  node  [shape=box, style="rounded,filled", fontname="Helvetica", fontsize=15,
          fontcolor="#26215C", color="#D8D6EE", penwidth=1.2,
          height=0.52, margin="0.24,0.10"];
   edge  [arrowhead=none, penwidth=1.6, color="#B9B6D6"];
 
-  root [label="Deciding by search", shape=box, style="filled,rounded",
+  root [label="Deciding by search", shape=box, style="rounded,filled",
         fillcolor="#26215C", fontcolor="white", fontsize=20, penwidth=0,
         margin="0.34,0.20"];
 
   // ── Exhaustive · violet ────────────────────────────────────────────────
-  exhaustive [label="Exhaustive", fillcolor="white", color="#7C74D6", penwidth=1.8, fontsize=17];
-  minimax    [label="Minimax",              fillcolor="#EFEDFC", color="#CBC7F0"];
-  alphabeta  [label="Alpha–beta pruning",   fillcolor="#EFEDFC", color="#CBC7F0"];
-  astar      [label="A* search",            fillcolor="#EFEDFC", color="#CBC7F0"];
+  exhaustive [label="Exhaustive", fillcolor="white", color="#7C74D6", fontcolor="#45296B", penwidth=1.8, fontsize=17];
+  minimax    [label="Minimax",              fillcolor="#EFEDFC", color="#CBC7F0", fontcolor="#45296B"];
+  alphabeta  [label="Alpha–beta pruning",   fillcolor="#EFEDFC", color="#CBC7F0", fontcolor="#45296B"];
+  astar      [label="A* search",            fillcolor="#EFEDFC", color="#CBC7F0", fontcolor="#45296B"];
 
   // ── Sampling, no tree · blue ───────────────────────────────────────────
-  flat       [label="Sampling, no tree", fillcolor="white", color="#3E86C8", penwidth=1.8, fontsize=17];
-  flatmc     [label="Flat Monte Carlo",  fillcolor="#E8F1FB", color="#BFD8F1"];
-  shooting   [label="Random shooting",   fillcolor="#E8F1FB", color="#BFD8F1"];
+  flat       [label="Sampling, no tree", fillcolor="white", color="#3E86C8", fontcolor="#1F4E79", penwidth=1.8, fontsize=17];
+  flatmc     [label="Flat Monte Carlo",  fillcolor="#E8F1FB", color="#BFD8F1", fontcolor="#1F4E79"];
+  shooting   [label="Random shooting",   fillcolor="#E8F1FB", color="#BFD8F1", fontcolor="#1F4E79"];
 
-  // ── Sampling with a tree · green ───────────────────────────────────────
-  tree       [label="Sampling with a tree", fillcolor="white", color="#2F9678", penwidth=1.8, fontsize=17];
-  mcts       [label="MCTS", fillcolor="#E5F4EE", color="#BCE0D2"];
-  uct        [label="UCT",  fillcolor="#E5F4EE", color="#BCE0D2"];
-  puct       [label="PUCT", fillcolor="#E5F4EE", color="#BCE0D2"];
+  // ── Sampling with a tree · teal ─────────────────────────────────────────
+  tree       [label="Sampling with a tree", fillcolor="white", color="#2F9678", fontcolor="#1F4E39", penwidth=1.8, fontsize=17];
+  mcts       [label="MCTS", fillcolor="#E5F4EE", color="#BCE0D2", fontcolor="#1F4E39"];
+  uct        [label="UCT",  fillcolor="#E5F4EE", color="#BCE0D2", fontcolor="#1F4E39"];
+  puct       [label="PUCT", fillcolor="#E5F4EE", color="#BCE0D2", fontcolor="#1F4E39"];
 
-  // ── Model-based DP · amber ─────────────────────────────────────────────
-  dp         [label="Model-based DP",  fillcolor="white", color="#C07A45", penwidth=1.8, fontsize=17];
-  valueit    [label="Value iteration",  fillcolor="#FBEEE2", color="#EBD3B9"];
-  policyit   [label="Policy iteration", fillcolor="#FBEEE2", color="#EBD3B9"];
+  // ── Model-based DP · orange ────────────────────────────────────────────
+  dp         [label="Model-based DP",  fillcolor="white", color="#C07A45", fontcolor="#6B4517", penwidth=1.8, fontsize=17];
+  valueit    [label="Value iteration",  fillcolor="#FBEEE2", color="#EBD3B9", fontcolor="#6B4517"];
+  policyit   [label="Policy iteration", fillcolor="#FBEEE2", color="#EBD3B9", fontcolor="#6B4517"];
 
   root -> exhaustive [color="#7C74D6", penwidth=2.4];
   root -> flat       [color="#3E86C8", penwidth=2.4];
@@ -557,3 +557,5 @@ digraph deciding_by_search {
   { rank=same; minimax; alphabeta; astar; flatmc; shooting; mcts; uct; puct; valueit; policyit; }
 }
 ```
+label=fig:deciding-by-search
+caption=Four search-strategy families (exhaustive, no-tree sampling, tree sampling, model-based DP) branch from a root node, colored by family.

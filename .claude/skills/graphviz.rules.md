@@ -128,6 +128,13 @@ separate sections: "Flat Style" and "Architecture Style"
 - Use `\n` for line breaks in labels
 - Add `rounded` style to box shapes for a softer appearance
 - Increase `penwidth` for emphasis or importance
+- When the first line of a multi-line label is a title/heading (e.g. a step
+  name, a phase number), bold it with an HTML-like label so it stands out
+  from the detail line(s) below it: `label=<<b>1. Selection</b><br/>Tree
+  policy (UCT)>`
+  - HTML-like labels use `<br/>` for line breaks, not `\n`
+  - This applies in flat style too, not only the architecture two-tier
+    pattern (see "Avoid HTML-like Labels for Plain Text")
 
 # Edge Styling
 
@@ -215,7 +222,8 @@ separate sections: "Flat Style" and "Architecture Style"
 - Use multiple lines with `\n` instead
 - Reserve HTML-like labels for the two-tier name+subtitle pattern in the
   architecture style (see the "Architecture Style" section of
-  `.claude/templates/graphviz.template.md`)
+  `.claude/templates/graphviz.template.md`), or for bolding the first line of
+  a flat-style multi-line label (see "Emphasis and Multi-line Labels")
 
 # Color Palettes for Different Domains
 
