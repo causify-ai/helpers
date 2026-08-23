@@ -1360,6 +1360,20 @@ class Test_format_md_links_to_latex_format(hunitest.TestCase):
         # Run test.
         self.helper(input_text, expected_text)
 
+    def test28(self) -> None:
+        """
+        Test markdown link with an email target and non-email display text.
+        """
+        # Prepare inputs.
+        input_text = """
+        Instructor: [Email](gsaggese@umd.edu)
+        """
+        expected_text = r"""
+        Instructor: [\textcolor[HTML]{1A73E8}{\underline{Email}}](gsaggese@umd.edu)
+        """
+        # Run test.
+        self.helper(input_text, expected_text)
+
 
 # #############################################################################
 # Test_add_prettier_ignore_to_div_blocks

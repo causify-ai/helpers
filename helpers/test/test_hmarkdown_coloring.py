@@ -261,7 +261,8 @@ class Test_colorize_bullet_points_in_slide1(hunitest.TestCase):
     def test3(self) -> None:
         """
         Test `@label@` and `**text**` combined on one line: only the `@...@`
-        marker is colorized, `**text**` stays plain bold.
+        marker is colorized, `**text**` stays plain bold (LaTeX has no
+        semibold series set up).
         """
         # Prepare inputs.
         text = r"""
@@ -596,6 +597,38 @@ class Test_colorize_bullet_points_in_slide2(hunitest.TestCase):
             use_abbreviations=use_abbreviations,
             all_md_colors=all_md_colors,
         )
+
+    def test6(self) -> None:
+        """
+        Test that plain `**text**` with no `@...@` marker is rendered as
+        Typst semibold with a 70%-black gray fill, lighter than the
+        full-strength "bold" weight and color used for `@text@` markers.
+        """
+        # Prepare inputs.
+        text = "This has **plain bold** only, no color markers."
+        # Prepare outputs.
+        expected = (
+            'This has `#text(fill: luma(30%), weight: "semibold")'
+            "[plain bold]`{=typst} only, no color markers."
+        )
+        # Run test.
+        self.helper(text, expected)
+
+    def test7(self) -> None:
+        """
+        Test `@label@` and `**text**` combined on one line: the `@...@`
+        marker gets full-strength color, `**text**` gets semibold gray.
+        """
+        # Prepare inputs.
+        text = "- @Definition@: **Knowledge Representation (KR)** is the study"
+        # Prepare outputs.
+        expected = (
+            '- `#text(fill: red, weight: "bold")[Definition]`{=typst}: '
+            '`#text(fill: luma(30%), weight: "semibold")'
+            "[Knowledge Representation (KR)]`{=typst} is the study"
+        )
+        # Run test.
+        self.helper(text, expected)
 
 
 # #############################################################################

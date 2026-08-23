@@ -235,6 +235,30 @@ _COLOR_MARKER_REGEX = re.compile(
     re.VERBOSE,
 )
 
+# Regex matching plain `**text**` bold markup that was *not* produced by the
+# `@text@` marker replacement above. Marker-produced bold always starts with a
+# backslash right after the opening `**` (e.g., `**\red{foo}**`), so a
+# negative lookahead for `\` is enough to skip re-processing it.
+_PLAIN_BOLD_REGEX = re.compile(
+    r"""
+    \*\*         # Match the opening `**`.
+    (?!\\)       # Negative lookahead: skip marker-produced `**\color{...}**`.
+    ([^*\n]+?)   # Capture everything up to the next `*` or newline (lazy).
+    \*\*         # Match the closing `**`.
+    """,
+    re.VERBOSE,
+)
+
+# Font weight and fill used to render plain `**text**` bold in Typst:
+# "semibold" is visually lighter than the "bold" weight used for `@text@`
+# markers, and a 70%-black gray tint (30% lightness) makes it read as bold
+# text rather than a full-strength color, so `@text@` markers stand out as
+# the stronger emphasis. LaTeX has no semibold series available in this
+# repo's font setup, so plain `**text**` is left as regular LaTeX bold
+# (untouched).
+_PLAIN_BOLD_WEIGHT_TYPST = "semibold"
+_PLAIN_BOLD_FILL_TYPST = "luma(30%)"
+
 
 # TODO(gp): -> List[str]
 # TODO(gp): Use hmarkdown.process_lines() and test it.
@@ -249,13 +273,19 @@ def colorize_bullet_points_in_slide(
     all_md_colors: Optional[List[str]] = None,
 ) -> str:
     r"""
-    Colorize `@text@` markers with color commands; leave `**text**` as-is.
+    Colorize `@text@` markers; render plain `**text**` as Typst semibold.
 
     Scans the text line-by-line for `@text@` markers and replaces each with
-    colored bold text, e.g., `@text@` -> `**\red{text}**`. Regular bold
-    markdown `**text**` is left untouched, so it renders as plain (black)
-    bold. Skips code blocks and tables to preserve their formatting. `@text@`
-    markers are colored sequentially using the provided color list.
+    colored bold text, e.g., `@text@` -> `**\red{text}**`, using the full
+    (100%) color strength. For Typst output, regular bold markdown
+    `**text**` is instead rendered at "semibold" weight with a 70%-black
+    gray fill (`luma(30%)`), visually lighter than the full-strength
+    "bold" weight and color used for `@text@` markers, so `@text@` markers
+    stand out as the stronger emphasis. For LaTeX output, plain `**text**`
+    is left untouched (no semibold series is set up in this repo's LaTeX
+    fonts). Skips code blocks and tables to preserve their formatting.
+    `@text@` markers are colored sequentially using the provided color
+    list.
 
     E.g.:
     ```
@@ -266,11 +296,13 @@ def colorize_bullet_points_in_slide(
     - **\red{Definition}**: **Knowledge Representation (KR)** is ...
     ```
 
-    For LaTeX output (default), emits `**\red{text}**` or
-    `**\textcolor{red}{text}**` depending on use_abbreviations.
+    For LaTeX output (default), `@text@` emits `**\red{text}**` or
+    `**\textcolor{red}{text}**` depending on use_abbreviations, while plain
+    `**text**` is left as plain markdown bold.
 
-    For Typst output, emits `#red[text]` (abbreviated, if supported by
-    template) or `#text(fill: red)[text]` (full).
+    For Typst output, `@text@` emits `#red[text]` (abbreviated, if supported
+    by template) or `#text(fill: red)[text]` (full), while plain `**text**`
+    emits `#text(fill: luma(30%), weight: "semibold")[text]`.
 
     :param txt: Markdown text containing `@text@` markers to colorize
     :param use_abbreviations:
@@ -305,8 +337,6 @@ def colorize_bullet_points_in_slide(
         num_markers = len(re.findall(_COLOR_MARKER_REGEX, line))
         tot_markers += num_markers
     _LOG.debug("tot_markers=%s", tot_markers)
-    if tot_markers == 0:
-        return txt
     num_bolds = tot_markers
 
     def _interpolate_colors(num_bolds: int) -> List[str]:
@@ -317,7 +347,11 @@ def colorize_bullet_points_in_slide(
         colors = list(all_md_colors)[::step][:num_bolds]
         return colors
 
-    if interpolate_colors:
+    if num_bolds == 0:
+        # No `@text@` markers: still fall through to gray-ify plain `**text**`
+        # bold below, but there is no color list to compute.
+        colors: List[str] = []
+    elif interpolate_colors:
         colors = _interpolate_colors(num_bolds)
     else:
         # Use fixed color sequences for small numbers of bold items; for larger
@@ -383,6 +417,31 @@ def colorize_bullet_points_in_slide(
                 ret = "`" + ret + "`{=typst}"
             return ret
 
+        def semibold_replacer(match: Match[str]) -> str:
+            """
+            Replace a plain `**text**` bold with Typst semibold, gray-black.
+
+            LaTeX has no semibold series set up, so the match is returned
+            unchanged (plain markdown bold).
+            """
+            text = match.group(1)
+            if output_format == "latex":
+                ret = f"**{text}**"
+            else:  # typst
+                # Escape tildes (~) since they have special meaning in typst.
+                escaped_text = text.replace("~", r"\~")
+                ret = (
+                    f"#text(fill: {_PLAIN_BOLD_FILL_TYPST}, "
+                    f'weight: "{_PLAIN_BOLD_WEIGHT_TYPST}")[{escaped_text}]'
+                )
+                ret = "`" + ret + "`{=typst}"
+            return ret
+
+        # Apply semibold weight to plain `**text**` bold first, while `**`
+        # still unambiguously marks plain markdown bold (before `@text@`
+        # markers are expanded into `**\color{...}**`, which would otherwise
+        # be mistaken for more plain bold spans).
+        line = re.sub(_PLAIN_BOLD_REGEX, semibold_replacer, line)
         line = re.sub(_COLOR_MARKER_REGEX, color_replacer, line)
         txt_out.append(line)
     # Restore code blocks and tables that were temporarily replaced with tags.

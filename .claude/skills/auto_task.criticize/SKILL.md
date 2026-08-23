@@ -3,8 +3,8 @@ description: Read a plan for an `auto_task`
 ---
 
 # Goal 
-- The use will pass you a file or a GitHub issue number, and you will read
-  carefully the content and make sure both the problem and the solution is clear
+- The user will pass you a file or a GitHub issue number, and you will read carefully
+  the content and make sure both the problem and the solution is clear
 
 # Workflow
 

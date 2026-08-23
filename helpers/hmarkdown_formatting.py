@@ -407,6 +407,11 @@ def format_md_links_to_latex_format(
       to the format (LaTeX):
         [\textcolor[HTML]{1A73E8}{\underline{URL}}](URL)
 
+    - Markdown links with an email target (display text != email):
+        [Email](email@domain.com)
+      to the format (LaTeX):
+        [\textcolor[HTML]{1A73E8}{\underline{Email}}](email@domain.com)
+
     - Picture links
         ![](lectures_source/.../lec_4_1_slide_5_image_1.png)
       are left untouched
@@ -443,6 +448,12 @@ def format_md_links_to_latex_format(
     markdown_link_pattern = r"\[((?:[^\]\\]|\\[_])+)\]\((https?://[^\)]+)\)"
     # Pattern for email links: [email@domain.com](email@domain.com).
     email_link_pattern = r"\[([^\]\\]+@[^\]\\]+)\]\(([^)]+@[^)]+)\)"
+    # Pattern for markdown links with an email target: [Text](email@domain.com).
+    # Unlike `email_link_pattern`, the display text does not need to be an
+    # email address itself (e.g., [Email](gsaggese@umd.edu)).
+    email_target_link_pattern = (
+        r"\[((?:[^\]\\]|\\[_])+)\]\(([^\s\)@]+@[^\s\)@]+\.[^\s\)]+)\)"
+    )
     # Pattern for empty bracket links: [](URL) or [](email).
     empty_bracket_pattern = r"\[\]\(([^\)]+)\)"
     # Pattern for image links: ![...](...).
@@ -507,6 +518,19 @@ def format_md_links_to_latex_format(
 
         processed_line = re.sub(
             email_link_pattern, convert_email_link, processed_line
+        )
+
+        # Convert markdown links with an email target [Text](email@domain)
+        # to formatted links, preserving the display text.
+        def convert_email_target_link(match):
+            text = match.group(1)
+            email = match.group(2)
+            return f"[{_style_link_latex(text)}]({email})"
+
+        processed_line = re.sub(
+            email_target_link_pattern,
+            convert_email_target_link,
+            processed_line,
         )
         # Convert plain URLs (but avoid converting URLs that are already part
         # of formatted links).
