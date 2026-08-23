@@ -1,9 +1,6 @@
 # Git Tools
 
-Git utility commands and scripts for streamlined development workflows. Provides
-convenient shortcuts for status checks, diff visualization, conflict resolution,
-submodule management, branch analysis, and repository maintenance with secret
-detection and hooks.
+Git utility commands and scripts for streamlined development workflows.
 
 ## Structure of the Dir
 
@@ -13,7 +10,25 @@ detection and hooks.
   - Secret scanning configuration and rules for detecting sensitive information
 
 # Description of Files
-This directory contains several categories of Git utilities:
+- This directory contains several categories of Git utilities
+
+- From the implementation point of view
+  - Shortcuts
+  - Python utils
+  - Shell utils
+  - Submodule management
+  - Config and maintenance
+
+- From the functionality point of view
+  - Status and monitoring
+  - Diff and comparison
+  - Branch management
+  - Stashing and cleaning
+  - Push / pull operations
+  - Conflict resolutions
+  - Rebase
+  - Repo utilities
+  - Hooks and security
 
 ## Shortcut Commands (bash Aliases/scripts)
 | Command          | Description                                                                  |
@@ -22,13 +37,13 @@ This directory contains several categories of Git utilities:
 | `gcl`            | Clean the client by stashing and removing untracked files, creating a backup |
 | `gcours`         | Accept our version of conflicted files (checkout --ours)                     |
 | `gctheirs`       | Accept their version of conflicted files (checkout --theirs)                 |
-| `gco`            | Checkout a branch and pull with submodule updates (`-s` to force submodules to the pinned commit) |
+| `gco`            | Checkout a branch and pull with submodule updates                            |
 | `gd`             | Run git difftool on specified files                                          |
 | `gdc`            | Run git difftool on cached/staged changes                                    |
 | `gdpy`           | Git diff for all Python files in the repository                              |
 | `gll`            | List commits in fancy format with author, timestamp, and branch info         |
 | `gllmy`          | List only your own commits in fancy format                                   |
-| `gmt`            | Run `git mergetool`, always matching `git status`'s unmerged file list       |
+| `gmt`            | Resolve all conflicted files: prefer "ours", then vimdiff against "theirs"   |
 | `gp`             | Sync client and then push local commits                                      |
 | `gpa`            | Pull with autostash (without pushing)                                        |
 | `grc`            | Continue a rebase operation                                                  |
@@ -240,6 +255,14 @@ This directory contains several categories of Git utilities:
   - Find and list all files that have git merge conflicts
   - Useful for identifying work needed during a merge
 
+- **Example**
+  ```
+  > git_conflict_files.sh
+  + git diff --name-only --diff-filter=U
+  .claude/skills/book.rules.md
+  .claude/skills/slides.rules.md
+  ```
+
 ### `git_conflict_show.sh`
 - **What It Does**
   - Generate separate files for base, ours, and theirs versions of conflicted
@@ -255,18 +278,25 @@ This directory contains several categories of Git utilities:
 
 ### `gmt`
 - **What It Does**
-  - Run `git mergetool -- . "$@"` so it always lists the same unmerged files
-    as `git status`
-  - Works around a `git mergetool` quirk: with no path arguments, it skips
-    the normal unmerged-file check and instead trusts `git rerere remaining`
-    when `.git/MERGE_RR` exists. If that file is stale (e.g. left over from
-    an earlier step of a multi-commit rebase), `git mergetool` reports "No
-    files need merging" even though `git status` shows `UU` files. Passing
-    an explicit pathspec (`.`) makes it skip that shortcut and use the same
-    check `git status` is based on
-  - Note: `git config alias.mergetool ...` does not fix this — git silently
-    ignores aliases that hide an existing Git command, so an alias named
-    `mergetool` never takes effect
+  - For every file reported as unmerged by `git status`, uses
+    `git_conflict_show.sh` to extract whichever of the base/ours/theirs
+    versions exist
+  - Overwrites the working copy with the "ours" version (priority to the
+    current branch, same convention as `gcours`)
+  - Generates a resolve script (`.git/gmt_resolve_conflicts.sh`) with a
+    `vimdiff <file> <file>.3_their` / `git add <file>` pair per file that
+    still needs a manual merge against "theirs", then runs it
+  - A file missing "theirs" (deleted on the other side) is resolved
+    immediately by keeping "ours"; a file missing "ours" (deleted in the
+    current branch) is left untouched with a warning
+  - Note: during a `rebase`, git swaps the meaning of "ours" / "theirs", so
+    "priority to the current branch" only holds for a plain `merge`
+
+- **Examples**
+  - Resolve all conflicts in the current merge:
+    ```bash
+    > gmt
+    ```
 
 ## Rebase Operations
 

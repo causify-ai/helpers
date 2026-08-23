@@ -1,13 +1,5 @@
 #!/usr/bin/env python
 
-# NOTE: every function in `process_gsheet_links.py` has a leading underscore
-# (it is a script, not a library). `_main()` dispatches directly to the
-# pipeline-stage functions `_update_article_urls()` and
-# `_update_article_clusters()`, while `_normalize_tag()` is a lower-level
-# string helper nested inside them. Test classes below are ordered
-# outside-in: the pipeline-stage functions first, then the helper they call
-# internally.
-
 import logging
 import unittest.mock as umock
 
