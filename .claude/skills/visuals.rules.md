@@ -80,21 +80,17 @@
 
 - When to use: flowcharts, networks, agent interactions, system relationships,
   process flows
-
-- Follow the rules `.claude/skills/graphviz.rules.md` and the "Flat Style"
-  section of the template `.claude/templates/graphviz.template.md`
-
-## GraphViz Architecture Diagram Style
+  - Follow the rules `.claude/skills/graphviz.rules.md` and the "Flat Style"
+    section of the template `.claude/templates/graphviz.template.md`
 
 - When to use: system and architecture diagrams that group components into
   subsystems and highlight feedback loops, e.g., service architectures,
   market/pipeline diagrams, agent loops
-- This is a muted, compact, hierarchy-aware variant of the default flat
-  style, tuned for professional architecture diagrams rather than causal or
-  flowchart diagrams
-
-- Follow the rules `.claude/skills/graphviz.rules.md` and the "Architecture
-  Style" section of the template `.claude/templates/graphviz.template.md`
+  - This is a muted, compact, hierarchy-aware variant of the default flat
+    style, tuned for professional architecture diagrams rather than causal or
+    flowchart diagrams
+  - Follow the rules `.claude/skills/graphviz.rules.md` and the "Architecture
+    Style" section of the template `.claude/templates/graphviz.template.md`
 
 ## Text and Typography
 
