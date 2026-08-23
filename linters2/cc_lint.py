@@ -1657,7 +1657,7 @@ def _parse() -> argparse.ArgumentParser:
     parser.add_argument(
         "--mode",
         type=str,
-        required=True,
+        default="session",
         choices=["one_shot_with_cc", "one_shot", "session", "stateless"],
         help=hprint.dedent("""
         Execution mode:
@@ -1696,8 +1696,15 @@ def _parse() -> argparse.ArgumentParser:
     parser.add_argument(
         "--merge_small_rules",
         action="store_true",
+        default=True,
         help="Greedily pack consecutive small rule chunks under the same "
-        "parent H1 up to --max_chunk_tokens",
+        "parent H1 up to --max_chunk_tokens (default: True)",
+    )
+    parser.add_argument(
+        "--no_merge_small_rules",
+        dest="merge_small_rules",
+        action="store_false",
+        help="Disable --merge_small_rules",
     )
     parser.add_argument(
         "--filter_rules_by_relevance",

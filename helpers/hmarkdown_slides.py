@@ -86,6 +86,8 @@ def process_slides(txt: str, transform: Callable[..., Any]) -> str:
     in_skip_block = False
     # True inside a slide.
     in_slide = False
+    # True inside a fenced code block.
+    in_code_block = False
     # Track line number where slide started.
     slide_start_line = 0
     lines = txt.splitlines()
@@ -100,10 +102,18 @@ def process_slides(txt: str, transform: Callable[..., Any]) -> str:
         if do_continue:
             transformed_txt.append(line)
             continue
-        # 2) Process slide.
+        # 2) Process slide (skip while inside a fenced code block, so a
+        # `* Title` / `#### Title`-looking line that is really literal
+        # example text inside the fence is not mistaken for a new slide
+        # boundary).
         if _TRACE:
-            _LOG.debug(" -> %s", hprint.to_str("in_slide"))
-        if line.startswith("* ") or line.startswith("#### "):
+            _LOG.debug(" -> %s", hprint.to_str("in_slide in_code_block"))
+        is_slide_marker = (
+            line.startswith("* ") or line.startswith("#### ")
+        ) and not in_code_block
+        if line.startswith("```"):
+            in_code_block = not in_code_block
+        if is_slide_marker:
             _LOG.debug("### Found slide")
             # Found a slide or the end of the file.
             if slide_txt:

@@ -45,7 +45,7 @@ _NUM_SPACES = 2
 _TRACE = False
 
 
-_DEFAULT_ACTIONS: List[str] = ["colorize_bullets"]
+_DEFAULT_ACTIONS: List[str] = ["process_links", "colorize_bullets"]
 _VALID_ACTIONS = [
     "process_links",
     "colorize_bullets",
@@ -71,7 +71,7 @@ def _colorize_backticks(
 
     For Typst output, converts backticks to `#text(fill: color)[content]`
     E.g., `store` into `#text(fill: blue)[store]`
-    E.g., `weeks_to_xmas` into `#text(fill: blue)[weeks_to_xmas]`
+    E.g., `weeks_to_xmas` into `#text(fill: blue)[weeks\_to\_xmas]`
 
     :param in_line: input line to process
     :param color: color name
@@ -101,13 +101,43 @@ def _colorize_backticks(
             # For Typst, use #text with the content directly (no inner backticks).
             # The content is rendered as monospace colored text via #text(fill:
             # color)[content].
+            # TODO(ai_gp): Convert this into a loop and shorter comments.
             # Wrap in backticks with {=typst} so pandoc treats it as raw typst code.
             # Escape tildes (~) since they have special meaning in typst.
             escaped_text = matched_text.replace("~", r"\~")
+            # Escape `_` unconditionally since Typst treats it as underscore
+            # emphasis markup depending on the surrounding characters (its
+            # exact flanking rule is a CommonMark-style delimiter-run check,
+            # too brittle to replicate with a partial escape). E.g. a
+            # trailing `_` before `]` or a leading `_` before a letter both
+            # leave an "unclosed delimiter" (`lint_*`, `dev_scripts_<repo>`,
+            # `_execute()`), while a mid-word `_` (`weeks_to_xmas`) happens
+            # to be safe unescaped, but escaping it too still renders the
+            # same literal underscore, so there is no downside.
+            escaped_text = escaped_text.replace("_", r"\_")
             # Escape `<` since Typst parses `<name>` as a label reference
             # (e.g., `<prompt>`), which silently drops the text instead of
             # rendering it literally.
             escaped_text = escaped_text.replace("<", r"\<")
+            # Escape `*` since Typst parses it as strong-emphasis markup
+            # (e.g., `lint_*` left an unclosed `*` delimiter and broke
+            # compilation).
+            escaped_text = escaped_text.replace("*", r"\*")
+            # Escape `//` since Typst treats it as a line comment, which
+            # swallows the rest of the line, including the closing `]`
+            # (e.g., `//helpers`).
+            escaped_text = escaped_text.replace("//", r"\//")
+            # Escape `#` since Typst parses it as the start of code mode
+            # (e.g., `# nosemgrep` fails with "expected expression" since
+            # `#` followed by a space is not a valid expression).
+            escaped_text = escaped_text.replace("#", r"\#")
+            # Escape `$` since Typst parses it as math-mode delimiters
+            # (e.g., `$FILE` is parsed as math content and fails with
+            # "unknown variable: FILE").
+            escaped_text = escaped_text.replace("$", r"\$")
+            # Escape `@` since Typst parses `@name` as a citation/reference
+            # (e.g., `@task` fails with "label `<task>` does not exist").
+            escaped_text = escaped_text.replace("@", r"\@")
             txt = f"`#text(fill: {color})[{escaped_text}]`{{=typst}}"
         return txt
 
@@ -201,37 +231,59 @@ def _process_question_to_slides(
     return do_continue, line
 
 
+def _is_section_boundary(line: str) -> Tuple[bool, str]:
+    """
+    Check if a line starts an include-able section.
+
+    A section can be introduced either by a level-1 Markdown header
+    (`# <title>`) or by a slide marker (`* <title>`), matching the two
+    conventions used across the `.smd` lecture files. The title can contain
+    spaces.
+
+    :param line: line to check
+    :return: tuple (is_boundary, title); title is "" if not a boundary
+    """
+    is_header_, level, header_title = hmarkdo.is_header(line)
+    if is_header_ and level == 1:
+        return True, header_title.strip()
+    m = re.match(r"^\*\s+(.*\S)\s*$", line)
+    if m:
+        return True, m.group(1)
+    return False, ""
+
+
 def _extract_section(lines: List[str], title: str) -> Optional[List[str]]:
     r"""
-    Extract the body content under a level-1 header with the given title.
+    Extract the body content under a section marker with the given title.
 
-    Finds the header `# <title>` and returns the lines immediately following it
-    up to (but not including) the next level-1 header. The header line itself is
-    excluded from the result.
+    A section can be introduced by a level-1 header (`# <title>`) or by a
+    slide marker (`* <title>`). Returns the lines immediately following the
+    marker up to (but not including) the next section boundary of either
+    kind. The marker line itself is excluded from the result.
 
     :param lines: list of lines to search
-    :param title: the header title to find (exact match)
-    :return: list of body lines, or None if header not found
+    :param title: the section title to find (exact match)
+    :return: list of body lines, or None if the title is not found
     """
     hdbg.dassert_isinstance(lines, list)
     hdbg.dassert_isinstance(title, str)
-    # Find the line with `# <title>` (level-1 header).
+    # Find the line starting a section with the given title.
     header_line_idx = None
-    header_pattern = rf"^#\s+{re.escape(title)}\s*$"
     for i, line in enumerate(lines):
-        if re.match(header_pattern, line):
+        is_boundary, line_title = _is_section_boundary(line)
+        if is_boundary and line_title == title:
             header_line_idx = i
             break
     if header_line_idx is None:
         return None
-    # Find the next level-1 header (or end of file).
+    # Find the next section boundary (or end of file).
     end_idx = len(lines)
     for i in range(header_line_idx + 1, len(lines)):
-        is_header, level, _ = hmarkdo.is_header(lines[i])
-        if is_header and level == 1:
+        is_boundary, _ = _is_section_boundary(lines[i])
+        if is_boundary:
             end_idx = i
             break
-    # Return the body lines (excluding the header line itself).
+    # Return the body lines (excluding the marker line itself).
     result = lines[header_line_idx + 1 : end_idx]
     return result
 
@@ -285,7 +337,7 @@ def _generate_title_slide_latex(metadata: Dict[str, str]) -> List[str]:
     # Determine logo path based on course title.
     logo_path = "msml610/lectures_source/figures/UMD_Logo.png"
     if "data605" in course_title.lower() or "DATA605" in course_title:
-        logo_path = "data605/lectures_source/figures/UMD_Logo.png"
+        logo_path = "data605/lectures_source/images/UMD_Logo.png"
     lines = [
         "::: columns",
         ":::: {.column width=20%}",
@@ -324,7 +376,7 @@ def _generate_title_slide_typst(metadata: Dict[str, str]) -> List[str]:
     # Determine logo path based on course title.
     logo_path = "msml610/lectures_source/figures/UMD_Logo.png"
     if "data605" in course_title.lower() or "DATA605" in course_title:
-        logo_path = "data605/lectures_source/figures/UMD_Logo.png"
+        logo_path = "data605/lectures_source/images/UMD_Logo.png"
     txt = r"""
         ====
 
@@ -661,16 +713,19 @@ def _transform_lines(
             line = hmarkdo.process_color_commands(
                 line, output_format=output_format
             )
-        # 7) Process question.
+        # 7) Process question (skip if inside a fenced code block, so a
+        # `* Title`-looking line that is really literal example text inside
+        # the fence is not mistaken for a new slide/question boundary).
         if _TRACE:
             _LOG.debug("# Process question.")
-        if type_ == "slides":
-            do_continue, line = _process_question_to_slides(line)
-        else:
-            do_continue, line = _process_question_to_markdown(line)
-        if do_continue:
-            out.append(line)
-            continue
+        if not in_code_block:
+            if type_ == "slides":
+                do_continue, line = _process_question_to_slides(line)
+            else:
+                do_continue, line = _process_question_to_markdown(line)
+            if do_continue:
+                out.append(line)
+                continue
         # 8) Process empty lines in the questions and answers.
         if _TRACE:
             _LOG.debug("# Process empty lines in the questions and answers.")
@@ -716,7 +771,9 @@ def _transform_lines(
         to_execute, actions = hselacti.mark_action("process_links", actions)
         # to_execute = False
         if to_execute:
-            out = hmarkdo.format_md_links_to_latex_format(out)
+            out = hmarkdo.format_md_links_to_latex_format(
+                out, output_format=output_format
+            )
         # Colorize bullets in the slides.
 
         def _colorize_bullets(
@@ -756,7 +813,18 @@ def _transform_lines(
         out = out_str.split("\n")
     # out = out.split("\n")
     out_tmp = []
+    # True inside a fenced code block (recomputed here since `out` was
+    # rejoined/resplit above, so the per-line loop's `in_code_block` state
+    # from step 7 no longer applies).
+    in_code_block2 = False
     for line in out:
+        if line.startswith("```"):
+            in_code_block2 = not in_code_block2
+            out_tmp.append(line)
+            continue
+        if in_code_block2:
+            out_tmp.append(line)
+            continue
         if type_ == "slides":
             do_continue, line = _process_question_to_slides(line)
         else:

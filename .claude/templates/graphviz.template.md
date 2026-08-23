@@ -1,388 +1,211 @@
-- Maintain the structure of the text as it is
+This template covers both GraphViz styles used in this repo: the default flat
+style for flowcharts, causal graphs, networks, and process flows (e.g.
+Bayesian networks, reinforcement-learning diagrams, ETL pipelines), and the
+hierarchy-aware architecture style for diagrams that group components into
+subsystems and highlight feedback loops (e.g. service architectures,
+market/pipeline diagrams, agent loops). Both share the same muted color
+triads, rounded nodes, and soft edge styling; the architecture style adds
+subsystem clustering, two-tier (name + subtitle) labels, and a color legend
 
-## Template
-- All graphviz dot diagram must follow the template below
-  ```graphviz
-  digraph <name> {
-      splines=true;
-      nodesep=0.8;
-      ranksep=0.8;
+- For the conventions behind these templates (when to use each style, color
+  scheme, shape/edge semantics, typography), see
+  `.claude/skills/graphviz.rules.md`
+- Draw the diagram as a fenced ` ```graphviz ` code block
+- Maintain the structure of the surrounding text as it is when inserting a
+  diagram
+- Use `xlabel` on a node for an inline annotation that sits outside the node
+  box, e.g. a conditional-probability expression on a Bayesian network node
+  (`xlabel="P(R | W)"`); see Flat Style Examples below
+- An architecture-style diagram ends with two footer lines after the closing
+  code fence: `label=fig:<slug>` and `caption=<one sentence>` (see Footer in
+  `.claude/skills/graphviz.rules.md`); flat-style diagrams do not need a
+  footer
 
-      node [shape=box, style="rounded,filled", fontname="Helvetica", fontsize=12, penwidth=1.7];
+# Flat Style
 
-      // Nodes
-      Rain       [label="Rain", fillcolor="#A6C8F4"];
-      WetGrass   [label="WetGrass", fillcolor="#B2E2B2"];
-      Cover      [label="Cover", fillcolor="#FFD1A6"];
-      Evaporate  [label="Evaporate", fillcolor="#F4A6A6"];
-      Sprinkler  [label="Sprinkler", fillcolor="#A0D6D1"];
-      Dew        [label="Dew", fillcolor="#A6E7F4"];
-
-      // Force ranks
-      { rank=same; Cover; Evaporate; }
-      { rank=same; Sprinkler; Dew; }
-
-      // Edges
-      Rain -> WetGrass;
-      Rain -> Cover;
-      Rain -> Evaporate;
-      Cover -> WetGrass [label="blocks", style=dashed];
-      Evaporate -> WetGrass [label="blocks", style=dashed];
-      Sprinkler -> WetGrass;
-      Dew -> WetGrass;
-  }
-  ```
-
-## Annotating Nodes with Probability Expressions
-
-- Use `xlabel` to display conditional probability expressions inline on GraphViz
-  nodes:
-  ```graphviz
-  Rain [label="Rain", fillcolor="#A6C8F4", xlabel="P(R | W)"];
-  ```
-  - The `xlabel` text appears outside the node box, not inside
-  - Use it to annotate Bayesian network nodes with their CPT expressions:
-    - Source nodes: `xlabel="P(W)"`
-    - Conditional nodes: `xlabel="P(R | W)"`, `xlabel="P(G | R, S)"`
-    - Nodes with known probabilities: `xlabel="P(B) = 0.001"`
-
-- Example:
-  ```graphviz
-  digraph AgentEnv {
-      splines=true;
-      nodesep=1.0;
-      ranksep=0.75;
-
-      node [shape=box, style="rounded,filled", fontname="Helvetica", fontsize=12, penwidth=1.4];
-
-      Agent [label="Agent", fillcolor="#F4A6A6"];
-      Env [label="Environment", fillcolor="#B2E2B2"];
-
-      Agent -> Env [label="  Action"];
-      Env -> Agent [label="  Reward"];
-  }
-  ```
-
-### Graph-Level Settings
+## Skeleton
 
 ```
-digraph MyGraph {
-    rankdir=TB;           # Top-to-Bottom (LR, RL, BT alternatives)
-    splines=spline;       # Curved edges (orthogonal, polyline alternatives)
-    nodesep=0.6;          # Horizontal spacing between nodes
-    ranksep=0.5;          # Vertical spacing between ranks
-    bgcolor="white";      # Background color
-    compound=true;        # Enable compound edges
-    newrank=true;         # Better ranking with subgraphs
-}
-```
+digraph <name> {
+    bgcolor="transparent";
+    pad="0.15";
+    splines=spline;                  # or orthogonal for grid-like diagrams
+    nodesep=0.4;
+    ranksep=0.5;
+    rankdir=TB;                      # or LR for pipelines / parallel lanes
 
-- Use `splines=spline` for organic, curved edges; `orthogonal` for grid-like diagrams
-- Adjust `nodesep` and `ranksep` based on diagram complexity
-- Set `compound=true` for complex edge routing with subgraphs
-- Use `newrank=true` for better layout when mixing rank-constrained nodes
+    node [shape=box,
+          style="rounded,filled",
+          penwidth=1.8,
+          fontname="Helvetica",
+          fontsize=12,
+          margin="0.22,0.14",
+          height=0.50];
 
-### Node Styling
+    edge [color="#A3B1C0",
+          penwidth=1.3,
+          arrowhead=vee,
+          arrowsize=0.75,
+          fontname="Helvetica",
+          fontsize=10,
+          fontcolor="#7B8794"];
 
-#### Standard Node Attributes
+    <A> [label="<A>", fillcolor="FILL", color="BORDER", fontcolor="FONT"];
+    <B> [label="<B>", fillcolor="FILL", color="BORDER", fontcolor="FONT"];
 
-```
-node [
-    fontname="Helvetica",
-    fontsize=13,
-    style="filled",
-    shape="box",
-    penwidth=1.3,
-    margin="0.18,0.12"
-];
-```
+    subgraph cluster_<name> {
+        label     = "Group name";
+        labelloc  = "t";
+        fontname  = "Helvetica-Bold";
+        fontsize  = 12.5;
+        fontcolor = "#3A4A5C";
+        style     = "rounded,filled";
+        fillcolor = "#F7F9FB";
+        color     = "#C7D0DA";
+        penwidth  = 1.0;
+        margin    = 18;
 
-#### Common Shapes & Use Cases
-
-- **`box`**: Default for most nodes, decision points
-- **`ellipse`**: State, concepts, inputs/outputs
-- **`diamond`**: Decision outcomes, rewards, final values
-- **`circle`**: Compact nodes, simple states
-- **`plaintext`**: Labels without borders
-- **`Mrecord`**: Structured data with ports
-
-#### Color Strategy
-
-Use semantic color mapping:
-
-```
-fillcolor="#A9DDB0", color="#4F9A5C"    # Green → states, inputs
-fillcolor="#FFC98A", color="#D98E2B"    # Orange → actions, processes
-fillcolor="#9CC4F2", color="#3C6FB0"    # Blue → outputs, rewards
-fillcolor="#FFB3B3", color="#D64545"    # Red → errors, warnings
-fillcolor="#E8D9F7", color="#9B7DB1"    # Purple → metadata, annotations
-```
-
-- `fillcolor`: Interior color
-- `color`: Border/outline color
-- Use darker shade of fillcolor for the border
-- Avoid high-contrast combinations that strain eyes
-
-#### Individual Node Styling
-
-```
-N1 [label="Label", shape="ellipse", fillcolor="#A9DDB0", color="#4F9A5C"];
-N2 [label="Multi\nLine\nLabel", shape="box", style="filled,rounded"];
-N3 [label="Important", style="filled,bold", penwidth=2.0];
-```
-
-- Use `\n` for line breaks in labels
-- Add `rounded` style to box shapes for softer appearance
-- Increase `penwidth` for emphasis or importance
-
-### Edge Styling
-
-#### Standard Edge Attributes
-
-```
-edge [
-    fontname="Helvetica",
-    fontsize=11,
-    color="#4A4A4A",
-    penwidth=1.4,
-    arrowsize=0.8
-];
-```
-
-#### Edge Styles & Semantics
-
-```
-N1 -> N2 [label="normal"];                              # Solid, regular flow
-N1 -> N3 [style="dashed", color="#8C8C8C"];            # Weak link, optional
-N1 -> N4 [style="dotted", color="#AAAAAA"];            # Implied, reference
-N1 -> N5 [style="bold", penwidth=2.0, color="#B23A48"]; # Strong, critical
-```
-
-#### Label Positioning
-
-```
-E1 -> E2 [
-    label="  action  ",
-    labelpos="t",           # top, c (center, default), b (bottom)
-    fontcolor="#B23A48",
-    fontsize=10
-];
-```
-
-- Center label text with spaces: `"  label  "` (looks better than default)
-- Use `fontcolor` to match or contrast with edge `color`
-- `labelpos="t"` places label at top; useful for tall diagrams
-
-#### Arrow Types
-
-```
-A -> B [arrowhead="normal"];     # Standard arrow (default)
-A -> B [arrowhead="diamond"];    # Diamond-headed
-A -> B [arrowhead="none"];       # No arrow (directional via position)
-A -> B [dir="both"];             # Bidirectional arrows
-A -> B [dir="back"];             # Reverse direction
-```
-
-### Subgraph Clustering
-
-#### Basic Cluster Structure
-
-```
-subgraph cluster_name {
-    label="Display Name";
-    fontname="Helvetica-Bold";
-    fontsize=14;
-    fontcolor="#1A1A2E";
-    style="rounded,filled";
-    fillcolor="#F7F9FC";
-    color="#B8C4D9";
-    penwidth=1.4;
-    margin=18;
-    
-    N1 [label="Node in cluster"];
-    N2 [label="Another node"];
-}
-```
-
-**Rules:**
-- Cluster name must start with `cluster_` prefix
-- `label` is displayed title
-- `style="rounded,filled"` gives modern appearance
-- `margin=18` adds padding inside cluster box
-- `fontcolor` should contrast with `fillcolor`
-
-#### Nested Clusters
-
-Use multiple subgraphs for hierarchical organization:
-
-```
-subgraph cluster_level1 {
-    label="Outer";
-    style="rounded,filled";
-    fillcolor="#EEEEEE";
-    
-    subgraph cluster_level2 {
-        label="Inner";
-        style="rounded,filled";
-        fillcolor="#F7F9FC";
-        N1 [label="Nested node"];
+        ...
     }
+
+    <A> -> <B> [label="normal flow"];
+    <A> -> <C> [style=dashed, color="#8C8C8C", label="weak / optional link"];
 }
 ```
 
-### Layout Control
+## Flat Style Examples
 
-#### Rank Control
+### Bayesian Network
 
-```
-{ rank=same; A; B; C; }         # Force nodes to same horizontal level
-S1 -> S2 [style=invis];          # Invisible edge for alignment
-{ rank=min; START; }             # Force to top
-{ rank=max; END; }               # Force to bottom
-```
+```graphviz
+digraph Sprinkler {
+    bgcolor="transparent";
+    pad="0.15";
+    splines=spline;
+    nodesep=0.8;
+    ranksep=0.8;
 
-Use invisible edges to guide layout without visual noise:
+    node [shape=box,
+          style="rounded,filled",
+          penwidth=1.8,
+          fontname="Helvetica",
+          fontsize=12,
+          margin="0.22,0.14",
+          height=0.50];
 
-```
-R1 -> R2 [style=invis];          # Aligns R1 and R2 vertically
-A1 -> A2 [style=invis];          # Without showing connection
-```
+    edge [color="#A3B1C0",
+          penwidth=1.3,
+          arrowhead=vee,
+          arrowsize=0.75,
+          fontname="Helvetica",
+          fontsize=10,
+          fontcolor="#7B8794"];
 
-#### Alignment & Spacing
+    // Nodes
+    Rain       [label="Rain", fillcolor="#9CC4F2", color="#3C6FB0", fontcolor="#1F4E79"];
+    WetGrass   [label="WetGrass", fillcolor="#A9DDB0", color="#4F9A5C", fontcolor="#1F4E2E"];
+    Cover      [label="Cover", fillcolor="#FFC98A", color="#D98E2B", fontcolor="#6B4517"];
+    Evaporate  [label="Evaporate", fillcolor="#F6C6C6", color="#D98C8C", fontcolor="#6B2A2A"];
+    Sprinkler  [label="Sprinkler", fillcolor="#C7ECF0", color="#7CC6D0", fontcolor="#1F4E56"];
+    Dew        [label="Dew", fillcolor="#B7DDD0", color="#6FA890", fontcolor="#1F4E39"];
 
-```
-newrank=true;                     # Better rank handling
-compound=true;                    # Enable compound edge routing
-constraint=false;                 # Don't use edge for ranking
-```
+    // Force ranks
+    { rank=same; Cover; Evaporate; }
+    { rank=same; Sprinkler; Dew; }
 
-### Typography & Labels
-
-#### Font Choices
-
-```
-fontname="Helvetica"              # Clean, professional
-fontname="Courier"                # Code, monospace
-fontname="Times"                  # Formal, serif
-```
-
-Use consistent font across graphs. Helvetica is default recommended.
-
-#### Unicode & Special Characters
-
-```
-label="State →"                   # Arrow
-label="π₁"                        # Greek letter pi with subscript
-label="≤ 0.5"                     # Mathematical symbols
-label="●"                         # Bullet
-label="◆"                         # Diamond
-```
-
-Most Unicode works; test in your PDF viewer before final render.
-
-#### HTML-like Labels
-
-For complex formatting, avoid HTML labels — they render inconsistently. Instead use multiple lines with `\n`.
-
-## Color Palettes for Different Domains
-
-### Machine Learning / Reinforcement Learning
-
-```
-State:      fillcolor="#A9DDB0", color="#4F9A5C"      # Soft green
-Action:     fillcolor="#FFC98A", color="#D98E2B"      # Warm orange
-Reward:     fillcolor="#9CC4F2", color="#3C6FB0"      # Cool blue
-Value:      fillcolor="#E8D9F7", color="#9B7DB1"      # Purple
-Policy:     fillcolor="#FFD4D4", color="#B23A48"      # Soft red
+    // Edges
+    Rain -> WetGrass;
+    Rain -> Cover;
+    Rain -> Evaporate;
+    Cover -> WetGrass [label="blocks", style=dashed, color="#8C8C8C"];
+    Evaporate -> WetGrass [label="blocks", style=dashed, color="#8C8C8C"];
+    Sprinkler -> WetGrass;
+    Dew -> WetGrass;
+}
 ```
 
-### Data Flow / ETL
+### Agent-Environment Loop with Probability Annotation
 
+- `xlabel` displays a conditional-probability expression outside the node,
+  e.g. a source node's prior (`xlabel="P(W)"`), a conditional
+  (`xlabel="P(R | W)"`), or a known value (`xlabel="P(B) = 0.001"`)
+
+```graphviz
+digraph AgentEnv {
+    bgcolor="transparent";
+    pad="0.15";
+    splines=spline;
+    nodesep=1.0;
+    ranksep=0.75;
+
+    node [shape=box,
+          style="rounded,filled",
+          penwidth=1.8,
+          fontname="Helvetica",
+          fontsize=12,
+          margin="0.22,0.14",
+          height=0.50];
+
+    edge [color="#A3B1C0",
+          penwidth=1.3,
+          arrowhead=vee,
+          arrowsize=0.75,
+          fontname="Helvetica",
+          fontsize=10,
+          fontcolor="#7B8794"];
+
+    Agent [label="Agent", fillcolor="#F6E1E8", color="#D98CA8", fontcolor="#6B2A44"];
+    Env   [label="Environment", fillcolor="#A9DDB0", color="#4F9A5C", fontcolor="#1F4E2E", xlabel="P(s' | s, a)"];
+
+    Agent -> Env [label="  Action"];
+    Env -> Agent [label="  Reward"];
+}
 ```
-Source:     fillcolor="#C8E6C9", color="#2E7D32"      # Green
-Transform:  fillcolor="#FFECB3", color="#F57F17"      # Amber
-Sink:       fillcolor="#BBDEFB", color="#1565C0"      # Blue
-Error:      fillcolor="#FFCDD2", color="#C62828"      # Red
-```
 
-### System Architecture
-
-```
-Frontend:   fillcolor="#E1BEE7", color="#6A1B9A"      # Purple
-Backend:    fillcolor="#B3E5FC", color="#0277BD"      # Light blue
-Database:   fillcolor="#C8E6C9", color="#558B2F"      # Dark green
-Cache:      fillcolor="#FFE0B2", color="#E65100"      # Orange
-External:   fillcolor="#F8BBD0", color="#AD1457"      # Pink
-```
-
-### Legacy Simple Palette
-
-Use consistently throughout all diagrams (for backward compatibility):
-- **Red/Pink** `#F4A6A6`: Agents, actors, primary entities
-- **Orange** `#FFD1A6`: Input data, sources
-- **Green** `#B2E2B2`: Processed data, environments
-- **Teal** `#A0D6D1`: Algorithms, processes, transformations
-- **Light Blue** `#A6E7F4`: Parameters, configuration, settings
-- **Blue** `#A6C8F4`: Outputs, results, final states
-- **Purple** `#C6A6F4`: External entities, mixed dependencies
-
-# Complete Example Structure
-
-1. Global graph attributes (rankdir, splines, nodesep, ranksep)
-2. Consistent node/edge defaults
-3. Semantic color mapping for node types
-4. Rounded, filled subgraph clusters with margin
-5. Invisible edges for alignment
-6. Bold/prominent edges for key relationships
-7. Unicode labels for mathematical notation
-8. Dashed edges for weak or optional flows
+### Knowledge Transfer Between Environments
 
 ```graphviz
 digraph Transfer {
+    bgcolor="transparent";
+    pad="0.15";
     rankdir=TB;
     splines=spline;
     nodesep=0.6;
     ranksep=0.5;
-    bgcolor="white";
     compound=true;
     newrank=true;
 
-    graph [
-        fontname="Helvetica",
-        pad="0.25"
-    ];
+    node [shape=box,
+          style="rounded,filled",
+          penwidth=1.8,
+          fontname="Helvetica",
+          fontsize=12,
+          margin="0.22,0.14",
+          height=0.50];
 
-    node [
-        fontname="Helvetica",
-        fontsize=13,
-        style="filled",
-        shape="box",
-        penwidth=1.3,
-        margin="0.18,0.12"
-    ];
-
-    edge [
-        fontname="Helvetica",
-        fontsize=11,
-        color="#4A4A4A",
-        penwidth=1.4,
-        arrowsize=0.8
-    ];
+    edge [color="#A3B1C0",
+          penwidth=1.3,
+          arrowhead=vee,
+          arrowsize=0.75,
+          fontname="Helvetica",
+          fontsize=10,
+          fontcolor="#7B8794"];
 
     subgraph cluster_env1 {
-        label="Environment 1";
-        fontname="Helvetica-Bold";
-        fontsize=14;
-        fontcolor="#1A1A2E";
-        style="rounded,filled";
-        fillcolor="#F7F9FC";
-        color="#B8C4D9";
-        penwidth=1.4;
-        margin=18;
+        label     = "Environment 1";
+        labelloc  = "t";
+        fontname  = "Helvetica-Bold";
+        fontsize  = 12.5;
+        fontcolor = "#3A4A5C";
+        style     = "rounded,filled";
+        fillcolor = "#F7F9FB";
+        color     = "#C7D0DA";
+        penwidth  = 1.0;
+        margin    = 18;
 
-        S1 [label="State", shape="ellipse", fillcolor="#A9DDB0", color="#4F9A5C"];
-        A1 [label="Action", shape="box", style="filled,rounded", fillcolor="#FFC98A", color="#D98E2B"];
-        R1 [label="Reward", shape="diamond", fillcolor="#9CC4F2", color="#3C6FB0"];
+        S1 [label="State", shape="ellipse", fillcolor="#A9DDB0", color="#4F9A5C", fontcolor="#1F4E2E"];
+        A1 [label="Action", fillcolor="#FFC98A", color="#D98E2B", fontcolor="#6B4517"];
+        R1 [label="Reward", shape="diamond", fillcolor="#9CC4F2", color="#3C6FB0", fontcolor="#1F4E79"];
 
         S1 -> A1 [label="policy  π₁"];
         A1 -> R1 [label="dynamics"];
@@ -390,19 +213,20 @@ digraph Transfer {
     }
 
     subgraph cluster_env2 {
-        label="Environment 2";
-        fontname="Helvetica-Bold";
-        fontsize=14;
-        fontcolor="#1A1A2E";
-        style="rounded,filled";
-        fillcolor="#F7F9FC";
-        color="#B8C4D9";
-        penwidth=1.4;
-        margin=18;
+        label     = "Environment 2";
+        labelloc  = "t";
+        fontname  = "Helvetica-Bold";
+        fontsize  = 12.5;
+        fontcolor = "#3A4A5C";
+        style     = "rounded,filled";
+        fillcolor = "#F7F9FB";
+        color     = "#C7D0DA";
+        penwidth  = 1.0;
+        margin    = 18;
 
-        S2 [label="State", shape="ellipse", fillcolor="#A9DDB0", color="#4F9A5C"];
-        A2 [label="Action", shape="box", style="filled,rounded", fillcolor="#FFC98A", color="#D98E2B"];
-        R2 [label="Reward", shape="diamond", fillcolor="#9CC4F2", color="#3C6FB0"];
+        S2 [label="State", shape="ellipse", fillcolor="#A9DDB0", color="#4F9A5C", fontcolor="#1F4E2E"];
+        A2 [label="Action", fillcolor="#FFC98A", color="#D98E2B", fontcolor="#6B4517"];
+        R2 [label="Reward", shape="diamond", fillcolor="#9CC4F2", color="#3C6FB0", fontcolor="#1F4E79"];
 
         S2 -> A2 [label="policy  π₂"];
         A2 -> R2 [label="dynamics"];
@@ -425,3 +249,260 @@ digraph Transfer {
     ];
 }
 ```
+
+# Architecture Style
+
+## Skeleton
+
+```
+digraph <name> {
+  bgcolor="transparent";
+  pad="0.15";
+  splines=spline;
+  nodesep=0.30;
+  ranksep=0.50;
+  rankdir=LR;                      # or TB for sequential/vertical flows
+
+  node [shape=box,
+        style="rounded,filled",
+        penwidth=1.8,
+        fontname="Helvetica",
+        fontsize=12,
+        margin="0.22,0.14",
+        height=0.50];
+
+  edge [color="#A3B1C0",
+        penwidth=1.3,
+        arrowhead=vee,
+        arrowsize=0.75,
+        fontname="Helvetica",
+        fontsize=10,
+        fontcolor="#7B8794"];
+
+  <NodeName> [label=<<b>Main Name</b><br/><font point-size="10" color="DARK_HUE">Smaller subtitle</font>>,
+              fillcolor="FILL", color="BORDER", fontcolor="DARK_HUE"];
+
+  subgraph cluster_<name> {
+    label     = "Group name";
+    labelloc  = "t";
+    fontname  = "Helvetica-Bold";
+    fontsize  = 12.5;
+    fontcolor = "#3A4A5C";
+    style     = "rounded,filled";
+    fillcolor = "#F7F9FB";
+    color     = "#C7D0DA";
+    penwidth  = 1.0;
+    margin    = 16;
+
+    ...
+  }
+
+  <A> -> <B> [label="normal flow"];
+  <A> -> <C> [style=dashed, label="optional / feedback"];
+}
+```
+```
+label=fig:<short-kebab-slug>
+caption=<one sentence: what the diagram shows, plus what the colors mean>
+```
+
+## Architecture Style Examples
+
+### Noesis Architecture
+
+```graphviz
+digraph NoesisArchitecture {
+  // ---------------------------------------------------------------
+  bgcolor="transparent";
+  pad="0.15";
+  splines=spline;
+  nodesep=0.30;
+  ranksep=0.50;
+
+  node [shape=box,
+        style="rounded,filled",
+        fillcolor="#FFFFFF",
+        color="#9AA9B8",
+        penwidth=1.8,
+        fontname="Helvetica",
+        fontcolor="#243B53",
+        fontsize=12,
+        margin="0.22,0.14",
+        height=0.50];
+
+  edge [color="#A3B1C0",
+        penwidth=1.3,
+        arrowhead=vee,
+        arrowsize=0.75,
+        fontname="Helvetica",
+        fontsize=10,
+        fontcolor="#7B8794"];
+
+  // ---------------------------------------------------------------
+  rankdir=LR;
+  newrank=true;
+
+  subgraph cluster_participants {
+    label     = "Market participants";
+    labelloc  = "t";
+    fontname  = "Helvetica-Bold";
+    fontsize  = 12.5;
+    fontcolor = "#3A4A5C";
+    style     = "rounded,filled";
+    fillcolor = "#F7F9FB";
+    color     = "#C7D0DA";
+    penwidth  = 1.0;
+    margin    = 16;
+
+    Supply [label=<<b>Supply</b><br/><font point-size="10" color="#946A2E">Model &amp; compute providers</font>>,
+            fillcolor="#FBEBD4", color="#D9A85F", fontcolor="#6B4517"];
+    Demand [label=<<b>Demand</b><br/><font point-size="10" color="#A34F6C">Applications / agents</font>>,
+            fillcolor="#F6E1E8", color="#D98CA8", fontcolor="#6B2A44"];
+  }
+
+  subgraph cluster_noesis_market {
+    label     = "NoesisMarket";
+    labelloc  = "t";
+    fontname  = "Helvetica-Bold";
+    fontsize  = 12.5;
+    fontcolor = "#3A4A5C";
+    style     = "rounded,filled";
+    fillcolor = "#F7F9FB";
+    color     = "#C7D0DA";
+    penwidth  = 1.0;
+    margin    = 16;
+
+    ReputationLoop [label=<<b>Reputation and feedback</b><br/><font point-size="10" color="#41719C">Pluggable</font>>,
+                    fillcolor="#D3E3F3", color="#7CA6CE", fontcolor="#1F4E79"];
+    MatchingEngine [label=<<b>Matching engine</b><br/><font point-size="10" color="#41719C">Pluggable</font>>,
+                    fillcolor="#D3E3F3", color="#7CA6CE", fontcolor="#1F4E79"];
+    PricingFeed    [label=<<b>Pricing dissemination</b><br/><font point-size="10" color="#41719C">Pluggable</font>>,
+                    fillcolor="#D3E3F3", color="#7CA6CE", fontcolor="#1F4E79"];
+    ReputationLoop -> MatchingEngine [label="Gates eligibility", style=dashed];
+    MatchingEngine -> PricingFeed [label="Cleared prices", style=dashed];
+  }
+
+  subgraph cluster_noesis_server {
+    label     = "NoesisServer";
+    labelloc  = "t";
+    fontname  = "Helvetica-Bold";
+    fontsize  = 12.5;
+    fontcolor = "#3A4A5C";
+    style     = "rounded,filled";
+    fillcolor = "#F7F9FB";
+    color     = "#C7D0DA";
+    penwidth  = 1.0;
+    margin    = 16;
+
+    Gateway           [label=<<b>API gateway</b>>,
+                        fillcolor="#D3E3F3", color="#7CA6CE", fontcolor="#1F4E79"];
+    Metering          [label=<<b>Metering logic</b><br/><font point-size="10" color="#4F7A5A">Fulfillment monitoring</font>>,
+                        fillcolor="#DFEDE0", color="#8FB79A", fontcolor="#2E5A3D"];
+    CapabilityMeasure [label=<<b>Capability measurement</b><br/><font point-size="10" color="#41719C">Pluggable</font>>,
+                        fillcolor="#D3E3F3", color="#7CA6CE", fontcolor="#1F4E79"];
+    Fusion            [label=<<b>Answer fusion</b><br/><font point-size="10" color="#41719C">Pluggable</font>>,
+                        fillcolor="#D3E3F3", color="#7CA6CE", fontcolor="#1F4E79"];
+    Gateway -> Metering [label="Logged traffic"];
+    Gateway -> Fusion [label="Multi-provider fan-out", style=dashed];
+    CapabilityMeasure -> Metering [label="Delivered capability", style=dashed];
+  }
+
+  ProviderAPIs        [label=<<b>Provider APIs</b><br/><font point-size="10" color="#6B52A8">Per-provider endpoints</font>>,
+                        fillcolor="#E9E1F7", color="#A88FD9", fontcolor="#45296B"];
+  IntelligenceMeasure [label=<<font point-size="10">Intelligence-measure providers<br/>e.g. artificialanalysis.ai</font>>,
+                        shape=note, fillcolor="#E9E1F7", color="#A88FD9", fontcolor="#45296B"];
+
+  Supply -> ReputationLoop [style=invis];
+  Demand -> CapabilityMeasure [style=invis];
+  Demand -> MatchingEngine [label="Bids"];
+  Supply -> MatchingEngine [label="Asks"];
+  MatchingEngine -> Gateway [label="Contracts", penwidth=1.6, color="#8592A3", constraint=false];
+  Gateway -> ProviderAPIs [label="Requests /\nresponses", dir=both];
+  Fusion -> ProviderAPIs [label="Fan-out", style=dashed, constraint=false];
+  IntelligenceMeasure -> CapabilityMeasure [label="Capability reference", style=dashed, constraint=false];
+  Metering -> ReputationLoop [
+    label="Reputation & pricing feedback",
+    style=dashed, penwidth=1.6,
+    color="#C0455B", fontcolor="#C0455B",
+    constraint=false
+  ];
+
+  // Column alignment between NoesisMarket and NoesisServer
+  { rank=same; ReputationLoop; CapabilityMeasure; IntelligenceMeasure; }
+  CapabilityMeasure -> IntelligenceMeasure [style=invis];
+  { rank=same; MatchingEngine; Gateway; }
+  { rank=same; PricingFeed; Metering; Fusion; }
+
+  // Legend
+  subgraph cluster_legend {
+    label     = "Legend";
+    labelloc  = "t";
+    fontname  = "Helvetica-Bold";
+    fontsize  = 12.5;
+    fontcolor = "#3A4A5C";
+    style     = "rounded,filled";
+    fillcolor = "#FBFBFD";
+    color     = "#C7D0DA";
+    penwidth  = 1.0;
+    margin    = 14;
+
+    node [shape=box, style="rounded,filled", fontsize=10, height=0.32, margin="0.14,0.08"];
+    LegendDemand   [label="Demand / Supply", fillcolor="#F6E1E8", color="#D98CA8", fontcolor="#6B2A44"];
+    LegendNoesis   [label="Noesis component (pluggable)", fillcolor="#D3E3F3", color="#7CA6CE", fontcolor="#1F4E79"];
+    LegendMonitor  [label="Fulfillment monitoring", fillcolor="#DFEDE0", color="#8FB79A", fontcolor="#2E5A3D"];
+    LegendExternal [label="External reference", fillcolor="#E9E1F7", color="#A88FD9", fontcolor="#45296B"];
+    { rank=same; LegendDemand; LegendNoesis; LegendMonitor; LegendExternal; }
+  }
+}
+```
+label=fig:architecture
+caption=The Noesis architecture, with its five pluggable components shaded in teal, and a color legend for demand/supply, Noesis components, fulfillment monitoring, and external references.
+
+### Agentic Loop
+
+```graphviz[width=40%]
+digraph AgenticLoop {
+  // ---------------------------------------------------------------
+  bgcolor="transparent";
+  pad="0.15";
+  splines=spline;
+  nodesep=0.30;
+  ranksep=0.50;
+
+  node [shape=box,
+        style="rounded,filled",
+        fillcolor="#FFFFFF",
+        color="#9AA9B8",
+        penwidth=1.8,
+        fontname="Helvetica",
+        fontcolor="#243B53",
+        fontsize=12,
+        margin="0.22,0.14",
+        height=0.50];
+
+  edge [color="#3A4A5C",
+        penwidth=1.6,
+        arrowhead=vee,
+        arrowsize=0.85,
+        fontname="Helvetica",
+        fontsize=11,
+        fontcolor="#3A4A5C"];
+
+  // ---------------------------------------------------------------
+  rankdir=TB;
+
+  Goal          [label="Goal", fillcolor="#FBEBD4", color="#D9A85F", fontcolor="#6B4517"];
+  Plan          [label="Plan next step", fillcolor="#B7DDD0", color="#6FA890", fontcolor="#1F4E39"];
+  CallTool      [label="Call a tool\n(read, edit, run)", fillcolor="#F6C6C6", color="#D98C8C", fontcolor="#6B2A2A"];
+  Observe       [label="Observe result", fillcolor="#C7ECF0", color="#7CC6D0", fontcolor="#1F4E56"];
+  Result        [label="Result", fillcolor="#D3E3F3", color="#7CA6CE", fontcolor="#1F4E79"];
+
+  Goal -> Plan;
+  Plan -> CallTool;
+  CallTool -> Observe;
+  Observe -> Result [label="  Goal met"];
+  Observe -> Plan [label="  Iterate", style=dashed, constraint=false];
+}
+```
+label=fig:agentic-loop
+caption=The agentic loop: an agent plans the next step, calls a tool, and observes the result, iterating until the goal is met and it produces the final result.

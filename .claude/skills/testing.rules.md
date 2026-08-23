@@ -137,7 +137,7 @@
 
 - Always derive testing classes from `hunitest.TestCase`
 
-- Use the code from `.claude/templates/testing.template.py` as reference
+- Follow the template `.claude/templates/testing.template.py`
 - Use this exact structure for a unit test
   ```python
   import logging

@@ -6,6 +6,22 @@ ACK_OPTS="--smart-case --nogroup --nocolor"
 
 GIT_LOG_OPTS='%Creset%Cgreen%h %C(reset)%C(cyan)%<(8)%aN%Creset %Creset%C(bold white) %<(55)%s %C(bold black)(%>(14)%ar) %C(red)%ad %C(yellow)%<(10)%d%C(reset)'
 
+check_num_args() {
+  # """
+  # Check that the number of arguments passed to a script matches what is
+  # expected and exit with an error otherwise.
+
+  # :param actual: number of arguments actually passed (typically `$#`)
+  # :param expected: number of arguments expected
+  # """
+  actual=$1
+  expected=$2
+  if [[ $actual -ne $expected ]]; then
+    echo "ERROR: Expected $expected argument(s), got $actual"
+    exit 1
+  fi;
+}
+
 execute() {
   cmd=$*
   echo "+ $cmd"

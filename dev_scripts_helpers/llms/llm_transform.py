@@ -125,7 +125,7 @@ def _run_dockerized_llm_transform(
 
     # Install pip packages.
     RUN pip install --upgrade pip
-    RUN pip install --no-cache-dir PyYAML requests pandas
+    RUN pip install --no-cache-dir PyYAML requests pandas tqdm
 
     RUN pip install --no-cache-dir openai
     """

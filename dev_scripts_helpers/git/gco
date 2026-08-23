@@ -1,16 +1,33 @@
 #!/bin/bash -e
 
 # """
-# Checkout a branch and pull.
+# Check out a branch in the super-repo and pull, handling submodules.
 #
-# By default `--recurse-submodules` pulls each submodule by rebasing whatever
-# branch it currently has checked out. If a submodule was left on a stale
-# branch (e.g., from a different task), this can trigger rebase conflicts
-# inside the submodule that have nothing to do with the branch being checked
-# out here.
+# Usage:
+#   gco <branch>        # checkout <branch>, then pull with submodule rebase
+#   gco -s <branch>     # checkout <branch>, then pull and pin submodules to
+#                       # the exact commit recorded by the super-repo
 #
-# Use `-s` to instead force submodules to the exact commit recorded by the
-# super-repo (detached HEAD, no rebase), which avoids that class of conflict.
+# Default behavior (no `-s`):
+#   `git pull --recurse-submodules` pulls each submodule by rebasing whatever
+#   branch it currently has checked out. If a submodule was left on a stale
+#   branch (e.g., from a different task), this can trigger rebase conflicts
+#   inside the submodule that have nothing to do with the branch being
+#   checked out here.
+#
+# `-s` behavior:
+#   Force submodules to the exact commit recorded by the super-repo (detached
+#   HEAD, no rebase), which avoids that class of conflict. Submodule branch
+#   state is not preserved in this mode.
+#
+# vs. plain `git checkout <branch>`:
+#   Plain checkout only switches the super-repo branch/working tree. It never
+#   touches submodules (no fetch, no pull, no rebase) — a submodule keeps
+#   whatever branch and commit it already had checked out. `git status` may
+#   then show the submodule as "modified" if the new branch records a
+#   different submodule commit, but nothing in the submodule directory
+#   actually moves. Use plain `git checkout` (not `gco`) when you need to
+#   switch the super-repo branch without side effects on submodules.
 # """
 
 source helpers.sh

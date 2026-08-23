@@ -1,9 +1,6 @@
 # Git Tools
 
-Git utility commands and scripts for streamlined development workflows. Provides
-convenient shortcuts for status checks, diff visualization, conflict resolution,
-submodule management, branch analysis, and repository maintenance with secret
-detection and hooks.
+Git utility commands and scripts for streamlined development workflows.
 
 ## Structure of the Dir
 
@@ -13,7 +10,25 @@ detection and hooks.
   - Secret scanning configuration and rules for detecting sensitive information
 
 # Description of Files
-This directory contains several categories of Git utilities:
+- This directory contains several categories of Git utilities
+
+- From the implementation point of view
+  - Shortcuts
+  - Python utils
+  - Shell utils
+  - Submodule management
+  - Config and maintenance
+
+- From the functionality point of view
+  - Status and monitoring
+  - Diff and comparison
+  - Branch management
+  - Stashing and cleaning
+  - Push / pull operations
+  - Conflict resolutions
+  - Rebase
+  - Repo utilities
+  - Hooks and security
 
 ## Shortcut Commands (bash Aliases/scripts)
 | Command          | Description                                                                  |
@@ -22,13 +37,13 @@ This directory contains several categories of Git utilities:
 | `gcl`            | Clean the client by stashing and removing untracked files, creating a backup |
 | `gcours`         | Accept our version of conflicted files (checkout --ours)                     |
 | `gctheirs`       | Accept their version of conflicted files (checkout --theirs)                 |
-| `gco`            | Checkout a branch and pull with submodule updates (`-s` to force submodules to the pinned commit) |
+| `gco`            | Checkout a branch and pull with submodule updates                            |
 | `gd`             | Run git difftool on specified files                                          |
 | `gdc`            | Run git difftool on cached/staged changes                                    |
 | `gdpy`           | Git diff for all Python files in the repository                              |
 | `gll`            | List commits in fancy format with author, timestamp, and branch info         |
 | `gllmy`          | List only your own commits in fancy format                                   |
-| `gmt`            | Run `git mergetool`, always matching `git status`'s unmerged file list       |
+| `gmt`            | Resolve all conflicted files: prefer "ours", then vimdiff against "theirs"   |
 | `gp`             | Sync client and then push local commits                                      |
 | `gpa`            | Pull with autostash (without pushing)                                        |
 | `grc`            | Continue a rebase operation                                                  |
@@ -240,6 +255,14 @@ This directory contains several categories of Git utilities:
   - Find and list all files that have git merge conflicts
   - Useful for identifying work needed during a merge
 
+- **Example**
+  ```
+  > git_conflict_files.sh
+  + git diff --name-only --diff-filter=U
+  .claude/skills/book.rules.md
+  .claude/skills/slides.rules.md
+  ```
+
 ### `git_conflict_show.sh`
 - **What It Does**
   - Generate separate files for base, ours, and theirs versions of conflicted
@@ -255,18 +278,25 @@ This directory contains several categories of Git utilities:
 
 ### `gmt`
 - **What It Does**
-  - Run `git mergetool -- . "$@"` so it always lists the same unmerged files
-    as `git status`
-  - Works around a `git mergetool` quirk: with no path arguments, it skips
-    the normal unmerged-file check and instead trusts `git rerere remaining`
-    when `.git/MERGE_RR` exists. If that file is stale (e.g. left over from
-    an earlier step of a multi-commit rebase), `git mergetool` reports "No
-    files need merging" even though `git status` shows `UU` files. Passing
-    an explicit pathspec (`.`) makes it skip that shortcut and use the same
-    check `git status` is based on
-  - Note: `git config alias.mergetool ...` does not fix this — git silently
-    ignores aliases that hide an existing Git command, so an alias named
-    `mergetool` never takes effect
+  - For every file reported as unmerged by `git status`, uses
+    `git_conflict_show.sh` to extract whichever of the base/ours/theirs
+    versions exist
+  - Overwrites the working copy with the "ours" version (priority to the
+    current branch, same convention as `gcours`)
+  - Generates a resolve script (`.git/gmt_resolve_conflicts.sh`) with a
+    `vimdiff <file> <file>.3_their` / `git add <file>` pair per file that
+    still needs a manual merge against "theirs", then runs it
+  - A file missing "theirs" (deleted on the other side) is resolved
+    immediately by keeping "ours"; a file missing "ours" (deleted in the
+    current branch) is left untouched with a warning
+  - Note: during a `rebase`, git swaps the meaning of "ours" / "theirs", so
+    "priority to the current branch" only holds for a plain `merge`
+
+- **Examples**
+  - Resolve all conflicts in the current merge:
+    ```bash
+    > gmt
+    ```
 
 ## Rebase Operations
 
@@ -382,14 +412,34 @@ The git_hooks subdirectory contains the implementation of custom git hooks:
 
 - **`install_hooks.py`**: Install git hooks in the repository's `.git/hooks/`
   directory
-- **`pre-commit.py`**: Pre-commit hook that runs checks before commits are
-  allowed
+- **`pre-commit.py`**: Pre-commit hook that runs all the checks below in
+  sequence before a commit is allowed
+  - Use `--check <name>` to run a single check phase on its own (e.g., to
+    debug it), instead of the full sequence, e.g.:
+    ```bash
+    > pre-commit.py --check gitleaks
+    ```
+  - Available `<name>` values: `master`, `merged_branch`,
+    `merge_conflict_markers`, `author`, `file_size`, `python_compile`,
+    `gitleaks`
 - **`pre-commit-dry-run.py`**: Dry-run version of pre-commit hook for testing
 - **`commit-msg.py`**: Validate commit message format and content
-- **`gitleaks.py`**: Secret detection hook preventing sensitive data from being
-  committed
 - **`translate.py`**: Helper script for hook translations/transformations
-- **`utils.py`**: Shared utilities for hook implementations
+- **`utils.py`**: Shared utilities for hook implementations, including one
+  `check_*()` function per check run by `pre-commit.py`:
+  - `check_master()`: Block commits made directly on `master` instead of a
+    branch
+  - `check_merged_branch()`: Block commits on a branch that has already been
+    merged into the default branch
+  - `check_merge_conflict_markers()`: Detect leftover Git conflict markers
+    (`<<<<<<<`, `=======`, `>>>>>>>`) in staged files
+  - `check_author()`: Ensure the committer is using a valid personal email
+    (not a corporate account)
+  - `check_file_size()`: Block staged files above a size threshold
+    (notebooks exempted)
+  - `check_python_compile()`: Ensure staged Python files compile
+  - `check_gitleaks()`: Secret detection preventing sensitive data from being
+    committed
 
 ### `gitleaks/` Directory
 Configuration for gitleaks secret scanning:
@@ -412,40 +462,35 @@ For keeping your branch up-to-date with the main branch:
   ```
 
 ## Handling Merge Conflicts
-When merge conflicts occur:
-
-1. Run `git_conflict_files.sh` to identify files with conflicts
-2. Use `git_conflict_show.sh` to view all versions (base, ours, theirs)
-3. Resolve conflicts manually in your editor
-4. Use `gcours` to accept your version or `gctheirs` for theirs
-5. Continue with `grc` once resolved
+- When merge conflicts occur:
+  - Run `git_conflict_files.sh` to identify files with conflicts
+  - Use `git_conflict_show.sh` to view all versions (base, ours, theirs)
+  - Resolve conflicts manually in your editor
+  - Use `gcours` to accept your version or `gctheirs` for theirs
+  - Continue with `grc` once resolved
 
 ## Working with Submodules
-For projects with git submodules:
-
-1. Use `git_submodules.py --action status` to check submodule status
-2. Use `git_submodules_pull.sh` to update all submodules
-3. Use `git_submodules_commit.sh` to commit submodule changes
-4. Use `gco` to checkout branches (handles submodule updates automatically)
+- For projects with git submodules:
+  - Use `git_submodules.py --action status` to check submodule status
+  - Use `git_submodules_pull.sh` to update all submodules
+  - Use `git_submodules_commit.sh` to commit submodule changes
+  - Use `gco` to checkout branches (handles submodule updates automatically)
 
 ## Branch Analysis and Comparison
-Compare your branch with main:
-
-- View commits in both directions: `gd_master.sh`
-- List only changed files: `gd_names.sh`
-- Visualize branch relationships: `git_graph.sh`
+- Compare your branch with main:
+  - View commits in both directions: `gd_master.sh`
+  - List only changed files: `gd_names.sh`
+  - Visualize branch relationships: `git_graph.sh`
 
 ## Notebook Development
-When working with Jupyter notebooks:
-
-- Use `gd_notebook.py` to see actual content changes vs metadata changes
-- This removes notebook artifacts like execution counters and output cells
-- Makes it easier to understand what actually changed in the notebook
+- When working with Jupyter notebooks:
+  - Use `gd_notebook.py` to see actual content changes vs metadata changes
+  - This removes notebook artifacts like execution counters and output cells
+  - Makes it easier to understand what actually changed in the notebook
 
 ## Repository Maintenance
-For large repositories that have accumulated large files:
-
-1. Use `git_shrink_repo.sh` to remove large files from history
-2. Use `git_backup.sh` before major operations
-3. Use `git_revert.sh` to discard unwanted changes
-4. Use `git_clone.sh` with hooks for fresh, properly configured clones
+- For large repositories that have accumulated large files:
+  - Use `git_shrink_repo.sh` to remove large files from history
+  - Use `git_backup.sh` before major operations
+  - Use `git_revert.sh` to discard unwanted changes
+  - Use `git_clone.sh` with hooks for fresh, properly configured clones

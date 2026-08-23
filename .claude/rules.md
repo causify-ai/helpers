@@ -4,6 +4,13 @@ conventions and templates
 Based on the files that you need to operate, read and follow the corresponding
 rules
 
+- A rules file (`.claude/skills/<TOPIC>.rules.md`) holds why/when: principles
+  and decision criteria
+- A template file (`.claude/templates/<TOPIC>.template.<EXT>`) holds what to
+  copy: a skeleton or worked example
+- See `.claude/skills/skill.rules.md` `## Rules vs Templates` for the full
+  convention
+
 # Text
 
 ## Structured Text
@@ -17,8 +24,10 @@ rules
 ## Visuals
 - For diagrams, images, and other illustrations you MUST follow instructions
   in `.claude/skills/visuals.rules.md`, using:
-  - The template `.claude/templates/graphviz.template.md` for Graphviz
-    diagrams
+  - The rules `.claude/skills/graphviz.rules.md` and the template
+    `.claude/templates/graphviz.template.md` for Graphviz diagrams, which
+    covers both the default flat style and the hierarchy-aware architecture
+    style
   - The template `.claude/templates/image.template.md` for image
     descriptions
   - The template `.claude/templates/tikz.template.md` for TikZ diagrams

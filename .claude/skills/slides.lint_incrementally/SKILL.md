@@ -1,5 +1,5 @@
 ---
-description: Fix the slides incrementally
+description: Lint the slides incrementally to follow the conventions
 model: haiku
 ---
 

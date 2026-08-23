@@ -4,7 +4,7 @@ model: haiku
 ---
 
 - Given information about books (either a partially complete table or a list of
-  books), find the following information
+  books), find the following information:
   - Title
   - Authors
     - Use the format from `.claude/skills/references.rules.md` and

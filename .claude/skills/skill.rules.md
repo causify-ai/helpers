@@ -173,6 +173,27 @@
 - If no rules file exists for a topic, create one before adding multiple skills
   in that topic
 
+## Template Files
+
+- A topic's copy-paste skeleton or worked example lives in
+  `.claude/templates/<TOPIC>.template.<EXT>`
+  - E.g., `.claude/templates/coding.template.py`,
+    `.claude/templates/graphviz.template.md`
+- A topic may have more than one template for different variants; distinguish
+  variants with a suffix before `.template`
+  - E.g., `.claude/templates/notebook.template.py` and
+    `.claude/templates/API_notebook.template.py`
+- Not every topic needs a template
+
+## Referencing Template Files
+
+- Every rule or skill that has a copyable structure must link the template
+  with a single canonical phrase:
+  ```
+  - Follow the template `.claude/templates/<TOPIC>.template.<EXT>`
+  ```
+- Do not restate the template's content in prose; link to it once
+
 ## Cross-Referencing Skills
 
 - When a skill depends on understanding from another skill, reference it:
@@ -221,6 +242,23 @@
   - A specific transformation or task
   - Step-by-step instructions for a particular action
   - Implementation guidance for achieving a specific output
+
+## Rules vs Templates
+
+- `<RULE_FILE>` holds why/when: principles, decision criteria, do/don't
+  guidance, short inline examples
+- `<TEMPLATE_FILE>` holds what to copy: a skeleton or worked example with
+  `<VAR>` placeholders, minimal comments
+- A template file must not contain decision criteria or prose explaining why
+  one choice beats another; move that content to the rules file and link to
+  it from the template
+  - **Bad** (template file explains a choice): a `.template.md` section
+    titled "Color Strategy" with paragraphs on when to use which palette and
+    why
+  - **Good**: the rules file has "## Color Strategy" with the reasoning; the
+    template file just uses the chosen colors in its skeleton
+- If a rules file needs to show the resulting structure at length, add or
+  point to a template instead of inlining a full skeleton in the rules file
 
 ## Keep Rules Organized in the Rule File
 - In the `<RULE_FILE>` `<TOPIC>.rules.md` keep group related rules (with header

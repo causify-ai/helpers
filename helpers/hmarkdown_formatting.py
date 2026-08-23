@@ -6,7 +6,7 @@ import helpers.hmarkdown_formatting as hmarform
 
 import logging
 import re
-from typing import List
+from typing import List, Match
 
 import helpers.hdbg as hdbg
 import helpers.hio as hio
@@ -303,49 +303,157 @@ def format_figures(lines: List[str]) -> List[str]:
     return result
 
 
-def format_md_links_to_latex_format(lines: List[str]) -> List[str]:
+def _escape_typst_markup(text: str) -> str:
     r"""
-    Convert markdown links to formatted links with LaTeX styling.
+    Escape a plain-text string for safe embedding inside Typst markup
+    content (e.g., the `content` in `#text(...)[content]`).
+
+    Uses the same escaping rules as `_colorize_backticks()` in
+    `preprocess_notes.py`, since the characters below all have special meaning
+    to the Typst markup parser.
+
+    :param text: plain text to embed in Typst markup
+    :return: text with Typst-special characters escaped
+    """
+    # Escape `_` since Typst treats it as underscore emphasis markup.
+    text = text.replace("_", r"\_")
+    # Escape `*` since Typst parses it as strong-emphasis markup.
+    text = text.replace("*", r"\*")
+    # Escape `//` since Typst treats it as a line comment, which swallows
+    # the rest of the line (e.g., the `//` in `https://...`).
+    text = text.replace("//", r"\//")
+    # Escape `#` since Typst parses it as the start of code mode.
+    text = text.replace("#", r"\#")
+    # Escape `$` since Typst parses it as math-mode delimiters.
+    text = text.replace("$", r"\$")
+    # Escape `@` since Typst parses `@name` as a citation/reference.
+    text = text.replace("@", r"\@")
+    # Escape `<` since Typst parses `<name>` as a label reference.
+    text = text.replace("<", r"\<")
+    return text
+
+
+# Link color: matches Google's product hyperlink color (Gmail, Docs,
+# Drive), rather than a generic named "blue".
+_LINK_COLOR_HEX = "1A73E8"
+
+
+def _style_link_latex(text: str) -> str:
+    r"""
+    Build the LaTeX-styled (colored, underlined) inline text for a link.
+
+    :param text: link label text
+    :return: `\textcolor[HTML]{...}{\underline{text}}` snippet
+    """
+    return rf"\textcolor[HTML]{{{_LINK_COLOR_HEX}}}{{\underline{{{text}}}}}"
+
+
+# Regex matching the snippet built by `_style_link_latex()`, used to detect
+# links that were already converted (to normalize them and to protect them
+# from being re-processed by later passes below).
+_STYLED_LINK_TEXT_RE = (
+    r"\\textcolor\[HTML\]\{"
+    + _LINK_COLOR_HEX
+    + r"\}\{\\underline\{([^}]+)\}\}"
+)
+
+
+def _convert_textcolor_underline_to_typst(line: str) -> str:
+    r"""
+    Convert the `_style_link_latex()` snippet on a line to the Typst
+    raw-code equivalent.
+
+    :param line: line possibly containing the `_style_link_latex()` snippet
+    :return: line with those occurrences converted to Typst raw code
+    """
+
+    # Pandoc parses a bare `\textcolor[HTML]{...}{...}` appearing in plain
+    # markdown text as a `RawInline` node tagged with format `tex`, which the
+    # Typst writer silently drops (it only emits raw-inline content tagged
+    # `typst`). That is why a line like
+    #     [\textcolor[HTML]{1A73E8}{\underline{ELMS}}](URL)
+    # renders as an empty link (`#link("URL")[]`) when compiling to Typst
+    # instead of latex/beamer. The fix is to emit a backtick-quoted Typst
+    # raw-code span (`` `...`{=typst} ``, pandoc's "raw attribute" syntax)
+    # instead, so the content survives as a `RawInline` tagged `typst`.
+
+    def _replace(match: Match) -> str:
+        content = _escape_typst_markup(match.group(1))
+        color = f'rgb("#{_LINK_COLOR_HEX}")'
+        return f"`#text(fill: {color})[#underline[{content}]]`{{=typst}}"
+
+    return re.sub(_STYLED_LINK_TEXT_RE, _replace, line)
+
+
+def format_md_links_to_latex_format(
+    lines: List[str], *, output_format: str = "latex"
+) -> List[str]:
+    r"""
+    Convert markdown links to formatted (colored, underlined) links.
 
     Convert markdown links:
     - Plain URLs:
         http://... or https://...
-      to the format:
-        [\textcolor{blue}{\underline{URL}}](URL)
+      to the format (LaTeX):
+        [\textcolor[HTML]{1A73E8}{\underline{URL}}](URL)
 
     - Existing formatted links:
         [Text](URL)
-      to the format:
-        [\textcolor{blue}{\underline{Text}}](URL)
+      to the format (LaTeX):
+        [\textcolor[HTML]{1A73E8}{\underline{Text}}](URL)
 
     - Email links:
         [](email@domain.com) or [](http://...) or [](https://...)
-      to the format:
-        [\textcolor{blue}{\underline{URL}}](URL)
+      to the format (LaTeX):
+        [\textcolor[HTML]{1A73E8}{\underline{URL}}](URL)
+
+    - Markdown links with an email target (display text != email):
+        [Email](email@domain.com)
+      to the format (LaTeX):
+        [\textcolor[HTML]{1A73E8}{\underline{Email}}](email@domain.com)
 
     - Picture links
         ![](lectures_source/.../lec_4_1_slide_5_image_1.png)
       are left untouched
 
+    The color used (`_LINK_COLOR_HEX`) matches Google's product hyperlink
+    color (Gmail, Docs, Drive).
+
+    For `output_format="typst"`, the same conversions are done, but the
+    styling is emitted as Typst raw code (e.g.,
+    `` [`#text(fill: rgb("#1A73E8"))[#underline[URL]]`{=typst}](URL) ``)
+    instead of the LaTeX `\textcolor{}{\underline{}}` snippet, since the
+    latter is dropped by pandoc's Typst writer (see
+    `_convert_textcolor_underline_to_typst()`).
+
     :param lines: list of input markdown lines
+    :param output_format: "latex" or "typst"
     :return: formatted markdown lines with styled links
     """
     hdbg.dassert_isinstance(lines, list)
+    hdbg.dassert_in(output_format, ("latex", "typst"))
     result = []
     # URL regex pattern.
     url_pattern = r"https?://[^\s)}\]`]+"
     # Pattern for URLs in backticks.
     backtick_url_pattern = r"`(https?://[^\s`]+)`"
     # Pattern for existing formatted links that need normalization.
-    # This matches [\textcolor{blue}{\underline{Text}}](URL) where Text != URL.
+    # This matches [\textcolor[HTML]{1A73E8}{\underline{Text}}](URL) where
+    # Text != URL.
     formatted_link_pattern = (
-        r"\[\\textcolor\{blue\}\{\\underline\{([^}]+)\}\}\]\((https?://[^)]+)\)"
+        r"\[" + _STYLED_LINK_TEXT_RE + r"\]\((https?://[^)]+)\)"
     )
     # Pattern for markdown links: [Text](URL).
     # Matches text that can include escaped underscores (\_ ).
     markdown_link_pattern = r"\[((?:[^\]\\]|\\[_])+)\]\((https?://[^\)]+)\)"
     # Pattern for email links: [email@domain.com](email@domain.com).
     email_link_pattern = r"\[([^\]\\]+@[^\]\\]+)\]\(([^)]+@[^)]+)\)"
+    # Pattern for markdown links with an email target: [Text](email@domain.com).
+    # Unlike `email_link_pattern`, the display text does not need to be an
+    # email address itself (e.g., [Email](gsaggese@umd.edu)).
+    email_target_link_pattern = (
+        r"\[((?:[^\]\\]|\\[_])+)\]\(([^\s\)@]+@[^\s\)@]+\.[^\s\)]+)\)"
+    )
     # Pattern for empty bracket links: [](URL) or [](email).
     empty_bracket_pattern = r"\[\]\(([^\)]+)\)"
     # Pattern for image links: ![...](...).
@@ -368,7 +476,7 @@ def format_md_links_to_latex_format(lines: List[str]) -> List[str]:
         # Convert empty bracket links [](URL) or [](email).
         def convert_empty_bracket_link(match):
             target = match.group(1)
-            return rf"[\textcolor{{blue}}{{\underline{{{target}}}}}]({target})"
+            return f"[{_style_link_latex(target)}]({target})"
 
         processed_line = re.sub(
             empty_bracket_pattern, convert_empty_bracket_link, processed_line
@@ -377,7 +485,7 @@ def format_md_links_to_latex_format(lines: List[str]) -> List[str]:
         # Convert URLs in backticks.
         def convert_backtick_url(match):
             url = match.group(1)
-            return rf"[\textcolor{{blue}}{{\underline{{{url}}}}}]({url})"
+            return f"[{_style_link_latex(url)}]({url})"
 
         processed_line = re.sub(
             backtick_url_pattern, convert_backtick_url, processed_line
@@ -387,7 +495,7 @@ def format_md_links_to_latex_format(lines: List[str]) -> List[str]:
         def normalize_formatted_link(match):
             text = match.group(1)
             url = match.group(2)
-            return rf"[\textcolor{{blue}}{{\underline{{{text}}}}}]({url})"
+            return f"[{_style_link_latex(text)}]({url})"
 
         processed_line = re.sub(
             formatted_link_pattern, normalize_formatted_link, processed_line
@@ -397,7 +505,7 @@ def format_md_links_to_latex_format(lines: List[str]) -> List[str]:
         def convert_markdown_link(match):
             text = match.group(1)
             url = match.group(2)
-            return rf"[\textcolor{{blue}}{{\underline{{{text}}}}}]({url})"
+            return f"[{_style_link_latex(text)}]({url})"
 
         processed_line = re.sub(
             markdown_link_pattern, convert_markdown_link, processed_line
@@ -406,10 +514,23 @@ def format_md_links_to_latex_format(lines: List[str]) -> List[str]:
         # Convert email links [email@domain.com](email@domain.com) to formatted links.
         def convert_email_link(match):
             email = match.group(2)
-            return rf"[\textcolor{{blue}}{{\underline{{{email}}}}}]({email})"
+            return f"[{_style_link_latex(email)}]({email})"
 
         processed_line = re.sub(
             email_link_pattern, convert_email_link, processed_line
+        )
+
+        # Convert markdown links with an email target [Text](email@domain)
+        # to formatted links, preserving the display text.
+        def convert_email_target_link(match):
+            text = match.group(1)
+            email = match.group(2)
+            return f"[{_style_link_latex(text)}]({email})"
+
+        processed_line = re.sub(
+            email_target_link_pattern,
+            convert_email_target_link,
+            processed_line,
         )
         # Convert plain URLs (but avoid converting URLs that are already part
         # of formatted links).
@@ -418,7 +539,7 @@ def format_md_links_to_latex_format(lines: List[str]) -> List[str]:
         temp_placeholders = []
         # Store existing correctly formatted links temporarily.
         correct_formatted_link_pattern = (
-            r"\[\\textcolor\{blue\}\{\\underline\{([^}]+)\}\}\]\(([^)]+)\)"
+            r"\[" + _STYLED_LINK_TEXT_RE + r"\]\(([^)]+)\)"
         )
 
         def store_formatted_link(match):
@@ -429,11 +550,25 @@ def format_md_links_to_latex_format(lines: List[str]) -> List[str]:
         temp_line = re.sub(
             correct_formatted_link_pattern, store_formatted_link, processed_line
         )
+        # Also mask any OTHER already-existing `[text](URL)`-shaped
+        # construct that slipped through every conversion pass above
+        # untouched, e.g. a link already styled with a color scheme that
+        # predates `_STYLED_LINK_TEXT_RE` (like a legacy `\textcolor{blue}
+        # {\underline{...}}`), whose display text contains characters
+        # `markdown_link_pattern` doesn't allow (arbitrary backslash
+        # sequences). Without this, the URL inside `(...)` would be
+        # independently matched and re-linkified by the plain-URL pass
+        # below, corrupting the link into malformed nested markdown (e.g.
+        # `]([\textcolor[HTML]{...}](URL))`).
+        any_existing_link_pattern = r"\[.*?\]\(https?://[^)]+\)"
+        temp_line = re.sub(
+            any_existing_link_pattern, store_formatted_link, temp_line
+        )
 
         # Convert remaining plain URLs.
         def convert_plain_url(match):
             url = match.group(0)
-            return rf"[\textcolor{{blue}}{{\underline{{{url}}}}}]({url})"
+            return f"[{_style_link_latex(url)}]({url})"
 
         temp_line = re.sub(url_pattern, convert_plain_url, temp_line)
         # Restore formatted links.
@@ -443,6 +578,12 @@ def format_md_links_to_latex_format(lines: List[str]) -> List[str]:
         for i, image_link in enumerate(image_placeholders):
             temp_line = temp_line.replace(f"__IMAGE_LINK_{i}__", image_link)
         result.append(temp_line)
+    if output_format == "typst":
+        # The transformations above always build the LaTeX-style
+        # `_style_link_latex()` snippet (it also doubles as the "already
+        # formatted" marker used to protect links from being re-processed
+        # above). Convert it to Typst raw code as a final pass.
+        result = [_convert_textcolor_underline_to_typst(line) for line in result]
     hdbg.dassert_isinstance(result, list)
     return result
 
@@ -504,11 +645,13 @@ def format_column_blocks(lines: List[str]) -> List[str]:
     return lines
 
 
-def format_markdown_slide(lines: List[str]) -> List[str]:
+def format_markdown_slide(lines: List[str], *, tmp_dir: str = ".") -> List[str]:
     """
     Format markdown text for a slide.
 
     :param lines: input lines to format
+    :param tmp_dir: directory (e.g., a test's scratch space) to save the
+        tmp file used internally by `prettier_on_str()`
     :return: formatted slide text
     """
     hdbg.dassert_isinstance(lines, list)
@@ -523,7 +666,7 @@ def format_markdown_slide(lines: List[str]) -> List[str]:
     #
     file_type = "md"
     txt = "\n".join(lines)
-    txt = dshdlipr.prettier_on_str(txt, file_type)
+    txt = dshdlipr.prettier_on_str(txt, file_type, tmp_dir=tmp_dir)
     #
     lines = txt.split("\n")
     lines = hmarslid.convert_markdown_to_slide(lines)

@@ -912,7 +912,7 @@ Level & Symbol \\
   \includegraphics[width=0.6\textwidth]{msml610/lectures_source/figures/Binomial_distribution.png}
 \end{center}
 
-#### Figure scaled down
+* Figure scaled down
 ![](msml610/lectures_source/figures/Binomial_distribution.png){ height=50%}
 ![](msml610/lectures_source/figures/Binomial_distribution.png)
 \end{verbatim}

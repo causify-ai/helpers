@@ -25,7 +25,7 @@ model: opus
 ### Ignore TODOs and Comments
 - Leave the TODOs or comments in the format
   ```
-  // ...
+  // TODO...
   ```
   untouched
 

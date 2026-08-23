@@ -377,7 +377,9 @@ class Test_format_markdown_slide(hunitest.TestCase):
         :param expected_text: Expected formatted output
         """
         lines = hprint.dedent(input_text).strip().split("\n")
-        actual = hmarform.format_markdown_slide(lines)
+        actual = hmarform.format_markdown_slide(
+            lines, tmp_dir=self.get_scratch_space()
+        )
         actual = "\n".join(actual)
         expected = hprint.dedent(expected_text).strip()
         _LOG.debug("actual=\n%s", actual)
@@ -988,7 +990,7 @@ class Test_format_md_links_to_latex_format(hunitest.TestCase):
         """
         # Prepare outputs.
         expected_text = r"""
-        Visit [\textcolor{blue}{\underline{http://example.com}}](http://example.com)
+        Visit [\textcolor[HTML]{1A73E8}{\underline{http://example.com}}](http://example.com)
         """
         # Run test.
         self.helper(input_text, expected_text)
@@ -1003,7 +1005,7 @@ class Test_format_md_links_to_latex_format(hunitest.TestCase):
         """
         # Prepare outputs.
         expected_text = r"""
-        Visit [\textcolor{blue}{\underline{https://example.com}}](https://example.com)
+        Visit [\textcolor[HTML]{1A73E8}{\underline{https://example.com}}](https://example.com)
         """
         # Run test.
         self.helper(input_text, expected_text)
@@ -1017,7 +1019,7 @@ class Test_format_md_links_to_latex_format(hunitest.TestCase):
         Check out https://ubuntu.com/tutorials/command-line-for-beginners
         """
         expected_text = r"""
-        Check out [\textcolor{blue}{\underline{https://ubuntu.com/tutorials/command-line-for-beginners}}](https://ubuntu.com/tutorials/command-line-for-beginners)
+        Check out [\textcolor[HTML]{1A73E8}{\underline{https://ubuntu.com/tutorials/command-line-for-beginners}}](https://ubuntu.com/tutorials/command-line-for-beginners)
         """
         # Run test.
         self.helper(input_text, expected_text)
@@ -1031,7 +1033,7 @@ class Test_format_md_links_to_latex_format(hunitest.TestCase):
         Search: https://example.com/search?q=python&page=1
         """
         expected_text = r"""
-        Search: [\textcolor{blue}{\underline{https://example.com/search?q=python&page=1}}](https://example.com/search?q=python&page=1)
+        Search: [\textcolor[HTML]{1A73E8}{\underline{https://example.com/search?q=python&page=1}}](https://example.com/search?q=python&page=1)
         """
         # Run test.
         self.helper(input_text, expected_text)
@@ -1045,7 +1047,7 @@ class Test_format_md_links_to_latex_format(hunitest.TestCase):
         Docs: https://docs.python.org/3/tutorial/index.html#tutorial-index
         """
         expected_text = r"""
-        Docs: [\textcolor{blue}{\underline{https://docs.python.org/3/tutorial/index.html#tutorial-index}}](https://docs.python.org/3/tutorial/index.html#tutorial-index)
+        Docs: [\textcolor[HTML]{1A73E8}{\underline{https://docs.python.org/3/tutorial/index.html#tutorial-index}}](https://docs.python.org/3/tutorial/index.html#tutorial-index)
         """
         # Run test.
         self.helper(input_text, expected_text)
@@ -1059,7 +1061,7 @@ class Test_format_md_links_to_latex_format(hunitest.TestCase):
         https://example.com is a good site
         """
         expected_text = r"""
-        [\textcolor{blue}{\underline{https://example.com}}](https://example.com) is a good site
+        [\textcolor[HTML]{1A73E8}{\underline{https://example.com}}](https://example.com) is a good site
         """
         # Run test.
         self.helper(input_text, expected_text)
@@ -1073,7 +1075,7 @@ class Test_format_md_links_to_latex_format(hunitest.TestCase):
         Check this link https://example.com
         """
         expected_text = r"""
-        Check this link [\textcolor{blue}{\underline{https://example.com}}](https://example.com)
+        Check this link [\textcolor[HTML]{1A73E8}{\underline{https://example.com}}](https://example.com)
         """
         # Run test.
         self.helper(input_text, expected_text)
@@ -1087,7 +1089,7 @@ class Test_format_md_links_to_latex_format(hunitest.TestCase):
         Visit `https://example.com` for details
         """
         expected_text = r"""
-        Visit [\textcolor{blue}{\underline{https://example.com}}](https://example.com) for details
+        Visit [\textcolor[HTML]{1A73E8}{\underline{https://example.com}}](https://example.com) for details
         """
         # Run test.
         self.helper(input_text, expected_text)
@@ -1101,7 +1103,7 @@ class Test_format_md_links_to_latex_format(hunitest.TestCase):
         Check out [this tutorial](https://example.com/tutorial)
         """
         expected_text = r"""
-        Check out [\textcolor{blue}{\underline{this tutorial}}](https://example.com/tutorial)
+        Check out [\textcolor[HTML]{1A73E8}{\underline{this tutorial}}](https://example.com/tutorial)
         """
         # Run test.
         self.helper(input_text, expected_text)
@@ -1115,7 +1117,7 @@ class Test_format_md_links_to_latex_format(hunitest.TestCase):
         See [documentation](https://docs.example.com) here
         """
         expected_text = r"""
-        See [\textcolor{blue}{\underline{documentation}}](https://docs.example.com) here
+        See [\textcolor[HTML]{1A73E8}{\underline{documentation}}](https://docs.example.com) here
         """
         # Run test.
         self.helper(input_text, expected_text)
@@ -1129,7 +1131,7 @@ class Test_format_md_links_to_latex_format(hunitest.TestCase):
         Contact: [support@example.com](support@example.com)
         """
         expected_text = r"""
-        Contact: [\textcolor{blue}{\underline{support@example.com}}](support@example.com)
+        Contact: [\textcolor[HTML]{1A73E8}{\underline{support@example.com}}](support@example.com)
         """
         # Run test.
         self.helper(input_text, expected_text)
@@ -1143,7 +1145,7 @@ class Test_format_md_links_to_latex_format(hunitest.TestCase):
         Contact: [](support@example.com)
         """
         expected_text = r"""
-        Contact: [\textcolor{blue}{\underline{support@example.com}}](support@example.com)
+        Contact: [\textcolor[HTML]{1A73E8}{\underline{support@example.com}}](support@example.com)
         """
         # Run test.
         self.helper(input_text, expected_text)
@@ -1157,7 +1159,7 @@ class Test_format_md_links_to_latex_format(hunitest.TestCase):
         Visit https://example.com and https://another.com
         """
         expected_text = r"""
-        Visit [\textcolor{blue}{\underline{https://example.com}}](https://example.com) and [\textcolor{blue}{\underline{https://another.com}}](https://another.com)
+        Visit [\textcolor[HTML]{1A73E8}{\underline{https://example.com}}](https://example.com) and [\textcolor[HTML]{1A73E8}{\underline{https://another.com}}](https://another.com)
         """
         # Run test.
         self.helper(input_text, expected_text)
@@ -1173,9 +1175,9 @@ class Test_format_md_links_to_latex_format(hunitest.TestCase):
         Documentation: https://docs.python.org/3/
         """
         expected_text = r"""
-        Tutorial: [\textcolor{blue}{\underline{https://ubuntu.com/tutorials/command-line-for-beginners}}](https://ubuntu.com/tutorials/command-line-for-beginners)
+        Tutorial: [\textcolor[HTML]{1A73E8}{\underline{https://ubuntu.com/tutorials/command-line-for-beginners}}](https://ubuntu.com/tutorials/command-line-for-beginners)
 
-        Documentation: [\textcolor{blue}{\underline{https://docs.python.org/3/}}](https://docs.python.org/3/)
+        Documentation: [\textcolor[HTML]{1A73E8}{\underline{https://docs.python.org/3/}}](https://docs.python.org/3/)
         """
         # Run test.
         self.helper(input_text, expected_text)
@@ -1190,8 +1192,8 @@ class Test_format_md_links_to_latex_format(hunitest.TestCase):
         Backtick: `https://docs.example.com`
         """
         expected_text = r"""
-        Plain: [\textcolor{blue}{\underline{https://example.com}}](https://example.com)
-        Backtick: [\textcolor{blue}{\underline{https://docs.example.com}}](https://docs.example.com)
+        Plain: [\textcolor[HTML]{1A73E8}{\underline{https://example.com}}](https://example.com)
+        Backtick: [\textcolor[HTML]{1A73E8}{\underline{https://docs.example.com}}](https://docs.example.com)
         """
         # Run test.
         self.helper(input_text, expected_text)
@@ -1206,8 +1208,8 @@ class Test_format_md_links_to_latex_format(hunitest.TestCase):
         Markdown: [Click here](https://docs.example.com)
         """
         expected_text = r"""
-        Plain: [\textcolor{blue}{\underline{https://example.com}}](https://example.com)
-        Markdown: [\textcolor{blue}{\underline{Click here}}](https://docs.example.com)
+        Plain: [\textcolor[HTML]{1A73E8}{\underline{https://example.com}}](https://example.com)
+        Markdown: [\textcolor[HTML]{1A73E8}{\underline{Click here}}](https://docs.example.com)
         """
         # Run test.
         self.helper(input_text, expected_text)
@@ -1224,16 +1226,16 @@ class Test_format_md_links_to_latex_format(hunitest.TestCase):
         - Backtick URL: `https://docs.python.org/3/`
         - Markdown link: [Click here](https://github.com)
         - Email: [support@example.com](support@example.com)
-        - Already formatted: [\textcolor{blue}{\underline{https://stackoverflow.com}}](https://stackoverflow.com)
+        - Already formatted: [\textcolor[HTML]{1A73E8}{\underline{https://stackoverflow.com}}](https://stackoverflow.com)
         """
         expected_text = r"""
         ## Resources
 
-        - Plain URL: [\textcolor{blue}{\underline{https://ubuntu.com/tutorials/command-line-for-beginners}}](https://ubuntu.com/tutorials/command-line-for-beginners)
-        - Backtick URL: [\textcolor{blue}{\underline{https://docs.python.org/3/}}](https://docs.python.org/3/)
-        - Markdown link: [\textcolor{blue}{\underline{Click here}}](https://github.com)
-        - Email: [\textcolor{blue}{\underline{support@example.com}}](support@example.com)
-        - Already formatted: [\textcolor{blue}{\underline{https://stackoverflow.com}}](https://stackoverflow.com)
+        - Plain URL: [\textcolor[HTML]{1A73E8}{\underline{https://ubuntu.com/tutorials/command-line-for-beginners}}](https://ubuntu.com/tutorials/command-line-for-beginners)
+        - Backtick URL: [\textcolor[HTML]{1A73E8}{\underline{https://docs.python.org/3/}}](https://docs.python.org/3/)
+        - Markdown link: [\textcolor[HTML]{1A73E8}{\underline{Click here}}](https://github.com)
+        - Email: [\textcolor[HTML]{1A73E8}{\underline{support@example.com}}](support@example.com)
+        - Already formatted: [\textcolor[HTML]{1A73E8}{\underline{https://stackoverflow.com}}](https://stackoverflow.com)
         """
         # Run test.
         self.helper(input_text, expected_text)
@@ -1247,7 +1249,7 @@ class Test_format_md_links_to_latex_format(hunitest.TestCase):
         Download: https://cdn.example.com/files/document.pdf
         """
         expected_text = r"""
-        Download: [\textcolor{blue}{\underline{https://cdn.example.com/files/document.pdf}}](https://cdn.example.com/files/document.pdf)
+        Download: [\textcolor[HTML]{1A73E8}{\underline{https://cdn.example.com/files/document.pdf}}](https://cdn.example.com/files/document.pdf)
         """
         # Run test.
         self.helper(input_text, expected_text)
@@ -1258,10 +1260,10 @@ class Test_format_md_links_to_latex_format(hunitest.TestCase):
         """
         # Prepare inputs.
         input_text = r"""
-        Link: [\textcolor{blue}{\underline{Example Site}}](https://example.com)
+        Link: [\textcolor[HTML]{1A73E8}{\underline{Example Site}}](https://example.com)
         """
         expected_text = r"""
-        Link: [\textcolor{blue}{\underline{Example Site}}](https://example.com)
+        Link: [\textcolor[HTML]{1A73E8}{\underline{Example Site}}](https://example.com)
         """
         # Run test.
         self.helper(input_text, expected_text)
@@ -1305,9 +1307,9 @@ class Test_format_md_links_to_latex_format(hunitest.TestCase):
         Link: https://example.com
         """
         expected_text = r"""
-        Contact: [\textcolor{blue}{\underline{support@example.com}}](support@example.com)
+        Contact: [\textcolor[HTML]{1A73E8}{\underline{support@example.com}}](support@example.com)
         Image: ![](path/to/image.png)
-        Link: [\textcolor{blue}{\underline{https://example.com}}](https://example.com)
+        Link: [\textcolor[HTML]{1A73E8}{\underline{https://example.com}}](https://example.com)
         """
         # Run test.
         self.helper(input_text, expected_text)
@@ -1353,7 +1355,45 @@ class Test_format_md_links_to_latex_format(hunitest.TestCase):
         [tutorial\_docker\_compose](https://github.com/gpsaggese/umd_classes/tree/main/data605/tutorials/tutorial_docker_compose)
         """
         expected_text = r"""
-        [\textcolor{blue}{\underline{tutorial\_docker\_compose}}](https://github.com/gpsaggese/umd_classes/tree/main/data605/tutorials/tutorial_docker_compose)
+        [\textcolor[HTML]{1A73E8}{\underline{tutorial\_docker\_compose}}](https://github.com/gpsaggese/umd_classes/tree/main/data605/tutorials/tutorial_docker_compose)
+        """
+        # Run test.
+        self.helper(input_text, expected_text)
+
+    def test28(self) -> None:
+        """
+        Test markdown link with an email target and non-email display text.
+        """
+        # Prepare inputs.
+        input_text = """
+        Instructor: [Email](gsaggese@umd.edu)
+        """
+        expected_text = r"""
+        Instructor: [\textcolor[HTML]{1A73E8}{\underline{Email}}](gsaggese@umd.edu)
+        """
+        # Run test.
+        self.helper(input_text, expected_text)
+
+    def test29(self) -> None:
+        r"""
+        Test that a link already styled with a legacy (non-hex) color
+        scheme is left untouched, instead of having its destination URL
+        independently re-linkified into malformed nested markdown.
+
+        Regression test: `markdown_link_pattern`'s display-text character
+        class doesn't allow arbitrary backslash sequences (e.g.
+        `\textcolor`, `\underline`), so a legacy-styled link like this one
+        was not recognized as "already a markdown link" by any conversion
+        pass, and its `(https://example.com)` destination was then
+        independently matched and re-linkified by the plain-URL pass,
+        turning it into `]([\textcolor[HTML]{...}](https://example.com))`.
+        """
+        # Prepare inputs.
+        input_text = r"""
+        Link: [\textcolor{blue}{\underline{Example Site}}](https://example.com)
+        """
+        expected_text = r"""
+        Link: [\textcolor{blue}{\underline{Example Site}}](https://example.com)
         """
         # Run test.
         self.helper(input_text, expected_text)
