@@ -71,9 +71,11 @@ class Test__extract_markdown_section(hunitest.TestCase):
         # Methods
 
         ## Data Collection
+
         How we collected data
 
         ### Sampling Strategy
+
         Details about sampling
         """
         expected = hprint.dedent(expected)
@@ -95,9 +97,11 @@ class Test__extract_markdown_section(hunitest.TestCase):
         # Methods
 
         ## Data Collection
+
         How we collected data
 
         ### Sampling Strategy
+
         Details about sampling
         """
         expected = hprint.dedent(expected)
@@ -123,6 +127,7 @@ class Test__extract_markdown_section(hunitest.TestCase):
         # Prepare outputs.
         expected = """
         # Results
+
         Our findings
         """
         expected = hprint.dedent(expected)
@@ -142,12 +147,15 @@ class Test__extract_markdown_section(hunitest.TestCase):
         # Methods
 
         ## Data Collection
+
         How we collected data
 
         ### Sampling Strategy
+
         Details about sampling
 
         # Results
+
         Our findings
         """
         expected = hprint.dedent(expected)
@@ -165,12 +173,15 @@ class Test__extract_markdown_section(hunitest.TestCase):
         # Prepare outputs - should include everything from "Data Collection" to end.
         expected = """
         ## Data Collection
+
         How we collected data
 
         ### Sampling Strategy
+
         Details about sampling
 
         # Results
+
         Our findings
         """
         expected = hprint.dedent(expected)

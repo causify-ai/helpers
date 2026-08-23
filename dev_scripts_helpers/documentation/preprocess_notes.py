@@ -713,16 +713,19 @@ def _transform_lines(
             line = hmarkdo.process_color_commands(
                 line, output_format=output_format
             )
-        # 7) Process question.
+        # 7) Process question (skip if inside a fenced code block, so a
+        # `* Title`-looking line that is really literal example text inside
+        # the fence is not mistaken for a new slide/question boundary).
         if _TRACE:
             _LOG.debug("# Process question.")
-        if type_ == "slides":
-            do_continue, line = _process_question_to_slides(line)
-        else:
-            do_continue, line = _process_question_to_markdown(line)
-        if do_continue:
-            out.append(line)
-            continue
+        if not in_code_block:
+            if type_ == "slides":
+                do_continue, line = _process_question_to_slides(line)
+            else:
+                do_continue, line = _process_question_to_markdown(line)
+            if do_continue:
+                out.append(line)
+                continue
         # 8) Process empty lines in the questions and answers.
         if _TRACE:
             _LOG.debug("# Process empty lines in the questions and answers.")
@@ -810,7 +813,18 @@ def _transform_lines(
         out = out_str.split("\n")
     # out = out.split("\n")
     out_tmp = []
+    # True inside a fenced code block (recomputed here since `out` was
+    # rejoined/resplit above, so the per-line loop's `in_code_block` state
+    # from step 7 no longer applies).
+    in_code_block2 = False
     for line in out:
+        if line.startswith("```"):
+            in_code_block2 = not in_code_block2
+            out_tmp.append(line)
+            continue
+        if in_code_block2:
+            out_tmp.append(line)
+            continue
         if type_ == "slides":
             do_continue, line = _process_question_to_slides(line)
         else:

@@ -550,6 +550,20 @@ def format_md_links_to_latex_format(
         temp_line = re.sub(
             correct_formatted_link_pattern, store_formatted_link, processed_line
         )
+        # Also mask any OTHER already-existing `[text](URL)`-shaped
+        # construct that slipped through every conversion pass above
+        # untouched, e.g. a link already styled with a color scheme that
+        # predates `_STYLED_LINK_TEXT_RE` (like a legacy `\textcolor{blue}
+        # {\underline{...}}`), whose display text contains characters
+        # `markdown_link_pattern` doesn't allow (arbitrary backslash
+        # sequences). Without this, the URL inside `(...)` would be
+        # independently matched and re-linkified by the plain-URL pass
+        # below, corrupting the link into malformed nested markdown (e.g.
+        # `]([\textcolor[HTML]{...}](URL))`).
+        any_existing_link_pattern = r"\[.*?\]\(https?://[^)]+\)"
+        temp_line = re.sub(
+            any_existing_link_pattern, store_formatted_link, temp_line
+        )
 
         # Convert remaining plain URLs.
         def convert_plain_url(match):

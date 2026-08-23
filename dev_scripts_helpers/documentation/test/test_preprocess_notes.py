@@ -2003,7 +2003,7 @@ class Test_transform_lines_actions(hunitest.TestCase):
         expected = [
             "---",
             "# Title",
-            r"[\textcolor{blue}{\underline{Link text}}](https://example.com)",
+            r"[\textcolor[HTML]{1A73E8}{\underline{Link text}}](https://example.com)",
         ]
         # Run test.
         self.helper(lines, type_, is_qa, expected, actions=actions)

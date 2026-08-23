@@ -236,13 +236,21 @@ _COLOR_MARKER_REGEX = re.compile(
 )
 
 # Regex matching plain `**text**` bold markup that was *not* produced by the
-# `@text@` marker replacement above. Marker-produced bold always starts with a
-# backslash right after the opening `**` (e.g., `**\red{foo}**`), so a
-# negative lookahead for `\` is enough to skip re-processing it.
+# `@text@` marker replacement above, and that does not already wrap a color
+# command's output. Marker-produced bold always starts with a backslash right
+# after the opening `**` (e.g., `**\red{foo}**`), so a negative lookahead for
+# `\` catches that case. A manually-typed `\color{...}` command (e.g.,
+# `**\violet{violet}**`) is converted to a backtick-quoted Typst raw span by
+# `process_color_commands()` *before* this function runs, turning the line
+# into `` **`#text(...)[violet]`{=typst}** ``; without also excluding a
+# leading backtick here, this regex would re-wrap that already-converted span
+# in a second, nested backtick span, which Pandoc cannot parse as valid raw
+# Typst (see `helpers/test/test_hmarkdown_coloring.py`).
 _PLAIN_BOLD_REGEX = re.compile(
     r"""
     \*\*         # Match the opening `**`.
-    (?!\\)       # Negative lookahead: skip marker-produced `**\color{...}**`.
+    (?!\\|`)     # Negative lookahead: skip marker-produced `**\color{...}**`
+                 # and already-converted `` **`#text(...)`{=typst}** ``.
     ([^*\n]+?)   # Capture everything up to the next `*` or newline (lazy).
     \*\*         # Match the closing `**`.
     """,
