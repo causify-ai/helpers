@@ -145,10 +145,11 @@
 
 - Before adding a new flag, check the catalog below for an equivalent option
   group; if one exists, call that helper instead of hand-rolling the flags
-- A hand-rolled equivalent is any of: a differently-named flag for the same
-  concept (`--out_dir` instead of `--dst_dir`, `--preview` instead of
-  `--dry_run`), a one-sided boolean (`--foo` with no `--no_foo`), or a
-  same-named flag with different/incompatible semantics
+- A hand-rolled equivalent is any of:
+  - A differently-named flag for the same concept (`--out_dir` instead of
+    `--dst_dir`, `--preview` instead of `--dry_run`)
+  - A one-sided boolean (`--foo` with no `--no_foo`)
+  - A same-named flag with different/incompatible semantics
 - Import the module under its standard alias and call the helper in `_parse()`
   ```python
   import helpers.hselect_input_output as hseinout
@@ -459,6 +460,98 @@
                         How to run `pandoc`: `auto` uses the host binary and falls back to
                         Docker otherwise, `dockerized` always runs pandoc in Docker, `host`
                         always runs the host binary
+  ```
+
+# Dry Run
+
+## Add `--dry_run` as a Standard Flag
+
+- If the script already calls `helpers.hjoblib.add_parallel_processing_arg()`
+  (see the Parallel Processing catalog entry above), `--dry_run` comes for
+  free; do not redeclare it
+- Otherwise declare it by hand as a plain boolean flag
+  ```python
+  parser.add_argument(
+      "--dry_run",
+      action="store_true",
+      help="Show what would be done without actually doing it",
+  )
+  ```
+- Thread `dry_run` through function signatures as a keyword-only `bool`
+  parameter, not a global; the only place that reads `args.dry_run` is
+  `_main()`
+
+## Guard the Side Effect, Not the Whole Function
+
+- Wrap only the code that mutates state (file writes, network calls,
+  subprocess execution, git/gh commands) in `if dry_run: ... else: ...`; keep
+  computing and logging surrounding context (counts, paths, plans) outside
+  the guard so a dry run still produces useful output
+- Mirror the real branch's log message in the dry-run branch, just prefixed
+  with the `[DRY_RUN]` tag and phrased as "Would ..."
+- **Good** (`dev_scripts_helpers/thin_client/create_all_helpers_links.py`)
+  ```python
+  if dry_run:
+      _LOG.warning("[DRY_RUN] Would create '%s' to vimdiff %d file(s)", target_path, num_files)
+  else:
+      _LOG.info("Creating '%s' to vimdiff %d file(s)", target_path, num_files)
+      _create_link(...)
+  ```
+- For a top-level command wrapper that runs a single blocking operation
+  (`helpers.hsystem.system()`, `helpers.hjoblib.parallel_execute()`), an
+  early return right after the log line is fine, since there's no separate
+  "real" branch left to fall through to
+  ```python
+  if dry_run:
+      _LOG.warning("As per user request, not executing command:\n%s", cmd)
+      return 0, ""
+  ```
+
+## Log With `_LOG.warning`, Never `_LOG.info` or `print`
+
+- Dry-run notices use `_LOG.warning` so they stand out from the surrounding
+  INFO-level narration regardless of `-v`
+
+- **Bad**
+  ```python
+  _LOG.info("[DRY_RUN] Would remove '%s'", path)
+  ```
+- **Good**
+  ```python
+  _LOG.warning("[DRY_RUN] Would remove '%s'", path)
+  ```
+
+## Tag Every Message With the Literal `[DRY_RUN]` Prefix
+
+- Prefix with `[DRY_RUN]`: underscore, all caps, matching the flag's own name (see
+  "Underscore Case, Not Hyphens" below), so the tag is greppable and consistent with
+  the flag it reports on
+- Follow the tag with "Would <verb>" describing the skipped action, then the same
+  `%s`/`%d` lazy-formatting arguments the real branch's message would use (see the
+  logging conventions in `coding.rules.md`)
+
+- **Bad**
+  ```python
+  _LOG.info("[DRY-RUN] Would create field: '%s'", name)
+  _LOG.warning("DRY RUN: Would save to %s", output_file)
+  ```
+- **Good**
+  ```python
+  _LOG.warning("[DRY_RUN] Would create '%s' to vimdiff %d file(s)", target_path, num_files)
+  _LOG.warning("[DRY_RUN] Would save merged summary to '%s'", output_file)
+  ```
+
+## Test That the Side Effect Did Not Happen
+
+- A unit test for `dry_run=True` asserts the absence of the side effect
+  (e.g., `hdbg.dassert_path_not_exists(...)`), not just that the call didn't
+  raise
+- **Good** (`helpers/test/test_hsystem.py`)
+  ```python
+  def test_dry_run(self) -> None:
+      temp_file_name = ...
+      hsystem.system("ls", output_file=temp_file_name, dry_run=True)
+      hdbg.dassert_path_not_exists(temp_file_name)
   ```
 
 # Command-Line Argument Naming and Style
