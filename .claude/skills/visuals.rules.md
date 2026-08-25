@@ -46,8 +46,14 @@
 ## Mermaid Graph
 
 - When to use: Mind maps, hierarchical taxonomies, classification structures
+- Start every Mermaid diagram with this `%%{init: ...}%%` directive to apply
+  the project theme:
+  ```
+  %%{init: {'theme': 'base', 'themeVariables': { 'primaryColor': '#EEEDFE', 'primaryBorderColor': '#7F77DD', 'primaryTextColor': '#26215C', 'lineColor': '#888888', 'fontFamily': 'Helvetica'}}}%%
+  ```
 - Example:
   ```mermaid
+  %%{init: {'theme': 'base', 'themeVariables': { 'primaryColor': '#EEEDFE', 'primaryBorderColor': '#7F77DD', 'primaryTextColor': '#26215C', 'lineColor': '#888888', 'fontFamily': 'Helvetica'}}}%%
   mindmap
     root((**Machine Learning**))
       (**Paradigms**)
