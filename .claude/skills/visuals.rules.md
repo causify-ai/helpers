@@ -7,6 +7,7 @@
   - Graphviz diagram
   - TikZ diagram
   - Images
+  - Portrait photo (for a named person)
   - Website screenshots
 
 ## Color Palette
@@ -75,6 +76,35 @@
 ## Custom Images
 
 - Follow the template `.claude/templates/image.template.md`
+
+## Portraits of People
+
+- When a slide names a specific historical figure or researcher, illustrate
+  with a real portrait photo, not an AI-generated illustration
+  - Do not use a portrait for each references to avoid clutter, but use the most
+    notable named figures
+- Prefer current Wikipedia infobox photo for that person or a picture from the
+  Internet
+  - Pick a clear, sharp headshot; reject small, blurry, or cluttered photos
+  - Save as `figures/<Lesson>.<Person_Name>.png`, matching this file's
+    existing figure-naming convention
+- Place the portrait in a narrow right column next to the slide's text, with
+  a captioned attribution below the image:
+  ```markdown
+  ::: columns
+  :::: {.column width=80%}
+  ...
+  ::::
+  :::: {.column width=20%}
+
+  ![](msml610/lectures_source/figures/L01.3.Judea_Pearl.png)
+
+  \footnotesize _Judea Pearl (2010)_
+  ::::
+  :::
+  ```
+  - Caption format: `\footnotesize _<Name> (<year>)_`
+  - Do not add attribution
 
 ## GraphViz Diagrams
 

@@ -147,8 +147,9 @@ separate sections: "Flat Style" and "Architecture Style"
 ## Edge Semantics (Architecture Style)
 - Solid edge = normal/required data or control flow
 - `style=dashed` edge = optional, pluggable, feedback, or "iterate/loop back"
-  flow; label it with the short verb phrase describing the flow (e.g.
-  "iterate", "Gates eligibility", "Fan-out")
+  flow
+  - Label it with the short, capitalized verb phrase describing the flow (e.g.
+    "Iterate", "Gates eligibility", "Fan-out")
 - Bump `penwidth` (e.g. 1.6) and give a saturated `color`/`fontcolor` (e.g.
   `#C0455B`) only on the one or two edges that carry the diagram's key
   narrative (the "so what" flow), to make them pop against the neutral
@@ -159,8 +160,10 @@ separate sections: "Flat Style" and "Architecture Style"
   relationship
 
 ## Labels and Arrows
-- Center label text with spaces, e.g. `"  label  "` (looks better than the
+- Center label text with spaces, e.g. `"  Label  "` (looks better than the
   default)
+- Capitalize the first letter of edge label text, e.g. `label="  Loop  "`, not
+  `label="  loop  "`
 - Use `fontcolor` to match or contrast with the edge `color`
 - `labelpos="t"` places the label at the top, useful for tall diagrams
 - Arrow types: `arrowhead="normal"` (default), `arrowhead="diamond"`,

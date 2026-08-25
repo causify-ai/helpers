@@ -68,8 +68,8 @@ digraph <name> {
         ...
     }
 
-    <A> -> <B> [label="normal flow"];
-    <A> -> <C> [style=dashed, color="#8C8C8C", label="weak / optional link"];
+    <A> -> <B> [label="Normal flow"];
+    <A> -> <C> [style=dashed, color="#8C8C8C", label="Weak / optional link"];
 }
 ```
 
@@ -117,8 +117,8 @@ digraph Sprinkler {
     Rain -> WetGrass;
     Rain -> Cover;
     Rain -> Evaporate;
-    Cover -> WetGrass [label="blocks", style=dashed, color="#8C8C8C"];
-    Evaporate -> WetGrass [label="blocks", style=dashed, color="#8C8C8C"];
+    Cover -> WetGrass [label="Blocks", style=dashed, color="#8C8C8C"];
+    Evaporate -> WetGrass [label="Blocks", style=dashed, color="#8C8C8C"];
     Sprinkler -> WetGrass;
     Dew -> WetGrass;
 }
@@ -207,8 +207,8 @@ digraph Transfer {
         A1 [label="Action", fillcolor="#FFC98A", color="#D98E2B", fontcolor="#6B4517"];
         R1 [label="Reward", shape="diamond", fillcolor="#9CC4F2", color="#3C6FB0", fontcolor="#1F4E79"];
 
-        S1 -> A1 [label="policy  π₁"];
-        A1 -> R1 [label="dynamics"];
+        S1 -> A1 [label="Policy  π₁"];
+        A1 -> R1 [label="Dynamics"];
         S1 -> R1 [style="dashed", color="#8C8C8C", constraint="false"];
     }
 
@@ -228,8 +228,8 @@ digraph Transfer {
         A2 [label="Action", fillcolor="#FFC98A", color="#D98E2B", fontcolor="#6B4517"];
         R2 [label="Reward", shape="diamond", fillcolor="#9CC4F2", color="#3C6FB0", fontcolor="#1F4E79"];
 
-        S2 -> A2 [label="policy  π₂"];
-        A2 -> R2 [label="dynamics"];
+        S2 -> A2 [label="Policy  π₂"];
+        A2 -> R2 [label="Dynamics"];
         S2 -> R2 [style="dashed", color="#8C8C8C", constraint="false"];
     }
 
@@ -241,7 +241,7 @@ digraph Transfer {
     R1 -> R2 [style=invis];
 
     A1 -> A2 [
-        label="  knowledge transfer  ",
+        label="  Knowledge transfer  ",
         style="bold",
         color="#B23A48",
         fontcolor="#B23A48",
@@ -297,8 +297,8 @@ digraph <name> {
     ...
   }
 
-  <A> -> <B> [label="normal flow"];
-  <A> -> <C> [style=dashed, label="optional / feedback"];
+  <A> -> <B> [label="Normal flow"];
+  <A> -> <C> [style=dashed, label="Optional / feedback"];
 }
 ```
 ```
