@@ -320,13 +320,35 @@ def volume_rm(volume_name: str, use_sudo: bool) -> None:
 # #############################################################################
 
 
+def _normalize_arch(arch: str) -> str:
+    """
+    Normalize an architecture name to its canonical Docker platform form.
+
+    `uname -m` reports different names for the same physical architecture
+    depending on where it runs (e.g., macOS host reports `arm64`, a Linux
+    container on the same chip reports `aarch64`).
+    Without normalization these end up as different Docker image tags for what
+    is otherwise the same build, causing duplicate images.
+
+    :param arch: raw architecture name (e.g., `aarch64`, `arm64`,
+        `x86_64`, `amd64`)
+    :return: canonical architecture name (`arm64` or `amd64`)
+    """
+    if arch in ("aarch64", "arm64"):
+        return "arm64"
+    if arch in ("x86_64", "amd64"):
+        return "amd64"
+    return arch
+
+
 def get_current_arch() -> str:
     """
-    Return the architecture that we are running on (e.g., arm64, aarch64,
-    x86_64).
+    Return the canonical architecture that we are running on (e.g.,
+    `arm64`, `amd64`).
     """
     cmd = "uname -m"
     _, current_arch = hsystem.system_to_one_line(cmd)
+    current_arch = _normalize_arch(current_arch)
     _LOG.debug(hprint.to_str("current_arch"))
     return current_arch
 

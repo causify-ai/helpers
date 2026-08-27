@@ -32,4 +32,4 @@ echo "==================== git push ===================="
 execute "git push"
 
 echo "==================== last commit ===================="
-execute "git log -1 --stat"
+execute "git log -1 --stat --no-pager"

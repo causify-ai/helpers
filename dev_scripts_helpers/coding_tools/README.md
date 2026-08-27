@@ -18,7 +18,8 @@ Development utilities for code analysis, profiling, synchronization, and refacto
 - `create_class_diagram.sh`
   - Generates UML class diagrams from Python code using pyreverse and graphviz
 - `ctags.sh`
-  - Generates ctags file for Python code using dockerized universal-ctags
+  - Generates ctags file for Python code using universal-ctags, built and run
+    in a container (Docker or Apple's `container` CLI)
 - `diff_to_vimdiff.py`
   - Transforms diff output into vimdiff script for interactive directory comparison
 - `find_unused_golden_files.py`
