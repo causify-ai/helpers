@@ -347,6 +347,45 @@
                   raise
   ```
 
+## Inline Trivial Constants Used Once
+
+- If a constant is used in only one place and its value is trivial (a plain
+  literal, short string, or simple number), inline the value directly at the
+  usage site instead of naming it as a constant
+- If the value is not trivial (e.g., a regex, a multi-part expression), do not
+  inline it: keep it as a named constant at the smallest possible scope and
+  add a comment explaining what it matches or represents
+  - For a complex regex, also follow `## Explain Complex Regex`
+
+- **Bad** (named constant for a trivial single-use value)
+  ```python
+  def parse_line(line: str) -> str:
+      _SEPARATOR = ","
+      return line.split(_SEPARATOR)[0]
+  ```
+- **Good** (inline the trivial value)
+  ```python
+  def parse_line(line: str) -> str:
+      return line.split(",")[0]
+  ```
+
+- **Good** (non-trivial value kept as a documented, narrowly-scoped constant)
+  ```python
+  def _parse_system_df_row(line: str) -> Optional[Dict[str, str]]:
+      # Match a `docker system df` row: type, total, active, size,
+      # reclaimable, with an optional trailing "(NN%)" reclaimable percentage.
+      _SYSTEM_DF_ROW_RE = re.compile(
+          r"^(?P<type>[A-Za-z ]+?)\s{2,}"
+          r"(?P<total>\d+)\s+"
+          r"(?P<active>\d+)\s+"
+          r"(?P<size>\S+)\s+"
+          r"(?P<reclaimable>\S+)"
+          r"(?:\s+\(\d+%\))?\s*$"
+      )
+      match = _SYSTEM_DF_ROW_RE.match(line)
+      ...
+  ```
+
 ## Keep Shared Constants in Global Scope
 - Only place constants in the module's global scope when they are used by multiple
   functions or classes
@@ -1203,6 +1242,24 @@ prefix it with an underscore to mark it as private
 - Instrument the code to print the exit value of a function
   ```python
   _LOG.debug("return=%s", ...)
+  ```
+
+## Use `hprint.frame` for Framed Log Headers
+
+- Do not build a framed header manually with repeated separator lines around a
+  `_LOG` call; use `hprint.frame()` instead
+- This avoids repeating the separator string and keeps the framing logic in
+  one place
+
+- **Bad**: manual separator lines around a log message
+  ```python
+  _LOG.info("%s", "#" * 80)
+  _LOG.info("Engine: '%s'", engine)
+  _LOG.info("%s", "#" * 80)
+  ```
+- **Good**: use `hprint.frame()`
+  ```python
+  _LOG.info("\n%s", hprint.frame("Engine: '%s'" % engine))
   ```
 
 ## Enclose Variables in Single Quotes in Log Messages
