@@ -232,7 +232,7 @@ def _get_docstring_summary(doc: Optional[str]) -> str:
         return ""
     lines = doc.strip().splitlines()
     summary = lines[0].strip()
-    if len(lines) > 1:
+    if len(lines) > 1 and lines[1].lstrip().rstrip() != "":
         # Strip a trailing period, if any, so `...` doesn't pile up on top
         # of it (e.g., avoid "....").
         summary = summary.rstrip(".") + "..."
@@ -241,8 +241,8 @@ def _get_docstring_summary(doc: Optional[str]) -> str:
 
 def get_public_methods_as_str(obj: Any, *, use_markdown: bool = False) -> str:
     """
-    Return a string with all public methods of an object with their
-    docstrings and signatures.
+    Return a string with all public methods of an object with their docstrings
+    and signatures.
 
     :param obj: class or class object to inspect
     :param use_markdown: format output as a markdown list, e.g.,
@@ -343,8 +343,6 @@ def get_function_info_as_str(
         if text:
             out += f"\n{textwrap.indent(text, '    ')}"
     return out
-
-
 
 
 def print_obj_info(obj: Any, **kwargs: Any) -> None:
