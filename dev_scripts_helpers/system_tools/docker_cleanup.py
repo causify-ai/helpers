@@ -7,7 +7,7 @@ Cleans up, for the selected engine(s):
 - Stopped containers
 - Unused networks (`docker` only)
 - Dangling volumes
-- Build cache (`docker` only)
+- Build cache (`docker`: pruned in place; `apple`: builder container reset)
 - Dangling images
 
 Prints `system df` (or `container system df`) before and after all operations,
@@ -462,9 +462,14 @@ def _cleanup_build_cache(
     """
     Remove the build cache.
 
-    Not supported by the Apple `container` CLI (`container builder` only
-    manages the builder instance, not a cache), so this is a no-op for
-    `engine == "apple"`.
+    The two engines store their build cache differently, so the reset
+    mechanism differs:
+    - `docker`: the cache is state inside the `dockerd` daemon, pruned in
+      place via `builder prune`; the daemon itself is untouched
+    - `apple`: the cache is the filesystem of a separate `buildkit` VM
+      container, so it can only be cleared by deleting that container
+      outright; it is restarted right after, so the next `container build`
+      does not also pay a cold-start cost on top of the cold cache
 
     :param engine: `"docker"` or `"apple"`
     :param dry_run: if True, only report what would be removed
@@ -488,11 +493,42 @@ def _cleanup_build_cache(
             _, output = hsystem.system_to_string(prune_cmd)
             _LOG.info("Removed build cache:\n%s", output)
     elif engine == "apple":
-        _LOG.info(
-            "Engine 'apple': build-cache prune not supported by apple "
-            "engine ('container builder' only manages the builder "
-            "instance, not a cache): skipping"
-        )
+        # Unlike Docker's `builder prune`, there is no cache to inspect
+        # independently of the builder container itself: check whether the
+        # container exists at all first, mirroring how the dangling-volume
+        # / dangling-image branches above check for candidates before
+        # mutating anything.
+        status_output = _run(f"{cmd_name} builder status")
+        # A builder that exists reports a header row plus one data row; no
+        # builder means only the header (or an error message).
+        if len(status_output.strip().splitlines()) <= 1:
+            _LOG.info("No builder container found: skipping")
+            return
+        if dry_run:
+            _LOG.warning(
+                "[DRY_RUN] Would run: '%s builder stop', '%s builder "
+                "delete', '%s builder start' (drops all cached build "
+                "layers)",
+                cmd_name,
+                cmd_name,
+                cmd_name,
+            )
+        else:
+            _, stop_output = hsystem.system_to_string(
+                f"{cmd_name} builder stop"
+            )
+            _LOG.info("Stopped builder:\n%s", stop_output)
+            _, delete_output = hsystem.system_to_string(
+                f"{cmd_name} builder delete"
+            )
+            _LOG.info(
+                "Deleted builder (dropped all cached build layers):\n%s",
+                delete_output,
+            )
+            _, start_output = hsystem.system_to_string(
+                f"{cmd_name} builder start"
+            )
+            _LOG.info("Restarted builder:\n%s", start_output)
     else:
         raise ValueError(f"Invalid engine='{engine}'")
 

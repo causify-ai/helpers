@@ -11,6 +11,177 @@ _LOG = logging.getLogger(__name__)
 
 
 # #############################################################################
+# Test__cleanup_engine
+# #############################################################################
+
+
+class Test__cleanup_engine(hunitest.TestCase):
+    """
+    End-to-end tests for the `_cleanup_engine()` function.
+    """
+
+    def test1(self) -> None:
+        """
+        Test that a dry run on the docker engine only issues read-only
+        commands.
+        """
+        # Prepare outputs.
+        expected = r"""[
+        {
+        'function': hsystem.system_to_string,
+        'args': ('docker system df',),
+        'kwargs': {'abort_on_error': False},
+        },
+        {
+        'function': hsystem.system_to_string,
+        'args': ('docker ps -a --filter "status=running" --filter "status=paused" --filter "status=restarting"',),
+        'kwargs': {'abort_on_error': False},
+        },
+        {
+        'function': hsystem.system_to_string,
+        'args': ('docker ps -a --filter "status=exited" --filter "status=created" --filter "status=dead" --format "{{.ID}}: {{.Names}} ({{.Status}})"',),
+        'kwargs': {'abort_on_error': False},
+        },
+        {
+        'function': hsystem.system_to_string,
+        'args': ('docker network ls --filter "dangling=true" --format "{{.ID}}: {{.Name}}"',),
+        'kwargs': {'abort_on_error': False},
+        },
+        {
+        'function': hsystem.system_to_string,
+        'args': ('docker volume ls --filter "dangling=true" -q',),
+        'kwargs': {'abort_on_error': False},
+        },
+        {
+        'function': hsystem.system_to_string,
+        'args': ('docker images --filter "dangling=true" -q',),
+        'kwargs': {'abort_on_error': False},
+        },
+        {
+        'function': hsystem.system_to_string,
+        'args': ('docker images --format "{{.ID}} {{.Repository}}:{{.Tag}} {{.Size}}"',),
+        'kwargs': {'abort_on_error': False},
+        },
+        {
+        'function': hsystem.system_to_string,
+        'args': ('docker system df',),
+        'kwargs': {'abort_on_error': False},
+        },
+        ]"""
+        expected = hprint.dedent(expected)
+        # Run test.
+        with hunteuti.capture_sys_calls() as invocations:
+            dsstdocl._cleanup_engine("docker", dry_run=True)
+        # Check outputs.
+        hunteuti.assert_sys_calls(self, invocations, expected)
+
+    def test2(self) -> None:
+        """
+        Test that a real run on the docker engine issues the destructive
+        prune commands.
+        """
+        # Prepare outputs.
+        expected = r"""[
+        {
+        'function': hsystem.system_to_string,
+        'args': ('docker system df',),
+        'kwargs': {'abort_on_error': False},
+        },
+        {
+        'function': hsystem.system_to_string,
+        'args': ('docker ps -a --filter "status=running" --filter "status=paused" --filter "status=restarting"',),
+        'kwargs': {'abort_on_error': False},
+        },
+        {
+        'function': hsystem.system_to_string,
+        'args': ('docker ps -a --filter "status=exited" --filter "status=created" --filter "status=dead" --format "{{.ID}}: {{.Names}} ({{.Status}})"',),
+        'kwargs': {'abort_on_error': False},
+        },
+        {
+        'function': hsystem.system_to_string,
+        'args': ('docker container prune -f',),
+        'kwargs': {},
+        },
+        {
+        'function': hsystem.system_to_string,
+        'args': ('docker network ls --filter "dangling=true" --format "{{.ID}}: {{.Name}}"',),
+        'kwargs': {'abort_on_error': False},
+        },
+        {
+        'function': hsystem.system_to_string,
+        'args': ('docker network prune -f',),
+        'kwargs': {},
+        },
+        {
+        'function': hsystem.system_to_string,
+        'args': ('docker volume ls --filter "dangling=true" -q',),
+        'kwargs': {'abort_on_error': False},
+        },
+        {
+        'function': hsystem.system_to_string,
+        'args': ('docker builder prune -a -f',),
+        'kwargs': {},
+        },
+        {
+        'function': hsystem.system_to_string,
+        'args': ('docker images --filter "dangling=true" -q',),
+        'kwargs': {'abort_on_error': False},
+        },
+        {
+        'function': hsystem.system_to_string,
+        'args': ('docker images --format "{{.ID}} {{.Repository}}:{{.Tag}} {{.Size}}"',),
+        'kwargs': {'abort_on_error': False},
+        },
+        {
+        'function': hsystem.system_to_string,
+        'args': ('docker system df',),
+        'kwargs': {'abort_on_error': False},
+        },
+        ]"""
+        expected = hprint.dedent(expected)
+        # Run test.
+        with hunteuti.capture_sys_calls() as invocations:
+            dsstdocl._cleanup_engine("docker", dry_run=False)
+        # Check outputs.
+        hunteuti.assert_sys_calls(self, invocations, expected)
+
+    def test3(self) -> None:
+        """
+        Test that a dry run on the apple engine skips the unsupported
+        network and build-cache steps.
+        """
+        # Prepare outputs.
+        expected = r"""[
+        {
+        'function': hsystem.system_to_string,
+        'args': ('container system df',),
+        'kwargs': {'abort_on_error': False},
+        },
+        {
+        'function': hsystem.system_to_string,
+        'args': ('container list --all',),
+        'kwargs': {'abort_on_error': False},
+        },
+        {
+        'function': hsystem.system_to_string,
+        'args': ('container image list --format json',),
+        'kwargs': {'abort_on_error': False},
+        },
+        {
+        'function': hsystem.system_to_string,
+        'args': ('container system df',),
+        'kwargs': {'abort_on_error': False},
+        },
+        ]"""
+        expected = hprint.dedent(expected)
+        # Run test.
+        with hunteuti.capture_sys_calls() as invocations:
+            dsstdocl._cleanup_engine("apple", dry_run=True)
+        # Check outputs.
+        hunteuti.assert_sys_calls(self, invocations, expected)
+
+
+# #############################################################################
 # Test__parse_docker_size_to_bytes
 # #############################################################################
 
@@ -40,7 +211,7 @@ class Test__parse_docker_size_to_bytes(hunitest.TestCase):
         size_str = "25.21GB"
         # Prepare outputs.
         expected = 25.21e9
-        # Run test.
+        # Run test and check outputs.
         self.helper(size_str, expected)
 
     def test2(self) -> None:
@@ -51,7 +222,7 @@ class Test__parse_docker_size_to_bytes(hunitest.TestCase):
         size_str = "0B"
         # Prepare outputs.
         expected = 0.0
-        # Run test.
+        # Run test and check outputs.
         self.helper(size_str, expected)
 
     def test3(self) -> None:
@@ -62,7 +233,7 @@ class Test__parse_docker_size_to_bytes(hunitest.TestCase):
         size_str = "500MB"
         # Prepare outputs.
         expected = 500e6
-        # Run test.
+        # Run test and check outputs.
         self.helper(size_str, expected)
 
 
@@ -96,7 +267,7 @@ class Test__format_bytes(hunitest.TestCase):
         num_bytes = 512
         # Prepare outputs.
         expected = "512.00B"
-        # Run test.
+        # Run test and check outputs.
         self.helper(num_bytes, expected)
 
     def test2(self) -> None:
@@ -107,7 +278,7 @@ class Test__format_bytes(hunitest.TestCase):
         num_bytes = 1.2e9
         # Prepare outputs.
         expected = "1.20GB"
-        # Run test.
+        # Run test and check outputs.
         self.helper(num_bytes, expected)
 
     def test3(self) -> None:
@@ -118,7 +289,7 @@ class Test__format_bytes(hunitest.TestCase):
         num_bytes = 0
         # Prepare outputs.
         expected = "0.00B"
-        # Run test.
+        # Run test and check outputs.
         self.helper(num_bytes, expected)
 
 
@@ -181,6 +352,41 @@ class Test__format_images_table(hunitest.TestCase):
 
     def test1(self) -> None:
         """
+        Test formatting an empty list of images.
+        """
+        # Prepare inputs.
+        images = []
+        # Prepare outputs.
+        expected = ""
+        # Run test.
+        actual = dsstdocl._format_images_table(images)
+        # Check outputs.
+        self.assert_equal(actual, expected, fuzzy_match=True)
+
+    def test2(self) -> None:
+        """
+        Test formatting a single image.
+        """
+        # Prepare inputs.
+        images = [
+            {
+                "name": "repo1:latest",
+                "created": "2024-01-01T00:00:00Z",
+                "size_bytes": 1.2e9,
+            },
+        ]
+        # Prepare outputs.
+        expected = """
+        repo1:latest 1.20GB 2024-01-01T00:00:00Z
+        """
+        expected = hprint.dedent(expected)
+        # Run test.
+        actual = dsstdocl._format_images_table(images)
+        # Check outputs.
+        self.assert_equal(actual, expected, fuzzy_match=True)
+
+    def test3(self) -> None:
+        """
         Test formatting a list of images into a table.
         """
         # Prepare inputs.
@@ -238,7 +444,7 @@ class Test__get_engines(hunitest.TestCase):
         docker_engine = "all"
         # Prepare outputs.
         expected = ["docker", "apple"]
-        # Run test.
+        # Run test and check outputs.
         self.helper(docker_engine, expected)
 
     def test2(self) -> None:
@@ -249,7 +455,7 @@ class Test__get_engines(hunitest.TestCase):
         docker_engine = "docker"
         # Prepare outputs.
         expected = ["docker"]
-        # Run test.
+        # Run test and check outputs.
         self.helper(docker_engine, expected)
 
     def test3(self) -> None:
@@ -260,7 +466,7 @@ class Test__get_engines(hunitest.TestCase):
         docker_engine = "apple"
         # Prepare outputs.
         expected = ["apple"]
-        # Run test.
+        # Run test and check outputs.
         self.helper(docker_engine, expected)
 
 
@@ -335,7 +541,11 @@ class Test__cleanup_dangling_volumes(hunitest.TestCase):
         Test that a dry run does not remove dangling volumes.
         """
         # Prepare inputs.
-        list_output = "vol1\nvol2"
+        list_output = """
+        vol1
+        vol2
+        """
+        list_output = hprint.dedent(list_output).strip()
         # Run test.
         with (
             mock.patch(
@@ -354,7 +564,13 @@ class Test__cleanup_dangling_volumes(hunitest.TestCase):
         dry run.
         """
         # Prepare inputs.
-        list_output = "vol1\nvol2"
+        list_output = """
+        vol1
+        vol2
+        """
+        list_output = hprint.dedent(list_output).strip()
+        # Prepare outputs.
+        expected_cmd = "docker volume rm vol1 vol2"
         # Run test.
         with (
             mock.patch(
@@ -365,7 +581,6 @@ class Test__cleanup_dangling_volumes(hunitest.TestCase):
         ):
             dsstdocl._cleanup_dangling_volumes("docker", dry_run=False)
         # Check outputs.
-        expected_cmd = "docker volume rm vol1 vol2"
         system_mock.assert_called_once_with(expected_cmd)
 
     def test3(self) -> None:
@@ -402,7 +617,11 @@ class Test__cleanup_dangling_images(hunitest.TestCase):
         Test that a dry run does not remove dangling images.
         """
         # Prepare inputs.
-        list_output = "img1\nimg2"
+        list_output = """
+        img1
+        img2
+        """
+        list_output = hprint.dedent(list_output).strip()
         # Run test.
         with (
             mock.patch(
@@ -421,7 +640,13 @@ class Test__cleanup_dangling_images(hunitest.TestCase):
         dry run.
         """
         # Prepare inputs.
-        list_output = "img1\nimg2"
+        list_output = """
+        img1
+        img2
+        """
+        list_output = hprint.dedent(list_output).strip()
+        # Prepare outputs.
+        expected_cmd = "docker rmi -f img1 img2"
         # Run test.
         with (
             mock.patch(
@@ -432,7 +657,6 @@ class Test__cleanup_dangling_images(hunitest.TestCase):
         ):
             dsstdocl._cleanup_dangling_images("docker", dry_run=False)
         # Check outputs.
-        expected_cmd = "docker rmi -f img1 img2"
         system_mock.assert_called_once_with(expected_cmd)
 
     def test3(self) -> None:
@@ -465,6 +689,24 @@ class Test__cleanup_unused_networks(hunitest.TestCase):
     """
 
     def test1(self) -> None:
+        """
+        Test that the docker engine issues network prune on non-dry run.
+        """
+        # Prepare outputs.
+        expected_cmd = "docker network prune -f"
+        # Run test.
+        with (
+            mock.patch(
+                "helpers.hsystem.system_to_string",
+                return_value=(0, ""),
+            ) as system_to_string_mock,
+            mock.patch("helpers.hsystem.system") as system_mock,
+        ):
+            dsstdocl._cleanup_unused_networks("docker", dry_run=False)
+        # Check outputs.
+        system_mock.assert_called_once_with(expected_cmd)
+
+    def test2(self) -> None:
         """
         Test that the apple engine skips network pruning without issuing
         any system call.
@@ -532,170 +774,25 @@ class Test__cleanup_build_cache(hunitest.TestCase):
         system_to_string_mock.assert_not_called()
         system_mock.assert_not_called()
 
-
-# #############################################################################
-# Test_docker_cleanup_py
-# #############################################################################
-
-
-class Test_docker_cleanup_py(hunitest.TestCase):
-    """
-    End-to-end tests for the `docker_cleanup.py` executable.
-    """
-
-    def test1(self) -> None:
-        """
-        Test that a dry run on the docker engine only issues read-only
-        commands.
-        """
-        # Run test.
-        with hunteuti.capture_sys_calls() as invocations:
-            dsstdocl._cleanup_engine("docker", dry_run=True)
-        # Check outputs.
-        expected = r"""[
-        {
-        'function': hsystem.system_to_string,
-        'args': ('docker system df',),
-        'kwargs': {'abort_on_error': False},
-        },
-        {
-        'function': hsystem.system_to_string,
-        'args': ('docker ps -a --filter "status=running" --filter "status=paused" --filter "status=restarting"',),
-        'kwargs': {'abort_on_error': False},
-        },
-        {
-        'function': hsystem.system_to_string,
-        'args': ('docker ps -a --filter "status=exited" --filter "status=created" --filter "status=dead" --format "{{.ID}}: {{.Names}} ({{.Status}})"',),
-        'kwargs': {'abort_on_error': False},
-        },
-        {
-        'function': hsystem.system_to_string,
-        'args': ('docker network ls --filter "dangling=true" --format "{{.ID}}: {{.Name}}"',),
-        'kwargs': {'abort_on_error': False},
-        },
-        {
-        'function': hsystem.system_to_string,
-        'args': ('docker volume ls --filter "dangling=true" -q',),
-        'kwargs': {'abort_on_error': False},
-        },
-        {
-        'function': hsystem.system_to_string,
-        'args': ('docker images --filter "dangling=true" -q',),
-        'kwargs': {'abort_on_error': False},
-        },
-        {
-        'function': hsystem.system_to_string,
-        'args': ('docker images --format "{{.ID}} {{.Repository}}:{{.Tag}} {{.Size}}"',),
-        'kwargs': {'abort_on_error': False},
-        },
-        {
-        'function': hsystem.system_to_string,
-        'args': ('docker system df',),
-        'kwargs': {'abort_on_error': False},
-        },
-        ]"""
-        expected = hprint.dedent(expected)
-        hunteuti.assert_sys_calls(self, invocations, expected)
-
-    def test2(self) -> None:
-        """
-        Test that a real run on the docker engine issues the destructive
-        prune commands.
-        """
-        # Run test.
-        with hunteuti.capture_sys_calls() as invocations:
-            dsstdocl._cleanup_engine("docker", dry_run=False)
-        # Check outputs.
-        expected = r"""[
-        {
-        'function': hsystem.system_to_string,
-        'args': ('docker system df',),
-        'kwargs': {'abort_on_error': False},
-        },
-        {
-        'function': hsystem.system_to_string,
-        'args': ('docker ps -a --filter "status=running" --filter "status=paused" --filter "status=restarting"',),
-        'kwargs': {'abort_on_error': False},
-        },
-        {
-        'function': hsystem.system_to_string,
-        'args': ('docker ps -a --filter "status=exited" --filter "status=created" --filter "status=dead" --format "{{.ID}}: {{.Names}} ({{.Status}})"',),
-        'kwargs': {'abort_on_error': False},
-        },
-        {
-        'function': hsystem.system_to_string,
-        'args': ('docker container prune -f',),
-        'kwargs': {},
-        },
-        {
-        'function': hsystem.system_to_string,
-        'args': ('docker network ls --filter "dangling=true" --format "{{.ID}}: {{.Name}}"',),
-        'kwargs': {'abort_on_error': False},
-        },
-        {
-        'function': hsystem.system_to_string,
-        'args': ('docker network prune -f',),
-        'kwargs': {},
-        },
-        {
-        'function': hsystem.system_to_string,
-        'args': ('docker volume ls --filter "dangling=true" -q',),
-        'kwargs': {'abort_on_error': False},
-        },
-        {
-        'function': hsystem.system_to_string,
-        'args': ('docker builder prune -a -f',),
-        'kwargs': {},
-        },
-        {
-        'function': hsystem.system_to_string,
-        'args': ('docker images --filter "dangling=true" -q',),
-        'kwargs': {'abort_on_error': False},
-        },
-        {
-        'function': hsystem.system_to_string,
-        'args': ('docker images --format "{{.ID}} {{.Repository}}:{{.Tag}} {{.Size}}"',),
-        'kwargs': {'abort_on_error': False},
-        },
-        {
-        'function': hsystem.system_to_string,
-        'args': ('docker system df',),
-        'kwargs': {'abort_on_error': False},
-        },
-        ]"""
-        expected = hprint.dedent(expected)
-        hunteuti.assert_sys_calls(self, invocations, expected)
-
     def test3(self) -> None:
         """
-        Test that a dry run on the apple engine skips the unsupported
-        network and build-cache steps.
+        Test that a non-dry run removes the build cache on the docker
+        engine.
         """
+        # Prepare inputs.
+        system_df = {"Build Cache": {"reclaimable": "2.541GB"}}
+        # Prepare outputs.
+        expected_cmd = "docker builder prune -a -f"
         # Run test.
-        with hunteuti.capture_sys_calls() as invocations:
-            dsstdocl._cleanup_engine("apple", dry_run=True)
+        with (
+            mock.patch(
+                "helpers.hsystem.system_to_string",
+                return_value=(0, ""),
+            ) as system_to_string_mock,
+            mock.patch("helpers.hsystem.system") as system_mock,
+        ):
+            dsstdocl._cleanup_build_cache(
+                "docker", dry_run=False, system_df=system_df
+            )
         # Check outputs.
-        expected = r"""[
-        {
-        'function': hsystem.system_to_string,
-        'args': ('container system df',),
-        'kwargs': {'abort_on_error': False},
-        },
-        {
-        'function': hsystem.system_to_string,
-        'args': ('container list --all',),
-        'kwargs': {'abort_on_error': False},
-        },
-        {
-        'function': hsystem.system_to_string,
-        'args': ('container image list --format json',),
-        'kwargs': {'abort_on_error': False},
-        },
-        {
-        'function': hsystem.system_to_string,
-        'args': ('container system df',),
-        'kwargs': {'abort_on_error': False},
-        },
-        ]"""
-        expected = hprint.dedent(expected)
-        hunteuti.assert_sys_calls(self, invocations, expected)
+        system_mock.assert_called_once_with(expected_cmd)

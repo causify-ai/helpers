@@ -18,8 +18,9 @@ This directory has no subdirectories.
   - Download completed Synthesia API videos using download URLs
 - `extract_png_from_ppt.py`
   - Extract images and convert PowerPoint slides to PNG format
-- `generate_slide_script.py`
-  - Generate presentation scripts from markdown slides using LLM
+- `../../../class_scripts/gen_lecture_video_script.py`
+  - Generate complete lecture video scripts (per-slide-group commentary,
+    intro, outro) from markdown slides using LLM
 - `generate_synthesia_videos.py`
   - Create avatar videos from text scripts via Synthesia API
 - `get_synthesia_status.py`
@@ -74,19 +75,24 @@ This directory has no subdirectories.
   > extract_png_from_ppt.py --input presentation.pptx --output ./images
   ```
 
-## `generate_slide_script.py`
+## `gen_lecture_video_script.py`
+
+- Lives in `class_scripts/`, not in this directory; documented here because
+  it supersedes this directory's former `generate_slide_script.py`
 
 ### What It Does
 
-- Generates presentation scripts from markdown slides using LLM
+- Generates a complete lecture video script from markdown slides using LLM
 - Groups N slides per LLM call for efficient processing
 - Identifies slides by markdown headers starting with '\*'
+- Adds an intro and an outro section, combines them with the per-slide-group
+  script, and lints the final output
 
 ### Examples
 
-- Generate script from slides:
+- Generate script from a lesson's slides, grouping 3 slides per LLM call:
   ```bash
-  > generate_slide_script.py --in_file slides.md --out_file script.md --slides_per_group 3
+  > gen_lecture_video_script.py data605/01.1 --slides_per_group 3
   ```
 
 ## `generate_synthesia_videos.py`

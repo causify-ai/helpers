@@ -6,21 +6,21 @@ model: opus
 # Goal
 - Given a markdown file with slides about technical material, review the content
   for correctness, clarity, and structural organization
+- This skill composes `slides.reorganize` (structure) and `slides.criticize`
+  (content/clarity critique)
 
 # Workflow
 
 - Read the conventions in `.claude/skills/slides.rules.md`
 
 ## Step 1: Propose Structural Improvements
-
-- Run the flow from `.claude/skills/slides.reorganize/SKILL.md`
+- Run the flow from `.claude/skills/slides.reorganize/SKILL.md` through its
+  Step 3, saving the proposal to `slides.after.txt`; do not apply yet
 
 ## Step 2: Propose Content Improvements
-- Propose how to change and improve the titles of the slides
-- Look for mistakes in the content and propose improvements
-
-### Fix Content of Slides
-- If a slide content is incorrect, propose how to fix it
+- Run Step 2 ("Criticize") from `.claude/skills/slides.criticize/SKILL.md` on
+  the deck, using the same axes and HIGH/MEDIUM/LOW ranking
+- Also propose how to change and improve the titles of the slides
 
 ### Ignore TODOs and Comments
 - Leave the TODOs or comments in the format
@@ -30,6 +30,8 @@ model: opus
   untouched
 
 ## Step 3: Ask User and Implement
-- Number each suggestion so that it's easy to refer to
-- Ask the user which improvements need to be done
-- After the user approves a subset of changes, perform the changes in place
+- Present the structural proposal (Step 1) and the ranked content findings
+  (Step 2) together, numbered so each is easy to refer to
+- Ask the user which structural moves and which content fixes to apply
+- After the user approves a subset, perform the reorganization and the
+  content changes together in place
