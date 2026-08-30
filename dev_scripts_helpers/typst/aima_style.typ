@@ -135,6 +135,31 @@
   ]
 }
 
+// Styled comparison table (AIMA style)
+// - `headers`: array of column header strings
+// - `rows`: array of arrays of cell strings, one inner array per row
+// - `bold-first-col`: bold the first column of each data row (e.g. a row
+//   label)
+#let styled-table(headers: (), rows: (), bold-first-col: false) = {
+  let ncols = headers.len()
+  let header-cells = headers.map(h => table.cell(
+    fill: aima-gray,
+    [#set text(weight: "bold", size: 8.5pt, fill: aima-maroon)
+     #h],
+  ))
+  let body-cells = rows.map(row => row.enumerate().map(((i, cell)) => {
+    if bold-first-col and i == 0 [#strong[#cell]] else [#cell]
+  })).flatten()
+  table(
+    columns: ncols,
+    stroke: 0.5pt + rgb("#CCCCCC"),
+    inset: 6pt,
+    align: left,
+    ..header-cells,
+    ..body-cells,
+  )
+}
+
 // Chapter introduction box (AIMA style)
 #let chapter-intro(content) = {
   block(

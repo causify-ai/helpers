@@ -15,6 +15,12 @@
 //#include "./typst_abbrevs.typ"
 #include "../../helpers_root/dev_scripts_helpers/documentation/typst_abbrevs.typ"
 
+// Custom citation/bibliography system (`#cite(...)`/`#references(...)`,
+// used by `.smd` "References" sections). Root-absolute so it resolves
+// regardless of output dir depth (see `lib_notes_to_pdf.py`'s handling of
+// the `typst_abbrevs.typ` include above).
+#import "/helpers_root/dev_scripts_helpers/typst/umd_references.typ": cite, references
+
 // Configure theme to match beamer's 4:3 aspect ratio.
 // Note: Touying's simple-theme controls page size internally;
 // exact beamer dimensions (362.835 x 272.126 pts) cannot be overridden.

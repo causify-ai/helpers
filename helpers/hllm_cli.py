@@ -721,7 +721,6 @@ def apply_llm(
     if system_prompt:
         hdbg.dassert_isinstance(system_prompt, str)
     hdbg.dassert_isinstance(model, str)
-    hdbg.dassert_ne(model, "", "Model cannot be empty string")
     hdbg.dassert_isinstance(expected_num_chars, int)
     if expected_num_chars > 0:
         hdbg.dassert_lt(
