@@ -21,7 +21,7 @@ in Skim on macOS.
 > run_latex.py --input book.tex --num_passes 3
 
 - Build, copy to Google Drive, and open the PDF in Skim:
-> run_latex.py --input book.tex -a copy_to_gdrive -a open
+> run_latex.py --input book.tex -a copy_to_gdrive -a open_pdf
 
 - Watch mode: rebuild on file changes, skip opening on subsequent runs:
 > run_latex.py --input book.tex --daemon
@@ -59,13 +59,13 @@ _LOG = logging.getLogger(__name__)
 _VALID_ACTIONS = [
     "compile",
     "copy_to_gdrive",
-    "open",
+    "open_pdf",
 ]
 
 _DEFAULT_ACTIONS = [
     "compile",
     "copy_to_gdrive",
-    "open",
+    "open_pdf",
 ]
 
 # #############################################################################
@@ -260,13 +260,13 @@ def _main(parser: argparse.ArgumentParser) -> None:
     out_file_path = os.path.abspath(out_file_path)
     # Handle daemon mode.
     if args.daemon:
-        # Skip "open" action on watch runs (viewer auto-reloads).
+        # Skip "open_pdf" action on watch runs (viewer auto-reloads).
         cmd_line = " ".join(sys.argv)
         hdaemon.run_reactive_daemon_mode(
             in_file_path,
             cmd_line,
             "run_latex",
-            watch_cmd_suffix=" --skip_action=open",
+            watch_cmd_suffix=" --skip_action=open_pdf",
         )
     else:
         # Get actions.
@@ -290,7 +290,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
                 _LOG.info("Output written to '%s'", out_file_path)
             elif action == "copy_to_gdrive":
                 _copy_to_google_drive(out_file_path)
-            elif action == "open":
+            elif action == "open_pdf":
                 hopen.open_file(out_file_path)
             else:
                 raise ValueError(f"Invalid action='{action}'")

@@ -414,6 +414,18 @@ class LLMClient:
         return model
 
 
+def get_model_id(model: str = "") -> str:
+    """
+    Resolve `model` to the "<provider>/<model>" id that `get_completion()`
+    would actually use.
+
+    :param model: model name, or "" to resolve the default model
+    :return: resolved "<provider>/<model>" id
+    """
+    client = LLMClient(model)
+    return f"{client.provider_name}/{client.model}"
+
+
 # #############################################################################
 
 

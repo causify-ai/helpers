@@ -334,6 +334,20 @@ def shutup_llm_logging() -> None:
     logging.getLogger("urllib3").setLevel(logging.WARNING)
 
 
+def get_model_id(model: str = "") -> str:
+    """
+    Resolve `model` to the model id that the "library" backend of
+    `apply_llm()` would actually use.
+
+    :param model: model name, or "" to resolve the `llm` library's
+        configured default model
+    :return: resolved model id
+    """
+    hdbg.dassert(_LLM_AVAILABLE, "llm library not found")
+    llm_model = llm.get_model(model) if model else llm.get_model()
+    return str(llm_model.model_id)
+
+
 # #############################################################################
 # Low-level utility functions
 # #############################################################################
