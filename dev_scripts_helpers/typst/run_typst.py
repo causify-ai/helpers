@@ -65,6 +65,7 @@ _VALID_ACTIONS = [
 ]
 
 _DEFAULT_ACTIONS = [
+    "render_images",
     "compile",
     "open_pdf",
 ]

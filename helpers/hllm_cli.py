@@ -12,12 +12,14 @@ import dataclasses
 import hashlib
 import json
 import logging
+import os
 import re
 import shlex
 import subprocess
 import sys
 import importlib
 import pprint
+import tempfile
 import time
 from dataclasses import dataclass
 from typing import (
@@ -567,41 +569,59 @@ def _apply_llm_via_executable(
     :return: tuple of (LLM response as string, TokenStats instance)
     """
     start_time = time.time()
-    # Build command with system prompt and model options.
-    cmd = ["llm"]
-    if system_prompt:
-        cmd.extend(["--system", system_prompt])
-    if model:
-        cmd.extend(["--model", model])
-    cmd.append(input_str)
-    _LOG.debug("Running command: %s", " ".join(cmd))
-    # Execute command with or without streaming.
-    if expected_num_chars > 0:
-        # Use streaming with progress bar.
-        proc = subprocess.Popen(
-            cmd,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-            text=True,
-        )
-        response_parts = []
-        with tqdm(total=expected_num_chars, unit="char") as pbar:
-            for line in proc.stdout:
-                response_parts.append(line)
-                pbar.update(len(line))
-        # Wait for process to complete.
-        proc.wait()
-        if proc.returncode != 0:
-            error_msg = proc.stderr.read() if proc.stderr else ""  # type: ignore
-            raise RuntimeError(
-                "llm command failed with return code: %s error: %s"
-                % (proc.returncode, error_msg)
+    # Pass the user/system prompts via `--fragment` / `--system-fragment` (each
+    # backed by a temp file) rather than inline `--system TEXT` / a positional
+    # PROMPT argument: `llm` resolves a fragment value that isn't a
+    # URL/alias/hash to the content of the file at that path, which avoids
+    # shell-arg-length / escaping issues for the (often long) prompts this
+    # module sends.
+    # TODO(ai_gp): Use a stable file like tmp.hllm_cli.system_prompt.txt and
+    # tmp.hllm_cli.user_prompt.txt (with the possibility to add a dir and
+    # and hash to avoid collisions).
+    fragment_file = tempfile.NamedTemporaryFile().name
+    hio.to_file(fragment_file, input_str)
+    system_fragment_file = None
+    try:
+        cmd = ["llm"]
+        if system_prompt:
+            system_fragment_file = tempfile.NamedTemporaryFile().name
+            hio.to_file(system_fragment_file, system_prompt)
+            cmd.extend(["--system-fragment", system_fragment_file])
+        if model:
+            cmd.extend(["--model", model])
+        cmd.extend(["--fragment", fragment_file])
+        _LOG.debug("Running command: %s", " ".join(cmd))
+        # Execute command with or without streaming.
+        if expected_num_chars > 0:
+            # Use streaming with progress bar.
+            proc = subprocess.Popen(
+                cmd,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                text=True,
             )
-        response = "".join(response_parts)
-    else:
-        # Run without progress bar.
-        cmd_str = " ".join(shlex.quote(arg) for arg in cmd)
-        _, response = hsystem.system_to_string(cmd_str)
+            response_parts = []
+            with tqdm(total=expected_num_chars, unit="char") as pbar:
+                for line in proc.stdout:
+                    response_parts.append(line)
+                    pbar.update(len(line))
+            # Wait for process to complete.
+            proc.wait()
+            if proc.returncode != 0:
+                error_msg = proc.stderr.read() if proc.stderr else ""  # type: ignore
+                raise RuntimeError(
+                    "llm command failed with return code: %s error: %s"
+                    % (proc.returncode, error_msg)
+                )
+            response = "".join(response_parts)
+        else:
+            # Run without progress bar.
+            cmd_str = " ".join(shlex.quote(arg) for arg in cmd)
+            _, response = hsystem.system_to_string(cmd_str)
+    finally:
+        os.remove(fragment_file)
+        if system_fragment_file is not None:
+            os.remove(system_fragment_file)
     elapsed_time = time.time() - start_time
     _LOG.debug("Cost calculation not available when using llm executable")
     return response, TokenStats(
