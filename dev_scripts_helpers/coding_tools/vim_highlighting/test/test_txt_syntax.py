@@ -8,7 +8,6 @@ import logging
 import os
 import shlex
 import subprocess
-import unittest
 
 import pytest
 
@@ -18,6 +17,46 @@ import helpers.hserver as hserver
 import helpers.hunit_test as hunitest
 
 _LOG = logging.getLogger(__name__)  # noqa: F841
+
+
+def _run_vim_export_syntax(
+    test_file_path: str, vimrc_path: str, scratch_dir: str
+) -> str:
+    """
+    Run Vim on `test_file_path` and extract syntax highlighting info.
+
+    :param test_file_path: file to open in Vim and inspect
+    :param vimrc_path: minimal vimrc defining `:ExportSyntax`
+    :param scratch_dir: dir where Vim writes `test_syntax_output.txt`
+    :return: syntax highlighting output from Vim
+    """
+    hdbg.dassert_file_exists(test_file_path)
+    hdbg.dassert_file_exists(vimrc_path)
+    output_file = os.path.join(scratch_dir, "test_syntax_output.txt")
+    # Run vim to export syntax information.
+    scratch_dir_tmp = shlex.quote(scratch_dir)
+    vimrc_path_tmp = shlex.quote(vimrc_path)
+    test_file_path_tmp = shlex.quote(test_file_path)
+    # - `--noplugin` and `-i NONE` isolate the run from the user's personal
+    #   Vim plugins and shada/viminfo state (e.g., autosave plugins), so this
+    #   test can't accidentally mutate the input fixture on disk.
+    # - `< /dev/null` prevents Vim from reading stray bytes off the
+    #   subprocess's inherited stdin as if they were keystrokes.
+    cmd = (
+        f"cd {scratch_dir_tmp} && vim -N -i NONE --noplugin "
+        f"-u {vimrc_path_tmp} -c ExportSyntax -c qa! "
+        f"{test_file_path_tmp} < /dev/null"
+    )
+    _LOG.info("cmd=%s", cmd)
+    # Run vim with output suppressed.
+    subprocess.run(
+        cmd, shell=True, capture_output=True, check=False, timeout=10
+    )
+    # Read the generated output file.
+    hdbg.dassert_file_exists(output_file)
+    actual = hio.from_file(output_file)
+    _LOG.info("actual=%s", actual)
+    return actual
 
 
 # #############################################################################
@@ -33,43 +72,26 @@ class TestTxtSyntaxHighlighting(hunitest.TestCase):
     Test Vim syntax highlighting for txt files.
     """
 
-    def helper(self, test_file_path: str, vimrc_path: str) -> str:
+    def helper(self) -> str:
         """
-        Helper method to run Vim and extract syntax highlighting info.
+        Run Vim and extract syntax highlighting info.
 
-        :param test_file_path: Path to the test file to analyze
-        :param vimrc_path: Path to the Vim configuration file
         :return: Syntax highlighting output from Vim
         """
-        # Get the directory where the test file is located.
-        test_dir = os.path.dirname(test_file_path)
-        output_file = os.path.join(test_dir, "test_syntax_output.txt")
-        hdbg.dassert_file_exists(test_file_path)
-        hdbg.dassert_file_exists(vimrc_path)
-        # Run vim to export syntax information.
-        test_dir_tmp = shlex.quote(test_dir)
-        vimrc_path_tmp = shlex.quote(vimrc_path)
-        test_file_path_tmp = shlex.quote(test_file_path)
-        cmd = f"cd {test_dir_tmp} && vim -u {vimrc_path_tmp} -c ExportSyntax -c qa! {test_file_path_tmp}"
-        # Run vim with output suppressed.
-        subprocess.run(
-            cmd, shell=True, capture_output=True, check=False, timeout=10
-        )
-        # Read the generated output file.
-        hdbg.dassert_file_exists(output_file)
-        return hio.from_file(output_file)
+        # Prepare inputs.
+        input_dir = self.get_input_dir(use_only_test_class=True)
+        test_file_path = os.path.join(input_dir, "test_syntax_examples.txt")
+        vimrc_path = os.path.join(input_dir, "test_minimal.vimrc")
+        scratch_dir = self.get_scratch_space()
+        actual = _run_vim_export_syntax(test_file_path, vimrc_path, scratch_dir)
+        return actual
 
-    @unittest.skip("Disabled due to timeout issues with vim subprocess")
     def test1(self) -> None:
         """
         Test that Vim successfully exports syntax highlighting information.
         """
-        # Prepare inputs.
-        current_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-        test_file = os.path.join(current_dir, "test_syntax_examples.txt")
-        vimrc_file = os.path.join(current_dir, "test_minimal.vimrc")
         # Run test.
-        actual = self.helper(test_file, vimrc_file)
+        actual = self.helper()
         # Check outputs.
         hdbg.dassert_lt(
             0, len(actual), "Syntax highlighting output should not be empty"
@@ -78,16 +100,69 @@ class TestTxtSyntaxHighlighting(hunitest.TestCase):
         self.assertIn("txtHeader1", actual)
         self.assertIn("txtHeader2", actual)
 
-    @unittest.skip("Disabled due to timeout issues with vim subprocess")
     def test2(self) -> None:
         """
         Test that syntax highlighting output matches expected golden file.
         """
-        # Prepare inputs.
-        current_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-        test_file = os.path.join(current_dir, "test_syntax_examples.txt")
-        vimrc_file = os.path.join(current_dir, "test_minimal.vimrc")
         # Run test.
-        actual = self.helper(test_file, vimrc_file)
+        actual = self.helper()
+        # Check outputs using golden file testing.
+        self.check_string(actual)
+
+
+# #############################################################################
+# TestSmdSyntaxHighlighting
+# #############################################################################
+
+
+@pytest.mark.skipif(
+    not hserver.is_host_gp_mac(), reason="Tests only run on GP's Mac"
+)
+class TestSmdSyntaxHighlighting(hunitest.TestCase):
+    """
+    Test Vim syntax highlighting for `.smd` files.
+
+    `.smd` files use the `smd` filetype, which is wired up (in the real
+    `~/.vimrc`) to use the `txt_syntax` syntax, same as `.txt` and `.md`
+    files. This test replicates that wiring in a minimal vimrc so it does
+    not depend on the user's personal dotfiles.
+    """
+
+    def helper(self) -> str:
+        """
+        Run Vim and extract syntax highlighting info.
+
+        :return: Syntax highlighting output from Vim
+        """
+        # Prepare inputs.
+        input_dir = self.get_input_dir(use_only_test_class=True)
+        test_file_path = os.path.join(input_dir, "syntax_check.smd")
+        vimrc_path = os.path.join(input_dir, "test_minimal.vimrc")
+        scratch_dir = self.get_scratch_space()
+        actual = _run_vim_export_syntax(test_file_path, vimrc_path, scratch_dir)
+        return actual
+
+    def test1(self) -> None:
+        """
+        Test that Vim successfully exports syntax highlighting information.
+        """
+        # Run test.
+        actual = self.helper()
+        # Check outputs.
+        hdbg.dassert_lt(
+            0, len(actual), "Syntax highlighting output should not be empty"
+        )
+        # Verify the output contains expected syntax group markers.
+        self.assertIn("txtHeader1", actual)
+        self.assertIn("txtHeader2", actual)
+        self.assertIn("txtBold", actual)
+        self.assertIn("txtItalic", actual)
+
+    def test2(self) -> None:
+        """
+        Test that syntax highlighting output matches expected golden file.
+        """
+        # Run test.
+        actual = self.helper()
         # Check outputs using golden file testing.
         self.check_string(actual)

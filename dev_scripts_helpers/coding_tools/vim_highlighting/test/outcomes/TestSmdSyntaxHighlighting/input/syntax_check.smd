@@ -1,0 +1,67 @@
+# Header 1 (txtHeader1 / txtHeader1Color: white on dark red)
+
+## Header 2 (txtHeader2 / txtHeader2Color: white on indigo)
+
+### Header 3 (txtHeader3 / txtHeader3Color: white on dark blue)
+
+#### Header 4 (txtHeader4 -> txtGreenBold)
+
+##### Header 5 (txtHeader5 -> txtYellowBold)
+
+Plain paragraph text, no highlighting.
+
+// Comment line 1 (txtComment1 -> Label)
+// Comment line 2
+
+/* Comment block open marker (txtComment2 -> Todo) */
+*/
+
+TODO: bare TODO keyword should highlight (txtTodo)
+FIXME: same group
+XXX: same group
+NOTE: same group
+GP: same group
+TODO(saggese): parenthesized TODO variant
+
+* Bullet question (txtBullet4 -> txtBulletDarkGray)
+*
+** Bullet question, not for Anki (txtBullet5)
+*: Cheatsheet bullet (txtBullet5)
+
+- @ Ref to follow up (txtRef -> txtYellow)
+- ? Question bullet (txtQuestion -> txtGreenWhite)
+- ! Idea bullet (txtIdea -> txtWhiteBold)
+
+Inline `key phrase` should be purple-ish (txtKey -> txtDarkPurple).
+
+**Bold text** and __bold text__ (txtBold -> cyan).
+
+*Italic text* and _italic text_ (txtItalic -> yellow italic).
+
+@Highlighted phrase@ should be purple (txtAtHighlight).
+
+Double-dollar display math: $$Y = \alpha + \beta X + \varepsilon$$
+
+Single-dollar inline math: treatment $T_i = 1$ if unit $i$ is treated,
+and outcome $Y_i$, with multiple vars $X$, $Y$, $Z$ on one line.
+
+![](path/to/image.jpg)
+
+![](path/to/image.jpg){width=1.5cm}
+
+:::: {.column width=75%}
+![](path/to/figure.png)
+::::
+
+```python
+def hello():
+    return "world"
+```
+
+```
+plain fence, no language tag
+```
+
+Mixed line: - **Treatment $T$**: indicator variable, `code`, @note@, TODO check this.
+
+msml610/lectures_source/figures/book_covers/Book_cover_AIMA.jpg

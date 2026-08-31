@@ -5,18 +5,15 @@ Compile a Typst file to PDF inside a Docker container.
 
 The script drives `typst compile` through
 `dev_scripts_helpers/dockerize/lib_typst.py`, so no local Typst installation
-is required. Rendering embedded diagram code (mermaid, tikz, graphviz, ...)
-via `render_images.py` is an optional step, not run by default. The script
-also reports any `warning:` diagnostics emitted by `typst compile` and, by
+is required. It also renders embedded diagram code (mermaid, tikz,
+graphviz, ...) via `render_images.py` before compiling. The script also
+reports any `warning:` diagnostics emitted by `typst compile` and, by
 default, asserts if any are found.
 
 # Usage Example
 
-- Compile a Typst file to PDF and open it (default actions):
+- Render diagrams, compile a Typst file to PDF, and open it (default actions):
 > run_typst.py --input lecture.typ
-
-- Render embedded diagrams (mermaid, tikz, ...) before compiling:
-> run_typst.py --input lecture.typ -a render_images
 
 - Compile without opening the PDF:
 > run_typst.py --input lecture.typ --skip_action open_pdf
@@ -68,6 +65,7 @@ _VALID_ACTIONS = [
 ]
 
 _DEFAULT_ACTIONS = [
+    "render_images",
     "compile",
     "open_pdf",
 ]
