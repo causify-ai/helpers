@@ -7,8 +7,8 @@ model: haiku
 
 - I will pass you a directory `<target>` with a project that requires Docker
 
-- Read `class_project/project_template/README.md` explaining how this project
-  uses Docker to build and execute containers
+- Read `class_project/project_template/docker_scripts.README.md` explaining how this
+  project uses Docker to build and execute containers
 - Make the Docker files in the `<target>` directory align to the reference
   `class_project/project_template` and the containers are built and executed in
   the same way

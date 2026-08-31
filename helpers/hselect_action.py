@@ -69,6 +69,17 @@ _LOG = logging.getLogger(__name__)
 #    present)
 # `--action` and `--skip_action` can be repeated and used together, but the
 # same action can't be passed to both at the same time.
+#
+# `--only_action <name>` is a separate, exclusive idiom: it overrides all of
+# the above and sets the list of actions to exactly `name` (can be repeated
+# to select more than one action). It's incompatible with `--action`,
+# `--skip_action`, `--all_actions`, and `--clear_actions`: passing any of
+# them together with `--only_action` raises an assertion.
+#
+# TODO(gp): Rename `--action` to `--add_action` to make it symmetric with
+# `--skip_action` and `--only_action` (i.e., "add" / "skip" / "only").
+# TODO(gp): `--only_action` should override all the options and set the
+# actions to only that value
 
 
 def add_action_arg(
@@ -86,6 +97,10 @@ def add_action_arg(
       both set the starting list.
     - `--action` and `--skip_action` then add / remove actions from that starting
       list and can be freely combined (see `select_actions()`)
+    - `--only_action <name>` overrides all of the above and is incompatible
+      with every other action-related option: it sets the list of actions to
+      exactly `name` (can be repeated), asserting if `--action`,
+      `--skip_action`, `--all_actions`, or `--clear_actions` is also passed
 
     Available actions are listed once in the help epilog to avoid repetition.
 
@@ -108,6 +123,16 @@ def add_action_arg(
         action="append",
         dest="action",
         help="Add an action to the list of actions to execute",
+    )
+    parser.add_argument(
+        "--only_action",
+        action="append",
+        dest="only_action",
+        help=(
+            "Run only this action (can be repeated), overriding all other "
+            "action options; incompatible with --action, --skip_action, "
+            "--all_actions, and --clear_actions"
+        ),
     )
     parser.add_argument(
         "--skip_action",
@@ -173,7 +198,13 @@ def select_actions(
     `--action` then adds actions to that list (warning if an action is
     already present) and `--skip_action` removes actions from it (warning if
     an action is not present). The same action can't be passed to both
-    `--action` and `--skip_action`.
+    `--skip_action` and `--action`.
+
+    `--only_action <name>` overrides all of the above: it sets the list of
+    actions to exactly the specified action(s), regardless of
+    `default_actions`, and it's incompatible with every other action-related
+    option (`--action`, `--skip_action`, `--all_actions`, `--clear_actions`),
+    which is enforced with an assertion.
 
     :param args: command line arguments
     :param valid_actions: list of valid actions
@@ -188,6 +219,38 @@ def select_actions(
     # Convert to lists since through some code paths they can be tuples.
     action = list(args.action) if args.action else []
     skip_action = list(args.skip_action) if args.skip_action else []
+    only_action = (
+        list(args.only_action) if getattr(args, "only_action", None) else []
+    )
+    if only_action:
+        # `--only_action` overrides everything else and is incompatible with
+        # any other action-related option.
+        hdbg.dassert(
+            not action,
+            "You can't specify --action together with --only_action",
+        )
+        hdbg.dassert(
+            not skip_action,
+            "You can't specify --skip_action together with --only_action",
+        )
+        hdbg.dassert(
+            not args.all_actions,
+            "You can't specify --all_actions together with --only_action",
+        )
+        hdbg.dassert(
+            not args.clear_actions,
+            "You can't specify --clear_actions together with --only_action",
+        )
+        for curr_action in only_action:
+            hdbg.dassert_in(
+                curr_action,
+                valid_actions,
+                "Invalid action '%s'",
+                curr_action,
+            )
+        # Reorder actions according to 'valid_actions'.
+        actions = [a for a in valid_actions if a in only_action]
+        return actions
     # Validate the actions specified by the user.
     for curr_action in action + skip_action:
         hdbg.dassert_in(

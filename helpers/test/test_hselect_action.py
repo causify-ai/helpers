@@ -95,6 +95,19 @@ class Test_add_action_arg(hunitest.TestCase):
         with self.assertRaises(SystemExit):
             self.helper(argv)
 
+    def test5(self) -> None:
+        """
+        Test that `--only_action` accepts repeated values.
+        """
+        # Prepare inputs.
+        argv = ["--only_action", "a", "--only_action", "c"]
+        # Prepare outputs.
+        expected = ["a", "c"]
+        # Run test.
+        args = self.helper(argv)
+        # Check outputs.
+        self.assertEqual(args.only_action, expected)
+
 
 # #############################################################################
 # Test_actions_to_string
@@ -376,6 +389,111 @@ class Test_select_actions(hunitest.TestCase):
         # Run test and check output.
         with self.assertRaises(AssertionError):
             hselacti.select_actions(args, valid_actions, default_actions)
+
+    def test14(self) -> None:
+        """
+        Test that `--only_action` alone ignores the defaults and selects
+        only the specified action.
+        """
+        # Prepare inputs.
+        argv = ["--only_action", "c"]
+        valid_actions = ["a", "b", "c"]
+        default_actions = ["a", "b"]
+        # Prepare outputs.
+        expected = ["c"]
+        # Run test.
+        actual = self.helper(argv, valid_actions, default_actions)
+        # Check outputs.
+        self.assertEqual(actual, expected)
+
+    def test15(self) -> None:
+        """
+        Test that repeated `--only_action` selects all of the specified
+        actions.
+        """
+        # Prepare inputs.
+        argv = ["--only_action", "c", "--only_action", "a"]
+        valid_actions = ["a", "b", "c"]
+        default_actions = ["a", "b"]
+        # Prepare outputs.
+        expected = ["a", "c"]
+        # Run test.
+        actual = self.helper(argv, valid_actions, default_actions)
+        # Check outputs.
+        self.assertEqual(actual, expected)
+
+    def test16(self) -> None:
+        """
+        Test that `--only_action` combined with `--action` raises.
+        """
+        # Prepare inputs.
+        argv = ["--only_action", "c", "--action", "a"]
+        valid_actions = ["a", "b", "c"]
+        default_actions = ["a", "b"]
+        # Run test and check output.
+        with self.assertRaises(AssertionError):
+            self.helper(argv, valid_actions, default_actions)
+
+    def test17(self) -> None:
+        """
+        Test that `--only_action` combined with `--skip_action` on the same
+        action raises.
+        """
+        # Prepare inputs.
+        argv = ["--only_action", "c", "--skip_action", "c"]
+        valid_actions = ["a", "b", "c"]
+        default_actions = ["a", "b"]
+        # Run test and check output.
+        with self.assertRaises(AssertionError):
+            self.helper(argv, valid_actions, default_actions)
+
+    def test18(self) -> None:
+        """
+        Test that `--only_action` together with `--all_actions` raises.
+        """
+        # Prepare inputs.
+        valid_actions = ["a", "b", "c"]
+        default_actions = ["a", "b"]
+        args = argparse.Namespace(
+            action=None,
+            skip_action=None,
+            only_action=["c"],
+            all_actions=True,
+            clear_actions=False,
+        )
+        # Run test and check output.
+        with self.assertRaises(AssertionError):
+            hselacti.select_actions(args, valid_actions, default_actions)
+
+    def test19(self) -> None:
+        """
+        Test that `--only_action` together with `--clear_actions` raises.
+        """
+        # Prepare inputs.
+        valid_actions = ["a", "b", "c"]
+        default_actions = ["a", "b"]
+        args = argparse.Namespace(
+            action=None,
+            skip_action=None,
+            only_action=["c"],
+            all_actions=False,
+            clear_actions=True,
+        )
+        # Run test and check output.
+        with self.assertRaises(AssertionError):
+            hselacti.select_actions(args, valid_actions, default_actions)
+
+    def test20(self) -> None:
+        """
+        Test that an invalid action passed to `--only_action` raises.
+        """
+        # Prepare inputs.
+        argv = ["--only_action", "invalid"]
+        valid_actions = ["a", "b", "c"]
+        default_actions = ["a", "b"]
+        # Run test and check output.
+        with self.assertRaises(AssertionError):
+            self.helper(argv, valid_actions, default_actions)
 
 
 # #############################################################################

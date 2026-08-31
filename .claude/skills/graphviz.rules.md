@@ -128,6 +128,13 @@ separate sections: "Flat Style" and "Architecture Style"
 - Use `\n` for line breaks in labels
 - Add `rounded` style to box shapes for a softer appearance
 - Increase `penwidth` for emphasis or importance
+- When the first line of a multi-line label is a title/heading (e.g. a step
+  name, a phase number), bold it with an HTML-like label so it stands out
+  from the detail line(s) below it: `label=<<b>1. Selection</b><br/>Tree
+  policy (UCT)>`
+  - HTML-like labels use `<br/>` for line breaks, not `\n`
+  - This applies in flat style too, not only the architecture two-tier
+    pattern (see "Avoid HTML-like Labels for Plain Text")
 
 # Edge Styling
 
@@ -140,8 +147,9 @@ separate sections: "Flat Style" and "Architecture Style"
 ## Edge Semantics (Architecture Style)
 - Solid edge = normal/required data or control flow
 - `style=dashed` edge = optional, pluggable, feedback, or "iterate/loop back"
-  flow; label it with the short verb phrase describing the flow (e.g.
-  "iterate", "Gates eligibility", "Fan-out")
+  flow
+  - Label it with the short, capitalized verb phrase describing the flow (e.g.
+    "Iterate", "Gates eligibility", "Fan-out")
 - Bump `penwidth` (e.g. 1.6) and give a saturated `color`/`fontcolor` (e.g.
   `#C0455B`) only on the one or two edges that carry the diagram's key
   narrative (the "so what" flow), to make them pop against the neutral
@@ -152,8 +160,10 @@ separate sections: "Flat Style" and "Architecture Style"
   relationship
 
 ## Labels and Arrows
-- Center label text with spaces, e.g. `"  label  "` (looks better than the
+- Center label text with spaces, e.g. `"  Label  "` (looks better than the
   default)
+- Capitalize the first letter of edge label text, e.g. `label="  Loop  "`, not
+  `label="  loop  "`
 - Use `fontcolor` to match or contrast with the edge `color`
 - `labelpos="t"` places the label at the top, useful for tall diagrams
 - Arrow types: `arrowhead="normal"` (default), `arrowhead="diamond"`,
@@ -215,7 +225,8 @@ separate sections: "Flat Style" and "Architecture Style"
 - Use multiple lines with `\n` instead
 - Reserve HTML-like labels for the two-tier name+subtitle pattern in the
   architecture style (see the "Architecture Style" section of
-  `.claude/templates/graphviz.template.md`)
+  `.claude/templates/graphviz.template.md`), or for bolding the first line of
+  a flat-style multi-line label (see "Emphasis and Multi-line Labels")
 
 # Color Palettes for Different Domains
 

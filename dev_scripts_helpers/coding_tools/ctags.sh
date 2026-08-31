@@ -1,6 +1,12 @@
 #!/usr/bin/env bash
+# """
+# Build and run universal-ctags inside a container to generate a `tags` file
+# for the current directory, without requiring ctags to be installed on the
+# host.
 #
-# Dockerized ctags
+# The container engine is auto-detected: Docker if it is installed and
+# running, otherwise Apple's native `container` CLI (macOS only). Force one
+# explicitly with `--engine` or `CONTAINER_ENGINE`.
 #
 # sudo apt install universal-ctags
 # rm tags
@@ -8,18 +14,32 @@
 #
 # Skip extra dirs with -e/--exclude (repeatable):
 # > ctags.sh --exclude node_modules --exclude build
+#
+# Force a specific container engine:
+# > ctags.sh --engine docker
+# > ctags.sh --engine container
+# > CONTAINER_ENGINE=container ctags.sh
+# """
 
 set -eu
 
 # Dirs always excluded.
 EXCLUDE_DIRS=(".git" ".mypy_cache")
 
-# Parse `-e|--exclude DIR` options, forward everything else untouched.
+# Container engine to use ("docker" or "container"). Empty means auto-detect.
+ENGINE="${CONTAINER_ENGINE:-}"
+
+# Parse `-e|--exclude DIR` and `--engine ENGINE` options, forward everything
+# else untouched.
 ARGS=()
 while [[ $# -gt 0 ]]; do
     case "$1" in
         -e|--exclude)
             EXCLUDE_DIRS+=("$2")
+            shift 2
+            ;;
+        --engine)
+            ENGINE="$2"
             shift 2
             ;;
         *)
@@ -34,6 +54,51 @@ EXCLUDE_OPTS=""
 for dir in "${EXCLUDE_DIRS[@]}"; do
     EXCLUDE_OPTS+=" --exclude=${dir}"
 done
+
+# #############################################################################
+# Pick the container engine.
+# #############################################################################
+
+detect_engine() {
+    # """
+    # Pick a container engine when none was requested explicitly, preferring
+    # Docker (widely available) over Apple's `container` CLI (macOS-only).
+
+    # :return: print "docker" or "container" to stdout, or nothing if neither
+    #     is usable
+    # """
+    if command -v docker >/dev/null 2>&1 && docker info >/dev/null 2>&1; then
+        echo "docker"
+    elif command -v container >/dev/null 2>&1; then
+        echo "container"
+    fi
+}
+
+if [[ -z "$ENGINE" ]]; then
+    ENGINE="$(detect_engine)"
+fi
+
+if [[ "$ENGINE" != "docker" && "$ENGINE" != "container" ]]; then
+    echo "ERROR: no container engine found (need 'docker' or Apple's 'container')" >&2
+    echo "Install Docker (https://docker.com) or Apple's container tool" \
+        "(https://github.com/apple/container), or pass --engine explicitly." >&2
+    exit 1
+fi
+if ! command -v "$ENGINE" >/dev/null 2>&1; then
+    echo "ERROR: engine '${ENGINE}' is not installed" >&2
+    exit 1
+fi
+echo "Using container engine: ${ENGINE}"
+
+if [[ "$ENGINE" == "container" ]]; then
+    # Apple's `container` CLI needs its VM-backed service running, both to
+    # build and to run images. This is a no-op if it is already running.
+    container system start >/dev/null 2>&1 || true
+fi
+
+# #############################################################################
+# Build the image with universal-ctags built from source.
+# #############################################################################
 
 cat >/tmp/tmp.dockerfile <<EOF
 FROM ubuntu:20.04
@@ -62,7 +127,7 @@ RUN cd ctags && \
 RUN ctags --version
 EOF
 
-docker build -f /tmp/tmp.dockerfile -t ctags .
+"$ENGINE" build -f /tmp/tmp.dockerfile -t ctags .
 
 # Only allocate tty if one is detected. See - https://stackoverflow.com/questions/911168
 #if [[ -t 0 ]]; then IT+=(-i); fi
@@ -84,9 +149,13 @@ chmod +x ./run_tags.sh
 
 CMD="bash -c './run_tags.sh'"
 
+# #############################################################################
+# Run the container, mounting the current dir to generate `tags` in place.
+# #############################################################################
+
 #OPTS="--user "${USER}"
 OPTS=""
-docker run --rm -it $OPTS --workdir "${WORKDIR}" --mount "${MOUNT}" ctags:latest $CMD "$@"
+"$ENGINE" run --rm -it $OPTS --workdir "${WORKDIR}" --mount "${MOUNT}" ctags:latest $CMD "$@"
 
 # To debug:
 # > docker run --rm -it --user 2908:2908 --workdir /local/home/gsaggese/src/sasm-lime6/amp --mount type=bind,source=/local/home/gsaggese/src/sasm-lime6/amp,target=/local/home/gsaggese/src/sasm-lime6/amp ctags:latest

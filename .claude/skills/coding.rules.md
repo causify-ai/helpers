@@ -347,6 +347,45 @@
                   raise
   ```
 
+## Inline Trivial Constants Used Once
+
+- If a constant is used in only one place and its value is trivial (a plain
+  literal, short string, or simple number), inline the value directly at the
+  usage site instead of naming it as a constant
+- If the value is not trivial (e.g., a regex, a multi-part expression), do not
+  inline it: keep it as a named constant at the smallest possible scope and
+  add a comment explaining what it matches or represents
+  - For a complex regex, also follow `## Explain Complex Regex`
+
+- **Bad** (named constant for a trivial single-use value)
+  ```python
+  def parse_line(line: str) -> str:
+      _SEPARATOR = ","
+      return line.split(_SEPARATOR)[0]
+  ```
+- **Good** (inline the trivial value)
+  ```python
+  def parse_line(line: str) -> str:
+      return line.split(",")[0]
+  ```
+
+- **Good** (non-trivial value kept as a documented, narrowly-scoped constant)
+  ```python
+  def _parse_system_df_row(line: str) -> Optional[Dict[str, str]]:
+      # Match a `docker system df` row: type, total, active, size,
+      # reclaimable, with an optional trailing "(NN%)" reclaimable percentage.
+      _SYSTEM_DF_ROW_RE = re.compile(
+          r"^(?P<type>[A-Za-z ]+?)\s{2,}"
+          r"(?P<total>\d+)\s+"
+          r"(?P<active>\d+)\s+"
+          r"(?P<size>\S+)\s+"
+          r"(?P<reclaimable>\S+)"
+          r"(?:\s+\(\d+%\))?\s*$"
+      )
+      match = _SYSTEM_DF_ROW_RE.match(line)
+      ...
+  ```
+
 ## Keep Shared Constants in Global Scope
 - Only place constants in the module's global scope when they are used by multiple
   functions or classes
@@ -1205,6 +1244,24 @@ prefix it with an underscore to mark it as private
   _LOG.debug("return=%s", ...)
   ```
 
+## Use `hprint.frame` for Framed Log Headers
+
+- Do not build a framed header manually with repeated separator lines around a
+  `_LOG` call; use `hprint.frame()` instead
+- This avoids repeating the separator string and keeps the framing logic in
+  one place
+
+- **Bad**: manual separator lines around a log message
+  ```python
+  _LOG.info("%s", "#" * 80)
+  _LOG.info("Engine: '%s'", engine)
+  _LOG.info("%s", "#" * 80)
+  ```
+- **Good**: use `hprint.frame()`
+  ```python
+  _LOG.info("\n%s", hprint.frame("Engine: '%s'" % engine))
+  ```
+
 ## Enclose Variables in Single Quotes in Log Messages
 
 - When logging messages that include variable values for user display, enclose
@@ -1222,136 +1279,9 @@ prefix it with an underscore to mark it as private
 
 # Script Structure
 
-## Use Script Template
-
-- When creating scripts use the script template
-  `dev_scripts_helpers/coding_tools/script_template.py`
-
-- Create a parser function
-  ```python
-  def _parse() -> argparse.ArgumentParser:
-
-  def _main(parser: argparse.ArgumentParser) -> None:
-  ```
-
-## Use Module Docstring for Parser Description
-
-- When creating an `ArgumentParser`, use the module docstring as the parser
-  description via `description=__doc__` instead of hardcoding a string
-- This keeps the parser help and module documentation in sync and reduces
-  duplication
-  - **Bad**: Hardcoded description string separate from module docstring
-    ```python
-    """
-    Script to process data files.
-    """
-
-    def _parse() -> argparse.ArgumentParser:
-        parser = argparse.ArgumentParser(
-            description="Script to process data files."
-        )
-        return parser
-    ```
-  - **Good**: Use module docstring for parser description with proper formatter
-    ```python
-    """
-    Script to process data files.
-    """
-
-    import helpers.hparser as hparser
-
-    def _parse() -> argparse.ArgumentParser:
-        parser = argparse.ArgumentParser(
-            description=__doc__,
-            formatter_class=hparser.CustomHelpFormatter,
-        )
-        return parser
-    ```
-
-## Script Shebang and Dependencies
-
-- For scripts with external package dependencies, use the `uv run` shebang with
-  inline script dependencies:
-  ```python
-  #!/usr/bin/env -S uv run
-
-  # /// script
-  # dependencies = ["pydeps", "networkx", "pyyaml", "graphviz"]
-  # ///
-  ```
-- List all external (non-stdlib, non-helpers) packages required by the script in
-  the `dependencies` array
-- This allows scripts to be run directly without pre-installing packages: `./script.py`
-
-## Make Scripts Executable
-
-- When creating a Python script, run `chmod +x` on it to make it executable
-- Every executable script must have a shebang line at the top:
-  - For Python 3 scripts: `#!/usr/bin/env python3`
-  - For bash scripts: `#!/bin/bash`
-- This allows scripts to be executed directly (e.g., `./script.py`) without
-  prepending `python`
-
-## Script Docstring Usage Examples
-
-- When writing docstrings or comments to explain how to use a script
-  - Do not use the entire file path and do not prepend with `python`
-  - Do not prepend the script name with `./`: scripts are always executable and
-    `PATH` resolution is handled automatically, so the leading `./` is redundant
-  - Refer to scripts using their simple filename, both in the README/comments and
-    in docstring usage examples
-  - Introduce the usage section with the markdown header `# Usage Example`
-  - Format each usage example as a bullet point: a short description ending in
-    `:`, followed on the next line by the command prefixed with `>`
-  - Separate usage examples with a blank line
-
-- **Bad**: Uses full path and `python` prefix
-  ```python
-  """
-  > python dev_scripts_helpers/llms/llm_cli.py -i some.md ...
-  """
-  ```
-  ```
-  # Run the script: python standardize_book_filename.py
-  # Usage: python ./convert_epub_to_md.py input.epub output.md
-  ```
-- **Bad**: Uses `./` prefix or full relative path
-  ```
-  > ./manage_cache.py --action test
-  > dev_scripts_helpers/cache/manage_cache.py --action test
-  ```
-- **Bad**: No `# Usage Example` header, and no description explaining each
-  example
-  ```python
-  """
-  Usage examples:
-  > manage_cache.py --action print_info
-  > manage_cache.py --action clear_all
-  > manage_cache.py --action clear_mem
-  """
-  ```
-- **Good**: `# Usage Example` header with a bullet description before each
-  command
-  ```python
-  """
-  # Usage Example
-
-  - Print the GitHub URL for a file on the current branch:
-  > to_github.py --input helpers/hdbg.py
-
-  - Print the GitHub URL for a file on the master branch:
-  > to_github.py --input helpers/hdbg.py --use_master
-
-  - Print the GitHub URL and open it in the default web browser:
-  > to_github.py --input helpers/hdbg.py --open
-
-  - Print the GitHub URL and copy it to the system clipboard:
-  > to_github.py --input helpers/hdbg.py --pbcopy
-
-  - Print the GitHub URL after verifying that it resolves:
-  > to_github.py --input helpers/hdbg.py --check_exists
-  """
-  ```
+- When writing or changing a Python script follow the rules
+  `.claude/skills/script.rules.md` (e.g., templates, docstring usage examples,
+  shebang, and executable-bit conventions)
 
 ## Create Dirs
 
@@ -1365,91 +1295,6 @@ prefix it with an underscore to mark it as private
   files
   - No need to clean up files
 
-# Command-Line Argument Parsing
-
-## Use Standard Argument Helpers From `hparser`
-
-- Use `hparser` helper functions to add standard arguments instead of defining
-  them manually
-- This ensures consistency across all scripts in the project
-
-- For verbosity/logging level:
-  ```python
-  import helpers.hparser as hparser
-  hparser.add_verbosity_arg(parser)
-  # In _main(): hdbg.init_logger(verbosity=args.log_level, use_exec_path=True)
-  ```
-
-- For limit range arguments:
-  ```python
-  hparser.add_limit_range_arg(parser)
-  # In _main(): limit_range = hparser.parse_limit_range_args(args)
-  ```
-
-## Use Action Idiom
-
-- When using actions in a script use the code and idiom from
-  `./helpers/hselect_action.py`
-
-## Command Line Argument Naming
-
-- Use only underscores as separators in command line arguments, not dashes
-  - **Good**: `--cache_reset`, `--max_iterations`, `--output_dir`
-  - **Bad**: `--cache-reset`, `--max-iterations`, `--output-dir`
-- This applies to both long-form argument names and the attribute names assigned
-  by argparse (which converts `_` to `_` in the namespace)
-
-## Use Mutually Exclusive Groups for Conflicting Options
-
-- When options are mutually exclusive, use `add_mutually_exclusive_group()` to
-  enforce the constraint in argparse instead of validating manually in code
-- This provides automatic conflict detection and generates proper help text
-
-- **Bad**: Manual validation for mutually exclusive options
-  ```python
-  parser.add_argument("--input_file", type=str, default="")
-  parser.add_argument("--input_text", type=str, default="")
-  
-  def _main(args: argparse.Namespace) -> None:
-      if args.input_file and args.input_text:
-          raise ValueError("Cannot specify both --input_file and --input_text")
-      if not args.input_file and not args.input_text:
-          raise ValueError("Must specify either --input_file or --input_text")
-  ```
-- **Good**: Use `add_mutually_exclusive_group()` in parser
-  ```python
-  input_group = parser.add_mutually_exclusive_group(required=True)
-  input_group.add_argument("--input_file", type=str, default="")
-  input_group.add_argument("--input_text", type=str, default="")
-  # Argument validation is handled automatically by argparse
-  ```
-
-## Do Not Repeat Default Values in Argument Help Text
-
-- When adding arguments to a parser, do not include the default value in the help
-  text since the `default=` parameter already documents it
-- Repeating the default in help text creates redundancy and maintenance burden
-
-- **Bad**: Default value repeated in help text
-  ```python
-  parser.add_argument(
-      "--browser",
-      type=str,
-      default="safari",
-      choices=["safari", "chrome"],
-      help="Browser to use for capturing (default: safari)",
-  )
-  ```
-- **Good**: Help text without redundant default value
-  ```python
-  parser.add_argument(
-      "--browser",
-      type=str,
-      default="safari",
-      choices=["safari", "chrome"],
-      help="Browser to use for capturing",
-  )
-  ```
 
 ## Use Single Types With Meaningful Defaults for Parser Inputs
 

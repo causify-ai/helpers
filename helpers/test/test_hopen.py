@@ -36,7 +36,7 @@ class Test_open_unknown(hunitest.TestCase):
         Test unknown OS raises an error.
         """
         with self.assertRaises(AssertionError) as cm:
-            hopen._cmd_open_html("b.html", "UnknownOS")
+            hopen._cmd_open_generic("b.html", "UnknownOS")
         # Check error text.
         self.assertIn("UnknownOS", str(cm.exception))
 
@@ -56,21 +56,21 @@ class Test_open_html(hunitest.TestCase):
         """
         Test Linux.
         """
-        cmd = hopen._cmd_open_html("a.html", "Linux")
+        cmd = hopen._cmd_open_generic("a.html", "Linux")
         self.check_string(str(cmd))
 
     def test_windows1(self) -> None:
         """
         Test Windows.
         """
-        cmd = hopen._cmd_open_html("b.html", "Windows")
+        cmd = hopen._cmd_open_generic("b.html", "Windows")
         self.check_string(str(cmd))
 
     def test_mac1(self) -> None:
         """
         Test Darwin.
         """
-        cmd = hopen._cmd_open_html("c.html", "Darwin")
+        cmd = hopen._cmd_open_generic("c.html", "Darwin")
         self.check_string(str(cmd))
 
 
@@ -89,5 +89,5 @@ class Test_open_pdf(hunitest.TestCase):
         """
         Test Darwin.
         """
-        cmd = hopen._cmd_open_html("a.pdf", "Darwin")
+        cmd = hopen._cmd_open_generic("a.pdf", "Darwin")
         self.check_string(str(cmd))

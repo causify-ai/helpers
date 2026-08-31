@@ -5,7 +5,7 @@ Extract headers from Markdown, LaTeX, txt slide, or Jupyter notebook files and
 generate a Vim cfile.
 
 The script:
-- Processes the input Markdown `.md`, LaTeX `.tex`, txt slide `.txt`, or
+- Processes the input Markdown `.md`, `.smd` (slides), LaTeX `.tex`, `.txt`, or
   Jupyter notebook `.ipynb` file
 - Extracts headers up to a specified maximum level
   - Markdown: # (level 1), ## (level 2), ### (level 3), etc.
@@ -445,7 +445,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
     _, ext = os.path.splitext(in_file_name)
     warn_on_malformed = args.warn_on_malformed
     count_slides = args.count_slides
-    if ext == ".md":
+    if ext in (".md", ".smd"):
         _extract_headers_from_markdown(
             in_file_name,
             input_content,

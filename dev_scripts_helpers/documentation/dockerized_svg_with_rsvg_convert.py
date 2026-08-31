@@ -11,6 +11,7 @@ import logging
 
 import helpers.hdbg as hdbg
 import helpers.hdocker as hdocker
+import helpers.hopen as hopen
 import dev_scripts_helpers.dockerize.lib_svg as dshdlisv
 import helpers.hparser as hparser
 
@@ -47,7 +48,7 @@ def _parse() -> argparse.ArgumentParser:
         help="Output format (default: png)",
     )
     hdocker.add_dockerized_script_arg(parser)
-    hdocker.add_open_arg(parser)
+    hopen.add_open_arg(parser)
     hparser.add_verbosity_arg(parser)
     return parser
 
@@ -66,7 +67,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
     )
     _LOG.info("Output written to '%s'", args.output)
     if args.open:
-        hdocker.open_file_on_macos(args.output)
+        hopen.open_file(args.output, app=args.open_app)
 
 
 if __name__ == "__main__":

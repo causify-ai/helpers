@@ -333,13 +333,19 @@ def create_dir(
 # #############################################################################
 
 
-def create_soft_link(src: str, dst: str) -> None:
+def create_soft_link(
+    src: str, dst: str, *, use_relative_path: bool = False
+) -> None:
     """
     Create a soft-link to <src> called <dst> (where <src> and <dst> are files
     or directories as in a Linux ln command).
 
     This is equivalent to a command like "cp <src> <dst>" but creating a
     soft link.
+
+    :param use_relative_path: if True, point the link to `src` expressed
+        relative to the directory containing `dst`, instead of to the
+        absolute path of `src`
     """
     _LOG.debug("# CreateSoftLink")
     # hs3.dassert_is_not_s3_path(src)
@@ -348,8 +354,13 @@ def create_soft_link(src: str, dst: str) -> None:
     enclosing_dir = os.path.dirname(dst)
     _LOG.debug("enclosing_dir=%s", enclosing_dir)
     create_dir(enclosing_dir, incremental=True)
-    # Create the link. Note that the link source needs to be an absolute path.
-    src = os.path.abspath(src)
+    # Create the link.
+    if use_relative_path:
+        # Express `src` relative to the directory containing `dst`.
+        src = os.path.relpath(src, enclosing_dir or ".")
+    else:
+        # Note that the link source needs to be an absolute path.
+        src = os.path.abspath(src)
     cmd = f"ln -s {src} {dst}"
     hsystem.system(cmd)
 

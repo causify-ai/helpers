@@ -40,8 +40,8 @@ This skill supports two modes:
 - Make sure not to change the behavior unless needed
 
 ## Step 4
-- Update `class_project/project_template/README.md` explaining how this project
-  uses Docker to build and execute containers given the new changes
+- Update `class_project/project_template/docker_scripts.README.md` explaining how
+  this project uses Docker to build and execute containers given the new changes
 
 # Verification (both modes)
 - Make sure that all the `docker_*.sh` scripts work running them directly or

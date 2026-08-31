@@ -4,16 +4,16 @@ model: opus
 ---
 
 - Given the content of a book in the form of a markdown or tex file `<TARGET>` and
-  a source file `<FILE>`, find and incorporate the changes from `<FILE>` into
+  a source file `<SOURCE>`, find and incorporate the changes from `<SOURCE>` into
   `<TARGET>`
 
-- The file `<FILE>` contains a header with the last version, in terms of Git hash
+- The file `<SOURCE>` contains a header with the last version, in terms of Git hash
   and timestamp, of the material used to generate the current version of
   `<TARGET>`
   - E.g.,
     ```text
     % git_hash=<GIT_HASH>, timestamp=<TIMESTAMP>
-    % <FILE>
+    % <SOURCE>
     ```
   - E.g.,
     ```text
@@ -21,7 +21,7 @@ model: opus
     % book_springer/lectures_source/Lesson02.1_From_Data_Science_To_Decision_Science.txt
     ```
 
-- Find what changed in `<FILE>` from `<GIT_HASH>` to now, and modify `<TARGET>` to
+- Find what changed in `<SOURCE>` from `<GIT_HASH>` to now, and modify `<TARGET>` to
   incorporate those changes
 
 - Follow the same style as `<TARGET>` (e.g., read the corresponding

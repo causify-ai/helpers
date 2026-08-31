@@ -115,7 +115,7 @@ def _parse() -> argparse.ArgumentParser:
     parser.add_argument(
         "--timeout_in_secs",
         type=int,
-        default=10,
+        default=5,
         help="Max number of seconds to wait for `docker container ps`",
     )
     parser.add_argument(

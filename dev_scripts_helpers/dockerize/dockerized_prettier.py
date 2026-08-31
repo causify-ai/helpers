@@ -33,9 +33,9 @@ specified file using the provided `prettier` options.
 import argparse
 import logging
 
-import dev_scripts_helpers.dockerize.dockerized_utils as dshddou
 import dev_scripts_helpers.dockerize.lib_prettier as dshdlipr
 import helpers.hdocker as hdocker
+import helpers.hopen as hopen
 import helpers.hselect_input_output as hseinout
 import helpers.hparser as hparser
 
@@ -52,7 +52,7 @@ def _parse() -> argparse.ArgumentParser:
     )
     hseinout.add_input_output_args(parser)
     hdocker.add_dockerized_script_arg(parser)
-    dshddou.add_open_arg(parser)
+    hopen.add_open_arg(parser)
     hparser.add_verbosity_arg(parser)
     return parser
 
@@ -77,7 +77,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
     )
     _LOG.info("Output written to '%s'", out_file_name)
     if args.open:
-        dshddou.open_file_on_macos(out_file_name)
+        hopen.open_file(out_file_name, app=args.open_app)
 
 
 if __name__ == "__main__":
