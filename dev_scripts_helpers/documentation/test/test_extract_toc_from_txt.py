@@ -448,6 +448,21 @@ class Test_extract_toc_from_txt_py_main(hunitest.TestCase):
         # Run test.
         self._helper_extract_headers(".md", content, expected)
 
+    def test1b(self) -> None:
+        """
+        Test extracts markdown headers via the `.smd` dispatch
+        branch.
+        """
+        # Prepare inputs.
+        content = """
+        # Chapter 1
+        Text.
+        """
+        content = hprint.dedent(content)
+        expected = "# Chapter 1"
+        # Run test.
+        self._helper_extract_headers(".smd", content, expected)
+
     def test2(self) -> None:
         """
         Test unsupported file extension raises a `ValueError`.

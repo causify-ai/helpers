@@ -1,20 +1,5 @@
-Step 1
-Add a --stats_file output for 
+Expand extract_toc_from_txt.py -i msml610/book/Lesson01.2-AI_and_Machine_Learning.typ
+to handle also typst files, by capturing headers with level 1 =, level 2 ==, and so
+on. This is the same as markdown but using = instead of #. 
 
-/Users/saggese/src/umd_classes1/helpers_root/dev_scripts_helpers/llms/llm_cli.py --input=bookmarks/2026-08-15.hn_49314902.Software_Engineering_fundamentals_matter_more.3.hn_url.txt --output=bookmarks/2026-08-15.hn_49314902.Software_Engineering_fundamentals_matter_more.4.hn_url.summary.md --pf=tmp.summarize_text_with_llm.prompt.txt --model=gpt-4o-mini --lint
-
-to save the info like:
-- model: ...
-- number of chars in (approximate tokens) for input
-- number of chars out (tokens)
-- number of chars prompt (tokens)
-- wallclock time to summarize
-- cost
-
-Step 2
-In process_bookmarks.py read the stats for both summarization tasks
-and add information about 
-- wallclock time to download
-and the information from the stats_file for both phases
-
-- Save a new file associated to the output with the stats
+Make a proposal on how to generalize the code?
