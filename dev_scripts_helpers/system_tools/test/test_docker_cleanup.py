@@ -148,7 +148,9 @@ class Test__cleanup_engine(hunitest.TestCase):
     def test3(self) -> None:
         """
         Test that a dry run on the apple engine skips the unsupported
-        network and build-cache steps.
+        network step and the destructive build-cache step (the builder
+        status is still checked, since that check is not gated on
+        `dry_run`).
         """
         # Prepare outputs.
         expected = r"""[
@@ -160,6 +162,11 @@ class Test__cleanup_engine(hunitest.TestCase):
         {
         'function': hsystem.system_to_string,
         'args': ('container list --all',),
+        'kwargs': {'abort_on_error': False},
+        },
+        {
+        'function': hsystem.system_to_string,
+        'args': ('container builder status',),
         'kwargs': {'abort_on_error': False},
         },
         {
@@ -708,7 +715,11 @@ class Test__cleanup_unused_networks(hunitest.TestCase):
         ):
             dsstdocl._cleanup_unused_networks("docker", dry_run=False)
         # Check outputs.
-        system_mock.assert_called_once_with(expected_cmd)
+        # `system_to_string` is also called to list dangling networks before
+        # the prune call below, so check the most recent (prune) call rather
+        # than requiring it to be the only call.
+        system_to_string_mock.assert_called_with(expected_cmd)
+        system_mock.assert_not_called()
 
     def test2(self) -> None:
         """
@@ -741,13 +752,18 @@ class Test__cleanup_build_cache(hunitest.TestCase):
     # TODO(ai_gp): Factor out common code and use mock_sys_call.
     def test1(self) -> None:
         """
-        Test that the apple engine skips build-cache pruning without
-        issuing any system call.
+        Test that the apple engine checks the builder status and, finding
+        no builder container, skips pruning without issuing any further
+        system call.
         """
+        # Prepare inputs.
+        # Header row only: no builder container exists.
+        status_output = "STATUS\n"
         # Run test.
         with (
             mock.patch(
-                "helpers.hsystem.system_to_string"
+                "helpers.hsystem.system_to_string",
+                return_value=(0, status_output),
             ) as system_to_string_mock,
             mock.patch("helpers.hsystem.system") as system_mock,
         ):
@@ -755,7 +771,9 @@ class Test__cleanup_build_cache(hunitest.TestCase):
                 "apple", dry_run=False, system_df={}
             )
         # Check outputs.
-        system_to_string_mock.assert_not_called()
+        system_to_string_mock.assert_called_once_with(
+            "container builder status", abort_on_error=False
+        )
         system_mock.assert_not_called()
 
     def test2(self) -> None:
@@ -800,4 +818,5 @@ class Test__cleanup_build_cache(hunitest.TestCase):
                 "docker", dry_run=False, system_df=system_df
             )
         # Check outputs.
-        system_mock.assert_called_once_with(expected_cmd)
+        system_to_string_mock.assert_called_once_with(expected_cmd)
+        system_mock.assert_not_called()

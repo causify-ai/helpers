@@ -2203,7 +2203,6 @@ class Test_lint_text2(hunitest.TestCase):
         <!-- tocstop -->
 
         - Good
-
         - Hello
 
         ```test
