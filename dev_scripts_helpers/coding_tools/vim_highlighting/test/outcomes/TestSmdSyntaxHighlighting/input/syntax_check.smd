@@ -64,4 +64,8 @@ plain fence, no language tag
 
 Mixed line: - **Treatment $T$**: indicator variable, `code`, @note@, TODO check this.
 
-msml610/lectures_source/figures/book_covers/Book_cover_AIMA.jpg
+## Test: underscores in paths/URLs must NOT trigger italic (txtItalic absent)
+- https://docs.google.com/document/d/1msuSbMiAS681EBD8UomuIfZ_a0AobNXn-aWDorNG_TI/edit
+- research/ideas/in_progress.Implement_MonteCarlo_Tree_Search_and_Alpha_Zero.md
+- papers/AlphaZero_MCTS_for_TSP/paper.md
+This is _italic_ (bounded by spaces, should still highlight).

@@ -25,18 +25,30 @@ def _run_vim_export_syntax(
     """
     Run Vim on `test_file_path` and extract syntax highlighting info.
 
-    :param test_file_path: file to open in Vim and inspect
+    :param test_file_path: file to open in Vim and inspect. This is a
+        golden input fixture tracked in git, so Vim is never pointed at
+        it directly: we run against a scratch copy instead. This
+        protects the fixture in case something external (e.g., a stray
+        interactive Vim session, a plugin, shell state) mutates whatever
+        file Vim has open, which has been observed to happen in
+        practice.
     :param vimrc_path: minimal vimrc defining `:ExportSyntax`
     :param scratch_dir: dir where Vim writes `test_syntax_output.txt`
     :return: syntax highlighting output from Vim
     """
     hdbg.dassert_file_exists(test_file_path)
     hdbg.dassert_file_exists(vimrc_path)
+    # Copy the fixture into the scratch dir and run Vim on the copy only,
+    # so the tracked fixture can never be mutated by this test.
+    scratch_file_path = os.path.join(
+        scratch_dir, os.path.basename(test_file_path)
+    )
+    hio.to_file(scratch_file_path, hio.from_file(test_file_path))
     output_file = os.path.join(scratch_dir, "test_syntax_output.txt")
     # Run vim to export syntax information.
     scratch_dir_tmp = shlex.quote(scratch_dir)
     vimrc_path_tmp = shlex.quote(vimrc_path)
-    test_file_path_tmp = shlex.quote(test_file_path)
+    test_file_path_tmp = shlex.quote(scratch_file_path)
     # - `--noplugin` and `-i NONE` isolate the run from the user's personal
     #   Vim plugins and shada/viminfo state (e.g., autosave plugins), so this
     #   test can't accidentally mutate the input fixture on disk.
