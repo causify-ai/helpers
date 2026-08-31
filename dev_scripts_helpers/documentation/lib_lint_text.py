@@ -815,13 +815,14 @@ def _rebuild_blank_lines(
     *,
     is_fence_line: Callable[[str], bool],
     is_header_or_title_line: Callable[[str], bool],
+    add_bullet_blank_lines: bool = True,
 ) -> List[str]:
     """
     Rebuild blank-line spacing from scratch.
 
     Strip every blank line and then re-derive exactly the ones needed:
     - one blank line between blocks of level-1 bullets (nested bullets stay
-      glued to their parent, with no blank line)
+      glued to their parent, with no blank line), if `add_bullet_blank_lines`
     - one blank line around fenced blocks
     - one blank line around blocks of comment placeholders, so two distinct
       comment blocks never get merged into one
@@ -836,6 +837,9 @@ def _rebuild_blank_lines(
         `_format_block_spacing()`).
     :param is_header_or_title_line: predicate marking header (and, for
         `.smd`, slide-title) lines (see `_format_header_spacing()`).
+    :param add_bullet_blank_lines: if True, add a blank line between blocks
+        of level-1 bullets (used for `.smd` slides); `.md` files pass False
+        since bullets there should stay glued together with no blank lines.
     :return: The lines with rebuilt blank-line spacing.
     """
     _LOG.debug("lines=%s", lines)
@@ -845,9 +849,10 @@ def _rebuild_blank_lines(
     lines = _protect_inter_comment_blank_lines(lines)
     # Strip every blank line, then re-derive exactly the ones needed.
     lines_new = [line for line in lines if line.strip()]
-    # Add a blank line before every level-1 bullet (i.e., between blocks of
-    # level-1 bullets), leaving nested bullets glued to their parent.
-    lines_new = hmarform.format_first_level_bullets(lines_new)
+    if add_bullet_blank_lines:
+        # Add a blank line before every level-1 bullet (i.e., between blocks
+        # of level-1 bullets), leaving nested bullets glued to their parent.
+        lines_new = hmarform.format_first_level_bullets(lines_new)
     # Normalize the blank lines around fenced blocks. This only touches
     # blanks bordering a fence line, so it can't undo the bullet spacing just
     # added, and it fixes spacing where a fence sits next to a bullet with no
@@ -944,14 +949,13 @@ def _smd_format(lines: List[str]) -> List[str]:
 
 def _md_format(lines: List[str]) -> List[str]:
     """
-    Apply the same blank-line rebuild used for `.smd` files to `.md` files.
+    Apply the blank-line rebuild used for `.md` files.
 
-    This is the standard blank-line rule shared across file types: rebuild
-    blank-line spacing from scratch, i.e., strip every blank line and then
-    re-derive exactly the ones needed, one blank line between blocks of
-    level-1 bullets (nested bullets stay glued to their parent, with no
-    blank line), one blank line around fenced code blocks (` ``` `), and
-    exactly one blank line before and after every header (`#`, `##`, ...).
+    Rebuild blank-line spacing from scratch, i.e., strip every blank line
+    and then re-derive exactly the ones needed: one blank line around
+    fenced code blocks (` ``` `), and exactly one blank line before and
+    after every header (`#`, `##`, ...). Unlike `.smd` files, no blank
+    lines are added between level-1 bullets: bullets stay glued together.
 
     Unlike `_smd_format()`, this doesn't touch anything else (no `@tag@`
     colon removal, no post-colon capitalization): those are `.smd`-only
@@ -965,6 +969,7 @@ def _md_format(lines: List[str]) -> List[str]:
         lines,
         is_fence_line=_is_md_fence_line,
         is_header_or_title_line=_is_md_header_line,
+        add_bullet_blank_lines=False,
     )
     hdbg.dassert_isinstance(lines_new, list)
     return lines_new
@@ -1102,11 +1107,10 @@ VALID_ACTIONS = {
     #   bullets, around fenced div blocks (`:::`), and exactly one blank line
     #   before/after every header and slide-title marker (`* <title>`)
     "smd_format": ["smd"],
-    # Apply the same blank-line rebuild as `smd_format`, but for `.md` files
-    # (markdown only).
-    # - Rebuild blank-line spacing: one blank line between blocks of level-1
-    #   bullets, around fenced code blocks (```), and exactly one blank line
-    #   before/after every header
+    # Apply the blank-line rebuild for `.md` files (markdown only).
+    # - Rebuild blank-line spacing: one blank line around fenced code blocks
+    #   (```) and exactly one blank line before/after every header; no blank
+    #   lines are added between level-1 bullets
     "md_format": ["md"],
 }
 

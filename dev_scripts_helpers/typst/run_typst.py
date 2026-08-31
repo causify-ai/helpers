@@ -24,6 +24,9 @@ default, asserts if any are found.
 - Don't fail the build if `typst compile` emits warnings:
 > run_typst.py --input lecture.typ --no_abort_on_warnings
 
+- Don't fail the build if `typst compile` errors out:
+> run_typst.py --input lecture.typ --no_abort_on_errors
+
 - Watch mode: rebuild on file changes, skip opening on subsequent runs:
 > run_typst.py --input lecture.typ --daemon
 
@@ -65,7 +68,6 @@ _VALID_ACTIONS = [
 ]
 
 _DEFAULT_ACTIONS = [
-    "render_images",
     "compile",
     "open_pdf",
 ]
@@ -115,6 +117,7 @@ def _compile_typst(
     root: str,
     *,
     abort_on_warnings: bool = True,
+    abort_on_errors: bool = True,
     force_rebuild: bool = False,
     use_sudo: bool = False,
 ) -> None:
@@ -129,6 +132,8 @@ def _compile_typst(
     :param root: project root passed to `typst compile --root`
     :param abort_on_warnings: assert if `typst compile` emits any `warning:`
         diagnostics
+    :param abort_on_errors: assert if `typst compile` fails (non-zero exit
+        code).
     :param force_rebuild: whether to force rebuild the Docker container
     :param use_sudo: whether to use sudo for Docker commands
     """
@@ -146,7 +151,7 @@ def _compile_typst(
         force_rebuild=force_rebuild,
         use_sudo=use_sudo,
     )
-    _, output = hsystem.system_to_string(docker_cmd, abort_on_error=True)
+    rc, output = hsystem.system_to_string(docker_cmd, abort_on_error=False)
     output = huntepur.purify_apple_container_output(output)
     if output:
         print(output)
@@ -160,6 +165,12 @@ def _compile_typst(
             hdbg.dfatal(msg)
         else:
             _LOG.warning(msg)
+    if rc != 0:
+        msg = f"`typst compile` failed with rc={rc} for '{in_file_path}'"
+        if abort_on_errors:
+            hdbg.dfatal(msg)
+        else:
+            _LOG.error(msg)
 
 
 # #############################################################################
@@ -200,6 +211,15 @@ def _parse() -> argparse.ArgumentParser:
         action="store_true",
         default=False,
         help="Don't assert if `typst compile` emits warnings",
+    )
+    parser.add_argument(
+        "--no_abort_on_errors",
+        action="store_true",
+        default=False,
+        help=(
+            "Don't assert if `typst compile` fails (e.g., useful in "
+            "`--daemon` mode, so one bad save doesn't kill the watcher)"
+        ),
     )
     hdaemon.add_daemon_arg(parser)
     hselacti.add_action_arg(parser, _VALID_ACTIONS, _DEFAULT_ACTIONS)
@@ -253,6 +273,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
                     out_file_path,
                     root,
                     abort_on_warnings=not args.no_abort_on_warnings,
+                    abort_on_errors=not args.no_abort_on_errors,
                     force_rebuild=args.dockerized_force_rebuild,
                     use_sudo=args.dockerized_use_sudo,
                 )
