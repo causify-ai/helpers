@@ -552,6 +552,16 @@ def _is_smd_slide_title_line(line: str) -> bool:
     return bool(re.match(r"^\*\s+.*$", line))
 
 
+def _is_md_header_line(line: str) -> bool:
+    """
+    Check if a line is a markdown header (`#`, `##`, ...).
+
+    :param line: The line to check.
+    :return: True if the line is a header.
+    """
+    return bool(re.match(r"^#+\s+", line))
+
+
 def _is_smd_header_or_title_line(line: str) -> bool:
     """
     Check if a line is a markdown header or a top-level slide-title marker.
@@ -561,16 +571,6 @@ def _is_smd_header_or_title_line(line: str) -> bool:
         marker (`* <title>`).
     """
     return _is_md_header_line(line) or _is_smd_slide_title_line(line)
-
-
-def _is_md_header_line(line: str) -> bool:
-    """
-    Check if a line is a markdown header (`#`, `##`, ...).
-
-    :param line: The line to check.
-    :return: True if the line is a header.
-    """
-    return bool(re.match(r"^#+\s+", line))
 
 
 def _is_md_fence_line(line: str) -> bool:
@@ -637,7 +637,9 @@ def _format_header_spacing(
     while i < n:
         line = lines[i]
         if line.strip() == "":
-            prev_line = no_blank_near_special[-1] if no_blank_near_special else ""
+            prev_line = (
+                no_blank_near_special[-1] if no_blank_near_special else ""
+            )
             # Look past the run of blank lines to find the next real line.
             j = i
             while j < n and lines[j].strip() == "":

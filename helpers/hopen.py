@@ -81,9 +81,7 @@ def _cmd_open_generic(file_name: str, os_name: str) -> Optional[str]:
     return full_cmd
 
 
-def _cmd_open_with_app(
-    file_name: str, os_name: str, app: str
-) -> Optional[str]:
+def _cmd_open_with_app(file_name: str, os_name: str, app: str) -> Optional[str]:
     """
     Get OS-specific command to open a file with a specific application.
 

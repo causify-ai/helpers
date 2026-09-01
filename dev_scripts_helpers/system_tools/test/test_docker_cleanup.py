@@ -2,7 +2,7 @@ import logging
 from typing import List
 from unittest import mock
 
-import dev_scripts_helpers.system_tools.docker_cleanup as dsstdocl
+import dev_scripts_helpers.system_tools.docker_cleanup as dshstdocl
 import helpers.hprint as hprint
 import helpers.hunit_test as hunitest
 import helpers.hunit_test_utils as hunteuti
@@ -71,7 +71,7 @@ class Test__cleanup_engine(hunitest.TestCase):
         expected = hprint.dedent(expected)
         # Run test.
         with hunteuti.capture_sys_calls() as invocations:
-            dsstdocl._cleanup_engine("docker", dry_run=True)
+            dshstdocl._cleanup_engine("docker", dry_run=True)
         # Check outputs.
         hunteuti.assert_sys_calls(self, invocations, expected)
 
@@ -141,7 +141,7 @@ class Test__cleanup_engine(hunitest.TestCase):
         expected = hprint.dedent(expected)
         # Run test.
         with hunteuti.capture_sys_calls() as invocations:
-            dsstdocl._cleanup_engine("docker", dry_run=False)
+            dshstdocl._cleanup_engine("docker", dry_run=False)
         # Check outputs.
         hunteuti.assert_sys_calls(self, invocations, expected)
 
@@ -183,7 +183,7 @@ class Test__cleanup_engine(hunitest.TestCase):
         expected = hprint.dedent(expected)
         # Run test.
         with hunteuti.capture_sys_calls() as invocations:
-            dsstdocl._cleanup_engine("apple", dry_run=True)
+            dshstdocl._cleanup_engine("apple", dry_run=True)
         # Check outputs.
         hunteuti.assert_sys_calls(self, invocations, expected)
 
@@ -206,7 +206,7 @@ class Test__parse_docker_size_to_bytes(hunitest.TestCase):
         :param expected: expected size in bytes
         """
         # Run test.
-        actual = dsstdocl._parse_docker_size_to_bytes(size_str)
+        actual = dshstdocl._parse_docker_size_to_bytes(size_str)
         # Check outputs.
         self.assertEqual(actual, expected)
 
@@ -262,7 +262,7 @@ class Test__format_bytes(hunitest.TestCase):
         :param expected: expected human-readable size
         """
         # Run test.
-        actual = dsstdocl._format_bytes(num_bytes)
+        actual = dshstdocl._format_bytes(num_bytes)
         # Check outputs.
         self.assertEqual(actual, expected)
 
@@ -329,7 +329,7 @@ class Test__parse_docker_system_df(hunitest.TestCase):
         """
         expected = hprint.dedent(expected)
         # Run test.
-        actual = dsstdocl._parse_docker_system_df(output)
+        actual = dshstdocl._parse_docker_system_df(output)
         # Check outputs.
         self.assert_equal(str(actual), expected, fuzzy_match=True)
 
@@ -342,7 +342,7 @@ class Test__parse_docker_system_df(hunitest.TestCase):
         # Prepare outputs.
         expected = {}
         # Run test.
-        actual = dsstdocl._parse_docker_system_df(output)
+        actual = dshstdocl._parse_docker_system_df(output)
         # Check outputs.
         self.assertEqual(actual, expected)
 
@@ -366,7 +366,7 @@ class Test__format_images_table(hunitest.TestCase):
         # Prepare outputs.
         expected = ""
         # Run test.
-        actual = dsstdocl._format_images_table(images)
+        actual = dshstdocl._format_images_table(images)
         # Check outputs.
         self.assert_equal(actual, expected, fuzzy_match=True)
 
@@ -388,7 +388,7 @@ class Test__format_images_table(hunitest.TestCase):
         """
         expected = hprint.dedent(expected)
         # Run test.
-        actual = dsstdocl._format_images_table(images)
+        actual = dshstdocl._format_images_table(images)
         # Check outputs.
         self.assert_equal(actual, expected, fuzzy_match=True)
 
@@ -416,7 +416,7 @@ class Test__format_images_table(hunitest.TestCase):
         """
         expected = hprint.dedent(expected)
         # Run test.
-        actual = dsstdocl._format_images_table(images)
+        actual = dshstdocl._format_images_table(images)
         # Check outputs.
         self.assert_equal(actual, expected, fuzzy_match=True)
 
@@ -439,7 +439,7 @@ class Test__get_engines(hunitest.TestCase):
         :param expected: expected list of engine names
         """
         # Run test.
-        actual = dsstdocl._get_engines(docker_engine)
+        actual = dshstdocl._get_engines(docker_engine)
         # Check outputs.
         self.assertEqual(actual, expected)
 
@@ -495,11 +495,9 @@ class Test__is_engine_available(hunitest.TestCase):
         # Run test.
         with (
             mock.patch("helpers.hsystem.check_exec", return_value=False),
-            mock.patch(
-                "helpers.hdocker.is_docker_running", return_value=True
-            ),
+            mock.patch("helpers.hdocker.is_docker_running", return_value=True),
         ):
-            actual = dsstdocl._is_engine_available("docker")
+            actual = dshstdocl._is_engine_available("docker")
         # Check outputs.
         self.assertFalse(actual)
 
@@ -510,11 +508,9 @@ class Test__is_engine_available(hunitest.TestCase):
         # Run test.
         with (
             mock.patch("helpers.hsystem.check_exec", return_value=True),
-            mock.patch(
-                "helpers.hdocker.is_docker_running", return_value=False
-            ),
+            mock.patch("helpers.hdocker.is_docker_running", return_value=False),
         ):
-            actual = dsstdocl._is_engine_available("docker")
+            actual = dshstdocl._is_engine_available("docker")
         # Check outputs.
         self.assertFalse(actual)
 
@@ -525,11 +521,9 @@ class Test__is_engine_available(hunitest.TestCase):
         # Run test.
         with (
             mock.patch("helpers.hsystem.check_exec", return_value=True),
-            mock.patch(
-                "helpers.hdocker.is_docker_running", return_value=True
-            ),
+            mock.patch("helpers.hdocker.is_docker_running", return_value=True),
         ):
-            actual = dsstdocl._is_engine_available("docker")
+            actual = dshstdocl._is_engine_available("docker")
         # Check outputs.
         self.assertTrue(actual)
 
@@ -563,7 +557,7 @@ class Test__cleanup_dangling_volumes(hunitest.TestCase):
             ),
             mock.patch("helpers.hsystem.system") as system_mock,
         ):
-            dsstdocl._cleanup_dangling_volumes("docker", dry_run=True)
+            dshstdocl._cleanup_dangling_volumes("docker", dry_run=True)
         # Check outputs.
         system_mock.assert_not_called()
 
@@ -588,7 +582,7 @@ class Test__cleanup_dangling_volumes(hunitest.TestCase):
             ),
             mock.patch("helpers.hsystem.system") as system_mock,
         ):
-            dsstdocl._cleanup_dangling_volumes("docker", dry_run=False)
+            dshstdocl._cleanup_dangling_volumes("docker", dry_run=False)
         # Check outputs.
         system_mock.assert_called_once_with(expected_cmd)
 
@@ -606,7 +600,7 @@ class Test__cleanup_dangling_volumes(hunitest.TestCase):
             ),
             mock.patch("helpers.hsystem.system") as system_mock,
         ):
-            dsstdocl._cleanup_dangling_volumes("docker", dry_run=False)
+            dshstdocl._cleanup_dangling_volumes("docker", dry_run=False)
         # Check outputs.
         system_mock.assert_not_called()
 
@@ -640,7 +634,7 @@ class Test__cleanup_dangling_images(hunitest.TestCase):
             ),
             mock.patch("helpers.hsystem.system") as system_mock,
         ):
-            dsstdocl._cleanup_dangling_images("docker", dry_run=True)
+            dshstdocl._cleanup_dangling_images("docker", dry_run=True)
         # Check outputs.
         system_mock.assert_not_called()
 
@@ -665,7 +659,7 @@ class Test__cleanup_dangling_images(hunitest.TestCase):
             ),
             mock.patch("helpers.hsystem.system") as system_mock,
         ):
-            dsstdocl._cleanup_dangling_images("docker", dry_run=False)
+            dshstdocl._cleanup_dangling_images("docker", dry_run=False)
         # Check outputs.
         system_mock.assert_called_once_with(expected_cmd)
 
@@ -683,7 +677,7 @@ class Test__cleanup_dangling_images(hunitest.TestCase):
             ),
             mock.patch("helpers.hsystem.system") as system_mock,
         ):
-            dsstdocl._cleanup_dangling_images("docker", dry_run=False)
+            dshstdocl._cleanup_dangling_images("docker", dry_run=False)
         # Check outputs.
         system_mock.assert_not_called()
 
@@ -713,7 +707,7 @@ class Test__cleanup_unused_networks(hunitest.TestCase):
             ) as system_to_string_mock,
             mock.patch("helpers.hsystem.system") as system_mock,
         ):
-            dsstdocl._cleanup_unused_networks("docker", dry_run=False)
+            dshstdocl._cleanup_unused_networks("docker", dry_run=False)
         # Check outputs.
         # `system_to_string` is also called to list dangling networks before
         # the prune call below, so check the most recent (prune) call rather
@@ -733,7 +727,7 @@ class Test__cleanup_unused_networks(hunitest.TestCase):
             ) as system_to_string_mock,
             mock.patch("helpers.hsystem.system") as system_mock,
         ):
-            dsstdocl._cleanup_unused_networks("apple", dry_run=False)
+            dshstdocl._cleanup_unused_networks("apple", dry_run=False)
         # Check outputs.
         system_to_string_mock.assert_not_called()
         system_mock.assert_not_called()
@@ -767,9 +761,7 @@ class Test__cleanup_build_cache(hunitest.TestCase):
             ) as system_to_string_mock,
             mock.patch("helpers.hsystem.system") as system_mock,
         ):
-            dsstdocl._cleanup_build_cache(
-                "apple", dry_run=False, system_df={}
-            )
+            dshstdocl._cleanup_build_cache("apple", dry_run=False, system_df={})
         # Check outputs.
         system_to_string_mock.assert_called_once_with(
             "container builder status", abort_on_error=False
@@ -790,7 +782,7 @@ class Test__cleanup_build_cache(hunitest.TestCase):
             ) as system_to_string_mock,
             mock.patch("helpers.hsystem.system") as system_mock,
         ):
-            dsstdocl._cleanup_build_cache(
+            dshstdocl._cleanup_build_cache(
                 "docker", dry_run=True, system_df=system_df
             )
         # Check outputs.
@@ -814,7 +806,7 @@ class Test__cleanup_build_cache(hunitest.TestCase):
             ) as system_to_string_mock,
             mock.patch("helpers.hsystem.system") as system_mock,
         ):
-            dsstdocl._cleanup_build_cache(
+            dshstdocl._cleanup_build_cache(
                 "docker", dry_run=False, system_df=system_df
             )
         # Check outputs.

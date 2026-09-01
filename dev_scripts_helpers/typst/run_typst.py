@@ -237,9 +237,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
     hdbg.dassert_file_extension(in_file_path, "typ")
     out_file_path = args.output
     if out_file_path == "":
-        out_file_path = hio.change_filename_extension(
-            in_file_path, "typ", "pdf"
-        )
+        out_file_path = hio.change_filename_extension(in_file_path, "typ", "pdf")
     out_file_path = os.path.abspath(out_file_path)
     # Use the outermost Git root by default, so that root-absolute paths
     # (e.g., `image("/foo.png")`) resolve correctly.

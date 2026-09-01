@@ -75,12 +75,82 @@ def _is_docker_ps_hanging(*, timeout_in_secs: int) -> bool:
     return is_hanging
 
 
-def _restart_docker_desktop() -> None:
+def _is_docker_process_running() -> bool:
     """
-    Restart Docker Desktop via `docker desktop restart`.
+    Check whether any Docker Desktop process is still alive.
+
+    :return: True if `Docker.app` or `com.docker.vmnetd` is still running
     """
-    _LOG.info("Restarting Docker Desktop")
-    hsystem.system("docker desktop restart")
+    cmd = 'pgrep -f "Docker.app|com.docker.vmnetd"'
+    rc = hsystem.system(cmd, abort_on_error=False, suppress_output=True)
+    is_running = rc == 0
+    _LOG.debug("return=%s", is_running)
+    return is_running
+
+
+def _quit_docker_desktop() -> None:
+    """
+    Ask Docker Desktop to quit gracefully via AppleScript.
+    """
+    _LOG.info("Quitting Docker Desktop")
+    hsystem.system("osascript -e 'quit app \"Docker\"'", abort_on_error=False)
+
+
+def _force_kill_docker_desktop() -> None:
+    """
+    Force-kill Docker Desktop processes (nuclear option).
+
+    Used when a graceful quit via AppleScript does not stop Docker
+    Desktop, e.g., because it is wedged.
+    """
+    _LOG.warning("Force-killing Docker Desktop processes")
+    hsystem.system('pkill -9 -f "Docker.app"', abort_on_error=False)
+    hsystem.system('sudo pkill -9 -f "com.docker.vmnetd"', abort_on_error=False)
+
+
+def _shutdown_docker_desktop(*, poll_interval_in_secs: int) -> None:
+    """
+    Shut down Docker Desktop, escalating to a force-kill if needed.
+
+    First try a graceful quit via AppleScript. If Docker Desktop
+    processes are still alive afterwards, fall back to killing them
+    directly and poll until they are gone.
+
+    :param poll_interval_in_secs: number of seconds to sleep between
+        polls while waiting for processes to die
+    """
+    _quit_docker_desktop()
+    time.sleep(poll_interval_in_secs)
+    if _is_docker_process_running():
+        _LOG.warning(
+            "Docker Desktop did not quit gracefully: using the nuclear option"
+        )
+        _force_kill_docker_desktop()
+        while _is_docker_process_running():
+            time.sleep(poll_interval_in_secs)
+    _LOG.info("Docker Desktop is fully shut down")
+
+
+def _start_docker_desktop() -> None:
+    """
+    Start Docker Desktop.
+    """
+    _LOG.info("Starting Docker Desktop")
+    hsystem.system("open -a Docker", abort_on_error=False)
+
+
+def _restart_docker_desktop(*, poll_interval_in_secs: int) -> None:
+    """
+    Restart Docker Desktop.
+
+    Shut Docker Desktop down completely (escalating to a force-kill if
+    a graceful quit does not work) and then start it back up.
+
+    :param poll_interval_in_secs: number of seconds to sleep between
+        polls while waiting for Docker Desktop processes to die
+    """
+    _shutdown_docker_desktop(poll_interval_in_secs=poll_interval_in_secs)
+    _start_docker_desktop()
 
 
 def _wait_for_docker_to_be_ready(*, poll_interval_in_secs: int) -> None:
@@ -134,7 +204,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
     _LOG.debug(hprint.to_str("args.timeout_in_secs args.poll_interval_in_secs"))
     is_hanging = _is_docker_ps_hanging(timeout_in_secs=args.timeout_in_secs)
     if is_hanging:
-        _restart_docker_desktop()
+        _restart_docker_desktop(poll_interval_in_secs=args.poll_interval_in_secs)
         _wait_for_docker_to_be_ready(
             poll_interval_in_secs=args.poll_interval_in_secs
         )

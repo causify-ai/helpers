@@ -4,7 +4,7 @@ from unittest import mock
 
 import helpers.hio as hio
 import helpers.hunit_test as hunitest
-import dev_scripts_helpers.typst.run_typst as dshtyrt
+import dev_scripts_helpers.typst.run_typst as dshtruty
 
 
 # #############################################################################
@@ -25,7 +25,7 @@ class Test__report_compile_warnings(hunitest.TestCase):
         :param expected: warning lines expected to be extracted
         """
         # Run test.
-        actual = dshtyrt._report_compile_warnings(output)
+        actual = dshtruty._report_compile_warnings(output)
         # Check outputs.
         self.assert_equal(str(actual), str(expected))
 
@@ -91,15 +91,15 @@ class Test__compile_typst(hunitest.TestCase):
         # Run test.
         with (
             mock.patch.object(
-                dshtyrt.dshdlity,
+                dshtruty.dshdlity,
                 "run_dockerized_typst",
                 return_value="typst compile book.typ book.pdf",
             ),
             mock.patch.object(
-                dshtyrt.hsystem, "system_to_string", return_value=(0, output)
+                dshtruty.hsystem, "system_to_string", return_value=(0, output)
             ),
         ):
-            dshtyrt._compile_typst(
+            dshtruty._compile_typst(
                 in_file_path,
                 out_file_path,
                 "/repo_root",
@@ -152,9 +152,9 @@ class Test_run_typst_py(hunitest.TestCase):
         :param argv: command-line argument list to inject via
             `mock.patch("sys.argv", ...)`
         """
-        parser = dshtyrt._parse()
+        parser = dshtruty._parse()
         with mock.patch("sys.argv", argv):
-            dshtyrt._main(parser)
+            dshtruty._main(parser)
 
     # TODO(ai_gp): Factor out more code.
     def test1(self) -> None:
@@ -223,7 +223,7 @@ class Test_run_typst_py(hunitest.TestCase):
         # Run test.
         with (
             mock.patch.object(dshtyrt, "_compile_typst"),
-            mock.patch.object(dshtyrt.hopen, "open_file") as mock_open,
+            mock.patch.object(dshtruty.hopen, "open_file") as mock_open,
         ):
             self._run_main(argv)
         # Check outputs.
