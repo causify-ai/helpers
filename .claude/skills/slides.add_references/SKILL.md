@@ -38,7 +38,7 @@ model: sonnet
   `gen_slides.py` or `notes_to_pdf.py` with `--skip_action open_pdf` (the
   goal is to confirm it runs, not render it)
   ```bash
-  > gen_slides.py book.Agentic_AI/12.1 --skip_action open_pdf
+  > gen_slides.py -i book.Agentic_AI/12.1 --notes_to_pdf_args="--skip_action open_pdf"
   ```
   - Too many references on the same page (e.g., more than 4) can generate
     problems like:
