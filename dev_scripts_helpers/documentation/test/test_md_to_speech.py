@@ -625,7 +625,9 @@ class Test__get_chunk_filename(hunitest.TestCase):
         voice = "en_US-amy-medium"
         speed = 1.0
         # Prepare outputs.
-        sha1_hash = hashlib.sha1(f"{engine}|{voice}|{chunk}".encode()).hexdigest()
+        sha1_hash = hashlib.sha1(
+            f"{engine}|{voice}|{chunk}".encode()
+        ).hexdigest()
         expected = f"tmp.piper.chunk1.{sha1_hash}.wav"
         # Run test.
         actual = dshdmtosp._get_chunk_filename(
@@ -645,7 +647,9 @@ class Test__get_chunk_filename(hunitest.TestCase):
         voice = "en_US-amy-medium"
         speed = 1.5
         # Prepare outputs.
-        sha1_hash = hashlib.sha1(f"{engine}|{voice}|{chunk}".encode()).hexdigest()
+        sha1_hash = hashlib.sha1(
+            f"{engine}|{voice}|{chunk}".encode()
+        ).hexdigest()
         expected = f"tmp.piper.chunk2.speed_1.5.{sha1_hash}.wav"
         # Run test.
         actual = dshdmtosp._get_chunk_filename(

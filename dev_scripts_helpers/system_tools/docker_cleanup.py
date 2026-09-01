@@ -514,9 +514,7 @@ def _cleanup_build_cache(
                 cmd_name,
             )
         else:
-            _, stop_output = hsystem.system_to_string(
-                f"{cmd_name} builder stop"
-            )
+            _, stop_output = hsystem.system_to_string(f"{cmd_name} builder stop")
             _LOG.info("Stopped builder:\n%s", stop_output)
             _, delete_output = hsystem.system_to_string(
                 f"{cmd_name} builder delete"

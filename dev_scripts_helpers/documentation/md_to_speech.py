@@ -1066,9 +1066,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
         return
     if args.voice is None:
         args.voice = (
-            _DEFAULT_KOKORO_VOICE
-            if args.engine == "kokoro"
-            else _DEFAULT_VOICE
+            _DEFAULT_KOKORO_VOICE if args.engine == "kokoro" else _DEFAULT_VOICE
         )
     _LOG.debug(
         "Arguments parsed: input=%s, engine=%s, speed=%.2f, voice=%s, no_play=%s, dry_run=%s, max_length=%d",
@@ -1130,9 +1128,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
         )
     if args.dry_run:
         if not is_stdin:
-            _LOG.info(
-                "Dry-run mode: printing chunks without audio generation"
-            )
+            _LOG.info("Dry-run mode: printing chunks without audio generation")
         for i, chunk in enumerate(chunks, 1):
             _LOG.debug("Chunk %d:\n%s", i, chunk)
         conversion_elapsed = time.time() - conversion_start_time

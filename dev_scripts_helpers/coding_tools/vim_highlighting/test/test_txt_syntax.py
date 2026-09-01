@@ -61,9 +61,7 @@ def _run_vim_export_syntax(
     )
     _LOG.info("cmd=%s", cmd)
     # Run vim with output suppressed.
-    subprocess.run(
-        cmd, shell=True, capture_output=True, check=False, timeout=10
-    )
+    subprocess.run(cmd, shell=True, capture_output=True, check=False, timeout=10)
     # Read the generated output file.
     hdbg.dassert_file_exists(output_file)
     actual = hio.from_file(output_file)

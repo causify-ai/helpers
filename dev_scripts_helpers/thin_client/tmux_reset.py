@@ -60,7 +60,7 @@ def _get_tmux_windows() -> List[Tuple[int, str]]:
 
 
 def _compute_window_names(
-    windows: List[Tuple[int, str]]
+    windows: List[Tuple[int, str]],
 ) -> List[Tuple[int, str, str]]:
     """
     Compute the new name for each window.
