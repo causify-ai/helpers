@@ -21,7 +21,7 @@ class Test__report_compile_warnings(hunitest.TestCase):
         """
         Test helper for `_report_compile_warnings()`.
 
-        :param output: `typst compile` output to scan
+        :param output:`typst compile` output to scan
         :param expected: warning lines expected to be extracted
         """
         # Run test.
@@ -72,9 +72,9 @@ class Test__compile_typst(hunitest.TestCase):
     """
     Test the `_compile_typst()` function.
 
-    `dshdlity.run_dockerized_typst()` and `hsystem.system_to_string()` are
-    mocked since they require a real Docker/Typst toolchain; this class only
-    verifies the warning-detection orchestration logic.
+    `dshdlity.run_dockerized_typst()` and `hsystem.system_to_string()` are mocked
+    since they require a real Docker/Typst toolchain; this class only verifies
+    the warning-detection orchestration logic.
     """
 
     def helper(self, output: str, *, abort_on_warnings: bool) -> None:
@@ -147,7 +147,7 @@ class Test_run_typst_py(hunitest.TestCase):
 
     def _run_main(self, argv: List[str]) -> None:
         """
-        Run `dshtyrt._main()` with a mocked `sys.argv`.
+        Run `dshtruty._main()` with a mocked `sys.argv`.
 
         :param argv: command-line argument list to inject via
             `mock.patch("sys.argv", ...)`
@@ -156,6 +156,7 @@ class Test_run_typst_py(hunitest.TestCase):
         with mock.patch("sys.argv", argv):
             dshtruty._main(parser)
 
+    # TODO(ai_gp): Factor out more code.
     def test1(self) -> None:
         """
         Test that the default output path swaps the `.typ` extension for
@@ -177,8 +178,8 @@ class Test_run_typst_py(hunitest.TestCase):
         )
         # Run test.
         with (
-            mock.patch.object(dshtyrt, "_compile_typst") as mock_compile,
-            mock.patch.object(dshtyrt, "_render_images") as mock_render,
+            mock.patch.object(dshtruty, "_compile_typst") as mock_compile,
+            mock.patch.object(dshtruty, "_render_images") as mock_render,
         ):
             self._run_main(argv)
         # Check outputs.
@@ -204,7 +205,7 @@ class Test_run_typst_py(hunitest.TestCase):
             "open_pdf",
         ]
         # Run test.
-        with mock.patch.object(dshtyrt, "_compile_typst") as mock_compile:
+        with mock.patch.object(dshtruty, "_compile_typst") as mock_compile:
             self._run_main(argv)
         # Check outputs.
         actual_out_file_path = mock_compile.call_args.args[1]
@@ -221,7 +222,7 @@ class Test_run_typst_py(hunitest.TestCase):
         argv = ["run_typst.py", "--input", in_file_path]
         # Run test.
         with (
-            mock.patch.object(dshtyrt, "_compile_typst"),
+            mock.patch.object(dshtruty, "_compile_typst"),
             mock.patch.object(dshtruty.hopen, "open_file") as mock_open,
         ):
             self._run_main(argv)
@@ -247,8 +248,8 @@ class Test_run_typst_py(hunitest.TestCase):
         ]
         # Run test.
         with (
-            mock.patch.object(dshtyrt, "_compile_typst"),
-            mock.patch.object(dshtyrt, "_render_images") as mock_render,
+            mock.patch.object(dshtruty, "_compile_typst"),
+            mock.patch.object(dshtruty, "_render_images") as mock_render,
         ):
             self._run_main(argv)
         # Check outputs.
@@ -271,7 +272,7 @@ class Test_run_typst_py(hunitest.TestCase):
             "open_pdf",
         ]
         # Run test.
-        with mock.patch.object(dshtyrt, "_compile_typst") as mock_compile:
+        with mock.patch.object(dshtruty, "_compile_typst") as mock_compile:
             self._run_main(argv)
         # Check outputs.
         actual_root = mock_compile.call_args.args[2]
@@ -294,7 +295,7 @@ class Test_run_typst_py(hunitest.TestCase):
             "open_pdf",
         ]
         # Run test.
-        with mock.patch.object(dshtyrt, "_compile_typst") as mock_compile:
+        with mock.patch.object(dshtruty, "_compile_typst") as mock_compile:
             self._run_main(argv)
         # Check outputs.
         self.assertEqual(

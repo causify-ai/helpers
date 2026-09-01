@@ -165,8 +165,7 @@ class Test__compile_latex(hunitest.TestCase):
 
     def set_up_test(self) -> None:
         """
-        Save the current directory since `_compile_latex()` calls
-        `os.chdir()`.
+        Save the current directory since `_compile_latex()` calls `os.chdir()`.
         """
         self._original_cwd = os.getcwd()
 

@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 """
-Convert a TikZ file to a PNG image using a dockerized version of `pdflatex` and
-`imagemagick`.
+Convert a TikZ file to a PNG image using a dockerized version of `pdflatex`
+and `imagemagick`.
 """
 
 import argparse

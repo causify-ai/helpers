@@ -217,8 +217,8 @@ def _call_api_sync(
 
     :param client: LLM client
     :param cost_tracker: LLMCostTracker instance to track costs
-    :param use_responses_api: whether to use the Responses API instead
-        of Chat Completions
+    :param use_responses_api: whether to use the Responses API instead of Chat
+        Completions
     :return: OpenAI API result as a dictionary
     """
     if not use_responses_api:
@@ -416,8 +416,8 @@ class LLMClient:
 
 def get_model_id(model: str = "") -> str:
     """
-    Resolve `model` to the "<provider>/<model>" id that `get_completion()`
-    would actually use.
+    Resolve `model` to the "<provider>/<model>" id that `get_completion()` would
+    actually use.
 
     :param model: model name, or "" to resolve the default model
     :return: resolved "<provider>/<model>" id

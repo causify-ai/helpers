@@ -18,7 +18,7 @@ This directory has no subdirectories.
   - Download completed Synthesia API videos using download URLs
 - `extract_png_from_ppt.py`
   - Extract images and convert PowerPoint slides to PNG format
-- `../../../class_scripts/gen_lecture_video_script.py`
+- `$GIT_ROOT/class_scripts/gen_lecture_video_script.py`
   - Generate complete lecture video scripts (per-slide-group commentary,
     intro, outro) from markdown slides using LLM
 - `generate_synthesia_videos.py`
