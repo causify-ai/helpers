@@ -5,7 +5,7 @@ Extract headers from Markdown, LaTeX, txt slide, or Jupyter notebook files and
 generate a Vim cfile.
 
 The script:
-- Processes the input Markdown `.md`, LaTeX `.tex`, txt slide `.txt`, or
+- Processes the input Markdown `.md`, `.smd` (slides), LaTeX `.tex`, `.txt`, or
   Jupyter notebook `.ipynb` file
 - Extracts headers up to a specified maximum level
   - Markdown: # (level 1), ## (level 2), ### (level 3), etc.
@@ -65,7 +65,8 @@ def _count_headers_by_level(
 
     :param header_list: list of extracted headers
     :param target_level: the header level to count
-    :return: dict mapping (h1, h2) tuples to slide counts, plus (h1, None) for h1 totals
+    :return: dict mapping (h1, h2) tuples to slide counts, plus (h1, None) for h1
+        totals
     """
     counts = {}
     current_h1 = None
@@ -153,13 +154,13 @@ def _extract_and_write_headers(
     Write extracted headers to output file in the specified format.
 
     This function handles the common logic of writing headers to an output file
-    in either cfile (Vim quickfix) format or markdown format (headers/list).
-    It also performs sanity checking on the header list.
+    in either cfile (Vim quickfix) format or markdown format (headers/list). It
+    also performs sanity checking on the header list.
 
     :param input_file_name: path to the input file
     :param header_list: list of extracted headers
-    :param mode: output mode ('cfile' for Vim quickfix, 'headers' for
-        Markdown headers, 'list' for indented list)
+    :param mode: output mode ('cfile' for Vim quickfix, 'headers' for Markdown
+        headers, 'list' for indented list)
     :param out_file_name: path to the output file
     :param warn_on_malformed: if True, emit warnings for malformed headers
         instead of raising exceptions
@@ -244,13 +245,13 @@ def _extract_headers_from_latex(
     This function processes a LaTeX file to extract section headers
     (`\section{}`, `\subsection{}`, `\subsubsection{}`) and generates output in
     the requested format (cfile, headers, or list). It follows the same pattern
-    as _extract_headers_from_markdown() to ensure consistent behavior across
-    file types.
+    as _extract_headers_from_markdown() to ensure consistent behavior across file
+    types.
 
     :param input_file_name: path to the input LaTeX file
     :param lines: list of lines in the input LaTeX file
-    :param mode: output mode ('cfile' for Vim quickfix, 'headers' for
-        Markdown headers, 'list' for indented list)
+    :param mode: output mode ('cfile' for Vim quickfix, 'headers' for Markdown
+        headers, 'list' for indented list)
     :param max_level: maximum header levels to parse (1-3 for LaTeX)
     :param out_file_name: path to the output file
     :param warn_on_malformed: if True, emit warnings for malformed headers
@@ -289,16 +290,16 @@ def _extract_headers_from_txtslides(
     """
     Extract headers from a txt slide file.
 
-    This function processes a txt slide file to extract headers
-    (# for level 1, ## for level 2, * for level 3) and generates output
-    in the requested format (cfile, headers, or list). It follows the
-    same pattern as _extract_headers_from_markdown() to ensure consistent
-    behavior across file types.
+    This function processes a txt slide file to extract headers (# for level 1,
+    ## for level 2, * for level 3) and generates output in the requested format
+    (cfile, headers, or list). It follows the same pattern as
+    _extract_headers_from_markdown() to ensure consistent behavior across file
+    types.
 
     :param input_file_name: path to the input txt slide file
     :param lines: list of lines in the input txt slide file
-    :param mode: output mode ('cfile' for Vim quickfix, 'headers' for
-        Markdown headers, 'list' for indented list)
+    :param mode: output mode ('cfile' for Vim quickfix, 'headers' for Markdown
+        headers, 'list' for indented list)
     :param max_level: maximum header levels to parse (1-3 for txt slides)
     :param out_file_name: path to the output file
     :param warn_on_malformed: if True, emit warnings for malformed headers
@@ -340,15 +341,15 @@ def _extract_headers_from_notebook(
     """
     Extract headers from a Jupyter notebook file.
 
-    This function parses a Jupyter notebook JSON file to extract markdown
-    headers from markdown cells. It processes the notebook structure to
-    find all markdown cells, extracts their content, and identifies headers
-    following standard Markdown conventions (# for level 1, ## for level 2, etc.).
+    This function parses a Jupyter notebook JSON file to extract markdown headers
+    from markdown cells. It processes the notebook structure to find all markdown
+    cells, extracts their content, and identifies headers following standard
+    Markdown conventions (# for level 1, ## for level 2, etc.).
 
     :param input_file_name: path to the input Jupyter notebook file
     :param lines: list of lines in the input notebook file (JSON content)
-    :param mode: output mode ('cfile' for Vim quickfix, 'headers' for
-        Markdown headers, 'list' for indented list)
+    :param mode: output mode ('cfile' for Vim quickfix, 'headers' for Markdown
+        headers, 'list' for indented list)
     :param max_level: maximum header levels to parse (1-3)
     :param out_file_name: path to the output file
     :param warn_on_malformed: if True, emit warnings for malformed headers
@@ -445,7 +446,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
     _, ext = os.path.splitext(in_file_name)
     warn_on_malformed = args.warn_on_malformed
     count_slides = args.count_slides
-    if ext == ".md":
+    if ext in (".md", ".smd"):
         _extract_headers_from_markdown(
             in_file_name,
             input_content,

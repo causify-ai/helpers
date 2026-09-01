@@ -3,7 +3,7 @@
 // Template for MSML610 typst chapters.
 // 
 // Generate with
-// > dev_scripts_helpers/typst/render_typst.sh ./.claude/templates/typst.template
+// > dev_scripts_helpers/typst/run_typst.py --input ./.claude/templates/typst.template.typ
 #import "../../dev_scripts_helpers/typst/aima_style.typ": aima-style, algorithm, chapter, glossary
 
 // Import AIMA style formatting and macros

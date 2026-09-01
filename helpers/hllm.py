@@ -217,8 +217,8 @@ def _call_api_sync(
 
     :param client: LLM client
     :param cost_tracker: LLMCostTracker instance to track costs
-    :param use_responses_api: whether to use the Responses API instead
-        of Chat Completions
+    :param use_responses_api: whether to use the Responses API instead of Chat
+        Completions
     :return: OpenAI API result as a dictionary
     """
     if not use_responses_api:
@@ -343,6 +343,20 @@ class LLMClient:
         self.model = model
         self.client = None
 
+    def _get_default_model(self, provider_name: str) -> str:
+        """
+        Get the default model for a provider.
+
+        :return: default model for the provider
+        """
+        if provider_name == "openai":
+            model = "gpt-4o"
+        elif provider_name == "openrouter":
+            model = "openai/gpt-4o"
+        else:
+            raise ValueError(f"Unknown provider: {self.provider_name}")
+        return model
+
     def get_default_model(self) -> Tuple[str, str]:
         """
         Get the default provider and model for the client.
@@ -399,19 +413,17 @@ class LLMClient:
             **create_kwargs,
         )
 
-    def _get_default_model(self, provider_name: str) -> str:
-        """
-        Get the default model for a provider.
 
-        :return: default model for the provider
-        """
-        if provider_name == "openai":
-            model = "gpt-4o"
-        elif provider_name == "openrouter":
-            model = "openai/gpt-4o"
-        else:
-            raise ValueError(f"Unknown provider: {self.provider_name}")
-        return model
+def get_model_id(model: str = "") -> str:
+    """
+    Resolve `model` to the "<provider>/<model>" id that `get_completion()` would
+    actually use.
+
+    :param model: model name, or "" to resolve the default model
+    :return: resolved "<provider>/<model>" id
+    """
+    client = LLMClient(model)
+    return f"{client.provider_name}/{client.model}"
 
 
 # #############################################################################

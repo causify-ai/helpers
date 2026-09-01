@@ -7,6 +7,7 @@
   - Graphviz diagram
   - TikZ diagram
   - Images
+  - Portrait photo (for a named person)
   - Website screenshots
 
 ## Color Palette
@@ -45,8 +46,14 @@
 ## Mermaid Graph
 
 - When to use: Mind maps, hierarchical taxonomies, classification structures
+- Start every Mermaid diagram with this `%%{init: ...}%%` directive to apply
+  the project theme:
+  ```
+  %%{init: {'theme': 'base', 'themeVariables': { 'primaryColor': '#EEEDFE', 'primaryBorderColor': '#7F77DD', 'primaryTextColor': '#26215C', 'lineColor': '#888888', 'fontFamily': 'Helvetica'}}}%%
+  ```
 - Example:
   ```mermaid
+  %%{init: {'theme': 'base', 'themeVariables': { 'primaryColor': '#EEEDFE', 'primaryBorderColor': '#7F77DD', 'primaryTextColor': '#26215C', 'lineColor': '#888888', 'fontFamily': 'Helvetica'}}}%%
   mindmap
     root((**Machine Learning**))
       (**Paradigms**)
@@ -76,25 +83,50 @@
 
 - Follow the template `.claude/templates/image.template.md`
 
+## Portraits of People
+
+- When a slide names a specific historical figure or researcher, illustrate
+  with a real portrait photo, not an AI-generated illustration
+  - Do not use a portrait for each references to avoid clutter, but use the most
+    notable named figures
+- Prefer current Wikipedia infobox photo for that person or a picture from the
+  Internet
+  - Pick a clear, sharp headshot; reject small, blurry, or cluttered photos
+  - Save as `figures/<Lesson>.<Person_Name>.png`, matching this file's
+    existing figure-naming convention
+- Place the portrait in a narrow right column next to the slide's text, with
+  a captioned attribution below the image:
+  ```markdown
+  ::: columns
+  :::: {.column width=80%}
+  ...
+  ::::
+  :::: {.column width=20%}
+
+  ![](msml610/lectures_source/figures/L01.3.Judea_Pearl.png)
+
+  \footnotesize _Judea Pearl (2010)_
+  ::::
+  :::
+  ```
+  - Caption format: `\footnotesize _<Name> (<year>)_`
+  - Do not add attribution
+
 ## GraphViz Diagrams
 
 - When to use: flowcharts, networks, agent interactions, system relationships,
   process flows
-
-- Follow the rules `.claude/skills/graphviz.rules.md` and the "Flat Style"
-  section of the template `.claude/templates/graphviz.template.md`
-
-## GraphViz Architecture Diagram Style
+  - Follow the rules `.claude/skills/graphviz.rules.md` and the "Flat Style"
+    section of the template `.claude/templates/graphviz.template.md`
 
 - When to use: system and architecture diagrams that group components into
   subsystems and highlight feedback loops, e.g., service architectures,
   market/pipeline diagrams, agent loops
-- This is a muted, compact, hierarchy-aware variant of the default flat
-  style, tuned for professional architecture diagrams rather than causal or
-  flowchart diagrams
-
-- Follow the rules `.claude/skills/graphviz.rules.md` and the "Architecture
-  Style" section of the template `.claude/templates/graphviz.template.md`
+  - This is a muted, compact, hierarchy-aware variant of the default flat
+    style, tuned for professional architecture diagrams rather than causal or
+    flowchart diagrams
+  - Follow the rules `.claude/skills/graphviz.rules.md` and the "Architecture
+    Style" section of the template `.claude/templates/graphviz.template.md`
 
 ## Text and Typography
 

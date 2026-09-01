@@ -28,7 +28,9 @@ model: haiku
 - Do not change the structure of the text (e.g., in terms of title, bullet structure,
   div fenced blocks)
 - Maintain the content of the existing text
-- Do not add periods at the end of phrases
+- Do not introduce new formatting violations while fixing grammar (e.g.,
+  punctuation is owned by `.claude/skills/slides.fix_formatting/SKILL.md`);
+  follow `slides.rules.md` as read in Step 1
 
 ## Fix Mistakes
 - Fix English grammar

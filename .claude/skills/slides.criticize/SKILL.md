@@ -3,8 +3,6 @@ description: Read, criticize, and propose improvements for one or more lectures 
 model: opus
 ---
 
-<!-- Overlaps with .claude/skills/slides.review/SKILL.md. Maybe merge? -->
-
 # Goal
 - Review and criticize a slide deck or subset of slides provided by the user
 - Identify mistakes and improvement opportunities, focusing on factual errors,

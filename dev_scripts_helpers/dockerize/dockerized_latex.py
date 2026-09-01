@@ -10,9 +10,9 @@ import argparse
 import logging
 
 import helpers.hdbg as hdbg
-import dev_scripts_helpers.dockerize.dockerized_utils as dshddou
 import dev_scripts_helpers.dockerize.lib_latex as dshdlila
 import helpers.hdocker as hdocker
+import helpers.hopen as hopen
 import helpers.hparser as hparser
 
 _LOG = logging.getLogger(__name__)
@@ -30,7 +30,7 @@ def _parse() -> argparse.ArgumentParser:
     parser.add_argument("-o", "--output", action="store", required=True)
     parser.add_argument("--run_latex_again", action="store_true", default=False)
     hdocker.add_dockerized_script_arg(parser)
-    dshddou.add_open_arg(parser)
+    hopen.add_open_arg(parser)
     hparser.add_verbosity_arg(parser)
     return parser
 
@@ -55,7 +55,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
     )
     _LOG.info("Output written to '%s'", args.output)
     if args.open:
-        dshddou.open_file_on_macos(args.output)
+        hopen.open_file(args.output, app=args.open_app)
 
 
 if __name__ == "__main__":

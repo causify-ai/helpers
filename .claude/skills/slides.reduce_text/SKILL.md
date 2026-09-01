@@ -22,26 +22,19 @@ model: haiku
 - Maintain the structure of the text in terms of bullet and sub-bullet points
 - Keep all the figures
 - Leave bold lines untouched
-
-### Example
-  - The input slide is:
+- Never collapse a sub-point into a colon-joined clause on the parent bullet:
+  shorten the words in each bullet, don't merge bullets together
+  - **Bad**
+    ```
+    - **Collections of data**: organized datasets for analysis
+      - E.g., customer purchase histories in CRM
+    ```
+  - **Good**
     ```
     - **Collections of data**
-      - Aggregated, organized data sets for analysis
-      - E.g., customer purchase histories in a CRM system
+      - Organized datasets for analysis
+      - E.g., customer purchase histories in CRM
     ```
-  - The output:
-    - **Bad**
-      ```
-      - **Collections of data**: organized datasets for analysis
-        - E.g., customer purchase histories in CRM
-      ```
-    - **Good**
-      ```
-      - **Collections of data**
-        - Organized datasets for analysis
-        - E.g., customer purchase histories in CRM
-      ```
 
 ## Reduce Text
 - Reduce text keeping the structure of the bullets untouched
@@ -49,20 +42,19 @@ model: haiku
   - Be concise: remove filler words (e.g., "the", "that", "very")
   - Use active voice (e.g., "Improve accuracy," not "Accuracy can be improved")
   - Prefer short phrases over full sentences
-
-- Example:
-  - For a slide in input like:
-  ```
-  * Slide title
-  - This is a very long bullet point that is not clear and should be removed
-  - This is a clear bullet point that should be kept
-  ```
-
-  - The output is:
-  ```
-  * Slide title
-  - This is a clear bullet point that should be kept
-  ```
+- Delete a whole bullet point outright when it is unclear or adds no
+  information beyond a nearby bullet, rather than trying to trim it
+  - E.g., for a slide in input like:
+    ```
+    * Slide title
+    - This is a very long bullet point that is not clear and should be removed
+    - This is a clear bullet point that should be kept
+    ```
+    the output is:
+    ```
+    * Slide title
+    - This is a clear bullet point that should be kept
+    ```
 
 ## Example
 - Input
@@ -91,22 +83,22 @@ model: haiku
 - Output
   ```
   - **Collections of data**
-    - Organized datasets for analysis  
-    - E.g., customer purchase histories in a CRM  
+    - Organized datasets for analysis
+    - E.g., customer purchase histories in a CRM
 
   - **Descriptive statistics**
-    - Key metrics: mean, median, mode, standard deviation  
-    - E.g., average quarterly sales to track trends  
+    - Key metrics: mean, median, mode, standard deviation
+    - E.g., average quarterly sales to track trends
 
   - **Historical reports**
-    - Review of _past performance_  
-    - E.g., monthly sales reports from last year  
+    - Review of _past performance_
+    - E.g., monthly sales reports from last year
 
   - **Dashboards**
-    - Visuals of key metrics for quick insights  
-    - E.g., quarterly revenue and expense dashboard  
+    - Visuals of key metrics for quick insights
+    - E.g., quarterly revenue and expense dashboard
 
   - **Models**
-    - Statistical tools to _forecast, explain_  
+    - Statistical tools to _forecast, explain_
     - E.g., churn prediction from customer behavior
   ```

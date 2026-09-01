@@ -187,8 +187,8 @@ class Test_format_headers_with_counts(hunitest.TestCase):
 
     def test2(self) -> None:
         """
-        Test `list` mode with headers beyond level 2 use the
-        original indentation-based formatting.
+        Test `list` mode with headers beyond level 2 use the original
+        indentation-based formatting.
         """
         # Prepare outputs.
         expected = """
@@ -435,8 +435,7 @@ class Test_extract_toc_from_txt_py_main(hunitest.TestCase):
 
     def test1(self) -> None:
         """
-        Test extracts markdown headers via the `.md` dispatch
-        branch.
+        Test extracts markdown headers via the `.md` dispatch branch.
         """
         # Prepare inputs.
         content = """
@@ -447,6 +446,20 @@ class Test_extract_toc_from_txt_py_main(hunitest.TestCase):
         expected = "# Chapter 1"
         # Run test.
         self._helper_extract_headers(".md", content, expected)
+
+    def test1b(self) -> None:
+        """
+        Test extracts markdown headers via the `.smd` dispatch branch.
+        """
+        # Prepare inputs.
+        content = """
+        # Chapter 1
+        Text.
+        """
+        content = hprint.dedent(content)
+        expected = "# Chapter 1"
+        # Run test.
+        self._helper_extract_headers(".smd", content, expected)
 
     def test2(self) -> None:
         """
@@ -472,8 +485,7 @@ class Test_extract_toc_from_txt_py_main(hunitest.TestCase):
 
     def test3(self) -> None:
         """
-        Test extracts LaTeX headers via the `.tex` dispatch
-        branch.
+        Test extracts LaTeX headers via the `.tex` dispatch branch.
         """
         # Prepare inputs.
         content = r"\section{Chapter 1}" + "\n"
@@ -483,8 +495,7 @@ class Test_extract_toc_from_txt_py_main(hunitest.TestCase):
 
     def test4(self) -> None:
         """
-        Test extracts txt-slide headers via the `.txt` dispatch
-        branch.
+        Test extracts txt-slide headers via the `.txt` dispatch branch.
         """
         # Prepare inputs.
         content = "# Chapter 1\n"
@@ -494,8 +505,7 @@ class Test_extract_toc_from_txt_py_main(hunitest.TestCase):
 
     def test5(self) -> None:
         """
-        Test extracts notebook headers via the `.ipynb` dispatch
-        branch.
+        Test extracts notebook headers via the `.ipynb` dispatch branch.
         """
         # Prepare inputs.
         notebook = {
@@ -535,8 +545,7 @@ class Test_extract_toc_from_txt_py_main(hunitest.TestCase):
 
     def test7(self) -> None:
         """
-        Test `--count_slides` annotates headers with slide
-        counts.
+        Test `--count_slides` annotates headers with slide counts.
         """
         # Prepare inputs.
         scratch_dir = self.get_scratch_space()

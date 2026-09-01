@@ -10,7 +10,6 @@ import hashlib
 import logging
 import os
 import platform
-import subprocess
 import time
 from typing import List, Optional, Tuple
 
@@ -59,7 +58,8 @@ def set_docker_engine(engine: str) -> None:
     """
     Set a global override for the Docker engine.
 
-    :param engine: Engine name ("docker", "apple", or empty string to use env var)
+    :param engine: Engine name ("docker", "apple", or empty string to use env
+        var)
     """
     global _DOCKER_ENGINE
     _DOCKER_ENGINE = engine
@@ -234,12 +234,9 @@ def image_exists(image_name: str, use_sudo: bool) -> Tuple[bool, str]:
     """
     Check if a Docker image already exists.
 
-    Uses `image inspect` which works for both Docker and Apple's
-    container CLI.
+    Uses `image inspect` which works for both Docker and Apple's container CLI.
 
-    ```
-    > docker image inspect tmp.prettier
-    ```
+    ``` > docker image inspect tmp.prettier ```
     """
     _LOG.debug(hprint.func_signature_to_str())
     #
@@ -320,13 +317,35 @@ def volume_rm(volume_name: str, use_sudo: bool) -> None:
 # #############################################################################
 
 
+def _normalize_arch(arch: str) -> str:
+    """
+    Normalize an architecture name to its canonical Docker platform form.
+
+    `uname -m` reports different names for the same physical architecture
+    depending on where it runs (e.g., macOS host reports `arm64`, a Linux
+    container on the same chip reports `aarch64`).
+    Without normalization these end up as different Docker image tags for what
+    is otherwise the same build, causing duplicate images.
+
+    :param arch: raw architecture name (e.g., `aarch64`, `arm64`,
+        `x86_64`, `amd64`)
+    :return: canonical architecture name (`arm64` or `amd64`)
+    """
+    if arch in ("aarch64", "arm64"):
+        return "arm64"
+    if arch in ("x86_64", "amd64"):
+        return "amd64"
+    return arch
+
+
 def get_current_arch() -> str:
     """
-    Return the architecture that we are running on (e.g., arm64, aarch64,
-    x86_64).
+    Return the canonical architecture that we are running on (e.g.,
+    `arm64`, `amd64`).
     """
     cmd = "uname -m"
     _, current_arch = hsystem.system_to_one_line(cmd)
+    current_arch = _normalize_arch(current_arch)
     _LOG.debug(hprint.to_str("current_arch"))
     return current_arch
 
@@ -356,10 +375,9 @@ def check_image_compatibility_with_current_arch(
 
     :param image_name: Name of the Docker image to check.
     :param use_sudo: Whether to use sudo for Docker commands.
-    :param pull_image_if_needed: Whether to pull the image if it doesn't
-        exist.
-    :param assert_on_error: Whether to raise an error if the image is
-        not compatible with the current architecture.
+    :param pull_image_if_needed: Whether to pull the image if it doesn't exist.
+    :param assert_on_error: Whether to raise an error if the image is not
+        compatible with the current architecture.
     """
     _LOG.debug(hprint.func_signature_to_str())
     hdbg.dassert_ne(image_name, "")
@@ -411,22 +429,19 @@ def wait_for_file_in_docker(
     timeout_in_secs: int = 10,
 ) -> None:
     """
-    Wait for a file to be generated inside a Docker container and copy it to
-    the host.
+    Wait for a file to be generated inside a Docker container and copy it to the
+    host.
 
-    This function periodically checks for the existence of a file inside
-    a Docker container. Once the file is found, it copies the file to
-    the specified output path on the host.
+    This function periodically checks for the existence of a file inside a Docker
+    container. Once the file is found, it copies the file to the specified output
+    path on the host.
 
     :param container_id: ID of the Docker container.
-    :param docker_file_path: Path to the file inside the Docker
-        container.
+    :param docker_file_path: Path to the file inside the Docker container.
     :param out_file_path: Path to copy the file to on the host.
     :param check_interval_in_secs: Time in seconds between checks.
-    :param timeout_in_secs: Maximum time to wait for the file in
-        seconds.
-    :raises ValueError: If the file is not found within the timeout
-        period.
+    :param timeout_in_secs: Maximum time to wait for the file in seconds.
+    :raises ValueError: If the file is not found within the timeout period.
     """
     _LOG.debug("Waiting for file: %s:%s", container_id, docker_file_path)
     start_time = time.time()
@@ -545,8 +560,7 @@ def get_container_image_name(
     Get the name of the container image.
 
     :param image_name: Name of the Docker container to build.
-    :param dockerfile: Content of the Dockerfile for building the
-        container.
+    :param dockerfile: Content of the Dockerfile for building the container.
     :return: Name of the container image.
     """
     _LOG.debug(hprint.func_signature_to_str("image_name dockerfile"))
@@ -591,13 +605,12 @@ def build_container_image(
     Build a Docker image from a Dockerfile.
 
     :param image_name: Name of the Docker container to build.
-    :param dockerfile: Content of the Dockerfile for building the
-        container.
-    :param force_rebuild: Whether to force rebuild the Docker container.
-        There are two level of caching. The first level of caching is
-        our approach of skipping `docker build` if the image already
-        exists and the Dockerfile hasn't changed. The second level is
-        the Docker cache itself, which is invalidated by `--no-cache`.
+    :param dockerfile: Content of the Dockerfile for building the container.
+    :param force_rebuild: Whether to force rebuild the Docker container. There
+        are two level of caching. The first level of caching is our approach of
+        skipping `docker build` if the image already exists and the Dockerfile
+        hasn't changed. The second level is the Docker cache itself, which is
+        invalidated by `--no-cache`.
     :param use_sudo: Whether to use sudo for Docker commands.
     :return: Name of the built Docker container.
     :raises AssertionError: If the container ID is not found.
@@ -678,8 +691,8 @@ def build_container_image(
 
 
 def get_host_git_root() -> str:
-    """
-    Get the Git root path on the host machine, when inside a Docker container.
+    """Get the Git root path on the host machine, when inside a Docker
+    container.
     """
     hdbg.dassert_in("CSFY_HOST_GIT_ROOT_PATH", os.environ)
     host_git_root_path = os.environ["CSFY_HOST_GIT_ROOT_PATH"]
@@ -739,7 +752,7 @@ def get_docker_mount_context() -> Tuple[bool, bool, str, str, str]:
     Return Docker mount context for container operations.
 
     :return: (is_caller_host, use_sibling_container_for_callee,
-              caller_mount_path, callee_mount_path, mount)
+        caller_mount_path, callee_mount_path, mount)
     """
     is_caller_host = not hserver.is_inside_docker()
     use_sibling_container_for_callee = hserver.use_docker_sibling_containers()
@@ -771,8 +784,8 @@ def build_and_run_docker_cmd(
     """
     Build and execute a Docker command.
 
-    :param use_root_user: If True, run container as root (0:0) instead of current user.
-        Useful for nested containers that are temporary build tools.
+    :param use_root_user: If True, run container as root (0:0) instead of current
+        user. Useful for nested containers that are temporary build tools.
     """
     docker_cmd = get_docker_base_cmd(use_sudo, use_root_user=use_root_user)
     if override_entrypoint:
@@ -821,8 +834,8 @@ def convert_caller_to_callee_docker_path(
     use_sibling_container_for_callee: bool,
 ) -> str:
     """
-    Convert a file path from the (current) caller filesystem to the called
-    Docker container path.
+    Convert a file path from the (current) caller filesystem to the called Docker
+    container path.
 
     :param caller_file_path: The file path on the caller filesystem.
     :param caller_mount_path: The source mount path on the host machine.
@@ -959,41 +972,11 @@ def convert_all_paths_from_caller_to_callee_docker_path(
 
 
 # #############################################################################
-# CLI utilities
-# #############################################################################
-
-
-def add_open_arg(parser: argparse.ArgumentParser) -> None:
-    """
-    Add --open option to parser for opening output files on macOS.
-
-    :param parser: ArgumentParser instance to add the option to
-    """
-    parser.add_argument(
-        "--open",
-        action="store_true",
-        default=False,
-        help="Open the output file on macOS",
-    )
-
-
-def open_file_on_macos(file_path: str) -> None:
-    """
-    Open a file on macOS using the 'open' command.
-
-    :param file_path: Path to the file to open
-    :raises subprocess.CalledProcessError: If open command fails
-    """
-    if platform.system() != "Darwin":
-        _LOG.warning("--open flag only works on macOS")
-        return
-    subprocess.run(["open", file_path], check=True)
-    _LOG.info("Opened file with macOS 'open' command: %s", file_path)
-
-
-# #############################################################################
 # Command line options for dockerized scripts.
 # #############################################################################
+
+# `add_open_arg()` / `open_file()` (with an optional `app`) live in
+# `helpers/hopen.py`, the single place for opening a file locally.
 
 
 def add_dockerized_script_arg(

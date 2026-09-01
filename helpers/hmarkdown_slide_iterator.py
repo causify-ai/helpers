@@ -11,7 +11,7 @@ import helpers.hdbg as hdbg
 
 # TODO(gp): Can we import this without circular imports.
 from helpers.hmarkdown_comments import process_comment_block
-from helpers.hmarkdown_headers import is_markdown_line_separator
+from helpers.hmarkdown_headers import is_header, is_markdown_line_separator
 
 _LOG = logging.getLogger(__name__)
 
@@ -140,8 +140,14 @@ def iterate_slide_lines(
             current_item_start_line = line_number
             current_item_lines = [line_content]
             continue
-        # Check for header (starts with `#`).
-        if line_content.startswith("#"):
+        # Check for header (`#`/`##`/... followed by whitespace, per
+        # CommonMark). The stricter whitespace check (vs. a plain
+        # `startswith("#")`) matters here because a `.smd` body can embed
+        # native Typst syntax directly (e.g., a `#cite(...)` call or a
+        # `#function-name(` line inside a `{=typst}` fence), which also starts
+        # with `#` but is never a Markdown header.
+        is_header_line, _, _ = is_header(line_content)
+        if is_header_line:
             # Yield previous item if exists.
             if current_item_lines:
                 yield {
@@ -206,8 +212,8 @@ def reassemble_from_items(
     Reassemble markdown content from parsed items.
 
     Reconstructs the original markdown file structure from parsed items by
-    joining the content lines of each item. Preserves trailing newlines to
-    match the original content exactly.
+    joining the content lines of each item. Preserves trailing newlines to match
+    the original content exactly.
 
     :param items: list of parsed items with type, content, and line_number
     :param original_content: original file content to match trailing newlines

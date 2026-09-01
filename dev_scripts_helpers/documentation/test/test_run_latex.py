@@ -165,8 +165,7 @@ class Test__compile_latex(hunitest.TestCase):
 
     def set_up_test(self) -> None:
         """
-        Save the current directory since `_compile_latex()` calls
-        `os.chdir()`.
+        Save the current directory since `_compile_latex()` calls `os.chdir()`.
         """
         self._original_cwd = os.getcwd()
 
@@ -363,7 +362,7 @@ class Test_run_latex_py(hunitest.TestCase):
             "--input",
             in_file_path,
             "--skip_action=copy_to_gdrive",
-            "--skip_action=open",
+            "--skip_action=open_pdf",
         ]
         # Prepare outputs.
         expected_out_file_path = os.path.join(
@@ -392,7 +391,7 @@ class Test_run_latex_py(hunitest.TestCase):
             "--output",
             out_file_path,
             "--skip_action=copy_to_gdrive",
-            "--skip_action=open",
+            "--skip_action=open_pdf",
         ]
         # Run test.
         with mock.patch.object(
@@ -405,7 +404,7 @@ class Test_run_latex_py(hunitest.TestCase):
 
     def test3(self) -> None:
         """
-        Test that the "open" action opens the compiled PDF on macOS.
+        Test that the "open_pdf" action opens the compiled PDF on macOS.
         """
         # Prepare inputs.
         in_file_path = os.path.join(self.get_scratch_space(), "book.tex")

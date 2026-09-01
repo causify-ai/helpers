@@ -12,12 +12,14 @@ import dataclasses
 import hashlib
 import json
 import logging
+import os
 import re
 import shlex
 import subprocess
 import sys
 import importlib
 import pprint
+import tempfile
 import time
 from dataclasses import dataclass
 from typing import (
@@ -72,8 +74,8 @@ def _get_tokencost():
     """
     Lazily import the tokencost module.
 
-    Returns the tokencost module if available, or None if not installed.
-    The import result is cached after the first attempt.
+    Returns the tokencost module if available, or None if not installed. The
+    import result is cached after the first attempt.
     """
     global _tokencost_module
     if _tokencost_module is None:
@@ -112,7 +114,8 @@ class TokenStats:
 
     def _compute_tokens_per_second(self) -> float:
         """
-        Compute tokens per second from input_tokens, output_tokens, and elapsed_time_in_seconds.
+        Compute tokens per second from input_tokens, output_tokens, and
+        elapsed_time_in_seconds.
         """
         total_tokens = self.input_tokens + self.output_tokens
         if self.elapsed_time_in_seconds > 0:
@@ -156,7 +159,8 @@ class TokenStats:
         """
         Convert TokenStats to a single float value (for backward compatibility).
 
-        Uses the tokencost cost if available, otherwise uses the llm_library cost.
+        Uses the tokencost cost if available, otherwise uses the llm_library
+        cost.
 
         :return: total cost in dollars as a float
         """
@@ -180,7 +184,8 @@ class TokenStats:
         """
         Convert TokenStats to a formatted string for logging.
 
-        :return: formatted string with cost, token counts, elapsed time, and tokens per second
+        :return: formatted string with cost, token counts, elapsed time, and
+            tokens per second
         """
         cost = self.to_float()
         elapsed_time = self.elapsed_time_in_seconds
@@ -297,8 +302,8 @@ def install_needed_modules(
     Install needed modules for LLM CLI (llm and tokencost).
 
     :param use_sudo: whether to use sudo to install the module
-    :param venv_path: path to the virtual environment
-        E.g., /Users/saggese/src/venv/client_venv.helpers
+    :param venv_path: path to the virtual environment E.g.,
+        /Users/saggese/src/venv/client_venv.helpers
     """
     hmodule.install_module_if_not_present(
         "llm",
@@ -332,6 +337,20 @@ def shutup_llm_logging() -> None:
     logging.getLogger("httpx").setLevel(logging.WARNING)
     logging.getLogger("httpcore").setLevel(logging.WARNING)
     logging.getLogger("urllib3").setLevel(logging.WARNING)
+
+
+def get_model_id(model: str = "") -> str:
+    """
+    Resolve `model` to the model id that the "library" backend of `apply_llm()`
+    would actually use.
+
+    :param model: model name, or "" to resolve the `llm` library's
+        configured default model
+    :return: resolved model id
+    """
+    hdbg.dassert(_LLM_AVAILABLE, "llm library not found")
+    llm_model = llm.get_model(model) if model else llm.get_model()
+    return str(llm_model.model_id)
 
 
 # #############################################################################
@@ -386,10 +405,12 @@ def _calculate_cost_from_usage(
     Uses the tokencost library to compute total cost based on input and output
     token counts. Returns a TokenStats instance with token counts and costs.
 
-    :param usage: usage object from LLM result containing input/output token counts
+    :param usage: usage object from LLM result containing input/output token
+        counts
     :param model: model name for cost calculation
     :param elapsed_time_in_seconds: elapsed time for the LLM call in seconds
-    :return: TokenStats instance with input_tokens, output_tokens, cost_from_tokencost
+    :return: TokenStats instance with input_tokens, output_tokens,
+        cost_from_tokencost
     """
     input_tokens = usage.input
     output_tokens = usage.output
@@ -517,8 +538,8 @@ def _apply_llm_via_mock(
     """
     Mock LLM application for testing.
 
-    Returns a deterministic MD5 hash of the concatenated input and system
-    prompt text. Useful for testing without making actual API calls.
+    Returns a deterministic MD5 hash of the concatenated input and system prompt
+    text. Useful for testing without making actual API calls.
 
     :param input_str: the input text to process
     :param system_prompt: optional system prompt to use
@@ -553,41 +574,59 @@ def _apply_llm_via_executable(
     :return: tuple of (LLM response as string, TokenStats instance)
     """
     start_time = time.time()
-    # Build command with system prompt and model options.
-    cmd = ["llm"]
-    if system_prompt:
-        cmd.extend(["--system", system_prompt])
-    if model:
-        cmd.extend(["--model", model])
-    cmd.append(input_str)
-    _LOG.debug("Running command: %s", " ".join(cmd))
-    # Execute command with or without streaming.
-    if expected_num_chars > 0:
-        # Use streaming with progress bar.
-        proc = subprocess.Popen(
-            cmd,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-            text=True,
-        )
-        response_parts = []
-        with tqdm(total=expected_num_chars, unit="char") as pbar:
-            for line in proc.stdout:
-                response_parts.append(line)
-                pbar.update(len(line))
-        # Wait for process to complete.
-        proc.wait()
-        if proc.returncode != 0:
-            error_msg = proc.stderr.read() if proc.stderr else ""  # type: ignore
-            raise RuntimeError(
-                "llm command failed with return code: %s error: %s"
-                % (proc.returncode, error_msg)
+    # Pass the user/system prompts via `--fragment` / `--system-fragment` (each
+    # backed by a temp file) rather than inline `--system TEXT` / a positional
+    # PROMPT argument: `llm` resolves a fragment value that isn't a
+    # URL/alias/hash to the content of the file at that path, which avoids
+    # shell-arg-length / escaping issues for the (often long) prompts this
+    # module sends.
+    # TODO(ai_gp): Use a stable file like tmp.hllm_cli.system_prompt.txt and
+    # tmp.hllm_cli.user_prompt.txt (with the possibility to add a dir and
+    # and hash to avoid collisions).
+    fragment_file = tempfile.NamedTemporaryFile().name
+    hio.to_file(fragment_file, input_str)
+    system_fragment_file = None
+    try:
+        cmd = ["llm"]
+        if system_prompt:
+            system_fragment_file = tempfile.NamedTemporaryFile().name
+            hio.to_file(system_fragment_file, system_prompt)
+            cmd.extend(["--system-fragment", system_fragment_file])
+        if model:
+            cmd.extend(["--model", model])
+        cmd.extend(["--fragment", fragment_file])
+        _LOG.debug("Running command: %s", " ".join(cmd))
+        # Execute command with or without streaming.
+        if expected_num_chars > 0:
+            # Use streaming with progress bar.
+            proc = subprocess.Popen(
+                cmd,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                text=True,
             )
-        response = "".join(response_parts)
-    else:
-        # Run without progress bar.
-        cmd_str = " ".join(shlex.quote(arg) for arg in cmd)
-        _, response = hsystem.system_to_string(cmd_str)
+            response_parts = []
+            with tqdm(total=expected_num_chars, unit="char") as pbar:
+                for line in proc.stdout:
+                    response_parts.append(line)
+                    pbar.update(len(line))
+            # Wait for process to complete.
+            proc.wait()
+            if proc.returncode != 0:
+                error_msg = proc.stderr.read() if proc.stderr else ""  # type: ignore
+                raise RuntimeError(
+                    "llm command failed with return code: %s error: %s"
+                    % (proc.returncode, error_msg)
+                )
+            response = "".join(response_parts)
+        else:
+            # Run without progress bar.
+            cmd_str = " ".join(shlex.quote(arg) for arg in cmd)
+            _, response = hsystem.system_to_string(cmd_str)
+    finally:
+        os.remove(fragment_file)
+        if system_fragment_file is not None:
+            os.remove(system_fragment_file)
     elapsed_time = time.time() - start_time
     _LOG.debug("Cost calculation not available when using llm executable")
     return response, TokenStats(
@@ -721,7 +760,6 @@ def apply_llm(
     if system_prompt:
         hdbg.dassert_isinstance(system_prompt, str)
     hdbg.dassert_isinstance(model, str)
-    hdbg.dassert_ne(model, "", "Model cannot be empty string")
     hdbg.dassert_isinstance(expected_num_chars, int)
     if expected_num_chars > 0:
         hdbg.dassert_lt(
@@ -793,8 +831,8 @@ def apply_llm_with_files(
     :param model: model name to use (e.g., "gpt-4", "claude-3-opus")
     :param system_prompt: optional system prompt to guide the LLM's behavior
     :param backend: backend to use ("executable", "library", or "mock")
-    :param expected_num_chars: optional expected number of characters in
-        output; if provided, displays a progress bar during generation
+    :param expected_num_chars: optional expected number of characters in output;
+        if provided, displays a progress bar during generation
     :return: TokenStats instance
     """
     hdbg.dassert_isinstance(input_file, str)
@@ -904,7 +942,8 @@ def _call_llm_or_test_functor(
     :param system_prompt: System prompt (can be None)
     :param model: Model name (required for cost calculation)
     :param testing_functor: Optional testing functor to use instead of LLM
-    :return: Tuple of (response, TokenStats) where TokenStats is zeros for testing functor
+    :return: Tuple of (response, TokenStats) where TokenStats is zeros for
+        testing functor
     """
     if testing_functor is None:
         response, token_stats = _llm(system_prompt, input_str, model)
@@ -922,8 +961,8 @@ def _calculate_llm_cost(
     """
     Calculate the cost of an LLM call using tokencost library.
 
-    Computes the total cost based on prompt and completion text if the
-    tokencost library is available; otherwise returns 0.0.
+    Computes the total cost based on prompt and completion text if the tokencost
+    library is available; otherwise returns 0.0.
 
     :param prompt: the prompt sent to the LLM
     :param completion: the completion returned by the LLM
@@ -1091,9 +1130,9 @@ def apply_llm_batch_combined(
     """
     Apply an LLM to process a batch using a single combined prompt.
 
-    Combines all queries into a single prompt and expects structured JSON
-    output. Includes retry logic for failed JSON parsing to ensure robust
-    processing of batch results.
+    Combines all queries into a single prompt and expects structured JSON output.
+    Includes retry logic for failed JSON parsing to ensure robust processing of
+    batch results.
 
     :param prompt: system prompt to guide the LLM's behavior
     :param input_list: list of input strings to process
@@ -1480,7 +1519,8 @@ def apply_llm_prompt_to_df(
     :param batch_mode: batch mode to use (individual, shared_prompt, combined)
     :param model: model name to use (e.g., "gpt-4", "claude-3-opus")
     :param batch_size: number of items to process in each batch
-    :param dump_every_batch: optional file path to dump the dataframe after each batch
+    :param dump_every_batch: optional file path to dump the dataframe after each
+        batch
     :param tag: description tag for progress bar
     :param testing_functor: optional functor to use for testing
     :return: tuple of (dataframe with results, statistics dict)
@@ -1612,8 +1652,8 @@ def add_llm_prompt_arg(
     """
     Add common command line arguments for LLM transform scripts.
 
-    Adds debug, prompt, and fast_model options to the argument parser for
-    LLM transformation scripts.
+    Adds debug, prompt, and fast_model options to the argument parser for LLM
+    transformation scripts.
 
     :param parser: argparse parser to add arguments to
     :param default_prompt: default prompt to use
@@ -1659,9 +1699,9 @@ def add_llm_args(
     """
     Add comprehensive LLM-related command line arguments for LLM CLI scripts.
 
-    Consolidates commonly used arguments for scripts that process text with
-    LLM transformations (e.g., llm_cli.py, ai_review.py). Supports flexible
-    input modes (file or text), system prompts, and backend selection.
+    Consolidates commonly used arguments for scripts that process text with LLM
+    transformations (e.g., llm_cli.py, ai_review.py). Supports flexible input
+    modes (file or text), system prompts, and backend selection.
 
     :param parser: argparse parser to add arguments to
     :param input_required: whether input is required

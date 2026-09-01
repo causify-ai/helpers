@@ -41,8 +41,8 @@ def _add_blank_line_before_smd_comment_placeholder(
     lines: List[str],
 ) -> List[str]:
     """
-    Add a blank line before a `//`-comment placeholder run that directly
-    follows non-comment content.
+    Add a blank line before a `//`-comment placeholder run that directly follows
+    non-comment content.
 
     `htexprot.extract_protected_content()` disguises `.smd` `//` comments as
     an HTML comment (`<!--<<<PROTECTED_LINE_COMMENT_NNN>>>-->`) so `beautify`
@@ -257,9 +257,9 @@ def _add_blank_lines_between_headers(lines: List[str]) -> List[str]:
     """
     Add blank lines between consecutive markdown headers.
 
-    When two headers (lines starting with #) appear on consecutive lines,
-    insert a blank line between them. This improves readability and follows
-    markdown best practices.
+    When two headers (lines starting with #) appear on consecutive lines, insert
+    a blank line between them. This improves readability and follows markdown
+    best practices.
 
     :param lines: The lines to be processed.
     :return: The lines with blank lines added between consecutive headers.
@@ -431,10 +431,9 @@ def _remove_code_block_extra_indentation(lines: List[str]) -> List[str]:
     """
     Remove extra indentation from code block lines.
 
-    Beautify may add unwanted indentation to lines inside code blocks,
-    especially in indented contexts (lists, nested blocks). This function
-    detects and removes that extra indentation while preserving the block's
-    base indentation.
+    Beautify may add unwanted indentation to lines inside code blocks, especially
+    in indented contexts (lists, nested blocks). This function detects and
+    removes that extra indentation while preserving the block's base indentation.
 
     :param lines: The lines to be processed
     :return: Lines with extra indentation removed from code blocks
@@ -552,6 +551,16 @@ def _is_smd_slide_title_line(line: str) -> bool:
     return bool(re.match(r"^\*\s+.*$", line))
 
 
+def _is_md_header_line(line: str) -> bool:
+    """
+    Check if a line is a markdown header (`#`, `##`, ...).
+
+    :param line: The line to check.
+    :return: True if the line is a header.
+    """
+    return bool(re.match(r"^#+\s+", line))
+
+
 def _is_smd_header_or_title_line(line: str) -> bool:
     """
     Check if a line is a markdown header or a top-level slide-title marker.
@@ -561,16 +570,6 @@ def _is_smd_header_or_title_line(line: str) -> bool:
         marker (`* <title>`).
     """
     return _is_md_header_line(line) or _is_smd_slide_title_line(line)
-
-
-def _is_md_header_line(line: str) -> bool:
-    """
-    Check if a line is a markdown header (`#`, `##`, ...).
-
-    :param line: The line to check.
-    :return: True if the line is a header.
-    """
-    return bool(re.match(r"^#+\s+", line))
 
 
 def _is_md_fence_line(line: str) -> bool:
@@ -637,7 +636,9 @@ def _format_header_spacing(
     while i < n:
         line = lines[i]
         if line.strip() == "":
-            prev_line = no_blank_near_special[-1] if no_blank_near_special else ""
+            prev_line = (
+                no_blank_near_special[-1] if no_blank_near_special else ""
+            )
             # Look past the run of blank lines to find the next real line.
             j = i
             while j < n and lines[j].strip() == "":
@@ -747,8 +748,8 @@ def _is_comment_placeholder_line(line: str) -> bool:
 def _is_comment_placeholder_or_sentinel_line(line: str) -> bool:
     """
     Check if a line is a comment placeholder, or the sentinel
-    `_protect_inter_comment_blank_lines()` inserts for the blank line
-    between two such blocks.
+    `_protect_inter_comment_blank_lines()` inserts for the blank line between two
+    such blocks.
 
     The sentinel must be treated the same as a comment placeholder here: it
     stands in for the single blank line that already separates two comment
@@ -767,23 +768,22 @@ def _is_comment_placeholder_or_sentinel_line(line: str) -> bool:
 
 def _protect_inter_comment_blank_lines(lines: List[str]) -> List[str]:
     """
-    Replace the blank-line run separating two distinct comment-placeholder
-    blocks with a single sentinel line.
+    Replace the blank-line run separating two distinct comment-placeholder blocks
+    with a single sentinel line.
 
-    `_rebuild_blank_lines()` rebuilds blank-line spacing from scratch by
-    first stripping every blank line, then re-deriving only the ones it
-    recognizes (bullets, fences, headers). Once that strip runs, two comment
-    blocks that were originally separated only by blank line(s) become
-    textually indistinguishable from a single contiguous block of
-    comment-placeholder lines, and get merged. Swapping that blank-line run
-    for a sentinel (a non-blank line, so the strip leaves it alone) before
-    the strip runs preserves the boundary between the two blocks; the
-    sentinel is swapped back for a single blank line at the end of
-    `_rebuild_blank_lines()`.
+    `_rebuild_blank_lines()` rebuilds blank-line spacing from scratch by first
+    stripping every blank line, then re-deriving only the ones it recognizes
+    (bullets, fences, headers). Once that strip runs, two comment blocks that
+    were originally separated only by blank line(s) become textually
+    indistinguishable from a single contiguous block of comment-placeholder
+    lines, and get merged. Swapping that blank-line run for a sentinel (a non-
+    blank line, so the strip leaves it alone) before the strip runs preserves the
+    boundary between the two blocks; the sentinel is swapped back for a single
+    blank line at the end of `_rebuild_blank_lines()`.
 
     :param lines: The lines to be processed.
-    :return: The lines with inter-comment-block blank-line runs replaced by
-        the sentinel.
+    :return: The lines with inter-comment-block blank-line runs replaced by the
+        sentinel.
     """
     _LOG.debug("lines=%s", lines)
     lines_new: List[str] = []
@@ -815,13 +815,14 @@ def _rebuild_blank_lines(
     *,
     is_fence_line: Callable[[str], bool],
     is_header_or_title_line: Callable[[str], bool],
+    add_bullet_blank_lines: bool = True,
 ) -> List[str]:
     """
     Rebuild blank-line spacing from scratch.
 
     Strip every blank line and then re-derive exactly the ones needed:
     - one blank line between blocks of level-1 bullets (nested bullets stay
-      glued to their parent, with no blank line)
+      glued to their parent, with no blank line), if `add_bullet_blank_lines`
     - one blank line around fenced blocks
     - one blank line around blocks of comment placeholders, so two distinct
       comment blocks never get merged into one
@@ -836,6 +837,9 @@ def _rebuild_blank_lines(
         `_format_block_spacing()`).
     :param is_header_or_title_line: predicate marking header (and, for
         `.smd`, slide-title) lines (see `_format_header_spacing()`).
+    :param add_bullet_blank_lines: if True, add a blank line between blocks
+        of level-1 bullets (used for `.smd` slides); `.md` files pass False
+        since bullets there should stay glued together with no blank lines.
     :return: The lines with rebuilt blank-line spacing.
     """
     _LOG.debug("lines=%s", lines)
@@ -845,9 +849,10 @@ def _rebuild_blank_lines(
     lines = _protect_inter_comment_blank_lines(lines)
     # Strip every blank line, then re-derive exactly the ones needed.
     lines_new = [line for line in lines if line.strip()]
-    # Add a blank line before every level-1 bullet (i.e., between blocks of
-    # level-1 bullets), leaving nested bullets glued to their parent.
-    lines_new = hmarform.format_first_level_bullets(lines_new)
+    if add_bullet_blank_lines:
+        # Add a blank line before every level-1 bullet (i.e., between blocks
+        # of level-1 bullets), leaving nested bullets glued to their parent.
+        lines_new = hmarform.format_first_level_bullets(lines_new)
     # Normalize the blank lines around fenced blocks. This only touches
     # blanks bordering a fence line, so it can't undo the bullet spacing just
     # added, and it fixes spacing where a fence sits next to a bullet with no
@@ -944,14 +949,13 @@ def _smd_format(lines: List[str]) -> List[str]:
 
 def _md_format(lines: List[str]) -> List[str]:
     """
-    Apply the same blank-line rebuild used for `.smd` files to `.md` files.
+    Apply the blank-line rebuild used for `.md` files.
 
-    This is the standard blank-line rule shared across file types: rebuild
-    blank-line spacing from scratch, i.e., strip every blank line and then
-    re-derive exactly the ones needed, one blank line between blocks of
-    level-1 bullets (nested bullets stay glued to their parent, with no
-    blank line), one blank line around fenced code blocks (` ``` `), and
-    exactly one blank line before and after every header (`#`, `##`, ...).
+    Rebuild blank-line spacing from scratch, i.e., strip every blank line
+    and then re-derive exactly the ones needed: one blank line around
+    fenced code blocks (` ``` `), and exactly one blank line before and
+    after every header (`#`, `##`, ...). Unlike `.smd` files, no blank
+    lines are added between level-1 bullets: bullets stay glued together.
 
     Unlike `_smd_format()`, this doesn't touch anything else (no `@tag@`
     colon removal, no post-colon capitalization): those are `.smd`-only
@@ -965,6 +969,7 @@ def _md_format(lines: List[str]) -> List[str]:
         lines,
         is_fence_line=_is_md_fence_line,
         is_header_or_title_line=_is_md_header_line,
+        add_bullet_blank_lines=False,
     )
     hdbg.dassert_isinstance(lines_new, list)
     return lines_new
@@ -1102,11 +1107,10 @@ VALID_ACTIONS = {
     #   bullets, around fenced div blocks (`:::`), and exactly one blank line
     #   before/after every header and slide-title marker (`* <title>`)
     "smd_format": ["smd"],
-    # Apply the same blank-line rebuild as `smd_format`, but for `.md` files
-    # (markdown only).
-    # - Rebuild blank-line spacing: one blank line between blocks of level-1
-    #   bullets, around fenced code blocks (```), and exactly one blank line
-    #   before/after every header
+    # Apply the blank-line rebuild for `.md` files (markdown only).
+    # - Rebuild blank-line spacing: one blank line around fenced code blocks
+    #   (```) and exactly one blank line before/after every header; no blank
+    #   lines are added between level-1 bullets
     "md_format": ["md"],
 }
 
@@ -1182,12 +1186,11 @@ def _perform_actions(
 
     :param lines: The lines to be processed.
     :param in_file_name: The name of the input file.
-    :param actions: A list of actions to be performed on the text. If
-        None, all default actions are performed.
-    :param file_type_override: Force a specific file type (md, tex, txt, smd).
-        If provided, overrides detection from file extension.
-    :param kwargs: Additional keyword arguments to be passed to the
-        actions.
+    :param actions: A list of actions to be performed on the text. If None, all
+        default actions are performed.
+    :param file_type_override: Force a specific file type (md, tex, txt, smd). If
+        provided, overrides detection from file extension.
+    :param kwargs: Additional keyword arguments to be passed to the actions.
     :return: The processed lines.
     """
     hdbg.dassert_isinstance(lines, list)

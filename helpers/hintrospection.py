@@ -232,7 +232,7 @@ def _get_docstring_summary(doc: Optional[str]) -> str:
         return ""
     lines = doc.strip().splitlines()
     summary = lines[0].strip()
-    if len(lines) > 1:
+    if len(lines) > 1 and lines[1].lstrip().rstrip() != "":
         # Strip a trailing period, if any, so `...` doesn't pile up on top
         # of it (e.g., avoid "....").
         summary = summary.rstrip(".") + "..."
@@ -241,8 +241,8 @@ def _get_docstring_summary(doc: Optional[str]) -> str:
 
 def get_public_methods_as_str(obj: Any, *, use_markdown: bool = False) -> str:
     """
-    Return a string with all public methods of an object with their
-    docstrings and signatures.
+    Return a string with all public methods of an object with their docstrings
+    and signatures.
 
     :param obj: class or class object to inspect
     :param use_markdown: format output as a markdown list, e.g.,
@@ -345,8 +345,6 @@ def get_function_info_as_str(
     return out
 
 
-
-
 def print_obj_info(obj: Any, **kwargs: Any) -> None:
     """
     Display `obj`'s public interface as Markdown and link to its source.
@@ -384,8 +382,8 @@ def is_iterable(obj: object) -> bool:
     """
     Return whether obj can be iterated upon or not.
 
-    Note that a string is iterable in Python, but typically we refer to
-    iterables as lists, tuples, so we exclude strings.
+    Note that a string is iterable in Python, but typically we refer to iterables
+    as lists, tuples, so we exclude strings.
     """
     # From https://stackoverflow.com/questions/1952464
     return not isinstance(obj, str) and isinstance(obj, cabc.Iterable)
