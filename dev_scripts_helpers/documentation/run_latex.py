@@ -191,8 +191,8 @@ def _copy_to_google_drive(out_file_path: str) -> None:
     """
     Copy the compiled PDF to the Google Drive folders.
 
-    Mirrors the shell script's behavior: copy only into folders that are
-    actually mounted on the host, warning and skipping otherwise.
+    Mirrors the shell script's behavior: copy only into folders that are actually
+    mounted on the host, warning and skipping otherwise.
 
     :param out_file_path: path to the compiled PDF to copy
     """

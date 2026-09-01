@@ -2,8 +2,8 @@
 """
 Convert SVG to raster/bitmap formats using rsvg-convert in a Docker container.
 
-This script builds the container dynamically if necessary and converts SVG
-files to various output formats (PNG, PDF, PS, EPS) using rsvg-convert.
+This script builds the container dynamically if necessary and converts SVG files
+to various output formats (PNG, PDF, PS, EPS) using rsvg-convert.
 """
 
 import argparse

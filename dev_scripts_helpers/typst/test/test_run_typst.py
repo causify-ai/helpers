@@ -21,7 +21,7 @@ class Test__report_compile_warnings(hunitest.TestCase):
         """
         Test helper for `_report_compile_warnings()`.
 
-        :param output: `typst compile` output to scan
+        :param output:`typst compile` output to scan
         :param expected: warning lines expected to be extracted
         """
         # Run test.
@@ -72,9 +72,9 @@ class Test__compile_typst(hunitest.TestCase):
     """
     Test the `_compile_typst()` function.
 
-    `dshdlity.run_dockerized_typst()` and `hsystem.system_to_string()` are
-    mocked since they require a real Docker/Typst toolchain; this class only
-    verifies the warning-detection orchestration logic.
+    `dshdlity.run_dockerized_typst()` and `hsystem.system_to_string()` are mocked
+    since they require a real Docker/Typst toolchain; this class only verifies
+    the warning-detection orchestration logic.
     """
 
     def helper(self, output: str, *, abort_on_warnings: bool) -> None:

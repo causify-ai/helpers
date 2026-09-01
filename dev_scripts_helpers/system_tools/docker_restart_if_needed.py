@@ -51,8 +51,8 @@ _LOG = logging.getLogger(__name__)
 
 def _is_engine_hanging(engine: str, *, timeout_in_secs: int) -> bool:
     """
-    Run a lightweight list command for `engine` and report whether it
-    exceeds the timeout.
+    Run a lightweight list command for `engine` and report whether it exceeds the
+    timeout.
 
     Kills the underlying process if it does not complete in time, since a
     hanging list command is a common symptom of a wedged engine daemon on
@@ -99,7 +99,7 @@ def _is_engine_process_running(engine: str) -> bool:
     """
     Check whether `engine`'s background process(es) are still alive.
 
-    :param engine: `"docker"` or `"apple"`
+    :param engine:`"docker"` or `"apple"`
     :return: True if the corresponding process(es) are still running
     """
     if engine == "docker":
@@ -146,9 +146,7 @@ def _force_kill_engine(engine: str) -> None:
             'sudo pkill -9 -f "com.docker.vmnetd"', abort_on_error=False
         )
     elif engine == "apple":
-        hsystem.system(
-            'pkill -9 -f "container-apiserver"', abort_on_error=False
-        )
+        hsystem.system('pkill -9 -f "container-apiserver"', abort_on_error=False)
     else:
         raise ValueError(f"Invalid engine='{engine}'")
 
@@ -188,7 +186,7 @@ def _start_engine(engine: str) -> None:
     """
     Start `engine`.
 
-    :param engine: `"docker"` or `"apple"`
+    :param engine:`"docker"` or `"apple"`
     """
     _LOG.info("Starting engine '%s'", engine)
     if engine == "docker":
@@ -220,9 +218,8 @@ def _wait_for_engine_to_be_ready(
     """
     Poll `engine` until it responds, then log readiness.
 
-    :param engine: `"docker"` or `"apple"`
-    :param poll_interval_in_secs: number of seconds to sleep between
-        polls
+    :param engine:`"docker"` or `"apple"`
+    :param poll_interval_in_secs: number of seconds to sleep between polls
     """
     _LOG.debug(hprint.to_str("engine poll_interval_in_secs"))
     hdocker.set_docker_engine(engine)
@@ -239,7 +236,7 @@ def _is_engine_installed(engine: str) -> bool:
     Logs a warning (not an error) when unavailable, so callers can skip the
     engine instead of crashing.
 
-    :param engine: `"docker"` or `"apple"`
+    :param engine:`"docker"` or `"apple"`
     :return: True if the engine's CLI is installed
     """
     hdocker.set_docker_engine(engine)
@@ -256,11 +253,10 @@ def _is_engine_installed(engine: str) -> bool:
 
 def _get_engines(docker_engine: str) -> List[str]:
     """
-    Resolve the `--docker_engine` CLI value into a list of engines to
-    process.
+    Resolve the `--docker_engine` CLI value into a list of engines to process.
 
-    :param docker_engine: value of `--docker_engine` (`"docker"`, `"apple"`,
-        or `"all"`)
+    :param docker_engine: value of `--docker_engine` (`"docker"`, `"apple"`, or
+        `"all"`)
     :return: list of engine names to process, in order
     """
     if docker_engine == "all":

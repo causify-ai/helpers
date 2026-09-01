@@ -41,8 +41,8 @@ def _add_blank_line_before_smd_comment_placeholder(
     lines: List[str],
 ) -> List[str]:
     """
-    Add a blank line before a `//`-comment placeholder run that directly
-    follows non-comment content.
+    Add a blank line before a `//`-comment placeholder run that directly follows
+    non-comment content.
 
     `htexprot.extract_protected_content()` disguises `.smd` `//` comments as
     an HTML comment (`<!--<<<PROTECTED_LINE_COMMENT_NNN>>>-->`) so `beautify`
@@ -257,9 +257,9 @@ def _add_blank_lines_between_headers(lines: List[str]) -> List[str]:
     """
     Add blank lines between consecutive markdown headers.
 
-    When two headers (lines starting with #) appear on consecutive lines,
-    insert a blank line between them. This improves readability and follows
-    markdown best practices.
+    When two headers (lines starting with #) appear on consecutive lines, insert
+    a blank line between them. This improves readability and follows markdown
+    best practices.
 
     :param lines: The lines to be processed.
     :return: The lines with blank lines added between consecutive headers.
@@ -431,10 +431,9 @@ def _remove_code_block_extra_indentation(lines: List[str]) -> List[str]:
     """
     Remove extra indentation from code block lines.
 
-    Beautify may add unwanted indentation to lines inside code blocks,
-    especially in indented contexts (lists, nested blocks). This function
-    detects and removes that extra indentation while preserving the block's
-    base indentation.
+    Beautify may add unwanted indentation to lines inside code blocks, especially
+    in indented contexts (lists, nested blocks). This function detects and
+    removes that extra indentation while preserving the block's base indentation.
 
     :param lines: The lines to be processed
     :return: Lines with extra indentation removed from code blocks
@@ -749,8 +748,8 @@ def _is_comment_placeholder_line(line: str) -> bool:
 def _is_comment_placeholder_or_sentinel_line(line: str) -> bool:
     """
     Check if a line is a comment placeholder, or the sentinel
-    `_protect_inter_comment_blank_lines()` inserts for the blank line
-    between two such blocks.
+    `_protect_inter_comment_blank_lines()` inserts for the blank line between two
+    such blocks.
 
     The sentinel must be treated the same as a comment placeholder here: it
     stands in for the single blank line that already separates two comment
@@ -769,23 +768,22 @@ def _is_comment_placeholder_or_sentinel_line(line: str) -> bool:
 
 def _protect_inter_comment_blank_lines(lines: List[str]) -> List[str]:
     """
-    Replace the blank-line run separating two distinct comment-placeholder
-    blocks with a single sentinel line.
+    Replace the blank-line run separating two distinct comment-placeholder blocks
+    with a single sentinel line.
 
-    `_rebuild_blank_lines()` rebuilds blank-line spacing from scratch by
-    first stripping every blank line, then re-deriving only the ones it
-    recognizes (bullets, fences, headers). Once that strip runs, two comment
-    blocks that were originally separated only by blank line(s) become
-    textually indistinguishable from a single contiguous block of
-    comment-placeholder lines, and get merged. Swapping that blank-line run
-    for a sentinel (a non-blank line, so the strip leaves it alone) before
-    the strip runs preserves the boundary between the two blocks; the
-    sentinel is swapped back for a single blank line at the end of
-    `_rebuild_blank_lines()`.
+    `_rebuild_blank_lines()` rebuilds blank-line spacing from scratch by first
+    stripping every blank line, then re-deriving only the ones it recognizes
+    (bullets, fences, headers). Once that strip runs, two comment blocks that
+    were originally separated only by blank line(s) become textually
+    indistinguishable from a single contiguous block of comment-placeholder
+    lines, and get merged. Swapping that blank-line run for a sentinel (a non-
+    blank line, so the strip leaves it alone) before the strip runs preserves the
+    boundary between the two blocks; the sentinel is swapped back for a single
+    blank line at the end of `_rebuild_blank_lines()`.
 
     :param lines: The lines to be processed.
-    :return: The lines with inter-comment-block blank-line runs replaced by
-        the sentinel.
+    :return: The lines with inter-comment-block blank-line runs replaced by the
+        sentinel.
     """
     _LOG.debug("lines=%s", lines)
     lines_new: List[str] = []
@@ -1188,12 +1186,11 @@ def _perform_actions(
 
     :param lines: The lines to be processed.
     :param in_file_name: The name of the input file.
-    :param actions: A list of actions to be performed on the text. If
-        None, all default actions are performed.
-    :param file_type_override: Force a specific file type (md, tex, txt, smd).
-        If provided, overrides detection from file extension.
-    :param kwargs: Additional keyword arguments to be passed to the
-        actions.
+    :param actions: A list of actions to be performed on the text. If None, all
+        default actions are performed.
+    :param file_type_override: Force a specific file type (md, tex, txt, smd). If
+        provided, overrides detection from file extension.
+    :param kwargs: Additional keyword arguments to be passed to the actions.
     :return: The processed lines.
     """
     hdbg.dassert_isinstance(lines, list)

@@ -750,8 +750,8 @@ class Test_print_obj_info(hunitest.TestCase):
         """
         Test that `**kwargs` are forwarded to `get_function_info_as_str()`.
 
-        `verbose=True` should print the entire docstring, not just its
-        first line.
+        `verbose=True` should print the entire docstring, not just its first
+        line.
         """
         # Prepare inputs.
         obj = _sample_function_for_print_obj_info
@@ -770,8 +770,8 @@ class Test_print_obj_info(hunitest.TestCase):
 
 def _init_git_repo(git_repo: str, *, branch_name: str, remote_url: str) -> None:
     """
-    Initialize `git_repo` as a Git repo with a checked-out branch and an
-    `origin` remote.
+    Initialize `git_repo` as a Git repo with a checked-out branch and an `origin`
+    remote.
 
     :param git_repo: path to the (already created) directory to turn
         into a Git repo
@@ -857,14 +857,12 @@ class Test_get_link_to_code(hunitest.TestCase):
         self, file_content: str, *, rel_path: str = "module.py"
     ) -> types.ModuleType:
         """
-        Create a Git repo containing a committed module at `rel_path` and
-        import it.
+        Create a Git repo containing a committed module at `rel_path` and import
+        it.
 
         :param file_content: source code to write to the module file
-        :param rel_path: path of the module file relative to the repo
-            root
-        :return: the imported module, backed by a file inside the new
-            repo
+        :param rel_path: path of the module file relative to the repo root
+        :return: the imported module, backed by a file inside the new repo
         """
         # Prepare inputs: a Git repo with a known remote and branch,
         # containing one committed module file.

@@ -2,9 +2,8 @@
 """
 Convert SVG to various formats using inkscape in a Docker container.
 
-This script builds the container dynamically if necessary and converts SVG
-files to various output formats (PNG, PDF, PS, EPS, SVG, EMF, WMF) using
-inkscape.
+This script builds the container dynamically if necessary and converts SVG files
+to various output formats (PNG, PDF, PS, EPS, SVG, EMF, WMF) using inkscape.
 """
 
 import argparse

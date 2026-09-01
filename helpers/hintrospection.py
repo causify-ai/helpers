@@ -382,8 +382,8 @@ def is_iterable(obj: object) -> bool:
     """
     Return whether obj can be iterated upon or not.
 
-    Note that a string is iterable in Python, but typically we refer to
-    iterables as lists, tuples, so we exclude strings.
+    Note that a string is iterable in Python, but typically we refer to iterables
+    as lists, tuples, so we exclude strings.
     """
     # From https://stackoverflow.com/questions/1952464
     return not isinstance(obj, str) and isinstance(obj, cabc.Iterable)

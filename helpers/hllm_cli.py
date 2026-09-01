@@ -74,8 +74,8 @@ def _get_tokencost():
     """
     Lazily import the tokencost module.
 
-    Returns the tokencost module if available, or None if not installed.
-    The import result is cached after the first attempt.
+    Returns the tokencost module if available, or None if not installed. The
+    import result is cached after the first attempt.
     """
     global _tokencost_module
     if _tokencost_module is None:
@@ -114,7 +114,8 @@ class TokenStats:
 
     def _compute_tokens_per_second(self) -> float:
         """
-        Compute tokens per second from input_tokens, output_tokens, and elapsed_time_in_seconds.
+        Compute tokens per second from input_tokens, output_tokens, and
+        elapsed_time_in_seconds.
         """
         total_tokens = self.input_tokens + self.output_tokens
         if self.elapsed_time_in_seconds > 0:
@@ -158,7 +159,8 @@ class TokenStats:
         """
         Convert TokenStats to a single float value (for backward compatibility).
 
-        Uses the tokencost cost if available, otherwise uses the llm_library cost.
+        Uses the tokencost cost if available, otherwise uses the llm_library
+        cost.
 
         :return: total cost in dollars as a float
         """
@@ -182,7 +184,8 @@ class TokenStats:
         """
         Convert TokenStats to a formatted string for logging.
 
-        :return: formatted string with cost, token counts, elapsed time, and tokens per second
+        :return: formatted string with cost, token counts, elapsed time, and
+            tokens per second
         """
         cost = self.to_float()
         elapsed_time = self.elapsed_time_in_seconds
@@ -299,8 +302,8 @@ def install_needed_modules(
     Install needed modules for LLM CLI (llm and tokencost).
 
     :param use_sudo: whether to use sudo to install the module
-    :param venv_path: path to the virtual environment
-        E.g., /Users/saggese/src/venv/client_venv.helpers
+    :param venv_path: path to the virtual environment E.g.,
+        /Users/saggese/src/venv/client_venv.helpers
     """
     hmodule.install_module_if_not_present(
         "llm",
@@ -338,8 +341,8 @@ def shutup_llm_logging() -> None:
 
 def get_model_id(model: str = "") -> str:
     """
-    Resolve `model` to the model id that the "library" backend of
-    `apply_llm()` would actually use.
+    Resolve `model` to the model id that the "library" backend of `apply_llm()`
+    would actually use.
 
     :param model: model name, or "" to resolve the `llm` library's
         configured default model
@@ -402,10 +405,12 @@ def _calculate_cost_from_usage(
     Uses the tokencost library to compute total cost based on input and output
     token counts. Returns a TokenStats instance with token counts and costs.
 
-    :param usage: usage object from LLM result containing input/output token counts
+    :param usage: usage object from LLM result containing input/output token
+        counts
     :param model: model name for cost calculation
     :param elapsed_time_in_seconds: elapsed time for the LLM call in seconds
-    :return: TokenStats instance with input_tokens, output_tokens, cost_from_tokencost
+    :return: TokenStats instance with input_tokens, output_tokens,
+        cost_from_tokencost
     """
     input_tokens = usage.input
     output_tokens = usage.output
@@ -533,8 +538,8 @@ def _apply_llm_via_mock(
     """
     Mock LLM application for testing.
 
-    Returns a deterministic MD5 hash of the concatenated input and system
-    prompt text. Useful for testing without making actual API calls.
+    Returns a deterministic MD5 hash of the concatenated input and system prompt
+    text. Useful for testing without making actual API calls.
 
     :param input_str: the input text to process
     :param system_prompt: optional system prompt to use
@@ -826,8 +831,8 @@ def apply_llm_with_files(
     :param model: model name to use (e.g., "gpt-4", "claude-3-opus")
     :param system_prompt: optional system prompt to guide the LLM's behavior
     :param backend: backend to use ("executable", "library", or "mock")
-    :param expected_num_chars: optional expected number of characters in
-        output; if provided, displays a progress bar during generation
+    :param expected_num_chars: optional expected number of characters in output;
+        if provided, displays a progress bar during generation
     :return: TokenStats instance
     """
     hdbg.dassert_isinstance(input_file, str)
@@ -937,7 +942,8 @@ def _call_llm_or_test_functor(
     :param system_prompt: System prompt (can be None)
     :param model: Model name (required for cost calculation)
     :param testing_functor: Optional testing functor to use instead of LLM
-    :return: Tuple of (response, TokenStats) where TokenStats is zeros for testing functor
+    :return: Tuple of (response, TokenStats) where TokenStats is zeros for
+        testing functor
     """
     if testing_functor is None:
         response, token_stats = _llm(system_prompt, input_str, model)
@@ -955,8 +961,8 @@ def _calculate_llm_cost(
     """
     Calculate the cost of an LLM call using tokencost library.
 
-    Computes the total cost based on prompt and completion text if the
-    tokencost library is available; otherwise returns 0.0.
+    Computes the total cost based on prompt and completion text if the tokencost
+    library is available; otherwise returns 0.0.
 
     :param prompt: the prompt sent to the LLM
     :param completion: the completion returned by the LLM
@@ -1124,9 +1130,9 @@ def apply_llm_batch_combined(
     """
     Apply an LLM to process a batch using a single combined prompt.
 
-    Combines all queries into a single prompt and expects structured JSON
-    output. Includes retry logic for failed JSON parsing to ensure robust
-    processing of batch results.
+    Combines all queries into a single prompt and expects structured JSON output.
+    Includes retry logic for failed JSON parsing to ensure robust processing of
+    batch results.
 
     :param prompt: system prompt to guide the LLM's behavior
     :param input_list: list of input strings to process
@@ -1513,7 +1519,8 @@ def apply_llm_prompt_to_df(
     :param batch_mode: batch mode to use (individual, shared_prompt, combined)
     :param model: model name to use (e.g., "gpt-4", "claude-3-opus")
     :param batch_size: number of items to process in each batch
-    :param dump_every_batch: optional file path to dump the dataframe after each batch
+    :param dump_every_batch: optional file path to dump the dataframe after each
+        batch
     :param tag: description tag for progress bar
     :param testing_functor: optional functor to use for testing
     :return: tuple of (dataframe with results, statistics dict)
@@ -1645,8 +1652,8 @@ def add_llm_prompt_arg(
     """
     Add common command line arguments for LLM transform scripts.
 
-    Adds debug, prompt, and fast_model options to the argument parser for
-    LLM transformation scripts.
+    Adds debug, prompt, and fast_model options to the argument parser for LLM
+    transformation scripts.
 
     :param parser: argparse parser to add arguments to
     :param default_prompt: default prompt to use
@@ -1692,9 +1699,9 @@ def add_llm_args(
     """
     Add comprehensive LLM-related command line arguments for LLM CLI scripts.
 
-    Consolidates commonly used arguments for scripts that process text with
-    LLM transformations (e.g., llm_cli.py, ai_review.py). Supports flexible
-    input modes (file or text), system prompts, and backend selection.
+    Consolidates commonly used arguments for scripts that process text with LLM
+    transformations (e.g., llm_cli.py, ai_review.py). Supports flexible input
+    modes (file or text), system prompts, and backend selection.
 
     :param parser: argparse parser to add arguments to
     :param input_required: whether input is required

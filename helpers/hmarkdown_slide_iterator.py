@@ -212,8 +212,8 @@ def reassemble_from_items(
     Reassemble markdown content from parsed items.
 
     Reconstructs the original markdown file structure from parsed items by
-    joining the content lines of each item. Preserves trailing newlines to
-    match the original content exactly.
+    joining the content lines of each item. Preserves trailing newlines to match
+    the original content exactly.
 
     :param items: list of parsed items with type, content, and line_number
     :param original_content: original file content to match trailing newlines
