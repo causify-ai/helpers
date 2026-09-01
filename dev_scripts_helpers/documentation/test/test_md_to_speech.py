@@ -6,7 +6,7 @@ from unittest import mock
 
 import pytest
 
-import dev_scripts_helpers.documentation.piper_markdown_reader as dshdpmare
+import dev_scripts_helpers.documentation.md_to_speech as dshdmtosp
 import helpers.hgit as hgit
 import helpers.hio as hio
 import helpers.hprint as hprint
@@ -80,7 +80,7 @@ class Test__extract_markdown_section(hunitest.TestCase):
         """
         expected = hprint.dedent(expected)
         # Run test.
-        result = dshdpmare._extract_markdown_section(
+        result = dshdmtosp._extract_markdown_section(
             in_file, "# Methods", "# Results"
         )
         # Check outputs.
@@ -106,7 +106,7 @@ class Test__extract_markdown_section(hunitest.TestCase):
         """
         expected = hprint.dedent(expected)
         # Run test.
-        result = dshdpmare._extract_markdown_section(in_file, "# Methods", "")
+        result = dshdmtosp._extract_markdown_section(in_file, "# Methods", "")
         # Check outputs.
         self.assert_equal(result, expected)
 
@@ -116,7 +116,7 @@ class Test__extract_markdown_section(hunitest.TestCase):
         """
         in_file = self._create_input_file()
         with self.assertRaises(Exception):
-            dshdpmare._extract_markdown_section(in_file, "# Nonexistent", "")
+            dshdmtosp._extract_markdown_section(in_file, "# Nonexistent", "")
 
     def test4(self) -> None:
         """
@@ -132,7 +132,7 @@ class Test__extract_markdown_section(hunitest.TestCase):
         """
         expected = hprint.dedent(expected)
         # Run test.
-        result = dshdpmare._extract_markdown_section(in_file, "Results", "")
+        result = dshdmtosp._extract_markdown_section(in_file, "Results", "")
         # Check outputs.
         self.assert_equal(result, expected)
 
@@ -160,7 +160,7 @@ class Test__extract_markdown_section(hunitest.TestCase):
         """
         expected = hprint.dedent(expected)
         # Run test.
-        result = dshdpmare._extract_markdown_section(in_file, "# Methods", "END")
+        result = dshdmtosp._extract_markdown_section(in_file, "# Methods", "END")
         # Check outputs.
         self.assert_equal(result, expected)
 
@@ -186,7 +186,7 @@ class Test__extract_markdown_section(hunitest.TestCase):
         """
         expected = hprint.dedent(expected)
         # Run test.
-        result = dshdpmare._extract_markdown_section(
+        result = dshdmtosp._extract_markdown_section(
             in_file, "Data Collection", "END"
         )
         # Check outputs.
@@ -200,9 +200,9 @@ class Test__extract_markdown_section(hunitest.TestCase):
         # Prepare inputs.
         in_file = self._create_input_file()
         # Run test.
-        dshdpmare._extract_markdown_section(in_file, "# Methods", "# Results")
+        dshdmtosp._extract_markdown_section(in_file, "# Methods", "# Results")
         # Check outputs.
-        tmp_file = dshdpmare._TMP_EXTRACT_FILE
+        tmp_file = dshdmtosp._TMP_EXTRACT_FILE
         self.assertTrue(
             os.path.exists(tmp_file),
             f"Intermediate file {tmp_file} was not created",
@@ -230,7 +230,7 @@ class Test__read_markdown_file(hunitest.TestCase):
         # Prepare outputs.
         expected = content
         # Run test.
-        actual = dshdpmare._read_markdown_file(file_path)
+        actual = dshdmtosp._read_markdown_file(file_path)
         # Check outputs.
         self.assert_equal(actual, expected)
 
@@ -242,7 +242,7 @@ class Test__read_markdown_file(hunitest.TestCase):
         file_path = os.path.join(self.get_scratch_space(), "missing.md")
         # Run test and check output.
         with self.assertRaises(AssertionError):
-            dshdpmare._read_markdown_file(file_path)
+            dshdmtosp._read_markdown_file(file_path)
 
 
 # #############################################################################
@@ -263,7 +263,7 @@ class Test__split_by_first_level_bullets(hunitest.TestCase):
         :param expected: expected list of sections
         """
         # Run test.
-        actual = dshdpmare._split_by_first_level_bullets(text)
+        actual = dshdmtosp._split_by_first_level_bullets(text)
         # Check outputs.
         self.assert_equal(str(actual), str(expected))
 
@@ -344,7 +344,7 @@ class Test__format_markdown(hunitest.TestCase):
         :param expected: expected formatted text
         """
         # Run test.
-        actual = dshdpmare._format_markdown(text)
+        actual = dshdmtosp._format_markdown(text)
         # Check outputs.
         self.assert_equal(actual, expected)
 
@@ -401,7 +401,7 @@ class Test__clean_text(hunitest.TestCase):
         :param expected: expected cleaned text
         """
         # Run test.
-        actual = dshdpmare._clean_text(text)
+        actual = dshdmtosp._clean_text(text)
         # Check outputs.
         self.assert_equal(actual, expected)
 
@@ -458,7 +458,7 @@ class Test__count_words(hunitest.TestCase):
         # Prepare outputs.
         expected = 5
         # Run test.
-        actual = dshdpmare._count_words(text)
+        actual = dshdmtosp._count_words(text)
         # Check outputs.
         self.assertEqual(actual, expected)
 
@@ -471,7 +471,7 @@ class Test__count_words(hunitest.TestCase):
         # Prepare outputs.
         expected = 0
         # Run test.
-        actual = dshdpmare._count_words(text)
+        actual = dshdmtosp._count_words(text)
         # Check outputs.
         self.assertEqual(actual, expected)
 
@@ -496,7 +496,7 @@ class Test__format_reading_time(hunitest.TestCase):
         # Prepare outputs.
         expected = "2.0m"
         # Run test.
-        actual = dshdpmare._format_reading_time(words=words, speed=speed)
+        actual = dshdmtosp._format_reading_time(words=words, speed=speed)
         # Check outputs.
         self.assertEqual(actual, expected)
 
@@ -510,7 +510,7 @@ class Test__format_reading_time(hunitest.TestCase):
         # Prepare outputs.
         expected = "2.00h"
         # Run test.
-        actual = dshdpmare._format_reading_time(words=words, speed=speed)
+        actual = dshdmtosp._format_reading_time(words=words, speed=speed)
         # Check outputs.
         self.assertEqual(actual, expected)
 
@@ -524,7 +524,7 @@ class Test__format_reading_time(hunitest.TestCase):
         # Prepare outputs.
         expected = "1.0m"
         # Run test.
-        actual = dshdpmare._format_reading_time(words=words, speed=speed)
+        actual = dshdmtosp._format_reading_time(words=words, speed=speed)
         # Check outputs.
         self.assertEqual(actual, expected)
 
@@ -548,7 +548,7 @@ class Test__chunk_text_by_length(hunitest.TestCase):
         :param expected: expected list of chunks
         """
         # Run test.
-        actual = dshdpmare._chunk_text_by_length(text, max_length=max_length)
+        actual = dshdmtosp._chunk_text_by_length(text, max_length=max_length)
         # Check outputs.
         self.assert_equal(str(actual), str(expected))
 
@@ -621,13 +621,15 @@ class Test__get_chunk_filename(hunitest.TestCase):
         # Prepare inputs.
         chunk = "hello world"
         chunk_idx = 1
+        engine = "piper"
+        voice = "en_US-amy-medium"
         speed = 1.0
         # Prepare outputs.
-        sha1_hash = hashlib.sha1(chunk.encode()).hexdigest()
+        sha1_hash = hashlib.sha1(f"{engine}|{voice}|{chunk}".encode()).hexdigest()
         expected = f"tmp.piper.chunk1.{sha1_hash}.wav"
         # Run test.
-        actual = dshdpmare._get_chunk_filename(
-            chunk, chunk_idx=chunk_idx, speed=speed
+        actual = dshdmtosp._get_chunk_filename(
+            chunk, chunk_idx=chunk_idx, engine=engine, voice=voice, speed=speed
         )
         # Check outputs.
         self.assertEqual(actual, expected)
@@ -639,13 +641,15 @@ class Test__get_chunk_filename(hunitest.TestCase):
         # Prepare inputs.
         chunk = "hello world"
         chunk_idx = 2
+        engine = "piper"
+        voice = "en_US-amy-medium"
         speed = 1.5
         # Prepare outputs.
-        sha1_hash = hashlib.sha1(chunk.encode()).hexdigest()
+        sha1_hash = hashlib.sha1(f"{engine}|{voice}|{chunk}".encode()).hexdigest()
         expected = f"tmp.piper.chunk2.speed_1.5.{sha1_hash}.wav"
         # Run test.
-        actual = dshdpmare._get_chunk_filename(
-            chunk, chunk_idx=chunk_idx, speed=speed
+        actual = dshdmtosp._get_chunk_filename(
+            chunk, chunk_idx=chunk_idx, engine=engine, voice=voice, speed=speed
         )
         # Check outputs.
         self.assertEqual(actual, expected)
@@ -673,7 +677,7 @@ class Test__get_voice_path(hunitest.TestCase):
             "en_US-amy-medium.onnx",
         )
         # Run test.
-        actual = dshdpmare._get_voice_path(voice)
+        actual = dshdmtosp._get_voice_path(voice)
         # Check outputs.
         self.assertEqual(actual, expected)
 
@@ -696,7 +700,6 @@ class Test__generate_audio(hunitest.TestCase):
         # Prepare inputs.
         text = "hello world"
         voice = "en_US-test-voice"
-        speed = 1.0
         scratch_dir = self.get_scratch_space()
         voice_path = os.path.join(scratch_dir, f"{voice}.onnx")
         hio.to_file(voice_path, "fake voice model")
@@ -716,14 +719,14 @@ class Test__generate_audio(hunitest.TestCase):
         # Run test.
         with (
             mock.patch.object(
-                dshdpmare, "_get_voice_path", return_value=voice_path
+                dshdmtosp, "_get_voice_path", return_value=voice_path
             ),
             mock.patch(
                 "subprocess.Popen", return_value=mock_process
             ) as mock_popen,
         ):
-            dshdpmare._generate_audio(
-                text, voice=voice, speed=speed, output_file=output_file
+            dshdmtosp._generate_audio_piper(
+                text, voice=voice, output_file=output_file
             )
         # Check outputs.
         mock_process.communicate.assert_called_once_with(input=text, timeout=300)
@@ -736,7 +739,6 @@ class Test__generate_audio(hunitest.TestCase):
         # Prepare inputs.
         text = "hello world"
         voice = "en_US-test-voice"
-        speed = 1.0
         scratch_dir = self.get_scratch_space()
         voice_path = os.path.join(scratch_dir, f"{voice}.onnx")
         hio.to_file(voice_path, "fake voice model")
@@ -749,13 +751,13 @@ class Test__generate_audio(hunitest.TestCase):
         #  `subprocess.Popen` directly, once it supports Popen.
         with (
             mock.patch.object(
-                dshdpmare, "_get_voice_path", return_value=voice_path
+                dshdmtosp, "_get_voice_path", return_value=voice_path
             ),
             mock.patch("subprocess.Popen", return_value=mock_process),
         ):
             with self.assertRaises(AssertionError):
-                dshdpmare._generate_audio(
-                    text, voice=voice, speed=speed, output_file=output_file
+                dshdmtosp._generate_audio_piper(
+                    text, voice=voice, output_file=output_file
                 )
 
 
@@ -781,7 +783,7 @@ class Test__apply_speed_with_ffmpeg(hunitest.TestCase):
         # TODO(ai_gp): Use hunteuti.capture_sys_calls() instead of mocking
         #  `subprocess.Popen` directly, once it supports Popen.
         with mock.patch("subprocess.Popen") as mock_popen:
-            dshdpmare._apply_speed_with_ffmpeg(
+            dshdmtosp._apply_speed_with_ffmpeg(
                 input_file, output_file=output_file, speed=speed
             )
         # Check outputs.
@@ -818,7 +820,7 @@ class Test__apply_speed_with_ffmpeg(hunitest.TestCase):
         with mock.patch(
             "subprocess.Popen", return_value=mock_process
         ) as mock_popen:
-            dshdpmare._apply_speed_with_ffmpeg(
+            dshdmtosp._apply_speed_with_ffmpeg(
                 input_file,
                 output_file=output_file,
                 speed=speed,
@@ -844,7 +846,7 @@ class Test__apply_speed_with_ffmpeg(hunitest.TestCase):
         #  `subprocess.Popen` directly, once it supports Popen.
         with mock.patch("subprocess.Popen", return_value=mock_process):
             with self.assertRaises(AssertionError):
-                dshdpmare._apply_speed_with_ffmpeg(
+                dshdmtosp._apply_speed_with_ffmpeg(
                     input_file, output_file=output_file, speed=speed
                 )
 
@@ -868,10 +870,10 @@ class Test__process_sections_to_chunks(hunitest.TestCase):
         sections = ["# Title\nSome content.", "- A bullet point"]
         max_length = 0
         # Prepare outputs.
-        expected_chunks = ["Title.\nSome content.", "A bullet point."]
+        expected_chunks = ["Title. Some content.", "A bullet point."]
         expected_originals = sections
         # Run test.
-        chunks, chunk_originals = dshdpmare._process_sections_to_chunks(
+        chunks, chunk_originals = dshdmtosp._process_sections_to_chunks(
             sections, max_length=max_length
         )
         # Check outputs.
@@ -886,10 +888,10 @@ class Test__process_sections_to_chunks(hunitest.TestCase):
         sections = ["", "   ", "# Title\nBody text."]
         max_length = 0
         # Prepare outputs.
-        expected_chunks = ["Title.\nBody text."]
+        expected_chunks = ["Title. Body text."]
         expected_originals = ["# Title\nBody text."]
         # Run test.
-        chunks, chunk_originals = dshdpmare._process_sections_to_chunks(
+        chunks, chunk_originals = dshdmtosp._process_sections_to_chunks(
             sections, max_length=max_length
         )
         # Check outputs.
@@ -908,7 +910,7 @@ class Test__process_sections_to_chunks(hunitest.TestCase):
         expected_chunks = ["AAAAAAAAAA.", "BBBBBBBBBB."]
         expected_originals = [sections[0], sections[0]]
         # Run test.
-        chunks, chunk_originals = dshdpmare._process_sections_to_chunks(
+        chunks, chunk_originals = dshdmtosp._process_sections_to_chunks(
             sections, max_length=max_length
         )
         # Check outputs.
@@ -950,22 +952,31 @@ class Test__process_chunk_audio(hunitest.TestCase):
         self.helper_chdir_to_scratch()
         chunk_idx = 1
         chunk = "hello world"
+        engine = "piper"
         voice = "en_US-test-voice"
+        lang_code = "a"
+        device = ""
         speed = 1.0
         # Prepare outputs.
-        expected = dshdpmare._get_chunk_filename(
-            chunk, chunk_idx=chunk_idx, speed=1.0
+        expected = dshdmtosp._get_chunk_filename(
+            chunk, chunk_idx=chunk_idx, engine=engine, voice=voice, speed=1.0
         )
         # Run test.
         try:
             with (
-                mock.patch.object(dshdpmare, "_generate_audio") as mock_generate,
+                mock.patch.object(dshdmtosp, "_generate_audio") as mock_generate,
                 mock.patch.object(
-                    dshdpmare, "_apply_speed_with_ffmpeg"
+                    dshdmtosp, "_apply_speed_with_ffmpeg"
                 ) as mock_ffmpeg,
             ):
-                actual = dshdpmare._process_chunk_audio(
-                    chunk_idx, chunk, voice=voice, speed=speed
+                actual = dshdmtosp._process_chunk_audio(
+                    chunk_idx,
+                    chunk,
+                    engine=engine,
+                    voice=voice,
+                    lang_code=lang_code,
+                    device=device,
+                    speed=speed,
                 )
         finally:
             os.chdir(cwd)
@@ -984,22 +995,31 @@ class Test__process_chunk_audio(hunitest.TestCase):
         self.helper_chdir_to_scratch()
         chunk_idx = 2
         chunk = "hello again"
+        engine = "piper"
         voice = "en_US-test-voice"
+        lang_code = "a"
+        device = ""
         speed = 1.5
         # Prepare outputs.
-        expected = dshdpmare._get_chunk_filename(
-            chunk, chunk_idx=chunk_idx, speed=speed
+        expected = dshdmtosp._get_chunk_filename(
+            chunk, chunk_idx=chunk_idx, engine=engine, voice=voice, speed=speed
         )
         # Run test.
         try:
             with (
-                mock.patch.object(dshdpmare, "_generate_audio") as mock_generate,
+                mock.patch.object(dshdmtosp, "_generate_audio") as mock_generate,
                 mock.patch.object(
-                    dshdpmare, "_apply_speed_with_ffmpeg"
+                    dshdmtosp, "_apply_speed_with_ffmpeg"
                 ) as mock_ffmpeg,
             ):
-                actual = dshdpmare._process_chunk_audio(
-                    chunk_idx, chunk, voice=voice, speed=speed
+                actual = dshdmtosp._process_chunk_audio(
+                    chunk_idx,
+                    chunk,
+                    engine=engine,
+                    voice=voice,
+                    lang_code=lang_code,
+                    device=device,
+                    speed=speed,
                 )
         finally:
             os.chdir(cwd)
@@ -1017,25 +1037,31 @@ class Test__process_chunk_audio(hunitest.TestCase):
         scratch_dir = self.helper_chdir_to_scratch()
         chunk_idx = 3
         chunk = "cached chunk"
+        engine = "piper"
         voice = "en_US-test-voice"
+        lang_code = "a"
+        device = ""
         speed = 1.5
-        final_audio_file = dshdpmare._get_chunk_filename(
-            chunk, chunk_idx=chunk_idx, speed=speed
+        final_audio_file = dshdmtosp._get_chunk_filename(
+            chunk, chunk_idx=chunk_idx, engine=engine, voice=voice, speed=speed
         )
         hio.to_file(os.path.join(scratch_dir, final_audio_file), "fake audio")
         progress_bar = mock.MagicMock()
         # Run test.
         try:
             with (
-                mock.patch.object(dshdpmare, "_generate_audio") as mock_generate,
+                mock.patch.object(dshdmtosp, "_generate_audio") as mock_generate,
                 mock.patch.object(
-                    dshdpmare, "_apply_speed_with_ffmpeg"
+                    dshdmtosp, "_apply_speed_with_ffmpeg"
                 ) as mock_ffmpeg,
             ):
-                actual = dshdpmare._process_chunk_audio(
+                actual = dshdmtosp._process_chunk_audio(
                     chunk_idx,
                     chunk,
+                    engine=engine,
                     voice=voice,
+                    lang_code=lang_code,
+                    device=device,
                     speed=speed,
                     progress_bar=progress_bar,
                 )
@@ -1068,9 +1094,9 @@ class Test__handle_final_output(hunitest.TestCase):
         no_play = True
         # Run test.
         with mock.patch.object(
-            dshdpmare, "_play_audio_with_controls"
+            dshdmtosp, "_play_audio_with_controls"
         ) as mock_play:
-            dshdpmare._handle_final_output(audio_files, chunks, no_play=no_play)
+            dshdmtosp._handle_final_output(audio_files, chunks, no_play=no_play)
         # Check outputs.
         mock_play.assert_not_called()
 
@@ -1084,11 +1110,13 @@ class Test__handle_final_output(hunitest.TestCase):
         no_play = False
         # Run test.
         with mock.patch.object(
-            dshdpmare, "_play_audio_with_controls"
+            dshdmtosp, "_play_audio_with_controls"
         ) as mock_play:
-            dshdpmare._handle_final_output(audio_files, chunks, no_play=no_play)
+            dshdmtosp._handle_final_output(audio_files, chunks, no_play=no_play)
         # Check outputs.
-        mock_play.assert_called_once_with(audio_files, chunks=chunks)
+        mock_play.assert_called_once_with(
+            audio_files, chunks=chunks, quiet=False
+        )
 
     def test3(self) -> None:
         """
@@ -1100,9 +1128,9 @@ class Test__handle_final_output(hunitest.TestCase):
         no_play = False
         # Run test.
         with mock.patch.object(
-            dshdpmare, "_play_audio_with_controls"
+            dshdmtosp, "_play_audio_with_controls"
         ) as mock_play:
-            dshdpmare._handle_final_output(audio_files, chunks, no_play=no_play)
+            dshdmtosp._handle_final_output(audio_files, chunks, no_play=no_play)
         # Check outputs.
         mock_play.assert_not_called()
 
@@ -1122,19 +1150,22 @@ class Test__parse(hunitest.TestCase):
         Test default argument values when only --input is provided.
         """
         # Prepare inputs.
-        parser = dshdpmare._parse()
-        argv = ["piper_markdown_reader.py", "--input", "README.md"]
+        parser = dshdmtosp._parse()
+        argv = ["md_to_speech.py", "--input", "README.md"]
         # Prepare outputs.
-        expected_speed = dshdpmare._DEFAULT_SPEED
-        expected_voice = dshdpmare._DEFAULT_VOICE
-        expected_max_length = dshdpmare._DEFAULT_MAX_LENGTH
+        expected_speed = dshdmtosp._DEFAULT_SPEED
+        expected_engine = dshdmtosp._DEFAULT_ENGINE
+        expected_max_length = dshdmtosp._DEFAULT_MAX_LENGTH
         # Run test.
         with mock.patch("sys.argv", argv):
             args = parser.parse_args()
         # Check outputs.
         self.assertEqual(args.input, "README.md")
         self.assertEqual(args.speed, expected_speed)
-        self.assertEqual(args.voice, expected_voice)
+        self.assertEqual(args.engine, expected_engine)
+        # `--voice` defaults to `None` at parse time; `_main()` resolves it
+        # to the engine-specific default afterward.
+        self.assertIsNone(args.voice)
         self.assertEqual(args.max_length, expected_max_length)
         self.assertFalse(args.no_play)
         self.assertFalse(args.dry_run)
@@ -1144,9 +1175,9 @@ class Test__parse(hunitest.TestCase):
         Test overriding speed, voice, and max_length on the command line.
         """
         # Prepare inputs.
-        parser = dshdpmare._parse()
+        parser = dshdmtosp._parse()
         argv = [
-            "piper_markdown_reader.py",
+            "md_to_speech.py",
             "--input",
             "README.md",
             "--speed",
@@ -1193,9 +1224,9 @@ class Test__main(hunitest.TestCase):
         content = hprint.dedent(content)
         in_file = os.path.join(self.get_scratch_space(), "input.md")
         hio.to_file(in_file, content)
-        parser = dshdpmare._parse()
+        parser = dshdmtosp._parse()
         argv = [
-            "piper_markdown_reader.py",
+            "md_to_speech.py",
             "--input",
             in_file,
             "--dry_run",
@@ -1203,10 +1234,10 @@ class Test__main(hunitest.TestCase):
         ]
         # Run test.
         with (
-            mock.patch.object(dshdpmare, "_generate_audio") as mock_generate,
+            mock.patch.object(dshdmtosp, "_generate_audio") as mock_generate,
             mock.patch("sys.argv", argv),
         ):
-            dshdpmare._main(parser)
+            dshdmtosp._main(parser)
         # Check outputs.
         mock_generate.assert_not_called()
 
@@ -1218,9 +1249,9 @@ class Test__main(hunitest.TestCase):
         # Prepare inputs.
         in_file = os.path.join(self.get_scratch_space(), "input.md")
         hio.to_file(in_file, "unused content")
-        parser = dshdpmare._parse()
+        parser = dshdmtosp._parse()
         argv = [
-            "piper_markdown_reader.py",
+            "md_to_speech.py",
             "--input",
             in_file,
             "--select",
@@ -1232,28 +1263,28 @@ class Test__main(hunitest.TestCase):
         # Run test.
         with (
             mock.patch.object(
-                dshdpmare,
+                dshdmtosp,
                 "_extract_markdown_section",
                 return_value=extracted_content,
             ) as mock_extract,
-            mock.patch.object(dshdpmare, "_generate_audio") as mock_generate,
+            mock.patch.object(dshdmtosp, "_generate_audio") as mock_generate,
             mock.patch("sys.argv", argv),
         ):
-            dshdpmare._main(parser)
+            dshdmtosp._main(parser)
         # Check outputs.
         mock_extract.assert_called_once_with(in_file, "# Methods", "# Results")
         mock_generate.assert_not_called()
 
 
 # #############################################################################
-# Test_piper_markdown_reader_script
+# Test_md_to_speech_script
 # #############################################################################
 
 
 @pytest.mark.skip(reason="Requires piper-tts installation and voice models")
-class Test_piper_markdown_reader_script(hunitest.TestCase):
+class Test_md_to_speech_script(hunitest.TestCase):
     """
-    Test piper_markdown_reader script CLI functionality.
+    Test md_to_speech script CLI functionality.
     """
 
     def _create_input_file(self) -> None:
@@ -1293,7 +1324,7 @@ class Test_piper_markdown_reader_script(hunitest.TestCase):
         :param args: additional command line arguments
         """
         in_file = os.path.join(self.get_input_dir(), "input.md")
-        script_path = hgit.find_file_in_git_tree("piper_markdown_reader.py")
+        script_path = hgit.find_file_in_git_tree("md_to_speech.py")
         cmd = f"{script_path} --input {in_file} --no_play {args}"
         hsystem.system(cmd)
 
@@ -1333,7 +1364,7 @@ class Test_piper_markdown_reader_script(hunitest.TestCase):
         # Run test.
         self._run_script("--md_start '# Methods' --md_end '# Results'")
         # Check outputs.
-        tmp_file = dshdpmare._TMP_EXTRACT_FILE
+        tmp_file = dshdmtosp._TMP_EXTRACT_FILE
         self.assertTrue(
             os.path.exists(tmp_file),
             f"Intermediate file {tmp_file} was not created",
