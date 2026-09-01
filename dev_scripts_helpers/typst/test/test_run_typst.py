@@ -147,7 +147,7 @@ class Test_run_typst_py(hunitest.TestCase):
 
     def _run_main(self, argv: List[str]) -> None:
         """
-        Run `dshtyrt._main()` with a mocked `sys.argv`.
+        Run `dshtruty._main()` with a mocked `sys.argv`.
 
         :param argv: command-line argument list to inject via
             `mock.patch("sys.argv", ...)`
@@ -178,8 +178,8 @@ class Test_run_typst_py(hunitest.TestCase):
         )
         # Run test.
         with (
-            mock.patch.object(dshtyrt, "_compile_typst") as mock_compile,
-            mock.patch.object(dshtyrt, "_render_images") as mock_render,
+            mock.patch.object(dshtruty, "_compile_typst") as mock_compile,
+            mock.patch.object(dshtruty, "_render_images") as mock_render,
         ):
             self._run_main(argv)
         # Check outputs.
@@ -205,7 +205,7 @@ class Test_run_typst_py(hunitest.TestCase):
             "open_pdf",
         ]
         # Run test.
-        with mock.patch.object(dshtyrt, "_compile_typst") as mock_compile:
+        with mock.patch.object(dshtruty, "_compile_typst") as mock_compile:
             self._run_main(argv)
         # Check outputs.
         actual_out_file_path = mock_compile.call_args.args[1]
@@ -222,7 +222,7 @@ class Test_run_typst_py(hunitest.TestCase):
         argv = ["run_typst.py", "--input", in_file_path]
         # Run test.
         with (
-            mock.patch.object(dshtyrt, "_compile_typst"),
+            mock.patch.object(dshtruty, "_compile_typst"),
             mock.patch.object(dshtruty.hopen, "open_file") as mock_open,
         ):
             self._run_main(argv)
@@ -248,8 +248,8 @@ class Test_run_typst_py(hunitest.TestCase):
         ]
         # Run test.
         with (
-            mock.patch.object(dshtyrt, "_compile_typst"),
-            mock.patch.object(dshtyrt, "_render_images") as mock_render,
+            mock.patch.object(dshtruty, "_compile_typst"),
+            mock.patch.object(dshtruty, "_render_images") as mock_render,
         ):
             self._run_main(argv)
         # Check outputs.
@@ -272,7 +272,7 @@ class Test_run_typst_py(hunitest.TestCase):
             "open_pdf",
         ]
         # Run test.
-        with mock.patch.object(dshtyrt, "_compile_typst") as mock_compile:
+        with mock.patch.object(dshtruty, "_compile_typst") as mock_compile:
             self._run_main(argv)
         # Check outputs.
         actual_root = mock_compile.call_args.args[2]
@@ -295,7 +295,7 @@ class Test_run_typst_py(hunitest.TestCase):
             "open_pdf",
         ]
         # Run test.
-        with mock.patch.object(dshtyrt, "_compile_typst") as mock_compile:
+        with mock.patch.object(dshtruty, "_compile_typst") as mock_compile:
             self._run_main(argv)
         # Check outputs.
         self.assertEqual(
