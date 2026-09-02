@@ -232,11 +232,11 @@ def _render_with_pandoc(
     :param backend: "global" or "dockerized"
     :param force_rebuild: Force rebuild Docker image (for dockerized only)
     :param use_sudo: Use sudo for Docker (for dockerized only)
-    :param style_file: path to an HTML snippet (e.g., a `<style>` block)
-        injected into the `<head>` via pandoc's `--include-in-header`; None
-        means use pandoc's bare default styling
-    :param skip_open: don't open the rendered output (used for `--daemon`
-        watch re-runs, where the first run already opened it)
+    :param style_file: path to an HTML snippet (e.g., a `<style>` block) injected
+        into the `<head>` via pandoc's `--include-in-header`; None means use
+        pandoc's bare default styling
+    :param skip_open: don't open the rendered output (used for `--daemon` watch
+        re-runs, where the first run already opened it)
     """
     _LOG.info("Rendering with pandoc (backend=%s): '%s'", backend, input_file)
     # Validate input file exists.
@@ -302,8 +302,8 @@ def _render_with_grip(
 
     :param input_file: Path to markdown file
     :param backend: "global" or "dockerized"
-    :param skip_open: don't open the rendered output (used for `--daemon`
-        watch re-runs, where the first run already opened it)
+    :param skip_open: don't open the rendered output (used for `--daemon` watch
+        re-runs, where the first run already opened it)
     """
     _LOG.info("Rendering with grip (backend=%s): '%s'", backend, input_file)
     # Validate input file exists.

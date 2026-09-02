@@ -127,8 +127,8 @@ def _compress_pdf_ghostscript_dockerized(
     use_sudo: bool = False,
 ) -> None:
     """
-    Compress a PDF using `gs` running inside the `minidocks/ghostscript`
-    Docker container (pulled automatically if missing).
+    Compress a PDF using `gs` running inside the `minidocks/ghostscript` Docker
+    container (pulled automatically if missing).
 
     The container is mounted at the Git root (see
     `helpers.hdocker.get_docker_mount_context()`), so `input_file` and
@@ -173,8 +173,7 @@ def _compress_pdf_ghostscript_dockerized(
     )
     gs_opts = _build_gs_cmd_opts(quality)
     gs_cmd = (
-        f"gs {gs_opts} -sOutputFile={docker_tmp_output_file} "
-        f"{docker_input_file}"
+        f"gs {gs_opts} -sOutputFile={docker_tmp_output_file} {docker_input_file}"
     )
     # `minidocks/ghostscript` has no fixed entrypoint, so the full `gs`
     # command is passed as-is (mirrors `docker run ... minidocks/ghostscript

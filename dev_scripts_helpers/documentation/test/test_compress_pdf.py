@@ -3,7 +3,7 @@ import os
 from typing import Any, List, Tuple
 from unittest import mock
 
-import dev_scripts_helpers.documentation.compress_pdf as dshdcopdf
+import dev_scripts_helpers.documentation.compress_pdf as dshdcpd
 import helpers.hio as hio
 import helpers.hunit_test as hunitest
 import helpers.hunit_test_utils as hunteuti
@@ -34,7 +34,7 @@ class Test__find_gs_binary(hunitest.TestCase):
         expected = gs_binary
         # Run test.
         with mock.patch.object(dshdcopdf, "_GS_CANDIDATE_PATHS", [gs_binary]):
-            actual = dshdcopdf._find_gs_binary()
+            actual = dshdcpd._find_gs_binary()
         # Check outputs.
         self.assertEqual(actual, expected)
 
@@ -49,9 +49,9 @@ class Test__find_gs_binary(hunitest.TestCase):
         # Run test.
         with (
             mock.patch.object(dshdcopdf, "_GS_CANDIDATE_PATHS", []),
-            mock.patch.object(dshdcopdf.shutil, "which", return_value=gs_binary),
+            mock.patch.object(dshdcpd.shutil, "which", return_value=gs_binary),
         ):
-            actual = dshdcopdf._find_gs_binary()
+            actual = dshdcpd._find_gs_binary()
         # Check outputs.
         self.assertEqual(actual, expected)
 
@@ -107,7 +107,7 @@ class Test__compress_pdf_ghostscript_global(hunitest.TestCase):
             # `gs` itself is mocked out, so create the compressed file it
             # would have produced.
             hio.to_file(tmp_output_file, expected_content)
-            dshdcopdf._compress_pdf_ghostscript_global(
+            dshdcpd._compress_pdf_ghostscript_global(
                 input_file, output_file, quality=quality
             )
         # Check outputs.
@@ -174,28 +174,24 @@ class Test__compress_pdf_ghostscript_dockerized(hunitest.TestCase):
             caller_mount_path,
             callee_mount_path,
             _,
-        ) = dshdcopdf.hdocker.get_docker_mount_context()
-        docker_input_file = (
-            dshdcopdf.hdocker.convert_caller_to_callee_docker_path(
-                input_file,
-                caller_mount_path,
-                callee_mount_path,
-                check_if_exists=True,
-                is_input=True,
-                is_caller_host=is_caller_host,
-                use_sibling_container_for_callee=use_sibling_container_for_callee,
-            )
+        ) = dshdcpd.hdocker.get_docker_mount_context()
+        docker_input_file = dshdcpd.hdocker.convert_caller_to_callee_docker_path(
+            input_file,
+            caller_mount_path,
+            callee_mount_path,
+            check_if_exists=True,
+            is_input=True,
+            is_caller_host=is_caller_host,
+            use_sibling_container_for_callee=use_sibling_container_for_callee,
         )
-        docker_tmp_output_file = (
-            dshdcopdf.hdocker.convert_caller_to_callee_docker_path(
-                tmp_output_file,
-                caller_mount_path,
-                callee_mount_path,
-                check_if_exists=True,
-                is_input=False,
-                is_caller_host=is_caller_host,
-                use_sibling_container_for_callee=use_sibling_container_for_callee,
-            )
+        docker_tmp_output_file = dshdcpd.hdocker.convert_caller_to_callee_docker_path(
+            tmp_output_file,
+            caller_mount_path,
+            callee_mount_path,
+            check_if_exists=True,
+            is_input=False,
+            is_caller_host=is_caller_host,
+            use_sibling_container_for_callee=use_sibling_container_for_callee,
         )
         # Prepare outputs.
         expected_cmd = (
@@ -215,11 +211,11 @@ class Test__compress_pdf_ghostscript_dockerized(hunitest.TestCase):
 
         # Run test.
         with mock.patch.object(
-            dshdcopdf.hdocker,
+            dshdcpd.hdocker,
             "build_and_run_docker_cmd",
             side_effect=_fake_build_and_run_docker_cmd,
         ):
-            dshdcopdf._compress_pdf_ghostscript_dockerized(
+            dshdcpd._compress_pdf_ghostscript_dockerized(
                 input_file, output_file, quality=quality
             )
         # Check outputs.
@@ -272,9 +268,9 @@ class Test_compress_pdf_py(hunitest.TestCase):
         :param argv: command-line argument list to inject via
             `mock.patch("sys.argv", ...)`
         """
-        parser = dshdcopdf._parse()
+        parser = dshdcpd._parse()
         with mock.patch("sys.argv", argv):
-            dshdcopdf._main(parser)
+            dshdcpd._main(parser)
 
     def test1(self) -> None:
         """
@@ -303,7 +299,7 @@ class Test_compress_pdf_py(hunitest.TestCase):
                 dshdcopdf, "_find_gs_binary", return_value=gs_binary
             ),
             mock.patch.object(
-                dshdcopdf.hsystem, "system", side_effect=_fake_gs_system
+                dshdcpd.hsystem, "system", side_effect=_fake_gs_system
             ),
         ):
             self._run_main(argv)
@@ -339,7 +335,7 @@ class Test_compress_pdf_py(hunitest.TestCase):
         ]
         # Run test.
         with mock.patch.object(
-            dshdcopdf.hdocker,
+            dshdcpd.hdocker,
             "build_and_run_docker_cmd",
             side_effect=_fake_build_and_run_docker_cmd,
         ):

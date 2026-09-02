@@ -14,7 +14,6 @@
 #   "pygame", "pynput", "tqdm",
 # ]
 # ///
-
 """
 Read a markdown file and play it using text-to-speech with playback controls.
 
@@ -166,8 +165,7 @@ def _read_markdown_file(file_path: str) -> str:
     """
     Read a markdown file and extract text content.
 
-    :param file_path: path to the markdown file, or "-" to read from
-        stdin
+    :param file_path: path to the markdown file, or "-" to read from stdin
     :return: text content from the markdown file
     """
     if file_path == "-":
@@ -649,7 +647,8 @@ def _apply_speed_with_ffmpeg(
 
     :param input_file: path to input audio file
     :param output_file: path to output audio file
-    :param speed: speed multiplier (1.0 = normal, 2.0 = 2x faster, 0.5 = 2x slower)
+    :param speed: speed multiplier (1.0 = normal, 2.0 = 2x faster, 0.5 = 2x
+        slower)
     :param progress_bar: optional tqdm progress bar to update
     """
     if speed == 1.0:
@@ -704,9 +703,8 @@ def _to_single_line(text: str) -> str:
     """
     Collapse text onto a single line.
 
-    Replaces line breaks and repeated whitespace with a single space, so
-    playback doesn't jump (visually or in the synthesized audio) on
-    embedded line breaks.
+    Replaces line breaks and repeated whitespace with a single space, so playback
+    doesn't jump (visually or in the synthesized audio) on embedded line breaks.
 
     :param text: text possibly spanning multiple lines
     :return: text on a single line
@@ -724,7 +722,8 @@ def _process_sections_to_chunks(
 
     :param sections: list of markdown sections
     :param max_length: maximum text length per chunk (0 = no chunking)
-    :return: (chunks, chunk_originals) where each chunk has a corresponding original
+    :return: (chunks, chunk_originals) where each chunk has a corresponding
+        original
     """
     chunks = []
     chunk_originals = []

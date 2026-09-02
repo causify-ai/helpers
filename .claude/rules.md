@@ -137,7 +137,8 @@ rules
 
 ## Typst
 - For writing Typst chapters (files with a `.typ` extension) you MUST follow
-  the template `.claude/templates/typst.template.typ`
+  instructions in `.claude/skills/typst.rules.md` and the template
+  `.claude/templates/typst.template.typ`
 
 ## Blog
 - For writing blog posts you MUST follow instructions in
