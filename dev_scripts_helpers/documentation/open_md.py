@@ -52,12 +52,45 @@ import helpers.hdaemon as hdaemon
 import helpers.hdbg as hdbg
 import helpers.hdocker as hdocker
 import helpers.hgit as hgit
+import helpers.hio as hio
 import helpers.hparser as hparser
 import helpers.hsystem as hsystem
 
 _LOG = logging.getLogger(__name__)
 
 # #############################################################################
+
+
+def _strip_rendered_source_blocks(file_path: str) -> None:
+    """
+    Remove the commented-out original diagram source left by render_images.py.
+
+    `render_images.py` preserves the original diagram source (e.g., a
+    `mermaid` fence) as a block of `<!-- ... -->`-commented lines (between
+    `rendered_images:begin`/`rendered_images:end` markers) so it can be
+    restored later with `--remove_figs`. That preservation isn't needed for
+    a disposable preview copy, and it's actively harmful here: a diagram
+    edge like `A --> B` still contains a literal `-->`, so wrapping it as
+    `<!-- A --> B -->` makes the HTML/CommonMark parser close the comment at
+    the first `-->` (right after `A`), leaking the rest of the line as
+    visible text in the rendered output. Deleting the block sidesteps the
+    collision entirely for this preview-only copy.
+
+    :param file_path: path to the file to strip in place
+    """
+    lines = hio.from_file(file_path).split("\n")
+    out_lines = []
+    in_block = False
+    for line in lines:
+        if "rendered_images:begin" in line:
+            in_block = True
+            continue
+        if "rendered_images:end" in line:
+            in_block = False
+            continue
+        if not in_block:
+            out_lines.append(line)
+    hio.to_file(file_path, "\n".join(out_lines))
 
 
 def _run_render_images(input_file: str) -> str:
@@ -80,6 +113,10 @@ def _run_render_images(input_file: str) -> str:
     _LOG.info("Running render_images: %s", cmd)
     hsystem.system(cmd)
     hdbg.dassert_file_exists(output_file)
+    # Drop the commented-out original diagram source: it's not needed to
+    # view this disposable preview copy, and it's the source of leaked-text
+    # rendering artifacts (see `_strip_rendered_source_blocks()`).
+    _strip_rendered_source_blocks(output_file)
     return output_file
 
 
