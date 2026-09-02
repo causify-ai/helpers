@@ -77,6 +77,30 @@
   ```
 - Note: a raw string cannot end in a single backslash (e.g., `r'\'` is a
   syntax error), so a lone trailing backslash still needs `"\\"`
+- This also applies to triple-quoted strings (see `## Use Triple-Quote
+  Assignment with hprint.dedent for Multi-line Strings`): prefix with `r` to
+  avoid double-escaping backslash-heavy content (e.g., LaTeX)
+  - Exception: if the string also needs an escape sequence a raw string
+    cannot express (e.g., a literal `\n` standing for a newline character
+    inside a single-line string), keep it as a regular string, or restructure
+    it as a multi-line `r"""..."""` with real newlines instead
+
+- **Bad**: Escaped backslashes in a triple-quoted string
+  ```python
+  text = hprint.dedent(
+      """
+      \\section{Intro}
+      """
+  )
+  ```
+- **Good**: Raw triple-quoted string
+  ```python
+  text = hprint.dedent(
+      r"""
+      \section{Intro}
+      """
+  )
+  ```
 
 ## Use Triple-Quote Assignment with `hprint.dedent` for Multi-line Strings
 
@@ -631,6 +655,23 @@ prefix it with an underscore to mark it as private
   - `hdbg.dassert_isinstance(obj, type)`: Check type
   - `hdbg.dassert_file_exists(path)`: Check file existence
   - `hdbg.dassert_dir_exists(path)`: Check directory existence
+  - `hdbg.dassert_re_match(match, ...)`: Check a `re.Match` is not `None` and
+    return it cast to the non-`Optional` type
+
+- Use `hdbg.dassert_re_match()` instead of `assert match is not None` after a
+  `re.match()`/`re.search()` call
+  - **Bad**: Plain `assert`
+    ```python
+    match = pattern.search(text)
+    assert match is not None
+    value = match.group("name")
+    ```
+  - **Good**: `dassert_re_match()`, reassigned to narrow the type
+    ```python
+    match = pattern.search(text)
+    match = hdbg.dassert_re_match(match, "No match found in: %s", text)
+    value = match.group("name")
+    ```
 
 - Example: Use `dassert_in()` instead of generic `dassert()`
   - **Bad**: Generic assertion with membership check
