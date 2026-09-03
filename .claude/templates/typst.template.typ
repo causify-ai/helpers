@@ -66,8 +66,9 @@ $ Y_t = beta_0 + beta_1 t + beta_2 D_t + beta_3 (t - t_0) D_t + u_t $
 
 === Figures and Tables
 
-// Every caption below is one line, plain (no bold), and states what the
-// visual shows — never a restatement of its labels (see `typst.rules.md`).
+// Every caption below is one line, plain (no bold), sentence case (not
+// Title Case), and states what the visual shows — never a restatement of
+// its labels (see `typst.rules.md`).
 
 // A multi-element diagram (flowchart, mind map, ...) is a bare figure at
 // 70%+ width, never squeezed into `wrap-content` (see `typst.rules.md`).

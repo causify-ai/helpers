@@ -39,16 +39,24 @@
 ## Structural Hierarchy
 
 - A source Markdown heading level maps to Typst as follows:
-  - `#` (H1) → `#strong[Title]`, a bold paragraph, not a section heading —
-    `#chapter(...)` already carries the document's top-level title, so a body-level
-    H1 would just be a redundant second title
+  - `#` (H1) → nothing: drop the title line entirely (keep any `// From:`/`//
+    Slide:` provenance comments) — `#chapter(...)` already carries the
+    document's top-level title, so repeating it in the body would just be a
+    redundant second title. If a body-level H1 ever has *different* text from
+    the chapter title (rare), fall back to `#strong[Title]` instead of
+    dropping it, so nothing is silently lost
   - `##` (H2) → `== Title`
   - `###` (H3) → `=== Title`, and deeper levels continue with one more `=` each
-  - A slide-level heading (a `*Heading*` line in the `.smd` source) also becomes
-    `#strong[Heading]`, followed by its body text as a paragraph: it is a subsection
-    label, not a real Typst heading
-- **Bad** (repeats the chapter title as a section, and skips the bold-paragraph form
-  for a plain H1):
+  - A slide-level heading (a `* Heading` line in the `.smd` source) depends on
+    whether a real `##`/`###` heading has appeared yet in the document:
+    - Before the first `##`/`###`: no real section exists yet to hold it, so
+      the slide *is* the chapter's top-level section — use a real heading,
+      `= Heading`
+    - From the first `##`/`###` onward: `#strong[Heading]`, followed by its
+      body text as a paragraph — a subsection label, not a real Typst heading
+    - This keeps a "flat" lesson (a single `#` followed only by `*` slides,
+      no `##` at all) from ending up with zero real headings in its body
+- **Bad** (repeats the chapter title as a section instead of dropping the H1):
 
   ```typst
   #chapter("Brief History of AI")
@@ -61,6 +69,17 @@
   #chapter("Brief History of AI")
   == Origins and Early AI (1943-1990)
   #strong[The Beginning (1943-1956)]
+  ```
+
+- **Good**, flat lesson (no `##`/`###` anywhere, so the `*` slides carry the
+  chapter's top-level structure):
+
+  ```typst
+  #chapter("A Map of Machine Learning")
+  = Four Branches of Machine Learning
+  ...
+  = Learning Paradigms
+  ...
   ```
 
 # Text Formatting
@@ -258,6 +277,10 @@
 - A caption is one plain line: never wrap any part of it in `#strong[...]` / `*...*`,
   and never list out every node or label the figure contains: say what the figure
   shows in a single short clause and let the reader look at the image for specifics
+- Write a caption in sentence case: capitalize only the first word and proper nouns,
+  never Title Case every word. This applies even when the caption names concepts that
+  are capitalized elsewhere (a figure title, a heading, a source label): lowercase
+  them into the sentence unless they're proper nouns or acronyms
   - **Bad** (multi-line, bold, restates every node label):
 
     ```typst
@@ -265,10 +288,22 @@
       fields] and #strong[Reunified subfields]],
     ```
 
+  - **Bad** (Title Case instead of sentence case):
+
+    ```typst
+    caption: [Diagram Relating Learning Paradigms, Label Availability and
+      Interactive/Sequential],
+    ```
+
   - **Good**:
 
     ```typst
     caption: [Fields that converged into the reunified AI research agenda.],
+    ```
+
+    ```typst
+    caption: [Diagram relating learning paradigms, label availability and
+      interactive/sequential],
     ```
 
 - `placement:` takes a bare keyword (`auto`, `none`, `top`, `bottom`), never a string
