@@ -27,6 +27,16 @@ default, asserts if any are found.
 - Watch mode: rebuild on file changes, skip opening on subsequent runs:
 > run_typst.py --input lecture.typ --daemon
 
+- Compile multiple files:
+> run_typst.py --files "lecture1.typ lecture2.typ"
+
+- Compile all matching files via shell expansion:
+> run_typst.py --files "$(ls msml610/book/Lesson01.*.typ)"
+
+- Compress the PDF (via `compress_pdf.py`) before opening it (not run by
+  default):
+> run_typst.py --input lecture.typ --action compress_pdf
+
 Import as:
 
 import dev_scripts_helpers.typst.run_typst as dshtyrt
@@ -48,6 +58,7 @@ import helpers.hopen as hopen
 import helpers.hparser as hparser
 import helpers.hprint as hprint
 import helpers.hselect_action as hselacti
+import helpers.hselect_input_output as hseinout
 import helpers.hsystem as hsystem
 import helpers.hunit_test_purification as huntepur
 import dev_scripts_helpers.dockerize.lib_typst as dshdlity
@@ -61,6 +72,7 @@ _LOG = logging.getLogger(__name__)
 _VALID_ACTIONS = [
     "render_images",
     "compile",
+    "compress_pdf",
     "open_pdf",
 ]
 
@@ -172,6 +184,23 @@ def _compile_typst(
 
 
 # #############################################################################
+# Post-build helpers
+# #############################################################################
+
+
+def _compress_pdf(out_file_path: str) -> None:
+    """
+    Compress the compiled PDF in place via `compress_pdf.py`.
+
+    :param out_file_path: path to the PDF to compress
+    """
+    _LOG.debug(hprint.func_signature_to_str())
+    exec_file = hgit.find_file("compress_pdf.py")
+    cmd = f"{exec_file} --input {out_file_path}"
+    hsystem.system(cmd, suppress_output=False, log_level=logging.DEBUG)
+
+
+# #############################################################################
 # CLI
 # #############################################################################
 
@@ -181,19 +210,14 @@ def _parse() -> argparse.ArgumentParser:
         description=__doc__,
         formatter_class=hparser.CustomHelpFormatter,
     )
-    parser.add_argument(
-        "-i",
-        "--input",
-        action="store",
-        required=True,
-        help="Typst file to compile",
-    )
+    hseinout.add_file_selection_args(parser)
     parser.add_argument(
         "-o",
         "--output",
         action="store",
         default="",
-        help="Output PDF file (default: input file with a `.pdf` extension)",
+        help="Output PDF file (default: input file with a `.pdf` extension); "
+        "only valid when a single input file is selected",
     )
     parser.add_argument(
         "--root",
@@ -226,20 +250,21 @@ def _parse() -> argparse.ArgumentParser:
     return parser
 
 
-def _main(parser: argparse.ArgumentParser) -> None:
-    args = parser.parse_args()
-    hdbg.init_logger(
-        verbosity=args.log_level, use_exec_path=True, force_white=False
-    )
-    in_file_path = os.path.abspath(args.input)
-    hdbg.dassert_file_extension(in_file_path, "typ")
-    out_file_path = args.output
-    if out_file_path == "":
-        out_file_path = hio.change_filename_extension(in_file_path, "typ", "pdf")
-    out_file_path = os.path.abspath(out_file_path)
-    # Use the outermost Git root by default, so that root-absolute paths
-    # (e.g., `image("/foo.png")`) resolve correctly.
-    root = args.root if args.root else hgit.find_git_root()
+def _process_typst_file(
+    in_file_path: str,
+    out_file_path: str,
+    root: str,
+    args: argparse.Namespace,
+) -> None:
+    """
+    Run the requested actions (render_images, compile, open_pdf) on a single
+    `.typ` file.
+
+    :param in_file_path: path to the `.typ` file to process
+    :param out_file_path: path to the resulting PDF
+    :param root: project root passed to `typst compile --root`
+    :param args: parsed command-line arguments
+    """
     # Handle daemon mode.
     if args.daemon:
         # Skip "open_pdf" action on watch runs (viewer auto-reloads).
@@ -250,40 +275,85 @@ def _main(parser: argparse.ArgumentParser) -> None:
             "run_typst",
             watch_cmd_suffix=" --skip_action=open_pdf",
         )
-    else:
-        # Get actions.
-        actions = hselacti.select_actions(args, _VALID_ACTIONS, _DEFAULT_ACTIONS)
-        print(
-            hselacti.actions_to_string(actions, _VALID_ACTIONS, add_frame=True)
-        )
-        while actions:
-            action = actions[0]
-            to_execute, actions = hselacti.mark_action(action, actions)
-            if not to_execute:
-                continue
-            if action == "render_images":
-                _render_images(in_file_path)
-            elif action == "compile":
-                _compile_typst(
-                    in_file_path,
-                    out_file_path,
-                    root,
-                    abort_on_warnings=not args.no_abort_on_warnings,
-                    abort_on_errors=not args.no_abort_on_errors,
-                    force_rebuild=args.dockerized_force_rebuild,
-                    use_sudo=args.dockerized_use_sudo,
-                )
-                _LOG.info("Output written to '%s'", out_file_path)
-            elif action == "open_pdf":
-                hopen.open_file(out_file_path)
-            else:
-                raise ValueError(f"Invalid action='{action}'")
+        return
+    # Get actions.
+    actions = hselacti.select_actions(args, _VALID_ACTIONS, _DEFAULT_ACTIONS)
+    print(hselacti.actions_to_string(actions, _VALID_ACTIONS, add_frame=True))
+    while actions:
+        action = actions[0]
+        to_execute, actions = hselacti.mark_action(action, actions)
+        if not to_execute:
+            continue
+        if action == "render_images":
+            _render_images(in_file_path)
+        elif action == "compile":
+            _compile_typst(
+                in_file_path,
+                out_file_path,
+                root,
+                abort_on_warnings=not args.no_abort_on_warnings,
+                abort_on_errors=not args.no_abort_on_errors,
+                force_rebuild=args.dockerized_force_rebuild,
+                use_sudo=args.dockerized_use_sudo,
+            )
+            _LOG.info("Output written to '%s'", out_file_path)
+        elif action == "compress_pdf":
+            _compress_pdf(out_file_path)
+        elif action == "open_pdf":
+            # PDFs are opened in Skim by default on macOS (see
+            # `hopen._cmd_open_pdf()`).
+            hopen.open_file(out_file_path)
+        else:
+            raise ValueError(f"Invalid action='{action}'")
+    hdbg.dassert_eq(
+        len(actions or []),
+        0,
+        "There are unprocessed actions: %s",
+        str(actions),
+    )
+
+
+def _main(parser: argparse.ArgumentParser) -> None:
+    args = parser.parse_args()
+    hdbg.init_logger(
+        verbosity=args.log_level, use_exec_path=True, force_white=False
+    )
+    files = hseinout.parse_file_selection_args(args)
+    hdbg.dassert_lt(
+        0,
+        len(files),
+        "No files selected; use -i/--input, --files, --from_file, "
+        "--modified, --branch, --last_commit, or --all_files",
+    )
+    in_file_paths = [os.path.abspath(file_) for file_ in files]
+    for in_file_path in in_file_paths:
+        hdbg.dassert_file_extension(in_file_path, "typ")
+    if args.output:
         hdbg.dassert_eq(
-            len(actions or []),
-            0,
-            "There are unprocessed actions: %s",
-            str(actions),
+            len(in_file_paths),
+            1,
+            "`--output` can only be used when a single input file is "
+            "selected, got: %s",
+            in_file_paths,
         )
+    if args.daemon:
+        hdbg.dassert_eq(
+            len(in_file_paths),
+            1,
+            "`--daemon` only supports a single input file, got: %s",
+            in_file_paths,
+        )
+    # Use the outermost Git root by default, so that root-absolute paths
+    # (e.g., `image("/foo.png")`) resolve correctly.
+    root = args.root if args.root else hgit.find_git_root()
+    for in_file_path in in_file_paths:
+        out_file_path = args.output
+        if out_file_path == "":
+            out_file_path = hio.change_filename_extension(
+                in_file_path, "typ", "pdf"
+            )
+        out_file_path = os.path.abspath(out_file_path)
+        _process_typst_file(in_file_path, out_file_path, root, args)
 
 
 if __name__ == "__main__":

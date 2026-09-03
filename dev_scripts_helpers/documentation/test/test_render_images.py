@@ -1308,6 +1308,55 @@ class Test_render_images1(hunitest.TestCase):
         expected = in_lines
         self.helper(in_lines, file_ext, expected)
 
+    def test25(self) -> None:
+        """
+        Check that trailing `#wrap-content(...)` arguments (e.g., `align:`,
+        `column-gutter:`, `columns:`) that follow a `caption=` metadata line
+        in a Typst file are not swallowed as caption continuation text.
+        """
+        in_lines = r"""
+        #wrap-content(
+          [
+            ```graphviz
+            digraph { A -> B }
+            ```
+            label=fig:test_diagram
+            caption=Test diagram caption
+          ],
+          align: right,
+          column-gutter: 1em,
+          columns: (1fr, 20%),
+        )[
+          Body text.
+        ]
+        """
+        file_ext = "typ"
+        expected = r"""
+        #wrap-content(
+          [
+        // rendered_images:begin
+        //     ```graphviz
+        //     digraph { A -> B }
+        //     ```
+        //     label=fig:test_diagram
+        //     caption=Test diagram caption
+        // rendered_images:end
+        // render_images:begin
+        #figure(
+          image("figs/out.1.png"),
+          caption: [Test diagram caption],
+        ) <fig:test_diagram>
+        // render_images:end
+          ],
+          align: right,
+          column-gutter: 1em,
+          columns: (1fr, 20%),
+        )[
+          Body text.
+        ]
+        """
+        self.helper(in_lines, file_ext, expected)
+
 
 # #############################################################################
 # Test_render_images2

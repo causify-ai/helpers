@@ -16,6 +16,12 @@ Compress a PDF file using Ghostscript to reduce its file size.
 
 - Compress using `gs` running inside Docker instead of the host binary:
 > compress_pdf.py --input lecture.pdf --backend ghostscript_dockerized
+
+- Compress multiple PDFs in place:
+> compress_pdf.py --files "lecture1.pdf lecture2.pdf"
+
+- Compress a PDF and open it once done:
+> compress_pdf.py --input lecture.pdf --open_pdf
 """
 
 import argparse
@@ -25,8 +31,11 @@ import shutil
 
 import helpers.hdbg as hdbg
 import helpers.hdocker as hdocker
+import helpers.hio as hio
+import helpers.hopen as hopen
 import helpers.hparser as hparser
 import helpers.hprint as hprint
+import helpers.hselect_input_output as hseinout
 import helpers.hsystem as hsystem
 
 _LOG = logging.getLogger(__name__)
@@ -71,6 +80,13 @@ def _build_gs_cmd_opts(quality: str) -> str:
         f"-dPDFSETTINGS={quality}",
         # Target PDF 1.4 for broad compatibility with PDF readers.
         "-dCompatibilityLevel=1.4",
+        # Force color/gray images to plain DeviceRGB/DeviceGray instead of
+        # re-embedding their original ICC profile. Ghostscript's pdfwrite
+        # mishandles the compact ICC profiles. Converting to sRGB/Gray up front
+        # avoids the broken re-embed path entirely; since the source is already
+        # sRGB, this changes no visible pixel values.
+        "-dColorConversionStrategy=/sRGB",
+        "-dProcessColorModel=/DeviceRGB",
         "-dNOPAUSE -dQUIET -dBATCH",
     ]
     return " ".join(opts)
@@ -200,22 +216,15 @@ def _parse() -> argparse.ArgumentParser:
         description=__doc__,
         formatter_class=hparser.CustomHelpFormatter,
     )
-    parser.add_argument(
-        "--input",
-        "-i",
-        action="store",
-        required=True,
-        type=str,
-        help="PDF file to compress",
-    )
+    hseinout.add_file_selection_args(parser)
     parser.add_argument(
         "--output",
         "-o",
         action="store",
         default="",
         type=str,
-        help="Compressed PDF file to write (default: overwrite `--input` "
-        "in place)",
+        help="Compressed PDF file to write (default: overwrite each input "
+        "file in place); only valid when a single input file is selected",
     )
     parser.add_argument(
         "--quality",
@@ -233,6 +242,11 @@ def _parse() -> argparse.ArgumentParser:
         help="How to run `gs`: `ghostscript_global` uses the host `gs` "
         "binary, `ghostscript_dockerized` runs `gs` inside Docker",
     )
+    parser.add_argument(
+        "--open_pdf",
+        action="store_true",
+        help="Open each compressed PDF once done (see `run_typst.py`)",
+    )
     # `--dockerized_force_rebuild` is accepted for CLI consistency but is a
     # no-op here: the `ghostscript_dockerized` backend uses the pre-built
     # public `minidocks/ghostscript` image, not a locally-built one.
@@ -244,33 +258,65 @@ def _parse() -> argparse.ArgumentParser:
 def _main(parser: argparse.ArgumentParser) -> None:
     args = parser.parse_args()
     hdbg.init_logger(verbosity=args.log_level, use_exec_path=True)
-    input_file = args.input
-    output_file = args.output or input_file
+    input_files = hseinout.parse_file_selection_args(args)
+    hdbg.dassert_lt(
+        0,
+        len(input_files),
+        "No files selected; use -i/--input, --files, --from_file, "
+        "--modified, --branch, --last_commit, or --all_files",
+    )
+    if args.output:
+        hdbg.dassert_eq(
+            len(input_files),
+            1,
+            "`--output` can only be used when a single input file is "
+            "selected, got: %s",
+            input_files,
+        )
     quality = args.quality
     backend = args.backend
-    hdbg.dassert_file_exists(input_file, "PDF file to compress does not exist")
-    hdbg.dassert(
-        input_file.endswith(".pdf"),
-        "Input file must be a PDF; got input_file='%s'",
-        input_file,
-    )
-    if backend == "ghostscript_global":
-        _compress_pdf_ghostscript_global(
-            input_file, output_file, quality=quality
+    for input_file in input_files:
+        hdbg.dassert_file_exists(
+            input_file, "PDF file to compress does not exist"
         )
-    else:
-        _compress_pdf_ghostscript_dockerized(
+        hdbg.dassert(
+            input_file.endswith(".pdf"),
+            "Input file must be a PDF; got input_file='%s'",
+            input_file,
+        )
+        output_file = args.output or input_file
+        # Capture the input size before compressing: `output_file` can be
+        # the same path as `input_file` (in-place compression), so it must
+        # be read before that file is overwritten.
+        size_before = hio.get_size_as_str(input_file)
+        size_before_bytes = os.path.getsize(input_file)
+        if backend == "ghostscript_global":
+            _compress_pdf_ghostscript_global(
+                input_file, output_file, quality=quality
+            )
+        else:
+            _compress_pdf_ghostscript_dockerized(
+                input_file,
+                output_file,
+                quality=quality,
+                use_sudo=args.dockerized_use_sudo,
+            )
+        size_after = hio.get_size_as_str(output_file)
+        size_after_bytes = os.path.getsize(output_file)
+        reduction = hprint.perc(
+            size_after_bytes, size_before_bytes, invert=True
+        )
+        _LOG.info(
+            "Compressed '%s' to '%s' using backend='%s': %s -> %s (%s smaller)",
             input_file,
             output_file,
-            quality=quality,
-            use_sudo=args.dockerized_use_sudo,
+            backend,
+            size_before,
+            size_after,
+            reduction,
         )
-    _LOG.info(
-        "Compressed '%s' to '%s' using backend='%s'.",
-        input_file,
-        output_file,
-        backend,
-    )
+        if args.open_pdf:
+            hopen.open_file(output_file)
 
 
 if __name__ == "__main__":
