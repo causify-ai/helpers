@@ -6,6 +6,7 @@ Render and open markdown files in different modes.
 **Modes** (rendering engine):
 - github: Open file on GitHub in browser
 - pandoc: Convert markdown to HTML with pandoc
+- pdf: Convert markdown to PDF with pandoc (via a LaTeX engine)
 - grip: Export markdown to HTML with grip
 - grip_daemon: Start grip daemon for live preview
 
@@ -27,6 +28,10 @@ Render and open markdown files in different modes.
 - Same, with a custom CSS/HTML header-include instead of the bundled
   GitHub-like style:
 > open_md.py --input xyz.md --backend global --css my_style.html
+
+- Convert the file to PDF with pandoc (requires a LaTeX install, e.g.,
+  xelatex, on the `global` backend):
+> open_md.py --input xyz.md --mode pdf
 
 - Export the file to HTML with grip using locally installed tools:
 > open_md.py --input xyz.md --mode grip --backend global
@@ -52,12 +57,45 @@ import helpers.hdaemon as hdaemon
 import helpers.hdbg as hdbg
 import helpers.hdocker as hdocker
 import helpers.hgit as hgit
+import helpers.hio as hio
 import helpers.hparser as hparser
 import helpers.hsystem as hsystem
 
 _LOG = logging.getLogger(__name__)
 
 # #############################################################################
+
+
+def _strip_rendered_source_blocks(file_path: str) -> None:
+    """
+    Remove the commented-out original diagram source left by render_images.py.
+
+    `render_images.py` preserves the original diagram source (e.g., a
+    `mermaid` fence) as a block of `<!-- ... -->`-commented lines (between
+    `rendered_images:begin`/`rendered_images:end` markers) so it can be
+    restored later with `--remove_figs`. That preservation isn't needed for
+    a disposable preview copy, and it's actively harmful here: a diagram
+    edge like `A --> B` still contains a literal `-->`, so wrapping it as
+    `<!-- A --> B -->` makes the HTML/CommonMark parser close the comment at
+    the first `-->` (right after `A`), leaking the rest of the line as
+    visible text in the rendered output. Deleting the block sidesteps the
+    collision entirely for this preview-only copy.
+
+    :param file_path: path to the file to strip in place
+    """
+    lines = hio.from_file(file_path).split("\n")
+    out_lines = []
+    in_block = False
+    for line in lines:
+        if "rendered_images:begin" in line:
+            in_block = True
+            continue
+        if "rendered_images:end" in line:
+            in_block = False
+            continue
+        if not in_block:
+            out_lines.append(line)
+    hio.to_file(file_path, "\n".join(out_lines))
 
 
 def _run_render_images(input_file: str) -> str:
@@ -80,6 +118,10 @@ def _run_render_images(input_file: str) -> str:
     _LOG.info("Running render_images: %s", cmd)
     hsystem.system(cmd)
     hdbg.dassert_file_exists(output_file)
+    # Drop the commented-out original diagram source: it's not needed to
+    # view this disposable preview copy, and it's the source of leaked-text
+    # rendering artifacts (see `_strip_rendered_source_blocks()`).
+    _strip_rendered_source_blocks(output_file)
     return output_file
 
 
@@ -179,6 +221,24 @@ def _open_on_github(input_file: str) -> None:
     _open_file(url)
 
 
+def _compute_resource_path(input_file: str, processed_file: str) -> str:
+    """
+    Compute a pandoc `--resource-path` value covering both source dirs.
+
+    `processed_file` (the output of `render_images.py`) is a temp file
+    written to the CWD, so its dir alone isn't enough to resolve resources
+    (e.g., images) that are relative to the original `input_file`'s
+    directory instead.
+
+    :param input_file: path to the original markdown file
+    :param processed_file: path to the render_images-processed markdown file
+    :return: `os.pathsep`-joined, deduplicated list of directories
+    """
+    processed_dir = os.path.dirname(os.path.abspath(processed_file))
+    input_dir = os.path.dirname(os.path.abspath(input_file))
+    return os.pathsep.join(dict.fromkeys([input_dir, processed_dir]))
+
+
 def _render_with_pandoc(
     input_file: str,
     *,
@@ -195,11 +255,11 @@ def _render_with_pandoc(
     :param backend: "global" or "dockerized"
     :param force_rebuild: Force rebuild Docker image (for dockerized only)
     :param use_sudo: Use sudo for Docker (for dockerized only)
-    :param style_file: path to an HTML snippet (e.g., a `<style>` block)
-        injected into the `<head>` via pandoc's `--include-in-header`; None
-        means use pandoc's bare default styling
-    :param skip_open: don't open the rendered output (used for `--daemon`
-        watch re-runs, where the first run already opened it)
+    :param style_file: path to an HTML snippet (e.g., a `<style>` block) injected
+        into the `<head>` via pandoc's `--include-in-header`; None means use
+        pandoc's bare default styling
+    :param skip_open: don't open the rendered output (used for `--daemon` watch
+        re-runs, where the first run already opened it)
     """
     _LOG.info("Rendering with pandoc (backend=%s): '%s'", backend, input_file)
     # Validate input file exists.
@@ -208,7 +268,7 @@ def _render_with_pandoc(
     processed_file = _run_render_images(input_file)
     # Determine output file.
     output_file = "tmp.open_md.pandoc.html"
-    file_dir = os.path.dirname(os.path.abspath(processed_file))
+    file_dir = _compute_resource_path(input_file, processed_file)
     # Add the optional style/header-include and matching syntax highlighting.
     style_opts = ""
     if style_file is not None:
@@ -223,6 +283,7 @@ def _render_with_pandoc(
             f"-o {output_file} "
             f"--resource-path={file_dir} "
             f"--standalone "
+            f"--embed-resources "
             f"--mathjax "
             f"{style_opts}"
         )
@@ -235,9 +296,66 @@ def _render_with_pandoc(
             f"-o {output_file} "
             f"--resource-path={file_dir} "
             f"--standalone "
+            f"--embed-resources "
             f"--mathjax "
             f"{style_opts}"
         )
+        _LOG.info("Running dockerized pandoc: %s", cmd)
+        dshdlipa.run_dockerized_pandoc(
+            cmd,
+            "pandoc_only",
+            force_rebuild=force_rebuild,
+            use_sudo=use_sudo,
+        )
+    else:
+        raise ValueError(f"Invalid backend: {backend}")
+    # Validate output exists.
+    hdbg.dassert_file_exists(output_file)
+    # Open the output file.
+    if not skip_open:
+        _open_file(output_file)
+
+
+def _render_with_pdf(
+    input_file: str,
+    *,
+    backend: str,
+    force_rebuild: bool = False,
+    use_sudo: bool = False,
+    skip_open: bool = False,
+) -> None:
+    """
+    Render markdown to PDF with pandoc and open it.
+
+    Requires a LaTeX distribution (e.g., MacTeX/TeX Live providing `xelatex`)
+    on the `global` backend, or in the Docker image on `dockerized`.
+
+    :param input_file: Path to markdown file
+    :param backend: "global" or "dockerized"
+    :param force_rebuild: Force rebuild Docker image (for dockerized only)
+    :param use_sudo: Use sudo for Docker (for dockerized only)
+    :param skip_open: don't open the rendered output (used for `--daemon` watch
+        re-runs, where the first run already opened it)
+    """
+    _LOG.info("Rendering with pandoc to PDF (backend=%s): '%s'", backend, input_file)
+    # Validate input file exists.
+    hdbg.dassert_file_exists(input_file)
+    # Preprocess with render_images.
+    processed_file = _run_render_images(input_file)
+    # Determine output file.
+    output_file = "tmp.open_md.pandoc.pdf"
+    file_dir = _compute_resource_path(input_file, processed_file)
+    cmd = (
+        f"pandoc {processed_file} "
+        f"-o {output_file} "
+        f"--resource-path={file_dir} "
+        f"--pdf-engine=xelatex "
+        f"-V geometry:margin=1in"
+    )
+    if backend == "global":
+        _LOG.info("Running pandoc: %s", cmd)
+        hsystem.system(cmd)
+    elif backend == "dockerized":
         _LOG.info("Running dockerized pandoc: %s", cmd)
         dshdlipa.run_dockerized_pandoc(
             cmd,
@@ -265,8 +383,8 @@ def _render_with_grip(
 
     :param input_file: Path to markdown file
     :param backend: "global" or "dockerized"
-    :param skip_open: don't open the rendered output (used for `--daemon`
-        watch re-runs, where the first run already opened it)
+    :param skip_open: don't open the rendered output (used for `--daemon` watch
+        re-runs, where the first run already opened it)
     """
     _LOG.info("Rendering with grip (backend=%s): '%s'", backend, input_file)
     # Validate input file exists.
@@ -336,7 +454,7 @@ def _parse() -> argparse.ArgumentParser:
     parser.add_argument(
         "--mode",
         type=str,
-        choices=["github", "pandoc", "grip", "grip_daemon"],
+        choices=["github", "pandoc", "pdf", "grip", "grip_daemon"],
         default="pandoc",
         help="Rendering mode",
     )
@@ -381,8 +499,8 @@ def _main(parser: argparse.ArgumentParser) -> None:
         # makes sense for the one-shot pandoc/grip modes.
         hdbg.dassert_in(
             args.mode,
-            ("pandoc", "grip"),
-            "--daemon is only supported for pandoc/grip modes ("
+            ("pandoc", "pdf", "grip"),
+            "--daemon is only supported for pandoc/pdf/grip modes ("
             "grip_daemon already watches for changes)",
         )
         hdaemon.run_reactive_daemon_mode(
@@ -404,6 +522,14 @@ def _main(parser: argparse.ArgumentParser) -> None:
             force_rebuild=args.dockerized_force_rebuild,
             use_sudo=args.dockerized_use_sudo,
             style_file=style_file,
+            skip_open=args.skip_open,
+        )
+    elif args.mode == "pdf":
+        _render_with_pdf(
+            args.input,
+            backend=args.backend,
+            force_rebuild=args.dockerized_force_rebuild,
+            use_sudo=args.dockerized_use_sudo,
             skip_open=args.skip_open,
         )
     elif args.mode == "grip":

@@ -85,8 +85,7 @@ def _cmd_open_with_app(file_name: str, os_name: str, app: str) -> Optional[str]:
     """
     Get OS-specific command to open a file with a specific application.
 
-    :param app: name of the app to open the file with (e.g., "Skim",
-        "Preview")
+    :param app: name of the app to open the file with (e.g., "Skim", "Preview")
     """
     if os_name != "Darwin":
         _LOG.warning(

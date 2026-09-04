@@ -458,7 +458,8 @@ class Test__handle_empty_lines(hunitest.TestCase):
 
     def test7(self) -> None:
         """
-        Test that empty lines between text without code blocks are preserved.
+        Test that empty lines between text without code blocks are
+        preserved.
         """
         # Prepare inputs.
         txt = """
@@ -1411,8 +1412,8 @@ class Test_remove_trailing_periods(hunitest.TestCase):
         self.helper(txt, expected)
 
     def test16(self) -> None:
-        """
-        Test removing periods from regular text lines (user's example case).
+        """Test removing periods from regular text lines (user's example
+        case).
         """
         # Prepare inputs.
         txt = """
@@ -1924,10 +1925,9 @@ class Test_capitalize_header(hunitest.TestCase):
     """
     Test the capitalize_header function handling of apostrophes.
 
-    The capitalize_header function should properly handle words with
-    apostrophes, like "won't" -> "Won't" (not "Won'T"). This tests the
-    fix for the bug where Python's str.title() capitalizes letters after
-    apostrophes.
+    The capitalize_header function should properly handle words with apostrophes,
+    like "won't" -> "Won't" (not "Won'T"). This tests the fix for the bug where
+    Python's str.title() capitalizes letters after apostrophes.
     """
 
     def helper(self, input_lines: str, expected: str) -> None:
@@ -2056,12 +2056,12 @@ class Test_lint_text2(hunitest.TestCase):
 
     def helper(self, txt: str, expected: str, file_name: str) -> str:
         """
-        Helper function to process the given text and compare the result with
-        the expected output.
+        Helper function to process the given text and compare the result with the
+        expected output.
 
         :param txt: The text to be processed.
-        :param expected: The expected output after processing the text.
-            If empty string, no comparison is made.
+        :param expected: The expected output after processing the text. If empty
+            string, no comparison is made.
         :param file_name: The name of the file to be used for processing.
         :return: The processed text.
         """
@@ -2203,7 +2203,6 @@ class Test_lint_text2(hunitest.TestCase):
         <!-- tocstop -->
 
         - Good
-
         - Hello
 
         ```test
@@ -2413,10 +2412,8 @@ class Test_lint_text_py1(hunitest.TestCase):
         Run lint_text processing directly by calling the code.
 
         :param in_file: Path to the input file containing the notes.
-        :param type_: The output format, either 'md' or 'tex'. :param
-            use_script
-        :param cmd_opts: Additional command-line options to pass to the
-            script.
+        :param type_: The output format, either 'md' or 'tex'. :param use_script
+        :param cmd_opts: Additional command-line options to pass to the script.
         :return: The processed text content.
         """
         if use_script:
@@ -2509,9 +2506,8 @@ class Test_lint_text_py1(hunitest.TestCase):
         """
         Run lint_to_txt.py on a markdown file using the command-line script.
 
-        This test uses the same input file as test1 and should
-        produce the same output. It uses test_method_name to reuse the
-        golden outcome from test1.
+        This test uses the same input file as test1 and should produce the same
+        output. It uses test_method_name to reuse the golden outcome from test1.
         """
         # Prepare inputs.
         in_file = os.path.join(
@@ -2574,9 +2570,8 @@ class Test_lint_text_py1(hunitest.TestCase):
         """
         Run lint_to_txt.py on a latex file using the command-line script.
 
-        This test uses the same input file as test3 and should
-        produce the same output. It uses test_method_name to reuse the
-        golden outcome from test3.
+        This test uses the same input file as test3 and should produce the same
+        output. It uses test_method_name to reuse the golden outcome from test3.
         """
         # Prepare inputs.
         in_file = os.path.join(
@@ -2664,8 +2659,8 @@ class Test_lint_text_py_idempotency(hunitest.TestCase):
         """
         Test idempotency for all markdown files in the input directory.
 
-        This test verifies that running lint_text twice on each file in
-        the input directory produces identical output.
+        This test verifies that running lint_text twice on each file in the input
+        directory produces identical output.
         """
         # Prepare inputs.
         input_dir = self.get_input_dir()
@@ -2881,8 +2876,7 @@ class Test_replace_em_dash_with_colon(hunitest.TestCase):
 
 
 class Test_smd_format(hunitest.TestCase):
-    """
-    Test the _smd_format function used for the smd (slide markdown) file
+    """Test the _smd_format function used for the smd (slide markdown) file
     type.
     """
 
@@ -2951,8 +2945,7 @@ class Test_smd_format(hunitest.TestCase):
         self.helper(txt, expected)
 
     def test4(self) -> None:
-        """
-        Test that the `:` is kept (and the following text capitalized) when
+        """Test that the `:` is kept (and the following text capitalized) when
         the tag line has content after it.
         """
         # Prepare inputs.
@@ -2983,8 +2976,8 @@ class Test_smd_format(hunitest.TestCase):
 
     def test6(self) -> None:
         """
-        Test capitalizing the first letter after a `:`, skipping over a
-        leading bold marker.
+        Test capitalizing the first letter after a `:`, skipping over a leading
+        bold marker.
         """
         # Prepare inputs.
         txt = """
@@ -3064,8 +3057,7 @@ class Test_smd_format(hunitest.TestCase):
 
     def test10(self) -> None:
         """
-        Test that an already well-formatted fenced div block is left
-        unchanged.
+        Test that an already well-formatted fenced div block is left unchanged.
         """
         # Prepare inputs.
         txt = r"""

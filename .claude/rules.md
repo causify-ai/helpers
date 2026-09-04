@@ -22,19 +22,16 @@ rules
   `.claude/skills/markdown.rules.md`
 
 ## Visuals
-- For diagrams, images, and other illustrations you MUST follow instructions
-  in `.claude/skills/visuals.rules.md`, using:
+- For diagrams, images, and other illustrations you MUST follow instructions in
+  `.claude/skills/visuals.rules.md`, using:
   - The rules `.claude/skills/graphviz.rules.md` and the template
-    `.claude/templates/graphviz.template.md` for Graphviz diagrams, which
-    covers both the default flat style and the hierarchy-aware architecture
-    style
-  - The template `.claude/templates/image.template.md` for image
-    descriptions
-  - The template `.claude/templates/tikz.template.md` for TikZ diagrams
-- For a publication-quality SVG figure you MUST follow
-  `.claude/skills/svg.rules.md`
-- For a publication-quality TikZ figure you MUST follow
-  `.claude/skills/tikz.rules.md`
+    `.claude/templates/graphviz.template.md`
+  - For a publication-quality SVG figure you MUST follow
+    `.claude/skills/svg.rules.md`
+  - For a publication-quality TikZ figure you MUST follow
+    `.claude/skills/tikz.rules.md` and the template
+    `.claude/templates/tikz.template.md`
+  - The template `.claude/templates/image.template.md` for image descriptions
 
 # Development Tools
 
@@ -137,7 +134,8 @@ rules
 
 ## Typst
 - For writing Typst chapters (files with a `.typ` extension) you MUST follow
-  the template `.claude/templates/typst.template.typ`
+  instructions in `.claude/skills/typst.rules.md` and the template
+  `.claude/templates/typst.template.typ`
 
 ## Blog
 - For writing blog posts you MUST follow instructions in

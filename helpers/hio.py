@@ -283,18 +283,17 @@ def create_dir(
     """
     Create a directory.
 
-    :param incremental: if False then the directory is deleted and re-
-        created, otherwise the same directory is reused as it is
+    :param incremental: if False then the directory is deleted and re- created,
+        otherwise the same directory is reused as it is
     :param abort_if_exists: abort if the target directory already exists
-    :param ask_to_delete: if it is not incremental and the dir exists,
-        asks before deleting. This option is used when we want to start
-        with a clean dir (i.e., incremental=False) but, at the same
-        time, we want to make sure that the user doesn't want to delete
-        the content of the dir. Another approach is to automatically
-        rename the old dir with backup_dir_if_exists.
-    :param backup_dir_if_exists: if the target dir already exists, then
-        rename it using a timestamp (e.g., dir_20231003_080000) and
-        create a new target dir
+    :param ask_to_delete: if it is not incremental and the dir exists, asks
+        before deleting. This option is used when we want to start with a clean
+        dir (i.e., incremental=False) but, at the same time, we want to make sure
+        that the user doesn't want to delete the content of the dir. Another
+        approach is to automatically rename the old dir with
+        backup_dir_if_exists.
+    :param backup_dir_if_exists: if the target dir already exists, then rename it
+        using a timestamp (e.g., dir_20231003_080000) and create a new target dir
     """
     if backup_dir_if_exists:
         if not os.path.exists(dir_name):
@@ -337,8 +336,8 @@ def create_soft_link(
     src: str, dst: str, *, use_relative_path: bool = False
 ) -> None:
     """
-    Create a soft-link to <src> called <dst> (where <src> and <dst> are files
-    or directories as in a Linux ln command).
+    Create a soft-link to <src> called <dst> (where <src> and <dst> are files or
+    directories as in a Linux ln command).
 
     This is equivalent to a command like "cp <src> <dst>" but creating a
     soft link.
@@ -420,8 +419,8 @@ def backup_file_or_dir_if_exists(path: str) -> None:
     """
     Create a timestamped backup of a file or directory if it exists.
 
-    If the path exists, it is moved to a new location with a timestamp
-    appended to the name (e.g., path.20231003_080000.backup).
+    If the path exists, it is moved to a new location with a timestamp appended
+    to the name (e.g., path.20231003_080000.backup).
 
     :param path: path to the file or directory to back up
     """
@@ -481,8 +480,8 @@ def to_file(
     force_flush: bool = False,
 ) -> None:
     """
-    Write the content of txt into file_name, creating the enclosing directory
-    if needed.
+    Write the content of txt into file_name, creating the enclosing directory if
+    needed.
 
     :param file_name: name of written file
     :param txt: content of the file
@@ -662,8 +661,7 @@ def add_suffix_to_filename(
     :param suffix: index to add to the file name
     :param before_extension: whether to insert the index before the file
         extension
-    :param with_underscore: whether to separate the index with an
-        underscore
+    :param with_underscore: whether to separate the index with an underscore
     :return: modified file name with an index
     """
     suffix = str(suffix)
@@ -894,8 +892,8 @@ def safe_rm_file(dir_path: str) -> None:
     """
     Safely remove a file after ensuring it's within our Git client.
 
-    This function provides a safety check to prevent accidental deletion
-    of files outside our Git repository.
+    This function provides a safety check to prevent accidental deletion of files
+    outside our Git repository.
 
     :param dir_path: Path to the directory to delete
     :raises AssertionError: If dir_path is not within the Git client
@@ -985,8 +983,7 @@ def write_file_back(
 
 def _compute_file_signature(file_name: str, dir_depth: int) -> Optional[List]:
     """
-    Compute a signature for files using basename and `dir_depth` enclosing
-    dirs.
+    Compute a signature for files using basename and `dir_depth` enclosing dirs.
 
     :return: tuple of extracted enclosing dirs
         - E.g., `("core", "dataflow_model", "utils.py")`

@@ -26,6 +26,10 @@ in Skim on macOS.
 - Watch mode: rebuild on file changes, skip opening on subsequent runs:
 > run_latex.py --input book.tex --daemon
 
+- Compress the PDF (via `compress_pdf.py`) before opening it (not run by
+  default):
+> run_latex.py --input book.tex --action compress_pdf
+
 Import as:
 
 import dev_scripts_helpers.documentation.run_latex as dshdrula
@@ -43,11 +47,13 @@ from typing import List
 import helpers.hdaemon as hdaemon
 import helpers.hdbg as hdbg
 import helpers.hdocker as hdocker
+import helpers.hgit as hgit
 import helpers.hio as hio
 import helpers.hopen as hopen
 import helpers.hparser as hparser
 import helpers.hprint as hprint
 import helpers.hselect_action as hselacti
+import helpers.hsystem as hsystem
 import dev_scripts_helpers.dockerize.lib_latex as dshdlila
 
 _LOG = logging.getLogger(__name__)
@@ -58,6 +64,7 @@ _LOG = logging.getLogger(__name__)
 
 _VALID_ACTIONS = [
     "compile",
+    "compress_pdf",
     "copy_to_gdrive",
     "open_pdf",
 ]
@@ -187,12 +194,24 @@ _GDRIVE_INTERNAL_DIR = (
 )
 
 
+def _compress_pdf(out_file_path: str) -> None:
+    """
+    Compress the compiled PDF in place via `compress_pdf.py`.
+
+    :param out_file_path: path to the PDF to compress
+    """
+    _LOG.debug(hprint.func_signature_to_str())
+    exec_file = hgit.find_file("compress_pdf.py")
+    cmd = f"{exec_file} --input {out_file_path}"
+    hsystem.system(cmd, suppress_output=False, log_level=logging.DEBUG)
+
+
 def _copy_to_google_drive(out_file_path: str) -> None:
     """
     Copy the compiled PDF to the Google Drive folders.
 
-    Mirrors the shell script's behavior: copy only into folders that are
-    actually mounted on the host, warning and skipping otherwise.
+    Mirrors the shell script's behavior: copy only into folders that are actually
+    mounted on the host, warning and skipping otherwise.
 
     :param out_file_path: path to the compiled PDF to copy
     """
@@ -288,6 +307,8 @@ def _main(parser: argparse.ArgumentParser) -> None:
                     use_sudo=args.dockerized_use_sudo,
                 )
                 _LOG.info("Output written to '%s'", out_file_path)
+            elif action == "compress_pdf":
+                _compress_pdf(out_file_path)
             elif action == "copy_to_gdrive":
                 _copy_to_google_drive(out_file_path)
             elif action == "open_pdf":

@@ -85,8 +85,8 @@ def _parse_docker_size_to_bytes(size_str: str) -> float:
     """
     Convert a Docker human-readable size to bytes.
 
-    :param size_str: size as printed by `docker images`/`docker system df`
-        (e.g., `"25.21GB"`, `"0B"`)
+    :param size_str: size as printed by `docker images`/`docker system df` (e.g.,
+        `"25.21GB"`, `"0B"`)
     :return: size in bytes
     """
     match = re.match(r"^([\d.]+)\s*([A-Za-z]+)$", size_str.strip())
@@ -180,9 +180,9 @@ def _report_system_df(engine: str, *, label: str) -> str:
     """
     Print `system df` (or `container system df`) for `engine`.
 
-    :param engine: `"docker"` or `"apple"`
-    :param label: short label identifying when this snapshot was taken
-        (e.g., `"before"`, `"after"`)
+    :param engine:`"docker"` or `"apple"`
+    :param label: short label identifying when this snapshot was taken (e.g.,
+        `"before"`, `"after"`)
     :return: raw command output, for callers that need to parse it further
     """
     hdocker.set_docker_engine(engine)
@@ -200,7 +200,7 @@ def _report_active_containers(engine: str) -> None:
     Only stopped containers are removed by `container prune`, so this is
     informational context showing what is being preserved.
 
-    :param engine: `"docker"` or `"apple"`
+    :param engine:`"docker"` or `"apple"`
     """
     hdocker.set_docker_engine(engine)
     cmd_name = hdocker.get_docker_command()
@@ -304,7 +304,7 @@ def _report_all_images(engine: str) -> None:
     Print all images, sorted by size (descending) and by creation date
     (descending).
 
-    :param engine: `"docker"` or `"apple"`
+    :param engine:`"docker"` or `"apple"`
     """
     if engine == "docker":
         images = _list_images_docker()
@@ -339,7 +339,7 @@ def _cleanup_stopped_containers(engine: str, *, dry_run: bool) -> None:
     """
     Remove stopped containers.
 
-    :param engine: `"docker"` or `"apple"`
+    :param engine:`"docker"` or `"apple"`
     :param dry_run: if True, only report what would be removed
     """
     hdocker.set_docker_engine(engine)
@@ -415,7 +415,7 @@ def _cleanup_dangling_volumes(engine: str, *, dry_run: bool) -> None:
     """
     Remove dangling volumes.
 
-    :param engine: `"docker"` or `"apple"`
+    :param engine:`"docker"` or `"apple"`
     :param dry_run: if True, only report what would be removed
     """
     hdocker.set_docker_engine(engine)
@@ -535,7 +535,7 @@ def _cleanup_dangling_images(engine: str, *, dry_run: bool) -> None:
     """
     Remove dangling images.
 
-    :param engine: `"docker"` or `"apple"`
+    :param engine:`"docker"` or `"apple"`
     :param dry_run: if True, only report what would be removed
     """
     hdocker.set_docker_engine(engine)
@@ -586,7 +586,7 @@ def _cleanup_engine(engine: str, *, dry_run: bool) -> None:
     """
     Run all cleanup steps for a single engine.
 
-    :param engine: `"docker"` or `"apple"`
+    :param engine:`"docker"` or `"apple"`
     :param dry_run: if True, only report what would be removed
     """
     hdocker.set_docker_engine(engine)
@@ -624,7 +624,7 @@ def _is_engine_available(engine: str) -> bool:
     Logs a warning (not an error) when unavailable, so callers can skip the
     engine instead of crashing.
 
-    :param engine: `"docker"` or `"apple"`
+    :param engine:`"docker"` or `"apple"`
     :return: True if the engine's CLI is installed and its daemon/service is
         running
     """
@@ -648,11 +648,10 @@ def _is_engine_available(engine: str) -> bool:
 
 def _get_engines(docker_engine: str) -> List[str]:
     """
-    Resolve the `--docker_engine` CLI value into a list of engines to
-    process.
+    Resolve the `--docker_engine` CLI value into a list of engines to process.
 
-    :param docker_engine: value of `--docker_engine` (`"docker"`, `"apple"`,
-        or `"all"`)
+    :param docker_engine: value of `--docker_engine` (`"docker"`, `"apple"`, or
+        `"all"`)
     :return: list of engine names to process, in order
     """
     if docker_engine == "all":

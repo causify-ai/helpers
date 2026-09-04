@@ -34,6 +34,16 @@ path = "."
 #]
 #show_source = true
 
+[tool.docformatter]
+# Wrap summary line (first line) at 81 chars.
+wrap-summaries = 81
+# Wrap description (body) lines at 81 chars.
+wrap-descriptions = 81
+# Put closing """ of multi-line docstring on own line after summary.
+pre-summary-newline = true
+# Move closing quotes to own line when doc wraps to multiple lines.
+close-quotes-on-newline = true
+
 # pyproject.toml
 [tool.jupytext]
 # Pair by default.

@@ -29,8 +29,7 @@ class Test_add_action_arg(hunitest.TestCase):
         """
         Build a parser via `add_action_arg()` and parse `argv`.
 
-        :param argv: command-line arguments to parse (excluding the prog
-            name)
+        :param argv: command-line arguments to parse (excluding the prog name)
         :return: parsed namespace
         """
         valid_actions = ["a", "b", "c"]
@@ -86,8 +85,7 @@ class Test_add_action_arg(hunitest.TestCase):
 
     def test4(self) -> None:
         """
-        Test that `--all_actions` and `--clear_actions` are mutually
-        exclusive.
+        Test that `--all_actions` and `--clear_actions` are mutually exclusive.
         """
         # Prepare inputs.
         argv = ["--all_actions", "--clear_actions"]
@@ -176,11 +174,9 @@ class Test_select_actions(hunitest.TestCase):
         default_actions: List[str],
     ) -> List[str]:
         """
-        Parse `argv` through `add_action_arg()` and return the selected
-        actions.
+        Parse `argv` through `add_action_arg()` and return the selected actions.
 
-        :param argv: command-line arguments to parse (excluding the prog
-            name)
+        :param argv: command-line arguments to parse (excluding the prog name)
         :param valid_actions: list of valid actions
         :param default_actions: list of default actions
         :return: list of selected actions
@@ -239,8 +235,8 @@ class Test_select_actions(hunitest.TestCase):
 
     def test4(self) -> None:
         """
-        Test that `--clear_actions` combined with `--action` selects only
-        the specified actions.
+        Test that `--clear_actions` combined with `--action` selects only the
+        specified actions.
         """
         # Prepare inputs.
         argv = ["--clear_actions", "--action", "c"]

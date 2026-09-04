@@ -459,8 +459,9 @@ class Test_get_public_methods_as_str(hunitest.TestCase):
         """
         Test a class rendered as markdown.
 
-        Methods are listed alphabetically, and a multi-line docstring is
-        truncated to its first line with `...`.
+        Methods are listed alphabetically. A multi-line docstring whose second
+        line is blank (summary and detail separated by a blank line) is not
+        marked with `...`.
         """
         # Prepare inputs.
         obj = _SampleClassWithMethods
@@ -469,7 +470,7 @@ class Test_get_public_methods_as_str(hunitest.TestCase):
         expected = """
         **_SampleClassWithMethods**
         - `method_no_docstring(self) -> None`
-        - `method_with_docstring(self, x: int) -> int`: Double the input value...
+        - `method_with_docstring(self, x: int) -> int`: Double the input value.
         """
         # Run test.
         self.helper(obj, use_markdown, expected)
@@ -487,7 +488,7 @@ class Test_get_public_methods_as_str(hunitest.TestCase):
         method_no_docstring(self) -> None
 
         method_with_docstring(self, x: int) -> int
-            Double the input value...
+            Double the input value.
         """
         # Run test.
         self.helper(obj, use_markdown, expected)
@@ -506,7 +507,7 @@ class Test_get_public_methods_as_str(hunitest.TestCase):
         expected = """
         **_SampleClassWithMethods**
         - `method_no_docstring() -> None`
-        - `method_with_docstring(x: int) -> int`: Double the input value...
+        - `method_with_docstring(x: int) -> int`: Double the input value.
         """
         # Run test.
         self.helper(obj, use_markdown, expected)
@@ -563,7 +564,8 @@ class Test_get_function_info_as_str(hunitest.TestCase):
         """
         Test a function with a multi-line docstring rendered as markdown.
 
-        The docstring summary is truncated to its first line with `...`.
+        The docstring's second line is blank (summary and detail separated by a
+        blank line), so the summary is not marked with `...`.
         """
         # Prepare inputs.
         obj = _sample_function_with_docstring
@@ -571,7 +573,7 @@ class Test_get_function_info_as_str(hunitest.TestCase):
         # Prepare outputs.
         expected = (
             "- `_sample_function_with_docstring(x: int, y: str = 'a') -> bool`  \n"
-            "  Do something with x and y..."
+            "  Do something with x and y."
         )
         # Run test.
         self.helper(obj, use_markdown, expected)
@@ -586,7 +588,7 @@ class Test_get_function_info_as_str(hunitest.TestCase):
         # Prepare outputs.
         expected = """
         _sample_function_with_docstring(x: int, y: str = 'a') -> bool
-            Do something with x and y...
+            Do something with x and y.
         """
         # Run test.
         self.helper(obj, use_markdown, expected)
@@ -748,8 +750,8 @@ class Test_print_obj_info(hunitest.TestCase):
         """
         Test that `**kwargs` are forwarded to `get_function_info_as_str()`.
 
-        `verbose=True` should print the entire docstring, not just its
-        first line.
+        `verbose=True` should print the entire docstring, not just its first
+        line.
         """
         # Prepare inputs.
         obj = _sample_function_for_print_obj_info
@@ -768,8 +770,8 @@ class Test_print_obj_info(hunitest.TestCase):
 
 def _init_git_repo(git_repo: str, *, branch_name: str, remote_url: str) -> None:
     """
-    Initialize `git_repo` as a Git repo with a checked-out branch and an
-    `origin` remote.
+    Initialize `git_repo` as a Git repo with a checked-out branch and an `origin`
+    remote.
 
     :param git_repo: path to the (already created) directory to turn
         into a Git repo
@@ -855,14 +857,12 @@ class Test_get_link_to_code(hunitest.TestCase):
         self, file_content: str, *, rel_path: str = "module.py"
     ) -> types.ModuleType:
         """
-        Create a Git repo containing a committed module at `rel_path` and
-        import it.
+        Create a Git repo containing a committed module at `rel_path` and import
+        it.
 
         :param file_content: source code to write to the module file
-        :param rel_path: path of the module file relative to the repo
-            root
-        :return: the imported module, backed by a file inside the new
-            repo
+        :param rel_path: path of the module file relative to the repo root
+        :return: the imported module, backed by a file inside the new repo
         """
         # Prepare inputs: a Git repo with a known remote and branch,
         # containing one committed module file.

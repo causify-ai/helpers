@@ -97,8 +97,8 @@ def _rename_window(
     Rename one tmux window.
 
     :param window_index: index of the window to rename
-    :param pane_current_path: current working directory of the window's
-        active pane, only used for the dry-run log message
+    :param pane_current_path: current working directory of the window's active
+        pane, only used for the dry-run log message
     :param new_name: name to assign to the window
     :param dry_run: if True, only show what would be done without doing it
     """
