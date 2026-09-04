@@ -267,6 +267,53 @@ _PLAIN_BOLD_REGEX = re.compile(
 _PLAIN_BOLD_WEIGHT_TYPST = "semibold"
 _PLAIN_BOLD_FILL_TYPST = "luma(30%)"
 
+# Matches a single-line inline math span (`$...$`, no nested `$`).
+_INLINE_MATH_REGEX = re.compile(r"\$[^$\n]+\$")
+
+
+def _wrap_typst_text(text: str, fill: str, weight: str) -> str:
+    r"""
+    Wrap `text` in raw Typst `#text(fill=..., weight=...)[...]` span(s).
+
+    Any inline math (`$...$`) inside `text` is left untouched, outside the
+    raw span(s), so Pandoc still translates it from LaTeX to Typst math on
+    its own.
+
+    E.g., 
+    ```
+    text = r"$\eta$ is too small"
+    ```
+    becomes:
+    ```
+    $\eta$`#text(fill: ..., weight: ...)[ is too small]`{=typst}
+    ```
+
+    :param text: text to wrap, possibly containing inline math
+    :param fill: Typst `fill` color expression, e.g. `"red"` or `"luma(30%)"`
+    :param weight: Typst `weight` expression, e.g. `"bold"` or `"semibold"`
+    :return: `text` with its non-math parts wrapped in raw Typst span(s)
+    """
+
+    def _wrap(chunk: str) -> str:
+        # Escape tildes (~) since they have special meaning in typst.
+        escaped_chunk = chunk.replace("~", r"\~")
+        typst_code = f'#text(fill: {fill}, weight: "{weight}")[{escaped_chunk}]'
+        return "`" + typst_code + "`{=typst}"
+
+    parts = []
+    pos = 0
+    for match in _INLINE_MATH_REGEX.finditer(text):
+        prefix = text[pos : match.start()]
+        if prefix:
+            parts.append(_wrap(prefix))
+        # Leave the inline math span untouched.
+        parts.append(match.group(0))
+        pos = match.end()
+    suffix = text[pos:]
+    if suffix:
+        parts.append(_wrap(suffix))
+    return "".join(parts)
+
 
 # TODO(gp): -> List[str]
 # TODO(gp): Use hmarkdown.process_lines() and test it.
@@ -417,12 +464,7 @@ def colorize_bullet_points_in_slide(
                     "Selected color is not in the Typst color mapping",
                 )
                 typst_color = typst_mapping[color_to_use]
-                # Escape tildes (~) since they have special meaning in typst.
-                escaped_text = text.replace("~", r"\~")
-                ret = (
-                    f'#text(fill: {typst_color}, weight: "bold")[{escaped_text}]'
-                )
-                ret = "`" + ret + "`{=typst}"
+                ret = _wrap_typst_text(text, typst_color, "bold")
             return ret
 
         def semibold_replacer(match: Match[str]) -> str:
@@ -436,13 +478,9 @@ def colorize_bullet_points_in_slide(
             if output_format == "latex":
                 ret = f"**{text}**"
             else:  # typst
-                # Escape tildes (~) since they have special meaning in typst.
-                escaped_text = text.replace("~", r"\~")
-                ret = (
-                    f"#text(fill: {_PLAIN_BOLD_FILL_TYPST}, "
-                    f'weight: "{_PLAIN_BOLD_WEIGHT_TYPST}")[{escaped_text}]'
+                ret = _wrap_typst_text(
+                    text, _PLAIN_BOLD_FILL_TYPST, _PLAIN_BOLD_WEIGHT_TYPST
                 )
-                ret = "`" + ret + "`{=typst}"
             return ret
 
         # Apply semibold weight to plain `**text**` bold first, while `**`

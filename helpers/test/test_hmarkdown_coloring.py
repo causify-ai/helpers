@@ -630,6 +630,21 @@ class Test_colorize_bullet_points_in_slide2(hunitest.TestCase):
         # Run test.
         self.helper(text, expected)
 
+    def test8(self) -> None:
+        r"""
+        Test plain `**text**` wrapping inline LaTeX math with a macro.
+        """
+        # Prepare inputs.
+        text = r"If **$\eta$ is too small**:"
+        # Prepare outputs.
+        expected = (
+            r"If $\eta$"
+            '`#text(fill: luma(30%), weight: "semibold")'
+            "[ is too small]`{=typst}:"
+        )
+        # Run test.
+        self.helper(text, expected)
+
 
 # #############################################################################
 # Test_bold_text_colorization_e2e
