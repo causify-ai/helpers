@@ -304,7 +304,10 @@ def _main(parser: argparse.ArgumentParser) -> None:
         size_after = hio.get_size_as_str(output_file)
         size_after_bytes = os.path.getsize(output_file)
         reduction = hprint.perc(
-            size_after_bytes, size_before_bytes, invert=True
+            size_after_bytes,
+            size_before_bytes,
+            invert=True,
+            allow_increase=True,
         )
         _LOG.info(
             "Compressed '%s' to '%s' using backend='%s': %s -> %s (%s smaller)",

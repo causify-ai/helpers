@@ -649,6 +649,156 @@ class Test_insert_image_code2(hunitest.TestCase):
 
 
 # #############################################################################
+# Test_insert_image_code3
+# #############################################################################
+
+
+class Test_insert_image_code3(hunitest.TestCase):
+    """
+    Test _insert_image_code() for Typst files.
+    """
+
+    def helper(
+        self,
+        rel_img_path: str,
+        user_img_size: str,
+        label: str,
+        caption: str,
+        expected: str,
+    ) -> None:
+        actual = dshdreim._insert_image_code(
+            ".typ", rel_img_path, user_img_size, label=label, caption=caption
+        )
+        self.assert_equal(actual, expected, dedent=True, fuzzy_match=True)
+
+    def test1(self) -> None:
+        """
+        Test Typst output without label or caption.
+        """
+        rel_img_path = "figs/test.1.png"
+        user_img_size = ""
+        label = ""
+        caption = ""
+        expected = """
+        // render_images:begin
+        #figure(
+          image("figs/test.1.png"),
+        )
+        // render_images:end
+        """
+        self.helper(rel_img_path, user_img_size, label, caption, expected)
+
+    def test2(self) -> None:
+        """
+        Test Typst output with label only.
+        """
+        rel_img_path = "figs/test.1.png"
+        user_img_size = ""
+        label = "fig:test_diagram"
+        caption = ""
+        expected = """
+        // render_images:begin
+        #figure(
+          image("figs/test.1.png"),
+        ) <fig:test_diagram>
+        // render_images:end
+        """
+        self.helper(rel_img_path, user_img_size, label, caption, expected)
+
+    def test3(self) -> None:
+        """
+        Test Typst output with caption only.
+        """
+        rel_img_path = "figs/test.1.png"
+        user_img_size = ""
+        label = ""
+        caption = "Test diagram caption"
+        expected = """
+        // render_images:begin
+        #figure(
+          image("figs/test.1.png"),
+          caption: [Test diagram caption],
+        )
+        // render_images:end
+        """
+        self.helper(rel_img_path, user_img_size, label, caption, expected)
+
+    def test4(self) -> None:
+        """
+        Test Typst output with both label and caption.
+        """
+        rel_img_path = "figs/test.1.png"
+        user_img_size = ""
+        label = "fig:test_diagram"
+        caption = "Test diagram caption"
+        expected = """
+        // render_images:begin
+        #figure(
+          image("figs/test.1.png"),
+          caption: [Test diagram caption],
+        ) <fig:test_diagram>
+        // render_images:end
+        """
+        self.helper(rel_img_path, user_img_size, label, caption, expected)
+
+    def test5(self) -> None:
+        """
+        Test Typst output with a leading `/` in the image path.
+        """
+        rel_img_path = "/figs/test.1.png"
+        user_img_size = ""
+        label = ""
+        caption = ""
+        expected = """
+        // render_images:begin
+        #figure(
+          image("figs/test.1.png"),
+        )
+        // render_images:end
+        """
+        self.helper(rel_img_path, user_img_size, label, caption, expected)
+
+    def test6(self) -> None:
+        """
+        Test Typst output with a caption containing unbalanced `[`/`]`
+        (e.g., interval notation) is escaped so it doesn't break the
+        enclosing `caption: [...]` content block.
+        """
+        rel_img_path = "figs/test.1.png"
+        user_img_size = ""
+        label = ""
+        caption = "Values in the range [0, 13)"
+        expected = r"""
+        // render_images:begin
+        #figure(
+          image("figs/test.1.png"),
+          caption: [Values in the range \[0, 13)],
+        )
+        // render_images:end
+        """
+        self.helper(rel_img_path, user_img_size, label, caption, expected)
+
+    def test7(self) -> None:
+        """
+        Test Typst output with a caption containing balanced `[`/`]` is
+        still escaped.
+        """
+        rel_img_path = "figs/test.1.png"
+        user_img_size = ""
+        label = ""
+        caption = "See [Figure 1] for details"
+        expected = r"""
+        // render_images:begin
+        #figure(
+          image("figs/test.1.png"),
+          caption: [See \[Figure 1\] for details],
+        )
+        // render_images:end
+        """
+        self.helper(rel_img_path, user_img_size, label, caption, expected)
+
+
+# #############################################################################
 # Test_render_images1
 # #############################################################################
 

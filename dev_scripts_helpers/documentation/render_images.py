@@ -624,7 +624,11 @@ def _insert_image_code(
         out_lines.append("#figure(")
         out_lines.append(f'  image("{typst_img_path}"),')
         if caption:
-            out_lines.append(f"  caption: [{caption}],")
+            # Escape Typst content-mode brackets so text with unbalanced
+            # `[`/`]` (e.g., interval notation like "[0, 13)") doesn't break
+            # parsing of the enclosing `caption: [...]` content block.
+            typst_caption = caption.replace("[", "\\[").replace("]", "\\]")
+            out_lines.append(f"  caption: [{typst_caption}],")
         closing_paren = ")"
         if label:
             closing_paren = f") <{label}>"
