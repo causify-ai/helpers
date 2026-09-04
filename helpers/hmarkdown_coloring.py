@@ -246,13 +246,26 @@ _COLOR_MARKER_REGEX = re.compile(
 # leading backtick here, this regex would re-wrap that already-converted span
 # in a second, nested backtick span, which Pandoc cannot parse as valid raw
 # Typst (see `helpers/test/test_hmarkdown_coloring.py`).
+# The captured text can span a soft-wrapped continuation line (e.g., a bullet
+# whose bold text wraps to the next line), so a single embedded newline is
+# allowed, but a paragraph break (blank line) or the start of a new bullet
+# or header is not, so bold text is never merged across two unrelated
+# bullets/paragraphs that each happen to contain an (unmatched) `**`.
 _PLAIN_BOLD_REGEX = re.compile(
     r"""
-    \*\*         # Match the opening `**`.
-    (?!\\|`)     # Negative lookahead: skip marker-produced `**\color{...}**`
-                 # and already-converted `` **`#text(...)`{=typst}** ``.
-    ([^*\n]+?)   # Capture everything up to the next `*` or newline (lazy).
-    \*\*         # Match the closing `**`.
+    \*\*                             # Match the opening `**`.
+    (?!\\|`)                         # Negative lookahead: skip marker-produced
+                                     # `**\color{...}**` and already-converted
+                                     # `` **`#text(...)`{=typst}** ``.
+    (                                # Start capture group.
+      (?:
+        (?!\*\*)                     # Don't consume the closing `**`.
+        (?!\n[ \t]*(?:\n|[-*]\s|\#)) # Don't cross a paragraph break, a new
+                                     # bullet, or a header.
+        [\s\S]                       # Any character, including a newline.
+      )+?
+    )                                # End capture group (lazy).
+    \*\*                             # Match the closing `**`.
     """,
     re.VERBOSE,
 )
@@ -425,6 +438,32 @@ def colorize_bullet_points_in_slide(
     hdbg.dassert_lte(
         num_bolds, len(colors), "Number of bold items exceeds available colors"
     )
+    def semibold_replacer(match: Match[str]) -> str:
+        """
+        Replace a plain `**text**` bold with Typst semibold, gray-black.
+
+        LaTeX has no semibold series set up, so the match is returned
+        unchanged (plain markdown bold).
+        """
+        # The captured text may span a soft-wrapped continuation line;
+        # collapse that newline (and the continuation's leading indentation)
+        # into a single space, like a normal markdown soft line break.
+        text = re.sub(r"\n[ \t]*", " ", match.group(1))
+        if output_format == "latex":
+            ret = f"**{text}**"
+        else:  # typst
+            ret = _wrap_typst_text(
+                text, _PLAIN_BOLD_FILL_TYPST, _PLAIN_BOLD_WEIGHT_TYPST
+            )
+        return ret
+
+    # Apply semibold weight to plain `**text**` bold first, while `**` still
+    # unambiguously marks plain markdown bold (before `@text@` markers are
+    # expanded into `**\color{...}**`, which would otherwise be mistaken for
+    # more plain bold spans). This runs on the whole text (not line-by-line)
+    # so that bold text spanning a soft-wrapped continuation line is matched.
+    full_text = re.sub(_PLAIN_BOLD_REGEX, semibold_replacer, "\n".join(lines))
+    lines = full_text.split("\n")
     color_idx = 0
     txt_out = []
     for line in lines:
@@ -467,27 +506,6 @@ def colorize_bullet_points_in_slide(
                 ret = _wrap_typst_text(text, typst_color, "bold")
             return ret
 
-        def semibold_replacer(match: Match[str]) -> str:
-            """
-            Replace a plain `**text**` bold with Typst semibold, gray-black.
-
-            LaTeX has no semibold series set up, so the match is returned
-            unchanged (plain markdown bold).
-            """
-            text = match.group(1)
-            if output_format == "latex":
-                ret = f"**{text}**"
-            else:  # typst
-                ret = _wrap_typst_text(
-                    text, _PLAIN_BOLD_FILL_TYPST, _PLAIN_BOLD_WEIGHT_TYPST
-                )
-            return ret
-
-        # Apply semibold weight to plain `**text**` bold first, while `**`
-        # still unambiguously marks plain markdown bold (before `@text@`
-        # markers are expanded into `**\color{...}**`, which would otherwise
-        # be mistaken for more plain bold spans).
-        line = re.sub(_PLAIN_BOLD_REGEX, semibold_replacer, line)
         line = re.sub(_COLOR_MARKER_REGEX, color_replacer, line)
         txt_out.append(line)
     # Restore code blocks and tables that were temporarily replaced with tags.
