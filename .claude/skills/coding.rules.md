@@ -1,4 +1,4 @@
-- This file contains all the conventions for Python coding rules.
+- This file contains all the conventions for Python coding rules
 
 # Environment and Platform
 
@@ -18,6 +18,7 @@
 - Use `Tuple`, `Dict`, `Optional` instead of `tuple`, `dict`, `|` union syntax
 - Make sure the composite types (e.g., `tuple`, `Dict`) have included types
   - **Bad**: Use newer PEP 604 syntax
+
     ```python
     def process(data: dict[str, str], item: str | None) -> tuple[str, int]:
 
@@ -26,23 +27,27 @@
     def process(data: Dict, item: str | None) -> tuple:
         ...
     ```
+
   - **Good**: Use `typing` module
+
     ```python
     from typing import Dict, Tuple, Optional
     
     def process(data: Dict[str, str], item: Optional[str]) -> Tuple[str, int]:
         ...
     ```
+
   - **Bad**: Use newer PEP 604 syntax
+
     ```python
-        ...
+    ...
     ```
 
 ## Use `os` and `os.path` for Path Operations
 
 - Use `os` and `os.path` for path operations instead of `pathlib.Path`
-
 - **Bad**: Using `pathlib`
+
   ```python
   from pathlib import Path
   
@@ -50,7 +55,9 @@
   if file_path.exists():
       content = file_path.read_text()
   ```
+
 - **Good**: Using `os` and `os.path`
+
   ```python
   import os
   
@@ -64,28 +71,31 @@
 
 - Prefer a raw string `r'...'` over a regular string with backslash escaping
 - This avoids double-escaping and makes the literal content easier to read
-
 - **Bad**: Escaped backslashes
+
   ```python
   pattern = "\\d+\\.\\d+"
   win_path = "C:\\Users\\test"
   ```
+
 - **Good**: Raw string
+
   ```python
   pattern = r"\d+\.\d+"
   win_path = r"C:\Users\test"
   ```
-- Note: a raw string cannot end in a single backslash (e.g., `r'\'` is a
-  syntax error), so a lone trailing backslash still needs `"\\"`
-- This also applies to triple-quoted strings (see `## Use Triple-Quote
-  Assignment with hprint.dedent for Multi-line Strings`): prefix with `r` to
-  avoid double-escaping backslash-heavy content (e.g., LaTeX)
-  - Exception: if the string also needs an escape sequence a raw string
-    cannot express (e.g., a literal `\n` standing for a newline character
-    inside a single-line string), keep it as a regular string, or restructure
-    it as a multi-line `r"""..."""` with real newlines instead
 
+- Note: a raw string cannot end in a single backslash (e.g., `r'\'` is a syntax
+  error), so a lone trailing backslash still needs `"\\"`
+- This also applies to triple-quoted strings (see
+  `## Use Triple-Quote Assignment with hprint.dedent for Multi-line Strings`): prefix
+  with `r` to avoid double-escaping backslash-heavy content (e.g., LaTeX)
+  - Exception: if the string also needs an escape sequence a raw string cannot
+    express (e.g., a literal `\n` standing for a newline character inside a
+    single-line string), keep it as a regular string, or restructure it as a
+    multi-line `r"""..."""` with real newlines instead
 - **Bad**: Escaped backslashes in a triple-quoted string
+
   ```python
   text = hprint.dedent(
       """
@@ -93,7 +103,9 @@
       """
   )
   ```
+
 - **Good**: Raw triple-quoted string
+
   ```python
   text = hprint.dedent(
       r"""
@@ -105,14 +117,14 @@
 ## Use Triple-Quote Assignment with `hprint.dedent` for Multi-line Strings
 
 - For multi-line strings in code (test fixtures, expected outputs, scripts,
-  documentation examples), use assignment with `"""` and `hprint.dedent()` instead
-  of escaped `\n` in string literals or `textwrap.dedent`
+  documentation examples), use assignment with `"""` and `hprint.dedent()` instead of
+  escaped `\n` in string literals or `textwrap.dedent`
 - This improves readability, maintainability, and makes the string structure
   immediately visible
 - Always use `hprint.dedent()` from helpers, not `textwrap.dedent`
 - Assign the indented string to a variable, then call `hprint.dedent()` on it
-
 - **Bad**: Escaped newlines (hard to read and modify)
+
   ```python
   content = "#!/bin/bash\npytest helpers/test/test_module.py\necho 'done'"
   bash_script = "set -e\necho 'start'\npytest test.py"
@@ -120,6 +132,7 @@
   ```
 
 - **Bad**: Using `textwrap.dedent` instead of `hprint.dedent`
+
   ```python
   from textwrap import dedent
 
@@ -128,6 +141,7 @@
   ```
 
 - **Good**: Triple-quote assignment with `hprint.dedent`
+
   ```python
   import helpers.hprint as hprint
 
@@ -160,8 +174,8 @@
 
 ## Use Progress Bar
 
-- When there are expensive for loop, use a progress bar using `tqdm` to track
-  the progress
+- When there are expensive for loop, use a progress bar using `tqdm` to track the
+  progress
 
 # Code Organization
 
@@ -170,9 +184,11 @@
 - Rename functions that are only used internally within the file to use a leading
   underscore (excluding corresponding test files)
   - Example (a function used only in one file)
+
     ```python
     def foo_bar(...):
     ```
+
     becomes:
 
     ```python
@@ -183,8 +199,8 @@
 
 ## Organize Functions Into Logical Layers
 
-- Group related functions into sections separated by headers in the following
-  format:
+- Group related functions into sections separated by headers in the following format:
+
   ```python
   # #############################################################################
   # <Layer Description>
@@ -204,7 +220,6 @@
 
 - Arrange layers from lower-level/simple functionality to higher-level/complex
   functionality
-
 - General rule:
   - Fundamental utilities first
   - High-level orchestration last
@@ -214,24 +229,21 @@
 - Inside each layer, organize functions from:
   - More primitive / reusable
   - To more specialized / higher-level
-
-- Functions should generally appear before functions that depend on them.
+- Functions should generally appear before functions that depend on them
 
 ## Keep Related Functions Together
 
 - Keep related helper functions physically close together
-  - E.g., if there is a public or private function used only in one place in a
-    file, move that function close to where it is used
+  - E.g., if there is a public or private function used only in one place in a file,
+    move that function close to where it is used
 
 ## Make Code Cohesive
 
-- Refactor the code to improve locality, readability, and maintainability
-	without changing behavior
-
+- Refactor the code to improve locality, readability, and maintainability without
+  changing behavior
 - Transformation rules:
   - Preserve exact semantics and execution order
-  - Move intermediate computations so they appear immediately before their first
-    use
+  - Move intermediate computations so they appear immediately before their first use
   - Group related logic into self-contained contiguous blocks
   - Keep temporary variables close to the operation that consumes them
   - Reduce the distance between:
@@ -244,8 +256,8 @@
   - Do not reorder operations if doing so could change behavior
   - The refactor should only improve structural organization and locality of
     reference
-
 - Transform code shaped like:
+
   ```python
   shared_value_a = ...
   shared_value_b = ...
@@ -256,7 +268,9 @@
   operation_a(...)
   operation_b(...)
   ```
+
   into
+
   ```python
   derived_a = ...
   operation_a(...)
@@ -267,6 +281,7 @@
 
 - Example
   - **Bad**
+
     ```python
     # Build propensity score model.
     ps_model = LogisticRegression(penalty=None)
@@ -280,7 +295,9 @@
     w_t0 = 1 / propensity_scores[train[T] == 0, 0]
     w_t1 = 1 / propensity_scores[train[T] == 1, 1]
     ```
+
   - **Good**
+
     ```python
     # Build propensity score model.
     ps_model = LogisticRegression(penalty=None)
@@ -307,9 +324,9 @@
   - Making implicit dataframe transformations explicit
   - Converting a compact fluent pipeline into self-documenting procedural steps
   - Introducing narrative structure into transformations
-
 - Example
   - **Bad**
+
     ```python
     test_cf = (
         test
@@ -319,7 +336,9 @@
         .assign(**{y_hat_col: lambda d: s_learner.predict(d[X + [T]])})
     )
     ```
+
   - **Good**
+
     ```python
     # Remove original treatment values to create a clean base for counterfactuals.
     test_cf = test.drop(columns=[T])
@@ -335,10 +354,11 @@
 # Constants
 
 ## Place Constants Close to Usage
+
 - Move constants that are used in only one place from the global scope to immediately
   before their usage location. This improves locality and readability
-
 - **Bad** (constant in global scope used only locally)
+
   ```python
   MAX_RETRIES = 3
   TIMEOUT_SECONDS = 30
@@ -356,6 +376,7 @@
   ```
 
 - **Good** (constants moved to where they are used)
+
   ```python
   def fetch_data(url: str) -> Dict:
       MAX_RETRIES = 3
@@ -373,27 +394,30 @@
 
 ## Inline Trivial Constants Used Once
 
-- If a constant is used in only one place and its value is trivial (a plain
-  literal, short string, or simple number), inline the value directly at the
-  usage site instead of naming it as a constant
-- If the value is not trivial (e.g., a regex, a multi-part expression), do not
-  inline it: keep it as a named constant at the smallest possible scope and
-  add a comment explaining what it matches or represents
+- If a constant is used in only one place and its value is trivial (a plain literal,
+  short string, or simple number), inline the value directly at the usage site
+  instead of naming it as a constant
+- If the value is not trivial (e.g., a regex, a multi-part expression), do not inline
+  it: keep it as a named constant at the smallest possible scope and add a comment
+  explaining what it matches or represents
   - For a complex regex, also follow `## Explain Complex Regex`
-
 - **Bad** (named constant for a trivial single-use value)
+
   ```python
   def parse_line(line: str) -> str:
       _SEPARATOR = ","
       return line.split(_SEPARATOR)[0]
   ```
+
 - **Good** (inline the trivial value)
+
   ```python
   def parse_line(line: str) -> str:
       return line.split(",")[0]
   ```
 
 - **Good** (non-trivial value kept as a documented, narrowly-scoped constant)
+
   ```python
   def _parse_system_df_row(line: str) -> Optional[Dict[str, str]]:
       # Match a `docker system df` row: type, total, active, size,
@@ -411,10 +435,11 @@
   ```
 
 ## Keep Shared Constants in Global Scope
+
 - Only place constants in the module's global scope when they are used by multiple
   functions or classes
-
 - **Bad** (shared constant moved to local scope)
+
   ```python
   def validate_email(email: str) -> bool:
       EMAIL_PATTERN = r"^[\w\.-]+@[\w\.-]+\.\w+$"
@@ -427,6 +452,7 @@
   ```
 
 - **Good** (shared constant in global scope)
+
   ```python
   EMAIL_PATTERN = r"^[\w\.-]+@[\w\.-]+\.\w+$"
   
@@ -439,10 +465,11 @@
   ```
 
 ## Make Private Constants That Are Not Exported
-If a constant is only used within the module and not part of the public API,
-prefix it with an underscore to mark it as private
 
+If a constant is only used within the module and not part of the public API, prefix
+it with an underscore to mark it as private
 - **Bad** (public constant that should be private)
+
   ```python
   # module.py
   INTERNAL_CACHE_SIZE = 1000
@@ -454,6 +481,7 @@ prefix it with an underscore to mark it as private
   ```
 
 - **Good** (private constants marked with underscore)
+
   ```python
   # module.py
   _INTERNAL_CACHE_SIZE = 1000
@@ -465,14 +493,13 @@ prefix it with an underscore to mark it as private
   ```
 
 ## Scope Hierarchy
-- Follow this hierarchy for constant placement:
 
-1. **Local scope** (within a function/method): Constants used in only one
-   location
-2. **Module scope** (file-level, public): Constants shared across multiple
-   functions or exported as part of the public API
-3. **Module scope** (file-level, private): Constants shared across multiple
-   functions but not part of the public API (prefix with `_`)
+- Follow this hierarchy for constant placement:
+1. **Local scope** (within a function/method): Constants used in only one location
+2. **Module scope** (file-level, public): Constants shared across multiple functions
+   or exported as part of the public API
+3. **Module scope** (file-level, private): Constants shared across multiple functions
+   but not part of the public API (prefix with `_`)
 
 # Function Design
 
@@ -480,10 +507,10 @@ prefix it with an underscore to mark it as private
 
 - In function signatures and class constructors, avoid `None` as default values to
   minimize `Optional` types in type hints
-- Use meaningful default values of the same type instead to keep interfaces
-  simpler and reduce the need for `Optional`
-
+- Use meaningful default values of the same type instead to keep interfaces simpler
+  and reduce the need for `Optional`
 - **Bad**: Using `None` defaults creates `Optional` type requirements
+
   ```python
   def process(
       data: Dict[str, str],
@@ -497,7 +524,9 @@ prefix it with an underscore to mark it as private
           name = "default"
       ...
   ```
+
 - **Good**: Use meaningful type-matching defaults
+
   ```python
   def process(
       data: Dict[str, str],
@@ -513,25 +542,23 @@ prefix it with an underscore to mark it as private
   - Class constructor arguments
   - Dataclass field definitions
   - Any interface that accepts arguments with defaults
-
 - Choose meaningful defaults based on the parameter type:
   - For strings: use `""` (empty string)
   - For integers: use `0`, `-1`, or another sentinel that makes semantic sense
   - For booleans: use `False` or `True` based on intended semantics
   - For paths: use `""` or consider making the parameter required
 
-## Use Default Values Rarely and Force Keyword-Only via `*`
+## Use Default Values Rarely and Force Keyword-Only Via `*`
 
-- Default values should be rare exceptions: only provide a default when the
-  parameter is truly optional and the default applies to 99.9% of all calls
+- Default values should be rare exceptions: only provide a default when the parameter
+  is truly optional and the default applies to 99.9% of all calls
 - For optional parameters:
   - Always use a default value
   - Use `*` to force keyword argument passing (parameters with a default must be
     keyword-only, after a `*`)
-- This makes the API more explicit and prevents silent surprises when defaults
-  change
-
+- This makes the API more explicit and prevents silent surprises when defaults change
 - **Bad**: Optional parameters with defaults are too convenient to ignore
+
   ```python
   def analyze(
       data: List[str],
@@ -541,7 +568,9 @@ prefix it with an underscore to mark it as private
   ) -> Dict[str, Any]:
       ...
   ```
+
 - **Good**: Force keyword arguments for optional parameters using `*`
+
   ```python
   def analyze(
       data: List[str],
@@ -553,8 +582,9 @@ prefix it with an underscore to mark it as private
       ...
   ```
 
-- **Good**: Almost all calls use the same value, so it stays a keyword-only
-  default rather than a required parameter
+- **Good**: Almost all calls use the same value, so it stays a keyword-only default
+  rather than a required parameter
+
   ```python
   def connect(
       host: str,
@@ -572,14 +602,15 @@ prefix it with an underscore to mark it as private
   - Makes APIs more discoverable and self-documenting
   - Prevents accidental reliance on defaults that may change in maintenance
 
-## Call Functions With Position Arguments for Required, Keywords for Optional
+## Call Functions with Position Arguments for Required, Keywords for Optional
 
 - When calling functions, follow this convention:
   - Use positional arguments for mandatory parameters only
   - Use keyword arguments (by name) for all parameters that have default values
-- This makes calls explicit and self-documenting, matching the function definition style
-
+- This makes calls explicit and self-documenting, matching the function definition
+  style
 - **Bad**: Using positional arguments for optional parameters hides intent
+
   ```python
   # Define
   def analyze(data: List[str], *, verbose: bool = False, timeout: int = 30) -> Dict:
@@ -588,7 +619,9 @@ prefix it with an underscore to mark it as private
   # Call - implicit about which parameters have defaults
   result = analyze(data_list, False, 60)
   ```
+
 - **Good**: Use position for required, keywords for optional
+
   ```python
   # Define
   def analyze(data: List[str], *, verbose: bool = False, timeout: int = 30) -> Dict:
@@ -601,50 +634,52 @@ prefix it with an underscore to mark it as private
 - Apply this pattern consistently:
   - Mandatory parameters (no default): use position
   - Optional parameters (has default): use keyword argument with name
-  - If a function uses `*` to force keywords, the call naturally follows this
-    pattern
+  - If a function uses `*` to force keywords, the call naturally follows this pattern
 
 # Error Handling and Assertions
 
-## Use `dassert` instead of if ... raise
+## Use `dassert` Instead of If ... Raise
 
 - Use `dassert` instead of if ... raise
-
 - **Bad**
-	```python
-	if not header_line.startswith("#"):
-			raise ValueError(
-					"Line %d is not a markdown header: '%s'" % (line_num, header_line)
-			)
-	```
+
+  ```python
+    if not header_line.startswith("#"):
+      raise ValueError(
+          "Line %d is not a markdown header: '%s'" % (line_num, header_line)
+      )
+  ```
+
 - **Good**
-	```
-	hdbg.dassert(header_line.startswith("#"),
-		"Line %d is not a markdown header: '%s'",
-		str(line_num, header_line)
-	)
-	```
 
-## Use `dassert` instead of `assert`
+  ```python
+    hdbg.dassert(header_line.startswith("#"),
+    "Line %d is not a markdown header: '%s'",
+    str(line_num, header_line)
+  )
+  ```
 
-- Use the proper specialized `dassert_*` from `helpers/hdbg.py` instead of a
-	Python `assert`
+## Use `dassert` Instead of `assert`
 
+- Use the proper specialized `dassert_*` from `helpers/hdbg.py` instead of a Python
+  `assert`
 - **Bad**
-	```
-	assert end_header_str_converted is not None
-	```
+
+  ```python
+  assert end_header_str_converted is not None
+  ```
+
 - **Good**
-	```
-	hdbg.dassert_is_not(end_header_str_converted, None)
-	```
+
+  ```
+  hdbg.dassert_is_not(end_header_str_converted, None)
+  ```
 
 ## Use Specialized `dassert_*`
 
-- Use specialized `hdbg.dassert_*` functions from `helpers/hdbg.py`
-  instead of generic `hdbg.dassert()`
+- Use specialized `hdbg.dassert_*` functions from `helpers/hdbg.py` instead of
+  generic `hdbg.dassert()`
   - Choose the most specific assertion function for your check
-
 - Common specialized assertion functions:
   - `hdbg.dassert_in(value, container)`: Check membership
   - `hdbg.dassert_not_in(value, container)`: Check non-membership
@@ -655,18 +690,20 @@ prefix it with an underscore to mark it as private
   - `hdbg.dassert_isinstance(obj, type)`: Check type
   - `hdbg.dassert_file_exists(path)`: Check file existence
   - `hdbg.dassert_dir_exists(path)`: Check directory existence
-  - `hdbg.dassert_re_match(match, ...)`: Check a `re.Match` is not `None` and
-    return it cast to the non-`Optional` type
-
+  - `hdbg.dassert_re_match(match, ...)`: Check a `re.Match` is not `None` and return
+    it cast to the non-`Optional` type
 - Use `hdbg.dassert_re_match()` instead of `assert match is not None` after a
   `re.match()`/`re.search()` call
   - **Bad**: Plain `assert`
+
     ```python
     match = pattern.search(text)
     assert match is not None
     value = match.group("name")
     ```
+
   - **Good**: `dassert_re_match()`, reassigned to narrow the type
+
     ```python
     match = pattern.search(text)
     match = hdbg.dassert_re_match(match, "No match found in: %s", text)
@@ -675,6 +712,7 @@ prefix it with an underscore to mark it as private
 
 - Example: Use `dassert_in()` instead of generic `dassert()`
   - **Bad**: Generic assertion with membership check
+
     ```python
     hdbg.dassert(
         ext in _FORMAT_MAP,
@@ -682,7 +720,9 @@ prefix it with an underscore to mark it as private
         ", ".join(_FORMAT_MAP.keys()),
     )
     ```
+
   - **Good**: Check if value is in container
+
     ```python
     hdbg.dassert_in(
         ext,
@@ -694,6 +734,7 @@ prefix it with an underscore to mark it as private
 
 - Pass parameters using lazy formatting and not f-strings
   - **Bad**
+
     ```python
     hdbg.dassert_ne(
         name,
@@ -701,7 +742,9 @@ prefix it with an underscore to mark it as private
         f"Name cannot be empty: {name}",
     )
     ```
+
   - **Good**
+
     ```python
     hdbg.dassert_ne(
         name,
@@ -712,21 +755,29 @@ prefix it with an underscore to mark it as private
     ```
 
 ## Add Message to `dassert`
-- For each `dassert_*()` assertion make sure there is a message explaining why
-  the assertion is important
+
+- For each `dassert_*()` assertion make sure there is a message explaining why the
+  assertion is important
   - **Bad**
+
     ```python
     hdbg.dassert(len(results) > 0)
     ```
+
   - **Good**
+
     ```python
     hdbg.dassert(len(results) > 0, "Query must return at least one result")
     ```
+
   - **Bad**
+
     ```python
     hdbg.dassert_eq(len(results), expected_len, "error")
     ```
+
   - **Good**
+
     ```python
     hdbg.dassert_eq(len(results), expected_len, 
                 f"Expected number of results doesn't match the passed one")
@@ -735,6 +786,7 @@ prefix it with an underscore to mark it as private
 - When adding a comment try to not repeat information already present in the
   assertion
   - **Bad** since `dassert_in()` will already print the valid values
+
     ```python
     hdbg.dassert_in(
       method,
@@ -742,7 +794,9 @@ prefix it with an underscore to mark it as private
       f"Invalid method '{method}'; must be one of: auto, github_api, linear_scan",
     )
     ```
+
   - **Good**
+
     ```python
     hdbg.dassert_in(
       method,
@@ -751,16 +805,19 @@ prefix it with an underscore to mark it as private
     )
     ```
 
-- When adding a comment do not use the f-string formatting, but use the
-  printf-style string formatting
+- When adding a comment do not use the f-string formatting, but use the printf-style
+  string formatting
   - **Bad**
+
     ```python
     hdbg.dassert(
         branch.startswith(prefix),
         f"Remote branch '{branch}' must start with '{prefix}' prefix",
     )
     ```
+
   - **Good**
+
     ```python
     hdbg.dassert(
       branch.startswith(prefix),
@@ -774,9 +831,9 @@ prefix it with an underscore to mark it as private
 
 - When unconditionally raising an error, use `raise` with an appropriate exception
   instead of `hdbg.dassert(False, ...)`
-
 - Example: Use `raise` for unconditional errors
   - **Bad**: Using `dassert(False, ...)` for unconditional errors
+
     ```python
     hdbg.dassert(
         False,
@@ -784,7 +841,9 @@ prefix it with an underscore to mark it as private
         output_dir,
     )
     ```
+
   - **Good**: Use `raise` with appropriate exception
+
     ```python
     raise ValueError(
         f"Output directory already contains chapter files: {output_dir} "
@@ -794,8 +853,7 @@ prefix it with an underscore to mark it as private
 
 ## Do Not Use `try-except`
 
-- Do not use try except to recover errors but let statements raise their own
-  errors
+- Do not use try except to recover errors but let statements raise their own errors
 
 # Docstrings
 
@@ -803,12 +861,15 @@ prefix it with an underscore to mark it as private
 
 - If the docstring is only one line, convert it to three lines
   - **Bad**
+
     ```python
     def reset(self) -> None:
       """Reset any internal state of the strategy."""
       pass
     ```
+
   - **Good**
+
     ```python
     def reset(self) -> None:
       """
@@ -820,10 +881,10 @@ prefix it with an underscore to mark it as private
 ## Use REST Style for Docstrings
 
 - Always use REST style for docstrings
-
-- When there are multiple values for an input or an output variable format them
-  as a list:
+- When there are multiple values for an input or an output variable format them as a
+  list:
   - **Bad**
+
     ```python
     :param interpolate_colors: If True, evenly space selected colors across
       all bold items; if False, use a predefined sequence for common counts
@@ -831,7 +892,9 @@ prefix it with an underscore to mark it as private
     :param all_md_colors: List of available colors to cycle through (defaults
       to the curated list from get_md_colors())
     ```
+
   - **Good**:
+
     ```python
     :param use_abbreviations:
        - If True, use abbreviated color syntax (e.g., `\red{foo}`)
@@ -841,6 +904,7 @@ prefix it with an underscore to mark it as private
     ```
 
 - An example of a good docstring comment is
+
   ```python
   r"""
   Colorize bold markdown items `**text**` with color commands.
@@ -868,6 +932,7 @@ prefix it with an underscore to mark it as private
 
 - Update the docstring to functions and file that are not in sync with the code
   - **Bad**:
+
     ```python
     def calculate_total(items):
         """
@@ -875,7 +940,9 @@ prefix it with an underscore to mark it as private
         """
         return sum(item.price for item in items if item.active)
     ```
+
   - **Good**
+
     ```python
     def calculate_total(items):
         """
@@ -892,17 +959,17 @@ prefix it with an underscore to mark it as private
 
 ## Add Input/Output Examples to Docstrings When Non-Obvious
 
-- Include concrete examples of inputs and outputs in function docstrings when
-  the expected data types or formats are not immediately apparent from the
-  signature or parameter names
+- Include concrete examples of inputs and outputs in function docstrings when the
+  expected data types or formats are not immediately apparent from the signature or
+  parameter names
 - Use examples in these scenarios:
   - Complex data structures (nested dicts, custom objects, specific formats)
   - Transformations where the output differs significantly from the input
   - Edge cases or special values that need clarification
   - When parameter purposes or expected ranges are ambiguous
-
 - **Bad**: Vague description without examples for complex transformation
-  ````python
+
+  ```python
   def transform_data(raw_input):
       """
       Transform raw input into normalized format.
@@ -910,8 +977,10 @@ prefix it with an underscore to mark it as private
       :param raw_input: Input data to transform
       :return: Transformed data
       """
-  ````
+  ```
+
 - **Good**: Clear examples showing input/output for complex transformation
+
   ````python
   def transform_data(raw_input):
       """
@@ -920,17 +989,22 @@ prefix it with an underscore to mark it as private
       :param raw_input: Dict with keys 'name', 'age', 'salary'
           Example:
           ```
+
           {'name': 'Alice', 'age': '30', 'salary': '50000.00'}
+
           ```
-      :return: Dict with normalized values (strings to proper types)
+                :return: Dict with normalized values (strings to proper types)
           Example:
           ```
+
           {'name': 'Alice', 'age': 30, 'salary': 50000.0}
+
           ```
-      """
+                """
   ````
 
 - **Good**
+
   ````python
   def _fetch_aa_benchmarks(model_name: str) -> Dict[str, Optional[float]]:
     """
@@ -939,12 +1013,15 @@ prefix it with an underscore to mark it as private
     :param model_name: Model name in OpenRouter or AA format
     :return: Dict with "coding_score" and "intelligence_score" (None if not found)
         ```
+
         {'coding_score': None, 'intelligence_score': None}
+
         ```
-    """
+            """
   ````
 
 - **Good**
+
   ````python
   def _format_table(table: pd.DataFrame) -> pd.DataFrame:
     """
@@ -958,20 +1035,23 @@ prefix it with an underscore to mark it as private
 
     :param table: DataFrame with raw numerical data
         ```
+
         Model_ID | Input_Cost | Output_Cost | Context | Speed_(tok/s) | Coding_IQ
         ---
         openai/... | 0.003 | 0.015 | 128000 | 25.5 | 72.3
-        ```
 
+        ```
+        
     :return: DataFrame with formatted string columns for display
         ```
+
         Model_ID | Input_Cost | Output_Cost | Context | Speed_(tok/s) | Coding_IQ
         ---
         openai/... | "0.003" | "0.015" | "128K" | "25.5" | "72.3"
+
         ```
     """
   ````
-
 
 # Comments
 
@@ -980,35 +1060,43 @@ prefix it with an underscore to mark it as private
 - When referring to Python objects (e.g., variables, classes, and functions) in
   comments and docstrings use verbatim included in backticks
   - For functions also include a call, e.g., `func()`
-
 - Example (variable in comment):
   - **Bad**
+
     ```python
     # Increment the variable num_counter.
     ```
+
   - **Good**
+
     ```python
     # Increment the variable `num_counter`
     ```
 
 - Example (function in comment):
   - **Bad**
+
     ```
     # Create a curated list from get_md_colors.
     ```
+
   - **Good**
+
     ```
     # Create a curated list from `get_md_colors()`.
     ```
 
 - Example (variable in docstring):
   - **Bad**
+
     ```python
     """
     Increment the variable num_counter.
     """
     ```
+
   - **Good**
+
     ```python
     """
     Increment the variable `num_counter`.
@@ -1017,12 +1105,15 @@ prefix it with an underscore to mark it as private
 
 - Example (function in docstring):
   - **Bad**
+
     ```
     """
     Test helper for standardize_filename().
     """
     ```
+
   - **Good**
+
     ```
     """
     Test helper for `standardize_filename()`.
@@ -1037,37 +1128,43 @@ prefix it with an underscore to mark it as private
   - Script filenames: `pytest_failed.py`, `extract_toc_from_txt.py`
   - Command-line tools: `grep`, `sed`, `awk`, `git`
   - Executables: `python`, `bash`, `curl`
-
 - **Bad**: Referring to scripts without backticks
+
   ```python
   # Locate pytest_failed.py script in the same directory.
   ```
+
 - **Good**: Referring to scripts with backticks
+
   ```python
   # Locate `pytest_failed.py` script in the same directory.
   ```
 
 - **Bad**: Referring to commands without backticks
+
   ```python
   # Run grep to find matching lines.
   ```
+
 - **Good**: Referring to commands with backticks
+
   ```python
   # Run `grep` to find matching lines.
   ```
 
 ## Add Comments Liberally
+
 - You must override any minimalist comment defaults add explanatory comments
   liberally
 
 ## Do Not Remove Existing Comments
 
 - Do not remove any comment, only add new ones when needed
-  - Leave existing comments unless they are incorrect, even if they explain
-    WHAT code does and they are redundant
-
+  - Leave existing comments unless they are incorrect, even if they explain WHAT code
+    does and they are redundant
 - Leave untouched comments that represent examples of input-output relationships
   - E.g.,
+
     ```python
     # Transform:
     #   ('a2bfc704', ['head_hash', 'remh_hash'])
@@ -1077,21 +1174,25 @@ prefix it with an underscore to mark it as private
 
 - Leave comments that represent running a command and getting a result:
   - E.g.,
+
     ```python
     # > git config --file /Users/saggese/src/.../.gitmodules --get-regexp path
     # submodule.amp.path amp
     ```
 
-- Do not remove TODOs or other comment code, unless you are sure they are
-  redundant, wrong, or and useless
+- Do not remove TODOs or other comment code, unless you are sure they are redundant,
+  wrong, or and useless
   - Example to keep:
+
     ```python
     # Divide by 2 since we count the number of occurrences of `**`, while we
     # want to count `**bold**` as 1.
     # hdbg.dassert_eq(tot_bold % 2, 0, "tot_bold=%s needs to be even", tot_bold)
     num_bolds = tot_bold // 2
     ```
+
   - Example to keep:
+
     ```python
     # TODO(gp): -> List[str]
     # TODO(gp): Use hmarkdown.process_lines() and test it.
@@ -1106,10 +1207,10 @@ prefix it with an underscore to mark it as private
   - Keep all comments as short and precise as possible
   - Avoid obvious line-by-line comments
   - Do not restate the code in English
-
 - Add comments for every cohesive code block that is at least 3-5 lines long
   explaining what the code block does
   - **Bad** (different chunks of code without comments)
+
     ```python
     num_passed = info.get("log_num_passed", 0) or 0
     num_failed = info.get("log_num_failed", 0) or 0
@@ -1120,7 +1221,9 @@ prefix it with an underscore to mark it as private
         "duration": duration,
     }
     ```
+
   - **Good** (add comments to chunks)
+
     ```python
     # Extract info.
     num_passed = info.get("log_num_passed", 0) or 0
@@ -1134,34 +1237,36 @@ prefix it with an underscore to mark it as private
     }
     ```
 
-- Use comments to separate logical chunks of code and explain the logic and
-  intent of code sections, especially for:
+- Use comments to separate logical chunks of code and explain the logic and intent of
+  code sections, especially for:
   - Complex algorithms or multi-step processes
   - Conditional branches and why they're needed
   - Non-obvious variable assignments or transformations
   - Implementation choices and workarounds
   - Algorithm steps in a sequence
-
 - Comments should explain the WHY and the algorithm flow, not only the WHAT
   - **Bad**: (obvious from the code)
+
     ```python
     # Iterate over lines.
     for line in lines:
       ...
     ```
+
   - **Good**: (explains intent)
+
     ```python
     # Process imports in two passes: first collect, then validate.
     ```
 
-## Replace Empty Lines With Comments
+## Replace Empty Lines with Comments
 
-- Do not use empty lines within functions to separate chunks of code; use
-  comments instead so that the code stays compact
-- If there are empty lines or empty comments (`#`) separating chunks of code,
-  replace them with a comment explaining the block
-
+- Do not use empty lines within functions to separate chunks of code; use comments
+  instead so that the code stays compact
+- If there are empty lines or empty comments (`#`) separating chunks of code, replace
+  them with a comment explaining the block
 - **Bad** (empty comment)
+
   ```python
   #
   stacktraces_file = hpytest.get_output_file_path(
@@ -1170,7 +1275,9 @@ prefix it with an underscore to mark it as private
   hpytest.write_test_stacktraces(info, stacktraces_file)
   _LOG.info("Created '%s'", stacktraces_file)
   ```
+
 - **Good**
+
   ```python
   # Stacktraces.
   stacktraces_file = hpytest.get_output_file_path(
@@ -1181,16 +1288,18 @@ prefix it with an underscore to mark it as private
   ```
 
 ## Commenting Style
+
 - Prefer single-line comments over multi-line comment blocks when possible
-
 - Use periods at the end of all comments
-
-- In comments always use `: ` instead of ` - `
+- In comments always use `: ` instead of `-`
   - **Bad**
+
     ```
     # Check outputs - Result verification
     ```
+
   - **Good**
+
     ```
     # Check outputs: Result verification
     ```
@@ -1199,10 +1308,13 @@ prefix it with an underscore to mark it as private
 
 - When using complex regex, use comments and `re.VERBOSE`
   - **Bad**
+
     ```python
     quote_pattern = r"(`[^`]*`|(?<!\w)'[^']*'(?!\w)|\"[^\"]*\")"
     ```
+
   - **Good**
+
     ```python
     quote_pattern = r"""
     (
@@ -1228,21 +1340,26 @@ prefix it with an underscore to mark it as private
 - When referring to file paths in messages and responses during coding tasks, enclose
   them in single quotes to make them visually distinct and easier to identify
 - This applies to all file references in user-facing text and comments
-
 - **Bad**: File paths without enclosure
+
   ```
   Incremental processing of linters2/test/test_cc_lint.py
   ```
+
 - **Good**: File paths enclosed in single quotes
+
   ```
   Incremental processing of 'linters2/test/test_cc_lint.py'
   ```
 
 - **Bad**: Mixed formatting
+
   ```
   Working on file `src/main.py` and linters2/test/test_cc_lint.py
   ```
+
 - **Good**: Consistent single quote enclosure for all file paths
+
   ```
   Working on file 'src/main.py' and 'linters2/test/test_cc_lint.py'
   ```
@@ -1257,10 +1374,10 @@ prefix it with an underscore to mark it as private
   - If there is a dictionary print only the first key
 - Do not change the behavior of the code in any way
 
-## Use _LOG
+## Use \_LOG
 
-- Use `_LOG.info` instead of print, unless there is a comment explicitly saying
-  that it should be used print
+- Use `_LOG.info` instead of print, unless there is a comment explicitly saying that
+  it should be used print
 - Use `_LOG.debug` to add debugging info that can help a programmer to track the
   issues
   - Always use lazy % formatting in logging functions
@@ -1268,37 +1385,39 @@ prefix it with an underscore to mark it as private
 ## Add Debug Logging for Function Entry
 
 - For free-standing functions and class methods add at the beginning:
-  - `_LOG.debug(hprint.to_str("a b c"))` with the variables that are most
-    important and not too big to print (e.g., large text, dictionary and so on)
+  - `_LOG.debug(hprint.to_str("a b c"))` with the variables that are most important
+    and not too big to print (e.g., large text, dictionary and so on)
 - Use parameter names (omit `self` for methods)
 
 ## Add Debug Logging for Function Execution
 
-- Use `_LOG.debug` to add debugging info in functions that can help a programmer
-  to track the issues and execution
+- Use `_LOG.debug` to add debugging info in functions that can help a programmer to
+  track the issues and execution
 
 ## Add Debug Logging for Function Results
 
 - Refactor code to avoid more than one `return` statement when possible
 - Instrument the code to print the exit value of a function
+
   ```python
   _LOG.debug("return=%s", ...)
   ```
 
 ## Use `hprint.frame` for Framed Log Headers
 
-- Do not build a framed header manually with repeated separator lines around a
-  `_LOG` call; use `hprint.frame()` instead
-- This avoids repeating the separator string and keeps the framing logic in
-  one place
-
+- Do not build a framed header manually with repeated separator lines around a `_LOG`
+  call; use `hprint.frame()` instead
+- This avoids repeating the separator string and keeps the framing logic in one place
 - **Bad**: manual separator lines around a log message
+
   ```python
   _LOG.info("%s", "#" * 80)
   _LOG.info("Engine: '%s'", engine)
   _LOG.info("%s", "#" * 80)
   ```
+
 - **Good**: use `hprint.frame()`
+
   ```python
   _LOG.info("\n%s", hprint.frame("Engine: '%s'" % engine))
   ```
@@ -1308,12 +1427,14 @@ prefix it with an underscore to mark it as private
 - When logging messages that include variable values for user display, enclose
   variables in single quotes to make them visually distinct from surrounding text
 - This improves readability and helps users identify actual values in log output
-
 - **Bad**: Variables not visually distinct
+
   ```python
   _LOG.info("Downloading %s from %s", book_name, url)
   ```
+
 - **Good**: Variables enclosed in single quotes
+
   ```python
   _LOG.info("Downloading '%s' from '%s'", book_name, url)
   ```
@@ -1331,19 +1452,17 @@ prefix it with an underscore to mark it as private
 
 ## Temporary Files
 
-- When using temporary files use files named
-  `tmp.${name_of_script}.{function}.txt` to increase debuggability by inspecting
-  files
+- When using temporary files use files named `tmp.${name_of_script}.{function}.txt`
+  to increase debuggability by inspecting files
   - No need to clean up files
 
-
-## Use Single Types With Meaningful Defaults for Parser Inputs
+## Use Single Types with Meaningful Defaults for Parser Inputs
 
 - When defining parser arguments, use a single consistent type (e.g., `str`, `int`)
   with a meaningful default value to represent "not set" instead of `None`
 - This simplifies type hints and avoids `Optional` types throughout your code
-
 - **Bad**: Using `None` as default creates `Optional` type requirements
+
   ```python
   parser.add_argument("--name", type=str, default=None)
   parser.add_argument("--count", type=int, default=None)
@@ -1352,7 +1471,9 @@ prefix it with an underscore to mark it as private
       name: Optional[str] = args.name
       count: Optional[int] = args.count
   ```
+
 - **Good**: Use meaningful defaults to keep single types
+
   ```python
   parser.add_argument("--name", type=str, default="")
   parser.add_argument("--count", type=int, default=0)
@@ -1374,6 +1495,7 @@ prefix it with an underscore to mark it as private
 - Use code in `helpers/hsystem.py` to call commands
 - Do not try to catching error, but let the exception propagate
   - **Bad**
+
     ```python
     try:
         hsystem.system("which llm", suppress_output=True)
@@ -1381,7 +1503,9 @@ prefix it with an underscore to mark it as private
     except Exception as e:
         hdbg.dfatal(f"llm command not found: {e}")
     ```
+
   - **Good**
+
     ```python
     hsystem.system("which llm", suppress_output=True)
     ```
@@ -1392,10 +1516,10 @@ prefix it with an underscore to mark it as private
   f-strings and static values, then join with spaces
 - Use f-strings (with spaces, not `=`) for arguments with variables, and static
   strings for flags and values
-- This style improves readability, handles multi-line formatting cleanly, and
-  works consistently with both variable and static values
-
+- This style improves readability, handles multi-line formatting cleanly, and works
+  consistently with both variable and static values
 - **Bad**: Separate parts for each argument
+
   ```python
   cmd = [
       "notes_to_pdf.py",
@@ -1409,7 +1533,9 @@ prefix it with an underscore to mark it as private
       "navigation",
   ]
   ```
+
 - **Bad**: Dense and difficult to read
+
   ```python
   cmd = []
   cmd.append(exec_path)
@@ -1419,7 +1545,9 @@ prefix it with an underscore to mark it as private
   cmd.append("--preview_actions")
   cmd = " ".join(cmd)
   ```
+
 - **Good**: Array with f-strings and join
+
   ```python
   cmd = [
       "notes_to_pdf.py",
@@ -1437,10 +1565,10 @@ prefix it with an underscore to mark it as private
 
 - When calling scripts, use `hgit.find_file_in_git_tree()` to locate the script
   instead of hardwiring the path
-- This keeps code independent of directory structure changes and makes scripts
-  more maintainable
-
+- This keeps code independent of directory structure changes and makes scripts more
+  maintainable
   - **Bad**: Hardwiring script path
+
     ```python
     cmd_parts = [
         "helpers_root/dev_scripts_helpers/documentation/extract_toc_from_txt.py",
@@ -1451,7 +1579,9 @@ prefix it with an underscore to mark it as private
         "--warn_on_malformed",
     ]
     ```
+
   - **Good**: Use `hgit.find_file_in_git_tree()` to locate the script
+
     ```python
     script_path = hgit.find_file_in_git_tree("extract_toc_from_txt.py")
     cmd_parts = [
@@ -1464,19 +1594,20 @@ prefix it with an underscore to mark it as private
     ]
     ```
 
-- The same rule applies to locating non-script resource files (e.g., CSS,
-  templates, data files) that live next to a module: use
-  `hgit.find_file_in_git_tree()` instead of deriving the path from `__file__`
-- Deriving the path from `__file__` breaks when the file is moved, or when the
-  module is imported from a different repo layout (e.g., a symlinked
-  `helpers_root`)
-
+- The same rule applies to locating non-script resource files (e.g., CSS, templates,
+  data files) that live next to a module: use `hgit.find_file_in_git_tree()` instead
+  of deriving the path from `__file__`
+- Deriving the path from `__file__` breaks when the file is moved, or when the module
+  is imported from a different repo layout (e.g., a symlinked `helpers_root`)
   - **Bad**: Deriving the path from `__file__`
+
     ```python
     _SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
     _CSS_FILE_PATH = os.path.join(_SCRIPT_DIR, "link-page-style.css")
     ```
+
   - **Good**: Use `hgit.find_file_in_git_tree()` to locate the resource file
+
     ```python
     _CSS_FILE_PATH = hgit.find_file_in_git_tree("link-page-style.css")
     ```
@@ -1485,14 +1616,14 @@ prefix it with an underscore to mark it as private
 
 ## Use `<module>.README.md` Naming Convention for Documentation Files
 
-- All README files documenting a specific module or component must follow the
-  naming convention `<module>.README.md`
-- The corresponding Python module (e.g., `<module>.py`) should have a docstring
-  that references this README file
+- All README files documenting a specific module or component must follow the naming
+  convention `<module>.README.md`
+- The corresponding Python module (e.g., `<module>.py`) should have a docstring that
+  references this README file
 - This convention makes it clear which README file documents which module and
   improves discoverability
-
 - **Bad**: Inconsistent README naming
+
   ```
   README.llm_cli.md
   download_link_articles.README.py.md
@@ -1501,6 +1632,7 @@ prefix it with an underscore to mark it as private
   ```
 
 - **Good**: Consistent `<module>.README.md` format
+
   ```
   llm_cli.README.md
   download_link_articles.README.md
@@ -1509,6 +1641,7 @@ prefix it with an underscore to mark it as private
   ```
 
 - **Good**: Docstring in corresponding module references the README
+
   ```python
   """
   Declarative LLM decorator for transforming Python functions into LLM calls.
@@ -1518,20 +1651,18 @@ prefix it with an underscore to mark it as private
   """
   ```
 
-## Keep `<module>.README.md` in Sync With the Module
+## Keep `<module>.README.md` in Sync with the Module
 
-- When a Python file's docstring references a companion `<module>.README.md`
-  (see `## Use `<module>.README.md` Naming Convention for Documentation
-  Files`), update that README whenever the module's code changes
-- Reflect the change in every affected part of the README, not just one
-  section:
+- When a Python file's docstring references a companion `<module>.README.md` (see
+  `## Use `<module>.README.md` Naming Convention for Documentation Files`), update
+  that README whenever the module's code changes
+- Reflect the change in every affected part of the README, not just one section:
   - **Interface**: function signatures, CLI options, parameters
   - **Architecture**: data flow, key functions, design patterns
   - **Use cases**: examples and workflows
-- Treat the README as being as out-of-sync-prone as a docstring; apply the
-  same discipline as `## Update Docstrings If Out-of-sync`
-
+- Treat the README as being as out-of-sync-prone as a docstring; apply the same
+  discipline as `## Update Docstrings If Out-of-sync`
 - **Bad**: Add a new `--dry_run` CLI option to `cc_lint.py` but leave
   `cc_lint.README.md`'s argument table and examples unchanged
-- **Good**: Add a new `--dry_run` CLI option to `cc_lint.py`, add it to the
-  README's argument table, and add a usage example demonstrating it
+- **Good**: Add a new `--dry_run` CLI option to `cc_lint.py`, add it to the README's
+  argument table, and add a usage example demonstrating it
