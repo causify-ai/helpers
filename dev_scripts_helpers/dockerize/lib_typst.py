@@ -25,6 +25,11 @@ _TYPST_VERSION = "0.14.2"
 # Touying presentation package (and its dependencies) pre-cached into the image
 # so that `notes_to_pdf.py --slides_engine typst` compiles offline.
 _TOUYING_VERSION = "0.7.4"
+# `wrap-it` is used by `aima_style.typ` so it must be pre-cached too, otherwise
+# `typst compile` tries to download it at runtime and fails since
+# `/opt/typst-cache` is read-only for the non-root `--user` the container runs
+# as.
+_WRAP_IT_VERSION = "0.1.1"
 
 # Name and Dockerfile for the Typst container, exposed so tests can reference
 # them directly without duplicating the definition.
@@ -111,6 +116,7 @@ RUN mkdir -p /opt/typst-cache && \
     printf '%s\n' \
         '#import "@preview/touying:{_TOUYING_VERSION}": *' \
         '#import themes.simple: *' \
+        '#import "@preview/wrap-it:{_WRAP_IT_VERSION}": wrap-content' \
         '#show: simple-theme' \
         '= warmup' > /tmp/warm.typ && \
     typst compile /tmp/warm.typ /tmp/warm.pdf && \

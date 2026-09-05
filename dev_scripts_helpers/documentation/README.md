@@ -476,10 +476,10 @@ The supported File types and code blocks are:
   > count_words.py input.txt
   ```
 
-## `piper_markdown_reader.py`
+## `md_to_speech.py`
 
 ### What It Does
-- Convert markdown files to audio using Piper text-to-speech with interactive playback controls
+- Convert markdown files to audio using Kokoro or Piper text-to-speech with interactive playback controls
 - Extract specific sections from markdown documents and convert to speech
 - Cache audio generation for efficient reprocessing with different speeds
 - Keyboard controls: `p` to pause/resume, `s` to stop
@@ -495,37 +495,37 @@ The supported File types and code blocks are:
 ### Examples
 - Read entire markdown file
   ```bash
-  > piper_markdown_reader.py --input README.md
+  > md_to_speech.py --input README.md
   ```
 
 - Extract section "5" and read to end of file
   ```bash
-  > piper_markdown_reader.py --input book.md --md_start "5" --md_end "END" --dry_run
+  > md_to_speech.py --input book.md --md_start "5" --md_end "END" --dry_run
   ```
 
 - Extract specific section range
   ```bash
-  > piper_markdown_reader.py --input notes.md --md_start "Chapter 3" --md_end "Chapter 4"
+  > md_to_speech.py --input notes.md --md_start "Chapter 3" --md_end "Chapter 4"
   ```
 
 - Extract from header to next same-level header (auto-detect end)
   ```bash
-  > piper_markdown_reader.py --input document.md --md_start "## Methods"
+  > md_to_speech.py --input document.md --md_start "## Methods"
   ```
 
-- Customize voice and speed
+- Customize voice and speed (Piper engine)
   ```bash
-  > piper_markdown_reader.py --input README.md --speed 1.5 --voice en_US-joe-medium
+  > md_to_speech.py --input README.md --engine piper --speed 1.5 --voice en_US-joe-medium
   ```
 
 - Generate audio without playing
   ```bash
-  > piper_markdown_reader.py --input README.md --no_play
+  > md_to_speech.py --input README.md --no_play
   ```
 
 - Preview chunks without audio generation
   ```bash
-  > piper_markdown_reader.py --input README.md --dry_run
+  > md_to_speech.py --input README.md --dry_run
   ```
 
 ### Section Extraction Behavior

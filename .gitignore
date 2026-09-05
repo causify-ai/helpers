@@ -71,3 +71,6 @@ tensorboard/
 # Secrets
 #.env
 #.env.*
+
+# Personal git-commit/push authorization flag (see .claude/hooks/check_git_auth.sh)
+.claude/git_authorized

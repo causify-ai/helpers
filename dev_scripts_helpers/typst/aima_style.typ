@@ -11,6 +11,10 @@
 // does not apply a module's top-level set/show rules to the importing
 // document, which is why these rules cannot sit at module top level.
 
+// Re-exported so importing files can pull `wrap-content` from this module
+// instead of importing the `wrap-it` package directly in every file.
+#import "@preview/wrap-it:0.1.1": wrap-content
+
 // Color definitions (AIMA palette)
 #let aima-purple = rgb("#8B7BA8")
 #let aima-maroon = rgb("#8B3A62")
