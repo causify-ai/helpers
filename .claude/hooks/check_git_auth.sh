@@ -2,14 +2,13 @@
 # PreToolUse hook: gate `git commit` / `git push` behind an explicit,
 # human-set authorization flag file.
 #
-# Design goals (see problem.txt):
+# Design goals
 #   - Claude must not commit/push until the user authorizes it for a session.
 #   - The user authorizes/revokes from a NORMAL shell (outside Claude), by
-#     touching/removing the flag file below. Claude's own Bash tool calls are
-#     still subject to the normal permission system, so a *fresh* attempt by
-#     Claude to touch this file is itself a Bash command that needs approval
-#     (unless a write-capable command family, e.g. `python *`, is already
-#     broadly pre-allowed - check that separately).
+#     touching/removing the flag file below
+#   - Claude's own Bash tool calls are still subject to the normal permission
+#     system, so a *fresh* attempt by Claude to touch this file is itself a
+#     Bash command that needs approval
 #
 # This hook only DENIES or ALLOWS; it never grants anything a settings.json
 # deny rule would otherwise block (deny rules always win regardless of what

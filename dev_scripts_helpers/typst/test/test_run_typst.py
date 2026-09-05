@@ -4,6 +4,7 @@ from unittest import mock
 
 import helpers.hio as hio
 import helpers.hunit_test as hunitest
+import dev_scripts_helpers.dockerize.lib_typst as dshdlity
 import dev_scripts_helpers.typst.run_typst as dshtruty
 
 
@@ -91,7 +92,7 @@ class Test__compile_typst(hunitest.TestCase):
         # Run test.
         with (
             mock.patch.object(
-                dshtruty.dshdlity,
+                dshdlity,
                 "run_dockerized_typst",
                 return_value="typst compile book.typ book.pdf",
             ),
@@ -160,7 +161,7 @@ class Test_run_typst_py(hunitest.TestCase):
     def test1(self) -> None:
         """
         Test that the default output path swaps the `.typ` extension for
-        `.pdf`, and that `render_images` doesn't run by default.
+        `.pdf`, and that `render_images` runs by default.
         """
         # Prepare inputs.
         in_file_path = os.path.join(self.get_scratch_space(), "book.typ")
@@ -185,7 +186,7 @@ class Test_run_typst_py(hunitest.TestCase):
         # Check outputs.
         actual_out_file_path = mock_compile.call_args.args[1]
         self.assertEqual(actual_out_file_path, expected_out_file_path)
-        self.assertEqual(mock_render.call_count, 0)
+        self.assertEqual(mock_render.call_count, 1)
 
     def test2(self) -> None:
         """

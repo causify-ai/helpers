@@ -20,7 +20,7 @@ _LOG = logging.getLogger(__name__)
 
 class Test__find_gs_binary(hunitest.TestCase):
     """
-    Test dshdcopdf._find_gs_binary().
+    Test dshdcpd._find_gs_binary().
     """
 
     def test1(self) -> None:
@@ -35,7 +35,7 @@ class Test__find_gs_binary(hunitest.TestCase):
         # Prepare outputs.
         expected = gs_binary
         # Run test.
-        with mock.patch.object(dshdcopdf, "_GS_CANDIDATE_PATHS", [gs_binary]):
+        with mock.patch.object(dshdcpd, "_GS_CANDIDATE_PATHS", [gs_binary]):
             actual = dshdcpd._find_gs_binary()
         # Check outputs.
         self.assertEqual(actual, expected)
@@ -50,7 +50,7 @@ class Test__find_gs_binary(hunitest.TestCase):
         expected = gs_binary
         # Run test.
         with (
-            mock.patch.object(dshdcopdf, "_GS_CANDIDATE_PATHS", []),
+            mock.patch.object(dshdcpd, "_GS_CANDIDATE_PATHS", []),
             mock.patch.object(dshdcpd.shutil, "which", return_value=gs_binary),
         ):
             actual = dshdcpd._find_gs_binary()
@@ -65,7 +65,7 @@ class Test__find_gs_binary(hunitest.TestCase):
 
 class Test__compress_pdf_ghostscript_global(hunitest.TestCase):
     """
-    Test dshdcopdf._compress_pdf_ghostscript_global().
+    Test dshdcpd._compress_pdf_ghostscript_global().
     """
 
     def helper(self, output_file: str) -> None:
@@ -86,7 +86,8 @@ class Test__compress_pdf_ghostscript_global(hunitest.TestCase):
         # Prepare outputs.
         expected_cmd = (
             f"{gs_binary} -sDEVICE=pdfwrite -dPDFSETTINGS={quality} "
-            f"-dCompatibilityLevel=1.4 -dNOPAUSE -dQUIET -dBATCH "
+            f"-dCompatibilityLevel=1.4 -dColorConversionStrategy=/sRGB "
+            f"-dProcessColorModel=/DeviceRGB -dNOPAUSE -dQUIET -dBATCH "
             f"-sOutputFile={tmp_output_file} {input_file}"
         )
         expected_str = f"""
@@ -102,7 +103,7 @@ class Test__compress_pdf_ghostscript_global(hunitest.TestCase):
         # Run test.
         with (
             mock.patch.object(
-                dshdcopdf, "_find_gs_binary", return_value=gs_binary
+                dshdcpd, "_find_gs_binary", return_value=gs_binary
             ),
             hunteuti.capture_sys_calls() as sys_calls,
         ):
@@ -146,7 +147,7 @@ class Test__compress_pdf_ghostscript_global(hunitest.TestCase):
 
 class Test__compress_pdf_ghostscript_dockerized(hunitest.TestCase):
     """
-    Test dshdcopdf._compress_pdf_ghostscript_dockerized().
+    Test dshdcpd._compress_pdf_ghostscript_dockerized().
     """
 
     def helper(self, output_file: str) -> None:
@@ -198,7 +199,8 @@ class Test__compress_pdf_ghostscript_dockerized(hunitest.TestCase):
         # Prepare outputs.
         expected_cmd = (
             f"gs -sDEVICE=pdfwrite -dPDFSETTINGS={quality} "
-            f"-dCompatibilityLevel=1.4 -dNOPAUSE -dQUIET -dBATCH "
+            f"-dCompatibilityLevel=1.4 -dColorConversionStrategy=/sRGB "
+            f"-dProcessColorModel=/DeviceRGB -dNOPAUSE -dQUIET -dBATCH "
             f"-sOutputFile={docker_tmp_output_file} {docker_input_file}"
         )
         calls: List[Tuple[Any, ...]] = []
@@ -265,7 +267,7 @@ class Test_compress_pdf_py(hunitest.TestCase):
 
     def _run_main(self, argv: List[str]) -> None:
         """
-        Run `dshdcopdf._main()` with a mocked `sys.argv`.
+        Run `dshdcpd._main()` with a mocked `sys.argv`.
 
         :param argv: command-line argument list to inject via
             `mock.patch("sys.argv", ...)`
@@ -298,7 +300,7 @@ class Test_compress_pdf_py(hunitest.TestCase):
         # Run test.
         with (
             mock.patch.object(
-                dshdcopdf, "_find_gs_binary", return_value=gs_binary
+                dshdcpd, "_find_gs_binary", return_value=gs_binary
             ),
             mock.patch.object(
                 dshdcpd.hsystem, "system", side_effect=_fake_gs_system
