@@ -70,16 +70,18 @@ def _strip_rendered_source_blocks(file_path: str) -> None:
     """
     Remove the commented-out original diagram source left by render_images.py.
 
-    `render_images.py` preserves the original diagram source (e.g., a
-    `mermaid` fence) as a block of `<!-- ... -->`-commented lines (between
+    `render_images.py` preserves the original diagram source (e.g., a `mermaid`
+    fence) as a block of `<!-- ... -->`-commented lines (between
     `rendered_images:begin`/`rendered_images:end` markers) so it can be
-    restored later with `--remove_figs`. That preservation isn't needed for
-    a disposable preview copy, and it's actively harmful here: a diagram
-    edge like `A --> B` still contains a literal `-->`, so wrapping it as
-    `<!-- A --> B -->` makes the HTML/CommonMark parser close the comment at
-    the first `-->` (right after `A`), leaking the rest of the line as
-    visible text in the rendered output. Deleting the block sidesteps the
-    collision entirely for this preview-only copy.
+    restored later with `--remove_figs`.
+    That preservation isn't needed for a disposable preview copy, and it's
+    actively harmful here
+    - a diagram edge like `A --> B` still contains a literal `-->`, so wrapping
+      it as `<!-- A --> B -->` makes the HTML/CommonMark parser close the
+      comment at the first `-->` (right after `A`), leaking the rest of the
+      line as visible text in the rendered output
+    - Deleting the block sidesteps the collision entirely for this preview-only
+      copy.
 
     :param file_path: path to the file to strip in place
     """

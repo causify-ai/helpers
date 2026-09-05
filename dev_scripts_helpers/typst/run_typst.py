@@ -3,12 +3,13 @@
 r"""
 Compile a Typst file to PDF inside a Docker container.
 
-The script drives `typst compile` through
-`dev_scripts_helpers/dockerize/lib_typst.py`, so no local Typst installation
-is required. It also renders embedded diagram code (mermaid, tikz,
-graphviz, ...) via `render_images.py` before compiling. The script also
-reports any `warning:` diagnostics emitted by `typst compile` and, by
-default, asserts if any are found.
+The script
+- drives `typst compile` through `dev_scripts_helpers/dockerize/lib_typst.py`,
+  so no local Typst installation is required
+- renders embedded diagram code (mermaid, tikz, graphviz, ...) via
+  `render_images.py` before compiling
+- reports any `warning:` diagnostics emitted by `typst compile` and, by
+  default, asserts if any are found.
 
 # Usage Example
 

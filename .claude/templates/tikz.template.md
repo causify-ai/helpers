@@ -1,27 +1,27 @@
 - Skeletons and worked examples for TikZ figures inside `.smd` lecture slides
-- See `.claude/skills/tikz.rules.md` for the fence-type contract, color
-  palette, and polish rules these examples follow
-- Pick `` ```tikz `` by default; only reach for `` ```raw_latex `` when the
-  figure needs a `\newcommand`, extra `\usetikzlibrary{...}`, or
-  `\begin{tikzpicture}[...]`-level options (see "Choosing a Fence Type")
+- See `.claude/skills/tikz.rules.md` for the fence-type contract, color palette, and
+  polish rules these examples follow
+- Pick ` ```tikz ` by default; only reach for ` ```raw_latex ` when the figure needs
+  a `\newcommand`, extra `\usetikzlibrary{...}`, or `\begin{tikzpicture}[...]`-level
+  options (see "Choosing a Fence Type")
 
 # Choosing a Fence Type
 
-| Need | Fence |
-|---|---|
-| Plain drawing commands, default libraries are enough | `` ```tikz `` |
-| Named styles / `font=...` shared across the whole picture | `` ```raw_latex `` (needs `\begin{tikzpicture}[...]`) |
-| `arrows.meta`, `shapes.geometric`, `calc`, `fit`, `backgrounds` | `` ```raw_latex `` |
-| A parameterized sub-figure reused several times (`\newcommand`) | `` ```raw_latex `` |
-| Multiple `\begin{tikzpicture}` in one figure | `` ```raw_latex `` |
+| Need                                                            | Fence                                               |
+| --------------------------------------------------------------- | --------------------------------------------------- |
+| Plain drawing commands, default libraries are enough            | ` ```tikz `                                         |
+| Named styles / `font=...` shared across the whole picture       | ` ```raw_latex ` (needs `\begin{tikzpicture}[...]`) |
+| `arrows.meta`, `shapes.geometric`, `calc`, `fit`, `backgrounds` | ` ```raw_latex `                                    |
+| A parameterized sub-figure reused several times (`\newcommand`) | ` ```raw_latex `                                    |
+| Multiple `\begin{tikzpicture}` in one figure                    | ` ```raw_latex `                                    |
 
 # `tikz` Fence (Default)
 
 ## Skeleton
 
-- Fence header: `` ```tikz `` or `` ```tikz[width=NN%] ``; omit the
-  `[width=NN%]` when the figure already fits its column at native scale
-  (tune the drawing's own coordinates / `scale=` instead)
+- Fence header: ` ```tikz ` or ` ```tikz[width=NN%] `; omit the `[width=NN%]` when
+  the figure already fits its column at native scale (tune the drawing's own
+  coordinates / `scale=` instead)
 
 ```tikz
 % Drawing commands only -- no \documentclass, \usepackage, \begin{document},
@@ -39,8 +39,8 @@
 
 ### Concentric Circles (Concept Hierarchy)
 
-Nested categories (e.g. AI ⊃ ML ⊃ DL ⊃ LLMs), each ring a `\definecolor` from
-the shared palette (see `tikz.rules.md` "Colors"):
+Nested categories (e.g. AI ⊃ ML ⊃ DL ⊃ LLMs), each ring a `\definecolor` from the
+shared palette (see `tikz.rules.md` "Colors"):
 
 ```tikz
 % Define colors.
@@ -88,8 +88,7 @@ Colored, unfilled circles to show overlap between events/sets:
 
 ### Rectangle with Labeled Points and a Separator
 
-A bounding box with points, symbol markers, and a dashed classification
-boundary:
+A bounding box with points, symbol markers, and a dashed classification boundary:
 
 ```tikz
 % Draw rectangle.
@@ -119,8 +118,8 @@ boundary:
 
 ### Axis with Labeled Regions
 
-A number line with samples, a decision boundary, and region labels, built
-with `\foreach`:
+A number line with samples, a decision boundary, and region labels, built with
+`\foreach`:
 
 ```tikz
 % Draw axis.
@@ -151,8 +150,8 @@ with `\foreach`:
 
 ## Skeleton
 
-- Fence header: `` ```raw_latex `` or `` ```raw_latex[width=NN%] ``, used the
-  same way as `` ```tikz[width=NN%] `` for sizing
+- Fence header: ` ```raw_latex ` or ` ```raw_latex[width=NN%] `, used the same way as
+  ` ```tikz[width=NN%] ` for sizing
 
 ```raw_latex
 \documentclass[tikz]{standalone}
@@ -174,8 +173,8 @@ with `\foreach`:
 
 ### Diagonal Timeline with Alternating Labels
 
-Named per-picture styles (`year/.style`, `event/.style`), `\foreach` over a
-tuple list, and events alternating above/below the line:
+Named per-picture styles (`year/.style`, `event/.style`), `\foreach` over a tuple
+list, and events alternating above/below the line:
 
 ```raw_latex
 \documentclass[tikz]{standalone}
@@ -222,8 +221,8 @@ tuple list, and events alternating above/below the line:
 
 ### Curve with Shaded Regions and Axis Ticks
 
-Custom axes, `\foreach`-generated tick labels, shaded background rectangles,
-and a smooth `plot coordinates` curve:
+Custom axes, `\foreach`-generated tick labels, shaded background rectangles, and a
+smooth `plot coordinates` curve:
 
 ```raw_latex[width=62%]
 \documentclass[tikz]{standalone}
@@ -259,8 +258,8 @@ and a smooth `plot coordinates` curve:
 
 ### Parameterized Sub-Figure (`\newcommand`)
 
-A reusable sub-figure defined once with `\newcommand`, then instantiated
-several times inside a `matrix`:
+A reusable sub-figure defined once with `\newcommand`, then instantiated several
+times inside a `matrix`:
 
 ```raw_latex
 \documentclass[tikz]{standalone}

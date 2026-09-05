@@ -39,23 +39,21 @@
 ## Structural Hierarchy
 
 - A source Markdown heading level maps to Typst as follows:
-  - `#` (H1) → nothing: drop the title line entirely (keep any `// From:`/`//
-    Slide:` provenance comments) — `#chapter(...)` already carries the
-    document's top-level title, so repeating it in the body would just be a
-    redundant second title. If a body-level H1 ever has *different* text from
-    the chapter title (rare), fall back to `#strong[Title]` instead of
-    dropping it, so nothing is silently lost
+  - `#` (H1) → nothing: drop the title line entirely (keep any `// From:`/`// Slide:`
+    provenance comments): `#chapter(...)` already carries the document's top-level
+    title, so repeating it in the body would just be a redundant second title. If a
+    body-level H1 ever has _different_ text from the chapter title (rare), fall back
+    to `#strong[Title]` instead of dropping it, so nothing is silently lost
   - `##` (H2) → `== Title`
   - `###` (H3) → `=== Title`, and deeper levels continue with one more `=` each
   - A slide-level heading (a `* Heading` line in the `.smd` source) depends on
     whether a real `##`/`###` heading has appeared yet in the document:
-    - Before the first `##`/`###`: no real section exists yet to hold it, so
-      the slide *is* the chapter's top-level section — use a real heading,
-      `= Heading`
-    - From the first `##`/`###` onward: `#strong[Heading]`, followed by its
-      body text as a paragraph — a subsection label, not a real Typst heading
-    - This keeps a "flat" lesson (a single `#` followed only by `*` slides,
-      no `##` at all) from ending up with zero real headings in its body
+    - Before the first `##`/`###`: no real section exists yet to hold it, so the
+      slide _is_ the chapter's top-level section: use a real heading, `= Heading`
+    - From the first `##`/`###` onward: `#strong[Heading]`, followed by its body text
+      as a paragraph: a subsection label, not a real Typst heading
+    - This keeps a "flat" lesson (a single `#` followed only by `*` slides, no `##`
+      at all) from ending up with zero real headings in its body
 - **Bad** (repeats the chapter title as a section instead of dropping the H1):
 
   ```typst
@@ -148,23 +146,16 @@
   inline math: `$formula$`
 - Display math (standalone formula): `$ formula $` on its own line, or a raw Typst
   code block (` ```{=typst} ... ``` `) when the formula must bypass Pandoc conversion
-- Always use native Typst math syntax, never LaTeX command names, inside `$...$`:
-  | LaTeX             | Typst                |
-  | ----------------- | -------------------- |
-  | `\subseteq`       | `subset.eq`          |
-  | `\in`             | `in`                 |
-  | `\prod`           | `product_(i=1)^n`    |
-  | `\sum`            | `sum_(...)`          |
-  | `\arg\min`        | `arg min_(...)`      |
-  | `\mathcal{D}`     | `cal(D)`             |
-  | `\leq`, `\geq`    | `lt.eq`, `gt.eq`     |
-  | `\to`, `\gets`    | `arrow.r`, `arrow.l` |
-  | `\cdot`, `\times` | `dot.op`, `times`    |
-  | `\infty`          | `oo`                 |
-  | `\|x\|`           | `\|x\|` (unchanged)  |
+- Always use native Typst math syntax, never LaTeX command names, inside `$...$`: |
+  LaTeX | Typst | | ----------------- | -------------------- | | `\subseteq` |
+  `subset.eq` | | `\in` | `in` | | `\prod` | `product_(i=1)^n` | | `\sum` |
+  `sum_(...)` | | `\arg\min` | `arg min_(...)` | | `\mathcal{D}` | `cal(D)` | |
+  `\leq`, `\geq` | `lt.eq`, `gt.eq` | | `\to`, `\gets` | `arrow.r`, `arrow.l` | |
+  `\cdot`, `\times` | `dot.op`, `times` | | `\infty` | `oo` | | `\|x\|` | `\|x\|`
+  (unchanged) |
 - For a single variable mentioned inline in prose (not a full formula), use a Unicode
   character instead of math mode, to avoid Pandoc mangling a `$\theta$` into stray
-  characters: θ, α, β, μ, σ, ∈, ⊆, ∪, 𝒟, 𝒢, ℝ, 
+  characters: θ, α, β, μ, σ, ∈, ⊆, ∪, 𝒟, 𝒢, ℝ,
 - Keep a formula single-line when possible; a multi-line formula is more likely to
   break Typst's line-wrapping in the `wrap-content` narrow column (see "Visuals"
   below)
@@ -198,8 +189,8 @@
   with the paragraph(s) discussing it, so the text flows beside it
 - A rendered diagram: a `graphviz`/`mermaid`/`tikz`/... figure with multiple labeled
   nodes, boxes, or arrows (a flowchart, mind map, architecture diagram, timeline,
-  etc.): must NOT be squeezed into a `#wrap-content` side column: at the 30-45%
-  width that column allows, its node labels become too small to read. Give it a bare
+  etc.): must NOT be squeezed into a `#wrap-content` side column: at the 30-45% width
+  that column allows, its node labels become too small to read. Give it a bare
   `#figure(...)` instead (no wrapping, `width: 70%` or more; see "Sizing" below),
   even though this means it no longer sits directly beside one paragraph
 - A table is paired with its paragraph via
@@ -300,7 +291,6 @@
     ```typst
     caption: [Fields that converged into the reunified AI research agenda.],
     ```
-
     ```typst
     caption: [Diagram relating learning paradigms, label availability and
       interactive/sequential],
@@ -353,10 +343,10 @@
   caption/label/`kind: "table"`/`supplement: [Table.]`: never Typst's raw
   `table(...)` call directly in chapter body text
 - A narrow table (2-3 short columns, single-word cells) is paired with its paragraph
-  via `#grid` per "Every Visual Pairs With Its Text" above. A wide table: 4+
-  columns, or any column with multi-word cell values: stays a bare, full-width
-  `#figure(...)` per the same section's exception; a table `#figure` may use
-  `width: 100%`, there is no reason to leave one narrower
+  via `#grid` per "Every Visual Pairs With Its Text" above. A wide table: 4+ columns,
+  or any column with multi-word cell values: stays a bare, full-width `#figure(...)`
+  per the same section's exception; a table `#figure` may use `width: 100%`, there is
+  no reason to leave one narrower
 - `styled-table`'s columns share the container width equally (no per-column sizing)
   Squeezing a table with several columns, or with long cell values, into a narrow
   `#grid`/`wrap-content` side column forces its cell text to wrap letter-by-letter

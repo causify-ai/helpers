@@ -25,23 +25,23 @@ Prerequisites:
 
 - Download a Google Doc as PDF to an explicit file path:
 > gws_download_doc.py --from_url https://docs.google.com/document/d/ABC123/edit \
->                     --to_file document.pdf
+    --to_file document.pdf
 
 - Download a Google Doc as a Word document:
 > gws_download_doc.py --from_url https://docs.google.com/document/d/ABC123/edit \
->                     --to_file document.docx
+    --to_file document.docx
 
 - Download a Google Doc as Markdown:
 > gws_download_doc.py --from_url https://docs.google.com/document/d/ABC123/edit \
->                     --to_file document.md
+    --to_file document.md
 
 - Download a Google Doc and auto-generate the filename from the document name:
 > gws_download_doc.py --from_url https://docs.google.com/document/d/ABC123/edit \
->                     --to_dir ./output
+    --to_dir ./output
 
 - Download a Google Doc and auto-generate the filename with a specific extension:
 > gws_download_doc.py --from_url https://docs.google.com/document/d/ABC123/edit \
->                     --to_dir ./output --extension docx
+    --to_dir ./output --extension docx
 """
 
 import argparse

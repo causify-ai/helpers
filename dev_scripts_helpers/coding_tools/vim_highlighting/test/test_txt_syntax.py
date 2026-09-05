@@ -26,12 +26,11 @@ def _run_vim_export_syntax(
     Run Vim on `test_file_path` and extract syntax highlighting info.
 
     :param test_file_path: file to open in Vim and inspect. This is a
-        golden input fixture tracked in git, so Vim is never pointed at
-        it directly: we run against a scratch copy instead. This
-        protects the fixture in case something external (e.g., a stray
-        interactive Vim session, a plugin, shell state) mutates whatever
-        file Vim has open, which has been observed to happen in
-        practice.
+        golden input fixture tracked in git, so Vim is never pointed at it
+        directly: we run against a scratch copy instead. This protects the
+        fixture in case something external (e.g., a stray interactive Vim
+        session, a plugin, shell state) mutates whatever file Vim has open,
+        which has been observed to happen in practice.
     :param vimrc_path: minimal vimrc defining `:ExportSyntax`
     :param scratch_dir: dir where Vim writes `test_syntax_output.txt`
     :return: syntax highlighting output from Vim

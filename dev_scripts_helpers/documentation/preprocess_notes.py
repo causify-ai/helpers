@@ -384,6 +384,7 @@ def _generate_title_slide_typst(metadata: Dict[str, str]) -> List[str]:
     logo_path = "msml610/lectures_source/figures/UMD_Logo.png"
     if "data605" in course_title.lower() or "DATA605" in course_title:
         logo_path = "data605/lectures_source/images/UMD_Logo.png"
+    # TODO(ai_gp): Use r""" and dedent
     version_line = f"\n          #v(0.3cm)\n          #text(size: 14pt, fill: rgb(\"#666666\"))[Version: {version}]" if version else ""
     txt = r"""
         ====
