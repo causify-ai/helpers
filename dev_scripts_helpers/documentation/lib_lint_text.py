@@ -12,11 +12,13 @@ import argparse
 import logging
 import os
 import re
+import shutil
 from typing import Any, Callable, Dict, List, Optional, Tuple
 
 import helpers.hdbg as hdbg
 import helpers.hselect_input_output as hseinout
 import helpers.hgit as hgit
+import helpers.hio as hio
 import helpers.hlatex as hlatex
 import helpers.hmarkdown as hmarkdo
 import helpers.hmarkdown_formatting as hmarform
@@ -975,6 +977,28 @@ def _md_format(lines: List[str]) -> List[str]:
     return lines_new
 
 
+def _typstyle_format(txt: str, *, width: int) -> str:
+    """
+    Format Typst (`.typ`) source with the external `typstyle` formatter.
+
+    :param txt: raw Typst source
+    :param width: maximum line width, passed to `typstyle`'s `-l` option
+    :return: formatted Typst source, or `txt` unchanged if `typstyle` is
+        not on `PATH`
+    """
+    if shutil.which("typstyle") is None:
+        _LOG.warning(
+            "'typstyle' not found on PATH, skipping Typst formatting"
+        )
+        return txt
+    tmp_file_name = "tmp.lint_text.typstyle.typ"
+    hio.to_file(tmp_file_name, txt)
+    cmd = f"typstyle --inplace --wrap-text -l {width} {tmp_file_name}"
+    hsystem.system(cmd, abort_on_error=True)
+    txt = hio.from_file(tmp_file_name)
+    return txt
+
+
 # TODO(gp): Clarify what are the transformations for this.
 # TODO(gp): Reuse the code in htext_protect
 def _postprocess_txt(lines: List[str], in_file_name: str) -> List[str]:
@@ -1112,6 +1136,10 @@ VALID_ACTIONS = {
     #   (```) and exactly one blank line before/after every header; no blank
     #   lines are added between level-1 bullets
     "md_format": ["md"],
+    # Format Typst source with the external `typstyle` formatter (typ only).
+    # - Delegates formatting entirely to `typstyle`, since Typst syntax has
+    #   nothing in common with the markdown/tex/txt/smd formats above
+    "typstyle_format": ["typ"],
 }
 
 
@@ -1188,15 +1216,15 @@ def _perform_actions(
     :param in_file_name: The name of the input file.
     :param actions: A list of actions to be performed on the text. If None, all
         default actions are performed.
-    :param file_type_override: Force a specific file type (md, tex, txt, smd). If
-        provided, overrides detection from file extension.
+    :param file_type_override: Force a specific file type (md, tex, txt, smd,
+        typ). If provided, overrides detection from file extension.
     :param kwargs: Additional keyword arguments to be passed to the actions.
     :return: The processed lines.
     """
     hdbg.dassert_isinstance(lines, list)
     # Determine the extension: use override if provided, otherwise infer from filename.
     if file_type_override:
-        hdbg.dassert_in(file_type_override, ["md", "tex", "txt", "smd"])
+        hdbg.dassert_in(file_type_override, ["md", "tex", "txt", "smd", "typ"])
         extension = file_type_override
     else:
         extension = os.path.splitext(in_file_name)[1]
@@ -1205,6 +1233,18 @@ def _perform_actions(
             extension.startswith("."), "Invalid extension='%s'", extension
         )
         extension = extension[1:]
+    # Filter actions based on file format.
+    actions = _filter_actions_by_format(actions, extension)
+    # `.typ` (Typst) files use a syntax with nothing in common with
+    # markdown/tex/txt/smd, so none of the actions below apply: delegate
+    # entirely to `typstyle` instead.
+    if extension == "typ":
+        action = "typstyle_format"
+        if _to_execute_action(action, actions):
+            txt = "\n".join(lines)
+            txt = _typstyle_format(txt, width=kwargs.get("width", 80))
+            lines = txt.split("\n")
+        return lines
     # Get the file type.
     is_md_file = extension == "md"
     is_tex_file = extension == "tex"
@@ -1217,8 +1257,6 @@ def _perform_actions(
         1,
         msg="Invalid file type",
     )
-    # Filter actions based on file format.
-    actions = _filter_actions_by_format(actions, extension)
     # Extract YAML front matter if present (only for markdown files).
     yaml_frontmatter: List[str] = []
     if is_md_file:
