@@ -191,6 +191,112 @@ def git_fetch_master(ctx, submodules=True):  # type: ignore
         hltltaut.run(ctx, cmd)
 
 
+def _print_file_list(title: str, files: List[str], *, max_files: int = 50) -> None:
+    """
+    Log a titled, bulleted list of file paths, truncating if very long.
+
+    :param title: header printed before the list (with the count
+        appended)
+    :param files: file paths to list
+    :param max_files: max number of files to print before eliding the
+        rest
+    """
+    _LOG.info("\n%s (%s):", title, len(files))
+    if not files:
+        _LOG.info("  (none)")
+        return
+    for f in files[:max_files]:
+        _LOG.info("  - %s", f)
+    if len(files) > max_files:
+        _LOG.info("  ... and %s more", len(files) - max_files)
+
+
+def _preview_git_merge_master(current_branch: str, target_branch: str) -> bool:
+    """
+    Report, without merging, which files would conflict if `target_branch`
+    were merged into `current_branch`.
+
+    This runs an in-memory 3-way merge via `git merge-tree --write-tree`:
+    nothing is written to the working tree, the index, or history, and no
+    branch is checked out or modified.
+
+    :param current_branch: branch that would receive the merge (e.g.,
+        the branch currently checked out)
+    :param target_branch: branch to be merged in (e.g., `master`)
+    :return: `True` if the merge would be conflict-free, `False` if some
+        files would conflict
+    """
+    # Determine which files each side touched since the merge-base: files
+    # touched on only one side always merge trivially, so they don't need a
+    # real 3-way content merge.
+    _, merge_base = hsystem.system_to_string(
+        f"git merge-base {current_branch} {target_branch}"
+    )
+    merge_base = merge_base.strip()
+    _, current_txt = hsystem.system_to_string(
+        f"git diff --name-only {merge_base} {current_branch}"
+    )
+    _, target_txt = hsystem.system_to_string(
+        f"git diff --name-only {merge_base} {target_branch}"
+    )
+    current_files = set(current_txt.splitlines())
+    target_files = set(target_txt.splitlines())
+    both_sides_files = current_files & target_files
+    # Run the in-memory 3-way merge. `git merge-tree` exits with a non-zero
+    # code when there are conflicts, so we don't abort on error.
+    cmd = f"git merge-tree --write-tree {current_branch} {target_branch}"
+    _, txt = hsystem.system_to_string(cmd, abort_on_error=False)
+    conflict_files = sorted(
+        set(
+            re.findall(
+                r"^CONFLICT \([^)]*\): Merge conflict in (.*)$",
+                txt,
+                re.MULTILINE,
+            )
+        )
+    )
+    auto_merged_files = set(
+        re.findall(r"^Auto-merging (.*)$", txt, re.MULTILINE)
+    )
+    # Changed on both sides, but the 3-way content merge succeeds.
+    clean_merge_files = sorted(auto_merged_files - set(conflict_files))
+    # Changed on both sides with no message at all from `git merge-tree`
+    # (e.g., both sides made the identical change): also conflict-free.
+    other_clean_files = sorted(
+        both_sides_files - auto_merged_files - set(conflict_files)
+    )
+    trivial_files = sorted(
+        (current_files | target_files) - both_sides_files
+    )
+    _LOG.info(
+        "\n" + hprint.frame(f"Preview: merge `{target_branch}` into `{current_branch}`")
+    )
+    _LOG.info(
+        "(dry run via `git merge-tree`: no files, index, or history touched)"
+    )
+    _print_file_list("Conflicting files", conflict_files)
+    _print_file_list(
+        "Files changed on both branches, merge cleanly",
+        clean_merge_files + other_clean_files,
+    )
+    _print_file_list(
+        "Files changed on only one branch (always merge trivially)",
+        trivial_files,
+    )
+    is_clean = not conflict_files
+    if is_clean:
+        _LOG.info(
+            "\nNo conflicts: `invoke git_merge_master` can merge cleanly"
+        )
+    else:
+        _LOG.warning(
+            "\n%s file(s) would conflict; resolve manually or plan for "
+            "conflict resolution before running `invoke git_merge_master`",
+            len(conflict_files),
+        )
+    return is_clean
+
+
 @task
 def git_merge_master(
     ctx,
@@ -199,6 +305,7 @@ def git_merge_master(
     skip_fetch=False,
     auto_merge=True,  # type: ignore
     submodules=True,
+    preview_conflicts=False,
 ):
     """
     Merge `origin/master` into the current branch.
@@ -210,8 +317,21 @@ def git_merge_master(
         successful
     :param submodules: also fetch master in submodules (see
         `git_fetch_master`)
+    :param preview_conflicts: instead of merging, run a dry-run 3-way
+        merge and report which files would conflict, which would merge
+        cleanly, and which change on only one side. No merge is
+        attempted and nothing is written to the working tree, the
+        index, or history
     """
     hltltaut.report_task()
+    if preview_conflicts:
+        # Fetch so the preview reflects the latest remote master, but never
+        # touch the working tree, the index, the current branch, or history.
+        if not skip_fetch:
+            git_fetch_master(ctx, submodules=submodules)
+        current_branch = hgit.get_branch_name()
+        _preview_git_merge_master(current_branch, "master")
+        return
     # Verify working directory is clean before merging to avoid losing changes.
     hgit.is_client_clean(dir_name=".", abort_if_not_clean=abort_if_not_clean)
     # Fetch latest master from remote to ensure we merge the latest changes.
