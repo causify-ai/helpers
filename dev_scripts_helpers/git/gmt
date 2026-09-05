@@ -12,8 +12,9 @@
 #     same "ours" convention used by `gcours` (`git checkout --ours`)
 #  3) Append a `vimdiff <file> <file>.3_their` command to a generated
 #     resolve script, so whatever is needed from "theirs" can be merged in
-#     by hand; `git add <file>` runs right after each `vimdiff` exits, so
-#     closing the diff resolves that file
+#     by hand; after each `vimdiff` exits, the script asks whether the
+#     conflict was solved and runs `git add <file>` only on a "yes"
+#     answer, so an unresolved file is never staged by mistake
 #
 # If a file has no "theirs" version (e.g., it was deleted on the other
 # side), the "ours" version is kept and the file is resolved right away,
@@ -70,7 +71,12 @@ for FILE in $FILES; do
   execute "cp -f $OUR $FILE"
   if [[ -f $THEIR ]]; then
     echo "vimdiff \"$FILE\" \"$THEIR\"" >>$RESOLVE_SCRIPT
-    echo "git add \"$FILE\"" >>$RESOLVE_SCRIPT
+    echo "read -p \"Conflict in '$FILE' solved? [y/N] \" -r ANS" >>$RESOLVE_SCRIPT
+    echo "if [[ ! \$ANS =~ ^[Yy]\$ ]]; then" >>$RESOLVE_SCRIPT
+    echo "  echo \"Skipping 'git add' for '$FILE'\"" >>$RESOLVE_SCRIPT
+    echo "else" >>$RESOLVE_SCRIPT
+    echo "  git add \"$FILE\"" >>$RESOLVE_SCRIPT
+    echo "fi;" >>$RESOLVE_SCRIPT
   else
     echo "WARNING: no 'theirs' version for '$FILE': keeping our version"
     execute "git add $FILE"

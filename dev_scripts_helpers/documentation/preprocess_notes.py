@@ -329,11 +329,12 @@ def _generate_title_slide_latex(metadata: Dict[str, str]) -> List[str]:
     Creates a pandoc Div-based title slide using `\vspace`, `\begingroup`,
     and `\blue{}` commands matching existing hand-crafted format.
 
-    :param metadata: dict with keys 'course_title', 'lesson_title'
+    :param metadata: dict with keys 'course_title', 'lesson_title', 'version'
     :return: list of lines forming the title slide
     """
     course_title = metadata.get("course_title", "")
     lesson_title = metadata.get("lesson_title", "")
+    version = metadata.get("version", "")
     # Determine logo path based on course title.
     logo_path = "msml610/lectures_source/figures/UMD_Logo.png"
     if "data605" in course_title.lower() or "DATA605" in course_title:
@@ -358,6 +359,11 @@ def _generate_title_slide_latex(metadata: Dict[str, str]) -> List[str]:
         "**Instructor**: Dr. GP Saggese - gsaggese@umd.edu",
         "",
     ]
+    if version:
+        lines += [
+            f"**Version**: {version}",
+            "",
+        ]
     return lines
 
 
@@ -368,15 +374,18 @@ def _generate_title_slide_typst(metadata: Dict[str, str]) -> List[str]:
 
     Creates a Typst grid-based title slide with text formatting and colors.
 
-    :param metadata: dict with keys 'course_title', 'lesson_title'
+    :param metadata: dict with keys 'course_title', 'lesson_title', 'version'
     :return: list of lines forming the title slide
     """
     course_title = metadata.get("course_title", "")
     lesson_title = metadata.get("lesson_title", "")
+    version = metadata.get("version", "")
     # Determine logo path based on course title.
     logo_path = "msml610/lectures_source/figures/UMD_Logo.png"
     if "data605" in course_title.lower() or "DATA605" in course_title:
         logo_path = "data605/lectures_source/images/UMD_Logo.png"
+    # TODO(ai_gp): Use r""" and dedent
+    version_line = f"\n          #v(0.3cm)\n          #text(size: 14pt, fill: rgb(\"#666666\"))[Version: {version}]" if version else ""
     txt = r"""
         ====
 
@@ -395,9 +404,9 @@ def _generate_title_slide_typst(metadata: Dict[str, str]) -> List[str]:
           #align(center)[#text(size: 32pt, weight: "bold", fill: rgb("#0066CC"))[{}]]
 
           #v(2.5cm)
-          #text(size: 24pt)[Instructor: Dr. GP Saggese - #link("mailto:gsaggese@umd.edu")[_gsaggese\@umd.edu_]]
+          #text(size: 24pt)[Instructor: Dr. GP Saggese - #link("mailto:gsaggese@umd.edu")[_gsaggese\@umd.edu_]]{}
         ]
-    """.format(logo_path, course_title, lesson_title)
+    """.format(logo_path, course_title, lesson_title, version_line)
     txt = hprint.dedent(txt)
     lines = [
         "```{=typst}",

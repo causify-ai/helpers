@@ -307,9 +307,10 @@ class Test_colorize_bullet_points_in_slide1(hunitest.TestCase):
         into a single false-positive `@...@` marker.
         """
         # Prepare inputs.
-        text = (
-            "101: Name: Florian, Home: florian@wobegon.org, Office: fk@phc.com"
-        )
+        text = """
+        101: Name: Florian, Home: florian@wobegon.org, Office: fk@phc.com
+        """
+        text = hprint.dedent(text)
         # Prepare outputs: no marker detected, text unchanged.
         expected = text
         # Run test.
@@ -381,9 +382,10 @@ class Test_process_color_commands2(hunitest.TestCase):
         # Prepare inputs.
         txt_in = r"\violet{important}"
         # Prepare outputs.
-        expected = (
-            r'`#text(fill: rgb("#8B00FF"), weight: "bold")[important]`{=typst}'
-        )
+        expected = """
+        `#text(fill: rgb("#8B00FF"), weight: "bold")[important]`{=typst}
+        """
+        expected = hprint.dedent(expected)
         # Run test.
         self.helper(txt_in, expected)
 
@@ -398,9 +400,10 @@ class Test_process_color_commands2(hunitest.TestCase):
         # Prepare inputs.
         txt_in = r"- **\red{Target node}**"
         # Prepare outputs - should be wrapped with backticks and {=typst}.
-        expected = (
-            r'- **`#text(fill: red, weight: "bold")[Target node]`{=typst}**'
-        )
+        expected = """
+        - **`#text(fill: red, weight: "bold")[Target node]`{=typst}**
+        """
+        expected = hprint.dedent(expected)
         # Run test.
         self.helper(txt_in, expected)
 
@@ -607,10 +610,10 @@ class Test_colorize_bullet_points_in_slide2(hunitest.TestCase):
         # Prepare inputs.
         text = "This has **plain bold** only, no color markers."
         # Prepare outputs.
-        expected = (
-            'This has `#text(fill: luma(30%), weight: "semibold")'
-            "[plain bold]`{=typst} only, no color markers."
-        )
+        expected = """
+        This has `#text(fill: luma(30%), weight: "semibold")[plain bold]`{=typst} only, no color markers.
+        """
+        expected = hprint.dedent(expected)
         # Run test.
         self.helper(text, expected)
 
@@ -622,11 +625,60 @@ class Test_colorize_bullet_points_in_slide2(hunitest.TestCase):
         # Prepare inputs.
         text = "- @Definition@: **Knowledge Representation (KR)** is the study"
         # Prepare outputs.
-        expected = (
-            '- `#text(fill: red, weight: "bold")[Definition]`{=typst}: '
-            '`#text(fill: luma(30%), weight: "semibold")'
-            "[Knowledge Representation (KR)]`{=typst} is the study"
-        )
+        expected = """
+        - `#text(fill: red, weight: "bold")[Definition]`{=typst}: `#text(fill: luma(30%), weight: "semibold")[Knowledge Representation (KR)]`{=typst} is the study
+        """
+        expected = hprint.dedent(expected)
+        # Run test.
+        self.helper(text, expected)
+
+    def test8(self) -> None:
+        r"""
+        Test plain `**text**` wrapping inline LaTeX math with a macro.
+        """
+        # Prepare inputs.
+        text = r"If **$\eta$ is too small**:"
+        # Prepare outputs.
+        expected = r"""
+        If $\eta$`#text(fill: luma(30%), weight: "semibold")[ is too small]`{=typst}:
+        """
+        expected = hprint.dedent(expected)
+        # Run test.
+        self.helper(text, expected)
+
+    def test9(self) -> None:
+        """
+        Test plain `**text**` bold that spans a soft-wrapped continuation
+        line is still rendered as Typst semibold.
+        """
+        # Prepare inputs.
+        text = """
+        - In practice, modify the threshold of a probabilistic classifier to **trade off
+          precision and recall**
+        """
+        text = hprint.dedent(text)
+        # Prepare outputs.
+        expected = """
+        - In practice, modify the threshold of a probabilistic classifier to `#text(fill: luma(30%), weight: "semibold")[trade off precision and recall]`{=typst}
+        """
+        expected = hprint.dedent(expected)
+        # Run test.
+        self.helper(text, expected)
+
+    def test10(self) -> None:
+        """
+        Test that an unmatched `**` does not pick up its closing `**` from a
+        different bullet item across a bullet boundary.
+        """
+        # Prepare inputs.
+        text = """
+        - item one **almost bold
+        - item two** not related
+        """
+        text = hprint.dedent(text)
+        # Prepare outputs: unchanged, since the two `**` belong to different
+        # bullets and must not be merged into a single bold span.
+        expected = text
         # Run test.
         self.helper(text, expected)
 
@@ -741,15 +793,23 @@ class Test_bold_text_colorization_e2e(hunitest.TestCase):
         """
         Test that colors requiring rgb() values are properly formatted.
         """
-        text = "- @Item1@: Test\n- @Item2@: Test\n- @Item3@: Test\n- @Item4@: Test\n- @Item5@: Test"
+        text = """
+        - @Item1@: Test
+        - @Item2@: Test
+        - @Item3@: Test
+        - @Item4@: Test
+        - @Item5@: Test
+        """
+        text = hprint.dedent(text)
         all_md_colors = ["red", "orange", "violet", "magenta", "pink"]
-        expected = (
-            '- `#text(fill: red, weight: "bold")[Item1]`{=typst}: Test\n'
-            '- `#text(fill: orange, weight: "bold")[Item2]`{=typst}: Test\n'
-            '- `#text(fill: rgb("#8B00FF"), weight: "bold")[Item3]`{=typst}: Test\n'
-            '- `#text(fill: rgb("#FF00FF"), weight: "bold")[Item4]`{=typst}: Test\n'
-            '- `#text(fill: rgb("#FFC0CB"), weight: "bold")[Item5]`{=typst}: Test'
-        )
+        expected = """
+        - `#text(fill: red, weight: "bold")[Item1]`{=typst}: Test
+        - `#text(fill: orange, weight: "bold")[Item2]`{=typst}: Test
+        - `#text(fill: rgb("#8B00FF"), weight: "bold")[Item3]`{=typst}: Test
+        - `#text(fill: rgb("#FF00FF"), weight: "bold")[Item4]`{=typst}: Test
+        - `#text(fill: rgb("#FFC0CB"), weight: "bold")[Item5]`{=typst}: Test
+        """
+        expected = hprint.dedent(expected)
         self.helper(
             text, expected, use_abbreviations=False, all_md_colors=all_md_colors
         )
