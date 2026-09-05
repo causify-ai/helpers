@@ -206,8 +206,8 @@
 collected 3865 items / 155 deselected / 12 skipped / 3710 selected
 ...
 test_hmarkdown_formatting.py::Test_format::test1 (0.04 s) PASSED [ 12%]
-test_piper_markdown_reader.py::Test1::test1 (10.04 s) RERUN            [ 16%]
-test_piper_markdown_reader.py::Test1::test1 (2.37 s) PASSED            [ 16%]
+test_md_to_speech.py::Test1::test1 (10.04 s) RERUN            [ 16%]
+test_md_to_speech.py::Test1::test1 (2.37 s) PASSED            [ 16%]
 test_hserver.py::Test2::test3 SKIPPED [ 44%]
 ...
 =========================== short test summary info ============================

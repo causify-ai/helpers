@@ -624,7 +624,11 @@ def _insert_image_code(
         out_lines.append("#figure(")
         out_lines.append(f'  image("{typst_img_path}"),')
         if caption:
-            out_lines.append(f"  caption: [{caption}],")
+            # Escape Typst content-mode brackets so text with unbalanced
+            # `[`/`]` (e.g., interval notation like "[0, 13)") doesn't break
+            # parsing of the enclosing `caption: [...]` content block.
+            typst_caption = caption.replace("[", "\\[").replace("]", "\\]")
+            out_lines.append(f"  caption: [{typst_caption}],")
         closing_paren = ")"
         if label:
             closing_paren = f") <{label}>"
@@ -764,6 +768,19 @@ def _render_images(
     # A line is a continuation if it starts with whitespace and doesn't start
     # a new metadata field or image code block.
     metadata_continuation_regex = re.compile(r"^\s+\S")
+    # Regex to detect lines that must NOT be treated as a continuation even
+    # though they are indented, e.g., surrounding code like `],`, `)` or a
+    # `key: value` argument (e.g., Typst's `align: right,` that follows the
+    # image inside a `#wrap-content(...)` call). Without this check, such
+    # lines get silently swallowed into the caption/label text.
+    metadata_continuation_stop_regex = re.compile(
+        r"""
+        ^\s*[\]\)]      # A line starting with a closing bracket/paren
+        |
+        ^\s*[\w-]+\s*:  # A `key:` argument line (e.g., `align: right,`)
+        """,
+        re.VERBOSE,
+    )
     for i, line in enumerate(in_lines):
         _LOG.debug("%d %s: '%s'", i, state, line)
         m = start_image_regex.search(line)
@@ -852,8 +869,10 @@ def _render_images(
                     metadata_caption = field_value
                 # Comment out the metadata line.
                 out_lines.append(_comment_line(line, extension))
-            elif current_metadata_field and metadata_continuation_regex.search(
-                line
+            elif (
+                current_metadata_field
+                and metadata_continuation_regex.search(line)
+                and not metadata_continuation_stop_regex.search(line)
             ):
                 # This is a continuation line for the current metadata field.
                 continuation_value = line.strip()

@@ -436,11 +436,13 @@ def perc(
     use_float: bool = False,
     only_fraction: bool = False,
     use_thousands_separator: bool = False,
+    allow_increase: bool = False,
 ) -> Union[str, float]:
     """
     Calculate percentage a / b as a string.
 
-    Asserts 0 <= a <= b. If true, returns a/b to `num_digits` decimal places.
+    Asserts 0 <= a <= b, unless `allow_increase` is True. If true, returns
+    a/b to `num_digits` decimal places.
 
     :param a: numerator
     :param b: denominator
@@ -454,10 +456,20 @@ def perc(
     :param only_fraction: return only the fraction, without the percentage
         - E.g., "10 / 20" vs "10 / 20 = 50.00%"
     :param use_thousands_separator: report the numbers using thousands separator
+    :param allow_increase: if True, allow a > b (e.g., a size grew instead
+        of shrinking) instead of asserting. The result is still computed,
+        but the returned string is highlighted in red to flag the anomaly
     :return: string with a/b
     """
     hdbg.dassert_lte(0, a)
-    hdbg.dassert_lte(a, b)
+    if allow_increase:
+        hdbg.dassert_lte(0, b)
+    else:
+        hdbg.dassert_lte(a, b)
+    # `a > b` is not an error when `allow_increase` is True (e.g., a compressed
+    # file can end up larger than the original), so it's flagged rather than
+    # asserted on.
+    is_anomaly = a > b
     if invert:
         a = b - a
     if use_thousands_separator:
@@ -485,6 +497,8 @@ def perc(
         # 4225 / 7377 = 57.27%
         fmt = "%s / %s = %." + str(num_digits) + "f%%"
         ret = fmt % (a_str, b_str, float(a) / b * 100.0)
+    if is_anomaly and isinstance(ret, str):
+        ret = color_highlight(ret, "red")
     return ret
 
 

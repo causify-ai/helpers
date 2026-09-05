@@ -669,7 +669,13 @@ def git_branch_create(  # type: ignore
         )
         # Enforce naming convention `{RepoPrefix}TaskXYZ_Description` for consistency.
         # The valid format of a branch name is `AmpTask1903_Implemented_system_...`.
-        m = re.match(r"^\S+Task\d+_\S+$", branch_name)
+        # Allow personal/scratch branches like `gp`, `gp_2`, `gp_scratch_3`,
+        # which are used for throwaway work not tied to a GitHub issue.
+        task_pattern = r"^\S+Task\d+_\S+$"
+        personal_pattern = r"^gp(_(scratch\w*|\d+))?$"
+        m = re.match(task_pattern, branch_name) or re.match(
+            personal_pattern, branch_name
+        )
         hdbg.dassert(
             m,
             "Branch name must follow convention: '{RepoPrefix,Amp,...}TaskXYZ_...'",
