@@ -18,9 +18,12 @@ file_name="tmp.pytest_log.txt"
 # Force Python to leave stdout unbuffered which delays `_LOG` output and tqdm
 # progress bars.
 export PYTHONUNBUFFERED=1
-cmd="pytest ${args[@]} 2>&1 | tee $file_name"
-cmd+='; exit ${PIPESTATUS[0]}'
-echo "> $cmd"
-eval $cmd
+# Use an array (not `eval` on a string) so quoted arguments, e.g.,
+# `-m "not need_dev_container"`, survive intact instead of being re-split by
+# the shell.
+echo "> pytest ${args[@]} 2>&1 | tee $file_name"
+pytest "${args[@]}" 2>&1 | tee "$file_name"
+exit_code="${PIPESTATUS[0]}"
 
 echo "# pytest_log: Saved result in '$file_name'"
+exit "$exit_code"
