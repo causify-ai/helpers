@@ -1,5 +1,5 @@
 ---
-description: Add, improve text tags using bold and italic
+description: Add and improve text tags using bold and italic
 model: haiku
 ---
 
@@ -12,15 +12,32 @@ model: haiku
 ## Gather Context
 - Read `.claude/skills/book.rules.md`
 
+## Identify Chapters to Process
+- If multiple chapters are passed, process each one independently: apply
+  every step below to each file in turn
+
+## Detect File Type
+- Detect the file type from its extension:
+  - `.typ`: Typst
+  - `.tex`: Latex
+  - `.md`: markdown
+- If the extension is missing or ambiguous, infer the type from existing
+  markup (e.g., `#emph[...]` implies Typst)
+
 ## Render Bold and Italic Based on the Type of File
 - Render bold depending on the type of file:
   - `#strong[...]` in Typst
-  - `\textbb{...}` in Latex
+  - `\textbf{...}` in Latex
   - `**...**` in markdown
 - Render italic depending on the type of file:
   - `#emph[...]` in Typst
   - `\textit{...}` in Latex
   - `_..._` in markdown
+
+## Detect Chapter Type
+- Treat a chapter as Roadmap or Summary type if its title or heading contains
+  "Roadmap", "Summary", or "Overview"
+- Treat every other chapter as a regular chapter
 
 ## Improve Roadmap and Summary Chapters
 - Do not use bold
@@ -116,4 +133,17 @@ model: haiku
   ```
 
 ## Write Result
-- Update the file with this
+- Update the file with the improved text
+
+# Constraints
+- Do not tag a term that is already bold or italic
+- Do not change wording: only add tags around existing text
+- Limit density to 1-2 tagged terms per paragraph so tags keep their signal
+- Leave fenced code blocks, math, and citations untouched
+
+# Verification
+- Diff the file before and after: confirm only tags were added, with no
+  wording changed, removed, or reordered
+- Confirm tag density is reasonable: not every sentence has a tagged term
+- For Typst or Latex files, render the chapter to confirm the tags compile
+  without errors

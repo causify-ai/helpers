@@ -50,8 +50,20 @@
     whether a real `##`/`###` heading has appeared yet in the document:
     - Before the first `##`/`###`: no real section exists yet to hold it, so the
       slide _is_ the chapter's top-level section: use a real heading, `= Heading`
-    - From the first `##`/`###` onward: `#strong[Heading]`, followed by its body text
-      as a paragraph: a subsection label, not a real Typst heading
+    - From the first `##`/`###` onward: no heading and no `#strong[Heading]` label
+      either. Slides must read as one continuous passage under their `==`/`===`
+      section, not a sequence of titled blocks
+      - The **first** slide under a given `##`/`###` needs nothing added: the
+        heading above it already orients the reader, so its paragraph opens
+        directly with its own content (no title, no transition sentence)
+      - Every **later** slide under that same heading drops its title and instead
+        opens with a transition: reword its first sentence, or prepend one short
+        new sentence, so the paragraph visibly picks up from what the previous
+        slide/paragraph just said (a callback, a contrast, a "beyond X, ..."
+        bridge, or a forward reference already planted in the prior paragraph's
+        closing sentence). A term the slide is centrally about can still get
+        `#strong[...]` per "Highlighting and Emphasis" below, but that boldface
+        sits inside the transition sentence, not on a standalone title line
     - This keeps a "flat" lesson (a single `#` followed only by `*` slides, no `##`
       at all) from ending up with zero real headings in its body
 - **Bad** (repeats the chapter title as a section instead of dropping the H1):
@@ -61,12 +73,35 @@
   = Brief History of AI
   ```
 
-- **Good**:
+- **Bad** (repeats each slide's title as a standalone `#strong[...]` label instead
+  of transitioning into it: reads as a stack of mini-slides, not a chapter):
 
   ```typst
   #chapter("Brief History of AI")
-  == Origins and Early AI (1943-1990)
-  #strong[The Beginning (1943-1956)]
+  == Origins and Early AI (1943-1956)
+  #strong[The Turing Test]
+
+  The Turing test framed the founding question: could a machine's behavior be
+  indistinguishable from a human's?
+
+  #strong[The Dartmouth Workshop]
+
+  In 1956, a small group of researchers coined the term artificial intelligence
+  at the Dartmouth workshop.
+  ```
+
+- **Good** (same two slides; the first opens directly, the second transitions from
+  what the first just said instead of restating its title):
+
+  ```typst
+  #chapter("Brief History of AI")
+  == Origins and Early AI (1943-1956)
+  The #strong[Turing test] framed the founding question well before the field had
+  a name: could a machine's behavior be indistinguishable from a human's?
+
+  That philosophical question got a research program a few years later, when a
+  small group of researchers coined the term #strong[artificial intelligence]
+  itself at the 1956 Dartmouth workshop.
   ```
 
 - **Good**, flat lesson (no `##`/`###` anywhere, so the `*` slides carry the
