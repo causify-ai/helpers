@@ -1,0 +1,3 @@
+14:43:12 - [36mINFO [0m hdbg.py init_logger:1167                               14:43:12 - [36mINFO [0m hdbg.py init_logger:1167                               Saving log to file '/Users/saggese/src/umd_classes1/helpers_root/dev_scripts_helpers/git/git_merge_master.py.log'
+14:43:12 - [36mINFO [0m hdbg.py init_logger:1177                               14:43:12 - [36mINFO [0m hdbg.py init_logger:1177                               [94m> /Users/saggese/src/umd_classes1/helpers_root/dev_scripts_helpers/git/git_merge_master.py[0m
+14:43:13 - [36mINFO [0m git_merge_master.py _git_merge_master:237              14:43:13 - [36mINFO [0m git_merge_master.py _git_merge_master:237              Auto-merge enabled: committing and pushing changes
