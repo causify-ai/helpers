@@ -1,3 +1,1 @@
-call('git fetch origin master:master')
-call("git submodule foreach 'git fetch origin master:master'")
-call('git merge master')
+call('dev_scripts_helpers/git/git_merge_master.py --no_abort_if_not_clean')

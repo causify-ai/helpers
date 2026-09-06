@@ -75,8 +75,7 @@ def _run_vim_export_syntax(
 
 @pytest.mark.skipif(
     hserver.is_inside_docker() or not hserver.is_host_gp_mac(),
-    reason="Tests only run on GP's Mac outside Docker (Vim / colorscheme "
-    "dependency is not available inside the container)",
+    reason="Tests only run on GP's Mac outside Docker",
 )
 class TestTxtSyntaxHighlighting(hunitest.TestCase):
     """
@@ -128,8 +127,7 @@ class TestTxtSyntaxHighlighting(hunitest.TestCase):
 
 @pytest.mark.skipif(
     hserver.is_inside_docker() or not hserver.is_host_gp_mac(),
-    reason="Tests only run on GP's Mac outside Docker (Vim / colorscheme "
-    "dependency is not available inside the container)",
+    reason="Tests only run on GP's Mac outside Docker",
 )
 class TestSmdSyntaxHighlighting(hunitest.TestCase):
     """

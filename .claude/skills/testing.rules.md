@@ -1107,6 +1107,41 @@
   import import_check.detect_import_cycles as icdeimcy
   ```
 
+## Also Add an End-to-end Test that Runs `uv run` Scripts via Subprocess
+
+- `pytest.importorskip()` only skips the unit tests that import the module
+  directly. For a `uv` script, add a separate end-to-end test that invokes
+  the script itself through `uv run <script_path> ...` (e.g., via
+  `hsystem.system()` / `hsystem.system_to_string()`), so `uv` installs the
+  declared dependencies on the fly instead of requiring them in the test
+  environment
+- Put this test in its own file (e.g., `test_<script>_uv_run.py`), separate
+  from the file with the direct-import unit tests, so it is not skipped by
+  that file's `pytest.importorskip()`
+- Use `hgit.find_file_in_git_tree()` to locate the script, per
+  `## Locate Script Paths Dynamically` below
+- A simple `--help` invocation is enough to exercise the `uv`-managed
+  imports without needing real inputs
+
+- **Good**
+  ```python
+  import shutil
+
+  import pytest
+
+  import helpers.hgit as hgit
+  import helpers.hsystem as hsystem
+  import helpers.hunit_test as hunitest
+
+
+  class Test_count_lecture_slides_py(hunitest.TestCase):
+      def test1(self) -> None:
+          exec_path = hgit.find_file_in_git_tree("count_lecture_slides.py")
+          cmd = f"uv run {exec_path} --help"
+          rc, output = hsystem.system_to_string(cmd)
+          self.assertEqual(rc, 0)
+  ```
+
 ## Use Helper Methods to Run Executables with Mocked argv
 
 - When testing executables that call `_main()` with `_parse()`, create a

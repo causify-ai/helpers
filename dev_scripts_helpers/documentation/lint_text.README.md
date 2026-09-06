@@ -1,6 +1,6 @@
 # lint_text.py
 
-- Automated formatter for markdown, LaTeX, and plain text files
+- Automated formatter for markdown, LaTeX, plain text, and Typst files
 - Applies a series of transformations to normalize and improve document structure
 - Protects code blocks and comments from formatting changes
 - Creates backups before processing and supports reverting changes
@@ -17,6 +17,7 @@
   - `.tex` (LaTeX)
   - `.txt` (plain text)
   - `smd` (slide markdown)
+  - `.typ` (Typst, formatted via the external `typstyle` tool)
 - Input/output modes: File-based (single or multiple) or stdin/stdout
 - Safety features: Automatic backups, revert capability, action filtering
 
@@ -137,6 +138,16 @@
     starting with at least 3 `:`, e.g., `::: columns`) and the surrounding
     chunk of code, while keeping consecutive fence lines adjacent
 
+### Typst Actions
+
+- **typstyle_format**: Format Typst source with the external `typstyle` tool
+  (`.typ` only)
+  - Delegates entirely to `typstyle --inplace --wrap-text -l <width>`, since
+    Typst syntax is unrelated to markdown/tex/txt/smd
+  - No-op (with a warning) if `typstyle` is not on `PATH`
+  - This is the only action that applies to `.typ` files; none of the other
+    actions above run for them
+
 ## Command Line Options
 
 ### Input/Output
@@ -145,12 +156,12 @@
 - `--out <file>`: Output file (defaults to `--in` for in-place editing)
 - `--type <type>`: File type when using stdin (required for stdin input), or
   to force a type instead of inferring it from the file extension
-  - Options: `md`, `tex`, `txt`, `smd`
+  - Options: `md`, `tex`, `txt`, `smd`, `typ`
 
 ### Formatting Configuration
 
-- `-w, --width <width>`: Maximum line width (default: 80)
-  - Applied by beautify during formatting
+- `-w, --width <width>`: Maximum line width (default: 85)
+  - Applied by beautify during formatting, or by `typstyle` for `.typ` files
 
 - `--backend <backend>`: Markdown formatting backend (markdown files only)
   - Options: `prettier`, `mdformat`, `flowmark`
@@ -224,6 +235,11 @@
 - **Slide markdown files** (`smd`, forced via `--type smd`):
   - `txt`-like format for lecture slide sources
 
+- **Typst files** (`.typ`):
+  - Formatted entirely by the external `typstyle` tool, not by the
+    markdown/tex/txt/smd pipeline
+  - No content protection, YAML front matter, or other actions apply
+
 ### Backup System
 
 - Backup filename: `tmp.lint_text.<original_filename>`
@@ -288,6 +304,12 @@
 > ./lint_text.py --in lesson.txt --type smd
 ```
 
+### Format a Typst File
+
+```bash
+> ./lint_text.py --in chapter.typ
+```
+
 ## Notes and Considerations
 
 - **In-place editing**: Backup created before processing, can be reverted
@@ -297,6 +319,7 @@
 - **Link checking**: Broken links logged but don't fail the process
 - **Performance**: Docker-based formatters may have startup overhead
 - **Math blocks**: LaTeX math blocks (delimited by `$$`) are protected and not reformatted
+- **Typst files**: Require `typstyle` on `PATH`; formatting is skipped (with a warning) otherwise
 
 ## Related Files
 

@@ -12,7 +12,7 @@ model: opus
 
 # Workflow
 
-## Step 1: Read the Material
+## Read the Material
 - Read `.claude/templates/book_map.template.md` for the expected structure of a
   table of content of a book
 
@@ -27,7 +27,7 @@ model: opus
   - Read the `### Topics` in the sibling chapters in that Part and the immediate
     neighbors, chapter N-1 and N+1, to judge continuity
 
-## Step 2: Criticize
+## Criticize
 - Read `.claude/skills/text.criticize/SKILL.md` to understand general approaches
   to review and criticize text
 
@@ -66,11 +66,11 @@ model: opus
   - **MEDIUM**: hurts clarity or completeness
   - **LOW**: minor polish
 
-## Step 3: Write Result
+## Write Result
 - Write results using the same format and file as in
   `## Step 4: Write the Results` in `.claude/skills/text.criticize/SKILL.md`
 
-## Step 4: Wait for Approval
+## Wait for Approval
 - Present the criticism to the user
 - Wait for the user to select items to apply by index and give corrections
 - Only then edit `map.md`
