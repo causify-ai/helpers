@@ -11,7 +11,7 @@ Merge `origin/master` into the current branch.
 
 - Only preview which files would conflict, without touching the working
   tree, the index, or history:
-> git_merge_master.py --preview_conflicts
+> git_merge_master.py --dry_run
 
 - Merge without auto-committing/pushing and without fetching submodules:
 > git_merge_master.py --no_auto_merge --no_submodules
@@ -79,7 +79,7 @@ def _add_all_untracked_files(*, exclude_tmp: bool = False) -> None:
 
 def _print_file_list(title: str, files: List[str], *, max_files: int = 50) -> None:
     """
-    Log a titled, bulleted list of file paths, truncating if very long.
+    Print a titled, bulleted list of file paths, truncating if very long.
 
     :param title: header printed before the list (with the count
         appended)
@@ -87,14 +87,14 @@ def _print_file_list(title: str, files: List[str], *, max_files: int = 50) -> No
     :param max_files: max number of files to print before eliding the
         rest
     """
-    _LOG.info("\n%s (%s):", title, len(files))
+    print(f"\n{title} ({len(files)}):")
     if not files:
-        _LOG.info("  (none)")
+        print("  (none)")
         return
     for f in files[:max_files]:
-        _LOG.info("  - %s", f)
+        print(f"  - {f}")
     if len(files) > max_files:
-        _LOG.info("  ... and %s more", len(files) - max_files)
+        print(f"  ... and {len(files) - max_files} more")
 
 
 def _preview_git_merge_master(current_branch: str, target_branch: str) -> bool:
@@ -154,10 +154,10 @@ def _preview_git_merge_master(current_branch: str, target_branch: str) -> bool:
     trivial_files = sorted(
         (current_files | target_files) - both_sides_files
     )
-    _LOG.info(
+    print(
         "\n" + hprint.frame(f"Preview: merge `{target_branch}` into `{current_branch}`")
     )
-    _LOG.info(
+    print(
         "(dry run via `git merge-tree`: no files, index, or history touched)"
     )
     _print_file_list("Conflicting files", conflict_files)
@@ -171,14 +171,12 @@ def _preview_git_merge_master(current_branch: str, target_branch: str) -> bool:
     )
     is_clean = not conflict_files
     if is_clean:
-        _LOG.info(
-            "\nNo conflicts: `invoke git_merge_master` can merge cleanly"
-        )
+        print("\nNo conflicts: `invoke git_merge_master` can merge cleanly")
     else:
-        _LOG.warning(
-            "\n%s file(s) would conflict; resolve manually or plan for "
-            "conflict resolution before running `invoke git_merge_master`",
-            len(conflict_files),
+        print(
+            f"\n{len(conflict_files)} file(s) would conflict; resolve "
+            "manually or plan for conflict resolution before running "
+            "`invoke git_merge_master`"
         )
     return is_clean
 
@@ -195,7 +193,7 @@ def _git_merge_master(
     skip_fetch: bool = False,
     auto_merge: bool = True,
     submodules: bool = True,
-    preview_conflicts: bool = False,
+    dry_run: bool = False,
 ) -> None:
     """
     Merge `origin/master` into the current branch.
@@ -207,13 +205,12 @@ def _git_merge_master(
         successful
     :param submodules: also fetch master in submodules (see
         `_fetch_master`)
-    :param preview_conflicts: instead of merging, run a dry-run 3-way
-        merge and report which files would conflict, which would merge
-        cleanly, and which change on only one side. No merge is
-        attempted and nothing is written to the working tree, the
-        index, or history
+    :param dry_run: instead of merging, run a dry-run 3-way merge and
+        report which files would conflict, which would merge cleanly,
+        and which change on only one side. No merge is attempted and
+        nothing is written to the working tree, the index, or history
     """
-    if preview_conflicts:
+    if dry_run:
         # Fetch so the preview reflects the latest remote master, but never
         # touch the working tree, the index, the current branch, or history.
         if not skip_fetch:
@@ -278,7 +275,7 @@ def _parse() -> argparse.ArgumentParser:
         help="Do not also fetch master in submodules",
     )
     parser.add_argument(
-        "--preview_conflicts",
+        "--dry_run",
         action="store_true",
         help="Instead of merging, report which files would conflict without "
         "touching the working tree, the index, or history",
@@ -296,7 +293,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
         skip_fetch=args.skip_fetch,
         auto_merge=not args.no_auto_merge,
         submodules=not args.no_submodules,
-        preview_conflicts=args.preview_conflicts,
+        dry_run=args.dry_run,
     )
 
 

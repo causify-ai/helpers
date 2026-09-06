@@ -199,7 +199,7 @@ def git_merge_master(
     skip_fetch=False,
     auto_merge=True,  # type: ignore
     submodules=True,
-    preview_conflicts=False,
+    dry_run=False,
 ):
     """
     Merge `origin/master` into the current branch.
@@ -211,14 +211,12 @@ def git_merge_master(
         successful
     :param submodules: also fetch master in submodules (see
         `git_fetch_master`)
-    :param preview_conflicts: instead of merging, run a dry-run 3-way
-        merge and report which files would conflict, which would merge
-        cleanly, and which change on only one side. No merge is
-        attempted and nothing is written to the working tree, the
-        index, or history
+    :param dry_run: instead of merging, run a dry-run 3-way merge and
+        report which files would conflict, which would merge cleanly,
+        and which change on only one side.
     """
     hltltaut.report_task()
-    script_path = "dev_scripts_helpers/git/git_merge_master.py"
+    script_path = hsystem.find_file_in_repo("git_merge_master.py")
     cmd = script_path
     if abort_if_not_ff:
         cmd += " --abort_if_not_ff"
@@ -230,8 +228,8 @@ def git_merge_master(
         cmd += " --no_auto_merge"
     if not submodules:
         cmd += " --no_submodules"
-    if preview_conflicts:
-        cmd += " --preview_conflicts"
+    if dry_run:
+        cmd += " --dry_run"
     hltltaut.run(ctx, cmd)
 
 
