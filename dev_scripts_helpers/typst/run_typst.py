@@ -3,7 +3,7 @@
 r"""
 Compile a Typst file to PDF inside a Docker container.
 
-The script
+The script:
 - drives `typst compile` through `dev_scripts_helpers/dockerize/lib_typst.py`,
   so no local Typst installation is required
 - renders embedded diagram code (mermaid, tikz, graphviz, ...) via
@@ -88,16 +88,18 @@ _DEFAULT_ACTIONS = [
 # #############################################################################
 
 
-def _render_images(in_file_path: str) -> None:
+def _render_images(in_file_path: str, log_level: str) -> None:
     """
     Render embedded diagram code (mermaid, tikz, graphviz, ...) in place.
 
     :param in_file_path: path to the `.typ` file to render images in
+    :param log_level: verbosity level (e.g., "DEBUG") to forward to
+        `render_images.py`
     """
     _LOG.debug(hprint.func_signature_to_str())
     exec_file = hgit.find_file("render_images.py")
-    cmd = f"{exec_file} --input {in_file_path} --action render"
-    hsystem.system(cmd, suppress_output=False, log_level=logging.DEBUG)
+    cmd = f"{exec_file} --input {in_file_path} --action render -v {log_level}"
+    hsystem.system(cmd, log_level=logging.DEBUG)
 
 
 # #############################################################################
@@ -189,16 +191,18 @@ def _compile_typst(
 # #############################################################################
 
 
-def _compress_pdf(out_file_path: str) -> None:
+def _compress_pdf(out_file_path: str, log_level: str) -> None:
     """
     Compress the compiled PDF in place via `compress_pdf.py`.
 
     :param out_file_path: path to the PDF to compress
+    :param log_level: verbosity level (e.g., "DEBUG") to forward to
+        `compress_pdf.py`
     """
     _LOG.debug(hprint.func_signature_to_str())
     exec_file = hgit.find_file("compress_pdf.py")
-    cmd = f"{exec_file} --input {out_file_path}"
-    hsystem.system(cmd, suppress_output=False, log_level=logging.DEBUG)
+    cmd = f"{exec_file} --input {out_file_path} -v {log_level}"
+    hsystem.system(cmd, log_level=logging.DEBUG)
 
 
 # #############################################################################
@@ -286,7 +290,7 @@ def _process_typst_file(
         if not to_execute:
             continue
         if action == "render_images":
-            _render_images(in_file_path)
+            _render_images(in_file_path, args.log_level)
         elif action == "compile":
             _compile_typst(
                 in_file_path,
@@ -299,7 +303,7 @@ def _process_typst_file(
             )
             _LOG.info("Output written to '%s'", out_file_path)
         elif action == "compress_pdf":
-            _compress_pdf(out_file_path)
+            _compress_pdf(out_file_path, args.log_level)
         elif action == "open_pdf":
             # PDFs are opened in Skim by default on macOS (see
             # `hopen._cmd_open_pdf()`).

@@ -22,7 +22,7 @@ model: sonnet
 
 # Workflow
 
-## Step 1: Classify Every Heading/slide in `<SMD_FILE>`
+## Classify Every Heading/slide in `<SMD_FILE>`
 
 - Walk `<SMD_FILE>` top to bottom, collecting every `#`/`##`/`###`(+) heading line
   and every `* Slide Title` line, in source order, with its line number
@@ -31,7 +31,7 @@ model: sonnet
   Title`line is reached* (before any`##` on the same line updates it) is what Step 3
   needs for that slide
 
-## Step 2: Locate the Matching Line in `<TYP_FILE>`
+## Locate the Matching Line in `<TYP_FILE>`
 
 - `<TYP_FILE>` carries a `// From: <SMD_FILE>:<line_number> '<marker>
   <title>'` comment immediately above every heading/slide it was generated
@@ -42,7 +42,7 @@ model: sonnet
   `// Slide: <title>`: it may currently be `#strong[Title]`, `= Title` / `== Title`
   / `=== Title`, or missing entirely (blank line straight after the comment)
 
-## Step 3: Apply the Rule From `typst.rules.md`
+## Apply the Rule From `typst.rules.md`
 
 For each block found in Step 2, make its title line match:
 - **H1** (`#`), title equal to the chapter title already shown by `#chapter(...)`
@@ -61,8 +61,8 @@ Never touch a `#strong[...]`/`#emph[...]` occurring elsewhere in the prose
 (mid-paragraph terms, list lead phrases): only the standalone title lines identified
 in Step 2
 
-## Step 4: Verify
+## Verify
 
-- Lint: `typstyle --inplace --wrap-text -l 80 <TYP_FILE>`
+- Lint: `typstyle --inplace --wrap-text -l 85 <TYP_FILE>`
 - Compile and check the PDF looks right: see
   `.claude/skills/book.fix_rendered_pdf/SKILL.md`
