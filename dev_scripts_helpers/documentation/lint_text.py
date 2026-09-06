@@ -58,7 +58,7 @@ def _parser() -> argparse.ArgumentParser:
         action="store",
         type=str,
         default="",
-        choices=["", "md", "tex", "txt", "smd"],
+        choices=["", "md", "tex", "txt", "smd", "typ"],
         help=(
             "Force the file type instead of inferring from extension. "
             "When reading from stdin, this option is required. "

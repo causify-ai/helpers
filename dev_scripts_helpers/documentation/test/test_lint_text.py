@@ -1,5 +1,6 @@
 import logging
 import os
+import shutil
 from typing import Callable, List
 
 import pytest
@@ -3555,3 +3556,89 @@ class Test_perform_actions_smd_type(hunitest.TestCase):
             dshdllite._perform_actions(
                 lines, file_name, file_type_override="foo"
             )
+
+
+# #############################################################################
+# Test_perform_actions_typ_type
+# #############################################################################
+
+
+# TODO(ai_gp): Use a helpers
+class Test_perform_actions_typ_type(hunitest.TestCase):
+    """
+    Test that `_perform_actions` recognizes the `typ` file type.
+    """
+
+    def test1(self) -> None:
+        """
+        Test that a `.typ` file is dispatched to the Typst-only pipeline,
+        i.e., none of the markdown/tex/txt/smd actions run.
+
+        Restricting to an empty `actions` list skips `typstyle_format` too,
+        so this doesn't require `typstyle` to be installed.
+        """
+        # Prepare inputs.
+        lines = ["* not", "a bullet in Typst"]
+        file_name = "chapter.typ"
+        # Run test.
+        actual = dshdllite._perform_actions(lines, file_name, actions=[])
+        # Check outputs: unchanged, since no action ran.
+        self.assertEqual(actual, lines)
+
+    def test2(self) -> None:
+        """
+        Test that `file_type_override="typ"` is equivalent to inferring the
+        type from a `.typ` extension.
+        """
+        # Prepare inputs.
+        lines = ["#let x = 1"]
+        file_name = "lesson.txt"
+        # Run test.
+        actual = dshdllite._perform_actions(
+            lines, file_name, file_type_override="typ", actions=[]
+        )
+        # Check outputs: unchanged, since no action ran.
+        self.assertEqual(actual, lines)
+
+    @pytest.mark.skipif(
+        shutil.which("typstyle") is None, reason="typstyle is not installed"
+    )
+    def test3(self) -> None:
+        """
+        Test that a `.typ` file is formatted with `typstyle` by default.
+        """
+        # Prepare inputs.
+        lines = ["#let   x = 1", "= Heading", "This   is some text."]
+        file_name = "chapter.typ"
+        # Run test.
+        actual = dshdllite._perform_actions(lines, file_name)
+        # Check outputs: `typstyle` writes a trailing newline, so `lines`
+        # ends with an extra empty string after splitting on `\n`.
+        expected = ["#let x = 1", "= Heading", "This is some text.", ""]
+        self.assertEqual(actual, expected)
+
+
+# #############################################################################
+# Test__typstyle_format
+# #############################################################################
+
+
+class Test__typstyle_format(hunitest.TestCase):
+    """
+    Test the `_typstyle_format` function.
+    """
+
+    @pytest.mark.skipif(
+        shutil.which("typstyle") is None, reason="typstyle is not installed"
+    )
+    def test1(self) -> None:
+        """
+        Test that Typst source is reformatted according to `typstyle`.
+        """
+        # Prepare inputs.
+        txt = "#let   x = 1\n= Heading\nThis   is some text."
+        # Run test.
+        actual = dshdllite._typstyle_format(txt, width=80)
+        # Check outputs.
+        expected = "#let x = 1\n= Heading\nThis is some text.\n"
+        self.assertEqual(actual, expected)

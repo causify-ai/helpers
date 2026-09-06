@@ -14,7 +14,7 @@ model: haiku
 
 # Workflow
 
-## Step 1: Generate the PDF
+## Generate the PDF
 
 - Create the PDF from the `<TYP_FILE>`
 
@@ -25,12 +25,12 @@ model: haiku
 - The generated file is in the same dir as `<TYP_FILE>`
   - E.g., `msml610/book/Lesson01.2-AI_and_Machine_Learning.pdf`
 
-## Step 2: Check the Typst Source Code
+## Check the Typst Source Code
 
 - Make sure the Typst file follows the rules in `.claude/skills/typst.rules.md` and
   `.claude/templates/typst.template.typ`
 
-## Step 3: Check the PDF
+## Check the PDF
 
 - Read the generated PDF `<PDF_FILE>` and for each page make sure the layout looks
   good, e.g.,
