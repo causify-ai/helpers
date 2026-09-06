@@ -480,6 +480,7 @@ def gh_issue_create(  # type: ignore
     assignees="",
     project="",
     repo_short_name="current",
+    suffix="",
 ):
     """
     Create a new GitHub issue in the specified repository.
@@ -496,6 +497,10 @@ def gh_issue_create(  # type: ignore
 
     # Create an issue and add to a project
     > invoke gh_issue_create --title "Implement feature" --project "Development Board"
+
+    # Create an issue and, in one shot, the first branch (and draft PR) for it,
+    # e.g., `AmpTask1234_Fix_bug_in_parser_1`
+    > invoke gh_issue_create --title "Fix bug in parser" --suffix 1
     ```
 
     :param title: title of the issue (required)
@@ -505,6 +510,9 @@ def gh_issue_create(  # type: ignore
     :param project: GitHub project name or number to add the issue to
     :param repo_short_name: `current` refer to the repo where we are in,
         otherwise a `repo_short_name` (e.g., "amp")
+    :param suffix: if specified (e.g., "1"), also create the corresponding
+        branch (and a draft PR for it) via `git_branch_create`, named
+        `<Base>_<suffix>` (e.g., `AmpTask1234_..._1`)
     :return: issue ID (integer) of the created issue
     """
     hltltaut.report_task(txt=hprint.to_str("title repo_short_name"))
@@ -545,6 +553,18 @@ def gh_issue_create(  # type: ignore
     hdbg.dassert(match, f"Could not extract issue ID from output: {output}")
     issue_id = int(match.group(1))
     _LOG.info("Created issue #%s", issue_id)
+    if suffix:
+        # Also create the corresponding branch (and a draft PR for it).
+        # Import locally to avoid a circular import, since
+        # `lib_tasks_git.py` imports this module.
+        import helpers.lib_tasks.lib_tasks_git as hltltagi
+
+        hltltagi.git_branch_create(
+            ctx,
+            issue_id=issue_id,
+            suffix=suffix,
+            repo_short_name=repo_short_name,
+        )
     return issue_id
 
 

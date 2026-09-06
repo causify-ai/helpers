@@ -23,6 +23,10 @@ Uses invoke tasks for issue and branch creation:
 - `invoke git_branch_create --branch-name` to create the same branch, by
   name, in every submodule
 
+Pass `--suffix <suffix>` (e.g., `--suffix 1`) to name the branch
+`<Base>_<suffix>` (e.g., `AmpTask1234_..._1`), for splitting one issue into a
+stack of sequential branches/PRs.
+
 Import as:
 
 import dev_scripts_helpers.git.git_create_issue_and_branch as dsggiab
@@ -175,6 +179,7 @@ def _create_branch_and_pr(
     create_pr: bool = True,
     gh_issue_id_provided: bool = False,
     no_abort_if_not_master: bool = False,
+    suffix: str = "",
 ) -> str:
     """
     Create a git branch using invoke git_branch_create task.
@@ -186,12 +191,22 @@ def _create_branch_and_pr(
     :param no_abort_if_not_master: if True, allow branching from a non-'master'
         branch instead of aborting (the underlying invoke task switches to
         'master' first)
+    :param suffix: if specified (e.g., "1"), append `_<suffix>` to the branch
+        name derived from the issue (e.g., `AmpTask1234_..._1`)
     :return: Created branch name
     """
+    hdbg.dassert(
+        not any(suffix.startswith(char) for char in "_-."),
+        "suffix='%s' should not start with _, -, or . since it's added as "
+        "'_{suffix}'",
+        suffix,
+    )
     # Get the branch name from GitHub issue title.
     if gh_issue_id_provided:
         title, _ = hltltagh._get_gh_issue_title(issue_id, "current")
         branch_name = title
+        if suffix:
+            branch_name += "_" + suffix
         _LOG.info(
             "Issue %d corresponds to branch name '%s'", issue_id, branch_name
         )
@@ -203,6 +218,8 @@ def _create_branch_and_pr(
             return branch_name
     # Build invoke command to create new branch.
     cmd = f"invoke git_branch_create --issue-id {issue_id}"
+    if suffix:
+        cmd += f" --suffix {shlex.quote(suffix)}"
     if not create_pr:
         cmd += " --no-create-pr"
     if no_abort_if_not_master:
@@ -449,6 +466,15 @@ def _parse() -> argparse.ArgumentParser:
         default=False,
         help="Skip checking that every repo target is on 'master'",
     )
+    parser.add_argument(
+        "--suffix",
+        type=str,
+        default="",
+        help=(
+            "Suffix (e.g., '1') to append to the branch name derived from "
+            "the issue, e.g., 'AmpTask1234_..._1'"
+        ),
+    )
     hparser.add_verbosity_arg(parser)
     return parser
 
@@ -468,7 +494,8 @@ def _main_workflow(
     gh_issue_body = _get_issue_body(args.gh_issue_body, args.gh_issue_body_file)
     _LOG.debug(
         "gh_issue_id=%s gh_issue_title=%s gh_issue_body=%s gh_issue_body_file=%s "
-        "gh_assignee=%s create_worktree=%s create_pr=%s repo_targets=%s",
+        "gh_assignee=%s create_worktree=%s create_pr=%s suffix=%s "
+        "repo_targets=%s",
         args.gh_issue_id,
         args.gh_issue_title,
         gh_issue_body,
@@ -476,6 +503,7 @@ def _main_workflow(
         args.gh_assignee,
         args.create_worktree,
         args.create_pr,
+        args.suffix,
         repo_targets,
     )
     # Determine issue ID.
@@ -512,6 +540,7 @@ def _main_workflow(
         create_pr=args.create_pr,
         gh_issue_id_provided=bool(args.gh_issue_id),
         no_abort_if_not_master=args.no_abort_if_not_master,
+        suffix=args.suffix,
     )
     _LOG.info("Branch name: '%s'", branch_name)
     # Symmetrically create the same branch (by name) in every submodule.
