@@ -41,9 +41,23 @@
 - A source Markdown heading level maps to Typst as follows:
   - `#` (H1) → nothing: drop the title line entirely (keep any `// From:`/`// Slide:`
     provenance comments): `#chapter(...)` already carries the document's top-level
-    title, so repeating it in the body would just be a redundant second title. If a
-    body-level H1 ever has _different_ text from the chapter title (rare), fall back
-    to `#strong[Title]` instead of dropping it, so nothing is silently lost
+    title, so repeating it in the body would just be a redundant second title. This
+    is the case only when the lesson has a single `#` heading (the whole document is
+    one topic already named by the chapter title)
+  - If a body-level H1 ever has _different_ text from the chapter title (rare),
+    check whether any `##`/`###` heading appears under it before the next `#` (or
+    end of document):
+    - No nested `##`/`###` under it: fall back to `#strong[Title]` instead of
+      dropping it, so nothing is silently lost
+    - It owns nested `##`/`###` subsections: keep it a real `= Title` heading, never
+      `#strong`. A lesson can combine two or more distinct topics under one chapter
+      title (e.g. a chapter title of "X and Y" with a `# X` section and a `# Y`
+      section, each with its own `##` subsections); demoting these H1s to `#strong`
+      prose would flatten the tree and make every topic's identically-named `##`
+      subsections (e.g. two unrelated "Syntax" sections) indistinguishable in the
+      heading outline. The `.typ` heading tree must mirror the `.smd` outline
+      (compare `extract_toc_from_txt.py -i <SMD_FILE>` against
+      `grep "^=" <TYP_FILE>`): every `#` that has children stays a real heading
   - `##` (H2) → `== Title`
   - `###` (H3) → `=== Title`, and deeper levels continue with one more `=` each
   - A slide-level heading (a `* Heading` line in the `.smd` source) depends on

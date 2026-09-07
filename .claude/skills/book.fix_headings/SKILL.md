@@ -57,8 +57,14 @@ For each block found in Step 2, make its title line match:
 - **H1** (`#`), title equal to the chapter title already shown by `#chapter(...)`
   (the common case: one `#` per lesson, and it's the lesson title): delete the title
   line entirely, keep the `// From:`/`// Slide:` comments. If a body-level H1 has
-  _different_ text from the chapter title, use `#strong[Title]` instead of deleting
-  it
+  _different_ text from the chapter title, check whether any `##`/`###` appears
+  under it before the next `#` (or end of document): if it owns no nested
+  subsections, use `#strong[Title]` instead of deleting it; if it owns nested
+  `##`/`###` subsections (e.g. a lesson combining two topics under one chapter
+  title, each `# Topic` with its own `##` subsections), keep it a real `= Title`
+  heading instead — `#strong` would flatten the tree and make each topic's
+  identically-named subsections indistinguishable in the outline. Cross-check with
+  `extract_toc_from_txt.py -i <SMD_FILE>` vs `grep "^=" <TYP_FILE>` if unsure
 - **`##`/`###`/deeper**: `==`/`===`/... one more `=` per level. Leave alone if
   already correct
 - **`* Slide Title`**:
