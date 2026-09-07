@@ -172,6 +172,11 @@ def _get_rules_for_topic(topic: str) -> Dict[str, Dict]:
             "rules": ["tool_X_in_60_mins.rules.md"],
             "templates": [],
         },
+        "typst": {
+            "role": "role.ai_researcher.md",
+            "rules": ["typst.rules.md"],
+            "templates": ["typst.template.typ"],
+        },
     }
     hdbg.dassert_in(
         topic,
@@ -234,7 +239,9 @@ def _infer_topic_from_filename(file_path: str) -> str:
         topic = "bash"
     elif basename.endswith(".tex"):
         topic = "latex"
-    elif basename.endswith(".txt"):
+    elif basename.endswith(".typ"):
+        topic = "typst"
+    elif basename.endswith(".smd"):
         topic = "slides"
     else:
         raise ValueError(f"Invalid topic for filename '{file_path}'")
