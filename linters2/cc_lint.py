@@ -65,6 +65,9 @@ _LOG = logging.getLogger(__name__)
 
 _TODO_STR = "TODO(ai_gp)"
 
+# Extensions whose language uses `//` for line comments instead of `#`.
+_SLASH_COMMENT_EXTENSIONS = {"typ"}
+
 # File collecting the untrimmed dry-run output instead of printing it to
 # screen.
 _DRY_RUN_FILE = "tmp.cc_lint_dry_run.txt"
@@ -247,6 +250,26 @@ def _infer_topic_from_filename(file_path: str) -> str:
         raise ValueError(f"Invalid topic for filename '{file_path}'")
     _LOG.debug("file_path=%s -> return='%s'", file_path, topic)
     return topic
+
+
+def _get_comment_prefix(file_path: str) -> str:
+    """
+    Return the line-comment prefix for `file_path`'s language.
+
+    Used to format `--add_todos` TODO comments in the file's own comment
+    syntax, e.g.,
+    - `// TODO(...)` for Typst (`.typ`) files
+    - `# TODO(...)` for Python/Jupyter/Markdown.
+
+    :param file_path: path of the file whose extension determines the
+        comment style
+    :return: `"//"` for a slash-comment language (see
+        `_SLASH_COMMENT_EXTENSIONS`), else `"#"`
+    """
+    ext = os.path.splitext(file_path)[1].lstrip(".")
+    comment_prefix = "//" if ext in _SLASH_COMMENT_EXTENSIONS else "#"
+    _LOG.debug("file_path=%s -> return='%s'", file_path, comment_prefix)
+    return comment_prefix
 
 
 # #############################################################################
@@ -796,16 +819,22 @@ def _filter_resumable(
 # #############################################################################
 
 
-def _build_add_todos_instructions(rule_file: str = "") -> str:
+def _build_add_todos_instructions(
+    rule_file: str = "", *, comment_prefix: str = "#"
+) -> str:
     """
     Build the `--add_todos` instruction block.
 
-    Tells Claude Code to insert `# TODO(...): ...` comments citing the
-    violated rule's location instead of editing the file to comply with it.
+    Tells Claude Code to insert `<comment_prefix> TODO(...): ...` comments
+    citing the violated rule's location instead of editing the file to
+    comply with it.
 
     :param rule_file: path of the rule file to name explicitly; left
         generic when `""` (e.g., the one-shot topic prompt, which lists
         several candidate rule files for Claude Code to read itself)
+    :param comment_prefix: line-comment marker for the target file's
+        language (e.g., `"#"` for Python/Markdown, `"//"` for Typst), from
+        `_get_comment_prefix()`
     :return: instruction text with the TODO comment format and an example,
         e.g.,
         ```
@@ -813,18 +842,18 @@ def _build_add_todos_instructions(rule_file: str = "") -> str:
         Context Manager Syntax for Multiple Mocks)
         ```
     """
-    _LOG.debug(hprint.to_str("rule_file"))
+    _LOG.debug(hprint.to_str("rule_file comment_prefix"))
     rule_file_descr = f"`{rule_file}`" if rule_file else "the rule file"
     instructions = f"""
         - Do NOT edit the file to comply with a rule. Instead, for every
           violation, add a comment immediately above the offending line in the
           form:
           ```
-          # {_TODO_STR}: <what to do and why> (<rule_file>:<rule header line>)
+          {comment_prefix} {_TODO_STR}: <what to do and why> (<rule_file>:<rule header line>)
           ```
           E.g.:
           ```
-          # {_TODO_STR}: Do this and that (testing.rules.md:## Use Context Manager Syntax for Multiple Mocks)
+          {comment_prefix} {_TODO_STR}: Do this and that (testing.rules.md:## Use Context Manager Syntax for Multiple Mocks)
           ```
           - Look up {rule_file_descr} to find the `<rule header line>` (the
             header line text, including its leading `#`s) that the violated rule
@@ -838,7 +867,9 @@ def _build_add_todos_instructions(rule_file: str = "") -> str:
     return instructions
 
 
-def _build_prompt(topic: str, *, add_todos: bool = False) -> Tuple[str, Dict]:
+def _build_prompt(
+    topic: str, *, add_todos: bool = False, comment_prefix: str = "#"
+) -> Tuple[str, Dict]:
     """
     Build a Claude Code prompt for the given skill.
 
@@ -848,9 +879,12 @@ def _build_prompt(topic: str, *, add_todos: bool = False) -> Tuple[str, Dict]:
         # TODO(...): ...
         ```
         comments citing rule violations, instead of applying the rules
+    :param comment_prefix: line-comment marker forwarded to
+        `_build_add_todos_instructions()` when `add_todos` is `True`, from
+        `_get_comment_prefix()`
     :return: Tuple of (prompt string, topic_info dict)
     """
-    _LOG.debug(hprint.to_str("topic add_todos"))
+    _LOG.debug(hprint.to_str("topic add_todos comment_prefix"))
     topic_info = _get_rules_for_topic(topic)
     role = topic_info["role"]
     rules = topic_info["rules"]
@@ -875,7 +909,9 @@ def _build_prompt(topic: str, *, add_todos: bool = False) -> Tuple[str, Dict]:
         for template_file in templates:
             prompt_parts.append(f"  - `{template_file}`")
     if add_todos:
-        prompt_parts.append(_build_add_todos_instructions())
+        prompt_parts.append(
+            _build_add_todos_instructions(comment_prefix=comment_prefix)
+        )
     else:
         prompt_parts.append(
             "You MUST make sure not to change the behavior or the intent of the passed file"
@@ -960,7 +996,7 @@ def _run_claude_code(
 
 
 def _build_incremental_system_prompt(
-    topic_info: Dict, *, add_todos: bool = False
+    topic_info: Dict, *, add_todos: bool = False, comment_prefix: str = "#"
 ) -> str:
     """
     Build the system prompt for incremental rule application.
@@ -972,12 +1008,18 @@ def _build_incremental_system_prompt(
     :param topic_info: topic configuration dict from `_get_rules_for_topic()`
     :param add_todos: if `True`, append `# TODO(...): ...` comments instead of
         applying the rule
+    :param comment_prefix: line-comment marker forwarded to
+        `_build_add_todos_instructions()` when `add_todos` is `True`, from
+        `_get_comment_prefix()`
     :return: system prompt text combining the role, the templates to
         follow, and the "do not change behavior" instruction
     """
     # `topic_info` is a dict, so log only its keys instead of the full value.
     _LOG.debug(
-        "add_todos=%s topic_info_keys=%s", add_todos, list(topic_info.keys())
+        "add_todos=%s comment_prefix=%s topic_info_keys=%s",
+        add_todos,
+        comment_prefix,
+        list(topic_info.keys()),
     )
     system_prompt: List[str] = []
     # Role text comes first, since it sets the persona for every rule turn.
@@ -990,7 +1032,9 @@ def _build_incremental_system_prompt(
     system_prompt.append(msg)
     # Optionally add the TODO-only instructions for `--add_todos`.
     if add_todos:
-        system_prompt.append(_build_add_todos_instructions())
+        system_prompt.append(
+            _build_add_todos_instructions(comment_prefix=comment_prefix)
+        )
     # Optionally list templates the file must follow.
     templates = topic_info["templates"]
     if templates:
@@ -1280,7 +1324,9 @@ async def _process_file_incrementally(
     )
     hdbg.dassert_file_exists(file_path)
     system_prompt = _build_incremental_system_prompt(
-        topic_info, add_todos=add_todos
+        topic_info,
+        add_todos=add_todos,
+        comment_prefix=_get_comment_prefix(file_path),
     )
     _LOG.debug("\n%s\n%s", hprint.frame("System prompt:"), system_prompt)
     if skill:
@@ -1440,6 +1486,7 @@ def _build_one_shot_prompt(
         hprint.to_str("file_path args.skill args.rule args.topic args.add_todos")
     )
     add_todos = args.add_todos
+    comment_prefix = _get_comment_prefix(file_path)
     if args.skill:
         # Skill dispatch: the prompt is a single slash-command for Claude
         # Code's own skill loader, so no rule text is assembled here.
@@ -1463,7 +1510,9 @@ def _build_one_shot_prompt(
                 "\n"
                 + rule_content
                 + "\n\n"
-                + _build_add_todos_instructions(rule_file)
+                + _build_add_todos_instructions(
+                    rule_file, comment_prefix=comment_prefix
+                )
             )
         else:
             prompt = f"""
@@ -1483,7 +1532,9 @@ def _build_one_shot_prompt(
             topic = _infer_topic_from_filename(file_path)
             hdbg.dassert_is_not(topic, None, "Topic detection failed")
             topic_str = cast(str, topic)
-        prompt, topic_info = _build_prompt(topic_str, add_todos=add_todos)
+        prompt, topic_info = _build_prompt(
+            topic_str, add_todos=add_todos, comment_prefix=comment_prefix
+        )
         if add_todos:
             todo_note = f"""
                 - Check the files below against the rules and conventions above and add TODO
@@ -1645,7 +1696,9 @@ def _parse() -> argparse.ArgumentParser:
     # File selection options (--files, --from_file, --branch, --modified, etc.).
     hseinout.add_file_selection_args(parser)
     # File type filtering options (--file_types, --skip_file_types).
-    hseinout.add_file_type_filter_args(parser, file_types_default="py,ipynb,md")
+    hseinout.add_file_type_filter_args(
+        parser, file_types_default="py,ipynb,md,typ"
+    )
     action_group = parser.add_mutually_exclusive_group()
     action_group.add_argument(
         "--topic",

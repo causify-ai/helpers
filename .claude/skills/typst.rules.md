@@ -38,96 +38,83 @@
 
 ## Structural Hierarchy
 
-- A source Markdown heading level maps to Typst as follows:
-  - `#` (H1) → nothing: drop the title line entirely (keep any `// From:`/`// Slide:`
-    provenance comments): `#chapter(...)` already carries the document's top-level
-    title, so repeating it in the body would just be a redundant second title. This
-    is the case only when the lesson has a single `#` heading (the whole document is
-    one topic already named by the chapter title)
-  - If a body-level H1 ever has _different_ text from the chapter title (rare),
-    check whether any `##`/`###` heading appears under it before the next `#` (or
-    end of document):
-    - No nested `##`/`###` under it: fall back to `#strong[Title]` instead of
-      dropping it, so nothing is silently lost
-    - It owns nested `##`/`###` subsections: keep it a real `= Title` heading, never
-      `#strong`. A lesson can combine two or more distinct topics under one chapter
-      title (e.g. a chapter title of "X and Y" with a `# X` section and a `# Y`
-      section, each with its own `##` subsections); demoting these H1s to `#strong`
-      prose would flatten the tree and make every topic's identically-named `##`
-      subsections (e.g. two unrelated "Syntax" sections) indistinguishable in the
-      heading outline. The `.typ` heading tree must mirror the `.smd` outline
-      (compare `extract_toc_from_txt.py -i <SMD_FILE>` against
-      `grep "^=" <TYP_FILE>`): every `#` that has children stays a real heading
-  - `##` (H2) → `== Title`
-  - `###` (H3) → `=== Title`, and deeper levels continue with one more `=` each
-  - A slide-level heading (a `* Heading` line in the `.smd` source) depends on
-    whether a real `##`/`###` heading has appeared yet in the document:
-    - Before the first `##`/`###`: no real section exists yet to hold it, so the
-      slide _is_ the chapter's top-level section: use a real heading, `= Heading`
-    - From the first `##`/`###` onward: no heading and no `#strong[Heading]` label
-      either. Slides must read as one continuous passage under their `==`/`===`
-      section, not a sequence of titled blocks
-      - The **first** slide under a given `##`/`###` needs nothing added: the
-        heading above it already orients the reader, so its paragraph opens
-        directly with its own content (no title, no transition sentence)
-      - Every **later** slide under that same heading drops its title and instead
-        opens with a transition: reword its first sentence, or prepend one short
-        new sentence, so the paragraph visibly picks up from what the previous
-        slide/paragraph just said (a callback, a contrast, a "beyond X, ..."
-        bridge, or a forward reference already planted in the prior paragraph's
-        closing sentence). A term the slide is centrally about can still get
-        `#strong[...]` per "Highlighting and Emphasis" below, but that boldface
-        sits inside the transition sentence, not on a standalone title line
-    - This keeps a "flat" lesson (a single `#` followed only by `*` slides, no `##`
-      at all) from ending up with zero real headings in its body
-- **Bad** (repeats the chapter title as a section instead of dropping the H1):
+- A `.typ` chapter's heading tree must contain every heading and slide title from
+  its source `.smd`, in the same order and at the same relative nesting
+  - An `.smd` `#`/`##`/`###`(+) heading maps to a `.typ` `=`/`==`/`===`(+) heading,
+    one level of `=` per level of `.smd` nesting
+- The `.typ` file is allowed a *more* complex hierarchy than the `.smd`
+  - Extra `===`/deeper subsections that group several flat `.smd` slides under a
+    label the source never spelled out
+  - The `.typ` outline is always a superset of the `.smd` outline, never a subset:
+    every `.smd` heading/slide still needs a matching `.typ` heading somewhere in the
+    tree, but the `.typ` tree may add levels the `.smd` never had
+- Compare the two outlines with `extract_toc_from_txt.py` before/after any
+  structural edit rather than guessing:
 
-  ```typst
-  #chapter("Brief History of AI")
-  = Brief History of AI
+  ```bash
+  > extract_toc_from_txt.py -i msml610/lectures_source/Lesson01.2*smd
+  - What Is Intelligence? What is AI?
+  - What Is Machine Learning?
+
+  > extract_toc_from_txt.py -i msml610/book/Lesson01.2*typ
+  - Roadmap
+  - What Is Intelligence? What is AI?
+    - ML, AI, and Intelligence
+      - A Formal Definition of AI
+      - AI as Thinking Humanly
+      - AI as Thinking Rationally
+      - AI as Acting Humanly
+      - AI as Acting Rationally
+      - Acting Rationally as Ultimate Goal of AI
+  - What Is Machine Learning?
+  - Summary
+  - References
   ```
 
-- **Bad** (repeats each slide's title as a standalone `#strong[...]` label instead
-  of transitioning into it: reads as a stack of mini-slides, not a chapter):
+- The `.typ` side nests `ML, AI, and Intelligence` and its six `===` subsections
+  under a heading the flat `.smd` slide list never grouped that way, and adds
+  `Roadmap`/`Summary`/`References` (see below). Both of the `.smd`'s own headings
+  (`What Is Intelligence? What is AI?`, `What Is Machine Learning?`) still appear
+  at the matching top level
+- A heading is always real Typst heading syntax, `=`/`==`/`===`(+): never
+  `#strong[Title]` sitting alone on its own line standing in for a heading.
+  `#strong[...]` renders bold text, not a heading: it is invisible to the
+  outline, to cross-references, and to `extract_toc_from_txt.py`, so it hides the
+  document's real structure from every tool that reads it
+  - **Bad** (fake heading, doesn't show up in the outline):
 
-  ```typst
-  #chapter("Brief History of AI")
-  == Origins and Early AI (1943-1956)
-  #strong[The Turing Test]
+    ```typst
+    #strong[ML, AI, and Intelligence]
 
-  The Turing test framed the founding question: could a machine's behavior be
-  indistinguishable from a human's?
+    Machine Learning is a subset of Artificial Intelligence (AI). ...
+    ```
 
-  #strong[The Dartmouth Workshop]
+  - **Good**:
 
-  In 1956, a small group of researchers coined the term artificial intelligence
-  at the Dartmouth workshop.
-  ```
+    ```typst
+    == ML, AI, and Intelligence
 
-- **Good** (same two slides; the first opens directly, the second transitions from
-  what the first just said instead of restating its title):
+    Machine Learning is a subset of Artificial Intelligence (AI). ...
+    ```
 
-  ```typst
-  #chapter("Brief History of AI")
-  == Origins and Early AI (1943-1956)
-  The #strong[Turing test] framed the founding question well before the field had
-  a name: could a machine's behavior be indistinguishable from a human's?
+  This bans only a standalone `#strong[...]` line playing the role of a heading;
+  `#strong[...]`/`#emph[...]` remain correct for inline emphasis inside prose (see
+  "Highlighting and Emphasis" below)
 
-  That philosophical question got a research program a few years later, when a
-  small group of researchers coined the term #strong[artificial intelligence]
-  itself at the 1956 Dartmouth workshop.
-  ```
+## Mandatory Sections
 
-- **Good**, flat lesson (no `##`/`###` anywhere, so the `*` slides carry the
-  chapter's top-level structure):
-
-  ```typst
-  #chapter("A Map of Machine Learning")
-  = Four Branches of Machine Learning
-  ...
-  = Learning Paradigms
-  ...
-  ```
+- Every chapter has exactly three mandatory level-1 (`=`) sections, in this
+  order:
+  - `= Roadmap` right after `#chapter(...)`, before the first content
+  section
+  - `= Summary`
+  - `= References` at the end
+  - All three are required even when the `.smd` has no slide by that exact name:
+    normalize whatever the source calls its opening/closing slide (`Overview`,
+    `Outline`, `Agenda`, `Key Takeaways`, `Conclusion`, `Wrap-up`, ...) to `Roadmap`
+    / `Summary`, and write the section from scratch when the `.smd` has no such slide
+    at all. Keep the `// Slide: <original title>` comment above the heading either
+    way, for traceability back to the source
 
 # Text Formatting
 
