@@ -220,14 +220,25 @@
 - A figure, diagram, or image is never left floating on its own, disconnected from
   the paragraph that discusses it
 - Use `#wrap-content(...)` (from `aima_style.typ`, re-exporting the `wrap-it`
-  package) only for a single-subject image: a portrait, a photo, one icon: paired
-  with the paragraph(s) discussing it, so the text flows beside it
-- A rendered diagram: a `graphviz`/`mermaid`/`tikz`/... figure with multiple labeled
-  nodes, boxes, or arrows (a flowchart, mind map, architecture diagram, timeline,
-  etc.): must NOT be squeezed into a `#wrap-content` side column: at the 30-45% width
-  that column allows, its node labels become too small to read. Give it a bare
-  `#figure(...)` instead (no wrapping, `width: 70%` or more; see "Sizing" below),
-  even though this means it no longer sits directly beside one paragraph
+  package) for a single-subject image (a portrait, a photo, one icon) OR a simple
+  diagram with only a handful of labeled elements (roughly 2-4 nodes/points and at
+  most one or two edge labels)
+  - E.g. a two-box relationship diagram or a tradeoff curve with three labeled points
+    both stay legible at 40-50% width
+  - Pair it with the paragraph(s) discussing it, so the text flows beside it
+- A denser rendered diagram: a `graphviz`/`mermaid`/`tikz`/... figure with many
+  labeled nodes, boxes, or arrows (a flowchart with several steps, a mind map, a
+  multi-entity knowledge graph, an architecture diagram, a timeline, etc.) must
+  NOT be squeezed into a `#wrap-content` side column: at the width that column
+  allows, its node labels become too small to read
+  - Give it a bare `#figure(...)` instead (no wrapping, `width: 70%` or more; see
+    "Sizing" below), even though this means it no longer sits directly beside one
+    paragraph
+- The dividing line is legibility, not "photo vs diagram": if every label in the
+  diagram stays comfortably readable at the chosen `wrap-content` width, wrapping
+  it is fine. If any label would shrink past comfortable reading size, the diagram
+  needs a full-width bare figure instead. When in doubt, compile and look at the
+  rendered page rather than guessing from the source
 - A table is paired with its paragraph via
   `#grid(columns: (1fr, <width>), column-gutter: 1em, align: (left, top))[prose][table]`
   instead of `#wrap-content`: a table is a rectangular block, not something text
@@ -255,7 +266,7 @@
   ]
   ```
 
-- **Good** (the same diagram, full width; a single-subject photo still uses
+- **Good** (the same dense diagram, full width; a single-subject photo still uses
   `wrap-content`):
 
   ```typst
@@ -285,6 +296,31 @@
   )[
     Turing's 1950 paper #cite("turing1950computing") asked whether
     machines can think, as @fig:alanturing's subject first posed it.
+  ]
+  ```
+
+- **Good** (a simple two-node diagram, not a photo, still fits `wrap-content`: only
+  one edge and one label, so it reads fine at 50%):
+
+  ```typst
+  #wrap-content(
+    [
+      #figure(
+        image("figures/model_possible_worlds.png", width: 100%),
+        caption: [Diagram relating a model to the possible worlds it grounds.],
+        kind: "figure",
+        supplement: [Fig.],
+        placement: auto,
+      ) <fig:modelsandpossibleworlds>
+    ],
+    align: right,
+    column-gutter: 1em,
+    columns: (1fr, 50%),
+  )[
+    Each possible world (or model) assigns a truth value to every relevant
+    variable, as @fig:modelsandpossibleworlds shows. A model is the formal bridge
+    between the abstract notion of "possible world" and the concrete variable
+    assignments that ground our reasoning.
   ]
   ```
 
@@ -349,12 +385,18 @@
   on-page width depends on which construct it uses:
   - `wrap-content`'s `columns: (1fr, <width>)`, for a single-subject image: `<width>`
     must never go below **30%**, even for a narrow portrait photo
-  - A bare `#figure(...)`, for a multi-element diagram or a wide table (see "Every
-    Visual Pairs With Its Text" above): `width:` must be **70%** or more: the whole
-    reason it isn't in `wrap-content` is that its detail needs more room than that
-    column allows
+  - `wrap-content`'s `columns: (1fr, <width>)`, for a simple diagram with a handful
+    of labeled elements (per "Every Visual Pairs With Its Text" above): lean toward
+    the upper end of the range, **40-50%**, so its labels stay as readable as a
+    photo's caption would be; the 30% floor is for a plain portrait/icon with no
+    internal text of its own
+  - A bare `#figure(...)`, for a dense multi-element diagram or a wide table (see
+    "Every Visual Pairs With Its Text" above): `width:` must be **70%** or more:
+    the whole reason it isn't in `wrap-content` is that its detail needs more room
+    than that column allows
 - Pick the exact width within that floor to roughly match the figure's aspect ratio
-  (e.g. `30%` for a portrait, `80–100%` for a wide diagram or timeline)
+  (e.g. `30%` for a portrait, `40-50%` for a simple labeled diagram, `80–100%` for
+  a wide or dense diagram or timeline)
 - If no width at or above the applicable floor keeps a `wrap-content` figure's own
   content (not just its label) legible, it does not belong in `wrap-content` at all —
   give it a bare full-width figure instead
