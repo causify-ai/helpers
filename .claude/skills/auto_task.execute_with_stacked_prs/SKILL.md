@@ -8,13 +8,16 @@ model: haiku
 - Execute one GitHub issue as a stack of sequential branches and PRs, each named
   `<Base>_<id>` (`id` = 1, 2, 3, ...) and each branched from the previous one, so
   the PRs stack in review order
-- Create the whole stack without stopping for review between branches; the user
-  then reviews, edits, and merges each PR bottom-up at their own pace, after this
-  skill's job is done
+- Create the whole stack without stopping for review between branches
+  - The user then reviews, edits, and merges each PR bottom-up at their own pace,
+    after this skill's job is done
 - Follow `.claude/skills/auto_task.rules.md` for how tasks are queued, specified, and
   named before they reach this skill
 
-# When to Use This Skill
+## Input
+- The user will pass you a task in the format 
+
+## When to Use This Skill
 
 - Use it only when the tasks favor stacked execution: specs are complete, tasks form
   a real dependency chain, and the user prefers one batch review over interruptions
@@ -58,6 +61,10 @@ model: haiku
       --title "<Title>" --body "<Description of entire stack>"
       --suffix 1
   ```
+- The description of the entire task is 
+
+- Commit the file passed by the user (e.g., `tasks.md`)
+
 - Implement task 1, run the tests it touches, commit, push
 
 ## Stack Each Following Branch (`_<id>`)
