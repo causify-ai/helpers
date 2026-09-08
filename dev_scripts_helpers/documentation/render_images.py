@@ -579,43 +579,49 @@ def _remove_image_code(
 _NO_AUTO_WIDTH_IMAGE_TYPES = frozenset(["image"])
 
 
-def _typst_image_size_param(
+def _typst_image_params(
     user_img_size: str, inside_wrap_content: bool, image_code_type: str
-) -> str:
+) -> Tuple[str, str]:
     """
-    Compute the Typst `image(...)` sizing parameter for a rendered figure.
+    Compute the Typst `image(...)` width and `#figure(...)` placement
+    parameters for a rendered figure.
 
-    Per `typst.rules.md` ("Sizing: Minimum Width and Readability"), a bare
-    full-width figure needs `width: 70%` or more, while a figure nested
-    inside a `#wrap-content(...)` column should fill that column (its own
-    `columns:` argument already constrains the on-page width), so it gets
-    `width: 100%`. That floor only applies to rendered diagrams
-    (graphviz/tikz/mermaid/...): an AI-generated single-subject image (e.g.,
-    a portrait) is left without an invented width so it stays small.
-
-    :param user_img_size: user-specified size (e.g., "width=28%",
-        "height=60%", or a bare percentage like "80%", treated as `width`),
-        empty to fall back to the rules.md default for the context
+    :param user_img_size: user-specified size and/or placement, e.g.
+        "width=28%", "height=60%", a bare percentage like "80%" (treated
+        as `width`), "placement=top", or a comma-separated combination
+        like "width=50%,placement=top"; empty to fall back to the
+        rules.md default for the context
     :param inside_wrap_content: whether the figure sits inside a
         `#wrap-content(...)` call
     :param image_code_type: the source block type (e.g., "graphviz", "tikz",
         "image"); see `_NO_AUTO_WIDTH_IMAGE_TYPES`
-    :return: a `key: value` Typst parameter (no trailing comma), e.g.
-        `"width: 70%"`, or "" to add no size parameter at all
+    :return: `(width_param, placement_param)`, e.g. `("width: 70%",
+        "placement: auto")`; `width_param` is "" to add no width
+        parameter at all
     """
-    if user_img_size:
-        if "=" in user_img_size:
-            key, value = user_img_size.split("=", 1)
+    width_param = ""
+    placement_value = "auto"
+    for part in user_img_size.split(","):
+        part = part.strip()
+        if not part:
+            continue
+        if "=" in part:
+            key, value = part.split("=", 1)
             key, value = key.strip(), value.strip()
         else:
-            key, value = "width", user_img_size.strip()
-    elif image_code_type in _NO_AUTO_WIDTH_IMAGE_TYPES:
-        return ""
-    elif inside_wrap_content:
-        key, value = "width", "100%"
-    else:
-        key, value = "width", "70%"
-    return f"{key}: {value}"
+            key, value = "width", part
+        if key == "placement":
+            placement_value = value
+        else:
+            width_param = f"{key}: {value}"
+    if not width_param:
+        if image_code_type in _NO_AUTO_WIDTH_IMAGE_TYPES:
+            width_param = ""
+        elif inside_wrap_content:
+            width_param = "width: 100%"
+        else:
+            width_param = "width: 70%"
+    return width_param, f"placement: {placement_value}"
 
 
 def _insert_image_code(
@@ -642,7 +648,7 @@ def _insert_image_code(
         inside a `#wrap-content(...)` call, which changes the default image
         width (see `typst.rules.md`)
     :param image_code_type: (Typst only) the source block type (e.g.,
-        "graphviz", "image"); see `_typst_image_size_param()`
+        "graphviz", "image"); see `_typst_image_params()`
     :return: formatted image code as a string
     """
     out_lines: List[str] = []
@@ -683,14 +689,14 @@ def _insert_image_code(
             if rel_img_path.startswith("/")
             else rel_img_path
         )
-        size_param = _typst_image_size_param(
+        width_param, placement_param = _typst_image_params(
             user_img_size, inside_wrap_content, image_code_type
         )
         out_lines.append("#figure(")
-        if size_param:
+        if width_param:
             out_lines.append("  image(")
             out_lines.append(f'    "{typst_img_path}",')
-            out_lines.append(f"    {size_param},")
+            out_lines.append(f"    {width_param},")
             out_lines.append("  ),")
         else:
             out_lines.append(f'  image("{typst_img_path}"),')
@@ -705,7 +711,7 @@ def _insert_image_code(
         # Elements").
         out_lines.append('  kind: "figure",')
         out_lines.append("  supplement: [Fig.],")
-        out_lines.append("  placement: auto,")
+        out_lines.append(f"  {placement_param},")
         closing_paren = ")"
         if label:
             closing_paren = f") <{label}>"
