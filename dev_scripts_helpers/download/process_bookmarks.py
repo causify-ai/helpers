@@ -391,11 +391,12 @@ def _process_row(
     no_incremental: bool,
     no_save_to_google_drive: bool,
     dry_run: bool,
-) -> Tuple[bool, Optional[Dict[str, Any]]]:
+) -> Tuple[str, Optional[Dict[str, Any]]]:
     """
     Download, summarize, and save the merged summary for a single row.
 
-    :param row: CSV row dict; mutated in place (`Done` is set on success)
+    :param row: CSV row dict; mutated in place (`Done` is set to `"yes"` on
+        success, or to `"skipped"` for a row that can never be processed)
     :param script: path to `download_hn_article_to_md.py`
     :param output_dir: local dir for the raw per-item files and the merged
         summary
@@ -406,9 +407,13 @@ def _process_row(
         `output_dir` only, without copying it to `gdrive_dir`
     :param dry_run: if True, log what would be done without doing it
     :return: a tuple
-        - True if the row was successfully processed (and `Done` set)
+        - status: `"processed"` (`Done` set to `"yes"`), `"skipped"` (`Done`
+          set to `"skipped"`; `Hn_url` isn't a real HN item URL, so the row
+          can never be processed by this script), `"dry_run"` (`--dry_run`,
+          row otherwise valid), or `"failed"` (download/summarize error;
+          `Done` left unset so the row is retried next run)
         - the full contents of the saved `*.stats.json` file (read back from
-          disk), or None if the row wasn't processed)
+          disk), or None unless status is `"processed"`
     """
     _LOG.debug(
         hprint.to_str(
@@ -418,8 +423,19 @@ def _process_row(
     )
     hn_url = (row.get("Hn_url") or "").strip()
     if not hn_url or not dshdbout.is_hackernews_url(hn_url):
-        _LOG.warning("Skipping row with invalid Hn_url: '%s'", hn_url)
-        return False, None
+        _LOG.warning(
+            "Skipping row with invalid Hn_url (not a Hacker News item "
+            "URL): '%s'",
+            hn_url,
+        )
+        if not dry_run:
+            # Permanently skip: this row can never be processed by this
+            # script (e.g., a plain article link Raindrop.io put in the
+            # Hn_url column), so stop it from occupying --limit slots on
+            # every future run. Handling plain-article bookmarks is
+            # explicitly out of scope.
+            row["Done"] = "skipped"
+        return "skipped", None
     item_id = dshdbout.extract_item_id(hn_url)
     title = (row.get("Title") or "").strip()
     if dry_run:
@@ -445,7 +461,7 @@ def _process_row(
                 "[DRY RUN] Would save merged summary to '%s' and set Done",
                 gdrive_dir,
             )
-        return False, None
+        return "dry_run", None
     _LOG.info(
         "Processing item %s: '%s', '%s'",
         item_id,
@@ -476,7 +492,7 @@ def _process_row(
         _LOG.warning(
             "No HN comments summary generated for item %s, skipping", item_id
         )
-        return False, None
+        return "failed", None
     hn_summary_file = hn_matches[-1]
     article_matches = sorted(
         glob.glob(
@@ -520,7 +536,7 @@ def _process_row(
         shutil.copy2(local_merged_file, gdrive_file)
         _LOG.info("Saved merged summary to '%s'", gdrive_file)
     row["Done"] = "yes"
-    return True, row_stats
+    return "processed", row_stats
 
 
 # #############################################################################
@@ -613,10 +629,11 @@ def _main(parser: argparse.ArgumentParser) -> None:
         if not args.no_save_to_google_drive:
             hio.create_dir(args.gdrive_dir, incremental=True)
     num_processed = 0
+    num_skipped = 0
     total_cost_in_dollars = 0.0
     progress_bar = tqdm(selected_rows, desc="Processing bookmarks")
     for row in progress_bar:
-        was_processed, row_stats = _process_row(
+        status, row_stats = _process_row(
             row,
             script=script,
             output_dir=args.output_dir,
@@ -625,17 +642,27 @@ def _main(parser: argparse.ArgumentParser) -> None:
             no_save_to_google_drive=args.no_save_to_google_drive,
             dry_run=args.dry_run,
         )
-        if was_processed and row_stats is not None:
+        if status == "processed":
             num_processed += 1
-            # `row_stats` is the full stats.json content; pull out the cost.
-            total_cost_in_dollars += row_stats.get("total_cost_in_dollars", 0.0)
-            progress_bar.set_postfix_str(f"Cost: ${total_cost_in_dollars:.4f}")
-            # Persist after each row so an interrupted run can resume.
+            if row_stats is not None:
+                # `row_stats` is the stats.json content; pull out the cost.
+                total_cost_in_dollars += row_stats.get(
+                    "total_cost_in_dollars", 0.0
+                )
+                progress_bar.set_postfix_str(
+                    f"Cost: ${total_cost_in_dollars:.4f}"
+                )
+        elif status == "skipped":
+            num_skipped += 1
+        if status in ("processed", "skipped") and not args.dry_run:
+            # Persist after each row (processed or newly skipped) so an
+            # interrupted run can resume without redoing work.
             dshdbout.write_csv(args.input, rows, fieldnames=columns)
     _LOG.info(
-        "Processed %d/%d selected row(s) (limit=%d)",
+        "Processed %d/%d selected row(s), skipped %d (limit=%d)",
         num_processed,
         len(selected_rows),
+        num_skipped,
         args.limit,
     )
     _LOG.info(

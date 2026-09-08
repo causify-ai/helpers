@@ -124,7 +124,7 @@
       trip); 82/82 tests pass in the dir, pyflakes clean
   - Not done: none (full PR2 scope covered)
 
-- [ ] PR3: Skip non-HN rows in `process_bookmarks.py`
+- [x] PR3: Skip non-HN rows in `process_bookmarks.py`
   - A row whose `Hn_url` is not a real HN item URL
     (`news.ycombinator.com/item?id=...`, e.g. a plain article link
     `Raindrop.io` put in that column) can never be processed by this script.
@@ -133,6 +133,35 @@
     bookmarks is explicitly out of scope (396 of the current 1734 unprocessed
     rows are like this)
   - Add unit tests for the skip case
+
+  ## Result
+  - Done:
+    - The invalid-`Hn_url` check already existed in `_process_row()` but
+      only logged a warning and returned without marking the row, so it
+      re-occupied a `--limit` slot every run; fixed to set
+      `row["Done"] = "skipped"` (outside `--dry_run`)
+    - `_process_row()`'s return type changed from `Tuple[bool, ...]` to a
+      status string (`"processed"`/`"skipped"`/`"dry_run"`/`"failed"`),
+      needed to decouple "persist the CSV" from "count as processed" in
+      `_main()`'s loop -- a skipped row must persist immediately even when
+      it's the only row selected this run
+    - `--dry_run` invariant preserved: the skip is detected and reported in
+      dry-run mode too (useful for PR4's future dry-run reporting) but
+      `Done` is left unmutated and the CSV is never written
+    - `_main()`'s final log line now reports `skipped` count alongside
+      `processed`
+    - New `test_process_bookmarks.py` (this script had no test file yet):
+      4 unit tests on `_process_row()` (non-HN URL, empty URL, valid URL
+      not skipped, dry_run doesn't mutate) + 2 end-to-end tests (skip
+      persists to disk after one run; a previously-skipped row is not
+      re-selected on a later run)
+    - Verified via real CLI run (not just pytest): `--dry_run` leaves the
+      CSV untouched; a real run with `--limit 1` marks only the skip
+      candidate `Done=skipped` and leaves the real HN row (not yet reached)
+      untouched
+    - 88/88 tests pass in the dir, pyflakes clean
+  - Not done: handling plain-article bookmarks (explicitly out of scope
+    per the task)
 
 - [ ] PR4: Modularize `process_bookmarks.py`'s destination
   - Replace `--gdrive_dir` / `--no_save_to_google_drive` with:
