@@ -439,7 +439,7 @@
 
 ### CSV-Based Bookmark Processing Workflow
 // TODO(ai_gp): Too detailed. It should go in the README of the file or as a //
-comment in the file
+// comment in the file
 
 - **Purpose**: process bookmarks tracked in a local CSV (e.g., the
   `combined_data.csv` produced by `update_gsheet_links_from_raindrop.py`'s
@@ -494,3 +494,93 @@ comment in the file
     writing anything
   - Use `--no_incremental` to force re-download and re-summarize rows already marked
     `Done`
+
+### Modular Raindrop Sync and Multi-Destination Bookmark Workflow (planned, not yet implemented)
+- See `tasks.md` in the repo root (PR1-PR7) for the full breakdown; this section
+  documents the target end state so it can be reviewed before implementation
+- `update_gsheet_links_from_raindrop.py` is renamed to
+  `update_bookmarks_from_raindrop.py` as part of this work: once it can sync
+  into a local CSV too, "gsheet_links" in the name is no longer accurate. The
+  data file
+  `/Users/saggese/src/notes1/bookmarks/update_gsheet_links_from_raindrop.combined_data.csv`
+  keeps its existing name (it's user data, not code) even though it shares a
+  name fragment with the old script name
+- Design goal: the same 2 scripts (`update_bookmarks_from_raindrop.py`,
+  `process_bookmarks.py`) gain a second, independently-selectable mode each,
+  instead of new scripts being added:
+  - `update_bookmarks_from_raindrop.py`: a `--target` selects whether new
+    `Raindrop.io` bookmarks are synced into a live **Google Sheet** (existing
+    behavior) or directly into a **local CSV** file (new)
+  - `process_bookmarks.py`: a `--dest_type` selects whether merged summaries
+    are copied to **Google Drive** (existing default) or to the **Obsidian**
+    vault (new); either can be run at any time, independently of the other
+  - Both scripts share their core logic (Raindrop fetching/field-mapping;
+    download+summarize+merge) across modes/destinations; only the small
+    input/output-path logic differs per mode
+
+- **`update_bookmarks_from_raindrop.py --target {gsheet,local_csv}`**
+  (default: `gsheet`, unchanged from today):
+  - `--target gsheet` (existing): 4 actions unchanged
+    (`download_gsheet_links`, `download_raindrop_data`, `combine_data`,
+    `upload_gsheet_links`); latest-timestamp cutoff comes from a Google Sheet
+    download, `combine_data` writes a new tmp combined CSV for the upload step
+    ```bash
+    > update_bookmarks_from_raindrop.py \
+        --target gsheet --url "$LINKS_GSHEET" --all_actions
+    ```
+  - `--target local_csv` (new): only `download_raindrop_data` and
+    `combine_data` apply (no gsheet download/upload); requires
+    `--local_csv <path>`; latest-timestamp cutoff is read directly from that
+    file, and `combine_data` prepends newly-fetched Raindrop rows into that
+    same file in place, leaving every existing row (`Done` included) untouched
+    ```bash
+    > update_bookmarks_from_raindrop.py \
+        --target local_csv \
+        --local_csv /Users/saggese/src/notes1/bookmarks/update_gsheet_links_from_raindrop.combined_data.csv \
+        --action download_raindrop_data --action combine_data
+    ```
+
+- **`process_bookmarks.py --dest_type {gdrive,obsidian,none}`**
+  (default: `gdrive`, unchanged from today) with optional `--dest_dir <path>`
+  to override the built-in path for the selected type:
+  - Row processing (unchanged, `--limit`-bounded): a row with `Done` empty is
+    downloaded, summarized, merged into `<base>.summary.md` under
+    `--output_dir`, and marked `Done=yes` -- this step is destination-agnostic
+  - A row whose `Hn_url` isn't a real HN item URL (a plain article link
+    `Raindrop.io` put in that column) is marked `Done=skipped` immediately, no
+    download, so it stops occupying `--limit` slots (396 of the current 1734
+    unprocessed rows are like this; handling plain-article bookmarks is out of
+    scope)
+  - Destination reconciliation (new, runs every invocation over **all**
+    `Done=yes` rows, not `--limit`-bounded): for the selected `--dest_type`/
+    `--dest_dir`, any `Done=yes` row whose `<base>.summary.md` is missing from
+    that destination gets copied there from the local `--output_dir` cache --
+    no re-download, no re-summarize, no LLM cost. This is what makes the two
+    destinations independent: running once with `--dest_type gdrive` and later
+    with `--dest_type obsidian` backfills Obsidian for free from files already
+    processed
+    ```bash
+    # Process the next 10 unprocessed rows and copy them to Google Drive
+    > process_bookmarks.py -i CSV --dest_type gdrive --limit 10
+
+    # Process the next 10 unprocessed rows and copy them to Obsidian instead
+    > process_bookmarks.py -i CSV --dest_type obsidian --limit 10
+
+    # Reconcile Obsidian only (no new downloads) for rows already Done
+    > process_bookmarks.py -i CSV --dest_type obsidian --limit 0
+    ```
+  - `--dry_run` reports, without downloading, writing, or mutating the CSV:
+    rows to be newly processed this run, rows to be marked `skipped`, and rows
+    to be copied/repaired into the selected destination
+  - Each new `<base>.summary.md`'s `# Info` section includes an empty `Score: `
+    line, for you to fill in by hand while reading (matches the manual rating
+    convention already used in the Obsidian vault, e.g. `Score: 2/5`); it is
+    never LLM-computed
+  - Article summaries: 12-15 bullet points (up from 7-10); HN comments
+    summaries: 10-15 comments (up from 5-10)
+
+- **Notes**:
+  - Same incremental/resume behavior as the CSV-Based Bookmark Processing
+    Workflow above: rerun any time, only the outstanding batch is processed
+  - `--dest_type gdrive` and `--dest_type obsidian` can both be run against the
+    same CSV over time; neither is a replacement for the other
