@@ -441,7 +441,7 @@ def _download_article_url(
 
 _HN_COMMENTS_PROMPT = hprint.dedent("""
     - Analyze the Hacker News comment section.
-    - From all comments, summarize the 5-10 most interesting comments based on:
+    - From all comments, summarize the 10-15 most interesting comments based on:
       1. Thought-provoking or insightful content
       2. Unique perspective or uncommon knowledge
       3. Sparks discussion or debate

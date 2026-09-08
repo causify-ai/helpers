@@ -9,7 +9,7 @@
 r"""
 Sync new Raindrop.io bookmarks into a Google Sheet or a local CSV.
 
-- `--target` selects the sync destination (default: `gsheet`):
+- `--target` selects the sync destination (required, no default):
     - `gsheet`: the original four-action pipeline, unchanged
       - Download_gsheet_links: Download data from Google Sheets to CSV
       - Download_raindrop_data: Fetch links from Raindrop.io after the latest
@@ -26,24 +26,24 @@ Sync new Raindrop.io bookmarks into a Google Sheet or a local CSV.
 
 - Download data from Google Sheets (only that action):
 > update_bookmarks_from_raindrop.py \
-    --url "https://docs.google.com/spreadsheets/d/1i6Z7v2..." \
+    --target gsheet --url "https://docs.google.com/spreadsheets/d/1i6Z7v2..." \
     --clear_actions --action download_gsheet_links
 
 - Run all gsheet actions:
 > update_bookmarks_from_raindrop.py \
-    --url "https://docs.google.com/spreadsheets/d/1i6Z7v2..." \
+    --target gsheet --url "https://docs.google.com/spreadsheets/d/1i6Z7v2..." \
     --all_actions
 
 - Skip the upload action:
 > update_bookmarks_from_raindrop.py \
-    --url "https://docs.google.com/spreadsheets/d/1i6Z7v2..." \
+    --target gsheet --url "https://docs.google.com/spreadsheets/d/1i6Z7v2..." \
     --skip_action upload_gsheet_links
 
 Each action (other than `upload_gsheet_links`, which has no local output
 file) is skipped automatically if its output file already exists. Pass
 `--no_incremental` to force every selected action to re-run:
 > update_bookmarks_from_raindrop.py \
-    --url "https://docs.google.com/spreadsheets/d/1i6Z7v2..." \
+    --target gsheet --url "https://docs.google.com/spreadsheets/d/1i6Z7v2..." \
     --all_actions --no_incremental
 
 - Sync new bookmarks directly into a local CSV instead of a Google Sheet:
@@ -444,11 +444,10 @@ def _parse() -> argparse.ArgumentParser:
         "--target",
         action="store",
         choices=["gsheet", "local_csv"],
-        default="gsheet",
-        help="Sync destination: 'gsheet' (default, unchanged behavior) "
-        "syncs into a live Google Sheet via --url; 'local_csv' syncs "
-        "directly into the file passed via --local_csv, merging new rows "
-        "in place",
+        required=True,
+        help="Sync destination: 'gsheet' syncs into a live Google Sheet "
+        "via --url; 'local_csv' syncs directly into the file passed via "
+        "--local_csv, merging new rows in place",
     )
     parser.add_argument(
         "--local_csv",

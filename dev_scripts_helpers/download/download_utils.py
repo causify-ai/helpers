@@ -93,13 +93,13 @@ def sanitize_title_for_filename(title: str) -> str:
 # it as their own `--model` CLI default.
 SUMMARY_MODEL = "openrouter/anthropic/claude-haiku-4.5"
 
-# Shared prompt for summarizing article content into 5 bullet points; reused
-# by `download_hn_article_to_md.py`, `download_html_to_md.py`, and
+# Shared prompt for summarizing article content into 12-15 bullet points;
+# reused by `download_hn_article_to_md.py`, `download_html_to_md.py`, and
 # `download_academic_paper_to_md.py` to avoid repeating the same prompt text.
 ARTICLE_SUMMARY_PROMPT = hprint.dedent(
     """
-    - Summarize the main article in 7-10 bullet points and fewer than about 250
-      words
+    - Summarize the main article in 12-15 bullet points and fewer than about
+      400 words
     - Format the result as plain text without markdown following the
       conventions in:
       - @.claude/skills/markdown.rules.md

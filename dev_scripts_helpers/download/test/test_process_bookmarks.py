@@ -365,6 +365,73 @@ class Test_process_bookmarks_py(hunitest.TestCase):
 
 
 # #############################################################################
+# Test__build_info_section
+# #############################################################################
+
+
+class Test__build_info_section(hunitest.TestCase):
+    """
+    Test `process_bookmarks._build_info_section()`.
+    """
+
+    def test1(self) -> None:
+        """
+        Test the `# Info` section includes an empty `Score: ` placeholder
+        line right after `Article_cluster`.
+        """
+        # Prepare inputs.
+        row = {
+            "Title": "Some title",
+            "Timestamp": "2024-01-01 00:00:00",
+            "Article_tag": "AI",
+            "Article_cluster": "Tech",
+        }
+        article_url = "https://example.com/article"
+        hn_url = "https://news.ycombinator.com/item?id=123"
+        # Prepare outputs.
+        expected = "\n".join(
+            [
+                "# Info",
+                "Title: Some title",
+                "Article: https://example.com/article",
+                "HN: https://news.ycombinator.com/item?id=123",
+                "Timestamp: 2024-01-01 00:00:00",
+                "Article_tag: AI",
+                "Article_cluster: Tech",
+                "Score: ",
+            ]
+        )
+        # Run test.
+        actual = dshdprbo._build_info_section(row, article_url, hn_url)
+        # Check outputs.
+        self.assert_equal(actual, expected)
+
+    def test2(self) -> None:
+        """
+        Test the `Score: ` placeholder still appears (empty, not
+        auto-populated) when `Timestamp`/`Article_tag`/`Article_cluster`
+        are all missing.
+        """
+        # Prepare inputs.
+        row = {"Title": "Some title"}
+        article_url = ""
+        hn_url = "https://news.ycombinator.com/item?id=123"
+        # Prepare outputs.
+        expected = "\n".join(
+            [
+                "# Info",
+                "Title: Some title",
+                "HN: https://news.ycombinator.com/item?id=123",
+                "Score: ",
+            ]
+        )
+        # Run test.
+        actual = dshdprbo._build_info_section(row, article_url, hn_url)
+        # Check outputs.
+        self.assert_equal(actual, expected)
+
+
+# #############################################################################
 # Test__process_row
 # #############################################################################
 

@@ -211,6 +211,9 @@ def _build_info_section(
         value = (row.get(key) or "").strip()
         if value:
             lines.append(f"{label}: {value}")
+    # Manual placeholder for the user to fill in by hand while reading in
+    # Obsidian (e.g., "Score: 2/5"); never LLM-computed or auto-populated.
+    lines.append("Score: ")
     return "\n".join(lines)
 
 
