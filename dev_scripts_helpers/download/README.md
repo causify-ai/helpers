@@ -22,7 +22,7 @@
 | `process_bookmarks.py`                 | Download, summarize, and archive to Google Drive HN bookmarks from a CSV     | Bookmark Pipeline   |
 | `process_gsheet_links.py`              | Pipeline to extract HN article URLs and classify articles by topic/cluster   | Gsheet Pipelines    |
 | `process_one_off_gsheet_links.py`      | One-off pipeline to rename topic tags in the Gsheet (data migration)         | Gsheet Pipelines    |
-| `update_gsheet_links_from_raindrop.py` | Sync new bookmarks from `Raindrop.io` into the Gsheet                        | Gsheet Pipelines    |
+| `update_bookmarks_from_raindrop.py`    | Sync new bookmarks from `Raindrop.io` into the Gsheet                        | Gsheet Pipelines    |
 
 ## Link Gsheet Schema
 - E.g.,
@@ -229,7 +229,7 @@
   > ./podcast_dl_example.sh
   ```
 
-### `update_gsheet_links_from_raindrop.py`
+### `update_bookmarks_from_raindrop.py`
 
 #### What It Does
 - Synchronizes bookmarks from `Raindrop.io` with a Google Sheets document
@@ -246,14 +246,14 @@
 #### Examples
 - Sync all new bookmarks from `Raindrop.io` to Google Sheets:
   ```bash
-  > update_gsheet_links_from_raindrop.py \
+  > update_bookmarks_from_raindrop.py \
       --url "$LINKS_GSHEET" \
       --all_actions
   ```
 
 - Just download from Google Sheets:
   ```bash
-  > update_gsheet_links_from_raindrop.py \
+  > update_bookmarks_from_raindrop.py \
       --url "$LINKS_GSHEET" \
       --clear_actions \
       --action download_gsheet_links
@@ -261,7 +261,7 @@
 
 - Just fetch from `Raindrop.io` (requires `RAINDROP_API_TOKEN`):
   ```bash
-  > update_gsheet_links_from_raindrop.py \
+  > update_bookmarks_from_raindrop.py \
       --url "$LINKS_GSHEET" \
       --clear_actions \
       --action download_raindrop_data
@@ -269,7 +269,7 @@
 
 - Combine data without uploading:
   ```bash
-  > update_gsheet_links_from_raindrop.py \
+  > update_bookmarks_from_raindrop.py \
       --url "$LINKS_GSHEET" \
       --clear_actions \
       --action download_gsheet_links \

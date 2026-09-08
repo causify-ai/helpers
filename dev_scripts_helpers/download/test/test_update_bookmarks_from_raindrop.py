@@ -7,7 +7,7 @@ from typing import Callable, Optional
 
 import helpers.hunit_test as hunitest
 import dev_scripts_helpers.download.bookmark_utils as dshdbou
-import dev_scripts_helpers.download.update_gsheet_links_from_raindrop as dsglfr
+import dev_scripts_helpers.download.update_bookmarks_from_raindrop as dsbfr
 
 _LOG = logging.getLogger(__name__)
 
@@ -19,7 +19,7 @@ _LOG = logging.getLogger(__name__)
 
 class Test__combine_raindrop_with_gsheet_links(hunitest.TestCase):
     """
-    Test `update_gsheet_links_from_raindrop._combine_raindrop_with_gsheet_links()`.
+    Test `update_bookmarks_from_raindrop._combine_raindrop_with_gsheet_links()`.
     """
 
     def helper(
@@ -31,7 +31,7 @@ class Test__combine_raindrop_with_gsheet_links(hunitest.TestCase):
         rows.
 
         Changes the current directory to the test's scratch space so that
-        the fixed relative `./tmp.update_gsheet_links_from_raindrop.*`
+        the fixed relative `./tmp.update_bookmarks_from_raindrop.*`
         paths produced by `dshdbou.get_tmp_file_path()` land in the
         scratch space instead of the current working directory. This
         redirects I/O without mocking the internal helper.
@@ -47,20 +47,20 @@ class Test__combine_raindrop_with_gsheet_links(hunitest.TestCase):
         os.chdir(scratch_dir)
         try:
             gsheet_csv = dshdbou.get_tmp_file_path(
-                dsglfr.GSHEET_CSV_FILE, "update_gsheet_links_from_raindrop"
+                dsbfr.GSHEET_CSV_FILE, "update_bookmarks_from_raindrop"
             )
             dshdbou.write_csv(
                 gsheet_csv, gsheet_rows, fieldnames=gsheet_columns
             )
             raindrop_csv = dshdbou.get_tmp_file_path(
-                dsglfr.RAINDROP_CSV_FILE, "update_gsheet_links_from_raindrop"
+                dsbfr.RAINDROP_CSV_FILE, "update_bookmarks_from_raindrop"
             )
             dshdbou.write_csv(
                 raindrop_csv,
                 raindrop_rows,
                 fieldnames=["id", "title", "url", "created"],
             )
-            combined_csv = dsglfr._combine_raindrop_with_gsheet_links()
+            combined_csv = dsbfr._combine_raindrop_with_gsheet_links()
             actual_rows = dshdbou.read_csv(combined_csv)
         finally:
             os.chdir(cwd)
@@ -196,7 +196,7 @@ class Test__combine_raindrop_with_gsheet_links(hunitest.TestCase):
 
 class Test__download_raindrop_data(hunitest.TestCase):
     """
-    Test `update_gsheet_links_from_raindrop._download_raindrop_data()`.
+    Test `update_bookmarks_from_raindrop._download_raindrop_data()`.
     """
 
     def helper(
@@ -211,7 +211,7 @@ class Test__download_raindrop_data(hunitest.TestCase):
         and return the rows written to the Raindrop CSV.
 
         Changes the current directory to the test's scratch space so that
-        the fixed relative `./tmp.update_gsheet_links_from_raindrop.*`
+        the fixed relative `./tmp.update_bookmarks_from_raindrop.*`
         paths produced by `dshdbou.get_tmp_file_path()` land in the
         scratch space instead of the current working directory. This
         redirects I/O without mocking the internal helper; only the
@@ -231,7 +231,7 @@ class Test__download_raindrop_data(hunitest.TestCase):
         os.chdir(scratch_dir)
         try:
             gsheet_csv = dshdbou.get_tmp_file_path(
-                dsglfr.GSHEET_CSV_FILE, "update_gsheet_links_from_raindrop"
+                dsbfr.GSHEET_CSV_FILE, "update_bookmarks_from_raindrop"
             )
             dshdbou.write_csv(
                 gsheet_csv,
@@ -243,13 +243,13 @@ class Test__download_raindrop_data(hunitest.TestCase):
                     os.environ, {"RAINDROP_API_TOKEN": "fake_token"}
                 ),
                 umock.patch.object(
-                    dsglfr.requests,
+                    dsbfr.requests,
                     "get",
                     return_value=get_return_value,
                     side_effect=get_side_effect,
                 ),
             ):
-                raindrop_csv = dsglfr._download_raindrop_data()
+                raindrop_csv = dsbfr._download_raindrop_data()
             actual_rows = dshdbou.read_csv(raindrop_csv)
         finally:
             os.chdir(cwd)
@@ -372,7 +372,7 @@ class Test__download_raindrop_data(hunitest.TestCase):
 
 class Test__get_action_output_file(hunitest.TestCase):
     """
-    Test `update_gsheet_links_from_raindrop._get_action_output_file()`.
+    Test `update_bookmarks_from_raindrop._get_action_output_file()`.
     """
 
     def helper(self, action: str, expected: str) -> None:
@@ -384,7 +384,7 @@ class Test__get_action_output_file(hunitest.TestCase):
             action has no local output file
         """
         # Run test.
-        actual = dsglfr._get_action_output_file(action)
+        actual = dsbfr._get_action_output_file(action)
         # Check outputs.
         self.assert_equal(str(actual), expected)
 
@@ -396,7 +396,7 @@ class Test__get_action_output_file(hunitest.TestCase):
         action = "download_gsheet_links"
         # Prepare outputs.
         expected = dshdbou.get_tmp_file_path(
-            dsglfr.GSHEET_CSV_FILE, "update_gsheet_links_from_raindrop"
+            dsbfr.GSHEET_CSV_FILE, "update_bookmarks_from_raindrop"
         )
         # Run test.
         self.helper(action, expected)
@@ -409,7 +409,7 @@ class Test__get_action_output_file(hunitest.TestCase):
         action = "combine_data"
         # Prepare outputs.
         expected = dshdbou.get_tmp_file_path(
-            dsglfr.COMBINED_CSV_FILE, "update_gsheet_links_from_raindrop"
+            dsbfr.COMBINED_CSV_FILE, "update_bookmarks_from_raindrop"
         )
         # Run test.
         self.helper(action, expected)
@@ -445,7 +445,7 @@ class Test__get_action_output_file(hunitest.TestCase):
 
 class Test__get_latest_timestamp_from_file(hunitest.TestCase):
     """
-    Test `update_gsheet_links_from_raindrop._get_latest_timestamp_from_file()`.
+    Test `update_bookmarks_from_raindrop._get_latest_timestamp_from_file()`.
     """
 
     def helper(self, rows: list, expected: str) -> None:
@@ -462,7 +462,7 @@ class Test__get_latest_timestamp_from_file(hunitest.TestCase):
         gsheet_csv = os.path.join(scratch_dir, "gsheet.csv")
         dshdbou.write_csv(gsheet_csv, rows, fieldnames=list(rows[0].keys()))
         # Run test.
-        actual = dsglfr._get_latest_timestamp_from_file(gsheet_csv)
+        actual = dsbfr._get_latest_timestamp_from_file(gsheet_csv)
         # Check outputs.
         self.assert_equal(str(actual), expected)
 
@@ -503,7 +503,7 @@ class Test__get_latest_timestamp_from_file(hunitest.TestCase):
 
 class Test__parse_timestamp(hunitest.TestCase):
     """
-    Test `update_gsheet_links_from_raindrop._parse_timestamp()`.
+    Test `update_bookmarks_from_raindrop._parse_timestamp()`.
     """
 
     def helper(self, ts_str: str, expected: str) -> None:
@@ -514,7 +514,7 @@ class Test__parse_timestamp(hunitest.TestCase):
         :param expected: expected parsed value, as `"YYYY-MM-DD HH:MM:SS"`
         """
         # Run test.
-        actual = dsglfr._parse_timestamp(ts_str)
+        actual = dsbfr._parse_timestamp(ts_str)
         # Check outputs.
         self.assert_equal(str(actual), expected)
 
@@ -561,4 +561,4 @@ class Test__parse_timestamp(hunitest.TestCase):
         ts_str = "not-a-timestamp"
         # Run test and check output.
         with self.assertRaises(ValueError):
-            dsglfr._parse_timestamp(ts_str)
+            dsbfr._parse_timestamp(ts_str)

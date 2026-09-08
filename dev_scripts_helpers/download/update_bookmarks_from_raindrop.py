@@ -19,30 +19,30 @@ This script manages four actions:
 # Usage Example
 
 - Download data from Google Sheets (only that action):
-> update_gsheet_links_from_raindrop.py \
+> update_bookmarks_from_raindrop.py \
     --url "https://docs.google.com/spreadsheets/d/1i6Z7v2..." \
     --clear_actions --action download_gsheet_links
 
 - Run all actions:
-> update_gsheet_links_from_raindrop.py \
+> update_bookmarks_from_raindrop.py \
     --url "https://docs.google.com/spreadsheets/d/1i6Z7v2..." \
     --all_actions
 
 - Skip the upload action:
-> update_gsheet_links_from_raindrop.py \
+> update_bookmarks_from_raindrop.py \
     --url "https://docs.google.com/spreadsheets/d/1i6Z7v2..." \
     --skip_action upload_gsheet_links
 
 Each action (other than `upload_gsheet_links`, which has no local output
 file) is skipped automatically if its output file already exists. Pass
 `--no_incremental` to force every selected action to re-run:
-> update_gsheet_links_from_raindrop.py \
+> update_bookmarks_from_raindrop.py \
     --url "https://docs.google.com/spreadsheets/d/1i6Z7v2..." \
     --all_actions --no_incremental
 
 Import as:
 
-import dev_scripts_helpers.download.update_gsheet_links_from_raindrop as dsglfr
+import dev_scripts_helpers.download.update_bookmarks_from_raindrop as dsbfr
 """
 
 import argparse
@@ -107,7 +107,7 @@ def _download_gsheet_links(url: str) -> str:
     _LOG.debug(hprint.func_signature_to_str())
     # Compute the shared temporary path used by the rest of the pipeline.
     output_file = dshdbout.get_tmp_file_path(
-        GSHEET_CSV_FILE, "update_gsheet_links_from_raindrop"
+        GSHEET_CSV_FILE, "update_bookmarks_from_raindrop"
     )
     dshdbout.download_from_gsheet(url, output_file)
     _LOG.debug("return=%s", output_file)
@@ -173,7 +173,7 @@ def _download_raindrop_data() -> str:
     _LOG.debug(hprint.func_signature_to_str())
     # Load the gsheet CSV to find the cutoff timestamp for filtering new bookmarks.
     gsheet_csv = dshdbout.get_tmp_file_path(
-        GSHEET_CSV_FILE, "update_gsheet_links_from_raindrop"
+        GSHEET_CSV_FILE, "update_bookmarks_from_raindrop"
     )
     latest_timestamp = _get_latest_timestamp_from_file(gsheet_csv)
 
@@ -222,7 +222,7 @@ def _download_raindrop_data() -> str:
     _LOG.debug(hprint.to_str("len(all_bookmarks) count"))
     # Extract relevant fields and write bookmarks to CSV.
     raindrop_csv = dshdbout.get_tmp_file_path(
-        RAINDROP_CSV_FILE, "update_gsheet_links_from_raindrop"
+        RAINDROP_CSV_FILE, "update_bookmarks_from_raindrop"
     )
     _LOG.info("Writing Raindrop data to CSV file: '%s'", raindrop_csv)
     if all_bookmarks:
@@ -268,10 +268,10 @@ def _combine_raindrop_with_gsheet_links() -> str:
     _LOG.debug(hprint.func_signature_to_str())
     # Load both CSV files and extract the gsheet column schema.
     gsheet_csv = dshdbout.get_tmp_file_path(
-        GSHEET_CSV_FILE, "update_gsheet_links_from_raindrop"
+        GSHEET_CSV_FILE, "update_bookmarks_from_raindrop"
     )
     raindrop_csv = dshdbout.get_tmp_file_path(
-        RAINDROP_CSV_FILE, "update_gsheet_links_from_raindrop"
+        RAINDROP_CSV_FILE, "update_bookmarks_from_raindrop"
     )
     hdbg.dassert_path_exists(gsheet_csv, "gsheet CSV file not found")
     hdbg.dassert_path_exists(raindrop_csv, "raindrop CSV file not found")
@@ -321,7 +321,7 @@ def _combine_raindrop_with_gsheet_links() -> str:
     rows_combined.extend(rows_gsheet)
     _LOG.debug(hprint.to_str("len(rows_combined)"))
     combined_csv = dshdbout.get_tmp_file_path(
-        COMBINED_CSV_FILE, "update_gsheet_links_from_raindrop"
+        COMBINED_CSV_FILE, "update_bookmarks_from_raindrop"
     )
     _LOG.info(
         "Combining data: %d raindrop items, %d gsheet items",
@@ -354,11 +354,11 @@ def _upload_to_gsheet(url: str) -> None:
     """
     _LOG.debug(hprint.to_str("url"))
     # Build a dated tab name so re-runs on the same day overwrite the same tab.
-    tabname = "update_gsheet_links_from_raindrop." + datetime.now().strftime(
+    tabname = "update_bookmarks_from_raindrop." + datetime.now().strftime(
         "%Y-%m-%d"
     )
     combined_csv = dshdbout.get_tmp_file_path(
-        COMBINED_CSV_FILE, "update_gsheet_links_from_raindrop"
+        COMBINED_CSV_FILE, "update_bookmarks_from_raindrop"
     )
     hdbg.dassert_path_exists(combined_csv, "combined CSV file not found")
     _LOG.debug(hprint.to_str("tabname combined_csv"))
@@ -386,7 +386,7 @@ def _get_action_output_file(action: str) -> Optional[str]:
     if filename is None:
         return None
     return dshdbout.get_tmp_file_path(
-        filename, "update_gsheet_links_from_raindrop"
+        filename, "update_bookmarks_from_raindrop"
     )
 
 

@@ -28,7 +28,7 @@
 
 * Solution
 
-- [ ] PR1: Rename `update_gsheet_links_from_raindrop.py` ->
+- [x] PR1: Rename `update_gsheet_links_from_raindrop.py` ->
   `update_bookmarks_from_raindrop.py`
   - Once the script can sync into a local CSV as well as a Google Sheet
     (PR2), "gsheet_links" in the name is no longer accurate; do this rename
@@ -55,6 +55,28 @@
   - Do **not** rename the data file
     `update_gsheet_links_from_raindrop.combined_data.csv` in
     `notes1/bookmarks/` -- it is user data and keeps its existing name
+
+  ## Result
+  - Done:
+    - `git mv` for the script and its test file (history preserved)
+    - Updated, in one pass, every occurrence of the old module name/alias
+      (`dsglfr` -> `dsbfr`) in both files: docstring `Import as`/usage
+      examples, the 8 temp-file-prefix string literals, the gsheet
+      tab-name prefix
+    - `README.md`: "Description of Files" table row and the
+      `### update_bookmarks_from_raindrop.py` section (header + all 4
+      example commands)
+    - Verified: module imports, all 17 renamed unit tests pass, pyflakes
+      clean, `git status` shows clean `R`enames (not delete+add)
+  - Not done (intentionally out of PR1 scope, per task spec):
+    - 3 other old-name mentions in `README.md` (the "Full Link-Processing
+      Workflow" step 1 command, the "CSV-Based Bookmark Processing
+      Workflow" intro, and the historical "is renamed to" sentence in the
+      already-written "planned" section) -- PR1's README scope was
+      explicitly limited to the table row + dedicated section; these are
+      folded in by PR7
+    - Data file `update_gsheet_links_from_raindrop.combined_data.csv` name
+      -- left untouched by design (user data, not code)
 
 - [ ] PR2: Modularize `update_bookmarks_from_raindrop.py`'s sync target
   - Add `--target {gsheet,local_csv}` (default: `gsheet`, preserves today's
