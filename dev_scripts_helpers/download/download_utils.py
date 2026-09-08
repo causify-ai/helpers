@@ -87,11 +87,11 @@ def sanitize_title_for_filename(title: str) -> str:
     return sanitized
 
 
-# Default model for LLM-based summarization. This is a direct model name
-# passed to `llm` (not routed through OpenRouter, which uses an
-# "openrouter/<provider>/<model>" prefix, e.g.
-# "openrouter/anthropic/claude-haiku-4.5"; see `llm_cli.py`).
-_SUMMARY_MODEL = "gpt-4o-mini"
+# Default model for LLM-based summarization, routed through OpenRouter (the
+# "openrouter/<provider>/<model>" prefix; see `llm_cli.py`). Public (no
+# leading underscore) so callers like `download_hn_article_to_md.py` can use
+# it as their own `--model` CLI default.
+SUMMARY_MODEL = "openrouter/anthropic/claude-haiku-4.5"
 
 # Shared prompt for summarizing article content into 5 bullet points; reused
 # by `download_hn_article_to_md.py`, `download_html_to_md.py`, and
@@ -130,7 +130,7 @@ def summarize_text_with_llm(
     output_file: str,
     prompt: str,
     # TODO(ai_gp): Move this to after *
-    model: str = _SUMMARY_MODEL,
+    model: str = SUMMARY_MODEL,
     *,
     dry_run: bool = False,
 ) -> None:
@@ -171,6 +171,14 @@ def summarize_text_with_llm(
         f"--model={model}",
         f"--stat_file={stat_file}",
         "--lint",
+        # `llm_cli_path` runs via its own `uv run` shebang, in an isolated
+        # environment that starts with no llm plugins configured (see the
+        # note at the top of `llm_cli.py`). `--install_llm_plugins` installs
+        # `llm-openrouter`/`llm-anthropic` if missing (cheap no-op once
+        # already installed in that cached uv environment), so an
+        # OpenRouter-routed `model` (the default, see `SUMMARY_MODEL`)
+        # resolves correctly.
+        "--install_llm_plugins",
     ]
     cmd = " ".join(cmd_parts)
     _LOG.debug("Running command: %s", cmd)

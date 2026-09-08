@@ -163,7 +163,7 @@
   - Not done: handling plain-article bookmarks (explicitly out of scope
     per the task)
 
-- [ ] PR4: Modularize `process_bookmarks.py`'s destination
+- [x] PR4: Modularize `process_bookmarks.py`'s destination
   - Replace `--gdrive_dir` / `--no_save_to_google_drive` with:
     - `--dest_type {gdrive,obsidian,none}` (default: `gdrive`, preserves
       today's default path/behavior), each mapping to a built-in default
@@ -187,6 +187,49 @@
   - Add/update unit tests for: `--dest_type` selection, `--dest_dir`
     override, and the reconciliation/repair pass (including the
     `Done=yes`-but-missing-from-destination case and `--limit 0`)
+
+  ## Result
+  - Done:
+    - `--dest_type {gdrive,obsidian,none}` (default `gdrive`) + `--dest_dir`
+      override replace `--gdrive_dir`/`--no_save_to_google_drive`;
+      `_resolve_dest_dir()` maps type -> built-in default path (new
+      `_DEFAULT_OBSIDIAN_DIR`), or `None` for `none`
+    - `_process_row()` made destination-agnostic: it now only
+      downloads/summarizes/merges/caches under `--output_dir` and sets
+      `Done`; the gdrive-copy call was removed entirely
+    - New `_reconcile_destination()` + `_find_cached_merged_summary()`:
+      for the selected destination, copies every `Done=yes` row's cached
+      merged file that's missing there -- no re-download, no
+      re-summarize. Runs over **all** `Done=yes` rows every invocation
+      (not `--limit`-bounded); `_main()` calls it unconditionally after
+      the row-processing loop, so `--limit 0` naturally runs
+      reconciliation only
+    - `_find_cached_merged_summary()` had to explicitly exclude the 2
+      per-item summary files (`*.2.article_url.summary.md`/
+      `*.4.hn_url.summary.md`), which also end in `.summary.md` and would
+      otherwise be misidentified as the merged file by a naive glob
+    - `--dry_run` extended to cover the full contract: reports rows to be
+      newly processed (`num_would_process`, tracked via the existing
+      per-row `status`) and rows to be copied/repaired
+      (`_reconcile_destination(..., dry_run=True)`), without creating any
+      dir, writing the CSV, or copying any file -- verified via unit
+      tests and 2 real CLI runs (dry_run left the CSV, output dir, and
+      obsidian dir fully untouched; the follow-up real run then performed
+      exactly the reported reconciliation)
+    - Tests: 13 new unit tests (`_resolve_dest_dir` x4,
+      `_find_cached_merged_summary` x2, `_reconcile_destination` x5) + 2
+      new end-to-end tests (`--limit 0` reconciliation-only backfill,
+      `--dest_type none` requires no `--dest_dir`); 2 existing end-to-end
+      tests updated for the `--gdrive_dir` -> `--dest_dir` rename
+    - Verified real Google Drive and Obsidian dirs untouched by the test
+      suite (checked file mtimes before/after); 100/100 tests pass in the
+      dir, pyflakes clean
+  - Not done: none (full PR4 scope covered)
+  - Noted, not touched (pre-existing, unrelated to this task):
+    `dev_scripts_helpers/download/test/test_bookmark_utils.py` has
+    uncommitted local changes that predate this session (last touched by
+    commit `c665cc9d`, not by any PR1-PR4 work here) -- flagged to the
+    user rather than folded into this diff
 
 - [ ] PR5: Add a manual `Score` placeholder to the merged-summary template
   - In `_build_info_section()`, add an empty `Score: ` line right after

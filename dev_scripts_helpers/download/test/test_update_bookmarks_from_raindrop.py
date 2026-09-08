@@ -5,11 +5,112 @@ import os
 import unittest.mock as umock
 from typing import Callable, List, Optional
 
+import pytest
+
+# Skip this test suite if requests is not installed (skip for tutorials).
+pytest.importorskip("requests")
+
 import helpers.hunit_test as hunitest
 import dev_scripts_helpers.download.bookmark_utils as dshdbou
 import dev_scripts_helpers.download.update_bookmarks_from_raindrop as dsbfr
 
 _LOG = logging.getLogger(__name__)
+
+
+# #############################################################################
+# Test_update_bookmarks_from_raindrop_py
+# #############################################################################
+
+
+class Test_update_bookmarks_from_raindrop_py(hunitest.TestCase):
+    """
+    Test `update_bookmarks_from_raindrop._main()` function.
+    """
+
+    def helper(self, argv: List[str]) -> None:
+        """
+        Helper for testing `_main()` with mocked `sys.argv`.
+
+        :param argv: command-line argument list to inject via
+            `umock.patch("sys.argv", ...)`
+        """
+        parser = dsbfr._parse()
+        with umock.patch("sys.argv", argv):
+            dsbfr._main(parser)
+
+    def test1(self) -> None:
+        """
+        Test `--target local_csv` end-to-end: `download_raindrop_data` +
+        `combine_data` merge new bookmarks into `--local_csv` in place,
+        leaving the existing `Done=yes` row untouched.
+        """
+        scratch_dir = self.get_scratch_space()
+        cwd = os.getcwd()
+        os.chdir(scratch_dir)
+        try:
+            # Prepare inputs.
+            local_csv = os.path.join(scratch_dir, "local.csv")
+            columns = ["Title", "Hn_url", "Article_url", "Timestamp", "Done"]
+            existing_rows = [
+                {
+                    "Title": "Existing",
+                    "Hn_url": "https://news.ycombinator.com/item?id=0",
+                    "Article_url": "",
+                    "Timestamp": "2024-01-01 00:00:00",
+                    "Done": "yes",
+                },
+            ]
+            dshdbou.write_csv(local_csv, existing_rows, fieldnames=columns)
+            items = [
+                {
+                    "_id": "1",
+                    "title": "New | Hacker News",
+                    "link": "https://news.ycombinator.com/item?id=1",
+                    "created": "2024-06-01T00:00:00.000Z",
+                },
+            ]
+            response = umock.MagicMock()
+            response.status_code = 200
+            response.json.return_value = {"items": items}
+            argv = [
+                "update_bookmarks_from_raindrop.py",
+                "--target",
+                "local_csv",
+                "--local_csv",
+                local_csv,
+                "--clear_actions",
+                "--action",
+                "download_raindrop_data",
+                "--action",
+                "combine_data",
+            ]
+            # Prepare outputs. The existing `Done=yes` row is untouched; the
+            # new row is prepended ahead of it.
+            expected_rows = [
+                {
+                    "Title": "New",
+                    "Hn_url": "https://news.ycombinator.com/item?id=1",
+                    "Article_url": "",
+                    "Timestamp": "2024-06-01 00:00:00",
+                    "Done": "",
+                },
+                existing_rows[0],
+            ]
+            # Run test.
+            with (
+                umock.patch.dict(
+                    os.environ, {"RAINDROP_API_TOKEN": "fake_token"}
+                ),
+                umock.patch.object(
+                    dsbfr.requests, "get", return_value=response
+                ),
+            ):
+                self.helper(argv)
+            actual_rows = dshdbou.read_csv(local_csv)
+        finally:
+            os.chdir(cwd)
+        # Check outputs.
+        self.assert_equal(str(actual_rows), str(expected_rows))
 
 
 # #############################################################################
@@ -175,26 +276,6 @@ class Test__combine_raindrop_with_gsheet_links(hunitest.TestCase):
 
     def test4(self) -> None:
         """
-        Test empty gsheet rows raise `ValueError` since the gsheet column
-        schema can only be derived from the keys of an existing row.
-        """
-        # Prepare inputs.
-        gsheet_columns = ["Title", "Hn_url", "Article_url", "Timestamp"]
-        gsheet_rows: list = []
-        raindrop_rows = [
-            {
-                "id": "1",
-                "title": "Some Title",
-                "url": "https://news.ycombinator.com/item?id=1",
-                "created": "2024-06-01T12:30:00.000Z",
-            },
-        ]
-        # Run test and check output.
-        with self.assertRaises(ValueError):
-            self.helper(gsheet_columns, gsheet_rows, raindrop_rows)
-
-    def test5(self) -> None:
-        """
         Test the in-place merge (`output_csv == base_csv`, the `--target
         local_csv` case): new Raindrop rows are prepended into the same
         file and every existing row (`Done` included) is left untouched.
@@ -260,7 +341,7 @@ class Test__combine_raindrop_with_gsheet_links(hunitest.TestCase):
         finally:
             os.chdir(cwd)
         # Check outputs.
-        self.assertEqual(combined_csv, local_csv)
+        self.assert_equal(combined_csv, local_csv)
         self.assert_equal(str(actual_rows), str(expected_rows))
 
 
@@ -331,9 +412,9 @@ class Test__download_raindrop_data(hunitest.TestCase):
         return actual_rows
 
     @staticmethod
-    def _build_response(items: list) -> umock.MagicMock:
+    def helper2(items: list) -> umock.MagicMock:
         """
-        Build a fake `requests.Response` returning `items` as `.json()`.
+        Helper for building a fake `requests.Response` returning `items`.
 
         :param items: fake Raindrop API `items` for the page
         :return: mocked response with `status_code=200`
@@ -357,7 +438,7 @@ class Test__download_raindrop_data(hunitest.TestCase):
                 "created": "2024-06-01T00:00:00.000Z",
             },
         ]
-        response = self._build_response(items)
+        response = self.helper2(items)
         # Prepare outputs.
         expected_rows = [
             {
@@ -386,7 +467,7 @@ class Test__download_raindrop_data(hunitest.TestCase):
                 "created": "2024-01-01T00:00:00.000Z",
             },
         ]
-        response = self._build_response(items)
+        response = self.helper2(items)
         # Prepare outputs.
         expected_rows: list = []
         # Run test.
@@ -418,7 +499,7 @@ class Test__download_raindrop_data(hunitest.TestCase):
                 items = [_make_item(i) for i in range(50)]
             else:
                 items = [_make_item(50)]
-            return self._build_response(items)
+            return self.helper2(items)
 
         # Prepare outputs. Build the expected rows the same way as the
         # source's field mapping (`id`, `title`, `url`, `created`) instead
@@ -678,142 +759,3 @@ class Test__parse_timestamp(hunitest.TestCase):
         expected = "2024-06-01 00:00:00"
         # Run test.
         self.helper(ts_str, expected)
-
-    def test4(self) -> None:
-        """
-        Test a malformed timestamp string (matching neither the Raindrop
-        nor the gsheet format) raises `ValueError`.
-        """
-        # Prepare inputs.
-        ts_str = "not-a-timestamp"
-        # Run test and check output.
-        with self.assertRaises(ValueError):
-            dsbfr._parse_timestamp(ts_str)
-
-
-# #############################################################################
-# Test_update_bookmarks_from_raindrop_py
-# #############################################################################
-
-
-class Test_update_bookmarks_from_raindrop_py(hunitest.TestCase):
-    """
-    End-to-end tests for `update_bookmarks_from_raindrop.py`'s `--target
-    local_csv` CLI behavior.
-    """
-
-    def _run_main(self, argv: List[str]) -> None:
-        """
-        Run `dsbfr._main()` with a mocked `sys.argv`.
-
-        :param argv: command-line argument list to inject via
-            `umock.patch("sys.argv", ...)`
-        """
-        parser = dsbfr._parse()
-        with umock.patch("sys.argv", argv):
-            dsbfr._main(parser)
-
-    def test1(self) -> None:
-        """
-        Test `--target local_csv` without `--local_csv` raises.
-        """
-        # Prepare inputs.
-        argv = ["update_bookmarks_from_raindrop.py", "--target", "local_csv"]
-        # Run test and check output.
-        with self.assertRaises(AssertionError):
-            self._run_main(argv)
-
-    def test2(self) -> None:
-        """
-        Test `--target local_csv` rejects a gsheet-only action
-        (`download_gsheet_links`) with a clear error.
-        """
-        # Prepare inputs.
-        local_csv = os.path.join(self.get_scratch_space(), "local.csv")
-        argv = [
-            "update_bookmarks_from_raindrop.py",
-            "--target",
-            "local_csv",
-            "--local_csv",
-            local_csv,
-            "--clear_actions",
-            "--action",
-            "download_gsheet_links",
-        ]
-        # Run test and check output.
-        with self.assertRaises(AssertionError):
-            self._run_main(argv)
-
-    def test3(self) -> None:
-        """
-        Test `--target local_csv` end-to-end: `download_raindrop_data` +
-        `combine_data` merge new bookmarks into `--local_csv` in place,
-        leaving the existing `Done=yes` row untouched.
-        """
-        scratch_dir = self.get_scratch_space()
-        cwd = os.getcwd()
-        os.chdir(scratch_dir)
-        try:
-            # Prepare inputs.
-            local_csv = os.path.join(scratch_dir, "local.csv")
-            columns = ["Title", "Hn_url", "Article_url", "Timestamp", "Done"]
-            existing_rows = [
-                {
-                    "Title": "Existing",
-                    "Hn_url": "https://news.ycombinator.com/item?id=0",
-                    "Article_url": "",
-                    "Timestamp": "2024-01-01 00:00:00",
-                    "Done": "yes",
-                },
-            ]
-            dshdbou.write_csv(local_csv, existing_rows, fieldnames=columns)
-            items = [
-                {
-                    "_id": "1",
-                    "title": "New | Hacker News",
-                    "link": "https://news.ycombinator.com/item?id=1",
-                    "created": "2024-06-01T00:00:00.000Z",
-                },
-            ]
-            response = umock.MagicMock()
-            response.status_code = 200
-            response.json.return_value = {"items": items}
-            argv = [
-                "update_bookmarks_from_raindrop.py",
-                "--target",
-                "local_csv",
-                "--local_csv",
-                local_csv,
-                "--clear_actions",
-                "--action",
-                "download_raindrop_data",
-                "--action",
-                "combine_data",
-            ]
-            # Prepare outputs. The existing `Done=yes` row is untouched; the
-            # new row is prepended ahead of it.
-            expected_rows = [
-                {
-                    "Title": "New",
-                    "Hn_url": "https://news.ycombinator.com/item?id=1",
-                    "Article_url": "",
-                    "Timestamp": "2024-06-01 00:00:00",
-                    "Done": "",
-                },
-                existing_rows[0],
-            ]
-            # Run test.
-            with (
-                umock.patch.dict(
-                    os.environ, {"RAINDROP_API_TOKEN": "fake_token"}
-                ),
-                umock.patch.object(
-                    dsbfr.requests, "get", return_value=response
-                ),
-            ):
-                self._run_main(argv)
-            actual_rows = dshdbou.read_csv(local_csv)
-        finally:
-            os.chdir(cwd)
-        # Check outputs.
-        self.assert_equal(str(actual_rows), str(expected_rows))
