@@ -28,11 +28,19 @@ class Test_process_bookmarks_py(hunitest.TestCase):
         """
         Run `dshdprbo._main()` with a mocked `sys.argv`.
 
+        Patches `_GIT_BACKUP_DIR` to a scratch path for the duration of the
+        call, so end-to-end tests never create or write into the real
+        git-tracked bookmarks dir.
+
         :param argv: command-line argument list to inject via
             `umock.patch("sys.argv", ...)`
         """
         parser = dshdprbo._parse()
-        with umock.patch("sys.argv", argv):
+        git_backup_dir = os.path.join(self.get_scratch_space(), "git_backup")
+        with (
+            umock.patch("sys.argv", argv),
+            umock.patch.object(dshdprbo, "_GIT_BACKUP_DIR", git_backup_dir),
+        ):
             dshdprbo._main(parser)
 
     def test1(self) -> None:
@@ -240,6 +248,120 @@ class Test_process_bookmarks_py(hunitest.TestCase):
         actual_rows = dshdbou.read_csv(input_csv)
         # Check outputs: the row should NOT be marked "skipped".
         self.assertNotEqual(actual_rows[0]["Done"], "skipped")
+
+    def test6(self) -> None:
+        """
+        Test the git-tracked backup dir also receives the cached merged
+        summary, in addition to the selected `--dest_type`, in the same
+        run.
+        """
+        # Prepare inputs.
+        scratch_dir = self.get_scratch_space()
+        input_csv = os.path.join(scratch_dir, "bookmarks.csv")
+        output_dir = os.path.join(scratch_dir, "output")
+        dest_dir = os.path.join(scratch_dir, "dest")
+        git_backup_dir = os.path.join(scratch_dir, "git_backup")
+        columns = ["Title", "Hn_url", "Article_url", "Timestamp", "Done"]
+        rows = [
+            {
+                "Title": "Already processed",
+                "Hn_url": "https://news.ycombinator.com/item?id=1",
+                "Article_url": "",
+                "Timestamp": "2024-01-01 00:00:00",
+                "Done": "yes",
+            },
+        ]
+        dshdbou.write_csv(input_csv, rows, fieldnames=columns)
+        merged_filename = "2024-01-01.hn_1.title.summary.md"
+        hio.create_dir(output_dir, incremental=True)
+        hio.to_file(
+            os.path.join(output_dir, merged_filename), "cached content"
+        )
+        argv = [
+            "process_bookmarks.py",
+            "--input",
+            input_csv,
+            "--output_dir",
+            output_dir,
+            "--dest_type",
+            "obsidian",
+            "--dest_dir",
+            dest_dir,
+            "--limit",
+            "0",
+        ]
+        # Prepare outputs.
+        expected_content = "cached content"
+        # Run test.
+        parser = dshdprbo._parse()
+        with (
+            umock.patch("sys.argv", argv),
+            umock.patch.object(dshdprbo, "_GIT_BACKUP_DIR", git_backup_dir),
+        ):
+            dshdprbo._main(parser)
+        actual_dest_content = hio.from_file(
+            os.path.join(dest_dir, merged_filename)
+        )
+        actual_backup_content = hio.from_file(
+            os.path.join(git_backup_dir, merged_filename)
+        )
+        # Check outputs: both the selected destination and the backup dir
+        # got the file.
+        self.assert_equal(actual_dest_content, expected_content)
+        self.assert_equal(actual_backup_content, expected_content)
+
+    def test7(self) -> None:
+        """
+        Test the git-tracked backup dir still receives the cached merged
+        summary even with `--dest_type none` (the backup is independent of
+        `--dest_type`).
+        """
+        # Prepare inputs.
+        scratch_dir = self.get_scratch_space()
+        input_csv = os.path.join(scratch_dir, "bookmarks.csv")
+        output_dir = os.path.join(scratch_dir, "output")
+        git_backup_dir = os.path.join(scratch_dir, "git_backup")
+        columns = ["Title", "Hn_url", "Article_url", "Timestamp", "Done"]
+        rows = [
+            {
+                "Title": "Already processed",
+                "Hn_url": "https://news.ycombinator.com/item?id=1",
+                "Article_url": "",
+                "Timestamp": "2024-01-01 00:00:00",
+                "Done": "yes",
+            },
+        ]
+        dshdbou.write_csv(input_csv, rows, fieldnames=columns)
+        merged_filename = "2024-01-01.hn_1.title.summary.md"
+        hio.create_dir(output_dir, incremental=True)
+        hio.to_file(
+            os.path.join(output_dir, merged_filename), "cached content"
+        )
+        argv = [
+            "process_bookmarks.py",
+            "--input",
+            input_csv,
+            "--output_dir",
+            output_dir,
+            "--dest_type",
+            "none",
+            "--limit",
+            "0",
+        ]
+        # Prepare outputs.
+        expected_content = "cached content"
+        # Run test.
+        parser = dshdprbo._parse()
+        with (
+            umock.patch("sys.argv", argv),
+            umock.patch.object(dshdprbo, "_GIT_BACKUP_DIR", git_backup_dir),
+        ):
+            dshdprbo._main(parser)
+        actual_backup_content = hio.from_file(
+            os.path.join(git_backup_dir, merged_filename)
+        )
+        # Check outputs.
+        self.assert_equal(actual_backup_content, expected_content)
 
 
 # #############################################################################

@@ -231,6 +231,55 @@
     commit `c665cc9d`, not by any PR1-PR4 work here) -- flagged to the
     user rather than folded into this diff
 
+- [x] PR4.1: Always back up merged summaries into the git-tracked bookmarks dir
+  - Problem: merged summaries only land in whichever `--dest_type` is
+    selected (Google Drive or Obsidian, both outside git); nothing lands
+    in a git-tracked dir, so there's no version-controlled backup of
+    processed summaries independent of iCloud/Google Drive sync
+  - Solution:
+    - Add a private, non-CLI-overridable constant
+      `_GIT_BACKUP_DIR = "/Users/saggese/src/notes1/bookmarks"`
+    - Every invocation's reconciliation pass ALSO runs a second,
+      unconditional reconciliation into `_GIT_BACKUP_DIR`, in addition to
+      whatever `--dest_type`/`--dest_dir` was selected -- including when
+      `--dest_type none` (the git backup is independent of `--dest_type`)
+    - Reuses the existing `_reconcile_destination()` (called a second
+      time with `dest_dir=_GIT_BACKUP_DIR`); no re-download, no
+      re-summarize, same `Done=yes`-but-missing-there semantics
+    - No new CLI flag (confirmed with user): the path is fixed, not
+      overridable, unlike `--dest_dir` for the primary destination
+    - Tests must patch `_GIT_BACKUP_DIR` via `umock.patch.object()` to a
+      scratch dir -- never let a test touch the real
+      `/Users/saggese/src/notes1/bookmarks/`
+  - Not doing now (per user): the one-time backfill of already-processed
+    Obsidian `.md` files into `notes1/bookmarks` -- code change only
+
+  ## Result
+  - Done:
+    - `_GIT_BACKUP_DIR = "/Users/saggese/src/notes1/bookmarks"` (private,
+      no CLI flag, per user's confirmed design)
+    - `_main()` always runs a second `_reconcile_destination()` call
+      targeting `_GIT_BACKUP_DIR`, unconditionally after the primary
+      `--dest_type` reconciliation -- including for `--dest_type none`
+    - Dir creation for `_GIT_BACKUP_DIR` added alongside the existing
+      `output_dir`/`dest_dir` creation (gated the same way, skipped in
+      `--dry_run`)
+    - All 5 pre-existing end-to-end tests protected by patching
+      `_GIT_BACKUP_DIR` to a scratch path inside the shared `_run_main()`
+      helper (one fix, applies to every test using it), so no test can
+      ever create or write into the real
+      `/Users/saggese/src/notes1/bookmarks`
+    - 2 new end-to-end tests: backup fires alongside a selected
+      `--dest_type` in the same run; backup still fires with
+      `--dest_type none` (independence confirmed)
+    - Verified real production directories: `notes1/bookmarks` (45 files)
+      untouched by the test suite (checked count + mtime before/after);
+      a real `--limit 0` run correctly found the 2 already-backed-up
+      files already present and copied 0 (idempotent, no double-copy)
+    - 100/100 tests pass in the dir, pyflakes clean
+  - Not done: none (full PR4.1 scope covered, backfill explicitly
+    deferred per user)
+
 - [ ] PR5: Add a manual `Score` placeholder to the merged-summary template
   - In `_build_info_section()`, add an empty `Score: ` line right after
     `Article_cluster` in the `# Info` section of every newly generated
