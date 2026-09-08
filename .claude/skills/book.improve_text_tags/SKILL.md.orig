@@ -1,5 +1,9 @@
 ---
+<<<<<<< HEAD
 description: Add and improve text tags using bold and italic
+=======
+description: Add, improve text tags using bold and italic
+>>>>>>> master
 model: haiku
 ---
 
@@ -12,6 +16,7 @@ model: haiku
 ## Gather Context
 - Read `.claude/skills/book.rules.md`
 
+<<<<<<< HEAD
 ## Identify Chapters to Process
 - If multiple chapters are passed, process each one independently: apply
   every step below to each file in turn
@@ -28,17 +33,26 @@ model: haiku
 - Render bold depending on the type of file:
   - `#strong[...]` in Typst
   - `\textbf{...}` in Latex
+=======
+## Render Bold and Italic Based on the Type of File
+- Render bold depending on the type of file:
+  - `#strong[...]` in Typst
+  - `\textbb{...}` in Latex
+>>>>>>> master
   - `**...**` in markdown
 - Render italic depending on the type of file:
   - `#emph[...]` in Typst
   - `\textit{...}` in Latex
   - `_..._` in markdown
 
+<<<<<<< HEAD
 ## Detect Chapter Type
 - Treat a chapter as Roadmap or Summary type if its title or heading contains
   "Roadmap", "Summary", or "Overview"
 - Treat every other chapter as a regular chapter
 
+=======
+>>>>>>> master
 ## Improve Roadmap and Summary Chapters
 - Do not use bold
 - Use italic for terms that are introduced and important
@@ -133,6 +147,7 @@ model: haiku
   ```
 
 ## Write Result
+<<<<<<< HEAD
 - Update the file with the improved text
 
 # Constraints
@@ -147,3 +162,6 @@ model: haiku
 - Confirm tag density is reasonable: not every sentence has a tagged term
 - For Typst or Latex files, render the chapter to confirm the tags compile
   without errors
+=======
+- Update the file with this
+>>>>>>> master

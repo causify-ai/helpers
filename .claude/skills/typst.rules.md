@@ -38,47 +38,83 @@
 
 ## Structural Hierarchy
 
-- A source Markdown heading level maps to Typst as follows:
-  - `#` (H1) → nothing: drop the title line entirely (keep any `// From:`/`// Slide:`
-    provenance comments): `#chapter(...)` already carries the document's top-level
-    title, so repeating it in the body would just be a redundant second title. If a
-    body-level H1 ever has _different_ text from the chapter title (rare), fall back
-    to `#strong[Title]` instead of dropping it, so nothing is silently lost
-  - `##` (H2) → `== Title`
-  - `###` (H3) → `=== Title`, and deeper levels continue with one more `=` each
-  - A slide-level heading (a `* Heading` line in the `.smd` source) depends on
-    whether a real `##`/`###` heading has appeared yet in the document:
-    - Before the first `##`/`###`: no real section exists yet to hold it, so the
-      slide _is_ the chapter's top-level section: use a real heading, `= Heading`
-    - From the first `##`/`###` onward: `#strong[Heading]`, followed by its body text
-      as a paragraph: a subsection label, not a real Typst heading
-    - This keeps a "flat" lesson (a single `#` followed only by `*` slides, no `##`
-      at all) from ending up with zero real headings in its body
-- **Bad** (repeats the chapter title as a section instead of dropping the H1):
+- A `.typ` chapter's heading tree must contain every heading and slide title from
+  its source `.smd`, in the same order and at the same relative nesting
+  - An `.smd` `#`/`##`/`###`(+) heading maps to a `.typ` `=`/`==`/`===`(+) heading,
+    one level of `=` per level of `.smd` nesting
+- The `.typ` file is allowed a *more* complex hierarchy than the `.smd`
+  - Extra `===`/deeper subsections that group several flat `.smd` slides under a
+    label the source never spelled out
+  - The `.typ` outline is always a superset of the `.smd` outline, never a subset:
+    every `.smd` heading/slide still needs a matching `.typ` heading somewhere in the
+    tree, but the `.typ` tree may add levels the `.smd` never had
+- Compare the two outlines with `extract_toc_from_txt.py` before/after any
+  structural edit rather than guessing:
 
-  ```typst
-  #chapter("Brief History of AI")
-  = Brief History of AI
+  ```bash
+  > extract_toc_from_txt.py -i msml610/lectures_source/Lesson01.2*smd
+  - What Is Intelligence? What is AI?
+  - What Is Machine Learning?
+
+  > extract_toc_from_txt.py -i msml610/book/Lesson01.2*typ
+  - Roadmap
+  - What Is Intelligence? What is AI?
+    - ML, AI, and Intelligence
+      - A Formal Definition of AI
+      - AI as Thinking Humanly
+      - AI as Thinking Rationally
+      - AI as Acting Humanly
+      - AI as Acting Rationally
+      - Acting Rationally as Ultimate Goal of AI
+  - What Is Machine Learning?
+  - Summary
+  - References
   ```
 
-- **Good**:
+- The `.typ` side nests `ML, AI, and Intelligence` and its six `===` subsections
+  under a heading the flat `.smd` slide list never grouped that way, and adds
+  `Roadmap`/`Summary`/`References` (see below). Both of the `.smd`'s own headings
+  (`What Is Intelligence? What is AI?`, `What Is Machine Learning?`) still appear
+  at the matching top level
+- A heading is always real Typst heading syntax, `=`/`==`/`===`(+): never
+  `#strong[Title]` sitting alone on its own line standing in for a heading.
+  `#strong[...]` renders bold text, not a heading: it is invisible to the
+  outline, to cross-references, and to `extract_toc_from_txt.py`, so it hides the
+  document's real structure from every tool that reads it
+  - **Bad** (fake heading, doesn't show up in the outline):
 
-  ```typst
-  #chapter("Brief History of AI")
-  == Origins and Early AI (1943-1990)
-  #strong[The Beginning (1943-1956)]
-  ```
+    ```typst
+    #strong[ML, AI, and Intelligence]
 
-- **Good**, flat lesson (no `##`/`###` anywhere, so the `*` slides carry the
-  chapter's top-level structure):
+    Machine Learning is a subset of Artificial Intelligence (AI). ...
+    ```
 
-  ```typst
-  #chapter("A Map of Machine Learning")
-  = Four Branches of Machine Learning
-  ...
-  = Learning Paradigms
-  ...
-  ```
+  - **Good**:
+
+    ```typst
+    == ML, AI, and Intelligence
+
+    Machine Learning is a subset of Artificial Intelligence (AI). ...
+    ```
+
+  This bans only a standalone `#strong[...]` line playing the role of a heading;
+  `#strong[...]`/`#emph[...]` remain correct for inline emphasis inside prose (see
+  "Highlighting and Emphasis" below)
+
+## Mandatory Sections
+
+- Every chapter has exactly three mandatory level-1 (`=`) sections, in this
+  order:
+  - `= Roadmap` right after `#chapter(...)`, before the first content
+  section
+  - `= Summary`
+  - `= References` at the end
+  - All three are required even when the `.smd` has no slide by that exact name:
+    normalize whatever the source calls its opening/closing slide (`Overview`,
+    `Outline`, `Agenda`, `Key Takeaways`, `Conclusion`, `Wrap-up`, ...) to `Roadmap`
+    / `Summary`, and write the section from scratch when the `.smd` has no such slide
+    at all. Keep the `// Slide: <original title>` comment above the heading either
+    way, for traceability back to the source
 
 # Text Formatting
 
@@ -185,14 +221,25 @@
 - A figure, diagram, or image is never left floating on its own, disconnected from
   the paragraph that discusses it
 - Use `#wrap-content(...)` (from `aima_style.typ`, re-exporting the `wrap-it`
-  package) only for a single-subject image: a portrait, a photo, one icon: paired
-  with the paragraph(s) discussing it, so the text flows beside it
-- A rendered diagram: a `graphviz`/`mermaid`/`tikz`/... figure with multiple labeled
-  nodes, boxes, or arrows (a flowchart, mind map, architecture diagram, timeline,
-  etc.): must NOT be squeezed into a `#wrap-content` side column: at the 30-45% width
-  that column allows, its node labels become too small to read. Give it a bare
-  `#figure(...)` instead (no wrapping, `width: 70%` or more; see "Sizing" below),
-  even though this means it no longer sits directly beside one paragraph
+  package) for a single-subject image (a portrait, a photo, one icon) OR a simple
+  diagram with only a handful of labeled elements (roughly 2-4 nodes/points and at
+  most one or two edge labels)
+  - E.g. a two-box relationship diagram or a tradeoff curve with three labeled points
+    both stay legible at 40-50% width
+  - Pair it with the paragraph(s) discussing it, so the text flows beside it
+- A denser rendered diagram: a `graphviz`/`mermaid`/`tikz`/... figure with many
+  labeled nodes, boxes, or arrows (a flowchart with several steps, a mind map, a
+  multi-entity knowledge graph, an architecture diagram, a timeline, etc.) must
+  NOT be squeezed into a `#wrap-content` side column: at the width that column
+  allows, its node labels become too small to read
+  - Give it a bare `#figure(...)` instead (no wrapping, `width: 70%` or more; see
+    "Sizing" below), even though this means it no longer sits directly beside one
+    paragraph
+- The dividing line is legibility, not "photo vs diagram": if every label in the
+  diagram stays comfortably readable at the chosen `wrap-content` width, wrapping
+  it is fine. If any label would shrink past comfortable reading size, the diagram
+  needs a full-width bare figure instead. When in doubt, compile and look at the
+  rendered page rather than guessing from the source
 - A table is paired with its paragraph via
   `#grid(columns: (1fr, <width>), column-gutter: 1em, align: (left, top))[prose][table]`
   instead of `#wrap-content`: a table is a rectangular block, not something text
@@ -220,7 +267,7 @@
   ]
   ```
 
-- **Good** (the same diagram, full width; a single-subject photo still uses
+- **Good** (the same dense diagram, full width; a single-subject photo still uses
   `wrap-content`):
 
   ```typst
@@ -250,6 +297,31 @@
   )[
     Turing's 1950 paper #cite("turing1950computing") asked whether
     machines can think, as @fig:alanturing's subject first posed it.
+  ]
+  ```
+
+- **Good** (a simple two-node diagram, not a photo, still fits `wrap-content`: only
+  one edge and one label, so it reads fine at 50%):
+
+  ```typst
+  #wrap-content(
+    [
+      #figure(
+        image("figures/model_possible_worlds.png", width: 100%),
+        caption: [Diagram relating a model to the possible worlds it grounds.],
+        kind: "figure",
+        supplement: [Fig.],
+        placement: auto,
+      ) <fig:modelsandpossibleworlds>
+    ],
+    align: right,
+    column-gutter: 1em,
+    columns: (1fr, 50%),
+  )[
+    Each possible world (or model) assigns a truth value to every relevant
+    variable, as @fig:modelsandpossibleworlds shows. A model is the formal bridge
+    between the abstract notion of "possible world" and the concrete variable
+    assignments that ground our reasoning.
   ]
   ```
 
@@ -314,12 +386,18 @@
   on-page width depends on which construct it uses:
   - `wrap-content`'s `columns: (1fr, <width>)`, for a single-subject image: `<width>`
     must never go below **30%**, even for a narrow portrait photo
-  - A bare `#figure(...)`, for a multi-element diagram or a wide table (see "Every
-    Visual Pairs With Its Text" above): `width:` must be **70%** or more: the whole
-    reason it isn't in `wrap-content` is that its detail needs more room than that
-    column allows
+  - `wrap-content`'s `columns: (1fr, <width>)`, for a simple diagram with a handful
+    of labeled elements (per "Every Visual Pairs With Its Text" above): lean toward
+    the upper end of the range, **40-50%**, so its labels stay as readable as a
+    photo's caption would be; the 30% floor is for a plain portrait/icon with no
+    internal text of its own
+  - A bare `#figure(...)`, for a dense multi-element diagram or a wide table (see
+    "Every Visual Pairs With Its Text" above): `width:` must be **70%** or more:
+    the whole reason it isn't in `wrap-content` is that its detail needs more room
+    than that column allows
 - Pick the exact width within that floor to roughly match the figure's aspect ratio
-  (e.g. `30%` for a portrait, `80–100%` for a wide diagram or timeline)
+  (e.g. `30%` for a portrait, `40-50%` for a simple labeled diagram, `80–100%` for
+  a wide or dense diagram or timeline)
 - If no width at or above the applicable floor keeps a `wrap-content` figure's own
   content (not just its label) legible, it does not belong in `wrap-content` at all —
   give it a bare full-width figure instead

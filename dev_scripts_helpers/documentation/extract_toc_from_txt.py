@@ -1,17 +1,18 @@
 #!/usr/bin/env python3
 
 r"""
-Extract headers from Markdown, LaTeX, txt slide, or Jupyter notebook files and
-generate a Vim cfile.
+Extract headers from Markdown, LaTeX, txt slide, Typst, or Jupyter notebook
+files and generate a Vim cfile.
 
 The script:
-- Processes the input Markdown `.md`, `.smd` (slides), LaTeX `.tex`, `.txt`, or
-  Jupyter notebook `.ipynb` file
+- Processes the input Markdown `.md`, `.smd` (slides), LaTeX `.tex`, `.txt`,
+  Typst `.typ`, or Jupyter notebook `.ipynb` file
 - Extracts headers up to a specified maximum level
   - Markdown: # (level 1), ## (level 2), ### (level 3), etc.
   - LaTeX: `\section{}` (level 1), `\subsection{}` (level 2),
     `\subsubsection{}` (level 3)
   - Txt slides: # (level 1), ## (level 2), * (level 3)
+  - Typst: = (level 1), == (level 2), === (level 3), etc.
   - Jupyter notebooks: # (level 1), ## (level 2), ### (level 3) from markdown cells
 - Prints a human-readable header map
 - Generates an output file in a format that can be used with Vim's quickfix
@@ -31,6 +32,9 @@ The script:
 - Extract headers up to level 3 from a Jupyter notebook and print to stdout:
 > extract_toc_from_txt.py -i notebook.ipynb -o - --mode headers --max_level 3
 
+- Extract headers up to level 3 from a Typst file and print to stdout:
+> extract_toc_from_txt.py -i document.typ -o - --mode headers --max_level 3
+
 - Extract headers from a txt file with potentially malformed index (emit warnings instead of errors):
 > extract_toc_from_txt.py -i document.txt -o - --warn_on_malformed
 
@@ -46,6 +50,7 @@ import argparse
 import json
 import logging
 import os
+import re
 from typing import Dict, List, Tuple
 
 import helpers.hdbg as hdbg
@@ -329,6 +334,77 @@ def _extract_headers_from_txtslides(
     )
 
 
+def _convert_typst_to_markdown(lines: List[str]) -> List[str]:
+    """
+    Convert Typst heading syntax to standard Markdown headers.
+
+    Typst headers use `=` (level 1), `==` (level 2), `===` (level 3), etc.,
+    which map directly to Markdown's `#`, `##`, `###`.
+
+    :param lines: list of lines in the input Typst file
+    :return: list of lines with Typst headers converted to Markdown headers
+    """
+    typst_header_re = re.compile(r"^(=+)\s+(.*)$")
+    converted_lines = []
+    for line in lines:
+        match = typst_header_re.match(line)
+        if match:
+            level_markers, description = match.groups()
+            converted_line = "#" * len(level_markers) + " " + description
+            converted_lines.append(converted_line)
+        else:
+            converted_lines.append(line)
+    return converted_lines
+
+
+def _extract_headers_from_typst(
+    input_file_name: str,
+    lines: List[str],
+    mode: str,
+    max_level: int,
+    out_file_name: str,
+    warn_on_malformed: bool,
+    count_slides: bool = False,
+) -> None:
+    """
+    Extract headers from a Typst file.
+
+    This function converts Typst heading syntax (`=`, `==`, `===`) to standard
+    Markdown headers and then reuses the Markdown header extraction. It follows
+    the same pattern as `_extract_headers_from_txtslides()` to ensure consistent
+    behavior across file types.
+
+    :param input_file_name: path to the input Typst file
+    :param lines: list of lines in the input Typst file
+    :param mode: output mode ('cfile' for Vim quickfix, 'headers' for Markdown
+        headers, 'list' for indented list)
+    :param max_level: maximum header levels to parse
+    :param out_file_name: path to the output file
+    :param warn_on_malformed: if True, emit warnings for malformed headers
+        instead of raising exceptions
+    :param count_slides: if True, count level 5 headers for each h1/h2
+    """
+    hdbg.dassert_isinstance(lines, list)
+    lines = _convert_typst_to_markdown(lines)
+    # We don't want to sanity check since we want to show the headers, even
+    # if malformed.
+    sanity_check = False
+    # When counting slides, extract up to level 5 to get all slide data
+    extract_level = max(max_level, 5) if count_slides else max_level
+    header_list = hmarkdo.extract_headers_from_markdown(
+        lines, max_level=extract_level, sanity_check=sanity_check
+    )
+    _extract_and_write_headers(
+        input_file_name,
+        header_list,
+        mode,
+        out_file_name,
+        warn_on_malformed,
+        count_slides=count_slides,
+        max_level=max_level,
+    )
+
+
 def _extract_headers_from_notebook(
     input_file_name: str,
     lines: List[str],
@@ -468,6 +544,16 @@ def _main(parser: argparse.ArgumentParser) -> None:
         )
     elif ext == ".txt":
         _extract_headers_from_txtslides(
+            in_file_name,
+            input_content,
+            args.mode,
+            args.max_level,
+            out_file_name,
+            warn_on_malformed,
+            count_slides,
+        )
+    elif ext == ".typ":
+        _extract_headers_from_typst(
             in_file_name,
             input_content,
             args.mode,

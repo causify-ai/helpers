@@ -344,6 +344,43 @@ class Test_remove_image_code1(hunitest.TestCase):
         """
         self.helper(in_text, extension, expected)
 
+    def test12(self) -> None:
+        """
+        Test uncommenting an indented `.typ` archival block, e.g. a diagram
+        hand-authored inside `#wrap-content([...])`, whose comment marker sits
+        after leading whitespace instead of at column 0.
+        """
+        in_text = r"""
+        #wrap-content(
+          [
+            // rendered_images:begin
+            // ```graphviz
+            // digraph G {
+            //     A -> B;
+            // }
+            // ```
+            // rendered_images:end
+          ],
+        )[
+          Body text.
+        ]
+        """
+        extension = ".typ"
+        expected = r"""
+        #wrap-content(
+          [
+            ```graphviz
+            digraph G {
+                A -> B;
+            }
+            ```
+          ],
+        )[
+          Body text.
+        ]
+        """
+        self.helper(in_text, extension, expected)
+
 
 # #############################################################################
 # Test_render_image_code1
@@ -665,9 +702,18 @@ class Test_insert_image_code3(hunitest.TestCase):
         label: str,
         caption: str,
         expected: str,
+        *,
+        inside_wrap_content: bool = False,
+        image_code_type: str = "",
     ) -> None:
         actual = dshdreim._insert_image_code(
-            ".typ", rel_img_path, user_img_size, label=label, caption=caption
+            ".typ",
+            rel_img_path,
+            user_img_size,
+            label=label,
+            caption=caption,
+            inside_wrap_content=inside_wrap_content,
+            image_code_type=image_code_type,
         )
         self.assert_equal(actual, expected, dedent=True, fuzzy_match=True)
 
@@ -682,7 +728,13 @@ class Test_insert_image_code3(hunitest.TestCase):
         expected = """
         // render_images:begin
         #figure(
-          image("figs/test.1.png"),
+          image(
+            "figs/test.1.png",
+            width: 70%,
+          ),
+          kind: "figure",
+          supplement: [Fig.],
+          placement: auto,
         )
         // render_images:end
         """
@@ -699,7 +751,13 @@ class Test_insert_image_code3(hunitest.TestCase):
         expected = """
         // render_images:begin
         #figure(
-          image("figs/test.1.png"),
+          image(
+            "figs/test.1.png",
+            width: 70%,
+          ),
+          kind: "figure",
+          supplement: [Fig.],
+          placement: auto,
         ) <fig:test_diagram>
         // render_images:end
         """
@@ -716,8 +774,14 @@ class Test_insert_image_code3(hunitest.TestCase):
         expected = """
         // render_images:begin
         #figure(
-          image("figs/test.1.png"),
+          image(
+            "figs/test.1.png",
+            width: 70%,
+          ),
           caption: [Test diagram caption],
+          kind: "figure",
+          supplement: [Fig.],
+          placement: auto,
         )
         // render_images:end
         """
@@ -734,8 +798,14 @@ class Test_insert_image_code3(hunitest.TestCase):
         expected = """
         // render_images:begin
         #figure(
-          image("figs/test.1.png"),
+          image(
+            "figs/test.1.png",
+            width: 70%,
+          ),
           caption: [Test diagram caption],
+          kind: "figure",
+          supplement: [Fig.],
+          placement: auto,
         ) <fig:test_diagram>
         // render_images:end
         """
@@ -752,7 +822,13 @@ class Test_insert_image_code3(hunitest.TestCase):
         expected = """
         // render_images:begin
         #figure(
-          image("figs/test.1.png"),
+          image(
+            "figs/test.1.png",
+            width: 70%,
+          ),
+          kind: "figure",
+          supplement: [Fig.],
+          placement: auto,
         )
         // render_images:end
         """
@@ -771,8 +847,14 @@ class Test_insert_image_code3(hunitest.TestCase):
         expected = r"""
         // render_images:begin
         #figure(
-          image("figs/test.1.png"),
+          image(
+            "figs/test.1.png",
+            width: 70%,
+          ),
           caption: [Values in the range \[0, 13)],
+          kind: "figure",
+          supplement: [Fig.],
+          placement: auto,
         )
         // render_images:end
         """
@@ -790,12 +872,156 @@ class Test_insert_image_code3(hunitest.TestCase):
         expected = r"""
         // render_images:begin
         #figure(
-          image("figs/test.1.png"),
+          image(
+            "figs/test.1.png",
+            width: 70%,
+          ),
           caption: [See \[Figure 1\] for details],
+          kind: "figure",
+          supplement: [Fig.],
+          placement: auto,
         )
         // render_images:end
         """
         self.helper(rel_img_path, user_img_size, label, caption, expected)
+
+    def test8(self) -> None:
+        """
+        Test Typst output honors a user-specified `width=` size annotation.
+        """
+        rel_img_path = "figs/test.1.png"
+        user_img_size = "width=28%"
+        label = ""
+        caption = ""
+        expected = """
+        // render_images:begin
+        #figure(
+          image(
+            "figs/test.1.png",
+            width: 28%,
+          ),
+          kind: "figure",
+          supplement: [Fig.],
+          placement: auto,
+        )
+        // render_images:end
+        """
+        self.helper(rel_img_path, user_img_size, label, caption, expected)
+
+    def test9(self) -> None:
+        """
+        Test Typst output treats a bare percentage size annotation (no
+        `width=`/`height=` key) as `width`.
+        """
+        rel_img_path = "figs/test.1.png"
+        user_img_size = "80%"
+        label = ""
+        caption = ""
+        expected = """
+        // render_images:begin
+        #figure(
+          image(
+            "figs/test.1.png",
+            width: 80%,
+          ),
+          kind: "figure",
+          supplement: [Fig.],
+          placement: auto,
+        )
+        // render_images:end
+        """
+        self.helper(rel_img_path, user_img_size, label, caption, expected)
+
+    def test10(self) -> None:
+        """
+        Test Typst output defaults to `width: 100%` (fills the column) when
+        nested inside a `#wrap-content(...)` call.
+        """
+        rel_img_path = "figs/test.1.png"
+        user_img_size = ""
+        label = ""
+        caption = ""
+        expected = """
+        // render_images:begin
+        #figure(
+          image(
+            "figs/test.1.png",
+            width: 100%,
+          ),
+          kind: "figure",
+          supplement: [Fig.],
+          placement: auto,
+        )
+        // render_images:end
+        """
+        self.helper(
+            rel_img_path,
+            user_img_size,
+            label,
+            caption,
+            expected,
+            inside_wrap_content=True,
+        )
+
+    def test11(self) -> None:
+        """
+        Test Typst output adds no default width for an AI-generated
+        single-subject image (e.g., a portrait), so it stays small instead of
+        being forced to the diagram sizing floor.
+        """
+        rel_img_path = "figs/test.1.png"
+        user_img_size = ""
+        label = ""
+        caption = ""
+        expected = """
+        // render_images:begin
+        #figure(
+          image("figs/test.1.png"),
+          kind: "figure",
+          supplement: [Fig.],
+          placement: auto,
+        )
+        // render_images:end
+        """
+        self.helper(
+            rel_img_path,
+            user_img_size,
+            label,
+            caption,
+            expected,
+            image_code_type="image",
+        )
+
+    def test12(self) -> None:
+        """
+        Test Typst output still honors an explicit `width=` annotation on an
+        AI-generated image (the user opted into a specific size).
+        """
+        rel_img_path = "figs/test.1.png"
+        user_img_size = "width=30%"
+        label = ""
+        caption = ""
+        expected = """
+        // render_images:begin
+        #figure(
+          image(
+            "figs/test.1.png",
+            width: 30%,
+          ),
+          kind: "figure",
+          supplement: [Fig.],
+          placement: auto,
+        )
+        // render_images:end
+        """
+        self.helper(
+            rel_img_path,
+            user_img_size,
+            label,
+            caption,
+            expected,
+            image_code_type="image",
+        )
 
 
 # #############################################################################
@@ -1493,8 +1719,14 @@ class Test_render_images1(hunitest.TestCase):
         // rendered_images:end
         // render_images:begin
         #figure(
-          image("figs/out.1.png"),
+          image(
+            "figs/out.1.png",
+            width: 100%,
+          ),
           caption: [Test diagram caption],
+          kind: "figure",
+          supplement: [Fig.],
+          placement: auto,
         ) <fig:test_diagram>
         // render_images:end
           ],

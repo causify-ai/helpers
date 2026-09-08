@@ -154,10 +154,10 @@ class Test_infer_topic_from_filename(hunitest.TestCase):
 
     def test11(self) -> None:
         """
-        Test detection of slides (txt) files.
+        Test detection of slides (smd) files.
         """
         # Prepare inputs.
-        filename = "slides.txt"
+        filename = "slides.smd"
         # Prepare outputs.
         expected = "slides"
         # Run test.
@@ -192,6 +192,28 @@ class Test_infer_topic_from_filename(hunitest.TestCase):
         filename = "subdir/README.md"
         # Prepare outputs.
         expected = "readme"
+        # Run test.
+        self.helper(filename, expected)
+
+    def test15(self) -> None:
+        """
+        Test detection of Typst files.
+        """
+        # Prepare inputs.
+        filename = "chapter.typ"
+        # Prepare outputs.
+        expected = "typst"
+        # Run test.
+        self.helper(filename, expected)
+
+    def test16(self) -> None:
+        """
+        Test detection of slides (smd) files.
+        """
+        # Prepare inputs.
+        filename = "lectures_source/Lesson01.1-Intro.smd"
+        # Prepare outputs.
+        expected = "slides"
         # Run test.
         self.helper(filename, expected)
 
@@ -381,6 +403,7 @@ class Test_get_rules_for_topic(hunitest.TestCase):
             "testing",
             "tool_X_in_30_mins",
             "tool_X_in_60_mins",
+            "typst",
         ]
         # Run test and check outputs.
         for topic in topics:

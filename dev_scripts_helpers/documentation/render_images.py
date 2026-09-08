@@ -490,19 +490,27 @@ def _uncomment_line(
     """
     Uncomment a line by removing the comment prefix and postfix based on the
     file extension.
+
+    A hand-authored block (e.g., a diagram nested inside a Typst
+    `#wrap-content(...)` call that was never run through this script) keeps its
+    own indentation *before* the comment marker, e.g. `"    // digraph"`,
+    unlike this script's own output which puts the marker at column 0. Strip
+    and reattach that leading whitespace so both forms uncomment correctly.
     """
     comment_prefix, comment_postfix = _get_comment_prefix_postfix(extension)
+    indent = line[: len(line) - len(line.lstrip(" "))]
+    content = line[len(indent) :]
     # Strip the comment prefix from the start (only once).
     for prefix in [comment_prefix + " ", comment_prefix]:
-        if line.startswith(prefix):
-            line = line[len(prefix) :]
+        if content.startswith(prefix):
+            content = content[len(prefix) :]
             break
     # Strip the comment postfix from the end (only once).
     # Note: `comment_postfix` can be "" (for .tex files), in which case
     # `line[:-0]` would be `line[:0]` = '' in Python since -0 == 0.
-    if comment_postfix and line.endswith(comment_postfix):
-        line = line[: -len(comment_postfix)]
-    return line
+    if comment_postfix and content.endswith(comment_postfix):
+        content = content[: -len(comment_postfix)]
+    return indent + content
 
 
 # #############################################################################
@@ -563,6 +571,53 @@ def _remove_image_code(
     return out_lines
 
 
+# Image code types that render a single-subject picture (e.g., an
+# AI-generated portrait/photo/icon) rather than a structured diagram. These
+# are candidates for staying small (a `wrap-content` side column, or just
+# their natural size) instead of being forced to the diagram sizing floor
+# below, so no default width is invented for them.
+_NO_AUTO_WIDTH_IMAGE_TYPES = frozenset(["image"])
+
+
+def _typst_image_size_param(
+    user_img_size: str, inside_wrap_content: bool, image_code_type: str
+) -> str:
+    """
+    Compute the Typst `image(...)` sizing parameter for a rendered figure.
+
+    Per `typst.rules.md` ("Sizing: Minimum Width and Readability"), a bare
+    full-width figure needs `width: 70%` or more, while a figure nested
+    inside a `#wrap-content(...)` column should fill that column (its own
+    `columns:` argument already constrains the on-page width), so it gets
+    `width: 100%`. That floor only applies to rendered diagrams
+    (graphviz/tikz/mermaid/...): an AI-generated single-subject image (e.g.,
+    a portrait) is left without an invented width so it stays small.
+
+    :param user_img_size: user-specified size (e.g., "width=28%",
+        "height=60%", or a bare percentage like "80%", treated as `width`),
+        empty to fall back to the rules.md default for the context
+    :param inside_wrap_content: whether the figure sits inside a
+        `#wrap-content(...)` call
+    :param image_code_type: the source block type (e.g., "graphviz", "tikz",
+        "image"); see `_NO_AUTO_WIDTH_IMAGE_TYPES`
+    :return: a `key: value` Typst parameter (no trailing comma), e.g.
+        `"width: 70%"`, or "" to add no size parameter at all
+    """
+    if user_img_size:
+        if "=" in user_img_size:
+            key, value = user_img_size.split("=", 1)
+            key, value = key.strip(), value.strip()
+        else:
+            key, value = "width", user_img_size.strip()
+    elif image_code_type in _NO_AUTO_WIDTH_IMAGE_TYPES:
+        return ""
+    elif inside_wrap_content:
+        key, value = "width", "100%"
+    else:
+        key, value = "width", "70%"
+    return f"{key}: {value}"
+
+
 def _insert_image_code(
     extension: str,
     rel_img_path: str,
@@ -571,6 +626,8 @@ def _insert_image_code(
     out_file: str = "",
     label: str = "",
     caption: str = "",
+    inside_wrap_content: bool = False,
+    image_code_type: str = "",
 ) -> str:
     """
     Insert the code to display the image in the output file.
@@ -581,6 +638,11 @@ def _insert_image_code(
     :param out_file: output file path (used for typst to adjust relative paths)
     :param label: optional label for the image (e.g., "fig:my_label")
     :param caption: optional caption for the image
+    :param inside_wrap_content: (Typst only) whether the figure is nested
+        inside a `#wrap-content(...)` call, which changes the default image
+        width (see `typst.rules.md`)
+    :param image_code_type: (Typst only) the source block type (e.g.,
+        "graphviz", "image"); see `_typst_image_size_param()`
     :return: formatted image code as a string
     """
     out_lines: List[str] = []
@@ -621,14 +683,29 @@ def _insert_image_code(
             if rel_img_path.startswith("/")
             else rel_img_path
         )
+        size_param = _typst_image_size_param(
+            user_img_size, inside_wrap_content, image_code_type
+        )
         out_lines.append("#figure(")
-        out_lines.append(f'  image("{typst_img_path}"),')
+        if size_param:
+            out_lines.append("  image(")
+            out_lines.append(f'    "{typst_img_path}",')
+            out_lines.append(f"    {size_param},")
+            out_lines.append("  ),")
+        else:
+            out_lines.append(f'  image("{typst_img_path}"),')
         if caption:
             # Escape Typst content-mode brackets so text with unbalanced
             # `[`/`]` (e.g., interval notation like "[0, 13)") doesn't break
             # parsing of the enclosing `caption: [...]` content block.
             typst_caption = caption.replace("[", "\\[").replace("]", "\\]")
             out_lines.append(f"  caption: [{typst_caption}],")
+        # Every figure needs `kind`/`supplement`/`placement` alongside its
+        # label and caption (see typst.rules.md, "Figures: Required
+        # Elements").
+        out_lines.append('  kind: "figure",')
+        out_lines.append("  supplement: [Fig.],")
+        out_lines.append("  placement: auto,")
         closing_paren = ")"
         if label:
             closing_paren = f") <{label}>"
@@ -718,6 +795,12 @@ def _render_images(
     user_rel_img_path = ""
     # Image size explicitly set by the user with `plantuml[...]` syntax.
     user_img_size = ""
+    # Depth of open Typst `#wrap-content(...)` calls at the current line, so
+    # an inserted figure can tell whether it is nested inside one (see
+    # `_typst_image_size_param()`).
+    wrap_content_depth = 0
+    wrap_content_open_regex = re.compile(r"#wrap-content\(")
+    wrap_content_close_regex = re.compile(r"^\s*\)\[\s*$")
     # Store the state of the parser.
     # Parser states:
     # - "search_image_code": Looking for the start of an image code block
@@ -783,6 +866,11 @@ def _render_images(
     )
     for i, line in enumerate(in_lines):
         _LOG.debug("%d %s: '%s'", i, state, line)
+        if extension == ".typ":
+            if wrap_content_open_regex.search(line):
+                wrap_content_depth += 1
+            elif wrap_content_close_regex.search(line):
+                wrap_content_depth = max(0, wrap_content_depth - 1)
         m = start_image_regex.search(line)
         if m:
             # Found the beginning of an image code block.
@@ -899,6 +987,8 @@ def _render_images(
                             out_file=out_file,
                             label=img_label,
                             caption=img_caption,
+                            inside_wrap_content=wrap_content_depth > 0,
+                            image_code_type=image_code_type,
                         )
                     )
                 user_img_size = ""
@@ -930,6 +1020,8 @@ def _render_images(
                     out_file=out_file,
                     label=img_label,
                     caption=img_caption,
+                    inside_wrap_content=wrap_content_depth > 0,
+                    image_code_type=image_code_type,
                 )
             )
     return out_lines

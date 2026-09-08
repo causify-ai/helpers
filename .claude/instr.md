@@ -1,4 +1,7 @@
 # Conventions
+- Follow all the conventions in `.claude/rules.md` depending on what is the type of file
+  involved
+
 - When writing code you must always follow the instructions in
   `.claude/skills/coding.rules.md`
 - When writing testing code you must always follow the instructions in

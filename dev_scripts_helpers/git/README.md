@@ -38,9 +38,8 @@ Git utility commands and scripts for streamlined development workflows.
 | `gcours`         | Accept our version of conflicted files (checkout --ours)                     |
 | `gctheirs`       | Accept their version of conflicted files (checkout --theirs)                 |
 | `gco`            | Checkout a branch and pull with submodule updates                            |
-| `gd`             | Run git difftool on specified files                                          |
-| `gdc`            | Run git difftool on cached/staged changes                                    |
-| `gdpy`           | Git diff for all Python files in the repository                              |
+| `gd`             | Run git difftool on specified files, or `<dir> <ext>` to expand to the changed git-tracked files matching |
+| `gdc`            | Run git difftool on cached/staged changes, or `<dir> <ext>` to expand to the changed git-tracked files matching |
 | `gll`            | List commits in fancy format with author, timestamp, and branch info         |
 | `gllmy`          | List only your own commits in fancy format                                   |
 | `gmt`            | Resolve all conflicted files: prefer "ours", then vimdiff against "theirs"   |
@@ -117,13 +116,30 @@ Git utility commands and scripts for streamlined development workflows.
 
 ## Diff and Comparison
 
-### `gd` / `gdc` / `gdpy`
+### `gd` / `gdc`
 - **What It Does**
   - `gd`: Run git difftool on specified files for visual comparison
   - `gdc`: Show only cached/staged changes using difftool
-  - `gdpy`: Diff all Python files in the repository
   - Use visual difftools (vimdiff by default) for better understanding of
     changes
+  - `gd` / `gdc` also accept 2 params `<dir> <ext>` (e.g., `gd . py`) meaning
+    "use only the changed git-tracked files with extension `<ext>` under
+    `<dir>`" (via `git diff --name-only` / `git diff --cached --name-only`);
+    any other number of params (e.g., a single file) is passed to git as-is
+
+- **Examples**
+  - Diff a single file:
+    ```bash
+    > gd file.py
+    ```
+  - Diff all Python files under the current directory:
+    ```bash
+    > gd . py
+    ```
+  - Same, but for staged changes:
+    ```bash
+    > gdc . py
+    ```
 
 ### `gd_master.sh`
 - **What It Does**

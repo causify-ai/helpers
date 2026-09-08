@@ -52,6 +52,14 @@
 - Chapter numbers in `## <NN>: <Chapter Title>` are zero-padded two digits and
   match the numbering in `## Short TOC`
 
+## Bold and Italic in Chapter Text
+- Reserve bold for a term's first, defining occurrence in a chapter's body text
+- Use italic to emphasize a concept without introducing a formal definition
+- Do not bold text in Roadmap or Summary chapters: they read as flowing narrative,
+  not reference material, so italic is the only emphasis allowed there
+- Keep tag density low: tagging too many terms spreads the signal thin and defeats
+  the purpose of emphasis
+
 # Section Details
 
 ## Title

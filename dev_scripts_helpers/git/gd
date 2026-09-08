@@ -2,8 +2,11 @@
 
 # """
 # > git difftool $*
+# > gd <dir> <ext>: git difftool on all the files with extension <ext> under
+# >   <dir> (e.g., `gd . py`)
 # """
 
 source helpers.sh
 
-execute "git difftool $*"
+FILES=$(resolve_diff_files 0 "$@")
+execute "git difftool $FILES"
