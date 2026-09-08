@@ -18,6 +18,7 @@ For a description of the architecture of this file, see the file
 import argparse
 import logging
 import os
+from typing import Optional
 
 import helpers.hdocker as hdocker
 import helpers.hprint as hprint
@@ -42,6 +43,30 @@ _DEFAULT_ACTIONS = [
         "remove_markdown_formatting",
     ]
 ]
+
+
+def _resolve_extension(args: argparse.Namespace) -> Optional[str]:
+    """
+    Determine the file extension to use to filter the available actions.
+
+    Use `--type` if specified, otherwise infer it from the input file(s), as
+    long as all of them share the same extension.
+
+    :param args: command line arguments
+    :return: extension (e.g., "typ"), or `None` if it can't be determined
+        (e.g., stdin with no `--type`, or files with mixed extensions)
+    """
+    if args.type:
+        return args.type
+    files = hseinout.parse_input_output_files(args)
+    if not files and args.input and args.input != "-":
+        files = [args.input]
+    if not files:
+        return None
+    extensions = {os.path.splitext(f)[1].lstrip(".") for f in files}
+    if len(extensions) != 1:
+        return None
+    return extensions.pop()
 
 
 # #############################################################################
@@ -152,15 +177,25 @@ def _main(parser: argparse.ArgumentParser) -> None:
             )
             dshdllite._revert_from_backup(in_file_name)
         return
+    # Restrict the actions offered to the ones supported by the file format,
+    # so e.g. a `.typ` file only lists `typstyle_format` instead of every
+    # markdown-only action that would just be skipped with a warning.
+    extension = _resolve_extension(args)
+    if extension:
+        valid_actions = dshdllite.get_actions_for_format(extension)
+        default_actions = [a for a in _DEFAULT_ACTIONS if a in valid_actions]
+    else:
+        valid_actions = _VALID_ACTIONS
+        default_actions = _DEFAULT_ACTIONS
     # Print actions (once for all files).
     actions = hselacti.select_actions(
         args,
-        _VALID_ACTIONS,
-        _DEFAULT_ACTIONS,
+        valid_actions,
+        default_actions,
     )
     add_frame = True
     actions_as_str = hselacti.actions_to_string(
-        actions, _VALID_ACTIONS, add_frame
+        actions, valid_actions, add_frame
     )
     _LOG.info("\n%s", actions_as_str)
     # Check if processing multiple files or a single file.

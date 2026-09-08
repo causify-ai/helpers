@@ -2,9 +2,12 @@
 
 ## Boilerplate and Imports
 
-- Every `.typ` chapter starts with the same boilerplate, in this order: the AIMA
-  style import, the citation import, `#set document(...)` metadata,
-  `#show: aima-style`, then a single `#chapter(...)` call
+- Every `.typ` chapter starts with the same boilerplate, in this order
+  - the AIMA style import
+  - the citation import
+  - `#set document(...)` metadata,
+  - `#show: aima-style`
+  - a single `#chapter(...)` call
 - Follow the template `.claude/templates/typst.template.typ`
 - Import both shared modules with a root-absolute path (resolved against
   `typst compile --root`), never a relative `../../` path: a relative path breaks as
@@ -120,26 +123,24 @@
 
 ## Highlighting and Emphasis
 
-- `#strong[...]` (or native `*text*`) is for the term or claim being formally defined
-  or named for the first time, usually in a sentence shaped like "#strong[Term]
-  is/refers to/means ...". Use it sparingly: a handful of times per section, never
-  for a list item's lead phrase
-- `#emph[...]` (or native `_text_`) is for everything else marked for emphasis: a
-  bold list-item lead phrase from the source, a term already defined earlier and
-  mentioned again, or rhetorical emphasis
+- `#strong[...]` is for the term or claim being formally defined or named for the
+  first time, usually in a sentence shaped like "#strong[Term] is/refers to/means
+  ...". Use it sparingly: a handful of times per section, never for a list item's
+  lead phrase
+- `#emph[...]` is for everything else marked for emphasis: a bold list-item lead
+  phrase from the source, a term already defined earlier and mentioned again, or
+  rhetorical emphasis
 - Decide `#strong` vs `#emph` by the role the phrase plays in the sentence, not by
   mechanically mapping the source's markdown (`**bold**` does not automatically mean
   `#strong`)
-- Prefer the function form (`#strong[...]`, `#emph[...]`) over the native shorthand
-  (`*...*`, `_..._`) for any phrase containing an underscore, hyphen, or other
-  punctuation: Typst's shorthand delimiters look for the next matching character and
-  misparse around it. Plain single/multi-word phrases with no such characters may use
-  either form
+- Always use the function form (`#strong[...]`, `#emph[...]`) over the native shorthand
+  (`*...*`, `_..._`)
 - Never leave Markdown-only syntax that has no meaning in Typst body text:
   `**double-star bold**`, `~~strikethrough~~`, or a lone `*`/`_` used the Markdown
   way: Typst renders these as literal punctuation, not emphasis
 - A plain quoted phrase (`"..."`) stays a plain quoted string: never prefix it with
   `#`: `#"text"` is a Typst string _expression_ and drops the visible quote marks
+
 - Cross-check against the source `.smd` when deciding `#strong` vs `#emph`, but apply
   the role-based test above rather than copying its markdown verbatim:
   - A term that anchors its own paragraph and is being named for the first time (the
@@ -153,7 +154,7 @@
     properly defined later), becomes `#emph`, not `#strong`
   - When a source line pairs a bold term with an italic citation, e.g
     `**Reinforcement Learning** _(Sutton, 1988)_`, bold the term and leave the
-    citation/author name plain (or in `#cite(...)`): never swap them so the person's
+    citation/author name plain or in `#cite(...)`: never swap them so the person's
     name ends up emphasized and the term plain
   - A term already `#strong`-defined earlier and mentioned again later (e.g. a
     second, separate reference to "narrow AI" after "Weak AI ... aka narrow AI" was
@@ -189,9 +190,6 @@
   `\leq`, `\geq` | `lt.eq`, `gt.eq` | | `\to`, `\gets` | `arrow.r`, `arrow.l` | |
   `\cdot`, `\times` | `dot.op`, `times` | | `\infty` | `oo` | | `\|x\|` | `\|x\|`
   (unchanged) |
-- For a single variable mentioned inline in prose (not a full formula), use a Unicode
-  character instead of math mode, to avoid Pandoc mangling a `$\theta$` into stray
-  characters: θ, α, β, μ, σ, ∈, ⊆, ∪, 𝒟, 𝒢, ℝ,
 - Keep a formula single-line when possible; a multi-line formula is more likely to
   break Typst's line-wrapping in the `wrap-content` narrow column (see "Visuals"
   below)
