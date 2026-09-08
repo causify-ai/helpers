@@ -2,8 +2,11 @@
 
 # """
 # > git difftool --cached $*
+# > gdc <dir> <ext>: git difftool --cached on all the files with extension
+# >   <ext> under <dir> (e.g., `gdc . py`)
 # """
 
 source helpers.sh
 
-execute "git difftool --cached $*"
+FILES=$(resolve_diff_files 1 "$@")
+execute "git difftool --cached $FILES"

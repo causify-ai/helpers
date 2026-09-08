@@ -45,7 +45,11 @@ rules
 
 ## Auto Task
 - For writing or reviewing an `auto_task` plan (GitHub issue problem /
-  solution) you MUST follow `.claude/skills/auto_task.rules.md`
+  solution) you MUST follow:
+  - The rules `.claude/skills/auto_task.rules.md`
+  - The template `.claude/templates/auto_task.template.md`
+- For executing a sequence of ready tasks as a stack of branches and PRs you
+  MUST follow `.claude/skills/auto_task.execute_with_stacked_prs/SKILL.md`
 
 ## GitHub PR Plan
 - For splitting a branch into a sequence of PRs you MUST follow the template

@@ -64,8 +64,7 @@ model: opus
   - **LOW**: minor polish or consistency
 
 ## Step 3: Write Result
-- Write results using the same format and file as in 
-  `## Step 4: Write the Results` in `.claude/skills/text.criticize/SKILL.md`
+- Write results as `plan.slides.criticize.md` in the current directory
 
 ## Step 4: Wait for Approval
 - Present the criticism to the user

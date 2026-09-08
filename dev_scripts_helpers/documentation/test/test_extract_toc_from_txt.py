@@ -92,6 +92,12 @@ class Test_extract_toc_from_txt_script1(hunitest.TestCase):
         """
         self.helper("input.md", extra_args="--count_slides")
 
+    def test6(self) -> None:
+        """
+        Test extraction of headers from a Typst file.
+        """
+        self.helper("input.typ")
+
 
 # #############################################################################
 # Test_count_headers_by_level

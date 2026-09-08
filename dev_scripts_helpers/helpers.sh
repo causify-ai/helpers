@@ -22,6 +22,34 @@ check_num_args() {
   fi;
 }
 
+resolve_diff_files() {
+  # """
+  # Resolve the file arguments for gd/gdc.
+
+  # If called with exactly 2 args where the 1st is an existing directory and
+  # the 2nd looks like a file extension (no `/`), expand to only the changed
+  # git-tracked files with that extension under that directory (e.g.,
+  # `. py` -> the changed `*.py` files under `.`). Otherwise return the args
+  # unchanged (e.g., a single file is passed to git as-is).
+
+  # :param $1: 1 to look at staged (cached) changes, 0 for unstaged changes
+  # :param $2, $3, ...: arguments passed to gd/gdc
+  # """
+  local cached=$1
+  shift
+  if [[ $# -eq 2 && -d "$1" && "$2" != */* ]]; then
+    local dir=$1
+    local ext=$2
+    if [[ "$cached" == "1" ]]; then
+      git diff --cached --name-only -- "$dir" | { grep "\.$ext\$" || true; }
+    else
+      git diff --name-only -- "$dir" | { grep "\.$ext\$" || true; }
+    fi
+  else
+    echo "$*"
+  fi
+}
+
 execute() {
   cmd=$*
   echo "+ $cmd"
