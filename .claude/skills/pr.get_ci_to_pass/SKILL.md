@@ -4,15 +4,22 @@ model: haiku
 ---
 
 # Goal
-- Monitor GitHub CI checks for the current PR and report status back on the PR
+- Run, monitor, and fix GitHub CI checks for the current PR
 
 # Workflow
 
 ## Constraints
-- This skill runs both when executed locally on a dev computer and remotely when
-  executed on cloud (e.g., on GitHub or Anthropic infrastructure)
+- This skill runs both when executed locally on a dev computer and remotely on cloud
+  (e.g., on GitHub or Anthropic infrastructure)
 
-## Step 1: Get the PR Number and Branch Name
+## Create and Update a Plan
+- Create a file `plan_pr.get_ci_to_pass.md` with a plan in the form of a bullet
+  list of actions and maintain it updated, by marking each action
+  - [.] when something is in progress
+  - [x] when something is done
+  - [F] when something failed
+
+## Get the PR Number and Branch Name
 - Get the PR number
   ```
   > GH_PR_NUM=$(gh pr view --json number -q .number)
@@ -23,7 +30,25 @@ model: haiku
   > BRANCH_NAME=$(git branch --show-current)
   ```
 
-## Step 2: Run and Monitor GitHub CI
+## Make Sure the PR is Ready
+
+- Run
+  ```
+  > gh pr view $GH_PR_NUM
+  ```
+- If the PR is a draft and not ready 
+  ```
+  > gh pr view $GH_PR_NUM
+  gp_5 causify-ai/helpers#1353
+  Draft • gpsaggese (GP Saggese) wants to merge 2 commits into master from gp_5 • about 10 minutes ago
+  +1499 -240 • ✓ Checks passing
+  ```
+  run
+  ```
+  > gh pr ready
+  ```
+
+## Run and Monitor GitHub CI
 - Start monitoring GitHub CI checks:
   ```
   > gh pr checks --watch $GH_PR_NUM
@@ -40,15 +65,35 @@ model: haiku
   ✓  CodeQL/Analyze (python) (dynamic)                                  1m0s     https://github.com/causify-ai/helpers/actions/runs/34052614245/job/101538799529
   ```
 - Monitor for any failures
+- Make sure that all the checks run and and they completely successfully
 
-## Step 3: Report CI Status on the PR
-- If GitHub CI is passing:
+## Report Status on the PR
+- If GitHub CI is passing, update the corresponding PR with
   ```
-  > gh pr comment $GH_PR_NUM --body "✅ GitHub CI checks passing. Local tests running..."
+  > gh pr comment $GH_PR_NUM --body "GitHub CI checks passing"
   ```
 - If any failures, document error and post:
   ```
-  > gh pr comment $GH_PR_NUM --body "⚠️ Test failures found: [error summary]. Investigating..."
+  > gh pr comment $GH_PR_NUM --body "GitHub CI failed: [error summary]. Investigating..."
   ```
-- If failures were found, use `.claude/skills/pytest.triage_github_unit_tests/SKILL.md`
-  to analyze and fix them
+
+## Fix the Failures
+- If failures were found, use `/pytest.triage_github_unit_tests` to analyze and fix
+  them
+  - If the fix is simple, just fix it and commit again
+  - If the fix is not clear, stop and ask for the user to help
+
+## Never Commit Junk Files
+- Never run `git add -A` or `git add .` to stage a fix: it sweeps in every
+  untracked file sitting in the working tree (logs, `tmp.*` scratch files,
+  test-run artifacts like `.pkl`/`.json` caches, etc.), not just the files you
+  intended to fix
+- Always stage files explicitly by path, e.g. `git add <file1> <file2>`
+- Before committing, run `git status --short` and review every listed file;
+  drop anything that is not part of the intended fix
+- If junk files were already committed and pushed, fix it by amending the
+  commit to contain only the intended files and force-pushing
+  (`git push --force-with-lease`), rather than leaving the junk in history
+
+## Loop
+- Keep repeating until the PR is passing all the CI tests
