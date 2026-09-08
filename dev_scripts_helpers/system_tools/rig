@@ -30,7 +30,7 @@ Output options:
   --case_insensitive  Expand to -S -i for ripgrep (smart-case + ignore-case)
 
 File selection:
-  -i/--input/--files  Select specific file(s) to search instead of a directory
+  -i/--input/-f/--files  Select specific file(s) to search instead of a directory
 """
 
 import dev_scripts_helpers.system_tools.lib_rig as lib_rig

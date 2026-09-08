@@ -27,7 +27,7 @@ _LOG = logging.getLogger(__name__)
 
 class _SingleFilesAction(argparse.Action):
     """
-    Custom action that errors if --files is used multiple times.
+    Custom action that errors if -f/--files is used multiple times.
     """
 
     def __call__(
@@ -69,13 +69,13 @@ class _SingleFileAction(argparse.Action):
             msg = (
                 f"{option_string} can only be specified once. "
                 f'Use {option_string} "file.py" for a single file, or '
-                "--files for multiple files."
+                "-f/--files for multiple files."
             )
             parser.error(msg)
         if len(values.split()) > 1:
             msg = (
                 f"{option_string} accepts a single file, got: {values!r}. "
-                "Use --files for a space-separated list of files."
+                "Use -f/--files for a space-separated list of files."
             )
             parser.error(msg)
         setattr(namespace, self.dest, values)
@@ -89,7 +89,7 @@ def add_file_selection_args(
 
     Adds the following mutually exclusive arguments:
     - -i / --input: Specify a single file (not a space-separated list)
-    - --files: Specify specific file(s)
+    - -f / --files: Specify specific file(s)
     - --from_files: Select files listed in a file
     - --modified: Select files modified in the client
     - --branch: Select files modified with respect to the branch point
@@ -108,6 +108,7 @@ def add_file_selection_args(
         help="Select a single specific file",
     )
     file_selection.add_argument(
+        "-f",
         "--files",
         dest="files",
         action=_SingleFilesAction,
@@ -153,7 +154,7 @@ def parse_file_selection_args(
     Parse file selection arguments and return list of files to process.
 
     Handles these mutually exclusive options:
-    - --files: files specified as space-separated list
+    - -f / --files: files specified as space-separated list
     - -i / --input: a single file (not a space-separated list)
     - --from_files: files listed in a file (one per line)
     - --modified: files modified in the client
@@ -168,9 +169,9 @@ def parse_file_selection_args(
     """
     import helpers.hgit as hgit
 
-    # `--files` and `-i` / `--input` are separate mutually exclusive options:
-    # `--files` takes a space-separated list, `-i`/`--input` takes a single
-    # file.
+    # `-f`/`--files` and `-i`/`--input` are separate mutually exclusive
+    # options: `-f`/`--files` takes a space-separated list, `-i`/`--input`
+    # takes a single file.
     files_str = getattr(args, "files", None) or getattr(args, "input", None)
     files = hgit.get_files_to_process(
         files_str or "",

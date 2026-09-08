@@ -155,7 +155,7 @@
 - File selection (mutually exclusive; see
   `helpers.hselect_input_output.add_file_selection_args`):
   - `-i, --input <file>`: A single file (or `-` for stdin)
-  - `--files <"file1 file2 ...">`: One or more files, space-separated in a
+  - `-f, --files <"file1 file2 ...">`: One or more files, space-separated in a
     single argument
   - `--from_file <file>`: File containing one file path per line
   - `--modified`: Files modified in the client (staged and unstaged)

@@ -214,10 +214,8 @@
 
   ```verbatim
   -i, --input FILE      Select a single file
-  --files FILES
-                        Select specific files (space-separated list in a single argument)
-  --from_file FROM_FILE
-                        Path to file containing one file path per line
+  -f, --files FILES     Select specific files (space-separated list in a single argument)
+  --from_file FROM_FILE Path to file containing one file path per line
   --modified            Select only files modified in the client (staged and unstaged)
   --branch              Select only files modified with respect to the branch point
   --last_commit         Select only files part of the previous commit
