@@ -78,7 +78,7 @@
     - Data file `update_gsheet_links_from_raindrop.combined_data.csv` name
       -- left untouched by design (user data, not code)
 
-- [ ] PR2: Modularize `update_bookmarks_from_raindrop.py`'s sync target
+- [x] PR2: Modularize `update_bookmarks_from_raindrop.py`'s sync target
   - Add `--target {gsheet,local_csv}` (default: `gsheet`, preserves today's
     behavior and CLI unchanged for that mode)
   - Refactor `_get_latest_timestamp_from_file()`, `_download_raindrop_data()`,
@@ -96,6 +96,33 @@
   - `--target gsheet` behavior and output paths are unchanged
   - Add/update unit tests per `.claude/skills/testing.rules.md` for both
     targets, including the in-place-merge behavior for `local_csv`
+
+  ## Result
+  - Done:
+    - `--target {gsheet,local_csv}` (default `gsheet`) and `--local_csv
+      <path>` CLI args
+    - `_get_latest_timestamp_from_file()`, `_download_raindrop_data()`,
+      `_combine_raindrop_with_gsheet_links()` refactored to take explicit
+      `base_csv`/`output_csv` params instead of hardcoded gsheet tmp paths;
+      `raindrop_csv` stays an internal tmp file shared by both targets
+    - `local_csv` target: only `download_raindrop_data`/`combine_data` are
+      valid (enforced by passing a separate `_LOCAL_CSV_ACTIONS` list to
+      `hselacti.select_actions()`, which rejects other actions with a clear
+      `AssertionError`); `combine_data` prepends into `--local_csv` in
+      place (`output_csv == base_csv`), verified to leave existing rows
+      (`Done` included) untouched, both at the unit level and via a real
+      CLI smoke test
+    - `_get_action_output_file()` made target-aware so `combine_data`'s
+      incremental-skip check is disabled for `local_csv` (it would
+      otherwise always skip, since `--local_csv` already exists)
+    - `gsheet` target: verified byte-for-byte behavior-preserving (all
+      pre-existing tests pass unchanged; new `--target`/`--local_csv` args
+      default to today's behavior)
+    - Tests: 7 new/updated cases (in-place-merge, target-aware
+      `_get_action_output_file`) + 3 new end-to-end CLI tests (missing
+      `--local_csv`, rejected gsheet-only action, full local_csv round
+      trip); 82/82 tests pass in the dir, pyflakes clean
+  - Not done: none (full PR2 scope covered)
 
 - [ ] PR3: Skip non-HN rows in `process_bookmarks.py`
   - A row whose `Hn_url` is not a real HN item URL

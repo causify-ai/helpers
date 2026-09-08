@@ -7,14 +7,20 @@
 # ///
 
 r"""
-Update Google Sheets data with Raindrop.io data.
+Sync new Raindrop.io bookmarks into a Google Sheet or a local CSV.
 
-This script manages four actions:
-- Download_gsheet_links: Download data from Google Sheets to CSV
-- Download_raindrop_data: Fetch links from Raindrop.io after the latest
-  timestamp and save to CSV
-- Combine_data: Transform and combine Raindrop data with gsheet structure
-- Upload_gsheet_links: Upload the combined CSV to a new tab in Google Sheets
+- `--target` selects the sync destination (default: `gsheet`):
+    - `gsheet`: the original four-action pipeline, unchanged
+      - Download_gsheet_links: Download data from Google Sheets to CSV
+      - Download_raindrop_data: Fetch links from Raindrop.io after the latest
+        timestamp and save to CSV
+      - Combine_data: Transform and combine Raindrop data with gsheet structure
+      - Upload_gsheet_links: Upload the combined CSV to a new tab in Google
+        Sheets
+    - `local_csv` (requires `--local_csv <path>`): only `download_raindrop_data`
+      and `combine_data` apply; the latest-`Timestamp` cutoff is read directly
+      from `--local_csv`, and `combine_data` prepends newly-fetched rows into
+      that same file in place, leaving every existing row untouched
 
 # Usage Example
 
@@ -23,7 +29,7 @@ This script manages four actions:
     --url "https://docs.google.com/spreadsheets/d/1i6Z7v2..." \
     --clear_actions --action download_gsheet_links
 
-- Run all actions:
+- Run all gsheet actions:
 > update_bookmarks_from_raindrop.py \
     --url "https://docs.google.com/spreadsheets/d/1i6Z7v2..." \
     --all_actions
@@ -39,6 +45,11 @@ file) is skipped automatically if its output file already exists. Pass
 > update_bookmarks_from_raindrop.py \
     --url "https://docs.google.com/spreadsheets/d/1i6Z7v2..." \
     --all_actions --no_incremental
+
+- Sync new bookmarks directly into a local CSV instead of a Google Sheet:
+> update_bookmarks_from_raindrop.py \
+    --target local_csv --local_csv bookmarks/combined_data.csv \
+    --action download_raindrop_data --action combine_data
 
 Import as:
 
@@ -130,52 +141,55 @@ def _parse_timestamp(ts_str: str) -> datetime:
     return dt
 
 
-def _get_latest_timestamp_from_file(gsheet_csv: str) -> datetime:
+def _get_latest_timestamp_from_file(base_csv: str) -> datetime:
     """
-    Get the latest `Timestamp` value from a gsheet CSV file.
+    Get the latest `Timestamp` value from a CSV file.
 
-    :param gsheet_csv: path to the gsheet CSV file
+    `base_csv` is the gsheet-downloaded CSV for `--target gsheet`, or the
+    user's local CSV directly for `--target local_csv`.
+
+    :param base_csv: path to the CSV file to scan
     :return: latest timestamp found in the file
     """
-    _LOG.debug(hprint.to_str("gsheet_csv"))
-    hdbg.dassert_path_exists(gsheet_csv, "Must download from gsheet first")
-    _LOG.info("Loading gsheet CSV to find latest timestamp")
-    rows_gsheet = dshdbout.read_csv(gsheet_csv)
-    _log_first_rows(gsheet_csv, action_desc="Read")
-    _LOG.debug(hprint.to_str("len(rows_gsheet)"))
-    # The gsheet CSV must have a `Timestamp` column to compute the cutoff.
+    _LOG.debug(hprint.to_str("base_csv"))
+    hdbg.dassert_path_exists(base_csv, "Base CSV file not found")
+    _LOG.info("Loading base CSV to find latest timestamp")
+    rows_base = dshdbout.read_csv(base_csv)
+    _log_first_rows(base_csv, action_desc="Read")
+    _LOG.debug(hprint.to_str("len(rows_base)"))
+    # The base CSV must have a `Timestamp` column to compute the cutoff.
     hdbg.dassert(
-        bool(rows_gsheet) and "Timestamp" in rows_gsheet[0],
-        "gsheet CSV '%s' is missing the required 'Timestamp' column",
-        gsheet_csv,
+        bool(rows_base) and "Timestamp" in rows_base[0],
+        "Base CSV '%s' is missing the required 'Timestamp' column",
+        base_csv,
     )
     # Determine the latest timestamp in existing data to avoid re-downloading duplicates.
     latest_timestamp = max(
         _parse_timestamp(row["Timestamp"])
-        for row in rows_gsheet
+        for row in rows_base
         if row.get("Timestamp")
     )
-    _LOG.info("Latest timestamp in gsheet: '%s'", latest_timestamp)
+    _LOG.info("Latest timestamp in base CSV: '%s'", latest_timestamp)
     _LOG.debug("return=%s", latest_timestamp)
     return latest_timestamp
 
 
-def _download_raindrop_data() -> str:
+def _download_raindrop_data(base_csv: str) -> str:
     """
-    Download links from Raindrop.io after the latest timestamp from the
-    gsheet CSV.
+    Download links from Raindrop.io after the latest timestamp in
+    `base_csv`.
 
     Fetches all bookmarks from the Raindrop API that were created after the
-    most recent timestamp in the existing gsheet data, then combines them.
+    most recent timestamp in `base_csv` (the gsheet-downloaded CSV for
+    `--target gsheet`, or the local CSV directly for `--target local_csv`).
 
-    :return: Path to the CSV file with combined data
+    :param base_csv: path to the CSV file to read the latest-`Timestamp`
+        cutoff from
+    :return: Path to the CSV file with the newly-fetched Raindrop data
     """
     _LOG.debug(hprint.func_signature_to_str())
-    # Load the gsheet CSV to find the cutoff timestamp for filtering new bookmarks.
-    gsheet_csv = dshdbout.get_tmp_file_path(
-        GSHEET_CSV_FILE, "update_bookmarks_from_raindrop"
-    )
-    latest_timestamp = _get_latest_timestamp_from_file(gsheet_csv)
+    # Find the cutoff timestamp for filtering new bookmarks.
+    latest_timestamp = _get_latest_timestamp_from_file(base_csv)
 
     # Retrieve Raindrop API token from environment and validate it exists.
     raindrop_token = os.environ.get("RAINDROP_API_TOKEN")
@@ -250,36 +264,42 @@ def _download_raindrop_data() -> str:
     return raindrop_csv
 
 
-def _combine_raindrop_with_gsheet_links() -> str:
+def _combine_raindrop_with_gsheet_links(base_csv: str, output_csv: str) -> str:
     """
-    Transform and combine Raindrop data with gsheet structure.
+    Transform and combine Raindrop data with `base_csv`'s structure, writing
+    the result to `output_csv`.
 
-    Maps Raindrop fields to gsheet columns:
+    Maps Raindrop fields to `base_csv` columns:
     - title -> Title
     - url -> Url
     - created -> Timestamp (converted from ISO 8601 to YYYY-MM-DD HH:MM:SS)
     - id -> discarded
-    - Other gsheet columns left empty for Raindrop rows
+    - Other `base_csv` columns left empty for Raindrop rows
 
-    Raindrop data is prepended to gsheet data in the combined CSV.
+    Raindrop data is prepended to `base_csv`'s existing rows.
+    - For `--target gsheet`, `output_csv` is a separate combined tmp CSV
+    - For `--target local_csv`, `output_csv` is the same path as `base_csv`,
+      so this call merges the new rows into it in place, leaving every
+      existing row (`Done` included) untouched
 
-    :return: Path to the combined CSV file
+    :param base_csv: path to the CSV file providing existing rows and the
+        column schema
+    :param output_csv: path to write the combined CSV to (may be the same
+        path as `base_csv` for an in-place merge)
+    :return: Path to the combined CSV file (== `output_csv`)
     """
     _LOG.debug(hprint.func_signature_to_str())
-    # Load both CSV files and extract the gsheet column schema.
-    gsheet_csv = dshdbout.get_tmp_file_path(
-        GSHEET_CSV_FILE, "update_bookmarks_from_raindrop"
-    )
+    # Load both CSV files and extract the column schema from `base_csv`.
     raindrop_csv = dshdbout.get_tmp_file_path(
         RAINDROP_CSV_FILE, "update_bookmarks_from_raindrop"
     )
-    hdbg.dassert_path_exists(gsheet_csv, "gsheet CSV file not found")
+    hdbg.dassert_path_exists(base_csv, "Base CSV file not found")
     hdbg.dassert_path_exists(raindrop_csv, "raindrop CSV file not found")
-    _LOG.info("Loading gsheet CSV to get schema")
-    rows_gsheet = dshdbout.read_csv(gsheet_csv)
-    _log_first_rows(gsheet_csv, action_desc="Read")
+    _LOG.info("Loading base CSV to get schema")
+    rows_gsheet = dshdbout.read_csv(base_csv)
+    _log_first_rows(base_csv, action_desc="Read")
     gsheet_columns = list(rows_gsheet[0].keys()) if rows_gsheet else []
-    _LOG.info("Gsheet schema: %s", gsheet_columns)
+    _LOG.info("Base CSV schema: %s", gsheet_columns)
     _LOG.info("Loading Raindrop CSV data")
     rows_raindrop = dshdbout.read_csv(raindrop_csv)
     if rows_raindrop:
@@ -317,30 +337,27 @@ def _combine_raindrop_with_gsheet_links() -> str:
                 # Use original timestamp string if parsing fails.
                 combined_row["Timestamp"] = row["created"]
         rows_combined.append(combined_row)
-    # Prepend Raindrop data (newest first) and append existing gsheet data.
+    # Prepend Raindrop data (newest first) and append existing base rows.
     rows_combined.extend(rows_gsheet)
     _LOG.debug(hprint.to_str("len(rows_combined)"))
-    combined_csv = dshdbout.get_tmp_file_path(
-        COMBINED_CSV_FILE, "update_bookmarks_from_raindrop"
-    )
     _LOG.info(
-        "Combining data: %d raindrop items, %d gsheet items",
+        "Combining data: %d raindrop items, %d existing items",
         len(rows_raindrop),
         len(rows_gsheet),
     )
-    _LOG.info("Writing combined data to CSV file: '%s'", combined_csv)
-    # Write combined data preserving gsheet column order.
+    _LOG.info("Writing combined data to CSV file: '%s'", output_csv)
+    # Write combined data preserving the base CSV's column order.
     if rows_combined:
         dshdbout.write_csv(
-            combined_csv, rows_combined, fieldnames=gsheet_columns
+            output_csv, rows_combined, fieldnames=gsheet_columns
         )
     else:
-        dshdbout.write_csv(combined_csv, [], fieldnames=gsheet_columns)
+        dshdbout.write_csv(output_csv, [], fieldnames=gsheet_columns)
     if rows_combined:
-        _log_first_rows(combined_csv, action_desc="Combined into")
+        _log_first_rows(output_csv, action_desc="Combined into")
     _LOG.info("Combined CSV created with %d rows", len(rows_combined))
-    _LOG.debug("return=%s", combined_csv)
-    return combined_csv
+    _LOG.debug("return=%s", output_csv)
+    return output_csv
 
 
 def _upload_to_gsheet(url: str) -> None:
@@ -365,7 +382,7 @@ def _upload_to_gsheet(url: str) -> None:
     dshdbout.upload_to_gsheet(url, combined_csv, tabname)
 
 
-def _get_action_output_file(action: str) -> Optional[str]:
+def _get_action_output_file(action: str, target: str) -> Optional[str]:
     """
     Get the output file that an action produces, if any.
 
@@ -373,15 +390,24 @@ def _get_action_output_file(action: str) -> Optional[str]:
     file already exists (unless `--no_incremental` is passed).
 
     :param action: name of the action
+    :param target: `--target` value (`gsheet` or `local_csv`)
     :return: path to the action's output file, or `None` if the action has
-        no local output file to check against (e.g., `upload_gsheet_links`,
-        which only has a side effect on the remote gsheet)
+        no local output file to check against. This is the case for
+        `upload_gsheet_links` (only a side effect on the remote gsheet) and,
+        for `--target local_csv`, `combine_data` (it prepends into
+        `--local_csv` in place, which always already exists, so an
+        existence check would wrongly skip it every run)
     """
-    action_to_filename = {
-        "download_gsheet_links": GSHEET_CSV_FILE,
-        "download_raindrop_data": RAINDROP_CSV_FILE,
-        "combine_data": COMBINED_CSV_FILE,
-    }
+    if target == "local_csv":
+        action_to_filename = {
+            "download_raindrop_data": RAINDROP_CSV_FILE,
+        }
+    else:
+        action_to_filename = {
+            "download_gsheet_links": GSHEET_CSV_FILE,
+            "download_raindrop_data": RAINDROP_CSV_FILE,
+            "combine_data": COMBINED_CSV_FILE,
+        }
     filename = action_to_filename.get(action)
     if filename is None:
         return None
@@ -403,6 +429,9 @@ _VALID_ACTIONS = [
 ]
 # By default, execute all actions in order.
 _DEFAULT_ACTIONS = _VALID_ACTIONS[:]
+# `--target local_csv` only supports fetching and merging: there's no
+# separate gsheet to download from or upload to.
+_LOCAL_CSV_ACTIONS = ["download_raindrop_data", "combine_data"]
 
 
 def _parse() -> argparse.ArgumentParser:
@@ -410,6 +439,23 @@ def _parse() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         description=__doc__,
         formatter_class=hparser.CustomHelpFormatter,
+    )
+    parser.add_argument(
+        "--target",
+        action="store",
+        choices=["gsheet", "local_csv"],
+        default="gsheet",
+        help="Sync destination: 'gsheet' (default, unchanged behavior) "
+        "syncs into a live Google Sheet via --url; 'local_csv' syncs "
+        "directly into the file passed via --local_csv, merging new rows "
+        "in place",
+    )
+    parser.add_argument(
+        "--local_csv",
+        action="store",
+        default="",
+        help="Path to the local CSV to sync into (required for "
+        "--target local_csv; ignored for --target gsheet)",
     )
     parser.add_argument(
         "--url",
@@ -440,11 +486,31 @@ def _main(parser: argparse.ArgumentParser) -> None:
     _LOG.debug(hprint.func_signature_to_str())
     args = parser.parse_args()
     hdbg.init_logger(verbosity=args.log_level, use_exec_path=True)
+    # Resolve the base CSV (source of the latest-`Timestamp` cutoff and, for
+    # `combine_data`, of the existing rows/schema) for the selected target.
+    if args.target == "local_csv":
+        hdbg.dassert_ne(
+            args.local_csv,
+            "",
+            "--local_csv is required when --target local_csv",
+        )
+        base_csv = args.local_csv
+        valid_actions = _LOCAL_CSV_ACTIONS
+        default_actions = _LOCAL_CSV_ACTIONS
+    else:
+        base_csv = dshdbout.get_tmp_file_path(
+            GSHEET_CSV_FILE, "update_bookmarks_from_raindrop"
+        )
+        valid_actions = _VALID_ACTIONS
+        default_actions = _DEFAULT_ACTIONS
     # Determine which actions to execute based on command-line arguments.
-    actions = hselacti.select_actions(args, _VALID_ACTIONS, _DEFAULT_ACTIONS)
+    # `select_actions()` rejects, with a clear error, any action outside
+    # `valid_actions` (e.g., `download_gsheet_links`/`upload_gsheet_links`
+    # when `--target local_csv`).
+    actions = hselacti.select_actions(args, valid_actions, default_actions)
     _LOG.info(
         "Actions to execute:\n%s",
-        hselacti.actions_to_string(actions, _VALID_ACTIONS, add_frame=True),
+        hselacti.actions_to_string(actions, valid_actions, add_frame=True),
     )
     # Execute actions sequentially in the order specified by the user.
     while actions:
@@ -456,7 +522,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
         # Skip the action if its output file already exists (incremental
         # mode), unless the caller forced a full re-run.
         if not args.no_incremental:
-            output_file = _get_action_output_file(action)
+            output_file = _get_action_output_file(action, args.target)
             if output_file is not None and os.path.exists(output_file):
                 _LOG.warning(
                     "Skipping action '%s': output file '%s' already exists "
@@ -470,9 +536,16 @@ def _main(parser: argparse.ArgumentParser) -> None:
             url = dshdbout.resolve_gsheet_url(args.url)
             _download_gsheet_links(url)
         elif action == "download_raindrop_data":
-            _download_raindrop_data()
+            _download_raindrop_data(base_csv)
         elif action == "combine_data":
-            _combine_raindrop_with_gsheet_links()
+            if args.target == "local_csv":
+                # Merge new rows into the same file in place.
+                output_csv = base_csv
+            else:
+                output_csv = dshdbout.get_tmp_file_path(
+                    COMBINED_CSV_FILE, "update_bookmarks_from_raindrop"
+                )
+            _combine_raindrop_with_gsheet_links(base_csv, output_csv)
         elif action == "upload_gsheet_links":
             url = dshdbout.resolve_gsheet_url(args.url)
             _upload_to_gsheet(url)
