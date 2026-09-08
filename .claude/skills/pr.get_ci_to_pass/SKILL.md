@@ -4,7 +4,7 @@ model: haiku
 ---
 
 # Goal
-- Monitor GitHub CI checks for the current PR and report status back on the PR
+- Run, monitor, and fix GitHub CI checks for the current PR
 
 # Workflow
 
@@ -13,7 +13,7 @@ model: haiku
   (e.g., on GitHub or Anthropic infrastructure)
 
 ## Create and Update a Plan
-- Create a file `plan.pr.get_ci_to_pass.md` with a plan in the form of a bullet
+- Create a file `plan_pr.get_ci_to_pass.md` with a plan in the form of a bullet
   list of actions and maintain it updated, by marking each action
   - [.] when something is in progress
   - [x] when something is done
@@ -67,21 +67,33 @@ model: haiku
 - Monitor for any failures
 - Make sure that all the checks run and and they completely successfully
 
-## Report CI Status on the PR
+## Report Status on the PR
 - If GitHub CI is passing, update the corresponding PR with
   ```
-  > gh pr comment $GH_PR_NUM --body "✅ GitHub CI checks passing. Local tests running..."
+  > gh pr comment $GH_PR_NUM --body "GitHub CI checks passing"
   ```
 - If any failures, document error and post:
   ```
-  > gh pr comment $GH_PR_NUM --body "⚠️ Test failures found: [error summary]. Investigating..."
+  > gh pr comment $GH_PR_NUM --body "GitHub CI failed: [error summary]. Investigating..."
   ```
 
 ## Fix the Failures
 - If failures were found, use `/pytest.triage_github_unit_tests` to analyze and fix
   them
-- If the fix is simple, just fix it and commit again
-- If the fix is not clear, stop and ask for the user to help
+  - If the fix is simple, just fix it and commit again
+  - If the fix is not clear, stop and ask for the user to help
+
+## Never Commit Junk Files
+- Never run `git add -A` or `git add .` to stage a fix: it sweeps in every
+  untracked file sitting in the working tree (logs, `tmp.*` scratch files,
+  test-run artifacts like `.pkl`/`.json` caches, etc.), not just the files you
+  intended to fix
+- Always stage files explicitly by path, e.g. `git add <file1> <file2>`
+- Before committing, run `git status --short` and review every listed file;
+  drop anything that is not part of the intended fix
+- If junk files were already committed and pushed, fix it by amending the
+  commit to contain only the intended files and force-pushing
+  (`git push --force-with-lease`), rather than leaving the junk in history
 
 ## Loop
 - Keep repeating until the PR is passing all the CI tests

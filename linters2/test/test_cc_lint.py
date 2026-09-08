@@ -154,10 +154,10 @@ class Test_infer_topic_from_filename(hunitest.TestCase):
 
     def test11(self) -> None:
         """
-        Test detection of slides (txt) files.
+        Test detection of slides (smd) files.
         """
         # Prepare inputs.
-        filename = "slides.txt"
+        filename = "slides.smd"
         # Prepare outputs.
         expected = "slides"
         # Run test.
