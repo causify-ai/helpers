@@ -49,6 +49,7 @@ import helpers.hparser as hparser
 import helpers.hprint as hprint
 import helpers.hserver as hserver
 import helpers.hsystem as hsystem
+import helpers.htimer as htimer
 
 _LOG = logging.getLogger(__name__)
 
@@ -93,6 +94,26 @@ def _parse() -> argparse.ArgumentParser:
     return parser
 
 
+def _get_llm_transform_dockerfile() -> str:
+    """
+    Return the Dockerfile used by the isolated LLM transform.
+
+    Installing all Python dependencies in one command saves two container
+    layers and two Python process startups during a cold image build.
+    """
+    return r"""
+    FROM python:3.12-alpine
+
+    # Install Bash, Git, and the Python dependencies in two layers.
+    RUN apk add --no-cache bash git
+
+    SHELL ["/bin/bash", "-c"]
+
+    RUN pip install --no-cache-dir --upgrade \
+        pip PyYAML requests tqdm openai
+    """
+
+
 # TODO(gp): Make it public and move it to `hdockerized_executables.py`.
 def _run_dockerized_llm_transform(
     in_file_path: str,
@@ -113,26 +134,18 @@ def _run_dockerized_llm_transform(
     hdbg.dassert_in("OPENAI_API_KEY", os.environ)
     hdbg.dassert_isinstance(cmd_opts, list)
     # Build the container, if needed.
+    timer = htimer.Timer()
     container_image = "tmp.llm_transform"
-    dockerfile = r"""
-    FROM python:3.12-alpine
-
-    # Install Bash.
-    RUN apk add --no-cache bash git
-
-    # Set Bash as the default shell.
-    SHELL ["/bin/bash", "-c"]
-
-    # Install pip packages.
-    RUN pip install --upgrade pip
-    RUN pip install --no-cache-dir PyYAML requests pandas tqdm
-
-    RUN pip install --no-cache-dir openai
-    """
+    dockerfile = _get_llm_transform_dockerfile()
     container_image = hdocker.build_container_image(
         container_image, dockerfile, force_rebuild, use_sudo
     )
+    _LOG.info(
+        "llm_transform timing: image preparation=%.3f seconds",
+        timer.get_elapsed(),
+    )
     # Convert files to Docker paths.
+    timer = htimer.Timer()
     is_caller_host = not hserver.is_inside_docker()
     use_sibling_container_for_callee = hserver.use_docker_sibling_containers()
     caller_mount_path, callee_mount_path, mount = hdocker.get_docker_mount_info(
@@ -198,8 +211,17 @@ def _run_dockerized_llm_transform(
     docker_cmd = " ".join(docker_cmd)
     if suppress_output:
         mode = "system_without_output"
+    _LOG.info(
+        "llm_transform timing: command preparation=%.3f seconds",
+        timer.get_elapsed(),
+    )
+    timer = htimer.Timer()
     ret = hdocker.process_docker_cmd(
         docker_cmd, container_image, dockerfile, mode
+    )
+    _LOG.info(
+        "llm_transform timing: container and LLM=%.3f seconds",
+        timer.get_elapsed(),
     )
     ret = cast(str, ret)
     return ret

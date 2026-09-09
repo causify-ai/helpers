@@ -5,6 +5,7 @@ from typing import Tuple
 import pytest
 
 import dev_scripts_helpers.llms.llm_prompts as dshlllpr
+import dev_scripts_helpers.llms.llm_transform as dshlltr
 import helpers.hdbg as hdbg
 import helpers.hio as hio
 import helpers.hprint as hprint
@@ -12,6 +13,32 @@ import helpers.hsystem as hsystem
 import helpers.hunit_test as hunitest
 
 _LOG = logging.getLogger(__name__)
+
+
+# #############################################################################
+# Test_get_dockerfile1
+# #############################################################################
+
+
+class Test_get_dockerfile1(hunitest.TestCase):
+    """
+    Test the isolated transform Dockerfile.
+    """
+
+    def test_python_dependencies_are_installed_in_one_layer(self) -> None:
+        """
+        Verify that cold builds do not start pip more than once.
+        """
+        dockerfile = dshlltr._get_llm_transform_dockerfile()
+        self.assert_equal(dockerfile.count("RUN pip install"), 1)
+        for package in [
+            "PyYAML",
+            "requests",
+            "tqdm",
+            "openai",
+        ]:
+            self.assertIn(package, dockerfile)
+        self.assertNotIn("pandas", dockerfile)
 
 
 # #############################################################################
