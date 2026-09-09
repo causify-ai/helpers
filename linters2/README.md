@@ -17,6 +17,8 @@ Claude Code integration for intelligent formatting.
   - Execute ty type checker in Docker container with standard configuration
 - `fix_comments.py`
   - Convert single-line docstrings to multi-line format
+- `find_private_functions.py`
+  - Find public module-level functions referenced only within their own file
 - `lint.py`
   - Unified linter for Python, Jupyter, and Markdown with multiple backends
 - `cc_lint.py`
@@ -98,6 +100,33 @@ Claude Code integration for intelligent formatting.
 - Fix docstrings in multiple files:
   ```bash
   > fix_comments.py file1.py file2.py
+  ```
+
+## find_private_functions.py
+
+### What It Does
+
+- Finds public module-level functions with same-file references
+- Resolves direct and aliased imports before reporting a candidate
+- Skips explicit exports and ambiguous wildcard imports
+- Supports a check mode and an explicit fix mode
+- Changes only Python identifier tokens, preserving strings and comments
+
+### Examples
+
+- Report candidates in the current repository:
+  ```bash
+  > find_private_functions.py .
+  ```
+
+- Fail when candidates are found:
+  ```bash
+  > find_private_functions.py --check .
+  ```
+
+- Rename candidates and same-file references:
+  ```bash
+  > find_private_functions.py --fix .
   ```
 
 ## lint.py
