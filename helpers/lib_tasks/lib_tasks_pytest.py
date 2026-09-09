@@ -27,6 +27,7 @@ import helpers.hserver as hserver
 import helpers.hsystem as hsystem
 import helpers.htraceback as htraceb
 import helpers.lib_tasks.lib_tasks_docker as hltltado
+import helpers.lib_tasks.lib_tasks_find as hltafin
 import helpers.lib_tasks.lib_tasks_lint as hltltali
 import helpers.lib_tasks.lib_tasks_utils as hltltaut
 import helpers.repo_config_utils as hrecouti
@@ -1672,3 +1673,44 @@ def pytest_failed(ctx, file_name="tmp.pytest_log.txt"):  # type: ignore
     script_path = "dev_scripts_helpers/testing/pytest_failed.py"
     cmd = f"python {script_path} -i {file_name}"
     hsystem.system(cmd, abort_on_error=False, suppress_output=False)
+
+
+# #############################################################################
+# pytest_run_class
+# #############################################################################
+
+
+@task
+def pytest_run_class(ctx, class_name, dir_name=".", preview=False):  # type: ignore
+    """
+    Run a specific test class by name.
+
+    :param class_name: the test class to run (e.g., "TestCheckString1")
+    :param dir_name: the directory to search from (default: ".")
+    :param preview: if True, print the command without executing
+    """
+    hltltaut.report_task(txt="class_name dir_name preview")
+    hdbg.dassert_ne(class_name, "", "You need to specify a class name")
+    _ = ctx
+    # Find test files.
+    file_names = hltafin._find_test_files(dir_name)
+    # Find the class.
+    matches = hltafin._find_test_class(class_name, file_names, exact_match=True)
+    if not matches:
+        hsystem.system(
+            f"echo 'Error: No test class found matching \"{class_name}\"'",
+            abort_on_error=True,
+        )
+    elif len(matches) > 1:
+        msg = f"Ambiguous class name \"{class_name}\" matches multiple classes:\n"
+        msg += "\n".join(f"  - {m}" for m in matches)
+        hsystem.system(f"echo '{msg}'", abort_on_error=True)
+    else:
+        # Build pytest node ID.
+        node_id = matches[0]
+        cmd = f'invoke docker_cmd --cmd "pytest {node_id} -v"'
+        if preview:
+            _LOG.info("Preview command: %s", cmd)
+            print(cmd)
+        else:
+            hsystem.system(cmd, abort_on_error=False, suppress_output=False)
