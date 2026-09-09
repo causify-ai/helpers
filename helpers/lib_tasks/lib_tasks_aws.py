@@ -13,7 +13,7 @@ import os
 import re
 from typing import Any, Dict, Optional
 
-from invoke import task
+from invoke.tasks import task
 
 import helpers.haws as haws
 import helpers.hdbg as hdbg
