@@ -82,6 +82,18 @@ class Test_pytest_run_class_integration1(hunitest.TestCase):
         self.assertIn("1 passed", output)
         self.assertNotIn("unrelated module collected", output)
 
+    def test_registered_task_runs_nested_class_containing_file(self) -> None:
+        search_root = self._create_test_tree()
+        quoted_root = shlex.quote(search_root)
+        args = (
+            "--warn-only pytest_run_class -c TestInner --run-file "
+            f"--search-root {quoted_root}"
+        )
+        rc, output = self._run_invoke(args)
+        self.assertEqual(rc, 1)
+        self.assertIn("sibling executed", output)
+        self.assertNotIn("unrelated module collected", output)
+
     def test_registered_task_previews_without_execution(self) -> None:
         search_root = self._create_test_tree()
         quoted_root = shlex.quote(search_root)

@@ -25,6 +25,10 @@ class Test_pytest_run_class1(hunitest.TestCase):
 
                 class TestSelectedExtra(object):
                     pass
+
+                class TestOuter:
+                    class TestInner:
+                        pass
                 """
             ),
         }
@@ -54,6 +58,14 @@ class Test_pytest_run_class1(hunitest.TestCase):
         search_root = self._create_test_tree()
         actual = hltltpyru._resolve_pytest_class_target(
             "TestSelected", search_root, run_file=True
+        )
+        expected = os.path.join(search_root, "test/test_selected.py")
+        self.assert_equal(actual, expected)
+
+    def test_nested_class_containing_file(self) -> None:
+        search_root = self._create_test_tree()
+        actual = hltltpyru._resolve_pytest_class_target(
+            "TestInner", search_root, run_file=True
         )
         expected = os.path.join(search_root, "test/test_selected.py")
         self.assert_equal(actual, expected)
