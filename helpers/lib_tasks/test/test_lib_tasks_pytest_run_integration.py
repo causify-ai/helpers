@@ -15,7 +15,9 @@ import helpers.hunit_test as hunitest
 
 class Test_pytest_run_class_integration1(hunitest.TestCase):
     def _create_test_tree(self) -> str:
-        search_root = os.path.join(self.get_scratch_space(), "path with spaces")
+        search_root = os.path.join(
+            self.get_scratch_space(), "path with spaces 'quote $dollar"
+        )
         file_dict = {
             "test/test_selected.py": hprint.dedent(
                 """
@@ -30,6 +32,9 @@ class Test_pytest_run_class_integration1(hunitest.TestCase):
                 class TestPreview(object):
                     def test_must_not_run(self):
                         raise AssertionError("preview executed")
+
+                class TestNoTests(object):
+                    pass
                 """
             ),
             "test/test_unrelated.py": hprint.dedent(
@@ -68,17 +73,31 @@ class Test_pytest_run_class_integration1(hunitest.TestCase):
         )
         rc, output = self._run_invoke(args)
         self.assertEqual(rc, 0)
-        self.assertIn("pytest ", output)
+        preview_target = os.path.join(
+            search_root, "test/test_selected.py::TestPreview"
+        )
+        expected = f"pytest {shlex.quote(preview_target)}"
+        self.assertIn(expected, output.splitlines())
         self.assertNotIn("preview executed", output)
         self.assertNotIn("1 failed", output)
-        # File mode should collect the sibling classes, but not another file.
+        # File mode should fail with pytest's exact exit code even when Invoke
+        # is configured to warn, while still excluding the unrelated file.
         args = (
-            "pytest_run_class -c TestSelected --run-file "
+            "--warn-only pytest_run_class -c TestSelected --run-file "
             f"--search-root {quoted_root}"
         )
         rc, output = self._run_invoke(args)
-        self.assertNotEqual(rc, 0)
+        self.assertEqual(rc, 1)
         self.assertIn("sibling executed", output)
+        self.assertNotIn("unrelated module collected", output)
+        # Pytest uses exit code 5 when the selected node has no tests.
+        args = (
+            "--warn-only pytest_run_class -c TestNoTests "
+            f"--search-root {quoted_root}"
+        )
+        rc, output = self._run_invoke(args)
+        self.assertEqual(rc, 5)
+        self.assertIn("no tests ran", output)
         self.assertNotIn("unrelated module collected", output)
 
     def test_cli_help(self) -> None:

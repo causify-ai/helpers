@@ -95,8 +95,14 @@ class Test_pytest_run_class1(hunitest.TestCase):
 
     def test_preview_does_not_execute(self) -> None:
         search_root = self._create_test_tree()
+        expected = hltltpyru._build_pytest_run_class_command(
+            "TestSelected", search_root=search_root
+        )
         ctx = icontext.Context()
-        with umock.patch.object(ctx, "run") as run:
+        with (
+            umock.patch.object(ctx, "run") as run,
+            umock.patch("builtins.print") as print_,
+        ):
             actual = hltltpyru.pytest_run_class(
                 ctx,
                 "TestSelected",
@@ -105,6 +111,7 @@ class Test_pytest_run_class1(hunitest.TestCase):
             )
         self.assertEqual(actual, 0)
         run.assert_not_called()
+        print_.assert_called_with(expected)
 
     def test_failure_is_propagated(self) -> None:
         search_root = self._create_test_tree()

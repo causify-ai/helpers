@@ -4,16 +4,12 @@ Import as:
 import helpers.lib_tasks.lib_tasks_pytest_run as hltltpyru
 """
 
-import logging
 import shlex
 
 from invoke.tasks import task
 
 import helpers.lib_tasks.lib_tasks_find as hltltafi
 import helpers.lib_tasks.lib_tasks_utils as hltltaut
-
-_LOG = logging.getLogger(__name__)
-
 
 # #############################################################################
 # Run a pytest class.
@@ -83,7 +79,7 @@ def pytest_run_class(
         class_name, search_root=search_root, run_file=run_file
     )
     if preview:
-        _LOG.info("Preview: %s", cmd)
+        print(cmd)
         return 0
     result = ctx.run(cmd, echo=True, warn=False)
     return result.return_code
