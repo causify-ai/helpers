@@ -394,6 +394,30 @@ TODO(gp): Describe
 
 #### Run Only One Test Based on Its Name
 
+- To resolve an exact class name and run it in the current Python environment:
+
+  ```bash
+  > invoke pytest_run_class -c Test_obj_to_str1
+  ```
+
+  This runs `pytest path/to/test_file.py::Test_obj_to_str1` instead of collecting
+  the entire repository with `pytest -k`. Run it inside the development container
+  when the selected test needs container dependencies.
+
+- To inspect the command first, or run the entire file containing the class:
+
+  ```bash
+  > invoke pytest_run_class -c Test_obj_to_str1 --preview
+  > invoke pytest_run_class -c Test_obj_to_str1 --test-file
+  > invoke pytest_run_class -c Test_obj_to_str1 --dir-name helpers --preview
+  ```
+
+  The search reuses `find_test_class` conventions: `test_*.py` files under `test`
+  directories and class declarations recognized by that finder. Matching is
+  exact; a missing class or multiple matches causes an error without running
+  pytest. Use `--dir-name` to disambiguate classes. Preview does not run pytest
+  or copy to the clipboard. Normal execution preserves pytest's exit status.
+
 - Outside the `dev` container
 
   ```bash

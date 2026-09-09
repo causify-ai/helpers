@@ -8,9 +8,11 @@ import json
 import logging
 import os
 import re
+import shlex
 import sys
 from typing import Any, List, Optional, Tuple
 
+from invoke.exceptions import Exit
 from invoke.tasks import task
 
 # We want to minimize the dependencies from non-standard Python packages since
@@ -27,6 +29,7 @@ import helpers.hserver as hserver
 import helpers.hsystem as hsystem
 import helpers.htraceback as htraceb
 import helpers.lib_tasks.lib_tasks_docker as hltltado
+import helpers.lib_tasks.lib_tasks_find as hltltafi
 import helpers.lib_tasks.lib_tasks_lint as hltltali
 import helpers.lib_tasks.lib_tasks_utils as hltltaut
 import helpers.repo_config_utils as hrecouti
@@ -1118,6 +1121,73 @@ def traceback(  # type: ignore
     cmd.append("--open_vim")
     cmd = " ".join(cmd)
     hltltaut.run(ctx, cmd, pty=True)
+
+
+# #############################################################################
+# pytest_run_class
+# #############################################################################
+
+
+def _get_pytest_run_class_cmd(
+    class_name: str, dir_name: str, *, test_file: bool
+) -> str:
+    """
+    Resolve one exact test class without collecting or importing tests.
+
+    :param class_name: class name accepted by the existing test finder
+    :param dir_name: directory containing the project's `test` directories
+    :param test_file: run the containing file instead of just the class
+    :return: shell command with exactly one quoted pytest collection argument
+    """
+    hdbg.dassert_ne(class_name.strip(), "", "Specify a test class name")
+    file_names = hltltafi._find_test_files(dir_name)
+    matches = hltltafi._find_test_class(class_name, file_names, exact_match=True)
+    # Never let an empty or ambiguous selection fall back to the full suite.
+    hdbg.dassert_eq(
+        len(matches),
+        1,
+        "Expected one exact match for '%s' in '%s'; found %s. "
+        "Use --dir-name to narrow the search.",
+        class_name,
+        dir_name,
+        matches,
+    )
+    node_id = matches[0]
+    if test_file:
+        node_id = node_id.rsplit("::", 1)[0]
+    cmd = [
+        "pytest",
+        shlex.quote(node_id),
+    ]
+    cmd = " ".join(cmd)
+    return cmd
+
+
+@task
+def pytest_run_class(
+    ctx, class_name, dir_name=".", test_file=False, preview=False
+):  # type: ignore
+    """
+    Run one test class without collecting the entire repository.
+
+    Examples:
+    - `invoke pytest_run_class -c TestExample --preview`
+    - `invoke pytest_run_class -c TestExample --dir-name helpers --test-file`
+
+    :param class_name: exact class name, as used by `find_test_class`
+    :param dir_name: narrow the search to this directory (default: .)
+    :param test_file: run all tests in the file containing the class
+    :param preview: print the command without running pytest
+    """
+    hltltaut.report_task()
+    _ = ctx
+    cmd = _get_pytest_run_class_cmd(class_name, dir_name, test_file=test_file)
+    if preview:
+        print(cmd)
+    else:
+        rc = hsystem.system(cmd, abort_on_error=False, suppress_output=False)
+        if rc:
+            raise Exit(code=rc)
 
 
 # #############################################################################
