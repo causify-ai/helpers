@@ -378,6 +378,91 @@
   found" compile error. Leave the raw source fence, or its placeholder, exactly as
   given
 
+## Diagram Placeholders and `wrap-content`
+
+- `render_images.py` (run by `render_book_chapter.py` on every render) deletes and
+  regenerates everything between its `render_images:begin` / `render_images:end`
+  markers from scratch, using the `label=` / `caption=` metadata preserved in the
+  paired `rendered_images:begin` / `rendered_images:end` comment block right above
+  it. Anything else placed between those markers does not survive a rerun
+- When a not-yet-rendered diagram belongs in a `#wrap-content(...)` pairing (per
+  "Every Visual Pairs With Its Text" above), nest the whole placeholder — the raw
+  fence, its `label=`/`caption=` metadata, and all four
+  `rendered_images:begin`/`rendered_images:end`/`render_images:begin`/
+  `render_images:end` markers — inside `#wrap-content(...)`'s first `[ ... ]`
+  argument (the image slot). Keep the `#wrap-content(...)` call itself, its
+  `align:`/`column-gutter:`/`columns:` arguments, and the prose in its trailing
+  `)[ ... ]` argument OUTSIDE the markers, never between them
+- Putting the markers around the whole `#wrap-content(...)` call instead — so the
+  paired prose sits inside `render_images:begin`/`render_images:end` too — means the
+  next rerun silently deletes that prose and collapses the two-column layout to a
+  bare `#figure(...)`: the regenerated block is always just the figure, never the
+  wrapper and prose around it
+- Write `label=` and `caption=` as two separate lines, `label=fig:...` then
+  `caption=...` directly below it: never combine them on one line
+  (`label=fig:x caption=...`). The parser treats everything after the first `=` as
+  the label's value, so a combined line produces an invalid Typst label
+  (`<fig:x caption=...>`) and an "unclosed label" compile error
+- **Bad** (markers wrap the whole `#wrap-content` call; the prose is destroyed the
+  next time `render_images.py` runs):
+
+  ```typst
+  // rendered_images:begin
+  // ```graphviz
+  //   ...
+  // ```
+  // label=fig:example
+  // caption=One-line description of the diagram.
+  // rendered_images:end
+  // render_images:begin
+  #wrap-content(
+    [
+      #figure(
+        image("...", width: 100%),
+        caption: [...],
+        kind: "figure",
+        supplement: [Fig.],
+        placement: auto,
+      ) <fig:example>
+    ],
+    align: right,
+    columns: (1fr, 40%),
+  )[
+    Prose explaining @fig:example, paired beside it.
+  ]
+  // render_images:end
+  ```
+
+- **Good** (markers nested inside the image slot only; the `#wrap-content(...)` call
+  and its prose survive every rerun):
+
+  ```typst
+  #wrap-content(
+    [
+      // rendered_images:begin
+      //     ```graphviz
+      //       ...
+      //     ```
+      //     label=fig:example
+      //     caption=One-line description of the diagram.
+      // rendered_images:end
+      // render_images:begin
+      #figure(
+        image("...", width: 100%),
+        caption: [...],
+        kind: "figure",
+        supplement: [Fig.],
+        placement: auto,
+      ) <fig:example>
+      // render_images:end
+    ],
+    align: right,
+    columns: (1fr, 40%),
+  )[
+    Prose explaining @fig:example, paired beside it.
+  ]
+  ```
+
 ## Sizing: Minimum Width and Readability
 
 - Every visual must be legible at its printed size, not merely present. The minimum

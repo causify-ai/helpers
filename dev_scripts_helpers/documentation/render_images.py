@@ -69,6 +69,22 @@ _LOG = logging.getLogger(__name__)
 # Number of AI-generated images to create per prompt.
 _AI_IMAGE_COUNT = 1
 
+# Trailing metadata keys recognized after an image code fence (e.g.,
+# `label=...`, `caption=...`), keyed by output file extension. `width` and
+# `placement` are only meaningful for Typst output (`_insert_image_code()`
+# is the only place that consumes them, via `_typst_image_params()`): `.tex`
+# output ignores image size entirely (always uses `\linewidth`), and
+# `.md`/`.txt` size comes only from the `[...]` fence bracket, not from
+# trailing metadata. Any metadata key outside this set is a typo or a
+# misplaced setting (e.g., `width=` meant for the fence bracket) and should
+# fail loudly rather than silently leak into the rendered output.
+_RECOGNIZED_METADATA_KEYS = {
+    ".md": frozenset(["label", "caption"]),
+    ".txt": frozenset(["label", "caption"]),
+    ".tex": frozenset(["label", "caption"]),
+    ".typ": frozenset(["label", "caption", "width", "placement"]),
+}
+
 
 # #############################################################################
 
@@ -723,6 +739,41 @@ def _insert_image_code(
     return txt
 
 
+def _merge_metadata_size(
+    user_img_size: str,
+    metadata_width: str,
+    metadata_placement: str,
+) -> str:
+    """
+    Merge trailing `width=`/`placement=` metadata into the fence-bracket
+    size string consumed by `_insert_image_code()`.
+
+    :param user_img_size: size/placement from the fence bracket (e.g.,
+        `` ```graphviz[width=80%]``); "" if none was given
+    :param metadata_width: value of a trailing `width=` metadata line; ""
+        if none was given
+    :param metadata_placement: value of a trailing `placement=` metadata
+        line; "" if none was given
+    :return: combined size string, e.g. "width=80%,placement=none"
+    """
+    metadata_size_parts = []
+    if metadata_width:
+        metadata_size_parts.append(f"width={metadata_width}")
+    if metadata_placement:
+        metadata_size_parts.append(f"placement={metadata_placement}")
+    if not metadata_size_parts:
+        return user_img_size
+    hdbg.dassert_eq(
+        user_img_size,
+        "",
+        "Both a fence-header size ('[%s]') and trailing width=/placement= "
+        "metadata were given for the same image block; specify the size "
+        "in only one place",
+        user_img_size,
+    )
+    return ",".join(metadata_size_parts)
+
+
 def _render_images(
     in_lines: List[str],
     out_file: str,
@@ -816,6 +867,10 @@ def _render_images(
     # Store parsed metadata.
     metadata_label = ""
     metadata_caption = ""
+    # Store parsed `width=`/`placement=` metadata (Typst only; see
+    # `_RECOGNIZED_METADATA_KEYS`).
+    metadata_width = ""
+    metadata_placement = ""
     # Store the current metadata field being parsed (for multi-line values).
     current_metadata_field = ""
     # Variables initialized for loop processing.
@@ -843,11 +898,15 @@ def _render_images(
         """,
         re.VERBOSE,
     )
-    # Regex for metadata lines (label=... or caption=...).
+    # Regex for metadata lines (e.g., `label=...`, `caption=...`,
+    # `width=...`). Matches any `key=value`-shaped line so an unrecognized
+    # key (e.g., a typo, or `width=` on a file type that doesn't support it)
+    # is caught by the `_RECOGNIZED_METADATA_KEYS` check below instead of
+    # silently falling through as a "not metadata" line.
     metadata_start_regex = re.compile(
         r"""
         ^\s*                # Start of the line and any leading whitespace
-        (label|caption)     # Metadata field name
+        ([a-zA-Z_][\w-]*)   # Metadata field name
         \s*=\s*             # Equals sign with optional whitespace
         (.*)$               # Value (rest of the line)
         """,
@@ -940,6 +999,8 @@ def _render_images(
                 # Reset metadata for this image.
                 metadata_label = ""
                 metadata_caption = ""
+                metadata_width = ""
+                metadata_placement = ""
                 current_metadata_field = ""
                 # Transition to parse_metadata state to check for optional metadata.
                 state = "parse_metadata"
@@ -950,21 +1011,37 @@ def _render_images(
                 # Comment out the inside of the image code.
                 out_lines.append(_comment_line(line, extension))
         elif state == "parse_metadata":
-            # Check if this line starts a new metadata field (label= or caption=).
+            # Check if this line starts a new metadata field (label=,
+            # caption=, width=, placement=, ...).
             m_metadata = metadata_start_regex.search(line)
             if m_metadata:
                 # Found a metadata field.
                 field_name = m_metadata.group(1)
                 field_value = m_metadata.group(2).strip()
+                hdbg.dassert_in(
+                    field_name,
+                    _RECOGNIZED_METADATA_KEYS[extension],
+                    "Unrecognized metadata key '%s=' after an image code "
+                    "block in a '%s' file (valid keys: %s); a size/"
+                    "placement override belongs in the fence header "
+                    "instead, e.g. '```graphviz[width=80%%,placement=none]'",
+                    field_name,
+                    extension,
+                    sorted(_RECOGNIZED_METADATA_KEYS[extension]),
+                )
                 current_metadata_field = field_name
                 if field_name == "label":
                     metadata_label = field_value
                 elif field_name == "caption":
                     metadata_caption = field_value
+                elif field_name == "width":
+                    metadata_width = field_value
+                elif field_name == "placement":
+                    metadata_placement = field_value
                 # Comment out the metadata line.
                 out_lines.append(_comment_line(line, extension))
             elif (
-                current_metadata_field
+                current_metadata_field in ("label", "caption")
                 and metadata_continuation_regex.search(line)
                 and not metadata_continuation_stop_regex.search(line)
             ):
@@ -979,6 +1056,13 @@ def _render_images(
             else:
                 # Add marker.
                 out_lines.append(_comment_line("rendered_images:end", extension))
+                # Merge any trailing `width=`/`placement=` metadata into the
+                # fence-bracket size string.
+                user_img_size = _merge_metadata_size(
+                    user_img_size, metadata_width, metadata_placement
+                )
+                metadata_width = ""
+                metadata_placement = ""
                 # End of metadata section, insert the image code with metadata.
                 # Insert all images (usually 1, but 3 for AI-generated images).
                 for idx, rel_img_path in enumerate(rel_img_paths):
@@ -1012,6 +1096,11 @@ def _render_images(
     if state == "parse_metadata":
         # Add marker.
         out_lines.append(_comment_line("rendered_images:end", extension))
+        # Merge any trailing `width=`/`placement=` metadata into the
+        # fence-bracket size string.
+        user_img_size = _merge_metadata_size(
+            user_img_size, metadata_width, metadata_placement
+        )
         # Insert the image code with whatever metadata was collected.
         # Insert all images (usually 1, but 3 for AI-generated images).
         for idx, rel_img_path in enumerate(rel_img_paths):
