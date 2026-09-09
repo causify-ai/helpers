@@ -10,6 +10,9 @@ This directory has no subdirectories.
 
 ## Description of Files
 
+- [`pytest_check_sanity.py`](pytest_check_sanity.README.md)
+  - Compare independent source definitions with saved pytest evidence and report
+    omitted tests, skips, unexecuted cases, and incomplete captures
 - `pytest_count_files.sh`
   - Count test classes and functions in repository with skip statistics
 - `pytest_failed.py`
