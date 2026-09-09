@@ -180,3 +180,23 @@ This directory has no subdirectories.
 - It ensures all dependencies (e.g., OpenAI API libraries) are available and
   isolates the execution environment.
 - Users typically do not call this directly - use the main tool instead.
+
+## `llm_transform.py` Docker performance
+
+The private transform image installs only dependencies used by the transform
+path. In particular, `pandas` is not required by
+`dockerized_llm_transform.py`, `llm_transform.py`, or the prompt definitions.
+This keeps the image smaller and avoids importing the optional dataframe
+reporting stack in the transform container.
+
+The wrapper logs three phase timings at `INFO` level:
+
+- `image preparation`: image lookup or Docker image build
+- `command preparation`: path conversion and Docker command construction
+- `container and LLM`: container startup, prompt execution, and output handling
+
+For a reproducible local benchmark, run one forced cold build and then several
+warm `-p test` runs. Keep cold-build and warm-run measurements separate. The
+`test` prompt is deterministic and does not call a live LLM, so it is suitable
+for comparing container overhead. Live model latency must be measured
+separately and should not be used as a CI timing threshold.
