@@ -21,7 +21,7 @@ class Test_pytest_run_class_integration1(hunitest.TestCase):
         file_dict = {
             "test/test_selected.py": hprint.dedent(
                 """
-                class TestSelected(object):
+                class TestSelected:
                     def test_passes(self):
                         assert True
 
@@ -35,6 +35,11 @@ class Test_pytest_run_class_integration1(hunitest.TestCase):
 
                 class TestNoTests(object):
                     pass
+
+                class TestOuter:
+                    class TestInner:
+                        def test_passes(self):
+                            assert True
                 """
             ),
             "test/test_unrelated.py": hprint.dedent(
@@ -65,6 +70,15 @@ class Test_pytest_run_class_integration1(hunitest.TestCase):
         self.assertEqual(rc, 0)
         self.assertIn("1 passed", output)
         self.assertNotIn("sibling executed", output)
+        self.assertNotIn("unrelated module collected", output)
+
+    def test_registered_task_runs_nested_class(self) -> None:
+        search_root = self._create_test_tree()
+        quoted_root = shlex.quote(search_root)
+        args = f"pytest_run_class -c TestInner --search-root {quoted_root}"
+        rc, output = self._run_invoke(args)
+        self.assertEqual(rc, 0)
+        self.assertIn("1 passed", output)
         self.assertNotIn("unrelated module collected", output)
 
     def test_registered_task_previews_without_execution(self) -> None:

@@ -1,7 +1,7 @@
 """
 Import as:
 
-import helpers.lib_tasks.lib_tasks_find as hlitafin
+import helpers.lib_tasks.lib_tasks_find as hltltafi
 """
 
 import functools
@@ -11,7 +11,7 @@ import os
 import re
 from typing import Iterator, List, Optional, Tuple
 
-from invoke import task
+from invoke.tasks import task
 
 # We want to minimize the dependencies from non-standard Python packages since
 # this code needs to run with minimal dependencies and without Docker.
@@ -20,6 +20,7 @@ import helpers.hio as hio
 import helpers.hlist as hlist
 import helpers.hprint as hprint
 import helpers.hsystem as hsystem
+import helpers.lib_tasks.lib_tasks_find_class as hltltficl
 import helpers.lib_tasks.lib_tasks_utils as hlitauti
 
 _LOG = logging.getLogger(__name__)
@@ -34,9 +35,7 @@ _LOG = logging.getLogger(__name__)
 def _find_test_files(
     dir_name: Optional[str] = None, use_absolute_path: bool = False
 ) -> List[str]:
-    """
-    Find all the files containing test code in `abs_dir`.
-    """
+    """Find all the files containing test code in `abs_dir`."""
     dir_name = dir_name or "."
     hdbg.dassert_dir_exists(dir_name)
     _LOG.debug("abs_dir=%s", dir_name)
@@ -89,8 +88,7 @@ def _find_test_files(
 def _find_test_class(
     class_name: str, file_names: List[str], exact_match: bool = False
 ) -> List[str]:
-    """
-    Find test file containing `class_name` and report it in pytest format.
+    """Find matching class declarations and report qualified pytest node IDs.
 
     E.g., for "TestLibTasksRunTests1" return
     "test/test_lib_tasks.py::TestLibTasksRunTests1"
@@ -98,33 +96,7 @@ def _find_test_class(
     :param exact_match: find an exact match or an approximate where `class_name`
         is included in the class name
     """
-    # > jackpy TestLibTasksRunTests1
-    # test/test_lib_tasks.py:60:class TestLibTasksRunTests1(hut.TestCase):
-    regex = r"^\s*class\s+(\S+)\s*\("
-    _LOG.debug("regex='%s'", regex)
-    res: List[str] = []
-    # Scan all the files.
-    for file_name in file_names:
-        _LOG.debug("file_name=%s", file_name)
-        txt = hio.from_file(file_name)
-        # Search for the class in each file.
-        for i, line in enumerate(txt.split("\n")):
-            # _LOG.debug("file_name=%s i=%s: %s", file_name, i, line)
-            # TODO(gp): We should skip ```, """, '''
-            m = re.match(regex, line)
-            if m:
-                found_class_name = m.group(1)
-                _LOG.debug("  %s:%d -> %s", line, i, found_class_name)
-                if exact_match:
-                    found = found_class_name == class_name
-                else:
-                    found = class_name in found_class_name
-                if found:
-                    res_tmp = f"{file_name}::{found_class_name}"
-                    _LOG.debug("-> res_tmp=%s", res_tmp)
-                    res.append(res_tmp)
-    res = sorted(list(set(res)))
-    return res
+    return hltltficl.find_test_classes(class_name, file_names, exact_match)
 
 
 # TODO(gp): Extend this to accept only the test method.
@@ -134,8 +106,7 @@ def _find_test_class(
 def find_test_class(
     ctx, class_name, dir_name=".", pbcopy=True, exact_match=False
 ):  # type: ignore
-    """
-    Report test files containing `class_name` in a format compatible with
+    """Report test files containing `class_name` in a format compatible with
     pytest.
 
     :param class_name: the class to search
@@ -183,8 +154,7 @@ def _scan_files(python_files: List[str]) -> Iterator:
 
 
 def _find_short_import(iterator: Iterator, short_import: str) -> _FindResults:
-    """
-    Find imports in the Python files with the given short import.
+    """Find imports in the Python files with the given short import.
 
     E.g., for dtfcodarun dataflow/core/test/test_builders.py:9:import
     dataflow.core.dag_runner as dtfcodarun returns
@@ -263,8 +233,7 @@ def _process_find_results(results: _FindResults, how: str) -> List:
 
 @task
 def find(ctx, regex, mode="all", how="remove_dups", subdir="."):  # type: ignore
-    """
-    Find symbols, imports, test classes and so on.
+    """Find symbols, imports, test classes and so on.
 
     Example:
     ```
@@ -333,10 +302,8 @@ def find(ctx, regex, mode="all", how="remove_dups", subdir="."):  # type: ignore
 def _find_test_decorator(
     decorator_name: str, file_names: List[str]
 ) -> List[str]:
-    """
-    Find test files containing tests with a certain decorator
-    `@pytest.mark.XYZ`.
-    """
+    """Find test files containing tests with a certain decorator
+    `@pytest.mark.XYZ`."""
     hdbg.dassert_isinstance(file_names, list)
     # E.g.,
     #   @pytest.mark.slow(...)
@@ -366,8 +333,7 @@ def _find_test_decorator(
 
 @task
 def find_test_decorator(ctx, decorator_name="", dir_name="."):  # type: ignore
-    """
-    Report test files containing `class_name` in pytest format.
+    """Report test files containing `class_name` in pytest format.
 
     :param decorator_name: the decorator to search
     :param dir_name: the dir from which to search
@@ -474,8 +440,7 @@ def find_dependency(  # type: ignore
     ignore_helpers=True,
     remove_dups=True,
 ):
-    """
-    E.g., ```
+    """E.g., ```
 
     # Find all the dependency of a module from itself
     > i find_dependency --module-name "amp.dataflow.model" --mode "find_lev2_deps" --ignore-helpers --only-module dataflow
