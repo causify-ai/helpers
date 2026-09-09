@@ -57,7 +57,7 @@ class Test_pytest_run_class_integration1(hunitest.TestCase):
         )
         return hsystem.system_to_string(cmd, abort_on_error=False)
 
-    def test_registered_task_targets_only_selected_nodes(self) -> None:
+    def test_registered_task_runs_only_selected_class(self) -> None:
         search_root = self._create_test_tree()
         quoted_root = shlex.quote(search_root)
         args = f"pytest_run_class -c TestSelected --search-root {quoted_root}"
@@ -66,7 +66,10 @@ class Test_pytest_run_class_integration1(hunitest.TestCase):
         self.assertIn("1 passed", output)
         self.assertNotIn("sibling executed", output)
         self.assertNotIn("unrelated module collected", output)
-        # Preview a failing class to prove that pytest is not launched.
+
+    def test_registered_task_previews_without_execution(self) -> None:
+        search_root = self._create_test_tree()
+        quoted_root = shlex.quote(search_root)
         args = (
             "pytest_run_class -c TestPreview --preview "
             f"--search-root {quoted_root}"
@@ -80,8 +83,10 @@ class Test_pytest_run_class_integration1(hunitest.TestCase):
         self.assertIn(expected, output.splitlines())
         self.assertNotIn("preview executed", output)
         self.assertNotIn("1 failed", output)
-        # File mode should fail with pytest's exact exit code even when Invoke
-        # is configured to warn, while still excluding the unrelated file.
+
+    def test_registered_task_propagates_containing_file_failure(self) -> None:
+        search_root = self._create_test_tree()
+        quoted_root = shlex.quote(search_root)
         args = (
             "--warn-only pytest_run_class -c TestSelected --run-file "
             f"--search-root {quoted_root}"
@@ -90,7 +95,10 @@ class Test_pytest_run_class_integration1(hunitest.TestCase):
         self.assertEqual(rc, 1)
         self.assertIn("sibling executed", output)
         self.assertNotIn("unrelated module collected", output)
-        # Pytest uses exit code 5 when the selected node has no tests.
+
+    def test_registered_task_propagates_no_tests_exit(self) -> None:
+        search_root = self._create_test_tree()
+        quoted_root = shlex.quote(search_root)
         args = (
             "--warn-only pytest_run_class -c TestNoTests "
             f"--search-root {quoted_root}"
