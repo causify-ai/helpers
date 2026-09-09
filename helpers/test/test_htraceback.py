@@ -1,5 +1,6 @@
 import logging
 from typing import List
+
 import pytest
 
 import helpers.hdbg as hdbg
@@ -37,7 +38,7 @@ class Test_Traceback1(hunitest.TestCase):
         _LOG.debug("txt=\n%s", txt)
         purify_from_client = False
         # Run the function under test.
-        act_cfile, act_traceback = htraceb.parse_traceback(
+        _, act_traceback = htraceb.parse_traceback(
             txt, purify_from_client=purify_from_client
         )
         # Check.
@@ -267,6 +268,64 @@ NameError: name 'repo_short_name' is not defined
         self._parse_traceback_helper(
             txt, purify_from_client, exp_cfile, exp_traceback
         )
+
+    def test_parse_github_actions1(self) -> None:
+        """
+        Remove GitHub Actions timestamp prefixes from traceback lines.
+        """
+        txt = """
+        2022-02-19T16:53:07.0945561Z Traceback (most recent call last):
+        2022-02-19T16:53:07.0945561Z   File "/app/amp/test.py", line 10, in main
+        2022-02-19T16:53:07.0945561Z     raise ValueError("bad")
+        2022-02-19T16:53:07.0945561Z ValueError: bad
+        """
+        txt = hprint.dedent(txt)
+        purify_from_client = False
+        # Run test.
+        act_cfile, act_traceback = htraceb.parse_traceback(
+            txt, purify_from_client=purify_from_client
+        )
+        # Check outputs.
+        exp_cfile = '/app/amp/test.py:10:main:raise ValueError("bad")'
+        self.assert_equal(htraceb.cfile_to_str(act_cfile), exp_cfile)
+        exp_traceback = """
+        Traceback (most recent call last):
+          File "/app/amp/test.py", line 10, in main
+            raise ValueError("bad")
+        ValueError: bad
+        """
+        self.assert_equal(act_traceback, exp_traceback, dedent=True)
+
+    def test_parse_multiple_tracebacks1(self) -> None:
+        """
+        Parse only the first traceback when the input contains several.
+        """
+        txt = """
+        Traceback (most recent call last):
+          File "/app/amp/first.py", line 1, in first
+            raise ValueError("first")
+        ValueError: first
+        Traceback (most recent call last):
+          File "/app/amp/second.py", line 2, in second
+            raise RuntimeError("second")
+        RuntimeError: second
+        """
+        txt = hprint.dedent(txt)
+        purify_from_client = False
+        # Run test.
+        act_cfile, act_traceback = htraceb.parse_traceback(
+            txt, purify_from_client=purify_from_client
+        )
+        # Check outputs.
+        exp_cfile = '/app/amp/first.py:1:first:raise ValueError("first")'
+        self.assert_equal(htraceb.cfile_to_str(act_cfile), exp_cfile)
+        exp_traceback = """
+        Traceback (most recent call last):
+          File "/app/amp/first.py", line 1, in first
+            raise ValueError("first")
+        ValueError: first
+        """
+        self.assert_equal(act_traceback, exp_traceback, dedent=True)
 
     def test_parse2(self) -> None:
         """

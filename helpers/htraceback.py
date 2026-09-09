@@ -5,9 +5,9 @@ import helpers.htraceback as htraceb
 """
 
 import logging
-import os
+import posixpath
 import re
-from typing import Any, List, Match, Optional, Tuple
+from typing import List, Match, Optional, Tuple, cast
 
 import helpers.hdbg as hdbg
 import helpers.hgit as hgit
@@ -26,6 +26,20 @@ _LOG = logging.getLogger(__name__)
 #    )
 CfileRow = Tuple[str, int, str]
 
+_TRACEBACK_HEADER = "Traceback (most recent call last):"
+
+_FRAME_RE = re.compile(r'^\s*File "(.+)", line (\d+), in (\S+)\s*$')
+
+_GH_ACTIONS_TIMESTAMP_RE = re.compile(
+    r"[0-9]{4}-[0-9]{2}-[0-9]{2}T"
+    r"[0-9]{2}:[0-9]{2}:[0-9]{2}\.[0-9]+Z "
+)
+
+_TRACEBACK_STOP_MARKERS = (
+    "________ Test",
+    "====== slowest 3 durations",
+)
+
 
 def cfile_row_to_str(cfile_row: CfileRow) -> str:
     # helpers/git.py:295:def get_repo_long_name_from_client(super_module
@@ -36,6 +50,94 @@ def cfile_row_to_str(cfile_row: CfileRow) -> str:
 def cfile_to_str(cfile: List[CfileRow]) -> str:
     hdbg.dassert_isinstance(cfile, list)
     return "\n".join(map(cfile_row_to_str, cfile))
+
+
+def _remove_github_actions_timestamps(lines: List[str]) -> List[str]:
+    """
+    Remove GitHub Actions timestamp prefixes from traceback lines.
+
+    :param lines: traceback lines
+    :return: lines without GitHub Actions timestamp prefixes
+    """
+    lines = [_GH_ACTIONS_TIMESTAMP_RE.split(line)[-1] for line in lines]
+    return lines
+
+
+def _parse_frame(lines: List[str], frame_idx: int) -> Tuple[CfileRow, int]:
+    """
+    Parse one traceback frame and its code snippet.
+
+    :param lines: traceback lines
+    :param frame_idx: index of the `File ...` line
+    :return: parsed cfile row and index of the next line to inspect
+    """
+    match = _FRAME_RE.match(lines[frame_idx])
+    hdbg.dassert(match, "Can't parse '%s'", lines[frame_idx])
+    match = cast(Match[str], match)
+    file_name = match.group(1)
+    line_num = int(match.group(2))
+    func_name = match.group(3)
+    # Collect indented code lines until the next frame or unindented line.
+    code_lines = []
+    next_idx = frame_idx + 1
+    while next_idx < len(lines):
+        line = lines[next_idx]
+        if _FRAME_RE.match(line):
+            break
+        if not line.startswith("  "):
+            break
+        code_lines.append(line.strip())
+        next_idx += 1
+    code_as_single_line = "/".join(code_lines)
+    # Normalize traceback paths with POSIX semantics, since tracebacks are
+    # produced on Linux and Windows `normpath` would turn `/` into `\`.
+    file_name = posixpath.normpath(file_name)
+    cfile_row = (file_name, line_num, func_name + ":" + code_as_single_line)
+    return cfile_row, next_idx
+
+
+def _parse_frames(
+    lines: List[str], start_idx: int
+) -> Tuple[List[CfileRow], int]:
+    """
+    Parse all frames in a traceback.
+
+    :param lines: traceback lines
+    :param start_idx: index of the traceback header
+    :return: parsed cfile rows and the first index after the frames
+    """
+    cfile = []
+    frame_idx = start_idx + 1
+    while frame_idx < len(lines):
+        match = _FRAME_RE.match(lines[frame_idx])
+        if match is None:
+            break
+        cfile_row, frame_idx = _parse_frame(lines, frame_idx)
+        cfile.append(cfile_row)
+    return cfile, frame_idx
+
+
+def _extend_traceback_end(lines: List[str], end_idx: int) -> int:
+    """
+    Extend the traceback to include a trailing error and its continuation.
+
+    :param lines: traceback lines
+    :param end_idx: index immediately after the parsed frames
+    :return: exclusive end index of the traceback
+    """
+    # Include a trailing error message and its continuation lines. An indented
+    # error line has already been consumed as part of the last frame, so this
+    # only handles unindented errors such as `NameError:`.
+    if end_idx < len(lines) and "Error:" in lines[end_idx]:
+        end_idx += 1
+        while end_idx < len(lines):
+            line = lines[end_idx]
+            if line.startswith(_TRACEBACK_HEADER):
+                break
+            if any(marker in line for marker in _TRACEBACK_STOP_MARKERS):
+                break
+            end_idx += 1
+    return end_idx
 
 
 def parse_traceback(
@@ -65,139 +167,24 @@ def parse_traceback(
       ```
       - A `None` value means that no traceback was found.
     """
-    # TODO(gp): Horrible hack to get the tests to pass. IMO this whole function
-    #  needs to be rewritten using a proper parser or library. Now it's full
-    #  of weird handling of edge cases.
     txt += "\n"
-    #
     lines = txt.split("\n")
-    # pylint: disable=line-too-long
-    # Remove the artifacts of a GH run. E.g.,
-    # "Run_fast_tests  Run fast tests  2022-02-19T16:53:07.0945561Z NameError: name 'cofinanc' is not defined" ->
-    # -> "NameError: name 'cofinanc' is not defined".
-    lines = [
-        re.split(
-            r"[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}.[0-9]+Z ",
-            line,
-        )[-1]
-        for line in lines
-    ]
-    state = "look_for"
-    cfile: List[CfileRow] = []
-    i = 0
-    start_idx = end_idx = 0
-    while i < len(lines):
-        line = lines[i]
-        _LOG.debug("state=%-10s i=%d: line='%s'", state, i, line)
-        if state == "look_for":
-            if line.startswith("Traceback (most recent call last):"):
-                start_idx = i
-                # Update the state.
-                state = "parse"
-                i += 1
-                continue
-        elif state == "parse":
-            # The file looks like:
-            #   File "/app/amp/test/test_lib_tasks.py", line 27, in test_get_gh
-            #     actual = ltasks._get_gh_issue_title(issue_id, repo)
-            regex = r"^\s*File \"(.+)\", line (\d+), in (\S+)$"
-            m = re.match(regex, line)
-            hdbg.dassert(m, "Can't parse '%s'", line)
-            m: Match[Any]
-            file_name = m.group(1)
-            line_num = int(m.group(2))
-            func_name = m.group(3)
-            _LOG.debug("  -> %s %d %s", file_name, line_num, func_name)
-            #
-            # Parse the next line until the next `File...`.
-            _LOG.debug("Search end of snippet")
-            j = i + 1
-            hdbg.dassert_lte(j, len(lines))
-            while j < len(lines):
-                _LOG.debug("  j=%d: line='%s'", j, lines[j])
-                if lines[j].startswith('  File "') or not lines[j].startswith(
-                    "  "
-                ):
-                    _LOG.debug("  Found end of snippet")
-                    break
-                j += 1
-            # Concatenate the lines into a single line.
-            code = lines[i + 1 : j]
-            _LOG.debug("  -> code: [%d, %d]\n%s", i, j, "\n".join(code))
-            code = map(lambda x: x.rstrip().lstrip(), code)
-            code_as_single_line = "/".join(code)
-            _LOG.debug("  -> code_as_single_line=\n%s", code_as_single_line)
-            # Assemble the result.
-            file_name = os.path.normpath(file_name)
-            cfile_row = (
-                file_name,
-                line_num,
-                func_name + ":" + code_as_single_line,
-            )
-            _LOG.debug("  => cfile_row='%s'", cfile_row_to_str(cfile_row))
-            cfile.append(cfile_row)
-            # Update the state.
-            if not lines[j].startswith("  "):
-                _LOG.debug("  Found end of traceback")
-                end_idx = j
-                state = "end"
-                break
-            state = "parse"
-            i = j
-            continue
-        #
-        i += 1
-    #
-    if state == "look_for":
-        # We didn't find a traceback.
-        cfile = []
+    lines = _remove_github_actions_timestamps(lines)
+    start_idx = None
+    for idx, line in enumerate(lines):
+        if line.startswith(_TRACEBACK_HEADER):
+            start_idx = idx
+            break
+    if start_idx is None:
+        cfile: List[CfileRow] = []
         traceback = None
-    elif state == "end":
-        if (
-            end_idx < len(lines) - 1
-            and "Error:" not in lines[end_idx - 1]
-            and "Error:" in lines[end_idx]
-        ):
-            # Extend the traceback to the lines with the error description.
-            # E.g., for the snippet below:
-            # ```
-            #    if repo_short_name == "amp":
-            # NameError: name 'repo_short_name' is not defined
-            # ```
-            # If the parsed traceback stops at 'if repo_short_name == "amp":',
-            # and thus, its last line does not include the error description
-            # ("NameError:..."), and the following line does include the error
-            # description, then the traceback will be extended to include the
-            # following line, making the parsed traceback end with the following
-            # two lines:
-            # ```
-            #    if repo_short_name == "amp":
-            # NameError: name 'repo_short_name' is not defined
-            # ```
-            to_break = False
-            while end_idx < len(lines) - 1 and not to_break:
-                end_idx += 1
-                line = lines[end_idx]
-                _LOG.debug(
-                    "Extend traceback: to_break=%s, end_idx=%s, line='%s'",
-                    to_break,
-                    end_idx,
-                    line,
-                )
-                if (
-                    "________ Test" in line
-                    or "====== slowest 3 durations" in line
-                ):
-                    # Stop if we have reached the next traceback or the end of the
-                    # pytest report.
-                    to_break = True
-        hdbg.dassert_lte(0, start_idx)
-        hdbg.dassert_lte(start_idx, end_idx)
-        hdbg.dassert_lt(end_idx, len(lines))
-        _LOG.debug("start_idx=%d end_idx=%d", start_idx, end_idx)
-        traceback = "\n".join(lines[start_idx:end_idx])
     else:
-        raise ValueError(f"Invalid state='{state}'")
+        cfile, end_idx = _parse_frames(lines, start_idx)
+        end_idx = _extend_traceback_end(lines, end_idx)
+        hdbg.dassert_lte(start_idx, end_idx)
+        hdbg.dassert_lte(end_idx, len(lines))
+        traceback = "\n".join(lines[start_idx:end_idx])
+        traceback = traceback.removesuffix("\n")
     _LOG.debug("traceback=\n%s", traceback)
     _LOG.debug("cfile=\n%s", cfile_to_str(cfile))
     # Purify filenames from client so that refer to files in this client.
