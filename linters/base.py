@@ -38,6 +38,7 @@ import linters.amp_check_import as lamchimp
 import linters.amp_check_md_reference as lachmdre
 import linters.amp_check_md_toc_headers as lacmtohe
 import linters.amp_check_merge_conflict as lachmeco
+import linters.amp_check_private_functions as lamchprfu
 import linters.amp_class_method_order as laclmeor
 import linters.amp_doc_formatter as lamdofor
 import linters.amp_fix_md_links as lafimdli
@@ -188,6 +189,12 @@ _NON_MODIFYING_ACTIONS: List[Tuple[str, str, Type[liaction.Action]]] = [
         "check_md_reference",
         "Checks README.md for reference to the current markdown file",
         lachmdre._ReadmeLinter,  # pylint: disable=protected-access
+    ),
+    (
+        "check_private_functions",
+        "Finds public functions that are only used within their defining"
+        " file",
+        lamchprfu._CheckPrivateFunctions,  # pylint: disable=protected-access
     ),
     (
         "flake8",
