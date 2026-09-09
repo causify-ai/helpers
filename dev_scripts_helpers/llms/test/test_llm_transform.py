@@ -30,7 +30,7 @@ class Test_get_dockerfile1(hunitest.TestCase):
         Verify that cold builds do not start pip more than once.
         """
         dockerfile = dshlltr._get_llm_transform_dockerfile()
-        self.assert_equal(dockerfile.count("RUN pip install"), 1)
+        self.assertTrue(dockerfile.count("RUN pip install") == 1)
         for package in [
             "PyYAML",
             "requests",
