@@ -86,19 +86,68 @@ class Test_find_test_class_ast1(hunitest.TestCase):
         file_names = self._create_test_files(
             {
                 "test_nested.py": """
-                    class TestOuter:
-                        class TestInner:
+                    if True:
+                        class TestConditional:
                             pass
+
+                    class TestOuter:
+                        if True:
+                            class TestInner:
+                                pass
 
                     def make_class():
                         class TestLocal:
+                            pass
+
+                    async def make_async_class():
+                        class TestAsyncLocal:
                             pass
                 """
             }
         )
         prefix = f"{file_names[0]}::"
         actual = hltltafi._find_test_class("Test", file_names)
-        expected = [prefix + "TestOuter", prefix + "TestOuter::TestInner"]
+        expected = [
+            prefix + "TestConditional",
+            prefix + "TestOuter",
+            prefix + "TestOuter::TestInner",
+        ]
+        self.assertEqual(actual, expected)
+
+    def test_classes_in_control_flow_blocks_are_found(self) -> None:
+        file_names = self._create_test_files(
+            {
+                "test_blocks.py": """
+                    try:
+                        class TestTry:
+                            pass
+                    except Exception:
+                        class TestExcept:
+                            pass
+
+                    with open(__file__):
+                        class TestWith:
+                            pass
+
+                    for value in []:
+                        class TestFor:
+                            pass
+
+                    while False:
+                        class TestWhile:
+                            pass
+                """
+            }
+        )
+        prefix = f"{file_names[0]}::"
+        actual = hltltafi._find_test_class("Test", file_names)
+        expected = [
+            prefix + "TestExcept",
+            prefix + "TestFor",
+            prefix + "TestTry",
+            prefix + "TestWhile",
+            prefix + "TestWith",
+        ]
         self.assertEqual(actual, expected)
 
     def test_malformed_file_warns_and_valid_files_are_still_searched(

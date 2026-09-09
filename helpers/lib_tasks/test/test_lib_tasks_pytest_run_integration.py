@@ -37,9 +37,10 @@ class Test_pytest_run_class_integration1(hunitest.TestCase):
                     pass
 
                 class TestOuter:
-                    class TestInner:
-                        def test_passes(self):
-                            assert True
+                    if True:
+                        class TestInner:
+                            def test_passes(self):
+                                assert True
                 """
             ),
             "test/test_unrelated.py": hprint.dedent(

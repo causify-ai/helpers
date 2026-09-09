@@ -1,4 +1,5 @@
-"""Parse Python class declarations for test discovery without importing
+"""
+Parse Python class declarations for test discovery without importing
 modules.
 
 Import as:
@@ -8,7 +9,7 @@ import helpers.lib_tasks.lib_tasks_find_class as hltltficl
 
 import ast
 import logging
-from typing import Iterator, List, Sequence, Tuple
+from typing import Iterator, List, Tuple
 
 import helpers.hio as hio
 
@@ -16,29 +17,39 @@ _LOG = logging.getLogger(__name__)
 
 
 def _iter_class_paths(
-    statements: Sequence[ast.stmt], parents: Tuple[str, ...] = ()
+    node: ast.AST, parents: Tuple[str, ...] = ()
 ) -> Iterator[Tuple[str, ...]]:
-    """Yield module and class-nested class paths in source order."""
-    for statement in statements:
-        if not isinstance(statement, ast.ClassDef):
-            continue
-        class_path = parents + (statement.name,)
-        yield class_path
-        # Pytest can collect nested classes, but not classes local to a
-        # function. Recurse only through class bodies to preserve that rule.
-        yield from _iter_class_paths(statement.body, class_path)
+    """
+    Yield syntactic class paths outside local function scopes.
+    """
+    if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef, ast.Lambda)):
+        return
+    if isinstance(node, ast.ClassDef):
+        parents += (node.name,)
+        yield parents
+        # Bases and decorators cannot contain class declarations. Walking only
+        # the body also keeps every nested node under its full class ancestry.
+        children = node.body
+    else:
+        children = ast.iter_child_nodes(node)
+    for child in children:
+        yield from _iter_class_paths(child, parents)
 
 
 def find_class_paths(source: str, file_name: str) -> List[Tuple[str, ...]]:
-    """Return collectible class paths parsed from Python `source`."""
+    """
+    Return syntactic class paths parsed from Python `source`.
+    """
     module = ast.parse(source, filename=file_name)
-    return list(_iter_class_paths(module.body))
+    return list(_iter_class_paths(module))
 
 
 def find_test_classes(
     class_name: str, file_names: List[str], exact_match: bool
 ) -> List[str]:
-    """Find matching classes and return deterministic pytest node IDs."""
+    """
+    Find matching classes and return deterministic pytest node IDs.
+    """
     result = []
     for file_name in file_names:
         source = hio.from_file(file_name)
