@@ -3,6 +3,7 @@
 import json
 import os
 import shlex
+import subprocess
 import sys
 import unittest.mock as umock
 from typing import Any, Dict
@@ -194,3 +195,81 @@ class Test_pytest_check_sanity_py(hunitest.TestCase):
             report["tests"][0]["nodeid"], "check_a.py::verify_missing"
         )
         self.assertEqual(report["tests"][0]["status"], "not_collected")
+
+    def test5(self) -> None:
+        """Preserve real verbose skip reasons and call execution before teardown
+        errors.
+        """
+        root = self.get_scratch_space()
+        hio.to_file(os.path.join(root, "pytest.ini"), "[pytest]\n")
+        source = """
+        import pytest
+        def test_pass():
+            assert True
+        @pytest.mark.skip(reason="optional feature unavailable")
+        def test_skip():
+            pass
+        @pytest.mark.xfail(reason="known mismatch")
+        def test_xfail():
+            assert False
+        @pytest.fixture
+        def teardown_error():
+            yield
+            raise RuntimeError("fixture cleanup failed")
+        def test_teardown(teardown_error):
+            assert True
+        """
+        hio.to_file(
+            os.path.join(root, "test_outcomes.py"), hprint.dedent(source)
+        )
+        command = [
+            sys.executable,
+            "-m",
+            "pytest",
+            "-vv",
+            "--color=no",
+            "--tb=short",
+        ]
+        result = subprocess.run(
+            command,
+            cwd=root,
+            env=dict(os.environ, PYTEST_DISABLE_PLUGIN_AUTOLOAD="1"),
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        self.assertEqual(result.returncode, 1)
+        input_path = os.path.join(root, "executed.log")
+        output_path = os.path.join(root, "sanity.json")
+        hio.to_file(input_path, result.stdout)
+        argv = [
+            "pytest_check_sanity.py",
+            "--pytest_input",
+            input_path,
+            "--code_input",
+            root,
+            "--pytest_cwd",
+            root,
+            "--output",
+            output_path,
+        ]
+        with umock.patch.object(sys, "argv", argv):
+            exit_code = dshtpchsa._main(dshtpchsa._parse())
+        self.assertEqual(exit_code, 1)
+        report = json.loads(hio.from_file(output_path))
+        self.assertEqual(
+            report["summary"],
+            {"error": 1, "passed": 1, "skipped": 1, "xfailed": 1},
+        )
+        self.assertTrue(report["collection_complete"])
+        cases = {item["nodeid"]: item for item in report["tests"]}
+        self.assertEqual(
+            cases["test_outcomes.py::test_skip"]["reason"],
+            "optional feature unavailable",
+        )
+        self.assertEqual(
+            cases["test_outcomes.py::test_xfail"]["reason"], "known mismatch"
+        )
+        self.assertTrue(
+            cases["test_outcomes.py::test_teardown"]["call_executed"]
+        )

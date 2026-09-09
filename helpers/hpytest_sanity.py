@@ -168,6 +168,7 @@ def parse_terminal_report(
     items: Dict[str, Dict[str, Any]] = {}
     expected_count = -1
     finished = False
+    reported_skips = 0
     errors = {}
     # The greedy node group preserves spaces and outcome words in parameter IDs.
     # Optional duration and percentage fields follow pytest's displayed node ID.
@@ -175,7 +176,8 @@ def parse_terminal_report(
         r"^(?P<node>.+?\.py::.+)\s+"
         r"(?:\([\d.]+\s+s\)\s+)?"
         r"(?P<outcome>PASSED|FAILED|SKIPPED|XFAIL|XPASS|ERROR|RERUN)"
-        r"(?:\s+\[\s*\d+%\])?(?:\s+\((?P<reason>.*)\))?\s*$"
+        r"(?:\s+\((?P<reason_before>.*)\))?"
+        r"(?:\s+\[\s*\d+%\])?(?:\s+\((?P<reason_after>.*)\))?\s*$"
     )
     for line in text.splitlines():
         line = line.strip()
@@ -184,10 +186,17 @@ def parse_terminal_report(
         count_match = count or flat_count
         if count_match is not None:
             expected_count = int(count_match.group(1))
+        if re.search(r"\bno tests collected\b", line):
+            expected_count = 0
+            finished = True
         if flat_count or re.search(
-            r"=+ .*\d+ (passed|failed|skipped).* =+", line
+            r"=+ .*?(\d+ (passed|failed|skipped|xfailed|xpassed|errors?|deselected)|no tests ran).* =+",
+            line,
         ):
             finished = True
+            skip_match = re.search(r"\b(\d+) skipped\b", line)
+            if skip_match:
+                reported_skips = int(skip_match.group(1))
         match = outcome_pattern.match(line)
         if match:
             outcome = match.group("outcome").lower()
@@ -204,16 +213,22 @@ def parse_terminal_report(
             nodeid = path + separator + callable_name
             items[nodeid] = {
                 "outcome": outcome,
-                "reason": match.group("reason") or "",
+                "reason": match.group("reason_before")
+                or match.group("reason_after")
+                or "",
                 "line": -1,
-                "call_executed": outcome in ("passed", "failed", "xpassed"),
+                "call_executed": outcome in ("passed", "failed", "xpassed")
+                or items.get(nodeid, {}).get("call_executed", False),
             }
         elif re.match(r"^[^<>]+\.py::\S", line) and not re.search(
             r"\s+\[\s*\d+%\]", line
         ):
             # A bare flat collection ID contains no outcome or progress suffix.
-            if expected_count == -1 or not re.search(
-                r"\s+(PASSED|FAILED|ERROR)\b", line
+            if not re.match(
+                r"^(PASSED|FAILED|SKIPPED|XFAIL|XPASS|ERROR|RERUN)\s", line
+            ) and (
+                expected_count == -1
+                or not re.search(r"\s+(PASSED|FAILED|ERROR)\b", line)
             ):
                 items.setdefault(
                     line,
@@ -226,7 +241,13 @@ def parse_terminal_report(
                 )
         if "ERROR collecting " in line:
             errors[line.split("ERROR collecting ", 1)[1].strip(" _=")] = line
-    complete = finished and expected_count == len(items) and not errors
+    observed_skips = sum(item["outcome"] == "skipped" for item in items.values())
+    complete = (
+        finished
+        and expected_count == len(items)
+        and not errors
+        and reported_skips <= observed_skips
+    )
     warnings = (
         []
         if complete

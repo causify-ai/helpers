@@ -227,6 +227,34 @@ class Test_parse_terminal_report(hunitest.TestCase):
         root = "/fixture"
         return hpytsani.parse_terminal_report(text, root, invocation_dir=root)
 
+    def test5(self) -> None:
+        """Recognize a finished run containing only expected failures."""
+        text = """
+        collected 1 item
+        test_a.py::test1 XFAIL (known mismatch) [100%]
+        ==================== 1 xfailed in 0.01s ====================
+        """
+        actual = self.helper(text)
+        self.assertTrue(actual.collection_complete)
+        self.assertEqual(
+            actual.items["test_a.py::test1"]["reason"], "known mismatch"
+        )
+
+    def test6(self) -> None:
+        """An explicit empty collection footer differs from a truncated log."""
+        actual = self.helper("no tests collected in 0.01s")
+        self.assertTrue(actual.collection_complete)
+        self.assertEqual(len(actual.items), 0)
+
+    def test7(self) -> None:
+        """An unnamed module skip does not prove source tests were omitted."""
+        text = """
+        collected 0 items / 1 skipped
+        ==================== 1 skipped in 0.01s ====================
+        """
+        actual = self.helper(text)
+        self.assertFalse(actual.collection_complete)
+
     def test1(self) -> None:
         """Flat collection retains spaces and brackets in parametrized IDs."""
         # Prepare inputs.
