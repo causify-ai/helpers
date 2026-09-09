@@ -120,6 +120,7 @@ from helpers.lib_tasks import (  # isort: skip # noqa: F401  # pylint: disable=u
     pytest_find_unused_goldens,
     pytest_rename_test,
     pytest_repro,
+    pytest_run_class,
     run_blank_tests,
     run_coverage_report,
     run_coverage,
