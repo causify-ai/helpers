@@ -88,6 +88,15 @@ def _parse() -> argparse.ArgumentParser:
         action="store_true",
         help="Skip the post-transforms outside the container",
     )
+    parser.add_argument(
+        "--native",
+        action="store_true",
+        help=(
+            "Run the LLM transform in the current Python process instead of "
+            "Docker. This reduces repeated-run startup overhead but requires "
+            "the transform dependencies to be installed on the host."
+        ),
+    )
     # Use CRITICAL to avoid logging anything.
     hparser.add_verbosity_arg(parser, log_level="CRITICAL")
     return parser
@@ -203,6 +212,31 @@ def _run_dockerized_llm_transform(
     )
     ret = cast(str, ret)
     return ret
+
+
+def _run_native_llm_transform(
+    in_file_name: str,
+    out_file_name: str,
+    prompt: str,
+    *,
+    fast_model: bool,
+    debug: bool,
+) -> None:
+    """
+    Run the shared LLM transform directly in the current Python process.
+
+    Import the Dockerized implementation lazily so the default Docker path
+    keeps its existing host dependency behavior.
+    """
+    import dev_scripts_helpers.llms.dockerized_llm_transform as dshlldotr
+
+    dshlldotr.run_transform(
+        in_file_name,
+        out_file_name,
+        prompt,
+        fast_model=fast_model,
+        debug=debug,
+    )
 
 
 def _get_input_transforms() -> List[Tuple[str, str]]:
@@ -323,32 +357,32 @@ def _main(parser: argparse.ArgumentParser) -> None:
     tmp_in_file_name, tmp_out_file_name = (
         hseinout.adapt_input_output_args_for_dockerized_scripts(args.input, tag)
     )
-    # TODO(gp): We should just automatically pass-through the options.
-    cmd_line_opts = [f"-p {args.prompt}", f"-v {args.log_level}"]
-    if args.fast_model:
-        cmd_line_opts.append("--fast_model")
-    if args.debug:
-        cmd_line_opts.append("-d")
-    # cmd_line_opts = []
-    # for arg in vars(args):
-    #     if arg not in ["input", "output"]:
-    #         value = getattr(args, arg)
-    #         if isinstance(value, bool):
-    #             if value:
-    #                 cmd_line_opts.append(f"--{arg.replace('_', '-')}")
-    #         else:
-    #             cmd_line_opts.append(f"--{arg.replace('_', '-')} {value}")
-    # For stdin/stdout, suppress the output of the container.
-    suppress_output = in_file_name == "-" or out_file_name == "-"
-    _run_dockerized_llm_transform(
-        tmp_in_file_name,
-        cmd_line_opts,
-        tmp_out_file_name,
-        mode="system",
-        force_rebuild=args.dockerized_force_rebuild,
-        use_sudo=args.dockerized_use_sudo,
-        suppress_output=suppress_output,
-    )
+    if args.native:
+        _run_native_llm_transform(
+            tmp_in_file_name,
+            tmp_out_file_name,
+            args.prompt,
+            fast_model=args.fast_model,
+            debug=args.debug,
+        )
+    else:
+        # TODO(gp): We should just automatically pass-through the options.
+        cmd_line_opts = [f"-p {args.prompt}", f"-v {args.log_level}"]
+        if args.fast_model:
+            cmd_line_opts.append("--fast_model")
+        if args.debug:
+            cmd_line_opts.append("-d")
+        # For stdin/stdout, suppress the output of the container.
+        suppress_output = in_file_name == "-" or out_file_name == "-"
+        _run_dockerized_llm_transform(
+            tmp_in_file_name,
+            cmd_line_opts,
+            tmp_out_file_name,
+            mode="system",
+            force_rebuild=args.dockerized_force_rebuild,
+            use_sudo=args.dockerized_use_sudo,
+            suppress_output=suppress_output,
+        )
     # Run post-transforms outside the container.
     if not args.skip_post_transforms:
         out_txt = dshlllut.run_post_transforms(

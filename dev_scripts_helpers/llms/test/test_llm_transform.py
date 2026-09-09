@@ -120,6 +120,45 @@ class Test_llm_transform1(hunitest.TestCase):
         """
         self.assert_equal(actual, expected, dedent=True)
 
+    def test_test_native1(self) -> None:
+        """
+        Run the deterministic `test` prompt through the native fast path.
+        """
+        script, in_file_name, out_file_name = self.setup_test(txt_id=1)
+        prompt_tag = "test"
+        cmd = (
+            f"{script} -i {in_file_name} -o {out_file_name} "
+            f"-p {prompt_tag} --native"
+        )
+        hsystem.system(cmd)
+        # Check.
+        self.assertTrue(os.path.exists(out_file_name))
+        actual = hio.from_file(out_file_name)
+        expected = r"""
+        1ad0d344ac10cac079e4eed01074c5e6ca29da2f91ce99bfaea890479aace045
+        """
+        self.assert_equal(actual, expected, dedent=True)
+
+    def test_test_native2(self) -> None:
+        """
+        Run the deterministic `test` prompt from stdin through native mode.
+        """
+        script, in_file_name, out_file_name = self.setup_test(txt_id=1)
+        prompt_tag = "test"
+        txt = "hello"
+        cmd = (
+            f"echo {txt} | {script} -i - -o {out_file_name} "
+            f"-p {prompt_tag} --native"
+        )
+        hsystem.system(cmd)
+        # Check.
+        self.assertTrue(os.path.exists(out_file_name))
+        actual = hio.from_file(out_file_name)
+        expected = r"""
+        1ad0d344ac10cac079e4eed01074c5e6ca29da2f91ce99bfaea890479aace045
+        """
+        self.assert_equal(actual, expected, dedent=True)
+
     # TODO(gp): This can be enabled once we can mock the OpenAI interactions.
     @pytest.mark.skip(reason="Run manually since it needs OpenAI credentials")
     def test_all_prompts1(self) -> None:

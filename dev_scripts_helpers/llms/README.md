@@ -27,8 +27,11 @@ This directory has no subdirectories.
 
 - Applies predefined or custom LLM transformations to code files, particularly
   useful for code review and refactoring.
-- Executes transformations in Docker containers to isolate dependencies and
-  environment requirements.
+- Executes transformations in Docker containers by default to isolate
+  dependencies and environment requirements.
+- Supports an explicit `--native` mode that runs the same transform in the
+  current Python process to reduce repeated-run Docker startup overhead when
+  all dependencies are already installed on the host.
 - Can generate cfiles (lists of code issues) for further processing with
   `llm_apply_cfile.py`.
 
@@ -58,6 +61,15 @@ This directory has no subdirectories.
   ```bash
   > llm_transform.py -i input.txt -o output.txt -p my_transform --compare
   ```
+
+- Skip Docker startup for repeated invocations when the host already has the
+  required LLM dependencies installed:
+  ```bash
+  > llm_transform.py -i input.txt -o output.txt -p my_transform --native
+  ```
+  Docker remains the default because it provides dependency and environment
+  isolation. Native mode is opt-in and trades that isolation for lower startup
+  latency.
 
 ## `llm_apply_cfile.py`
 

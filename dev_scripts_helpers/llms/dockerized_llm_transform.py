@@ -33,17 +33,29 @@ def _parse() -> argparse.ArgumentParser:
     return parser
 
 
-def _main(parser: argparse.ArgumentParser) -> None:
-    args = parser.parse_args()
-    hseinout.init_logger_for_input_output_transform(args)
-    # Parse files from command line.
-    in_file_name, out_file_name = hseinout.parse_input_output_args(args)
-    # Read file.
+def run_transform(
+    in_file_name: str,
+    out_file_name: str,
+    prompt_tag: str,
+    *,
+    fast_model: bool,
+    debug: bool,
+) -> None:
+    """
+    Apply one LLM transform to an input file and write the result.
+
+    This is shared by the Dockerized CLI and the opt-in native execution path
+    in `llm_transform.py` so both modes preserve the same transform semantics.
+
+    :param in_file_name: input file to transform
+    :param out_file_name: output file receiving the transformed text
+    :param prompt_tag: prompt tag selecting the requested transform
+    :param fast_model: use the faster model when True
+    :param debug: include the input text before the transformed text when True
+    """
     txt = hseinout.from_file(in_file_name)
-    # Transform with LLM.
     txt_tmp = "\n".join(txt)
-    prompt_tag = args.prompt
-    if args.fast_model:
+    if fast_model:
         model = "gpt-4o-mini"
     else:
         model = "gpt-4o"
@@ -55,14 +67,27 @@ def _main(parser: argparse.ArgumentParser) -> None:
         out_file_name=out_file_name,
     )
     if txt_tmp is not None:
-        # Write file, if needed.
         res = []
-        if args.debug:
+        if debug:
             res.append("# Before:")
             res.extend(txt)
             res.append("# After:")
         res.extend(txt_tmp.split("\n"))
         hseinout.to_file(res, out_file_name)
+
+
+def _main(parser: argparse.ArgumentParser) -> None:
+    args = parser.parse_args()
+    hseinout.init_logger_for_input_output_transform(args)
+    # Parse files from command line.
+    in_file_name, out_file_name = hseinout.parse_input_output_args(args)
+    run_transform(
+        in_file_name,
+        out_file_name,
+        args.prompt,
+        fast_model=args.fast_model,
+        debug=args.debug,
+    )
 
 
 if __name__ == "__main__":
