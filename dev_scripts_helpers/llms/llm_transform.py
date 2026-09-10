@@ -47,7 +47,6 @@ import helpers.hmarkdown as hmarkdo
 import helpers.hselect_input_output as hseinout
 import helpers.hparser as hparser
 import helpers.hprint as hprint
-import helpers.hserver as hserver
 import helpers.hsystem as hsystem
 
 _LOG = logging.getLogger(__name__)
@@ -133,52 +132,32 @@ def _run_dockerized_llm_transform(
         container_image, dockerfile, force_rebuild, use_sudo
     )
     # Convert files to Docker paths.
-    is_caller_host = not hserver.is_inside_docker()
-    use_sibling_container_for_callee = hserver.use_docker_sibling_containers()
-    caller_mount_path, callee_mount_path, mount = hdocker.get_docker_mount_info(
-        is_caller_host, use_sibling_container_for_callee
-    )
-    in_file_path = hdocker.convert_caller_to_callee_docker_path(
+    docker_mount_context = hdocker.get_docker_mount_context()
+    in_file_path = docker_mount_context.convert_path(
         in_file_path,
-        caller_mount_path,
-        callee_mount_path,
         check_if_exists=True,
         is_input=True,
-        is_caller_host=is_caller_host,
-        use_sibling_container_for_callee=use_sibling_container_for_callee,
     )
-    out_file_path = hdocker.convert_caller_to_callee_docker_path(
+    out_file_path = docker_mount_context.convert_path(
         out_file_path,
-        caller_mount_path,
-        callee_mount_path,
         check_if_exists=False,
         is_input=False,
-        is_caller_host=is_caller_host,
-        use_sibling_container_for_callee=use_sibling_container_for_callee,
     )
     helpers_root = hgit.find_helpers_root()
-    helpers_root = hdocker.convert_caller_to_callee_docker_path(
+    helpers_root = docker_mount_context.convert_path(
         helpers_root,
-        caller_mount_path,
-        callee_mount_path,
         check_if_exists=True,
         is_input=False,
-        is_caller_host=is_caller_host,
-        use_sibling_container_for_callee=use_sibling_container_for_callee,
     )
     # Run the script inside the container.
     git_root = hgit.find_git_root()
     script = hsystem.find_file_in_repo(
         "dockerized_llm_transform.py", root_dir=git_root
     )
-    script = hdocker.convert_caller_to_callee_docker_path(
+    script = docker_mount_context.convert_path(
         script,
-        caller_mount_path,
-        callee_mount_path,
         check_if_exists=True,
         is_input=True,
-        is_caller_host=is_caller_host,
-        use_sibling_container_for_callee=use_sibling_container_for_callee,
     )
     cmd_opts_as_str = " ".join(cmd_opts)
     cmd = f" {script} -i {in_file_path} -o {out_file_path} {cmd_opts_as_str}"
@@ -189,8 +168,8 @@ def _run_dockerized_llm_transform(
     docker_cmd.extend(
         [
             f"-e PYTHONPATH={helpers_root}",
-            f"--workdir {callee_mount_path}",
-            f"--mount {mount}",
+            f"--workdir {docker_mount_context.callee_mount_path}",
+            f"--mount {docker_mount_context.mount}",
             container_image,
             cmd,
         ]
