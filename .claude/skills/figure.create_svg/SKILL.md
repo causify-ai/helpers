@@ -84,8 +84,14 @@ model: sonnet
     `.claude/skills/svg.rules.md` are avoided
 
 ## Compare for User
-- Once it's done, open the original and the new rendered image side by side
-  for comparison
+- Once it's done, build a side-by-side comparison image and open it:
+  ```bash
+  > montage <original_image> output.png -tile 2x1 -geometry 500x+10+10 \
+      -background white comparison.png
+  > open comparison.png
+  ```
+- Remove `comparison.png` after the user has seen it, it is a temp file, not
+  a deliverable
 
 ## Examples
 - **Good**: Converting an architecture sketch into SVG with accurate box

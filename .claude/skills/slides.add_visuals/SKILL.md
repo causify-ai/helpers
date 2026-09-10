@@ -12,12 +12,12 @@ model: haiku
 ## Read Related Rules
 - Read the file or the provided text
 - Read `.claude/skills/slides.rules.md` for the slides conventions and rules
-- Read `.claude/skills/visuals.rules.md` to understand the rules for the visuals
+- Read `.claude/skills/figure.rules.md` to understand the rules for the visuals
 
 ## Propose a Visual for Each Slide
 - If a slide doesn't contain a visual element, consider what can be used to
   illustrate the concepts visually
-- E.g., from `## Types of Illustrations` in `.claude/skills/visuals.rules.md`
+- E.g., from `## Types of Illustrations` in `.claude/skills/figure.rules.md`
   - Table
   - Mermaid graph
   - Graphviz diagram

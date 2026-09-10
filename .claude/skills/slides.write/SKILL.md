@@ -27,7 +27,7 @@ model: opus
 - Each slide needs to start with a `* <TITLE>` format
 
 ## Add Visuals
-- Follow the instructions from `.claude/skills/visuals.rules.md`
+- Follow the instructions from `.claude/skills/figure.rules.md`
 
 ## Save Result
 - Do not print anything on the screen

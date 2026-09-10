@@ -45,9 +45,15 @@ Rules for producing SVG figures that are clean and publication-quality
 
 ## Text Styling
 
-- Sentence case everywhere. Never ALL CAPS or Title Case.
+- Sentence case everywhere. Never ALL CAPS or Title Case (cross-format rule,
+  see `.claude/skills/figure.rules.md` "Typography").
 - All <text> must carry class="t", "ts", or "th": never unclassed
 - SVG <text> never wraps: use explicit <tspan dy="1.2em"> for line breaks
+- Subscript/superscript (e.g. H<tspan baseline-shift="sub">2</tspan>O): use
+  `<tspan baseline-shift="sub" font-size="70%">` /
+  `<tspan baseline-shift="super" font-size="70%">`, never the `<SUB>`/`<SUP>`
+  HTML tags used in GraphViz/Mermaid labels — SVG `<text>` does not have that
+  tag (see `.claude/skills/figure.rules.md` "Subscript and Superscript")
 - Match the figure's font to the surrounding document when no class system
   applies (e.g., `font-family: 'Helvetica', 'Arial', sans-serif`)
 - Avoid oblique/italic fonts for plain text unless emphasizing
@@ -58,26 +64,39 @@ Rules for producing SVG figures that are clean and publication-quality
 ## Semantic Color Roles
 
 Color encodes meaning, not sequence. Use these ramp classes on <g> or shape
-elements:
-- c-blue: primary subject / main flow
-- c-teal: secondary system / output
-- c-purple: algorithmic / ML concepts
-- c-amber: warnings, heat, energy, active state
-- c-coral: errors, pressure, forces
-- c-gray: structural, neutral, background elements
-- c-green: biological, growth, success states
+elements. Meanings match the cross-format anchors in
+`.claude/skills/figure.rules.md` `## Color Palette`, so "blue" means the same
+thing here as it does in a GraphViz or TikZ diagram in the same document set:
+- c-blue: outputs, results, final states (figure.rules.md "Blue")
+- c-teal: algorithms, processes, transformations (figure.rules.md "Teal")
+- c-purple: external entities, mixed dependencies (figure.rules.md "Purple")
+- c-amber: input data, sources (figure.rules.md "Orange"); also warnings,
+  heat, energy, active state when the figure is not diagramming data flow
+- c-coral: errors, warnings (figure.rules.md "Red/Pink" role); also pressure,
+  forces in a physical-diagram context
+- c-gray: structural, neutral, containment/hierarchy elements (never a
+  category color, see graphviz.rules.md "Hierarchy and Containment")
+- c-green: processed data, environments (figure.rules.md "Green"); also
+  biological, growth, success states
 
 ## Palette Restraint
 
 - Use a single, restrained color palette (3-5 colors max), each with a
   consistent semantic role
-- Max 3 color ramps per figure; add a 1-line legend if color encodes data
+- Max 3 color ramps per figure; 3+ categories in one figure: add a compact
+  1-line legend (small colored square + the category's meaning, not its
+  class name)
 - Avoid raw `#FF0000`/`#00FF00`/`#0000FF`; use muted tones instead
   (e.g., `#E8F4F8` for light fills, `#4A90B8` for strokes)
 
 ## Color Application
 
 - Light mode: 50-stop fill + 600-stop stroke + 800 title / 600 subtitle text
+- Derive each ramp's 50/600/800 stops from its mapped anchor hex above (50 =
+  anchor tinted toward white for the fill, 600 = anchor at fuller saturation
+  for the stroke, 800 = anchor darkened for text): don't pick arbitrary hex
+  per figure, or the same category drifts to a different color in the next
+  diagram
 - Subtle fills only (e.g., `#F0F5F8` for light backgrounds), never saturated
   default colors
 - Use `opacity` sparingly (max 0.7-0.9 for overlays, avoid near-transparent
@@ -141,6 +160,10 @@ Choose the appropriate type for your diagram:
 
 - Root <svg> must have role="img"
 - First children: <title>One-sentence description</title><desc>Longer desc</desc>
+- This `<title>`/`<desc>` pair also serves as the diagram's required id and
+  caption (see `.claude/skills/figure.rules.md` "Captions and Labels"): the
+  `<desc>` should state what the figure shows and what the colors mean, no
+  separate footer needed
 
 # Dark Mode
 

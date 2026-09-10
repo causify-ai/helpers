@@ -100,8 +100,14 @@ Do not use this skill for:
     semantics)
 
 ## Compare for User
-- Once it's done render the generated one as png and open the original and
-  the new one side by side for comparison
+- Once it's done, build a side-by-side comparison image and open it:
+  ```bash
+  > montage <original_image> output.png -tile 2x1 -geometry 500x+10+10 \
+      -background white comparison.png
+  > open comparison.png
+  ```
+- Remove `comparison.png` after the user has seen it, it is a temp file, not
+  a deliverable
 
 ## Examples
 - **Good**: Converting a circuit diagram sketch into TikZ with accurate node

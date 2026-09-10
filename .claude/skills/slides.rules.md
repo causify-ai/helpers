@@ -809,7 +809,7 @@ Use these commands consistently across all slides:
 # Visuals
 
 - Always add visuals to help explain the concepts
-  - Follow the instructions from `.claude/skills/visuals.rules.md`
+  - Follow the instructions from `.claude/skills/figure.rules.md`
 - When a slide pairs prose with a figure (graphviz/diagram) or a table, put
   them side by side in columns rather than stacking:
   ```
