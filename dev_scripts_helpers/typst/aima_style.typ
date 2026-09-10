@@ -175,13 +175,23 @@
     breakable: false,
     stroke: 0.5pt + rgb("#E0E0E0"),
   )[
-    #set text(weight: "bold", size: 8pt, font: "CMU Typewriter")
+    #set text(weight: "bold", size: 8pt, font: "CMU Typewriter Text")
     //#set text(weight: "bold", size: 8pt, font: "Courier New")
     Figure. #name
     #v(0.2em)
-    #set text(weight: "regular", size: 7.8pt, font: "CMU Typewriter", fill: black)
+    #set text(weight: "regular", size: 7.8pt, font: "CMU Typewriter Text", fill: black)
     //#set text(weight: "regular", size: 7.8pt, font: "Courier New", fill: black)
-    #content
+    // `content` is an array of steps at every call site (e.g.
+    // `#algorithm("Name", ([Step one.], [Step two.]))`), not a single content
+    // value, so interpolating it directly with `#content` prints Typst's debug
+    // repr (`sequence(...)`, `strong(body: ...)`) instead of rendering the
+    // text. Render it as a numbered list of steps; fall back to plain content
+    // for the rare single-block call.
+    #if type(content) == array {
+      enum(..content)
+    } else {
+      content
+    }
   ]
 }
 
