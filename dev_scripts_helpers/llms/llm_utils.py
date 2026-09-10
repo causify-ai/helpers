@@ -3,6 +3,7 @@ import re
 
 import dev_scripts_helpers.llms.llm_prompts as dshlllpr
 import helpers.hdbg as hdbg
+import helpers.hdocker as hdocker
 import helpers.hio as hio
 import helpers.hmarkdown as hmarkdo
 import helpers.hprint as hprint
@@ -11,7 +12,9 @@ _LOG = logging.getLogger(__name__)
 
 
 # TODO(gp): Move this to somewhere else, `hdocker_utils.py`?
-def _convert_file_names(in_file_name: str, out_file_name: str) -> None:
+def _convert_file_names(
+    in_file_name: str, tmp_in_file_name: str, out_file_name: str
+) -> None:
     """
     Convert the files from inside the container to outside.
 
@@ -19,7 +22,12 @@ def _convert_file_names(in_file_name: str, out_file_name: str) -> None:
     `/app/helpers_root/tmp.llm_transform.in.txt`) with the name of the
     file outside the container.
     """
-    # TODO(gp): We should use the `convert_caller_to_callee_docker_path`
+    docker_mount_context = hdocker.get_docker_mount_context()
+    docker_in_file_name = docker_mount_context.convert_path(
+        tmp_in_file_name,
+        check_if_exists=False,
+        is_input=True,
+    )
     txt_out = []
     txt = hio.from_file(out_file_name)
     for line in txt.split("\n"):
@@ -30,7 +38,11 @@ def _convert_file_names(in_file_name: str, out_file_name: str) -> None:
         # /app/helpers_root/r.py:1: Change the shebang line to `#!/usr/bin/env python3` to e
         # ```
         _LOG.debug("before: %s", hprint.to_str("line in_file_name"))
-        line = re.sub(r"^.*(:\d+:.*)$", rf"{in_file_name}\1", line)
+        line = re.sub(
+            rf"^{re.escape(docker_in_file_name)}(:\d+:.*)$",
+            lambda match: f"{in_file_name}{match.group(1)}",
+            line,
+        )
         _LOG.debug("after: %s", hprint.to_str("line"))
         txt_out.append(line)
     txt_out = "\n".join(txt_out)
@@ -61,7 +73,11 @@ def run_post_transforms(
     post_container_transforms = dshlllpr.get_post_container_transforms(prompt)
     #
     if dshlllpr.to_run("convert_file_names", post_container_transforms):
-        _convert_file_names(in_file_name, tmp_out_file_name)
+        _convert_file_names(
+            in_file_name,
+            tmp_in_file_name,
+            tmp_out_file_name,
+        )
     #
     out_txt = hio.from_file(tmp_out_file_name)
     if dshlllpr.to_run("prettier_markdown", post_container_transforms):
