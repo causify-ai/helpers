@@ -20,6 +20,293 @@ _LOG = logging.getLogger(__name__)
 
 
 # #############################################################################
+# TestDockerMountContext
+# #############################################################################
+
+
+class TestDockerMountContext(hunitest.TestCase):
+    """Test `helpers.hdocker.DockerMountContext`."""
+
+    def test1(self) -> None:
+        """
+        Test that the context exposes mount fields and remains tuple-compatible.
+        """
+        # Prepare inputs.
+        context_values = (
+            True,
+            False,
+            "/caller",
+            "/callee",
+            "type=bind,source=/caller,target=/callee",
+        )
+        # Run test.
+        context = hdocker.DockerMountContext(*context_values)
+        # Check outputs.
+        self.assertEqual(tuple(context), context_values)
+        self.assertEqual(context.caller_mount_path, "/caller")
+        self.assertEqual(context.callee_mount_path, "/callee")
+        self.assertEqual(context.mount, context_values[-1])
+
+    def test2(self) -> None:
+        """
+        Test converting one path through the context.
+        """
+        # Prepare inputs.
+        context = hdocker.DockerMountContext(
+            True,
+            False,
+            "/caller",
+            "/callee",
+            "mount",
+        )
+        caller_file_path = "input.txt"
+        check_if_exists = False
+        is_input = False
+        expected_docker_path = "/callee/input.txt"
+        # Run test.
+        with umock.patch.object(
+            hdocker,
+            "convert_caller_to_callee_docker_path",
+            return_value=expected_docker_path,
+        ) as mock_convert:
+            actual_docker_path = context.convert_path(
+                caller_file_path,
+                check_if_exists=check_if_exists,
+                is_input=is_input,
+            )
+        # Check outputs.
+        self.assertEqual(actual_docker_path, expected_docker_path)
+        mock_convert.assert_called_once_with(
+            caller_file_path,
+            "/caller",
+            "/callee",
+            check_if_exists=check_if_exists,
+            is_input=is_input,
+            is_caller_host=True,
+            use_sibling_container_for_callee=False,
+        )
+
+    def test3(self) -> None:
+        """
+        Test converting a standard input/output path pair through the context.
+        """
+        # Prepare inputs.
+        context = hdocker.DockerMountContext(
+            True,
+            False,
+            "/caller",
+            "/callee",
+            "mount",
+        )
+        in_file_path = "input.txt"
+        out_file_path = "output.txt"
+        check_if_exists = False
+        expected_docker_paths = ("/callee/input.txt", "/callee/output.txt")
+        # Run test.
+        with umock.patch.object(
+            hdocker,
+            "convert_caller_to_callee_docker_path",
+            side_effect=expected_docker_paths,
+        ) as mock_convert:
+            actual_docker_paths = context.convert_io_paths(
+                in_file_path,
+                out_file_path,
+                check_if_exists=check_if_exists,
+            )
+        # Check outputs.
+        self.assertEqual(actual_docker_paths, expected_docker_paths)
+        expected_calls = [
+            umock.call(
+                in_file_path,
+                "/caller",
+                "/callee",
+                check_if_exists=check_if_exists,
+                is_input=True,
+                is_caller_host=True,
+                use_sibling_container_for_callee=False,
+            ),
+            umock.call(
+                out_file_path,
+                "/caller",
+                "/callee",
+                check_if_exists=check_if_exists,
+                is_input=False,
+                is_caller_host=True,
+                use_sibling_container_for_callee=False,
+            ),
+        ]
+        mock_convert.assert_has_calls(expected_calls)
+
+    def test4(self) -> None:
+        """
+        Test converting a list of paths through the context.
+        """
+        # Prepare inputs.
+        context = hdocker.DockerMountContext(
+            True,
+            False,
+            "/caller",
+            "/callee",
+            "mount",
+        )
+        cmd_opts = ["input.txt", "./output.yaml"]
+        expected_docker_paths = ["/callee/input.txt", "/callee/output.yaml"]
+        # Run test.
+        with umock.patch.object(
+            hdocker,
+            "convert_all_paths_from_caller_to_callee_docker_path",
+            return_value=expected_docker_paths,
+        ) as mock_convert_all:
+            actual = context.convert_all_paths(cmd_opts)
+        # Check outputs.
+        self.assertEqual(actual, expected_docker_paths)
+        mock_convert_all.assert_called_once_with(
+            cmd_opts,
+            "/caller",
+            "/callee",
+            True,
+            False,
+        )
+
+
+# #############################################################################
+# Test_DockerMountContext_equivalence
+# #############################################################################
+
+
+class TestDockerMountContext_equivalence(hunitest.TestCase):
+    """Test that DockerMountContext methods produce identical results to the
+    legacy standalone functions."""
+
+    @staticmethod
+    def _make_context() -> hdocker.DockerMountContext:
+        return hdocker.DockerMountContext(
+            True,
+            False,
+            "/caller",
+            "/callee",
+            "type=bind,source=/caller,target=/callee",
+        )
+
+    def test1(self) -> None:
+        """convert_path delegates with identical args to legacy function."""
+        context = self._make_context()
+        caller_file_path = "input.txt"
+        expected_result = "/callee/input.txt"
+        # Run test: verify the context passes the same args as the legacy call.
+        with umock.patch.object(
+            hdocker,
+            "convert_caller_to_callee_docker_path",
+            return_value=expected_result,
+        ) as mock_convert:
+            # Legacy call.
+            legacy_result = hdocker.convert_caller_to_callee_docker_path(
+                caller_file_path,
+                context.caller_mount_path,
+                context.callee_mount_path,
+                check_if_exists=False,
+                is_input=True,
+                is_caller_host=context.is_caller_host,
+                use_sibling_container_for_callee=(
+                    context.use_sibling_container_for_callee
+                ),
+            )
+            # Context call.
+            context_result = context.convert_path(
+                caller_file_path,
+                check_if_exists=False,
+                is_input=True,
+            )
+        # Check outputs.
+        self.assertEqual(legacy_result, context_result)
+        self.assertEqual(expected_result, context_result)
+        # The legacy and context calls should have produced identical args.
+        mock_convert.assert_any_call(
+            caller_file_path,
+            "/caller",
+            "/callee",
+            check_if_exists=False,
+            is_input=True,
+            is_caller_host=True,
+            use_sibling_container_for_callee=False,
+        )
+        self.assertEqual(mock_convert.call_count, 2)
+
+    def test2(self) -> None:
+        """convert_io_paths delegates with identical args to legacy function."""
+        context = self._make_context()
+        in_file_path = "input.txt"
+        out_file_path = "output.txt"
+        expected_in = "/callee/input.txt"
+        expected_out = "/callee/output.txt"
+        # Run test.
+        with umock.patch.object(
+            hdocker,
+            "convert_caller_to_callee_docker_path",
+            side_effect=[expected_in, expected_out, expected_in, expected_out],
+        ) as mock_convert:
+            # Legacy calls.
+            legacy_in = hdocker.convert_caller_to_callee_docker_path(
+                in_file_path,
+                context.caller_mount_path,
+                context.callee_mount_path,
+                check_if_exists=False,
+                is_input=True,
+                is_caller_host=context.is_caller_host,
+                use_sibling_container_for_callee=(
+                    context.use_sibling_container_for_callee
+                ),
+            )
+            legacy_out = hdocker.convert_caller_to_callee_docker_path(
+                out_file_path,
+                context.caller_mount_path,
+                context.callee_mount_path,
+                check_if_exists=False,
+                is_input=False,
+                is_caller_host=context.is_caller_host,
+                use_sibling_container_for_callee=(
+                    context.use_sibling_container_for_callee
+                ),
+            )
+            # Context call.
+            context_in, context_out = context.convert_io_paths(
+                in_file_path,
+                out_file_path,
+                check_if_exists=False,
+            )
+        # Check outputs.
+        self.assertEqual(legacy_in, context_in)
+        self.assertEqual(legacy_out, context_out)
+        self.assertEqual(mock_convert.call_count, 4)
+        # Verify the context calls match the legacy calls.
+        expected_calls = [
+            umock.call(
+                in_file_path,
+                "/caller",
+                "/callee",
+                check_if_exists=False,
+                is_input=True,
+                is_caller_host=True,
+                use_sibling_container_for_callee=False,
+            ),
+            umock.call(
+                out_file_path,
+                "/caller",
+                "/callee",
+                check_if_exists=False,
+                is_input=False,
+                is_caller_host=True,
+                use_sibling_container_for_callee=False,
+            ),
+        ]
+        actual_calls = mock_convert.call_args_list
+        # The last two calls (from context) should match the legacy calls.
+        context_calls = actual_calls[2:]
+        for i, expected in enumerate(expected_calls):
+            self.assertEqual(context_calls[i], expected)
+
+
+# #############################################################################
 # Test_replace_shared_root_path1
 # #############################################################################
 

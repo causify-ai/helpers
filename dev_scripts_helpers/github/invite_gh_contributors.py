@@ -79,29 +79,24 @@ def _run_dockerized_invite(args: argparse.Namespace) -> None:  # noqa: D401
     caller_mount, callee_mount, mount_str = hdocker.get_docker_mount_info(
         is_host, sibling
     )
+    docker_mount_context = hdocker.DockerMountContext(
+        is_host, sibling, caller_mount, callee_mount, mount_str
+    )
     # Locate inner script.
     inner_script_host = hsystem.find_file_in_repo(
         INNER_SCRIPT_REL, root_dir=hgit.find_git_root()
     )
-    inner_script_docker = hdocker.convert_caller_to_callee_docker_path(
+    inner_script_docker = docker_mount_context.convert_path(
         inner_script_host,
-        caller_mount,
-        callee_mount,
         check_if_exists=True,
         is_input=True,
-        is_caller_host=is_host,
-        use_sibling_container_for_callee=sibling,
     )
     # Resolve helper imports.
     helpers_root_host = hgit.find_helpers_root()
-    helpers_root_docker = hdocker.convert_caller_to_callee_docker_path(
+    helpers_root_docker = docker_mount_context.convert_path(
         helpers_root_host,
-        caller_mount,
-        callee_mount,
         check_if_exists=True,
         is_input=False,
-        is_caller_host=is_host,
-        use_sibling_container_for_callee=sibling,
     )
     # Build Flags.
     passthrough: List[str] = []
@@ -113,14 +108,10 @@ def _run_dockerized_invite(args: argparse.Namespace) -> None:  # noqa: D401
         # Translate path-like args.
         if flag == "csv_file":
             csv_host = os.path.abspath(str(value))
-            csv_docker = hdocker.convert_caller_to_callee_docker_path(
+            csv_docker = docker_mount_context.convert_path(
                 csv_host,
-                caller_mount,
-                callee_mount,
                 check_if_exists=True,
                 is_input=True,
-                is_caller_host=is_host,
-                use_sibling_container_for_callee=sibling,
             )
             passthrough.extend(["--csv_file", csv_docker])
             continue
@@ -136,8 +127,8 @@ def _run_dockerized_invite(args: argparse.Namespace) -> None:  # noqa: D401
         [
             "-e GITHUB_TOKEN",
             f"-e PYTHONPATH={helpers_root_docker}",
-            f"--workdir {callee_mount}",
-            f"--mount {mount_str}",
+            f"--workdir {docker_mount_context.callee_mount_path}",
+            f"--mount {docker_mount_context.mount}",
             container_image,
             f"{inner_script_docker} {passthrough_str}",
         ]
