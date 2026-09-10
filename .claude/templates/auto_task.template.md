@@ -1,6 +1,6 @@
 ### [ ] <Title of the GitHub Issue>
 
-* Repo: <Which repos are affected> (e.g., helpers, umd_classes)
+* Affected repo: <Which repos are affected> (e.g., helpers, umd_classes)
 
 * Problem
 - <Problem statement and goal>

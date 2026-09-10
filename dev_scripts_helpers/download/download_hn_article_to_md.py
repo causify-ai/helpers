@@ -66,6 +66,12 @@ submission URL.
     --input "https://news.ycombinator.com/item?id=12345" \
     --no_incremental
 
+- Use a specific LLM model for summarization (default is routed through
+  OpenRouter; see `download_utils.SUMMARY_MODEL`):
+> download_hn_article_to_md.py \
+    --input "https://news.ycombinator.com/item?id=12345" \
+    --model openrouter/anthropic/claude-haiku-4.5
+
 Import as:
 
 import dev_scripts_helpers.download.download_hn_article_to_md as dsdhatm
@@ -435,7 +441,7 @@ def _download_article_url(
 
 _HN_COMMENTS_PROMPT = hprint.dedent("""
     - Analyze the Hacker News comment section.
-    - From all comments, summarize the 5-10 most interesting comments based on:
+    - From all comments, summarize the 10-15 most interesting comments based on:
       1. Thought-provoking or insightful content
       2. Unique perspective or uncommon knowledge
       3. Sparks discussion or debate
@@ -457,6 +463,7 @@ def _summarize_hn_url(
     comments_file: str,
     summary_file: str,
     *,
+    model: str,
     article_url: str = "",
     hn_url: str = "",
     dry_run: bool = False,
@@ -467,6 +474,7 @@ def _summarize_hn_url(
 
     :param comments_file: Path to the raw HN comments file
     :param summary_file: Path to save the summary to
+    :param model: LLM model to use for summarization
     :param article_url: URL of the linked article, for the backlink header
     :param hn_url: URL of the HN submission, for the backlink header
     :param dry_run: If True, show what would be done without executing
@@ -474,7 +482,9 @@ def _summarize_hn_url(
         already exists
     """
     _LOG.debug(
-        hprint.to_str("comments_file summary_file dry_run no_incremental")
+        hprint.to_str(
+            "comments_file summary_file model dry_run no_incremental"
+        )
     )
     if not dry_run:
         hdbg.dassert_file_exists(comments_file)
@@ -487,6 +497,7 @@ def _summarize_hn_url(
         comments_file,
         summary_file,
         _HN_COMMENTS_PROMPT,
+        model=model,
         dry_run=dry_run,
     )
     if not dry_run:
@@ -497,6 +508,7 @@ def _summarize_article_url(
     article_file: str,
     summary_file: str,
     *,
+    model: str,
     article_url: str = "",
     hn_url: str = "",
     dry_run: bool = False,
@@ -507,13 +519,18 @@ def _summarize_article_url(
 
     :param article_file: Path to the raw article content file
     :param summary_file: Path to save the summary to
+    :param model: LLM model to use for summarization
     :param article_url: URL of the linked article, for the backlink header
     :param hn_url: URL of the HN submission, for the backlink header
     :param dry_run: If True, show what would be done without executing
     :param no_incremental: If True, overwrite `summary_file` even if it
         already exists
     """
-    _LOG.debug(hprint.to_str("article_file summary_file dry_run no_incremental"))
+    _LOG.debug(
+        hprint.to_str(
+            "article_file summary_file model dry_run no_incremental"
+        )
+    )
     if not dry_run:
         hdbg.dassert_file_exists(article_file)
     if os.path.exists(summary_file) and not no_incremental:
@@ -525,6 +542,7 @@ def _summarize_article_url(
         article_file,
         summary_file,
         dshddut.ARTICLE_SUMMARY_PROMPT,
+        model=model,
         dry_run=dry_run,
     )
     if not dry_run:
@@ -581,6 +599,13 @@ def _parse() -> argparse.ArgumentParser:
             "Directory to save the generated files to (created if it "
             "doesn't exist). If not specified, the current directory is used"
         ),
+    )
+    parser.add_argument(
+        "--model",
+        type=str,
+        default=dshddut.SUMMARY_MODEL,
+        help="LLM model to use for both summarization phases (article + "
+        f"HN comments) (default: {dshddut.SUMMARY_MODEL})",
     )
     # Add action selection arguments (download_hn_url, download_article_url, etc).
     hselacti.add_action_arg(parser, VALID_ACTIONS, DEFAULT_ACTIONS)
@@ -697,6 +722,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
             _summarize_article_url(
                 article_file,
                 article_summary_file,
+                model=args.model,
                 article_url=article_url,
                 hn_url=hn_url,
                 dry_run=args.dry_run,
@@ -706,6 +732,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
             _summarize_hn_url(
                 hn_file,
                 hn_summary_file,
+                model=args.model,
                 article_url=article_url,
                 hn_url=hn_url,
                 dry_run=args.dry_run,

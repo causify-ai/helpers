@@ -11,7 +11,7 @@ import helpers.hcache_simple as hcacsimp
 import helpers.hsystem as hsystem
 import helpers.hunit_test as hunitest
 import dev_scripts_helpers.download.bookmark_utils as dshdbou
-import dev_scripts_helpers.download.process_gsheet_links as dsgl
+import dev_scripts_helpers.download.pre_process_bookmarks as dspprbo
 
 _LOG = logging.getLogger(__name__)
 
@@ -23,7 +23,7 @@ _LOG = logging.getLogger(__name__)
 
 class Test__update_article_urls(hunitest.TestCase):
     """
-    Test `process_gsheet_links._update_article_urls()`.
+    Test `pre_process_bookmarks._update_article_urls()`.
     """
 
     def helper(self, rows: list) -> list:
@@ -32,7 +32,7 @@ class Test__update_article_urls(hunitest.TestCase):
         return the resulting rows.
 
         Runs inside the test's scratch space (via `hsystem.cd()`) so the
-        script's fixed `./tmp.process_gsheet_links.*` paths land there
+        script's fixed `./tmp.pre_process_bookmarks.*` paths land there
         instead of polluting (or depending on) the real working directory.
 
         :param rows: rows to write to the HN CSV (must all share the same
@@ -43,14 +43,14 @@ class Test__update_article_urls(hunitest.TestCase):
         columns = list(rows[0].keys())
         with hsystem.cd(scratch_dir):
             hn_csv = dshdbou.get_tmp_file_path(
-                dsgl.HN_CSV_FILE, "process_gsheet_links"
+                dspprbo.HN_CSV_FILE, "pre_process_bookmarks"
             )
             dshdbou.write_csv(hn_csv, rows, fieldnames=columns)
-            urls_csv = dsgl._update_article_urls()
+            urls_csv = dspprbo._update_article_urls(hn_csv)
             actual_rows = dshdbou.read_csv(urls_csv)
         return actual_rows
 
-    def helper_mock_hn_api(self, rows: list, extracted_url: str) -> list:
+    def helper1(self, rows: list, extracted_url: str) -> list:
         """
         Same as `helper()`, but also mocks `requests.get()` (the real
         external dependency behind `_extract_article_url()`) to return
@@ -67,12 +67,48 @@ class Test__update_article_urls(hunitest.TestCase):
         hcacsimp.enable_caching(False)
         try:
             with umock.patch.object(
-                dsgl.requests, "get", return_value=fake_response
+                dspprbo.requests, "get", return_value=fake_response
             ):
                 actual_rows = self.helper(rows)
         finally:
             hcacsimp.enable_caching(True)
         return actual_rows
+
+    def helper2(
+        self, rows: list, expected_url: str
+    ) -> None:
+        """
+        Helper to run test and check a single Article_url result.
+        """
+        actual_rows = self.helper(rows)
+        expected_row = rows[0].copy()
+        expected_row["Article_url"] = expected_url
+        self.assert_equal(str(actual_rows[0]), str(expected_row))
+
+    def helper3(
+        self, rows: list, expected_url: str
+    ) -> None:
+        """
+        Helper to run test with mocked HN API and check a single Article_url result.
+        """
+        actual_rows = self.helper1(rows, expected_url)
+        expected_row = rows[0].copy()
+        expected_row["Article_url"] = expected_url
+        self.assert_equal(str(actual_rows[0]), str(expected_row))
+
+    def helper4(
+        self, rows: list, extracted_url: str, expected_urls: list
+    ) -> None:
+        """
+        Helper to run test with mocked HN API and check multiple Article_url results.
+        """
+        actual_rows = self.helper1(rows, extracted_url)
+        expected_rows = []
+        for i, row in enumerate(rows):
+            expected_row = row.copy()
+            expected_row["Article_url"] = expected_urls[i]
+            expected_rows.append(expected_row)
+        self.assert_equal(str(actual_rows), str(expected_rows))
 
     def test1(self) -> None:
         """
@@ -89,9 +125,7 @@ class Test__update_article_urls(hunitest.TestCase):
         # Prepare outputs.
         expected = "https://example.com/a"
         # Run test.
-        actual_rows = self.helper(rows)
-        # Check outputs.
-        self.assert_equal(actual_rows[0]["Article_url"], expected)
+        self.helper2(rows, expected)
 
     def test2(self) -> None:
         """
@@ -108,10 +142,7 @@ class Test__update_article_urls(hunitest.TestCase):
         # Prepare outputs.
         expected = "https://example.com/extracted"
         # Run test.
-        actual_rows = self.helper_mock_hn_api(rows, expected)
-        # Check outputs.
-        # TODO(ai_gp): Move the assert_equal in the helper
-        self.assert_equal(actual_rows[0]["Article_url"], expected)
+        self.helper3(rows, expected)
 
     def test3(self) -> None:
         """
@@ -128,9 +159,7 @@ class Test__update_article_urls(hunitest.TestCase):
         # Prepare outputs.
         expected = "https://example.com/existing"
         # Run test.
-        actual_rows = self.helper(rows)
-        # Check outputs.
-        self.assert_equal(actual_rows[0]["Article_url"], expected)
+        self.helper2(rows, expected)
 
     def test4(self) -> None:
         """
@@ -141,14 +170,14 @@ class Test__update_article_urls(hunitest.TestCase):
         rows: list = []
         columns = ["Title", "Hn_url", "Article_url"]
         scratch_dir = self.get_scratch_space()
+        hn_csv = dshdbou.get_tmp_file_path(
+            dspprbo.HN_CSV_FILE, "pre_process_bookmarks"
+        )
         # Run test and check outputs.
         with hsystem.cd(scratch_dir):
-            hn_csv = dshdbou.get_tmp_file_path(
-                dsgl.HN_CSV_FILE, "process_gsheet_links"
-            )
             dshdbou.write_csv(hn_csv, rows, fieldnames=columns)
             with self.assertRaises(AssertionError):
-                dsgl._update_article_urls()
+                dspprbo._update_article_urls(hn_csv)
 
     def test5(self) -> None:
         """
@@ -182,10 +211,9 @@ class Test__update_article_urls(hunitest.TestCase):
             "https://example.com/existing",
         ]
         # Run test.
-        actual_rows = self.helper_mock_hn_api(rows, extracted_url)
-        actual = [row["Article_url"] for row in actual_rows]
-        # Check outputs.
-        self.assert_equal(str(actual), str(expected))
+        self.helper4(
+            rows, extracted_url, expected
+        )
 
 
 # #############################################################################
@@ -195,7 +223,7 @@ class Test__update_article_urls(hunitest.TestCase):
 
 class Test__update_article_clusters(hunitest.TestCase):
     """
-    Test `process_gsheet_links._update_article_clusters()`.
+    Test `pre_process_bookmarks._update_article_clusters()`.
     """
 
     def helper(self, rows: list) -> list:
@@ -204,7 +232,7 @@ class Test__update_article_clusters(hunitest.TestCase):
         return the resulting clustered rows.
 
         Runs inside the test's scratch space (via `hsystem.cd()`) so the
-        script's fixed `./tmp.process_gsheet_links.*` paths land there
+        script's fixed `./tmp.pre_process_bookmarks.*` paths land there
         instead of polluting (or depending on) the real working directory.
 
         :param rows: rows to write to the tags CSV (must all share the same
@@ -215,12 +243,47 @@ class Test__update_article_clusters(hunitest.TestCase):
         columns = list(rows[0].keys())
         with hsystem.cd(scratch_dir):
             tags_csv = dshdbou.get_tmp_file_path(
-                dsgl.TAGS_CSV_FILE, "process_gsheet_links"
+                dspprbo.TAGS_CSV_FILE, "pre_process_bookmarks"
             )
             dshdbou.write_csv(tags_csv, rows, fieldnames=columns)
-            clusters_csv = dsgl._update_article_clusters()
+            clusters_csv = dshdbou.get_tmp_file_path(
+                dspprbo.CLUSTERS_CSV_FILE, "pre_process_bookmarks"
+            )
+            dspprbo._update_article_clusters(clusters_csv)
             actual_rows = dshdbou.read_csv(clusters_csv)
         return actual_rows
+
+    def helper1(self, rows: list, expected_row: dict) -> None:
+        """
+        Helper to run test and check entire row result.
+        """
+        actual_rows = self.helper(rows)
+        self.assert_equal(str(actual_rows[0]), str(expected_row))
+
+    def helper2(
+        self, rows: list, expected_cluster: str
+    ) -> None:
+        """
+        Helper to run test and check a single Article_cluster result.
+        """
+        actual_rows = self.helper(rows)
+        expected_row = rows[0].copy()
+        expected_row["Article_cluster"] = expected_cluster
+        self.assert_equal(str(actual_rows[0]), str(expected_row))
+
+    def helper3(
+        self, rows: list, expected_clusters: list
+    ) -> None:
+        """
+        Helper to run test and check multiple Article_cluster results.
+        """
+        actual_rows = self.helper(rows)
+        expected_rows = []
+        for i, row in enumerate(rows):
+            expected_row = row.copy()
+            expected_row["Article_cluster"] = expected_clusters[i]
+            expected_rows.append(expected_row)
+        self.assert_equal(str(actual_rows), str(expected_rows))
 
     def test1(self) -> None:
         """
@@ -247,10 +310,7 @@ class Test__update_article_clusters(hunitest.TestCase):
             "Article_cluster": "AI",
         }
         # Run test.
-        actual_rows = self.helper(rows)
-        # Check outputs.
-        # TODO(ai_gp): Move the assert_equal in the helper
-        self.assert_equal(str(actual_rows[0]), str(expected))
+        self.helper1(rows, expected)
 
     def test2(self) -> None:
         """
@@ -269,9 +329,7 @@ class Test__update_article_clusters(hunitest.TestCase):
         # Prepare outputs.
         expected = "Dev tools"
         # Run test.
-        actual_rows = self.helper(rows)
-        # Check outputs.
-        self.assert_equal(actual_rows[0]["Article_cluster"], expected)
+        self.helper2(rows, expected)
 
     def test3(self) -> None:
         """
@@ -290,9 +348,7 @@ class Test__update_article_clusters(hunitest.TestCase):
         # Prepare outputs.
         expected = ""
         # Run test.
-        actual_rows = self.helper(rows)
-        # Check outputs.
-        self.assert_equal(actual_rows[0]["Article_cluster"], expected)
+        self.helper2(rows, expected)
 
     def test4(self) -> None:
         """
@@ -303,14 +359,17 @@ class Test__update_article_clusters(hunitest.TestCase):
         rows: list = []
         columns = ["Title", "Article_url", "Article_tag", "Article_cluster"]
         scratch_dir = self.get_scratch_space()
+        tags_csv = dshdbou.get_tmp_file_path(
+            dspprbo.TAGS_CSV_FILE, "pre_process_bookmarks"
+        )
+        clusters_csv = dshdbou.get_tmp_file_path(
+            dspprbo.CLUSTERS_CSV_FILE, "pre_process_bookmarks"
+        )
         # Run test and check outputs.
         with hsystem.cd(scratch_dir):
-            tags_csv = dshdbou.get_tmp_file_path(
-                dsgl.TAGS_CSV_FILE, "process_gsheet_links"
-            )
             dshdbou.write_csv(tags_csv, rows, fieldnames=columns)
             with self.assertRaises(AssertionError):
-                dsgl._update_article_clusters()
+                dspprbo._update_article_clusters(clusters_csv)
 
     def test5(self) -> None:
         """
@@ -343,11 +402,8 @@ class Test__update_article_clusters(hunitest.TestCase):
         ]
         # Prepare outputs.
         expected = ["AI", "Dev tools", ""]
-        # Run test.
-        actual_rows = self.helper(rows)
-        actual = [row["Article_cluster"] for row in actual_rows]
-        # Check outputs.
-        self.assert_equal(str(actual), str(expected))
+        # Run test and check outputs.
+        self.helper3(rows, expected)
 
 
 # #############################################################################
@@ -357,7 +413,7 @@ class Test__update_article_clusters(hunitest.TestCase):
 
 class Test__normalize_tag(hunitest.TestCase):
     """
-    Test `process_gsheet_links._normalize_tag()`.
+    Test `pre_process_bookmarks._normalize_tag()`.
     """
 
     def helper(self, raw_tag: str, expected: str) -> None:
@@ -368,7 +424,7 @@ class Test__normalize_tag(hunitest.TestCase):
         :param expected: expected normalized tag
         """
         # Run test.
-        actual = dsgl._normalize_tag(raw_tag)
+        actual = dspprbo._normalize_tag(raw_tag)
         # Check outputs.
         self.assert_equal(actual, expected)
 
@@ -472,7 +528,7 @@ class Test__normalize_tag(hunitest.TestCase):
         expected = "AI Agents"
         # Run test. Pass a local `tag_map` through the public interface
         # instead of monkey-patching the internal `topic_to_cluster` dict.
-        actual = dsgl._normalize_tag(raw_tag, tag_map=fake_tag_map)
+        actual = dspprbo._normalize_tag(raw_tag, tag_map=fake_tag_map)
         # Check outputs.
         self.assert_equal(actual, expected)
 

@@ -11,14 +11,18 @@
 # ///
 
 r"""
-Download article content and HN comments from links stored in Google Sheets.
+Download article content and HN comments from bookmark links.
 
 For detailed documentation on the link workflow, see:
 `dev_scripts_helpers/download/download_link_articles.README.md`
 
-This script processes a Google Sheets document containing article links,
-downloads article content and Hacker News comments, and optionally summarizes
-them using LLMs.
+`--input` is the primary, gsheet-free way to run this script: it accepts
+either a single HN submission/article URL (bypassing Google Sheets, type
+auto-detected) or a path to a local bookmarks CSV file (batch mode,
+processing all its rows the same way `--url` does). `--url` remains
+supported for processing a live Google Sheets document directly. Either
+way, this script downloads article content and Hacker News comments, and
+optionally summarizes them using LLMs.
 
 ## Supported Actions
 
@@ -60,8 +64,21 @@ characters replaced with underscores:
     --input "https://news.ycombinator.com/item?id=12345" \
     --no_incremental
 
-- Download HN comments for rows 0-9 where the "Hn_url" column is not empty
-  (only that action):
+- Download and summarize all rows from a local bookmarks CSV instead of a
+  Google Sheet:
+> download_link_articles.py \
+    --input bookmarks/combined_data.csv \
+    --all_actions
+
+- Download HN comments for rows 0-9 of a local bookmarks CSV where the
+  "Hn_url" column is not empty (only that action):
+> download_link_articles.py \
+    --input bookmarks/combined_data.csv \
+    --row_idx "0:10" \
+    --clear_actions --action download_hn_url
+
+- Download HN comments for rows 0-9 of a Google Sheets document where the
+  "Hn_url" column is not empty (only that action):
 > download_link_articles.py \
     --url "https://docs.google.com/spreadsheets/d/..." \
     --row_idx "0:10" \
@@ -138,8 +155,19 @@ _DEFAULT_MODEL = "gpt-4o-mini"
 
 
 # #############################################################################
-# Phase 1: Download Gsheet
+# Phase 1: Load Input Rows
 # #############################################################################
+
+# Columns every source of batch rows (a downloaded gsheet CSV or a local
+# bookmarks CSV passed via --input) must have.
+_EXPECTED_ROW_COLUMNS = {
+    "Title",
+    "Article_url",
+    "Hn_url",
+    "Timestamp",
+    "Article_tag",
+    "Article_cluster",
+}
 
 
 def _load_rows_from_gsheet(url: str) -> List[Dict[str, Any]]:
@@ -157,21 +185,35 @@ def _load_rows_from_gsheet(url: str) -> List[Dict[str, Any]]:
     dshdbout.download_from_gsheet(url, gsheet_csv)
     rows = dshdbout.read_csv(gsheet_csv)
     hdbg.dassert_lt(0, len(rows), "No rows in downloaded CSV")
-    # Verify expected columns exist.
-    expected_columns = {
-        "Title",
-        "Article_url",
-        "Hn_url",
-        "Timestamp",
-        "Article_tag",
-        "Article_cluster",
-    }
     actual_columns = list(rows[0].keys())
     hdbg.dassert_is_subset(
-        expected_columns,
+        _EXPECTED_ROW_COLUMNS,
         actual_columns,
     )
     _LOG.info("Retrieved %d rows from Google Sheets", len(rows))
+    return rows
+
+
+def _load_rows_from_csv(csv_path: str) -> List[Dict[str, Any]]:
+    """
+    Load and validate rows from a local bookmarks CSV file.
+
+    Mirrors `_load_rows_from_gsheet()`'s column validation, so a local CSV
+    (e.g., `combined_data.csv`) passed via `--input` is processed the same
+    way a Google Sheets document is.
+
+    :param csv_path: path to the local bookmarks CSV file
+    :return: List of data rows
+    """
+    _LOG.debug(hprint.to_str("csv_path"))
+    rows = dshdbout.read_csv(csv_path)
+    hdbg.dassert_lt(0, len(rows), "No rows in CSV: %s", csv_path)
+    actual_columns = list(rows[0].keys())
+    hdbg.dassert_is_subset(
+        _EXPECTED_ROW_COLUMNS,
+        actual_columns,
+    )
+    _LOG.info("Retrieved %d rows from '%s'", len(rows), csv_path)
     return rows
 
 
@@ -335,14 +377,21 @@ def _parse_row_idx(row_idx_str: str, num_rows: int) -> List[int]:
     """
     Parse row_idx string and return list of 0-indexed row indices.
 
-    Format: "N" (single 0-indexed row) or "START:END" (range, 0-based with
-    exclusive end like Python slicing, e.g., "1:10" returns [1, 2, ..., 9]).
+    Format: "N" (single 0-indexed row), "START:END" (range, 0-based with
+    exclusive end like Python slicing, e.g., "1:10" returns [1, 2, ..., 9]),
+    or "" (empty: every row).
 
-    :param row_idx_str: Row index specification (0-indexed, exclusive end)
+    :param row_idx_str: Row index specification (0-indexed, exclusive end),
+        or the empty string to select every row
     :param num_rows: Total number of rows available
     :return: List of 0-indexed row indices to process
     """
     _LOG.debug(hprint.to_str("row_idx_str num_rows"))
+    if not row_idx_str:
+        # No range specified: process every row.
+        indices = list(range(num_rows))
+        _LOG.debug(hprint.to_str("indices"))
+        return indices
     # Parse range format (e.g., "1:10").
     if ":" in row_idx_str:
         parts = row_idx_str.split(":")
@@ -902,21 +951,24 @@ def _parse() -> argparse.ArgumentParser:
         description=__doc__,
         formatter_class=hparser.CustomHelpFormatter,
     )
-    # Exactly one data source is required: a Google Sheets document, or a
-    # single HN submission/article URL processed directly (bypassing Google
-    # Sheets), with the input type auto-detected.
+    # Exactly one data source is required: a Google Sheets document, or
+    # --input, which is the primary (gsheet-free) way to run this script and
+    # accepts either a single HN submission/article URL (bypassing Google
+    # Sheets, type auto-detected) or a path to a local bookmarks CSV (batch
+    # mode, same row/column shape as --url).
     source_group = parser.add_mutually_exclusive_group(required=True)
-    source_group.add_argument(
-        "--url",
-        action="store",
-        help="URL of the Google Sheets document",
-    )
     source_group.add_argument(
         "-i",
         "--input",
         action="store",
-        help="Directly download a single HN submission URL or article URL, "
-        "bypassing Google Sheets (type auto-detected)",
+        help="A single HN submission URL or article URL (bypasses Google "
+        "Sheets, type auto-detected), or a path to a local bookmarks CSV "
+        "file (batch mode, processing all its rows like --url does)",
+    )
+    source_group.add_argument(
+        "--url",
+        action="store",
+        help="URL of the Google Sheets document",
     )
     parser.add_argument(
         "-o",
@@ -924,19 +976,23 @@ def _parse() -> argparse.ArgumentParser:
         type=str,
         default="",
         help=(
-            "Output base name (no extension) shared by the generated files, "
-            "used with --input only (ignored with --url). If not "
-            "specified, the sanitized page/submission title is used"
+            "Output base name (no extension) shared by the generated files; "
+            "used only when --input is a single URL (ignored with --url or "
+            "when --input is a local CSV file). If not specified, the "
+            "sanitized page/submission title is used"
         ),
     )
     # Optional: specify which rows to process (0-indexed). Ignored when
-    # --input is used, since it processes a single synthetic row.
+    # --input is a single URL, since it processes a single synthetic row;
+    # applies the same way as --url when --input is a local CSV file.
     parser.add_argument(
         "--row_idx",
         action="store",
         required=False,
         default="",
-        help="Row index or range to process, 1-indexed (e.g., '1' for first row, '1:10' for rows 1-10); ignored with --input",
+        help="Row index or range to process, 1-indexed (e.g., '1' for "
+        "first row, '1:10' for rows 1-10); empty processes every row; "
+        "ignored when --input is a single URL",
     )
     # Add action selection arguments (download_hn_url, download_article_url, etc).
     hselacti.add_action_arg(parser, _VALID_ACTIONS, _DEFAULT_ACTIONS)
@@ -972,10 +1028,14 @@ def _main(parser: argparse.ArgumentParser) -> None:
     args = parser.parse_args()
     hdbg.init_logger(verbosity=args.log_level, use_exec_path=True)
     hcacsimp.parse_cache_control_args(args)
-    # Phase 1: Determine the rows to process, either from a single --input
-    # (type auto-detected) or from the full Google Sheets document.
+    # Phase 1: Determine the rows to process. --input is the primary,
+    # gsheet-free source and is either a single URL (bypass, one synthetic
+    # row) or a local bookmarks CSV (batch, same shape as --url); --url
+    # remains the Google Sheets source.
     is_hn_input = False
-    if args.input:
+    input_is_csv_file = bool(args.input) and os.path.isfile(args.input)
+    if args.input and not input_is_csv_file:
+        # Single URL bypass mode: builds one synthetic row.
         is_hn_input = dshdbout.is_hackernews_url(args.input)
         rows = _build_row_from_input(args.input)
         if args.output:
@@ -984,22 +1044,28 @@ def _main(parser: argparse.ArgumentParser) -> None:
             # page/submission title.
             rows[0]["Title"] = args.output
         indices = [0]
+    elif input_is_csv_file:
+        # Batch mode: local CSV file, same row/column shape as --url.
+        rows = _load_rows_from_csv(args.input)
+        # Phase 2: Determine which rows to process based on `row_idx` argument.
+        indices = _parse_row_idx(args.row_idx, len(rows))
     else:
         rows = _load_rows_from_gsheet(args.url)
         # Phase 2: Determine which rows to process based on `row_idx` argument.
         indices = _parse_row_idx(args.row_idx, len(rows))
     _LOG.info("Row indices to process: %s", indices)
     # Determine which actions to execute based on command-line flags. When
-    # processing a single --input directly that resolves to an HN
+    # processing a single --input URL directly that resolves to an HN
     # submission with no linked article (e.g., Show HN / Ask HN / text
     # posts have no Article_url), restrict the defaults to HN-only actions.
-    # Likewise, a generic article --input has no Hn_url, so restrict to
-    # article-only actions. Both are overridable explicitly via
-    # --action/--skip_action.
+    # Likewise, a generic article --input URL has no Hn_url, so restrict to
+    # article-only actions. Neither restriction applies to a batch CSV
+    # --input (or --url), which mixes both kinds of rows. Both are
+    # overridable explicitly via --action/--skip_action.
     default_actions = _DEFAULT_ACTIONS
     if is_hn_input and not rows[0]["Article_url"]:
         default_actions = ["download_hn_url", "summarize_hn_url"]
-    elif args.input and not is_hn_input:
+    elif args.input and not input_is_csv_file and not is_hn_input:
         default_actions = ["download_article_url", "summarize_article_url"]
     actions = hselacti.select_actions(args, _VALID_ACTIONS, default_actions)
     _LOG.info(
