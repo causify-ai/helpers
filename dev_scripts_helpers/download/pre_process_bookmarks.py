@@ -17,33 +17,44 @@
 # ///
 
 r"""
-Process links and articles from a Google Sheets document.
+Process links and articles from a Google Sheets document or a local CSV.
 
 For detailed documentation on the link workflow, see:
 `dev_scripts_helpers/download/bookmark_flow.README.md`
 
-This script manages the following actions:
-1. download_link_gsheet: Download data from Google Sheets to CSV (alias)
-2. update_article_url: Extract article URLs from HN links using HN API
-3. update_article_tag: Tag articles using LLM-based classification
-4. update_article_cluster: Map topics to clusters
-5. upload_link_gsheet: Upload the processed CSV back to Google Sheets
+- `--target` selects the data source (required, no default):
+    - `gsheet`: the original five-action pipeline, unchanged
+      1. download_link_gsheet: Download data from Google Sheets to CSV
+      2. update_article_url: Extract article URLs from HN links using HN API
+      3. update_article_tag: Tag articles using LLM-based classification
+      4. update_article_cluster: Map topics to clusters
+      5. upload_link_gsheet: Upload the processed CSV back to Google Sheets
+    - `local_csv` (requires `--local_csv <path>`): only `update_article_url`,
+      `update_article_tag`, and `update_article_cluster` apply (no gsheet
+      download/upload); rows are read directly from `--local_csv`, and the
+      final clustered result is written back into that same file in place
 
 # Usage Example
 
-- Download data from Google Sheets (only that action):
-> process_gsheet_links.py \
-    --url "https://docs.google.com/spreadsheets/d/1i6Z7v2..." \
+- Run the complete pipeline on a Google Sheets document:
+> pre_process_bookmarks.py \
+    --target gsheet --url "https://docs.google.com/spreadsheets/d/1i6Z7v2..." \
+    --all_actions
+
+- Just download data from Google Sheets:
+> pre_process_bookmarks.py \
+    --target gsheet --url "https://docs.google.com/spreadsheets/d/1i6Z7v2..." \
     --clear_actions --action download_link_gsheet
 
-- Run all actions:
-> process_gsheet_links.py \
-    --url "https://docs.google.com/spreadsheets/d/1i6Z7v2..." \
+- Run the same enrichment pipeline directly against a local CSV instead of a
+  Google Sheet, updating it in place:
+> pre_process_bookmarks.py \
+    --target local_csv --local_csv bookmarks/combined_data.csv \
     --all_actions
 
 Import as:
 
-import dev_scripts_helpers.download.process_gsheet_links as dsgl
+import dev_scripts_helpers.download.pre_process_bookmarks as dspprbo
 """
 
 import argparse
@@ -218,14 +229,16 @@ def _download_from_gsheet(url: str) -> str:
     _LOG.debug(hprint.to_str("url"))
     # Use a fixed temp path so downstream actions (e.g., `update_article_url`)
     # can find the downloaded data without passing it explicitly.
-    output_file = dshdbout.get_tmp_file_path(HN_CSV_FILE, "process_gsheet_links")
+    output_file = dshdbout.get_tmp_file_path(
+        HN_CSV_FILE, "pre_process_bookmarks"
+    )
     _LOG.debug("Downloading gsheet '%s' to '%s'", url, output_file)
     dshdbout.download_from_gsheet(url, output_file)
     _LOG.debug("return=%s", output_file)
     return output_file
 
 
-def _update_article_urls() -> str:
+def _update_article_urls(hn_csv: str) -> str:
     """
     Extract article URLs from HN links and update CSV.
 
@@ -233,12 +246,17 @@ def _update_article_urls() -> str:
     For non-HN links, uses the URL as-is.
     Only processes rows where Article_url is empty; skips rows with existing values.
 
+    :param hn_csv: path to the CSV to read rows from: the gsheet-downloaded
+        CSV for `--target gsheet`, or the user's `--local_csv` directly for
+        `--target local_csv`
     :return: Path to the updated CSV file
     """
-    _LOG.debug(hprint.func_signature_to_str())
-    # Load and validate the HN CSV from the previous download step.
-    hn_csv = dshdbout.get_tmp_file_path(HN_CSV_FILE, "process_gsheet_links")
-    hdbg.dassert_path_exists(hn_csv, "Must download from gsheet first")
+    _LOG.debug(hprint.to_str("hn_csv"))
+    hdbg.dassert_path_exists(
+        hn_csv,
+        "Must download from gsheet first (--target gsheet) or pass an "
+        "existing --local_csv (--target local_csv)",
+    )
     _LOG.info("Loading CSV '%s' to extract article URLs", hn_csv)
     rows = dshdbout.read_csv(hn_csv)
     num_cols = len(rows[0].keys()) if rows else 0
@@ -277,7 +295,7 @@ def _update_article_urls() -> str:
             )
             row["Article_url"] = url  # type: ignore[index]
     # Write the updated rows with extracted article URLs to a new CSV file for the next processing stage.
-    urls_csv = dshdbout.get_tmp_file_path(URLS_CSV_FILE, "process_gsheet_links")
+    urls_csv = dshdbout.get_tmp_file_path(URLS_CSV_FILE, "pre_process_bookmarks")
     _LOG.info("Writing updated data to CSV file: '%s'", urls_csv)
     dshdbout.write_csv(urls_csv, rows, fieldnames=columns)
     _LOG.info(
@@ -307,7 +325,7 @@ def _update_article_tags(
     """
     _LOG.debug(hprint.to_str("model batch_size"))
     hdbg.dassert_lt(0, batch_size)
-    urls_csv = dshdbout.get_tmp_file_path(URLS_CSV_FILE, "process_gsheet_links")
+    urls_csv = dshdbout.get_tmp_file_path(URLS_CSV_FILE, "pre_process_bookmarks")
     hdbg.dassert_path_exists(urls_csv, "Must update article URLs first")
     _LOG.info("Loading CSV '%s' for tagging", urls_csv)
     df = pd.read_csv(urls_csv)
@@ -358,7 +376,7 @@ def _update_article_tags(
         num_batches,
         batch_size,
     )
-    tags_csv = dshdbout.get_tmp_file_path(TAGS_CSV_FILE, "process_gsheet_links")
+    tags_csv = dshdbout.get_tmp_file_path(TAGS_CSV_FILE, "pre_process_bookmarks")
     # Append the full list of valid topic tags to the base prompt so the LLM
     # knows exactly which labels it is allowed to choose from.
     prompt = _CLASSIFICATION_PROMPT
@@ -391,17 +409,21 @@ def _update_article_tags(
     return tags_csv
 
 
-def _update_article_clusters() -> str:
+def _update_article_clusters(output_csv: str) -> str:
     """
     Map article tags to clusters using topic-to-cluster mapping.
 
     Only processes rows where Article_cluster is empty; skips rows with existing values.
 
-    :return: Path to the updated CSV file
+    :param output_csv: path to write the clustered CSV to: the fixed
+        `CLUSTERS_CSV_FILE` tmp path for `--target gsheet` (consumed by the
+        `upload_link_gsheet` action), or the user's `--local_csv` directly
+        for `--target local_csv`, overwritten in place
+    :return: Path to the updated CSV file (== `output_csv`)
     """
-    _LOG.debug(hprint.func_signature_to_str())
+    _LOG.debug(hprint.to_str("output_csv"))
     # Load the CSV from the previous tagging step.
-    tags_csv = dshdbout.get_tmp_file_path(TAGS_CSV_FILE, "process_gsheet_links")
+    tags_csv = dshdbout.get_tmp_file_path(TAGS_CSV_FILE, "pre_process_bookmarks")
     hdbg.dassert_path_exists(tags_csv, "Must update article tags first")
     _LOG.info("Loading CSV to assign clusters from: '%s'", tags_csv)
     rows = dshdbout.read_csv(tags_csv)
@@ -447,20 +469,19 @@ def _update_article_clusters() -> str:
         else:
             _LOG.warning(f"Tag '{tag}' not found in topic_to_cluster mapping")
             row["Article_cluster"] = ""  # type: ignore[index]
-    # Write the clustered data to a new CSV file for final upload.
-    clusters_csv = dshdbout.get_tmp_file_path(
-        CLUSTERS_CSV_FILE, "process_gsheet_links"
-    )
-    _LOG.info("Writing clustered data to CSV file: '%s'", clusters_csv)
-    dshdbout.write_csv(clusters_csv, rows, fieldnames=columns)
+    # Write the clustered data to `output_csv`: a tmp CSV for the upload
+    # step (--target gsheet), or the user's own file, in place (--target
+    # local_csv).
+    _LOG.info("Writing clustered data to CSV file: '%s'", output_csv)
+    dshdbout.write_csv(output_csv, rows, fieldnames=columns)
     _LOG.info(
         "Assigned clusters to %d rows and %d columns, wrote to '%s'",
         len(rows_to_process),
         len(columns),
-        clusters_csv,
+        output_csv,
     )
-    _LOG.debug("return=%s", clusters_csv)
-    return clusters_csv
+    _LOG.debug("return=%s", output_csv)
+    return output_csv
 
 
 def _upload_to_gsheet(url: str) -> None:
@@ -472,11 +493,11 @@ def _upload_to_gsheet(url: str) -> None:
     _LOG.debug(hprint.to_str("url"))
     # Name the destination tab after today's date so repeated uploads don't
     # clobber previous runs.
-    tabname = "process_gsheet_links." + datetime.datetime.now().strftime(
+    tabname = "pre_process_bookmarks." + datetime.datetime.now().strftime(
         "%Y-%m-%d"
     )
     clusters_csv = dshdbout.get_tmp_file_path(
-        CLUSTERS_CSV_FILE, "process_gsheet_links"
+        CLUSTERS_CSV_FILE, "pre_process_bookmarks"
     )
     hdbg.dassert_path_exists(clusters_csv, "clusters CSV file not found")
     _LOG.debug("Uploading '%s' to tab '%s'", clusters_csv, tabname)
@@ -499,6 +520,13 @@ _VALID_ACTIONS = [
     "upload_link_gsheet",
 ]
 _DEFAULT_ACTIONS = _VALID_ACTIONS[:]
+# `--target local_csv` only supports the enrichment stages: there's no
+# separate gsheet to download from or upload to.
+_LOCAL_CSV_ACTIONS = [
+    "update_article_url",
+    "update_article_tag",
+    "update_article_cluster",
+]
 
 
 def _parse() -> argparse.ArgumentParser:
@@ -506,6 +534,22 @@ def _parse() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         description=__doc__,
         formatter_class=hparser.CustomHelpFormatter,
+    )
+    parser.add_argument(
+        "--target",
+        action="store",
+        choices=["gsheet", "local_csv"],
+        required=True,
+        help="Data source: 'gsheet' reads/writes a live Google Sheet via "
+        "--url; 'local_csv' reads and updates the file passed via "
+        "--local_csv in place",
+    )
+    parser.add_argument(
+        "--local_csv",
+        action="store",
+        default="",
+        help="Path to the local CSV to process (required for "
+        "--target local_csv; ignored for --target gsheet)",
     )
     parser.add_argument(
         "--url",
@@ -545,12 +589,26 @@ def _main(parser: argparse.ArgumentParser) -> None:
         logger = logging.getLogger(module_name)
         logger.setLevel(logging.CRITICAL)
     hcacsimp.parse_cache_control_args(args)
+    # Resolve the valid/default actions for the selected `--target`.
+    if args.target == "local_csv":
+        hdbg.dassert_ne(
+            args.local_csv,
+            "",
+            "--local_csv is required when --target local_csv",
+        )
+        valid_actions = _LOCAL_CSV_ACTIONS
+        default_actions = _LOCAL_CSV_ACTIONS
+    else:
+        valid_actions = _VALID_ACTIONS
+        default_actions = _DEFAULT_ACTIONS
     # Resolve which actions to run based on command-line flags (--action,
-    # --all_actions, --skip-action).
-    actions = hselacti.select_actions(args, _VALID_ACTIONS, _DEFAULT_ACTIONS)
+    # --all_actions, --skip-action). `select_actions()` rejects, with a
+    # clear error, any action outside `valid_actions` (e.g.,
+    # `download_link_gsheet`/`upload_link_gsheet` when `--target local_csv`).
+    actions = hselacti.select_actions(args, valid_actions, default_actions)
     _LOG.info(
         "Actions to execute:\n%s",
-        hselacti.actions_to_string(actions, _VALID_ACTIONS, add_frame=True),
+        hselacti.actions_to_string(actions, valid_actions, add_frame=True),
     )
     # Execute actions in sequence: each action depends on outputs from previous stages.
     while actions:
@@ -564,11 +622,27 @@ def _main(parser: argparse.ArgumentParser) -> None:
             url = dshdbout.resolve_gsheet_url(args.url)
             _download_from_gsheet(url)
         elif action == "update_article_url":
-            _update_article_urls()
+            if args.target == "local_csv":
+                # Read directly from the user's file instead of a
+                # gsheet-downloaded tmp CSV.
+                hn_csv = args.local_csv
+            else:
+                hn_csv = dshdbout.get_tmp_file_path(
+                    HN_CSV_FILE, "pre_process_bookmarks"
+                )
+            _update_article_urls(hn_csv)
         elif action == "update_article_tag":
             _update_article_tags(args.model)
         elif action == "update_article_cluster":
-            _update_article_clusters()
+            if args.target == "local_csv":
+                # Write the final clustered result back into the user's file
+                # in place instead of a tmp CSV awaiting gsheet upload.
+                output_csv = args.local_csv
+            else:
+                output_csv = dshdbout.get_tmp_file_path(
+                    CLUSTERS_CSV_FILE, "pre_process_bookmarks"
+                )
+            _update_article_clusters(output_csv)
         elif action == "upload_link_gsheet":
             url = dshdbout.resolve_gsheet_url(args.url)
             _upload_to_gsheet(url)

@@ -11,7 +11,7 @@ import helpers.hcache_simple as hcacsimp
 import helpers.hsystem as hsystem
 import helpers.hunit_test as hunitest
 import dev_scripts_helpers.download.bookmark_utils as dshdbou
-import dev_scripts_helpers.download.process_gsheet_links as dsgl
+import dev_scripts_helpers.download.pre_process_bookmarks as dspprbo
 
 _LOG = logging.getLogger(__name__)
 
@@ -23,7 +23,7 @@ _LOG = logging.getLogger(__name__)
 
 class Test__update_article_urls(hunitest.TestCase):
     """
-    Test `process_gsheet_links._update_article_urls()`.
+    Test `pre_process_bookmarks._update_article_urls()`.
     """
 
     def helper(self, rows: list) -> list:
@@ -32,7 +32,7 @@ class Test__update_article_urls(hunitest.TestCase):
         return the resulting rows.
 
         Runs inside the test's scratch space (via `hsystem.cd()`) so the
-        script's fixed `./tmp.process_gsheet_links.*` paths land there
+        script's fixed `./tmp.pre_process_bookmarks.*` paths land there
         instead of polluting (or depending on) the real working directory.
 
         :param rows: rows to write to the HN CSV (must all share the same
@@ -43,10 +43,10 @@ class Test__update_article_urls(hunitest.TestCase):
         columns = list(rows[0].keys())
         with hsystem.cd(scratch_dir):
             hn_csv = dshdbou.get_tmp_file_path(
-                dsgl.HN_CSV_FILE, "process_gsheet_links"
+                dspprbo.HN_CSV_FILE, "pre_process_bookmarks"
             )
             dshdbou.write_csv(hn_csv, rows, fieldnames=columns)
-            urls_csv = dsgl._update_article_urls()
+            urls_csv = dspprbo._update_article_urls(hn_csv)
             actual_rows = dshdbou.read_csv(urls_csv)
         return actual_rows
 
@@ -67,7 +67,7 @@ class Test__update_article_urls(hunitest.TestCase):
         hcacsimp.enable_caching(False)
         try:
             with umock.patch.object(
-                dsgl.requests, "get", return_value=fake_response
+                dspprbo.requests, "get", return_value=fake_response
             ):
                 actual_rows = self.helper(rows)
         finally:
@@ -171,13 +171,13 @@ class Test__update_article_urls(hunitest.TestCase):
         columns = ["Title", "Hn_url", "Article_url"]
         scratch_dir = self.get_scratch_space()
         hn_csv = dshdbou.get_tmp_file_path(
-            dsgl.HN_CSV_FILE, "process_gsheet_links"
+            dspprbo.HN_CSV_FILE, "pre_process_bookmarks"
         )
         # Run test and check outputs.
         with hsystem.cd(scratch_dir):
             dshdbou.write_csv(hn_csv, rows, fieldnames=columns)
             with self.assertRaises(AssertionError):
-                dsgl._update_article_urls()
+                dspprbo._update_article_urls(hn_csv)
 
     def test5(self) -> None:
         """
@@ -223,7 +223,7 @@ class Test__update_article_urls(hunitest.TestCase):
 
 class Test__update_article_clusters(hunitest.TestCase):
     """
-    Test `process_gsheet_links._update_article_clusters()`.
+    Test `pre_process_bookmarks._update_article_clusters()`.
     """
 
     def helper(self, rows: list) -> list:
@@ -232,7 +232,7 @@ class Test__update_article_clusters(hunitest.TestCase):
         return the resulting clustered rows.
 
         Runs inside the test's scratch space (via `hsystem.cd()`) so the
-        script's fixed `./tmp.process_gsheet_links.*` paths land there
+        script's fixed `./tmp.pre_process_bookmarks.*` paths land there
         instead of polluting (or depending on) the real working directory.
 
         :param rows: rows to write to the tags CSV (must all share the same
@@ -243,10 +243,13 @@ class Test__update_article_clusters(hunitest.TestCase):
         columns = list(rows[0].keys())
         with hsystem.cd(scratch_dir):
             tags_csv = dshdbou.get_tmp_file_path(
-                dsgl.TAGS_CSV_FILE, "process_gsheet_links"
+                dspprbo.TAGS_CSV_FILE, "pre_process_bookmarks"
             )
             dshdbou.write_csv(tags_csv, rows, fieldnames=columns)
-            clusters_csv = dsgl._update_article_clusters()
+            clusters_csv = dshdbou.get_tmp_file_path(
+                dspprbo.CLUSTERS_CSV_FILE, "pre_process_bookmarks"
+            )
+            dspprbo._update_article_clusters(clusters_csv)
             actual_rows = dshdbou.read_csv(clusters_csv)
         return actual_rows
 
@@ -357,13 +360,16 @@ class Test__update_article_clusters(hunitest.TestCase):
         columns = ["Title", "Article_url", "Article_tag", "Article_cluster"]
         scratch_dir = self.get_scratch_space()
         tags_csv = dshdbou.get_tmp_file_path(
-            dsgl.TAGS_CSV_FILE, "process_gsheet_links"
+            dspprbo.TAGS_CSV_FILE, "pre_process_bookmarks"
+        )
+        clusters_csv = dshdbou.get_tmp_file_path(
+            dspprbo.CLUSTERS_CSV_FILE, "pre_process_bookmarks"
         )
         # Run test and check outputs.
         with hsystem.cd(scratch_dir):
             dshdbou.write_csv(tags_csv, rows, fieldnames=columns)
             with self.assertRaises(AssertionError):
-                dsgl._update_article_clusters()
+                dspprbo._update_article_clusters(clusters_csv)
 
     def test5(self) -> None:
         """
@@ -407,7 +413,7 @@ class Test__update_article_clusters(hunitest.TestCase):
 
 class Test__normalize_tag(hunitest.TestCase):
     """
-    Test `process_gsheet_links._normalize_tag()`.
+    Test `pre_process_bookmarks._normalize_tag()`.
     """
 
     def helper(self, raw_tag: str, expected: str) -> None:
@@ -418,7 +424,7 @@ class Test__normalize_tag(hunitest.TestCase):
         :param expected: expected normalized tag
         """
         # Run test.
-        actual = dsgl._normalize_tag(raw_tag)
+        actual = dspprbo._normalize_tag(raw_tag)
         # Check outputs.
         self.assert_equal(actual, expected)
 
@@ -522,7 +528,7 @@ class Test__normalize_tag(hunitest.TestCase):
         expected = "AI Agents"
         # Run test. Pass a local `tag_map` through the public interface
         # instead of monkey-patching the internal `topic_to_cluster` dict.
-        actual = dsgl._normalize_tag(raw_tag, tag_map=fake_tag_map)
+        actual = dspprbo._normalize_tag(raw_tag, tag_map=fake_tag_map)
         # Check outputs.
         self.assert_equal(actual, expected)
 
