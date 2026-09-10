@@ -20,8 +20,8 @@
 #let aima-maroon = rgb("#8B3A62")
 #let aima-blue = rgb("#0066CC")
 #let aima-gray = rgb("#F0F0F0")
-#let aima-rust = rgb("#B5654A")
-#let aima-gold = rgb("#C9A96E")
+#let aima-rust = rgb("#91513B")
+#let aima-gold = rgb("#977F53")
 
 // Document-wide template: apply with `#show: aima-style`
 #let aima-style(body) = {
@@ -80,7 +80,7 @@
     } else if it.level == 3 {
       block(spacing: 0.6em)[
         #v(0.6em)
-        #set text(size: 10pt, weight: "bold", fill: aima-gold)
+        #set text(size: 12pt, weight: "bold", fill: aima-gold)
         #numbering("1.1.1", ..nums)
         #h(0.4em)
         #it.body

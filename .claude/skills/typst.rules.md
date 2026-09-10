@@ -193,6 +193,16 @@
 - Keep a formula single-line when possible; a multi-line formula is more likely to
   break Typst's line-wrapping in the `wrap-content` narrow column (see "Visuals"
   below)
+- When a formula defines a new named quantity (e.g., introducing MSE, precision, an
+  update rule's target symbol), use `eq.delta` (≜, "equal by definition"), never `=`,
+  `:=`, or `equiv`, for that first defining relation
+- Keep plain `=` for everything else in the same formula: a later step that
+  simplifies or substitutes into an already-defined quantity, a computed numeric
+  result, an asserted property, or an algorithm's update/recurrence rule
+- Example: `$ "MSE" eq.delta 1/N sum_(i=1)^N (h(x_i) - f(x_i))^2 $` defines MSE, while
+  `$ "RMSE" eq.delta sqrt("MSE") = sqrt(1/N sum_(i=1)^N (h(x_i) - f(x_i))^2) $` uses
+  `eq.delta` only for the RMSE definition and keeps `=` for substituting MSE's
+  already-defined formula
 
 # Algorithms and Pseudocode
 

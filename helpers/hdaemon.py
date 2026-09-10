@@ -206,6 +206,7 @@ def run_reactive_daemon_mode(
     window_name_str: str,
     *,
     watch_cmd_suffix: str = "",
+    debounce_sec: int = 2,
 ) -> None:
     """
     Run daemon mode: watch file for changes and regenerate with debouncing.
@@ -218,10 +219,16 @@ def run_reactive_daemon_mode(
         --daemon), used to rebuild the command for the watch runs
     :param window_name_str: Tmux window name to use while daemon is running
     :param watch_cmd_suffix: Suffix to append to command for watch runs
+    :param debounce_sec: Debounce duration in seconds
     """
     # Build command without --daemon flag for _daemon_watch to execute.
     cmd_parts = [part for part in shlex.split(cmd) if part != "--daemon"]
     cmd = " ".join(shlex.quote(part) for part in cmd_parts)
     _LOG.info("Daemon mode: watching '%s' for changes", input_file)
     with htmux.window_name(window_name_str):
-        _daemon_watch(input_file, cmd, watch_cmd_suffix=watch_cmd_suffix)
+        _daemon_watch(
+            input_file,
+            cmd,
+            watch_cmd_suffix=watch_cmd_suffix,
+            debounce_sec=debounce_sec,
+        )
