@@ -810,6 +810,24 @@ class DockerMountContext(NamedTuple):
         )
         return docker_in_file_path, docker_out_file_path
 
+    def convert_all_paths(
+        self,
+        cmd_opts: List[str],
+    ) -> List[str]:
+        """
+        Convert all path-like entries in *cmd_opts* to container paths.
+
+        :param cmd_opts: List of command-line options/paths.
+        :return: List of converted command options.
+        """
+        return convert_all_paths_from_caller_to_callee_docker_path(
+            cmd_opts,
+            self.caller_mount_path,
+            self.callee_mount_path,
+            self.is_caller_host,
+            self.use_sibling_container_for_callee,
+        )
+
 
 def get_docker_mount_context() -> DockerMountContext:
     """

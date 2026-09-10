@@ -23,7 +23,6 @@ import helpers.hdocker as hdocker
 import helpers.hio as hio
 import helpers.hparser as hparser
 import helpers.hprint as hprint
-import helpers.hserver as hserver
 import helpers.hsystem as hsystem
 
 _LOG = logging.getLogger(__name__)
@@ -50,11 +49,7 @@ def _run_dockerized_ty(
         container_image, dockerfile, force_rebuild, use_sudo
     )
     # Convert files to Docker paths.
-    is_caller_host = not hserver.is_inside_docker()
-    use_sibling_container_for_callee = hserver.use_docker_sibling_containers()
-    caller_mount_path, callee_mount_path, mount = hdocker.get_docker_mount_info(
-        is_caller_host, use_sibling_container_for_callee
-    )
+    docker_mount_context = hdocker.get_docker_mount_context()
     # docker run -it --rm --user $(id -u):$(id -g) \
     #   -e AM_GDRIVE_PATH -e AM_TELEGRAM_TOKEN \
     #   ...
@@ -63,15 +58,7 @@ def _run_dockerized_ty(
     #   --entrypoint "" tmp.ty.arm64.c94f3fcd bash -c "/venv/bin/ty check
     #   /app/helpers_root/dev_scripts_helpers/documentation/test/test_preprocess_notes.py"
     cmd_opts_out = []
-    cmd_opts_converted = (
-        hdocker.convert_all_paths_from_caller_to_callee_docker_path(
-            cmd_opts,
-            caller_mount_path,
-            callee_mount_path,
-            is_caller_host,
-            use_sibling_container_for_callee,
-        )
-    )
+    cmd_opts_converted = docker_mount_context.convert_all_paths(cmd_opts)
     cmd_opts_out.extend(cmd_opts_converted)
     if use_standard_ty_args:
         cmd_opts_out.extend(_STANDARD_TY_ARGS.split())
@@ -81,7 +68,8 @@ def _run_dockerized_ty(
     docker_cmd = hdocker.get_docker_base_cmd(use_sudo)
     docker_cmd.extend(
         [
-            f"--workdir {callee_mount_path} --mount {mount}",
+            f"--workdir {docker_mount_context.callee_mount_path} "
+            f"--mount {docker_mount_context.mount}",
             "--entrypoint ''",
             container_image,
             cmd_opts_str,
