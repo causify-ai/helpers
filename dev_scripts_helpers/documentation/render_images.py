@@ -55,6 +55,7 @@ from typing import List, Tuple
 from tqdm import tqdm
 
 import helpers.hcache_simple as hcacsimp
+import helpers.hdaemon as hdaemon
 import helpers.hdbg as hdbg
 import helpers.hio as hio
 import helpers.hdocker as hdocker
@@ -1250,7 +1251,8 @@ def _process_single_file(
         out_file = tempfile.mktemp(suffix="." + in_file_ext)
         dst_ext = "svg"
     # Read the input file.
-    in_lines = hio.from_file(in_file).split("\n")
+    in_content = hio.from_file(in_file)
+    in_lines = in_content.split("\n")
     # Get the updated file lines after rendering.
     out_lines = _render_images(
         in_lines,
@@ -1267,6 +1269,23 @@ def _process_single_file(
     out_lines = hprint.remove_empty_lines(
         out_lines, mode="no_consecutive_empty_lines"
     )
+    # `_render_images()` can be slow so when writing back in place (e.g., the
+    # `render` action), guard against clobbering an edit the user saved to
+    # `in_file` while this was running: only overwrite if the source is still
+    # exactly what we read at the start, otherwise skip the write and let the
+    # caller's next pass (e.g., the next `--daemon` debounce cycle) pick up the
+    # newer edit.
+    if out_file == in_file and hio.from_file(in_file) != in_content:
+        _LOG.warning(
+            "'%s' changed while rendering images; skipping write to avoid "
+            "clobbering the newer edit",
+            in_file,
+        )
+        # Signal the conflict to a `--daemon` caller (see `hdaemon`) so it
+        # keeps waiting for quiet on the newer content instead of treating
+        # this run as settled.
+        hio.to_file(hdaemon.get_conflict_marker_path(in_file), "")
+        return
     # Save the output into a file.
     hio.to_file(out_file, "\n".join(out_lines))
     # Open if needed.
