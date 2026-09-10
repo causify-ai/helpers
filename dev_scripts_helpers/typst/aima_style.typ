@@ -91,6 +91,13 @@
     }
   }
 
+  // Figure/table captions render smaller than body text (mirrors the
+  // `\footnotesize` caption convention used in the `.smd` slide source).
+  show figure.caption: it => {
+    set text(size: 9pt)
+    it
+  }
+
   body
 }
 

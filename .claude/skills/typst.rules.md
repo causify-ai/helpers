@@ -378,6 +378,33 @@
 
 - `placement:` takes a bare keyword (`auto`, `none`, `top`, `bottom`), never a string
   — `placement: "auto"` is a type error
+- Every caption already renders small: `aima_style.typ`'s `show figure.caption`
+  rule (applied by `#show: aima-style`) sets caption text to 9pt against an
+  11pt body, chapter-wide. Never add per-caption sizing
+  (`#text(size: ...)[...]`) to get a small caption — that duplicates the
+  global rule and risks a different size than the rest of the book
+- The `.smd` source marks a caption as the image's markdown alt text:
+  `![Caption text](path/to/image.png)`. When converting to Typst, carry that
+  alt text over verbatim as the caption: `caption: [Caption text]`. The 9pt
+  size comes from the global rule above, not from anything in the caption
+  call itself
+  - **Bad** (drops the alt text instead of carrying it over as the caption):
+
+    ```typst
+    image("figures/L02.4.Gradient_descent_contour.png", width: 100%),
+    ```
+
+  - **Bad** (hand-sizes one caption instead of relying on the shared rule):
+
+    ```typst
+    caption: [#text(size: 9pt)[Descent path on a 3D error surface]],
+    ```
+
+  - **Good**:
+
+    ```typst
+    caption: [Descent path on a 3D error surface.],
+    ```
 - Write a label as `fig:<description>` / `tab:<description>` in all lowercase with no
   separators (`fig:alanturing`, not `fig:Alan_Turing` or `fig:alan-turing`)
 - Image paths are relative to the `.typ` file's own location (use `../` to reach a
