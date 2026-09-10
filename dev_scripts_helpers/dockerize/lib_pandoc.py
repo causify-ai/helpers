@@ -402,43 +402,25 @@ def run_dockerized_pandoc(
         raise ValueError(f"Unknown container type '{container_type}'")
     _LOG.debug("container_image=%s", container_image)
     # Convert files to Docker paths.
-    (
-        is_caller_host,
-        use_sibling_container_for_callee,
-        caller_mount_path,
-        callee_mount_path,
-        mount,
-    ) = hdocker.get_docker_mount_context()
+    docker_mount_context = hdocker.get_docker_mount_context()
     # Convert command to arguments.
     param_dict = _convert_pandoc_cmd_to_arguments(cmd)
-    param_dict["input"] = hdocker.convert_caller_to_callee_docker_path(
+    param_dict["input"] = docker_mount_context.convert_path(
         param_dict["input"],
-        caller_mount_path,
-        callee_mount_path,
         check_if_exists=True,
         is_input=True,
-        is_caller_host=is_caller_host,
-        use_sibling_container_for_callee=use_sibling_container_for_callee,
     )
-    param_dict["output"] = hdocker.convert_caller_to_callee_docker_path(
+    param_dict["output"] = docker_mount_context.convert_path(
         param_dict["output"],
-        caller_mount_path,
-        callee_mount_path,
         check_if_exists=False,
         is_input=False,
-        is_caller_host=is_caller_host,
-        use_sibling_container_for_callee=use_sibling_container_for_callee,
     )
     for key, value in param_dict["in_dir_params"].items():
         if value:
-            value_tmp = hdocker.convert_caller_to_callee_docker_path(
+            value_tmp = docker_mount_context.convert_path(
                 value,
-                caller_mount_path,
-                callee_mount_path,
                 check_if_exists=True,
                 is_input=True,
-                is_caller_host=is_caller_host,
-                use_sibling_container_for_callee=use_sibling_container_for_callee,
             )
         else:
             value_tmp = value
@@ -455,8 +437,8 @@ def run_dockerized_pandoc(
     #     -s --toc
     ret = hdocker.build_and_run_docker_cmd(
         use_sudo,
-        callee_mount_path,
-        mount,
+        docker_mount_context.callee_mount_path,
+        docker_mount_context.mount,
         container_image,
         dockerfile,
         pandoc_cmd,

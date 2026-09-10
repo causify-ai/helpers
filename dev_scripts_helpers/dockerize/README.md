@@ -85,6 +85,29 @@
   - Contains generic utilities that work with any Docker container
   - Examples: `build_container_image()`,
     `convert_caller_to_callee_docker_path()`, `get_docker_mount_info()`
+  - `DockerMountContext` groups the mount paths and conversion flags returned by
+    `get_docker_mount_context()`. Use `context.convert_path()` for a single path
+    or `context.convert_io_paths()` for a standard input/output pair. The
+    context remains tuple-compatible for callers that still unpack the legacy
+    return value.
+
+  ```python
+  docker_mount_context = hdocker.get_docker_mount_context()
+  docker_input, docker_output = docker_mount_context.convert_io_paths(
+      input_path,
+      output_path,
+      check_if_exists=False,
+  )
+  hdocker.build_and_run_docker_cmd(
+      use_sudo,
+      docker_mount_context.callee_mount_path,
+      docker_mount_context.mount,
+      container_image,
+      dockerfile,
+      command,
+      mode,
+  )
+  ```
 
 - `helpers/hdockerized_executables.py`
   - High-level wrappers for specific external tools (prettier, pandoc, latex,
