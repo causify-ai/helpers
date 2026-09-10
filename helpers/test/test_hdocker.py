@@ -20,6 +20,125 @@ _LOG = logging.getLogger(__name__)
 
 
 # #############################################################################
+# TestDockerMountContext
+# #############################################################################
+
+
+class TestDockerMountContext(hunitest.TestCase):
+    """Test `helpers.hdocker.DockerMountContext`."""
+
+    def test1(self) -> None:
+        """
+        Test that the context exposes mount fields and remains tuple-compatible.
+        """
+        # Prepare inputs.
+        context_values = (
+            True,
+            False,
+            "/caller",
+            "/callee",
+            "type=bind,source=/caller,target=/callee",
+        )
+        # Run test.
+        context = hdocker.DockerMountContext(*context_values)
+        # Check outputs.
+        self.assertEqual(tuple(context), context_values)
+        self.assertEqual(context.caller_mount_path, "/caller")
+        self.assertEqual(context.callee_mount_path, "/callee")
+        self.assertEqual(context.mount, context_values[-1])
+
+    def test2(self) -> None:
+        """
+        Test converting one path through the context.
+        """
+        # Prepare inputs.
+        context = hdocker.DockerMountContext(
+            True,
+            False,
+            "/caller",
+            "/callee",
+            "mount",
+        )
+        caller_file_path = "input.txt"
+        check_if_exists = False
+        is_input = False
+        expected_docker_path = "/callee/input.txt"
+        # Run test.
+        with umock.patch.object(
+            hdocker,
+            "convert_caller_to_callee_docker_path",
+            return_value=expected_docker_path,
+        ) as mock_convert:
+            actual_docker_path = context.convert_path(
+                caller_file_path,
+                check_if_exists=check_if_exists,
+                is_input=is_input,
+            )
+        # Check outputs.
+        self.assertEqual(actual_docker_path, expected_docker_path)
+        mock_convert.assert_called_once_with(
+            caller_file_path,
+            "/caller",
+            "/callee",
+            check_if_exists=check_if_exists,
+            is_input=is_input,
+            is_caller_host=True,
+            use_sibling_container_for_callee=False,
+        )
+
+    def test3(self) -> None:
+        """
+        Test converting a standard input/output path pair through the context.
+        """
+        # Prepare inputs.
+        context = hdocker.DockerMountContext(
+            True,
+            False,
+            "/caller",
+            "/callee",
+            "mount",
+        )
+        in_file_path = "input.txt"
+        out_file_path = "output.txt"
+        check_if_exists = False
+        expected_docker_paths = ("/callee/input.txt", "/callee/output.txt")
+        # Run test.
+        with umock.patch.object(
+            hdocker,
+            "convert_caller_to_callee_docker_path",
+            side_effect=expected_docker_paths,
+        ) as mock_convert:
+            actual_docker_paths = context.convert_io_paths(
+                in_file_path,
+                out_file_path,
+                check_if_exists=check_if_exists,
+            )
+        # Check outputs.
+        self.assertEqual(actual_docker_paths, expected_docker_paths)
+        expected_calls = [
+            umock.call(
+                in_file_path,
+                "/caller",
+                "/callee",
+                check_if_exists=check_if_exists,
+                is_input=True,
+                is_caller_host=True,
+                use_sibling_container_for_callee=False,
+            ),
+            umock.call(
+                out_file_path,
+                "/caller",
+                "/callee",
+                check_if_exists=check_if_exists,
+                is_input=False,
+                is_caller_host=True,
+                use_sibling_container_for_callee=False,
+            ),
+        ]
+        mock_convert.assert_has_calls(expected_calls)
+
+
+# #############################################################################
 # Test_replace_shared_root_path1
 # #############################################################################
 
