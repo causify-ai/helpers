@@ -232,6 +232,99 @@ class Test_convert_to_docker_path1(hunitest.TestCase):
 
 
 # #############################################################################
+# Test_DockerMountContext1
+# #############################################################################
+
+
+@pytest.mark.need_dev_container
+class Test_DockerMountContext1(hunitest.TestCase):
+    def test_get_docker_mount_context_named_tuple(self) -> None:
+        """
+        Verify DockerMountContext properties and backwards compatibility with
+        tuple unpacking.
+        """
+        context = hdocker.get_docker_mount_context()
+        self.assertIsInstance(context, hdocker.DockerMountContext)
+        self.assertIsInstance(context, tuple)
+        # Verify 5-tuple unpacking.
+        (
+            is_caller_host,
+            use_sibling_container_for_callee,
+            caller_mount_path,
+            callee_mount_path,
+            mount,
+        ) = context
+        self.assertEqual(is_caller_host, context.is_caller_host)
+        self.assertEqual(
+            use_sibling_container_for_callee,
+            context.use_sibling_container_for_callee,
+        )
+        self.assertEqual(caller_mount_path, context.caller_mount_path)
+        self.assertEqual(callee_mount_path, context.callee_mount_path)
+        self.assertEqual(mount, context.mount)
+
+    def test_convert_path(self) -> None:
+        """
+        Verify converting a single path via DockerMountContext.convert_path().
+        """
+        context = hdocker.get_docker_mount_context()
+        helpers_root = hgit.find_helpers_root()
+        converted = context.convert_path(
+            helpers_root, check_if_exists=True, is_input=False
+        )
+        expected = hdocker.convert_caller_to_callee_docker_path(
+            helpers_root,
+            caller_mount_path=context.caller_mount_path,
+            callee_mount_path=context.callee_mount_path,
+            check_if_exists=True,
+            is_input=False,
+            is_caller_host=context.is_caller_host,
+            use_sibling_container_for_callee=context.use_sibling_container_for_callee,
+        )
+        self.assertEqual(converted, expected)
+
+    def test_convert_io_paths(self) -> None:
+        """
+        Verify converting paired input/output paths via
+        DockerMountContext.convert_io_paths().
+        """
+        context = hdocker.get_docker_mount_context()
+        dir_name = self.get_input_dir()
+        in_file_path = os.path.join(dir_name, "tmp.in.txt")
+        hio.to_file(in_file_path, "sample content")
+        out_file_path = os.path.join(dir_name, "tmp.out.txt")
+        docker_in, docker_out = context.convert_io_paths(
+            in_file_path, out_file_path, check_if_exists=True
+        )
+        expected_in = context.convert_path(
+            in_file_path, check_if_exists=True, is_input=True
+        )
+        expected_out = context.convert_path(
+            out_file_path, check_if_exists=True, is_input=False
+        )
+        self.assertEqual(docker_in, expected_in)
+        self.assertEqual(docker_out, expected_out)
+
+    def test_convert_with_context_param(self) -> None:
+        """
+        Verify passing context directly to
+        convert_caller_to_callee_docker_path().
+        """
+        context = hdocker.get_docker_mount_context()
+        helpers_root = hgit.find_helpers_root()
+        converted = hdocker.convert_caller_to_callee_docker_path(
+            helpers_root,
+            check_if_exists=True,
+            is_input=False,
+            context=context,
+        )
+        expected = context.convert_path(
+            helpers_root, check_if_exists=True, is_input=False
+        )
+        self.assertEqual(converted, expected)
+
+
+# #############################################################################
 # Test_is_path1
 # #############################################################################
 

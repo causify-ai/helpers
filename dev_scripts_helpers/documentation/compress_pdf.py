@@ -162,30 +162,9 @@ def _compress_pdf_ghostscript_dockerized(
     # `_compress_pdf_ghostscript_global()`.
     tmp_output_file = output_file + ".compressed.tmp"
     # Convert the host paths to the paths seen inside the Docker container.
-    (
-        is_caller_host,
-        use_sibling_container_for_callee,
-        caller_mount_path,
-        callee_mount_path,
-        mount,
-    ) = hdocker.get_docker_mount_context()
-    docker_input_file = hdocker.convert_caller_to_callee_docker_path(
-        input_file,
-        caller_mount_path,
-        callee_mount_path,
-        check_if_exists=True,
-        is_input=True,
-        is_caller_host=is_caller_host,
-        use_sibling_container_for_callee=use_sibling_container_for_callee,
-    )
-    docker_tmp_output_file = hdocker.convert_caller_to_callee_docker_path(
-        tmp_output_file,
-        caller_mount_path,
-        callee_mount_path,
-        check_if_exists=True,
-        is_input=False,
-        is_caller_host=is_caller_host,
-        use_sibling_container_for_callee=use_sibling_container_for_callee,
+    mount_context = hdocker.get_docker_mount_context()
+    docker_input_file, docker_tmp_output_file = mount_context.convert_io_paths(
+        input_file, tmp_output_file
     )
     gs_opts = _build_gs_cmd_opts(quality)
     gs_cmd = (
@@ -196,8 +175,8 @@ def _compress_pdf_ghostscript_dockerized(
     # gs ...`).
     hdocker.build_and_run_docker_cmd(
         use_sudo,
-        callee_mount_path,
-        mount,
+        mount_context.callee_mount_path,
+        mount_context.mount,
         _GHOSTSCRIPT_DOCKER_IMAGE,
         "",
         gs_cmd,

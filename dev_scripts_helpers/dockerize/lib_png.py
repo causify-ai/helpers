@@ -99,38 +99,17 @@ def run_dockerized_imagemagick(
         force_rebuild=force_rebuild, use_sudo=use_sudo
     )
     # Convert files to Docker paths.
-    (
-        is_caller_host,
-        use_sibling_container_for_callee,
-        caller_mount_path,
-        callee_mount_path,
-        mount,
-    ) = hdocker.get_docker_mount_context()
-    in_file_path = hdocker.convert_caller_to_callee_docker_path(
-        in_file_path,
-        caller_mount_path,
-        callee_mount_path,
-        check_if_exists=True,
-        is_input=True,
-        is_caller_host=is_caller_host,
-        use_sibling_container_for_callee=use_sibling_container_for_callee,
-    )
-    out_file_path = hdocker.convert_caller_to_callee_docker_path(
-        out_file_path,
-        caller_mount_path,
-        callee_mount_path,
-        check_if_exists=False,
-        is_input=False,
-        is_caller_host=is_caller_host,
-        use_sibling_container_for_callee=use_sibling_container_for_callee,
+    mount_context = hdocker.get_docker_mount_context()
+    in_file_path, out_file_path = mount_context.convert_io_paths(
+        in_file_path, out_file_path, check_out_if_exists=False
     )
     # Build ImageMagick command.
     cmd_opts_as_str = " ".join(cmd_opts)
     cmd = f"magick {cmd_opts_as_str} {in_file_path} {out_file_path}"
     ret = hdocker.build_and_run_docker_cmd(
         use_sudo,
-        callee_mount_path,
-        mount,
+        mount_context.callee_mount_path,
+        mount_context.mount,
         container_image,
         _DOCKERFILE,
         cmd,

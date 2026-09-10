@@ -103,30 +103,9 @@ def run_dockerized_svg_with_rsvg_convert(
         force_rebuild=force_rebuild, use_sudo=use_sudo
     )
     # Convert files to Docker paths.
-    (
-        is_caller_host,
-        use_sibling_container_for_callee,
-        caller_mount_path,
-        callee_mount_path,
-        mount,
-    ) = hdocker.get_docker_mount_context()
-    in_file_path = hdocker.convert_caller_to_callee_docker_path(
-        in_file_path,
-        caller_mount_path,
-        callee_mount_path,
-        check_if_exists=True,
-        is_input=True,
-        is_caller_host=is_caller_host,
-        use_sibling_container_for_callee=use_sibling_container_for_callee,
-    )
-    out_file_path = hdocker.convert_caller_to_callee_docker_path(
-        out_file_path,
-        caller_mount_path,
-        callee_mount_path,
-        check_if_exists=True,
-        is_input=False,
-        is_caller_host=is_caller_host,
-        use_sibling_container_for_callee=use_sibling_container_for_callee,
+    mount_context = hdocker.get_docker_mount_context()
+    in_file_path, out_file_path = mount_context.convert_io_paths(
+        in_file_path, out_file_path
     )
     # Build SVG conversion command using rsvg-convert.
     # Produces high-quality output with the specified DPI.
@@ -137,8 +116,8 @@ def run_dockerized_svg_with_rsvg_convert(
     # Build Docker command.
     ret = hdocker.build_and_run_docker_cmd(
         use_sudo,
-        callee_mount_path,
-        mount,
+        mount_context.callee_mount_path,
+        mount_context.mount,
         container_image,
         _RSVG_CONVERT_DOCKERFILE,
         svg_cmd,
@@ -235,30 +214,9 @@ def run_dockerized_svg_with_inkscape(
         force_rebuild=force_rebuild, use_sudo=use_sudo
     )
     # Convert files to Docker paths.
-    (
-        is_caller_host,
-        use_sibling_container_for_callee,
-        caller_mount_path,
-        callee_mount_path,
-        mount,
-    ) = hdocker.get_docker_mount_context()
-    in_file_path = hdocker.convert_caller_to_callee_docker_path(
-        in_file_path,
-        caller_mount_path,
-        callee_mount_path,
-        check_if_exists=True,
-        is_input=True,
-        is_caller_host=is_caller_host,
-        use_sibling_container_for_callee=use_sibling_container_for_callee,
-    )
-    out_file_path = hdocker.convert_caller_to_callee_docker_path(
-        out_file_path,
-        caller_mount_path,
-        callee_mount_path,
-        check_if_exists=True,
-        is_input=False,
-        is_caller_host=is_caller_host,
-        use_sibling_container_for_callee=use_sibling_container_for_callee,
+    mount_context = hdocker.get_docker_mount_context()
+    in_file_path, out_file_path = mount_context.convert_io_paths(
+        in_file_path, out_file_path
     )
     # Build SVG conversion command using inkscape.
     # Use --export-type for format selection.
@@ -269,8 +227,8 @@ def run_dockerized_svg_with_inkscape(
     # Build Docker command.
     ret = hdocker.build_and_run_docker_cmd(
         use_sudo,
-        callee_mount_path,
-        mount,
+        mount_context.callee_mount_path,
+        mount_context.mount,
         container_image,
         _INKSCAPE_DOCKERFILE,
         svg_cmd,

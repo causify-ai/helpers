@@ -3,6 +3,7 @@ import re
 
 import dev_scripts_helpers.llms.llm_prompts as dshlllpr
 import helpers.hdbg as hdbg
+import helpers.hdocker as hdocker
 import helpers.hio as hio
 import helpers.hmarkdown as hmarkdo
 import helpers.hprint as hprint
@@ -19,7 +20,11 @@ def _convert_file_names(in_file_name: str, out_file_name: str) -> None:
     `/app/helpers_root/tmp.llm_transform.in.txt`) with the name of the
     file outside the container.
     """
-    # TODO(gp): We should use the `convert_caller_to_callee_docker_path`
+    # Translate container path back to caller path.
+    mount_context = hdocker.get_docker_mount_context()
+    container_in_file = mount_context.convert_path(
+        in_file_name, check_if_exists=False
+    )
     txt_out = []
     txt = hio.from_file(out_file_name)
     for line in txt.split("\n"):
@@ -30,7 +35,10 @@ def _convert_file_names(in_file_name: str, out_file_name: str) -> None:
         # /app/helpers_root/r.py:1: Change the shebang line to `#!/usr/bin/env python3` to e
         # ```
         _LOG.debug("before: %s", hprint.to_str("line in_file_name"))
-        line = re.sub(r"^.*(:\d+:.*)$", rf"{in_file_name}\1", line)
+        if container_in_file in line:
+            line = line.replace(container_in_file, in_file_name)
+        else:
+            line = re.sub(r"^.*(:\d+:.*)$", rf"{in_file_name}\1", line)
         _LOG.debug("after: %s", hprint.to_str("line"))
         txt_out.append(line)
     txt_out = "\n".join(txt_out)

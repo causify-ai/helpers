@@ -84,6 +84,7 @@
     - Architecture compatibility checking
   - Contains generic utilities that work with any Docker container
   - Examples: `build_container_image()`,
+    `DockerMountContext`, `get_docker_mount_context()`,
     `convert_caller_to_callee_docker_path()`, `get_docker_mount_info()`
 
 - `helpers/hdockerized_executables.py`
@@ -267,6 +268,31 @@ The dockerized executable pattern follows a three-layer architecture:
   - Normalize the input path to the caller filesystem (i.e., host or docker1)
   - Compute the path as relative to the mount point of the caller
   - Use the mount point of the caller container
+
+### Idiom: Path Conversion with `DockerMountContext`
+
+- To convert paths cleanly without repeated unpacking of mount configuration:
+
+  ```python
+  # Acquire the mount context.
+  mount_context = hdocker.get_docker_mount_context()
+
+  # Convert a pair of input/output file paths.
+  in_file_path, out_file_path = mount_context.convert_io_paths(
+      in_file_path, out_file_path
+  )
+
+  # Or convert individual files.
+  docker_path = mount_context.convert_path(file_path, is_input=True)
+
+  # Run the docker command using context mount attributes.
+  hdocker.build_and_run_docker_cmd(
+      use_sudo,
+      mount_context.callee_mount_path,
+      mount_context.mount,
+      ...
+  )
+  ```
 
 ## Testing a dockerized executable
 
