@@ -171,31 +171,9 @@ class Test__compress_pdf_ghostscript_dockerized(hunitest.TestCase):
         # call: `hdocker` is our own internal wrapper, not the external
         # dependency, so it is not mocked), to build the expected `gs`
         # command.
-        (
-            is_caller_host,
-            use_sibling_container_for_callee,
-            caller_mount_path,
-            callee_mount_path,
-            _,
-        ) = dshdcpd.hdocker.get_docker_mount_context()
-        docker_input_file = dshdcpd.hdocker.convert_caller_to_callee_docker_path(
-            input_file,
-            caller_mount_path,
-            callee_mount_path,
-            check_if_exists=True,
-            is_input=True,
-            is_caller_host=is_caller_host,
-            use_sibling_container_for_callee=use_sibling_container_for_callee,
-        )
-        docker_tmp_output_file = dshdcpd.hdocker.convert_caller_to_callee_docker_path(
-            tmp_output_file,
-            caller_mount_path,
-            callee_mount_path,
-            check_if_exists=True,
-            is_input=False,
-            is_caller_host=is_caller_host,
-            use_sibling_container_for_callee=use_sibling_container_for_callee,
-        )
+        mount_ctx = dshdcpd.hdocker.get_docker_mount_context()
+        docker_input_file = mount_ctx.convert_path(input_file)
+        docker_tmp_output_file = mount_ctx.convert_path(tmp_output_file, is_input=False)
         # Prepare outputs.
         expected_cmd = (
             f"gs -sDEVICE=pdfwrite -dPDFSETTINGS={quality} "

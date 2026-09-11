@@ -26,7 +26,6 @@ import helpers.hdocker as hdocker
 import helpers.hgit as hgit
 import helpers.hparser as hparser
 import helpers.hprint as hprint
-import helpers.hserver as hserver
 import helpers.hsystem as hsystem
 
 _LOG = logging.getLogger(__name__)
@@ -126,43 +125,15 @@ def _run_dockerized_sync_gh_issue_labels(
         container_image, dockerfile, force_rebuild, use_sudo
     )
     # Convert file paths to Docker paths.
-    is_caller_host = not hserver.is_inside_docker()
-    use_sibling_container_for_callee = hserver.use_docker_sibling_containers()
-    caller_mount_path, callee_mount_path, mount = hdocker.get_docker_mount_info(
-        is_caller_host, use_sibling_container_for_callee
-    )
-    input_file = hdocker.convert_caller_to_callee_docker_path(
-        input_file,
-        caller_mount_path,
-        callee_mount_path,
-        check_if_exists=True,
-        is_input=True,
-        is_caller_host=is_caller_host,
-        use_sibling_container_for_callee=use_sibling_container_for_callee,
-    )
+    mount_ctx = hdocker.get_docker_mount_context()
+    input_file = mount_ctx.convert_path(input_file)
     helpers_root = hgit.find_helpers_root()
-    helpers_root = hdocker.convert_caller_to_callee_docker_path(
-        helpers_root,
-        caller_mount_path,
-        callee_mount_path,
-        check_if_exists=True,
-        is_input=False,
-        is_caller_host=is_caller_host,
-        use_sibling_container_for_callee=use_sibling_container_for_callee,
-    )
+    helpers_root = mount_ctx.convert_path(helpers_root, is_input=False)
     # Build the command.
     git_root = hgit.find_git_root()
     docker_executable = "dockerized_sync_gh_issue_labels.py"
     script = hsystem.find_file_in_repo(docker_executable, root_dir=git_root)
-    script = hdocker.convert_caller_to_callee_docker_path(
-        script,
-        caller_mount_path,
-        callee_mount_path,
-        check_if_exists=True,
-        is_input=True,
-        is_caller_host=is_caller_host,
-        use_sibling_container_for_callee=use_sibling_container_for_callee,
-    )
+    script = mount_ctx.convert_path(script)
     cmd = [
         script,
         f"--input_file {input_file}",
@@ -186,7 +157,7 @@ def _run_dockerized_sync_gh_issue_labels(
         [
             f"-e {token_env_var}",
             f"-e PYTHONPATH={helpers_root}",
-            f"--workdir {callee_mount_path} --mount {mount}",
+            f"--workdir {mount_ctx.callee_mount_path} --mount {mount_ctx.mount}",
             container_image,
             cmd,
         ]

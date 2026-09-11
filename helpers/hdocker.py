@@ -11,7 +11,7 @@ import logging
 import os
 import platform
 import time
-from typing import List, Optional, Tuple
+from typing import List, NamedTuple, Optional, Tuple
 
 import helpers.hdbg as hdbg
 import helpers.henv as henv
@@ -699,6 +699,96 @@ def get_host_git_root() -> str:
     return host_git_root_path
 
 
+class DockerMountContext(NamedTuple):
+    """
+    Bundle of the Docker mount information needed to convert paths.
+
+    Returned by `get_docker_mount_context()`; it groups the five values of the
+    legacy 5-tuple and adds convenience methods (`convert_path()`,
+    `convert_io_paths()`, `convert_all_paths()`) so that callers don't have to
+    thread the mount context through every path conversion.
+
+    The NamedTuple is backward compatible: it can be unpacked positionally
+    (e.g., `a, b, c, d, e = get_docker_mount_context()`) exactly like the old
+    5-tuple.
+
+    :param is_caller_host: Whether the caller runs on the host machine or
+        inside a Docker container.
+    :param use_sibling_container_for_callee: Whether the callee runs in a
+        sibling (vs. child) container.
+    :param caller_mount_path: The mount path on the caller filesystem.
+    :param callee_mount_path: The target mount path in the callee container.
+    :param mount: The Docker mount string to pass to `docker run`.
+    """
+
+    is_caller_host: bool
+    use_sibling_container_for_callee: bool
+    caller_mount_path: str
+    callee_mount_path: str
+    mount: str
+
+    def convert_path(
+        self,
+        caller_file_path: str,
+        *,
+        check_if_exists: bool = False,
+        is_input: bool = True,
+    ) -> str:
+        """
+        Convert `caller_file_path` to its path inside the callee container.
+
+        :param caller_file_path: The file path on the caller filesystem.
+        :param check_if_exists: Whether to check if the path exists.
+        :param is_input: Whether the path is an input file (used only if
+            `check_if_exists` is True).
+        """
+        return convert_caller_to_callee_docker_path(
+            caller_file_path,
+            self.caller_mount_path,
+            self.callee_mount_path,
+            check_if_exists=check_if_exists,
+            is_input=is_input,
+            is_caller_host=self.is_caller_host,
+            use_sibling_container_for_callee=self.use_sibling_container_for_callee,
+        )
+
+    def convert_io_paths(
+        self, in_file_path: str, out_file_path: str
+    ) -> Tuple[str, str]:
+        """
+        Convert an input/output file pair to the callee container paths.
+
+        The input is checked for existence (it must be there), while the
+        output is not (it may not exist yet).
+
+        :param in_file_path: Input file path on the caller filesystem.
+        :param out_file_path: Output file path on the caller filesystem.
+        :return: Tuple of the converted `(in, out)` container paths.
+        """
+        in_callee = self.convert_path(
+            in_file_path, check_if_exists=True, is_input=True
+        )
+        out_callee = self.convert_path(
+            out_file_path, check_if_exists=False, is_input=False
+        )
+        return (in_callee, out_callee)
+
+    def convert_all_paths(self, cmd_opts: List[str]) -> List[str]:
+        """
+        Convert all the paths of a command-options list.
+
+        :param cmd_opts: List of command options (paths and flags).
+        :return: List of the converted command options.
+        """
+        return convert_all_paths_from_caller_to_callee_docker_path(
+            cmd_opts,
+            self.caller_mount_path,
+            self.callee_mount_path,
+            self.is_caller_host,
+            self.use_sibling_container_for_callee,
+        )
+
+
 def get_docker_mount_info(
     is_caller_host: bool, use_sibling_container_for_callee: bool
 ) -> Tuple[str, str, str]:
@@ -747,19 +837,26 @@ def get_docker_mount_info(
     return caller_mount_path, callee_mount_path, mount
 
 
-def get_docker_mount_context() -> Tuple[bool, bool, str, str, str]:
+def get_docker_mount_context() -> DockerMountContext:
     """
-    Return Docker mount context for container operations.
+    Return the Docker `DockerMountContext` for container operations.
 
-    :return: (is_caller_host, use_sibling_container_for_callee,
-        caller_mount_path, callee_mount_path, mount)
+    The context groups all the values needed to convert caller paths to callee
+    container paths; see the `DockerMountContext` class for the convenience
+    methods. The return type is a NamedTuple, so existing callers that unpack
+    positionally (e.g., ``a, b, c, d, e = get_docker_mount_context()``) keep
+    working unchanged.
+
+    :return: A `DockerMountContext` bundling
+        (is_caller_host, use_sibling_container_for_callee,
+        caller_mount_path, callee_mount_path, mount).
     """
     is_caller_host = not hserver.is_inside_docker()
     use_sibling_container_for_callee = hserver.use_docker_sibling_containers()
     caller_mount_path, callee_mount_path, mount = get_docker_mount_info(
         is_caller_host, use_sibling_container_for_callee
     )
-    return (
+    return DockerMountContext(
         is_caller_host,
         use_sibling_container_for_callee,
         caller_mount_path,
@@ -919,10 +1016,10 @@ def is_path(path: str) -> bool:
 
 def convert_all_paths_from_caller_to_callee_docker_path(
     cmd_opts: List[str],
-    caller_mount_path: str,
-    callee_mount_path: str,
-    is_caller_host: bool,
-    use_sibling_container_for_callee: bool,
+    caller_mount_path: Optional[str] = None,
+    callee_mount_path: Optional[str] = None,
+    is_caller_host: Optional[bool] = None,
+    use_sibling_container_for_callee: Optional[bool] = None,
 ) -> List[str]:
     """
     Convert all the paths from the caller to the callee Docker container path.
@@ -935,14 +1032,44 @@ def convert_all_paths_from_caller_to_callee_docker_path(
     - Create output dirs
     - Explicitly parse options that are outputs (e.g., `-o <file>`)
 
+    If any of the mount-context parameters are omitted (left at their default
+    ``None``), they are auto-detected via `get_docker_mount_context()`.
+
     :param cmd_opts: List of command options.
-    :param caller_mount_path: See `get_docker_mount_info()`.
-    :param callee_mount_path: See `get_docker_mount_info()`.
-    :param is_caller_host: See `get_docker_mount_info()`.
-    :param use_sibling_container_for_callee: See `get_docker_mount_info()`.
+    :param caller_mount_path: See `get_docker_mount_info()`
+        (auto-detect if None).
+    :param callee_mount_path: See `get_docker_mount_info()`
+        (auto-detect if None).
+    :param is_caller_host: See `get_docker_mount_info()`
+        (auto-detect if None).
+    :param use_sibling_container_for_callee: See `get_docker_mount_info()`
+        (auto-detect if None).
     :return: List of converted command options.
     """
     _LOG.debug(hprint.func_signature_to_str())
+    # Auto-detect mount context from the environment only when a parameter is
+    # actually omitted (keeps the common ``convert_all_paths_from_caller_to_
+    # callee_docker_path(cmd_opts)`` call cheap by avoiding `is_inside_docker()`).
+    if any(
+        p is None
+        for p in (
+            caller_mount_path,
+            callee_mount_path,
+            is_caller_host,
+            use_sibling_container_for_callee,
+        )
+    ):
+        ctx = get_docker_mount_context()
+        if caller_mount_path is None:
+            caller_mount_path = ctx.caller_mount_path
+        if callee_mount_path is None:
+            callee_mount_path = ctx.callee_mount_path
+        if is_caller_host is None:
+            is_caller_host = ctx.is_caller_host
+        if use_sibling_container_for_callee is None:
+            use_sibling_container_for_callee = (
+                ctx.use_sibling_container_for_callee
+            )
     # Converted command options.
     cmd_opts_out = []
     # Scan the list of command option.

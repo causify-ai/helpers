@@ -242,46 +242,16 @@ def run_dockerized_latex(
         force_rebuild=force_rebuild, use_sudo=use_sudo
     )
     # Convert files to Docker.
-    (
-        is_caller_host,
-        use_sibling_container_for_callee,
-        caller_mount_path,
-        callee_mount_path,
-        mount,
-    ) = hdocker.get_docker_mount_context()
+    mount_ctx = hdocker.get_docker_mount_context()
     # Convert command to arguments.
     param_dict = convert_latex_cmd_to_arguments(cmd)
-    param_dict["input"] = hdocker.convert_caller_to_callee_docker_path(
-        param_dict["input"],
-        caller_mount_path,
-        callee_mount_path,
-        check_if_exists=True,
-        is_input=True,
-        is_caller_host=is_caller_host,
-        use_sibling_container_for_callee=use_sibling_container_for_callee,
-    )
+    param_dict["input"] = mount_ctx.convert_path(param_dict["input"])
     key = "output-directory"
     value = param_dict[key]
-    param_dict[key] = hdocker.convert_caller_to_callee_docker_path(
-        value,
-        caller_mount_path,
-        callee_mount_path,
-        check_if_exists=False,
-        is_input=False,
-        is_caller_host=is_caller_host,
-        use_sibling_container_for_callee=use_sibling_container_for_callee,
-    )
+    param_dict[key] = mount_ctx.convert_path(value, check_if_exists=False, is_input=False)
     for key, value in param_dict["in_dir_params"].items():
         if value:
-            value_tmp = hdocker.convert_caller_to_callee_docker_path(
-                value,
-                caller_mount_path,
-                callee_mount_path,
-                check_if_exists=True,
-                is_input=True,
-                is_caller_host=is_caller_host,
-                use_sibling_container_for_callee=use_sibling_container_for_callee,
-            )
+            value_tmp = mount_ctx.convert_path(value)
         else:
             value_tmp = value
         param_dict["in_dir_params"][key] = value_tmp
@@ -292,8 +262,8 @@ def run_dockerized_latex(
     # Build Docker command.
     ret = hdocker.build_and_run_docker_cmd(
         use_sudo,
-        callee_mount_path,
-        mount,
+        mount_ctx.callee_mount_path,
+        mount_ctx.mount,
         container_image,
         _DOCKERFILE,
         latex_cmd,
@@ -329,22 +299,8 @@ def run_dockerized_bibtex(
         force_rebuild=force_rebuild, use_sudo=use_sudo
     )
     # Convert the `.aux` file path to its Docker path.
-    (
-        is_caller_host,
-        use_sibling_container_for_callee,
-        caller_mount_path,
-        callee_mount_path,
-        mount,
-    ) = hdocker.get_docker_mount_context()
-    docker_in_file_path = hdocker.convert_caller_to_callee_docker_path(
-        in_file_path,
-        caller_mount_path,
-        callee_mount_path,
-        check_if_exists=True,
-        is_input=True,
-        is_caller_host=is_caller_host,
-        use_sibling_container_for_callee=use_sibling_container_for_callee,
-    )
+    mount_ctx = hdocker.get_docker_mount_context()
+    docker_in_file_path = mount_ctx.convert_path(in_file_path)
     # Build the `bibtex` command.
     docker_dir_name = os.path.dirname(docker_in_file_path)
     base_name = os.path.splitext(os.path.basename(docker_in_file_path))[0]
@@ -352,8 +308,8 @@ def run_dockerized_bibtex(
     _LOG.debug("> %s", bibtex_cmd)
     ret = hdocker.build_and_run_docker_cmd(
         use_sudo,
-        callee_mount_path,
-        mount,
+        mount_ctx.callee_mount_path,
+        mount_ctx.mount,
         container_image,
         _DOCKERFILE,
         bibtex_cmd,
