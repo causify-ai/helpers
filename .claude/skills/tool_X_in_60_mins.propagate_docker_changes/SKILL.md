@@ -12,8 +12,13 @@ This skill supports two modes:
   in project_template
 
 # Mode A: Full sync
-- For each project / directory `<DST_DIR>` in the directories from
-  `class_project/project_dirs.md`
+- Find each target directory `<DST_DIR>`: every directory under `class_project/`
+  (other than `<SRC_DIR>` itself) that already has a `Dockerfile`
+  ```bash
+  > find class_project -mindepth 2 -maxdepth 2 -name Dockerfile \
+      -not -path "class_project/project_template/*"
+  ```
+- For each `<DST_DIR>` found this way
 - Make the Docker files `<DST_DIR>/docker_*.sh`, `<DST_DIR>/Dockerfile`,
   `<DST_DIR>/run_jupyter.sh` as similar as possible to the corresponding ones in
   `<SRC_DIR>`
@@ -33,8 +38,8 @@ This skill supports two modes:
   confirm
 
 ## Propagate the Changes
-- Propagate the changes in the Docker system from `<SRC_DIR>` to all the projects
-  in the directories from `class_project/project_dirs.md`
+- Propagate the changes in the Docker system from `<SRC_DIR>` to every `<DST_DIR>`
+  found via the `find` command in Mode A
 
 ## Preserve Behavior
 - Make sure not to change the behavior unless needed
