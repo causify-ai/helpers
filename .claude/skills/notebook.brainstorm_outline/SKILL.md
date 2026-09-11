@@ -5,18 +5,16 @@ model: opus
 
 # Goal
 
-- Given some technical material provided from the user, come up with
-  5 ideas of interactive Jupyter notebooks that teaches the concepts
-  in the materials using
+- Given some technical material provided from the user, come up with 5 ideas of
+  interactive Jupyter notebooks that teaches the concepts in the materials using:
   - Visualization
   - Interaction
   - Exploration
+- When possible suggest and use "famous" examples, data, experiments, and problems
+  related to the provided material
 
-- When possible suggest and use "famous" examples, data, experiments, and
-  problems related to the provided material
-
-- The output is a file `notebook_ideas.<tag>.md` markdown file that
-  describe the ideas
+- The output is a file `notebook_ideas.<tag>.md` markdown file that describe the
+  ideas
 
 # Template
 - For each ideas use a template like
@@ -24,8 +22,8 @@ model: opus
   ## 1. <Title>
 
   ### Goal
-  Students gain intuitive understanding of ... by building and
-  analyzing ... and exploring the relationship between ...
+  Students gain intuitive understanding of ... by building and analyzing ... and
+  exploring the relationship between ...
 
   ### Learning Objectives
   - Understand ...
@@ -74,8 +72,8 @@ model: opus
   - Satisfiability and NP-completeness
 
   ### Key Packages
-  - **sympy** — symbolic logic, propositional formula manipulation
-  - **python-sat** — SAT solver backends
+  - **sympy**: symbolic logic, propositional formula manipulation
+  - **python-sat**: SAT solver backends
 
   ### Learning Activities
   - Build formulas interactively: `(Rain ∧ Cold) ∨ Sunny`

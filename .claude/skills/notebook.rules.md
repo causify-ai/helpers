@@ -49,15 +49,21 @@ description: Conventions and standards for interactive Jupyter notebook structur
 - Each notebook has a corresponding `*_utils.py` file containing the code
   corresponding to that notebook
 
-- Use hyphens in notebook filenames and underscores in Python filenames and
-  utility files
+- **Modern naming convention** (for new lesson notebooks):
+  - Use underscores throughout all filenames
+  - Organize in a lesson-specific directory
+  - Format: `<CourseCode>_<LessonNum>_<TopicName>` for all three files
+  - Example (MSML610 Lesson 3, Wumpus World topic):
+    - Notebook: `msml610/tutorials/L03_knowledge_representation/L03_01_wumpus_world.ipynb`
+    - Paired Python file: `msml610/tutorials/L03_knowledge_representation/L03_01_wumpus_world.py`
+    - Paired utility file: `msml610/tutorials/L03_knowledge_representation/L03_01_wumpus_world_utils.py`
 
-- Example
-
-  - Notebook: `msml610/tutorials/Lesson94-Information_Theory.ipynb`
-  - Paired Python file: `msml610/tutorials/Lesson94-Information_Theory.py`
-  - Paired utility file:
-    `msml610/tutorials/Lesson94_Information_Theory_utils.py`
+- **Legacy naming convention** (kept for reference):
+  - Use hyphens in notebook filenames and underscores in Python filenames
+  - Example (Lesson 94):
+    - Notebook: `msml610/tutorials/Lesson94-Information_Theory.ipynb`
+    - Paired Python file: `msml610/tutorials/Lesson94-Information_Theory.py`
+    - Paired utility file: `msml610/tutorials/Lesson94_Information_Theory_utils.py`
 
 ### Responsibility Division
 

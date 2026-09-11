@@ -97,8 +97,8 @@ model: sonnet
 ### Key Observations (Required, Post-Visualization)
 
 - List 2-3 bullet points of discoveries students should make by
-  - looking at the output or visualization
-  - interacting with the widgets
+  - Looking at the output or visualization
+  - Interacting with the widgets
 - These appear in a markdown cell **after** the visualization cell
 - Focus on learning outcomes, not mechanics
 - Include what experiments can be done with the widgets and what students will

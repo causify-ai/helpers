@@ -6,11 +6,11 @@ model: sonnet
 # Goal
 
 - Create a self-contained Jupyter notebook that teaches the Python package
-  `<PACKAGE_NAME>` by progressively introducing its core primitives, mental
-  model, and API surface
+  `<PACKAGE_NAME>` by progressively introducing its core primitives, mental model,
+  and API surface
 
-- The notebook should be optimized for learning the library itself, not for
-  solving a large real-world problem
+- The notebook should be optimized for learning the library itself, not for solving a
+  large real-world problem
 
 # Teaching Philosophy
 
@@ -19,8 +19,8 @@ model: sonnet
 3. Use the minimum amount of code necessary to demonstrate each concept
 4. Prefer toy examples with 2–5 objects instead of realistic datasets
 5. Every code cell should answer exactly one question
-6. Avoid helper functions, abstractions, and boilerplate unless they are part of
-   the library's API
+6. Avoid helper functions, abstractions, and boilerplate unless they are part of the
+   library's API
 7. Focus on understanding:
    - What are the primitive objects?
    - How are they created?
@@ -38,41 +38,33 @@ model: sonnet
   ```
   tutorials/<PACKAGE_NAME>/<PACKAGE_NAME>.<ID>.API.<description>.ipynb
   ```
-- E.g., for the package `pgmpy` and for probabilistic inference the name can be
+- E.g., for the package `pgmpy` and for probabilistic inference, the name can be
   `tutorials/pgmpy/pgmpy.01.API.probabilistic_inference.ipynb`
 
 ## Use Standard Template Structure
 
 - Use the structure from `.claude/templates/notebook.template.py` for consistent
   notebook initialization
-
-- First Cell: Include autoreload, logging, and core dependencies
-
-- Second Cell: Optionally install packages on-the-fly
-
-- Third Cell: Notebook-specific imports and logger
+  - First Cell: Include autoreload, logging, and core dependencies
+  - Second Cell: Optionally install packages on-the-fly
+  - Third Cell: Notebook-specific imports and logger
 
 ## Follow General Notebook Conventions
 
 - Follow the notebook conventions documented in
   `.claude/skills/notebook.rules.md`:
-  - `# Setup and Initialization`: Standard template structure and Python code
-    rules
-  - `# Code Cell Design and Content`: Python coding style, showing results, and
-    using pandas dataframes for tables
-  - `# Text and Markdown Formatting`: Markdown bullet points, emdash
-    replacement, and LaTeX notation
-  - `# Data Processing and Visualization`: Data manipulation and plotting
-    conventions
+  - `# Setup and Initialization`: Standard template structure and Python code rules
+  - `# Code Cell Design and Content`: Python coding style, showing results, and using
+    pandas dataframes for tables
+  - `# Text and Markdown Formatting`: Markdown bullet points, emdash replacement, and
+    LaTeX notation
+  - `# Data Processing and Visualization`: Data manipulation and plotting conventions
   - `## Visualization Cell Triplet Details`: Structure for notebook cells with
     visualizations or interactive widgets
 
 ## Follow the Template
 
-- The template is:
-  ```
-  .claude/templates/API_notebook.template.ipynb
-  ```
+- The template is `.claude/templates/API_notebook.template.ipynb`
 
 ### Library Overview
 
