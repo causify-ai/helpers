@@ -54,9 +54,9 @@ description: Conventions and standards for interactive Jupyter notebook structur
   - Organize in a lesson-specific directory
   - Format: `<CourseCode>_<LessonNum>_<TopicName>` for all three files
   - Example (MSML610 Lesson 3, Wumpus World topic):
-    - Notebook: `msml610/tutorials/L03_knowledge_representation/L03_01_wumpus_world.ipynb`
-    - Paired Python file: `msml610/tutorials/L03_knowledge_representation/L03_01_wumpus_world.py`
-    - Paired utility file: `msml610/tutorials/L03_knowledge_representation/L03_01_wumpus_world_utils.py`
+    - Notebook: `msml610/tutorials/L03_knowledge_representation/L03_02_wumpus_world.ipynb`
+    - Paired Python file: `msml610/tutorials/L03_knowledge_representation/L03_02_wumpus_world.py`
+    - Paired utility file: `msml610/tutorials/L03_knowledge_representation/L03_02_wumpus_world_utils.py`
 
 - **Legacy naming convention** (kept for reference):
   - Use hyphens in notebook filenames and underscores in Python filenames

@@ -54,7 +54,7 @@ model: haiku
 
 ### Execute Each Task
 
-- Execute each task following the instructions in `@.claude/instr.md`
+- Execute each task following the instructions in `@.claude/task_instructions.md`
 - Keep updated the `<FILE>` by marking task `[ ] ...` with
   - `[-]` in progress
   - `[x]` when done
