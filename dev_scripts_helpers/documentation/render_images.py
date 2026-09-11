@@ -991,6 +991,22 @@ def _render_images(
                     dpi=dpi,
                     output_format=output_format,
                 )
+                # Verify the images actually exist on disk.
+                # `_render_image_code` is wrapped by `@hcacsimp.simple_cache`,
+                # so a cache hit returns a previously-recorded path without
+                # re-rendering; if the file was since deleted (e.g., a cleaned
+                # `.figs` dir, a stale `tmp.cache_simple.*` cache), that would
+                # otherwise go unnoticed until the downstream `typst compile`
+                # fails.
+                if not dry_run:
+                    out_file_dir = os.path.dirname(os.path.abspath(out_file))
+                    for rel_img_path in rel_img_paths:
+                        img_path = (
+                            rel_img_path
+                            if os.path.isabs(rel_img_path)
+                            else os.path.join(out_file_dir, rel_img_path)
+                        )
+                        hdbg.dassert_file_exists(img_path)
                 # Override the image name if explicitly set by the user.
                 if user_rel_img_path != "":
                     rel_img_paths = [user_rel_img_path]

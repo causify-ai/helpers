@@ -71,3 +71,9 @@ model: opus
 - Wait for the user to select items to apply by index and give corrections
 - Only then edit the slide deck
 - Preserve formatting, speaker notes, and visual structure
+
+## Step 5: Verify Rendering
+- [ ] Make sure that the updated slides render correctly, e.g.,
+  ```bash
+  > gen_slides.py -i <FILE> --notes_to_pdf_args="--skip_action open_pdf"
+  ```

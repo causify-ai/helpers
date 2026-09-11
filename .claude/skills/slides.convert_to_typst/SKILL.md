@@ -72,3 +72,9 @@ model: haiku
 - Operators properly formatted with `op()`
 - Code blocks and lists intact
 - File is valid markdown
+
+## Verification
+- [ ] Make sure that the converted slides render correctly, e.g.,
+  ```bash
+  > gen_slides.py -i <FILE> --notes_to_pdf_args="--skip_action open_pdf"
+  ```

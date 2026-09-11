@@ -102,3 +102,9 @@ model: haiku
     - Statistical tools to _forecast, explain_
     - E.g., churn prediction from customer behavior
   ```
+
+## Verification
+- [ ] Make sure that the updated slides render correctly, e.g.,
+  ```bash
+  > gen_slides.py -i <FILE> --notes_to_pdf_args="--skip_action open_pdf"
+  ```

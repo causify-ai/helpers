@@ -51,3 +51,9 @@ model: haiku
 ## Output
 - Emit the improved output in markdown, wrapped to 80 columns (see
   `slides.rules.md` → `## Use 80 columns`), without any other comment
+
+## Verification
+- [ ] Make sure that the updated slides render correctly, e.g.,
+  ```bash
+  > gen_slides.py -i <FILE> --notes_to_pdf_args="--skip_action open_pdf"
+  ```

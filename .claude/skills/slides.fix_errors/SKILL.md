@@ -35,3 +35,9 @@ model: haiku
 ## Fix Mistakes
 - Fix English grammar
 - Fix any conceptual mistake only if you are sure about the correction
+
+## Verification
+- [ ] Make sure that the updated slides render correctly, e.g.,
+  ```bash
+  > gen_slides.py -i <FILE> --notes_to_pdf_args="--skip_action open_pdf"
+  ```

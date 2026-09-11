@@ -35,3 +35,9 @@ model: opus
 - Ask the user which structural moves and which content fixes to apply
 - After the user approves a subset, perform the reorganization and the content
   changes together in place
+
+## Step 4: Verify Rendering
+- [ ] Make sure that the updated slides render correctly, e.g.,
+  ```bash
+  > gen_slides.py -i <FILE> --notes_to_pdf_args="--skip_action open_pdf"
+  ```

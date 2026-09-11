@@ -55,3 +55,9 @@ model: sonnet
 - Wait for the user to approve the changes
 - After the user approves, perform the changes in place reorganizing the slides,
   but without removing any slide or content
+
+## Verify Rendering
+- [ ] Make sure that the updated slides render correctly, e.g.,
+  ```bash
+  > gen_slides.py -i <FILE> --notes_to_pdf_args="--skip_action open_pdf"
+  ```

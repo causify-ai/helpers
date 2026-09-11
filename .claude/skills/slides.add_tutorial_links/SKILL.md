@@ -38,3 +38,7 @@ model: sonnet
 ## Verification
 - [ ] Check that each added anchor points to an actual heading in
   `<TUTORIAL_URL>`, not a guessed slug
+- [ ] Make sure that the updated slides render correctly, e.g.,
+  ```bash
+  > gen_slides.py -i <FILE> --notes_to_pdf_args="--skip_action open_pdf"
+  ```
