@@ -88,22 +88,8 @@ def run_dockerized_markdown_toc(
         force_rebuild=force_rebuild, use_sudo=use_sudo
     )
     # Convert files to Docker paths.
-    (
-        is_caller_host,
-        use_sibling_container_for_callee,
-        caller_mount_path,
-        callee_mount_path,
-        mount,
-    ) = hdocker.get_docker_mount_context()
-    in_file_path = hdocker.convert_caller_to_callee_docker_path(
-        in_file_path,
-        caller_mount_path,
-        callee_mount_path,
-        check_if_exists=True,
-        is_input=True,
-        is_caller_host=is_caller_host,
-        use_sibling_container_for_callee=use_sibling_container_for_callee,
-    )
+    mount_ctx = hdocker.get_docker_mount_context()
+    in_file_path = mount_ctx.convert_path(in_file_path)
     cmd_opts_as_str = " ".join(cmd_opts)
     # The command is like:
     # > docker run --rm --user $(id -u):$(id -g) \
@@ -113,8 +99,8 @@ def run_dockerized_markdown_toc(
     bash_cmd = f"/usr/local/bin/markdown-toc {cmd_opts_as_str} -i {in_file_path}"
     ret = hdocker.build_and_run_docker_cmd(
         use_sudo,
-        callee_mount_path,
-        mount,
+        mount_ctx.callee_mount_path,
+        mount_ctx.mount,
         container_image,
         _DOCKERFILE,
         bash_cmd,

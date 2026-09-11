@@ -101,31 +101,9 @@ def run_dockerized_graphviz(
         force_rebuild=force_rebuild, use_sudo=use_sudo
     )
     # Convert files to Docker paths.
-    (
-        is_caller_host,
-        use_sibling_container_for_callee,
-        caller_mount_path,
-        callee_mount_path,
-        mount,
-    ) = hdocker.get_docker_mount_context()
-    in_file_path = hdocker.convert_caller_to_callee_docker_path(
-        in_file_path,
-        caller_mount_path,
-        callee_mount_path,
-        check_if_exists=True,
-        is_input=True,
-        is_caller_host=is_caller_host,
-        use_sibling_container_for_callee=use_sibling_container_for_callee,
-    )
-    out_file_path = hdocker.convert_caller_to_callee_docker_path(
-        out_file_path,
-        caller_mount_path,
-        callee_mount_path,
-        check_if_exists=True,
-        is_input=False,
-        is_caller_host=is_caller_host,
-        use_sibling_container_for_callee=use_sibling_container_for_callee,
-    )
+    mount_ctx = hdocker.get_docker_mount_context()
+    in_file_path = mount_ctx.convert_path(in_file_path)
+    out_file_path = mount_ctx.convert_path(out_file_path, is_input=False)
     # Build graphviz command.
     cmd_opts_str = " ".join(cmd_opts)
     graphviz_cmd = [
@@ -140,8 +118,8 @@ def run_dockerized_graphviz(
     # Build Docker command.
     ret = hdocker.build_and_run_docker_cmd(
         use_sudo,
-        callee_mount_path,
-        mount,
+        mount_ctx.callee_mount_path,
+        mount_ctx.mount,
         container_image,
         _DOCKERFILE,
         graphviz_cmd,

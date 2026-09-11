@@ -402,44 +402,14 @@ def run_dockerized_pandoc(
         raise ValueError(f"Unknown container type '{container_type}'")
     _LOG.debug("container_image=%s", container_image)
     # Convert files to Docker paths.
-    (
-        is_caller_host,
-        use_sibling_container_for_callee,
-        caller_mount_path,
-        callee_mount_path,
-        mount,
-    ) = hdocker.get_docker_mount_context()
+    mount_ctx = hdocker.get_docker_mount_context()
     # Convert command to arguments.
     param_dict = _convert_pandoc_cmd_to_arguments(cmd)
-    param_dict["input"] = hdocker.convert_caller_to_callee_docker_path(
-        param_dict["input"],
-        caller_mount_path,
-        callee_mount_path,
-        check_if_exists=True,
-        is_input=True,
-        is_caller_host=is_caller_host,
-        use_sibling_container_for_callee=use_sibling_container_for_callee,
-    )
-    param_dict["output"] = hdocker.convert_caller_to_callee_docker_path(
-        param_dict["output"],
-        caller_mount_path,
-        callee_mount_path,
-        check_if_exists=False,
-        is_input=False,
-        is_caller_host=is_caller_host,
-        use_sibling_container_for_callee=use_sibling_container_for_callee,
-    )
+    param_dict["input"] = mount_ctx.convert_path(param_dict["input"])
+    param_dict["output"] = mount_ctx.convert_path(param_dict["output"], check_if_exists=False, is_input=False)
     for key, value in param_dict["in_dir_params"].items():
         if value:
-            value_tmp = hdocker.convert_caller_to_callee_docker_path(
-                value,
-                caller_mount_path,
-                callee_mount_path,
-                check_if_exists=True,
-                is_input=True,
-                is_caller_host=is_caller_host,
-                use_sibling_container_for_callee=use_sibling_container_for_callee,
-            )
+            value_tmp = mount_ctx.convert_path(value)
         else:
             value_tmp = value
         param_dict["in_dir_params"][key] = value_tmp
@@ -455,8 +425,8 @@ def run_dockerized_pandoc(
     #     -s --toc
     ret = hdocker.build_and_run_docker_cmd(
         use_sudo,
-        callee_mount_path,
-        mount,
+        mount_ctx.callee_mount_path,
+        mount_ctx.mount,
         container_image,
         dockerfile,
         pandoc_cmd,
