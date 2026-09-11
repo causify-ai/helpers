@@ -1,5 +1,5 @@
 ---
-description: Ensure cells in a notebook are numbered consecutively with matching function names
+description: Ensure notebook cells are numbered consecutively with matching function names
 model: haiku
 ---
 
@@ -9,7 +9,7 @@ model: haiku
 
 # Workflow
 
-## Step 1
+## Identify Current Numbering
 - Read all existing cell headers and identify the current numbering
 - Make sure to follow the sections from `.claude/skills/notebook.rules.md`:
   - `# Notebook Structure and Headers` (Markdown Header Structure and Naming,
@@ -18,18 +18,20 @@ model: haiku
     Numbers, Organize Code by Cell Order)
 - Identify gaps, duplicates, or out-of-order cell numbers
 
-## Step 2
+## Renumber Headers and Functions
 - Renumber headers consecutively (1, 2, 3, ... and 1.1, 1.2, ... for sub-cells)
 - Rename all functions in code cells and the `*_utils.py` file to match the new
   headers
 
-## Step 3
+## Sync with Jupytext
 - Sync the paired `.py` file with Jupytext following the conventions in
   `# Code Architecture and Responsibility` -> `## Utilities vs. Notebook
   Responsibilities` in `.claude/skills/notebook.rules.md`
 
-## Conventions
-- `.claude/skills/notebook.rules.md`
+# Conventions
+- Follow the notebook conventions in `.claude/skills/notebook.rules.md`
 
-## Constraints
-- Read and follow `.claude/skills/notebook.rules.md`
+# Verification
+- [ ] Confirm cell numbers are sequential with no gaps within each Part
+- [ ] Confirm every `cellN_*()` function name matches its cell header number
+- [ ] Confirm the `.ipynb` and paired `.py` file are in sync via Jupytext

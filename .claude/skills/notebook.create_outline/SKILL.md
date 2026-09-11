@@ -1,5 +1,5 @@
 ---
-description: Create a detailed markdown outline for a Jupyter notebook, to teach concepts through example and discovery
+description: Outline a Jupyter notebook that teaches concepts through example and discovery
 model: sonnet
 ---
 
@@ -13,9 +13,9 @@ model: sonnet
 
 # Key Principles
 
-- Make sure to follow the section `Design Principles and Setup` from the
+- Make sure to follow the section `# Design Principles and Setup` from the
   file `.claude/skills/notebook.rules.md`
-- The output is a `notebook_outline.<tag>.md` markdown file that describes the
+- The output is a `notebook_outline.<TAG>.md` markdown file that describes the
   notebook units
 - Save markdown file in the current dir
 - Do not write any code
@@ -74,7 +74,7 @@ model: sonnet
 
 ### Plots and Their Descriptions (Required)
 
-- Describe each plot using the pattern `_<Plot name>_: <description>`
+- Describe each plot using the pattern `_<Plot name>_: <DESCRIPTION>`
 - Each plot's description is placed together with the plot title, not in a
   separate section
 - Be specific about what the visualization shows (not implementation details)
@@ -159,16 +159,16 @@ model: sonnet
   ```
 
 # Lint
-- After generating the file `notebook_outline.<tag>.md`
+- After generating the file `notebook_outline.<TAG>.md`
   ```
-  > lint_text.py -i `notebook_outline.<tag>.md`
+  > lint_text.py -i `notebook_outline.<TAG>.md`
   ```
 
 # Conventions
 
 - Follow `.claude/skills/notebook.rules.md` for general notebook formatting
-  conventions, including the `Utilities vs. Notebook Responsibilities` section
-  for organizing utility files and notebooks
+  conventions, including the `## Utilities vs. Notebook Responsibilities`
+  section for organizing utility files and notebooks
 
 - When writing markdown text follow
   - `.claude/skills/markdown.rules.md`: Markdown formatting rules

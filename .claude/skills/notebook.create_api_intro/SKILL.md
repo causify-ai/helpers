@@ -38,7 +38,7 @@ model: sonnet
 - The name of the notebook `<FILE>` is either specified directly by the user or
   it is generated as:
   ```
-  tutorials/<PACKAGE_NAME>/<PACKAGE_NAME>.<ID>.API.<description>.ipynb
+  tutorials/<PACKAGE_NAME>/<PACKAGE_NAME>.<ID>.API.<DESCRIPTION>.ipynb
   ```
 - E.g., for the package `pgmpy` and for probabilistic inference, the name can be
   `tutorials/pgmpy/pgmpy.01.API.probabilistic_inference.ipynb`
@@ -164,7 +164,7 @@ model: sonnet
     not a string
   - It displays the object's public interface as markdown, then prints a
     GitHub link to the object's source, pointing at the exact file and line,
-    e.g., `https://github.com/<org>/<repo>/blob/<branch>/<path>#L<line>`
+    e.g., `https://github.com/<ORG>/<REPO>/blob/<BRANCH>/<PATH>#L<LINE>`
 - Call it right after "Smallest Construction" or "Inspect the Object" so
   readers can jump straight to the implementation, e.g.,
   ```python

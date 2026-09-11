@@ -29,14 +29,14 @@ model: haiku
 
 # Workflow
 
-## Step 1: Identify or Create the Utils File
+## Identify or Create the Utils File
 - Find or create the library/utility file that corresponds to the notebook
   - Naming convention: Notebook name with underscores
   - E.g., `Lesson94-Information_Theory.ipynb` ->
     `Lesson94_Information_Theory_utils.py`
   - E.g., `tutorial_advanced.ipynb` -> `tutorial_advanced_utils.py`
 
-## Step 2: Organize Code Structure in Utils File
+## Organize Code Structure in Utils File
 - The utils file should have a structure that mirrors the flow of the notebook
 - Use section separators to organize code by notebook sections
   - Example:
@@ -65,7 +65,7 @@ model: haiku
 - Use private functions (prefix with `_`) for helpers not called from the
   notebook
 
-## Step 3: Move or Add Functions
+## Move or Add Functions
 
 ### For Moving Functions (Scenario 1):
 
@@ -85,7 +85,7 @@ model: haiku
   3. Add the code in the appropriate section following the utils file
      structure
 
-## Step 4: Update Notebook to Call Utils
+## Update Notebook to Call Utils
 - Replace function implementations with imports and function calls
 - Pattern:
   ```python
@@ -101,13 +101,13 @@ model: haiku
   utils.cell2_calculate_entropy()
   ```
 
-## Step 5: Code Reuse
+## Code Reuse
 - Reuse code already existing in the `*_utils.py` file
 - Reuse code already existing in the `helpers` directory
 - Avoid duplication across utils functions
 - Extract common patterns into helper functions
 
-## Step 6: Sync with Jupytext
+## Sync with Jupytext
 - After all modifications are complete, sync to update both files following the
   conventions in `# Code Architecture and Responsibility` -> `## Utilities vs.
   Notebook Responsibilities` in `.claude/skills/notebook.rules.md`:
@@ -115,6 +115,12 @@ model: haiku
   > uvx jupytext --sync <path/to/notebook.py>
   ```
 
-# Important
+# Conventions
 - Always follow the conventions and guidelines in
   `.claude/skills/notebook.rules.md`
+
+# Verification
+- [ ] Confirm no function moved to `*_utils.py` changed behavior
+- [ ] Confirm every notebook cell that used to hold inline code now calls the
+  corresponding utils function
+- [ ] Confirm the `.ipynb` and paired `.py` file are in sync via Jupytext

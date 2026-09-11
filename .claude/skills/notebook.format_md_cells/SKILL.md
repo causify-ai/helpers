@@ -1,5 +1,5 @@
 ---
-description: Format the markdown cells of a notebook to like slides
+description: Format the markdown cells of a notebook like slides
 model: haiku
 ---
 
@@ -25,9 +25,13 @@ model: haiku
   in `# Code Architecture and Responsibility` -> `## Utilities vs. Notebook
   Responsibilities` in `.claude/skills/notebook.rules.md`
 
-## Follow Conventions
+# Conventions
 - Always follow the conventions and guidelines in
   `.claude/skills/notebook.rules.md`
 
-## Constraints
+# Constraints
 - Do not change the intent of the cell
+
+# Verification
+- [ ] Confirm the meaning of every markdown cell is unchanged
+- [ ] Confirm the `.ipynb` and paired `.py` file are in sync via Jupytext

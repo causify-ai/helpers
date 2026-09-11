@@ -1,11 +1,11 @@
 ---
-description: Implement a Jupyter notebook from an outline description (including interactive notebooks with widgets)
+description: Implement a Jupyter notebook with widgets from an outline description
 model: opus
 ---
 
 # Goal
 
-- **Input**: A `notebook_outline.<tag>.md` outline file describing each notebook
+- **Input**: A `notebook_outline.<TAG>.md` outline file describing each notebook
   cell (created via `.claude/skills/notebook.create_outline/SKILL.md`)
 - **Outputs**:
   1. `.ipynb` file: Fully functional Jupyter notebook with working code,
@@ -47,7 +47,7 @@ model: opus
   Responsibilities` for organizing utility files and notebooks
 
 ## Code Organization
-- Follow the section `Utilities vs. Notebook Responsibilities` from the file
+- Follow the section `## Utilities vs. Notebook Responsibilities` from the file
   `.claude/skills/notebook.rules.md` for organizing utility files and notebook
   cells
 
@@ -92,3 +92,11 @@ model: opus
   following the conventions in `# Code Architecture and Responsibility` ->
   `## Utilities vs. Notebook Responsibilities` in
   `.claude/skills/notebook.rules.md`
+
+# Verification
+- [ ] Confirm the `.ipynb`, paired `.py`, and `*_utils.py` files are in sync via
+  Jupytext
+- [ ] Run the notebook top to bottom following `## Testing Notebook` in
+  `.claude/skills/notebook.rules.md` and confirm it completes without errors
+- [ ] Check that every outline cell has a corresponding notebook cell and no
+  step from `notebook_outline.<TAG>.md` was skipped

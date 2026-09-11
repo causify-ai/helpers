@@ -1,6 +1,5 @@
----
-description: Conventions and standards for interactive Jupyter notebook structure, formatting, and cell organization
----
+- This file contains conventions and standards for interactive Jupyter notebook
+  structure, formatting, and cell organization
 
 # Design Principles and Setup
 
@@ -40,7 +39,7 @@ description: Conventions and standards for interactive Jupyter notebook structur
 
 # Code Architecture and Responsibility
 
-## Utilities Vs. Notebook Responsibilities
+## Utilities vs. Notebook Responsibilities
 
 ### Notebook-to-File Pairing
 
@@ -52,7 +51,7 @@ description: Conventions and standards for interactive Jupyter notebook structur
 - **Modern naming convention** (for new lesson notebooks):
   - Use underscores throughout all filenames
   - Organize in a lesson-specific directory
-  - Format: `<CourseCode>_<LessonNum>_<TopicName>` for all three files
+  - Format: `<COURSE_CODE>_<LESSON_NUM>_<TOPIC_NAME>` for all three files
   - Example (MSML610 Lesson 3, Wumpus World topic):
     - Notebook: `msml610/tutorials/L03_knowledge_representation/L03_02_wumpus_world.ipynb`
     - Paired Python file: `msml610/tutorials/L03_knowledge_representation/L03_02_wumpus_world.py`
@@ -105,7 +104,7 @@ description: Conventions and standards for interactive Jupyter notebook structur
   project conventions. Using them avoids duplication, keeps cells clean, and
   maintains consistency across notebooks
 
-## Library Calls Vs. Visualization in Package Tutorials
+## Library Calls vs. Visualization in Package Tutorials
 
 - When writing a tutorial for a package:
   - Keep the code that executes library calls and explores the API in the
@@ -256,14 +255,14 @@ description: Conventions and standards for interactive Jupyter notebook structur
     - First cell
       ```python
       # Test with fair coin.
-      # Two equally likely outcomes → maximum uncertainty, $H = 1$ bit
+      # Two equally likely outcomes -> maximum uncertainty, $H = 1$ bit
       fair_coin = [0.5, 0.5]
       print(f"Fair coin entropy: {utils.calculate_entropy(fair_coin):.4f} bits")
       ```
     - Second cell
       ```python
       # Test with biased coin.
-      # If heads occurs 90% of the time → less uncertainty, $H < 1$ bit
+      # If heads occurs 90% of the time -> less uncertainty, $H < 1$ bit
       biased_coin = [0.9, 0.1]
       print(f"Biased coin (90-10) entropy: {utils.calculate_entropy(biased_coin):.4f} bits")
       ```
@@ -450,7 +449,7 @@ description: Conventions and standards for interactive Jupyter notebook structur
   even when there is a single logical part
 
 - Never use a level-1 header (`#`) for an individual cell; cells always use
-  `## Cell <part>.<id>:`
+  `## Cell <PART>.<ID>:`
 
 - Use level 1 headers (`#`) for Parts:
 
@@ -459,14 +458,14 @@ description: Conventions and standards for interactive Jupyter notebook structur
 
 - Use level 2 headers (`##`) for Cells within Parts:
 
-  - Format: `## Cell <part>.<id>: Description`
+  - Format: `## Cell <PART>.<ID>: Description`
   - Each cell is a sub-section of its Part
-  - Configuration cells (Imports, Logging) do not need `Cell <number>:` prefix
+  - Configuration cells (Imports, Logging) do not need `Cell <NUMBER>:` prefix
 
-- Numbering convention: `<part>.<id>` where:
+- Numbering convention: `<PART>.<ID>` where:
 
-  - `<part>`: Part number (1, 2, 3, etc.)
-  - `<id>`: Cell ID within that Part (1, 2, 3, etc.)
+  - `<PART>`: Part number (1, 2, 3, etc.)
+  - `<ID>`: Cell ID within that Part (1, 2, 3, etc.)
   - Example: `Cell 1.1`, `Cell 1.2`, `Cell 2.1`, `Cell 2.2`
 
 - Example
@@ -541,7 +540,7 @@ description: Conventions and standards for interactive Jupyter notebook structur
   # - expected_value = mean(model(background))
   # - Features are centered: X[i, j] - mean(background[:, j])
   #
-  # Larger background → stable estimates (slower)
+  # Larger background -> stable estimates (slower)
   # Smaller background (100-1000 samples) usually sufficient
   print("Background data shapes expectations and baseline.")
   ```
@@ -860,10 +859,10 @@ description: Conventions and standards for interactive Jupyter notebook structur
 - Title and Goal format:
 
   ```markdown
-  ## Cell <part>.<id>: <Short Description>
+  ## Cell <PART>.<ID>: <Short Description>
 
   **Goal**:
-  - Build intuition for <concept>
+  - Build intuition for <CONCEPT>
   - <Learning objective 2>
   ```
 
@@ -1253,6 +1252,6 @@ def complex_entropy_interactive():
 
 - You run a command like:
   ```
-  > docker_cmd.sh "python /git_root/tutorials/<package>/<paired python file>.py
+  > docker_cmd.sh "python /git_root/tutorials/<PACKAGE>/<paired python file>.py
   ```
   to run a notebook top to bottom and make sure it works
