@@ -11,8 +11,8 @@ model: opus
   1. `.ipynb` file: Fully functional Jupyter notebook with working code,
      visualizations, and interactive widgets
   2. `.py` file: A Python file paired using `jupytext` to the `.ipynb` using
-     py:percent 
-  2. `*_utils.py` file: Reusable helper functions for the notebook code
+     py:percent
+  3. `*_utils.py` file: Reusable helper functions for the notebook code
 - **Purpose**: Implement the pedagogical design as a fully executable,
   interactive notebook
 - Each visualization follows the triplet structure:
@@ -36,14 +36,15 @@ model: opus
 - Follow `.claude/skills/notebook.rules.md`: General notebook conventions and
   structure, especially:
   - `## Visualization Cell Triplet Details`: Pre-viz and post-viz markdown cells
-  - `# Interactive Cells`: Widget patterns and comments panel conventions
+  - `# Visualization and Interactivity`: Widget patterns and comments panel
+    conventions
 - Follow outline cell format from `.claude/skills/notebook.create_outline/SKILL.md`
 - Follow `.claude/skills/coding.rules.md` for Python code in `*_utils.py` and in
   the Python cells in `.ipynb` file
 
 - Follow `.claude/skills/notebook.rules.md`
-  `# Utilities vs. Notebook Responsibilities` for organizing utility files and
-  notebooks
+  `# Code Architecture and Responsibility` -> `## Utilities vs. Notebook
+  Responsibilities` for organizing utility files and notebooks
 
 ## Code Organization
 - Follow the section `Utilities vs. Notebook Responsibilities` from the file
@@ -88,5 +89,6 @@ model: opus
 
 # Sync with Jupytext
 - After all modifications are complete, sync the paired `.py` file with Jupytext
-  following the conventions in `# Setup and Initialization` → `## Utilities vs.
-  Notebook Responsibilities` in `.claude/skills/notebook.rules.md`
+  following the conventions in `# Code Architecture and Responsibility` ->
+  `## Utilities vs. Notebook Responsibilities` in
+  `.claude/skills/notebook.rules.md`

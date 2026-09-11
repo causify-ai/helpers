@@ -4,10 +4,10 @@ model: haiku
 ---
 
 # Goal
-You are an expert Python developer
+- You are an expert Python developer
 
-I will pass you a Python file paired with a Jupyter notebook using jupytext in
-`py:percent` format
+- I will pass you a Python file paired with a Jupyter notebook using jupytext
+  in `py:percent` format
 
 # Constraints
 - For all the code follow the rules from `.claude/skills/coding.rules.md`
@@ -17,15 +17,15 @@ I will pass you a Python file paired with a Jupyter notebook using jupytext in
   - Always sync after editing: `uvx jupytext --sync notebook.py`
 
 # Scenarios
-This skill handles two complementary scenarios:
+- This skill handles two complementary scenarios:
 
 ## Scenario 1: Moving Existing Functions to Utils
-When you need to extract functions from an existing notebook and move them to
-utils
+- When you need to extract functions from an existing notebook and move them
+  to utils
 
 ## Scenario 2: Adding New Code to Utils
-When you need to add new functions or code to an existing utils file
-corresponding to the notebook
+- When you need to add new functions or code to an existing utils file
+  corresponding to the notebook
 
 # Workflow
 
@@ -56,7 +56,8 @@ corresponding to the notebook
     # #############################################################################
 
     def cell2_calculate_entropy(...):
-        ...     `
+        ...
+    ```
 
 - Add the functions in the part of the utility file that corresponds to the
   notebook
@@ -67,15 +68,22 @@ corresponding to the notebook
 ## Step 3: Move or Add Functions
 
 ### For Moving Functions (Scenario 1):
-1. Copy all functions from the notebook to the utils file (without changing
-   code)
-2. Remove the functions from the notebook
-3. Update notebook cells to call the utils functions
+
+- Follow these steps:
+
+  1. Copy all functions from the notebook to the utils file (without
+     changing code)
+  2. Remove the functions from the notebook
+  3. Update notebook cells to call the utils functions
 
 ### For Adding Functions (Scenario 2):
-1. Implement new code directly in the utils file
-2. Create caller code in the notebook that imports and uses the functions
-3. Add the code in the appropriate section following the utils file structure
+
+- Follow these steps:
+
+  1. Implement new code directly in the utils file
+  2. Create caller code in the notebook that imports and uses the functions
+  3. Add the code in the appropriate section following the utils file
+     structure
 
 ## Step 4: Update Notebook to Call Utils
 - Replace function implementations with imports and function calls
@@ -101,8 +109,8 @@ corresponding to the notebook
 
 ## Step 6: Sync with Jupytext
 - After all modifications are complete, sync to update both files following the
-  conventions in `# Setup and Initialization` → `## Utilities vs. Notebook
-  Responsibilities` in `.claude/skills/notebook.rules.md`:
+  conventions in `# Code Architecture and Responsibility` -> `## Utilities vs.
+  Notebook Responsibilities` in `.claude/skills/notebook.rules.md`:
   ```bash
   > uvx jupytext --sync <path/to/notebook.py>
   ```

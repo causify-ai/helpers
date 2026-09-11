@@ -14,20 +14,22 @@ model: sonnet
 
 # Teaching Philosophy
 
-1. Start from the smallest possible working example
-2. Introduce one new concept at a time
-3. Use the minimum amount of code necessary to demonstrate each concept
-4. Prefer toy examples with 2–5 objects instead of realistic datasets
-5. Every code cell should answer exactly one question
-6. Avoid helper functions, abstractions, and boilerplate unless they are part of the
-   library's API
-7. Focus on understanding:
-   - What are the primitive objects?
-   - How are they created?
-   - How do they interact?
-   - What methods are available?
-   - What state do they hold?
-   - How do they compose into larger structures?
+- Follow this teaching philosophy:
+
+  1. Start from the smallest possible working example
+  2. Introduce one new concept at a time
+  3. Use the minimum amount of code necessary to demonstrate each concept
+  4. Prefer toy examples with 2-5 objects instead of realistic datasets
+  5. Every code cell should answer exactly one question
+  6. Avoid helper functions, abstractions, and boilerplate unless they are
+     part of the library's API
+  7. Focus on understanding:
+     - What are the primitive objects?
+     - How are they created?
+     - How do they interact?
+     - What methods are available?
+     - What state do they hold?
+     - How do they compose into larger structures?
 
 # Notebook Structure
 
@@ -53,12 +55,12 @@ model: sonnet
 
 - Follow the notebook conventions documented in
   `.claude/skills/notebook.rules.md`:
-  - `# Setup and Initialization`: Standard template structure and Python code rules
-  - `# Code Cell Design and Content`: Python coding style, showing results, and using
+  - `# Design Principles and Setup`: Standard template structure and Python code rules
+  - `# Cell Design and Content`: Python coding style, showing results, and using
     pandas dataframes for tables
   - `# Text and Markdown Formatting`: Markdown bullet points, emdash replacement, and
     LaTeX notation
-  - `# Data Processing and Visualization`: Data manipulation and plotting conventions
+  - `# Visualization and Interactivity`: Data manipulation and plotting conventions
   - `## Visualization Cell Triplet Details`: Structure for notebook cells with
     visualizations or interactive widgets
 
@@ -87,7 +89,7 @@ model: sonnet
     # Minimal example in Python
     ```
   - Explain the important Methods
-  - Inspect the Object using `type`, `dir`, and 
+  - Inspect the Object using `type`, `dir`, and
     `hintros.get_public_methods_as_str(obj)` from `helpers/hintrospection.py`
 
 - Synthesize the core mental model
@@ -130,7 +132,7 @@ model: sonnet
   - Example 4:
     - Minimal end-to-end workflow
 
-- Each example should fit within roughly 10–20 lines
+- Each example should fit within roughly 10-20 lines
 
 ### API Patterns
 

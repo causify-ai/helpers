@@ -4,18 +4,18 @@ model: haiku
 ---
 
 # Goal
-Renumber cells in a Jupyter notebook consecutively and ensures all function names
-are synchronized with cell headers
+- Renumber cells in a Jupyter notebook consecutively and ensure all function
+  names are synchronized with cell headers
 
 # Workflow
 
 ## Step 1
 - Read all existing cell headers and identify the current numbering
 - Make sure to follow the sections from `.claude/skills/notebook.rules.md`:
-  - `# Notebook Organization` (Markdown Header Structure and Naming, Sequential
-    Cell Numbering)
-  - `# Setup and Initialization` (Sync Function Names with Cell Numbers, Organize
-    Code by Cell Order)
+  - `# Notebook Structure and Headers` (Markdown Header Structure and Naming,
+    Sequential Cell Numbering)
+  - `# Code Architecture and Responsibility` (Sync Function Names with Cell
+    Numbers, Organize Code by Cell Order)
 - Identify gaps, duplicates, or out-of-order cell numbers
 
 ## Step 2
@@ -24,9 +24,9 @@ are synchronized with cell headers
   headers
 
 ## Step 3
-- Sync the paired `.py` file with Jupytext following the conventions in 
-  `# Setup and Initialization` → `## Utilities vs. Notebook Responsibilities`
-  in `.claude/skills/notebook.rules.md`
+- Sync the paired `.py` file with Jupytext following the conventions in
+  `# Code Architecture and Responsibility` -> `## Utilities vs. Notebook
+  Responsibilities` in `.claude/skills/notebook.rules.md`
 
 ## Conventions
 - `.claude/skills/notebook.rules.md`

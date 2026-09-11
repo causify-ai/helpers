@@ -14,5 +14,5 @@ model: haiku
 
 ## Sync
 - At the end, sync the paired `.py` file with Jupytext following the
-  conventions in `# Setup and Initialization` → `## Utilities vs. Notebook Responsibilities`
-  in `.claude/skills/notebook.rules.md`
+  conventions in `# Code Architecture and Responsibility` -> `## Utilities vs.
+  Notebook Responsibilities` in `.claude/skills/notebook.rules.md`

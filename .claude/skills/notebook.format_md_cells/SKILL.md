@@ -9,7 +9,7 @@ model: haiku
 
 # Workflow
 
-## Sync Markdown Cells 
+## Sync Markdown Cells
 - Update all the markdown cells to be in sync with the interactive cell
 
 ## Markdown Cells Needs to Use Bullet Lists
@@ -17,13 +17,13 @@ model: haiku
   nested bullets for clarity and conciseness, following the rules in
   - `.claude/skills/slides.rules.md`: rules for formatting slides
   - `.claude/skills/text.rules.md`: rules for formatting bullet points
-- Follow `## Use Bullet-Point Comments for Structured Explanations` from 
+- Follow `## Use Bullet-Point Comments for Structured Explanations` from
   `.claude/skills/notebook.rules.md`
 
 ## Sync Notebook
 - At the end, sync the paired `.py` file with Jupytext following the conventions
-  in `# Setup and Initialization` → `## Utilities vs. Notebook Responsibilities`
-  in `.claude/skills/notebook.rules.md`
+  in `# Code Architecture and Responsibility` -> `## Utilities vs. Notebook
+  Responsibilities` in `.claude/skills/notebook.rules.md`
 
 ## Follow Conventions
 - Always follow the conventions and guidelines in

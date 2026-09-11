@@ -58,5 +58,5 @@ model: haiku
 - Do not change or remove any Python code cell
 - At the end of the transformation, run `jupytext --sync` to update the Python
   paired notebook, following the conventions in
-  `# Setup and Initialization` → `## Utilities vs. Notebook Responsibilities`
-  in `.claude/skills/notebook.rules.md`
+  `# Code Architecture and Responsibility` -> `## Utilities vs. Notebook
+  Responsibilities` in `.claude/skills/notebook.rules.md`

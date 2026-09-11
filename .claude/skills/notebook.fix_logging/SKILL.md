@@ -4,7 +4,7 @@ model: haiku
 ---
 
 # Goal
-- Implement the instructions in 
+- Implement the instructions in
   `.claude/skills/notebook.rules.md` under
   `## Use Standard Template Structure`
 
@@ -32,8 +32,8 @@ model: haiku
 
 ## Sync Notebook
 - At the end, sync the paired `.py` file with Jupytext following the conventions
-  in `# Setup and Initialization` → `## Utilities vs. Notebook Responsibilities`
-  in `.claude/skills/notebook.rules.md`
+  in `# Code Architecture and Responsibility` -> `## Utilities vs. Notebook
+  Responsibilities` in `.claude/skills/notebook.rules.md`
 
 ## Follow Conventions
 - Always follow the conventions and guidelines in

@@ -13,7 +13,7 @@ model: sonnet
 
 # Key Principles
 
-- Make sure to follow the section `Effective Notebook Design Principles` from the
+- Make sure to follow the section `Design Principles and Setup` from the
   file `.claude/skills/notebook.rules.md`
 - The output is a `notebook_outline.<tag>.md` markdown file that describes the
   notebook units

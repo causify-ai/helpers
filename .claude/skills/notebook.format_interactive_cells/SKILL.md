@@ -26,13 +26,13 @@ model: haiku
 
 ## Step 2
 - At the end, sync the paired `.py` file with Jupytext following the conventions
-  in `# Setup and Initialization` → `## Utilities vs. Notebook Responsibilities`
-  in `.claude/skills/notebook.rules.md`
+  in `# Code Architecture and Responsibility` -> `## Utilities vs. Notebook
+  Responsibilities` in `.claude/skills/notebook.rules.md`
 
 ## Conventions
 - Follow the rules in `.claude/skills/notebook.rules.md`, especially:
   - `## Visualization Cell Triplet Details` for the structure of pre- and
     post-visualization markdown cells
-  - `## Interactive Cells` for the interactive widget patterns
+  - `# Visualization and Interactivity` for the interactive widget patterns
   - `## Cell Triplet Structure` for the overall three-cell organization
 - Do not change the intent of the notebook
