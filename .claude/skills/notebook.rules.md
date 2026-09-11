@@ -606,6 +606,42 @@
   - `## Nested Bullets`
   - `## Multi-Level Organization`
 
+## Keep One Bullet List Tight (No Blank Lines Between Items)
+
+- A single bullet list must not have a blank line between its items: a blank
+  line splits it into two lists and reads as a paragraph break, not a
+  continuation
+- This applies even when a list mixes different kinds of bullets, e.g., a
+  cell's `**Goal**` bullets followed directly by its `_Panel_: description`
+  bullets: keep them as one continuous list
+- Wrap each bullet to 85 characters maximum, following
+  `.claude/skills/markdown.rules.md` `## Text Wrapping and Structure`
+- **Bad** (blank line splits one list into two):
+  ```markdown
+  **Goal**:
+  - Define $KB \models \alpha$ as $M(KB) \subseteq M(\alpha)$, and verify
+    that $KB = \{Rain, Rain \implies WetGround\}$ entails $WetGround$
+  - Run the model-checking algorithm explicitly: enumerate every model,
+    find $M(KB)$, check $\alpha$ in each of those rows
+
+  - _Model table_: the same 4-row table, with $M(KB)$ shaded blue and
+    $M(\alpha)$ outlined in dashed orange
+  - _Comments_: which `KB` sentences are toggled on, the query $\alpha$,
+    and the entailment verdict
+  ```
+- **Good** (one continuous list, wrapped to 85 characters):
+  ```markdown
+  **Goal**:
+  - Define $KB \models \alpha$ as $M(KB) \subseteq M(\alpha)$, and verify
+    that $KB = \{Rain, Rain \implies WetGround\}$ entails $WetGround$
+  - Run the model-checking algorithm explicitly: enumerate every model,
+    find $M(KB)$, check $\alpha$ in each of those rows
+  - _Model table_: the same 4-row table, with $M(KB)$ shaded blue and
+    $M(\alpha)$ outlined in dashed orange
+  - _Comments_: which `KB` sentences are toggled on, the query $\alpha$,
+    and the entailment verdict
+  ```
+
 ## Convert Inline Comma Lists to Bullets
 
 - Applies to both markdown cells and code comments
@@ -867,12 +903,18 @@
   ```
 
 - Each plot's description is placed underneath the plot title, not in a separate
-  "Plots" section. Describe them as italicized phrases with a colon:
+  "Plots" section. Describe them as bullet points with an italicized label and a
+  colon, continuing the same list as the `**Goal**` bullets above with no blank
+  line in between (see
+  `## Keep One Bullet List Tight (No Blank Lines Between Items)`):
 
   ```markdown
-  _Population bin_: Shows the full unknown population as colored marbles
-  _Sample bin_: Shows a random sample drawn from the population
-  _Comments_: Current parameter values and state observations
+  **Goal**:
+  - Build intuition for <concept>
+  - <Learning objective 2>
+  - _Population bin_: Shows the full unknown population as colored marbles
+  - _Sample bin_: Shows a random sample drawn from the population
+  - _Comments_: Current parameter values and state observations
   ```
 
 - Each widget has its description close to it (in the widget's `description`
