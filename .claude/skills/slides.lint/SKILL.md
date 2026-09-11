@@ -15,7 +15,7 @@ model: haiku
 # Workflow
 - Read `.claude/skills/slides.rules.md`
 
-## Step 1
+## Process Slides
 - Process `<NUM_SLIDES>` slides at the time from `<FILE>`
   - Each slide is a chunk of text starting with `* <TITLE>`
 
@@ -24,11 +24,11 @@ model: haiku
 
 - Apply changes to make the current `<NUM_SLIDES>` slides follow the rules
 
-## Step 2
+## Wait for Confirmation
 - Wait for the user to confirm before moving forward to the next chunk of
   `<NUM_SLIDES>` slides
 
-## Step 3: Verify Rendering
+## Verify Rendering
 - Once all chunks of `<FILE>` are processed, make sure the slides render
   correctly, e.g.,
   ```bash

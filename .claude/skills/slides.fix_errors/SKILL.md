@@ -1,5 +1,5 @@
 ---
-description: Fix errors slides without changing their structure
+description: Fix errors in slides without changing their structure
 model: haiku
 ---
 

@@ -1,5 +1,5 @@
 ---
-description: Add links from lecture slides to the corresponding sections of a rendered tutorial notebook
+description: Link lecture slides to matching sections of a rendered tutorial notebook
 model: sonnet
 ---
 

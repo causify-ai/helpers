@@ -9,10 +9,18 @@ model: haiku
 - Output clean, well-formatted markdown code suitable for conversion to Typst
 
 # Workflow
-1. **Read input file**: markdown slides file (e.g., `lectures.md`)
-2. **Apply conversion rules**: systematically fix math, unicode, and formatting
-3. **Validate output**: verify no content loss, structure preserved
-4. **Output file**: write converted markdown with same base name
+
+## Read Input File
+- Read the markdown slides file (e.g., `lectures.md`)
+
+## Apply Conversion Rules
+- Systematically fix math, unicode, and formatting
+
+## Validate Output
+- Verify no content loss and structure preserved
+
+## Output File
+- Write converted markdown with same base name
 
 ## Conversion Rules
 
@@ -24,10 +32,12 @@ model: haiku
 
 ### Variables & Math Expressions
 - Wrap all variables, parameters, and math expressions in `$...$`:
-  - **Bad**: `Randomly permute the values of x_j across all samples`
-  - **Good**: `Randomly permute the values of $x_j$ across all samples`
-  - **Bad**: `Compute f(x) and g(x)`
-  - **Good**: `Compute $f(x)$ and $g(x)$`
+  - **Bad** (unwrapped, renders as plain text): `Randomly permute the values
+    of x_j across all samples`
+  - **Good** (wrapped in math mode): `Randomly permute the values of $x_j$
+    across all samples`
+  - **Bad** (unwrapped function notation): `Compute f(x) and g(x)`
+  - **Good** (wrapped in math mode): `Compute $f(x)$ and $g(x)$`
 
 ### Unicode → LaTeX
 - Replace unicode math characters with LaTeX:
@@ -38,13 +48,14 @@ model: haiku
 
 ### Subscripts & Superscripts
 - Use math mode for all subscripts/superscripts:
-  - **Bad**: P₀ or P^n
-  - **Good**: `$P_0$` or `$P^n$`
+  - **Bad** (unicode subscript or bare caret, invalid Typst math): P₀ or P^n
+  - **Good** (math mode syntax): `$P_0$` or `$P^n$`
 
 ### Math Operators
 - Use `op()` for named operators in Typst:
-  - **Bad**: `$g^* = arg min_(g in G)$`
-  - **Good**: `$g^* = op("arg min")_(g in G)$`
+  - **Bad** (named operator unwrapped, Typst renders it as variables): `$g^* =
+    arg min_(g in G)$`
+  - **Good** (wrapped with `op()`): `$g^* = op("arg min")_(g in G)$`
   - Also: `$max_i x_i$` → `$op("max")_i x_i$`
 
 ### Plain Numbers & Currency

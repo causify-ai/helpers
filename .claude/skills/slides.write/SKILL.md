@@ -1,5 +1,5 @@
 ---
-description: Write lecture slides for a graduate-level course following academic formatting and pedagogical style
+description: Write graduate-level lecture slides in academic, pedagogical style
 model: opus
 ---
 
