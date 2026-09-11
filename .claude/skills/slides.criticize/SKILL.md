@@ -59,9 +59,9 @@ model: opus
     - Missing opportunities for interaction or questions
 
 - Rank each issue by severity:
-  - **HIGH**: loses attention, undermines a key point, or creates wrong takeaway
-  - **MEDIUM**: reduces clarity or engagement
-  - **LOW**: minor polish or consistency
+  - **High**: loses attention, undermines a key point, or creates wrong takeaway
+  - **Medium**: reduces clarity or engagement
+  - **Low**: minor polish or consistency
 
 ## Write Result
 - Write results as `plan.slides.criticize.md` in the current directory
@@ -72,7 +72,7 @@ model: opus
 - Only then edit the slide deck
 - Preserve formatting, speaker notes, and visual structure
 
-## Verify Rendering
+# Verification
 - [ ] Make sure that the updated slides render correctly, e.g.,
   ```bash
   > gen_slides.py -i <FILE> --notes_to_pdf_args="--skip_action open_pdf"

@@ -37,7 +37,7 @@ model: opus
   - If a file `<FILE>` was provided then create a file like `<FILE>.slides.md`
   - If the destination file already exists, delete it and create a new one
 
-## Verification
+# Verification
 - [ ] Make sure that the new slides render correctly, e.g.,
   ```bash
   > gen_slides.py -i <OUTPUT_FILE> --notes_to_pdf_args="--skip_action open_pdf"

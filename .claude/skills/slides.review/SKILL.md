@@ -19,12 +19,12 @@ model: opus
 
 ## Propose Content Improvements
 - Run the flow from `.claude/skills/slides.criticize/SKILL.md` on the deck, using the
-  same axes and HIGH/MEDIUM/LOW ranking
+  same axes and High/Medium/Low ranking
 - Also propose how to change and improve the titles of the slides
 
 ### Ignore TODOs and Comments
 - Leave the TODOs or comments in the format
-  ```
+  ```text
   // TODO...
   ```
   untouched
@@ -36,7 +36,7 @@ model: opus
 - After the user approves a subset, perform the reorganization and the content
   changes together in place
 
-## Verify Rendering
+# Verification
 - [ ] Make sure that the updated slides render correctly, e.g.,
   ```bash
   > gen_slides.py -i <FILE> --notes_to_pdf_args="--skip_action open_pdf"

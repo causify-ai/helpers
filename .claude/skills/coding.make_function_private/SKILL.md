@@ -1,13 +1,19 @@
 ---
-description: Identify private / public functions in a file and rename them with an underscore or not
+description: Identify private or public functions in a file and rename with underscore
 model: haiku
 ---
 
+# Goal
 For each function `<FUNC>` in the passed Python file `<FILE>`, determine if it
 should be private or public by checking if it's called by Python files or
-Jupyter notebooks outside `<FILE>`
+Jupyter notebooks outside `<FILE>`.
 
-## Definition: External Files
+# Conventions
+- Follow `## Mark Private Functions` in `.claude/skills/coding.rules.md`
+
+# Definitions
+
+## External Files
 - **External files** = any Python file or Jupyter notebook outside the target
   file
   - Including:
@@ -31,11 +37,11 @@ Jupyter notebooks outside `<FILE>`
   - Include only internal utility functions, helpers, and implementation details
 - Modify all the callers of the function `<FUNC>` to use the new name
 
-- Example: Private Functions
+- **Good** (function only called within its own file, so it is renamed private)
   ```python
   # lib_helper.py
   def public_function():
-      _internal_helper()  # Only called within this file → should be private
+      _internal_helper()  # Only called within this file, so private.
 
   def _internal_helper():
       pass
@@ -43,30 +49,36 @@ Jupyter notebooks outside `<FILE>`
 
 # Public Functions
 - If the function `<FUNC>` is called by external files, then it should be a
-  public function and its name should **NOT** start with `_`
+  public function and its name must not start with `_`
   - This includes functions in shared utility modules called by sibling scripts
 - Modify all callers (both external and internal) of the function to use the new
   name
 
-- Example: Public Functions
+- **Good** (function called by an external file, so it stays public)
   ```python
   # lib_notes_to_pdf.py
-  def preprocess_notes(file_name, prefix):  # Called by notes_to_pdf.py → PUBLIC
-      _internal_step_1(file_name)  # Private helper
+  def preprocess_notes(file_name, prefix):  # Called by notes_to_pdf.py, so public.
+      _internal_step_1(file_name)  # Private helper.
 
-  def _internal_step_1(file_name):  # Only used within lib_notes_to_pdf.py → PRIVATE
+  def _internal_step_1(file_name):  # Only used within lib_notes_to_pdf.py, so private.
       pass
   ```
 
 # Workflow
-1. **Find all functions** in `<FILE>`
-2. **For each function**, search the entire codebase for external calls:
-   ```bash
-   grep -r "<FUNC>" --include="*.py" --include="*.ipynb" --exclude="test_*.py"
-   ```
-3. **Classify** as public or private based on external usage
-4. **Rename** functions and update all call sites (both files)
-5. **Verify** changes
+
+## Find All Functions
+- Find all functions in `<FILE>`
+
+## Search for External Calls
+- For each function, search the entire codebase for external calls:
+  ```bash
+  grep -r "<FUNC>" --include="*.py" --include="*.ipynb" --exclude="test_*.py"
+  ```
+
+## Classify and Rename
+- Classify each function as public or private based on external usage
+- Rename functions and update all call sites (both files)
+- Verify the changes
 
 # Verification
 - [ ] Grep in the entire codebase to confirm all function calls were renamed

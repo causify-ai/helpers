@@ -1,5 +1,5 @@
 ---
-description: Represent a causal knowledge graph in Graphviz DOT format following visual conventions for causal inference
+description: Generate a Graphviz DOT causal knowledge graph per causal inference conventions
 model: opus
 ---
 
@@ -17,7 +17,7 @@ The resulting graph should allow a knowledgeable reader to
 
 Use color to distinguish variable types consistently
 
-# Step 1: Generate DOT File
+# Generate the DOT File
 
 ## General Graph Rules
 - Use Graphviz DOT syntax
@@ -123,7 +123,7 @@ Use these colors consistently for node borders/fills:
   - Different time slices or mechanisms
 - Ensure correlation edges do not affect node ranking (`constraint=false`)
 
-# Step 2: Save File
+# Save the File
 - Save the output in a `causal_graph.dot` file
 
 ## Output Requirements
@@ -131,15 +131,21 @@ Use these colors consistently for node borders/fills:
 - Do not explain the code in natural language
 - Follow all visual and semantic conventions above exactly
 
-# Step 3: Render Graph
+# Render the Graph
 - After the graph description is generated, generate an image with:
-  ```
+  ```bash
   > dot -Tpng causal_graph.dot -o causal_graph.png
   > open causal_graph.png
   ```
 
-# Step 4: Read the PNG File
+# Read the PNG File
 - If an image was specified, read the PNG file
 - If the generated PNG image is very different from the input image:
   - Find the differences in terms of layout
-  - Apply changes to the causal_graph.dot to approximate the input image
+  - Apply changes to `causal_graph.dot` to approximate the input image
+
+# Verification
+- [ ] Confirm `causal_graph.dot` is valid Graphviz DOT syntax
+- [ ] Confirm every node type uses the required color and shape rules
+- [ ] Confirm the rendered `causal_graph.png` matches the input image or
+      description in layout and semantics

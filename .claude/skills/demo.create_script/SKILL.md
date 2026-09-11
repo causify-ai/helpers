@@ -3,13 +3,14 @@ description: Create a 15-slide presentation storyboard script for a narrated exp
 model: haiku
 ---
 
-Use the information given to create the script of a presentation / storyboard
-that can be converted into a video
+# Goal
+- Use the information given to create the script of a presentation / storyboard
+  that can be converted into a video
+- Act as an expert storyteller, presentation designer, and video script writer
+- Using the information provided, create a **15-slide presentation storyboard**
+  that can be directly converted into a **narrated explainer video**
 
-You are an expert storyteller, presentation designer, and video script writer
-
-Using the information I provide, create a **15-slide presentation storyboard**
-that can be directly converted into a **narrated explainer video**
+# Conventions
 
 ## Audience
 - The audience includes:
@@ -23,7 +24,7 @@ that can be directly converted into a **narrated explainer video**
   - No jargon or acronyms unless explained
   - Concrete real-world examples
   - Emotional hooks (risk, money, mistakes, opportunity)
-  - A strong narrative arc: problem → tension → insight → solution → future
+  - A strong narrative arc: problem -> tension -> insight -> solution -> future
 
 ## Story Requirements
 - The presentation must:
@@ -58,7 +59,7 @@ that can be directly converted into a **narrated explainer video**
 **Bullet Points / Voiceover**
 
 - Written as spoken narration
-- 3–6 bullet points per slide
+- 3-6 bullet points per slide
 - Conversational and persuasive
 - Avoid technical terms unless unavoidable
 
@@ -74,5 +75,14 @@ that can be directly converted into a **narrated explainer video**
 - Explain implementation details
 - Refer to "this slide" or "this presentation"
 
-## Instructions
+# Workflow
+
+## Wait for Source Information
 - Begin only when the source information is provided
+
+# Verification
+- [ ] Confirm the output is a markdown table with exactly 15 rows and three
+      columns
+- [ ] Confirm each row has a Slide Title, a Video / Slide Description, and
+      3-6 Bullet Points / Voiceover lines
+- [ ] Confirm no jargon, buzzwords, or implementation details appear

@@ -9,18 +9,16 @@ model: sonnet
   output to match the input precisely
 
 ## When to Use
-Use this skill when you need to:
-
-- Create publication-quality diagrams, plots, or visualizations
-- Convert hand-drawn sketches or existing images into reproducible TikZ code
-- Generate diagrams for inclusion in LaTeX documents
+- Use this skill when you need to:
+  - Create publication-quality diagrams, plots, or visualizations
+  - Convert hand-drawn sketches or existing images into reproducible TikZ code
+  - Generate diagrams for inclusion in LaTeX documents
 
 ## When NOT to Use
-Do not use this skill for:
-
-- Complex photographs requiring photorealistic rendering
-- Plots from large datasets (use dedicated plotting libraries instead)
-- Diagrams requiring advanced 3D visualization
+- Do not use this skill for:
+  - Complex photographs requiring photorealistic rendering
+  - Plots from large datasets (use dedicated plotting libraries instead)
+  - Diagrams requiring advanced 3D visualization
 
 # Workflow
 
@@ -52,7 +50,7 @@ Do not use this skill for:
 
 **Preserve layout accurately**
 
-- If converting from an image `<image>`, reproduce the layout precisely
+- If converting from an image `<IMAGE>`, reproduce the layout precisely
 - Preserve proportions, relative positions, and symmetry
 - Use coordinates and scaling where appropriate
 - Approximate complex curves with TikZ paths when needed
@@ -93,24 +91,23 @@ Do not use this skill for:
   - Update `./tikz_figure.tex` to better match the input
   - Re-render and verify the result
 
-## Verification
-- Make sure that:
-  - All lines connect cleanly to box edges with no overlap
-  - The diagram closely matches the original (e.g., same layout, colors, and
-    semantics)
-
 ## Compare for User
 - Once it's done, build a side-by-side comparison image and open it:
   ```bash
-  > montage <original_image> output.png -tile 2x1 -geometry 500x+10+10 \
+  > montage <ORIGINAL_IMAGE> output.png -tile 2x1 -geometry 500x+10+10 \
       -background white comparison.png
   > open comparison.png
   ```
 - Remove `comparison.png` after the user has seen it, it is a temp file, not
   a deliverable
 
-## Examples
-- **Good**: Converting a circuit diagram sketch into TikZ with accurate node
-  positioning, labeled connections, and proper symmetry
+# Verification
+- [ ] Confirm all lines connect cleanly to box edges with no overlap
+- [ ] Confirm the diagram closely matches the original (same layout, colors,
+      and semantics)
+
+# Examples
 - **Bad**: Attempting to convert a photograph of a natural scene into TikZ
   (infeasible; use image inclusion instead)
+- **Good**: Converting a circuit diagram sketch into TikZ with accurate node
+  positioning, labeled connections, and proper symmetry

@@ -49,7 +49,7 @@ model: sonnet
   - Dark Mode (class-based color handling)
   - Advanced Patterns (for special diagram types)
 
-- If converting from an image `<image>`, reproduce the layout precisely:
+- If converting from an image `<IMAGE>`, reproduce the layout precisely:
   preserve proportions, relative positions, and symmetry
 
 ## Save the File
@@ -75,26 +75,25 @@ model: sonnet
   - Update `./svg_figure.svg` to better match the input
   - Re-render and verify the result
 
-## Verification
-- Make sure that:
-  - All lines connect cleanly to box edges with no overlap
-  - The diagram closely matches the original (e.g., same layout, colors, and
-    semantics)
-  - All conventions from the `What NOT to Do` section in
-    `.claude/skills/svg.rules.md` are avoided
-
 ## Compare for User
 - Once it's done, build a side-by-side comparison image and open it:
   ```bash
-  > montage <original_image> output.png -tile 2x1 -geometry 500x+10+10 \
+  > montage <ORIGINAL_IMAGE> output.png -tile 2x1 -geometry 500x+10+10 \
       -background white comparison.png
   > open comparison.png
   ```
 - Remove `comparison.png` after the user has seen it, it is a temp file, not
   a deliverable
 
-## Examples
-- **Good**: Converting an architecture sketch into SVG with accurate box
-  positioning, labeled connections, and semantic color ramps
+# Verification
+- [ ] Confirm all lines connect cleanly to box edges with no overlap
+- [ ] Confirm the diagram closely matches the original (same layout, colors,
+      and semantics)
+- [ ] Confirm every item in the `What NOT to Do` section of
+      `.claude/skills/svg.rules.md` is avoided
+
+# Examples
 - **Bad**: Attempting to convert a photograph of a natural scene into SVG
   (infeasible; use image inclusion instead)
+- **Good**: Converting an architecture sketch into SVG with accurate box
+  positioning, labeled connections, and semantic color ramps

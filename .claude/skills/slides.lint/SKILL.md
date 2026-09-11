@@ -28,8 +28,8 @@ model: haiku
 - Wait for the user to confirm before moving forward to the next chunk of
   `<NUM_SLIDES>` slides
 
-## Verify Rendering
-- Once all chunks of `<FILE>` are processed, make sure the slides render
+# Verification
+- [ ] Once all chunks of `<FILE>` are processed, make sure the slides render
   correctly, e.g.,
   ```bash
   > gen_slides.py -i <FILE> --notes_to_pdf_args="--skip_action open_pdf"

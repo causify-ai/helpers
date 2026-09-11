@@ -14,14 +14,10 @@ model: sonnet
 
 # Workflow
 
-## Conventions
-- Follow the role specified in `.claude/skills/role.ai_researcher.md`
-- Follow the conventions in `.claude/skills/slides.rules.md`
-
 ## Find the Relationship
 - Read `<SMD_FILE>` and `<TUTORIAL_URL>`
 - If a companion tutorial markdown file exists next to the notebook (e.g.,
-  `<tutorial_dir>/<tutorial_name>.md`), use it to help match slide content to
+  `<TUTORIAL_DIR>/<TUTORIAL_NAME>.md`), use it to help match slide content to
   tutorial cells
 - Match each slide to the tutorial cell(s) that cover the same concept
 
@@ -36,7 +32,11 @@ model: sonnet
 - Do not change the structure of the text (titles, bullet hierarchy, div fenced
   blocks) or the substantive content: add only the link
 
-## Verification
+# Conventions
+- Follow the role specified in `.claude/skills/role.ai_researcher.md`
+- Follow the conventions in `.claude/skills/slides.rules.md`
+
+# Verification
 - [ ] Check that each added anchor points to an actual heading in
   `<TUTORIAL_URL>`, not a guessed slug
 - [ ] Make sure that the updated slides render correctly, e.g.,

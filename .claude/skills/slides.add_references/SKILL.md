@@ -9,11 +9,6 @@ model: sonnet
 
 # Workflow
 
-## Conventions
-- Follow the role specified in `.claude/skills/role.ai_researcher.md`
-- Follow the reference format and conventions in
-  `.claude/skills/references.rules.md`
-
 ## Find References
 - If `<FILE>` already has references to technical papers, give priority to
   those references (e.g., at the beginning in the form of `//` comments)
@@ -31,7 +26,12 @@ model: sonnet
   - Correspond to entries in the file `refs.bib` in the same directory as
     `<FILE>`
 
-## Verification
+# Conventions
+- Follow the role specified in `.claude/skills/role.ai_researcher.md`
+- Follow the reference format and conventions in
+  `.claude/skills/references.rules.md`
+
+# Verification
 
 - [ ] Check that each paper reference exists
 - [ ] Make sure that the updated document works by running the flow, e.g.,

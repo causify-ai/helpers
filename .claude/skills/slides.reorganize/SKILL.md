@@ -13,7 +13,7 @@ model: sonnet
 
 ## Extract Table of Content
 - Extract the current table of content of the slides
-  ```
+  ```bash
   > extract_toc_from_txt.py -i <FILE> --max_level 5 --mode headers 2>&1 | tee slides.before.txt
   ```
 
@@ -25,7 +25,7 @@ model: sonnet
   - slides `* ...`
 
 - E.g.,
-  ```
+  ```markdown
   # Topic 1
 
   ## Topic 1.1
@@ -56,7 +56,7 @@ model: sonnet
 - After the user approves, perform the changes in place reorganizing the slides,
   but without removing any slide or content
 
-## Verify Rendering
+# Verification
 - [ ] Make sure that the updated slides render correctly, e.g.,
   ```bash
   > gen_slides.py -i <FILE> --notes_to_pdf_args="--skip_action open_pdf"

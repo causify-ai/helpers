@@ -1,5 +1,5 @@
 ---
-description: Make a LaTeX/TikZ, SVG, Graphviz, or Mermaid figure look professional by applying the matching rules, then show a before/after comparison
+description: Polish a TikZ, SVG, Graphviz, or Mermaid figure into a professional one
 model: sonnet
 ---
 
@@ -75,8 +75,9 @@ model: sonnet
   ```
 
 # Verification
-- `comparison.png` opened and shows `before.png` and `after.png` clearly
-  labeled side by side
-- `after.png` has no unresolved violation from the rules file applied above
-- The figure's content/meaning is unchanged from the original: only styling
-  improved
+- [ ] Confirm `comparison.png` opened and shows `before.png` and `after.png`
+      clearly labeled side by side
+- [ ] Confirm `after.png` has no unresolved violation from the rules file
+      applied above
+- [ ] Confirm the figure's content/meaning is unchanged from the original: only
+      styling improved

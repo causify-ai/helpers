@@ -22,15 +22,24 @@ model: haiku
 ## Output File
 - Write converted markdown with same base name
 
-## Conversion Rules
+## Quality Checks
+- All slide headers and hierarchy preserved
+- No content deleted or truncated
+- All math expressions wrapped (`$...$`)
+- No unicode math characters remain
+- Operators properly formatted with `op()`
+- Code blocks and lists intact
+- File is valid markdown
 
-### LaTeX Custom Commands
+# Conventions
+
+## LaTeX Custom Commands
 - Replace presentation-specific commands with Typst equivalents:
-  - `$\EE$` → `$bb(E)$` (blackboard E)
-  - `$\VV$` → `$bb(V)$` (blackboard V)
-  - `$\Pr$` → `$Pr$` (remove backslash)
+  - `$\EE$` -> `$bb(E)$` (blackboard E)
+  - `$\VV$` -> `$bb(V)$` (blackboard V)
+  - `$\Pr$` -> `$Pr$` (remove backslash)
 
-### Variables & Math Expressions
+## Variables and Math Expressions
 - Wrap all variables, parameters, and math expressions in `$...$`:
   - **Bad** (unwrapped, renders as plain text): `Randomly permute the values
     of x_j across all samples`
@@ -39,52 +48,43 @@ model: haiku
   - **Bad** (unwrapped function notation): `Compute f(x) and g(x)`
   - **Good** (wrapped in math mode): `Compute $f(x)$ and $g(x)$`
 
-### Unicode → LaTeX
+## Unicode to LaTeX
 - Replace unicode math characters with LaTeX:
-  - Ω → `$\Omega$`
-  - → → `$\to$`
-  - ≤ → `$\leq$`
-  - × → `$\times$`
+  - `Ω` -> `$\Omega$`
+  - `→` -> `$\to$`
+  - `≤` -> `$\leq$`
+  - `×` -> `$\times$`
 
-### Subscripts & Superscripts
+## Subscripts and Superscripts
 - Use math mode for all subscripts/superscripts:
   - **Bad** (unicode subscript or bare caret, invalid Typst math): P₀ or P^n
   - **Good** (math mode syntax): `$P_0$` or `$P^n$`
 
-### Math Operators
+## Math Operators
 - Use `op()` for named operators in Typst:
   - **Bad** (named operator unwrapped, Typst renders it as variables): `$g^* =
     arg min_(g in G)$`
   - **Good** (wrapped with `op()`): `$g^* = op("arg min")_(g in G)$`
-  - Also: `$max_i x_i$` → `$op("max")_i x_i$`
+  - Also: `$max_i x_i$` -> `$op("max")_i x_i$`
 
-### Plain Numbers & Currency
+## Plain Numbers and Currency
 - Do NOT wrap pure numbers in math mode:
   - **Bad**:
-    ```
+    ```text
     The house costs $50k because it has 4 bedrooms ($+\$30$k)
     ```
   - **Good**:
-    ```
+    ```text
     The house costs \$50k because it has 4 bedrooms (+\$30k)
     ```
 
-### Block Formulas
+## Block Formulas
 - Use Typst code blocks for complex multi-line formulas:
   ```{=typst}
   $ Pr(X_1 , ... , X_n) = product_(i = 1)^n Pr(X_i | "Parents"(X_i)) $
   ```
 
-## Quality Checks
-- All slide headers & hierarchy preserved
-- No content deleted or truncated
-- All math expressions wrapped (`$...$`)
-- No unicode math characters remain
-- Operators properly formatted with `op()`
-- Code blocks and lists intact
-- File is valid markdown
-
-## Verification
+# Verification
 - [ ] Make sure that the converted slides render correctly, e.g.,
   ```bash
   > gen_slides.py -i <FILE> --notes_to_pdf_args="--skip_action open_pdf"

@@ -30,13 +30,13 @@ model: haiku
 - Maintain the content of the existing text
 - Do not introduce new formatting violations while fixing grammar (e.g.,
   punctuation is owned by `.claude/skills/slides.fix_formatting/SKILL.md`);
-  follow `slides.rules.md` as read in Step 1
+  follow `.claude/skills/slides.rules.md` as read in the Read the Rules step
 
 ## Fix Mistakes
 - Fix English grammar
 - Fix any conceptual mistake only if you are sure about the correction
 
-## Verification
+# Verification
 - [ ] Make sure that the updated slides render correctly, e.g.,
   ```bash
   > gen_slides.py -i <FILE> --notes_to_pdf_args="--skip_action open_pdf"

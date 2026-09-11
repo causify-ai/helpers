@@ -11,7 +11,7 @@ model: sonnet
 
 # Workflow
 
-## Step 1: Read the Inputs
+## Read the Inputs
 - Read `<FILE>`
 - Read the template `.claude/templates/research_idea.template.md`
 - Read `.claude/skills/research_idea.rules.md` for file naming and directory
@@ -19,7 +19,7 @@ model: sonnet
 - Read the file names under `research/ideas/*.md` to know which ideas already
   exist
 
-## Step 2: Title and Group the Fragments
+## Title and Group the Fragments
 - Split `<FILE>` into distinct ideas
   - Merge fragments that clearly describe the same idea into one group; it is
     fine to reorder or combine fragments that belong together
@@ -36,7 +36,7 @@ model: sonnet
   under `research/ideas/*.md`, so the user can decide whether to skip it
 - Write the titled, grouped result back into `<FILE>`
 
-## Step 3: Wait for the User
+## Wait for the User
 - Show the user the list of proposed titles and which fragments were grouped
   under each
 - Wait for the user to review and approve `<FILE>` before creating any new
@@ -44,7 +44,7 @@ model: sonnet
 - If the user requests different titles or groupings, apply the changes and
   present the file again
 
-## Step 4: Create One Idea File per Approved Idea
+## Create One Idea File per Approved Idea
 - For each approved `## <Title>` section, create
   `research/ideas/draft.<Idea_Name>.md`, per `.claude/skills/research_idea.rules.md`
   `## Status Prefixes`
@@ -53,7 +53,7 @@ model: sonnet
 - Seed the new file with the section's raw content as the seed for `Core Idea`
 - Skip creating a file for any idea the user chose to skip in Step 3
 
-## Step 5: Clean Up the Source File
+## Clean Up the Source File
 - Ask the user whether to remove, from `<FILE>`, the sections that were split
   out into new idea files (or delete `<FILE>` if every section was split out)
 - Only remove a section once its new idea file exists and the user confirms
@@ -64,10 +64,11 @@ model: sonnet
 
 # Constraints
 - Do not create any new idea file before the user approves the titled,
-  grouped `<FILE>` from Step 2
-- Do not fabricate content when titling or grouping fragments in Step 2; only
-  add headers and reorganize the existing raw text
-- Do not remove content from `<FILE>` without user confirmation, per Step 5
+  grouped `<FILE>` from the Title and Group the Fragments step
+- Do not fabricate content when titling or grouping fragments; only add
+  headers and reorganize the existing raw text
+- Do not remove content from `<FILE>` without user confirmation, per the
+  Clean Up the Source File step
 
 # Examples
 - `research/ideas/new_ideas.md`: a raw idea dump file, the typical `<FILE>`

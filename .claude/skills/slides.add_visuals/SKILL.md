@@ -28,9 +28,9 @@ model: haiku
 ## Output Example
 
 - The output of the proposal can be like:
-  ```
+  ```text
   Slide 1: "A Map of Machine Learning"
-  - Current: Has mermaid mindmap ✓
+  - Current: Has mermaid mindmap (present)
   - Assessment: Excellent visual already present. Keep as-is.
 
   Slide 2: "Machine Learning Paradigms"
@@ -56,7 +56,7 @@ model: haiku
   Slide 5: "Machine Learning Techniques"
   - Current: Text-only list of pipeline stages
   - Proposed: ML Pipeline flowchart (Graphviz)
-    - Show the stages: Input Processing → Model Building → Performance Evaluation → Diagnostic → Regularization → Aggregation
+    - Show the stages: Input Processing -> Model Building -> Performance Evaluation -> Diagnostic -> Regularization -> Aggregation
     - Color stages by function (data preparation, model, evaluation, improvement)
     - Include key techniques under each stage
     - This is the most impactful addition for learning
@@ -65,14 +65,14 @@ model: haiku
   - Current: Collection of quotes with attributions
   - Assessment: Text-based content is appropriate here. No visual needed.
 
-  │ Slide │            Change             │     Type      │  Impact   │
-  ---------------------------------------------------------------------
-  │ 1     │ Keep existing                 │ -             │ ✓ Good    │
-  │ 2     │ Add paradigm comparison table │ Table         │ High      │
-  │ 3     │ Add theory framework diagram  │ Graphviz      │ Medium    │
-  │ 4     │ Add model taxonomy diagram    │ Graphviz/TikZ │ High      │
-  │ 5     │ Add ML pipeline flowchart     │ Graphviz      │ Very High │
-  │ 6     │ Keep as-is                    │ -             │ ✓ Good    │
+  | Slide | Change                         | Type          | Impact    |
+  |-------|--------------------------------|---------------|-----------|
+  | 1     | Keep existing                  | -             | Good      |
+  | 2     | Add paradigm comparison table  | Table         | High      |
+  | 3     | Add theory framework diagram   | Graphviz      | Medium    |
+  | 4     | Add model taxonomy diagram     | Graphviz/TikZ | High      |
+  | 5     | Add ML pipeline flowchart      | Graphviz      | Very High |
+  | 6     | Keep as-is                     | -             | Good      |
   ```
 
 ## Save the Plan
@@ -82,10 +82,10 @@ model: haiku
 - Make numbered list of proposed changes for the user
 - Once user confirms changes, perform the changes
 
-## Constraints
+# Constraints
 - Maintain the structure of the text and keep the content of the existing text
 
-## Verification
+# Verification
 - [ ] Make sure that the updated slides works by running the flow, e.g.,
   `gen_slides.py` 
   ```bash
