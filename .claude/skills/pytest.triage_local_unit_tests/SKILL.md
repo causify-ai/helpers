@@ -60,7 +60,7 @@ model: haiku
 ## Prepare A Plan to Fix Failures
 - Prepare a plan following `# Format for Unit Test Fixing Plan` from
   `.claude/skills/pytest.rules.md`
-- Save it in the file `plan.triage_local_unit_tests.md` in the current dir
+- Save it in the file `plan-pytest.triage_local_unit_tests.md` in the current dir
 - Do not print anything on screen
 
 ## Wait for User Feedback
@@ -74,7 +74,7 @@ model: haiku
 
 # Verification
 
-- [ ] `plan.triage_local_unit_tests.md` lists a fix for every failing test
+- [ ] `plan-pytest.triage_local_unit_tests.md` lists a fix for every failing test
 - [ ] Every fix follows `# Verification of the Fix` in
       `.claude/skills/pytest.rules.md`
 - [ ] The failing tests pass locally after the fix

@@ -10,12 +10,14 @@ Options:
   --today       Print usage for today (default)
   --yesterday   Print usage for yesterday
   --weekly      Print usage for the last 7 days
+  --monthly     Print usage for the last 30 days
   --help        Show this help message
 
 Examples:
   ./cc_usage.sh              # Show today's usage
   ./cc_usage.sh --yesterday  # Show yesterday's usage
   ./cc_usage.sh --weekly     # Show last 7 days' usage
+  ./cc_usage.sh --monthly    # Show last 30 days' usage
 EOF
 }
 
@@ -31,6 +33,10 @@ while [[ $# -gt 0 ]]; do
       ;;
     --weekly)
       period="weekly"
+      shift
+      ;;
+    --monthly)
+      period="monthly"
       shift
       ;;
     --help)
@@ -69,5 +75,9 @@ case $period in
   weekly)
     week_ago=$(subtract_days 7)
     ccusage claude daily --breakdown --since "$week_ago" --compact --no-color
+    ;;
+  monthly)
+    month_ago=$(subtract_days 30)
+    ccusage claude daily --breakdown --since "$month_ago" --compact --no-color
     ;;
 esac

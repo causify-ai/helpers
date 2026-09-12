@@ -43,7 +43,7 @@ model: haiku
   `.claude/skills/pytest.rules.md`
 - Propose a set of fixes so that the failing tests pass both on the CI and
   locally
-- Save it in the file `plan.triage_github_unit_tests.md` in the current dir
+- Save it in the file `plan-pytest.triage_github_unit_tests.md` in the current dir
 
 ## Wait for User Feedback
 - Do not make any change to the code, but only propose the fixes
@@ -57,7 +57,7 @@ model: haiku
 
 # Verification
 
-- [ ] `plan.triage_github_unit_tests.md` lists a fix for every failing test
+- [ ] `plan-pytest.triage_github_unit_tests.md` lists a fix for every failing test
 - [ ] Every fix follows `# Verification of the Fix` in
       `.claude/skills/pytest.rules.md`
 - [ ] The failing tests pass both on the CI and locally after the fix

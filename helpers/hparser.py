@@ -323,6 +323,69 @@ def add_verbosity_arg(
     return parser
 
 
+def add_input_file_arg(
+    parser: argparse.ArgumentParser, *, required: bool = True
+) -> argparse.ArgumentParser:
+    """
+    Add standardized `-i`/`--input` argument for single file input.
+
+    :param parser: ArgumentParser instance to extend
+    :param required: Whether the argument is required (default: True)
+    :return: Parser with added argument
+    """
+    parser.add_argument(
+        "-i",
+        "--input",
+        dest="input",
+        type=str,
+        required=required,
+        help="Input file (or '-' for stdin)",
+    )
+    return parser
+
+
+def add_files_list_arg(
+    parser: argparse.ArgumentParser, *, required: bool = True
+) -> argparse.ArgumentParser:
+    """
+    Add standardized `-f`/`--files` argument for file list input.
+
+    :param parser: ArgumentParser instance to extend
+    :param required: Whether the argument is required (default: True)
+    :return: Parser with added argument
+    """
+    parser.add_argument(
+        "-f",
+        "--files",
+        dest="files",
+        type=str,
+        nargs="+",
+        required=required,
+        help="List of input files (space-separated or comma-separated)",
+    )
+    return parser
+
+
+def add_input_dir_arg(
+    parser: argparse.ArgumentParser, *, required: bool = True
+) -> argparse.ArgumentParser:
+    """
+    Add standardized `--input_dir` argument for directory input.
+
+    :param parser: ArgumentParser instance to extend
+    :param required: Whether the argument is required (default: True)
+    :return: Parser with added argument
+    """
+    parser.add_argument(
+        "--input_dir",
+        dest="input_dir",
+        type=str,
+        required=required,
+        help="Input directory path",
+    )
+    return parser
+
+
 # TODO(gp): Use this everywhere.
 def parse_verbosity_args(
     args: argparse.Namespace, *args_: Any, **kwargs: Any
