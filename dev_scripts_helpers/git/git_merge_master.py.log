@@ -1,0 +1,2 @@
+10:02:32 - [36mINFO [0m hdbg.py init_logger:1167                               10:02:32 - [36mINFO [0m hdbg.py init_logger:1167                               Saving log to file '/Users/saggese/src/umd_classes3/helpers_root/dev_scripts_helpers/git/git_merge_master.py.log'
+10:02:32 - [36mINFO [0m hdbg.py init_logger:1177                               10:02:32 - [36mINFO [0m hdbg.py init_logger:1177                               [94m> /Users/saggese/src/umd_classes3/helpers_root/dev_scripts_helpers/git/git_merge_master.py --abort_if_not_ff --no_auto_merge[0m
