@@ -9,9 +9,9 @@ source helpers.sh
 if [[ -f .gitmodules ]]; then
     echo "===================== supermodule ====================="
 fi;
-execute "git clean -fd"
+execute_with_verbose "git clean -fd"
 
 if [[ -f .gitmodules ]]; then
   echo "===================== submodule ====================="
-  execute "git clean -fd"
+  execute_with_verbose "git submodule foreach git clean -fd"
 fi;
