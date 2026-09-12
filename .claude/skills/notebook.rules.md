@@ -629,36 +629,39 @@
     - The sentence's truth is read off each fixed row
   ```
 
-## Keep One Bullet List Tight (No Blank Lines Between Items)
+## Separate Goal from Widget Explanation, Keep Each List Tight
 
-- A single bullet list must not have a blank line between its items: a blank
-  line splits it into two lists and reads as a paragraph break, not a
+- A widget cell's markdown always splits into two separate bullet lists,
+  with a blank line between them:
+  - `**Goal**`: what the cell teaches, with no mention of individual panels
+  - `**Explanation of Widget**`: one `_Panel_: description` bullet per
+    panel or subplot the widget renders, plus the `_Comments_:` bullet
+- Within each of the two lists, there must be no blank line between items: a
+  blank line splits a list into two and reads as a paragraph break, not a
   continuation
-- This applies even when a list mixes different kinds of bullets, e.g., a
-  cell's `**Goal**` bullets followed directly by its `_Panel_: description`
-  bullets: keep them as one continuous list
 - Wrap each bullet to 85 characters maximum, following
   `.claude/skills/markdown.rules.md` `## Text Wrapping and Structure`
-- **Bad** (blank line splits one list into two):
+- **Bad** (Goal and widget-panel bullets crammed into one list):
   ```markdown
   **Goal**:
   - Define $KB \models \alpha$ as $M(KB) \subseteq M(\alpha)$, and verify
     that $KB = \{Rain, Rain \implies WetGround\}$ entails $WetGround$
   - Run the model-checking algorithm explicitly: enumerate every model,
     find $M(KB)$, check $\alpha$ in each of those rows
-
   - _Model table_: the same 4-row table, with $M(KB)$ shaded blue and
     $M(\alpha)$ outlined in dashed orange
   - _Comments_: which `KB` sentences are toggled on, the query $\alpha$,
     and the entailment verdict
   ```
-- **Good** (one continuous list, wrapped to 85 characters):
+- **Good** (Goal and widget explanation as two separate tight lists):
   ```markdown
   **Goal**:
   - Define $KB \models \alpha$ as $M(KB) \subseteq M(\alpha)$, and verify
     that $KB = \{Rain, Rain \implies WetGround\}$ entails $WetGround$
   - Run the model-checking algorithm explicitly: enumerate every model,
     find $M(KB)$, check $\alpha$ in each of those rows
+
+  **Explanation of Widget**
   - _Model table_: the same 4-row table, with $M(KB)$ shaded blue and
     $M(\alpha)$ outlined in dashed orange
   - _Comments_: which `KB` sentences are toggled on, the query $\alpha$,
@@ -927,14 +930,16 @@
 
 - Each plot's description is placed underneath the plot title, not in a separate
   "Plots" section. Describe them as bullet points with an italicized label and a
-  colon, continuing the same list as the `**Goal**` bullets above with no blank
-  line in between (see
-  `## Keep One Bullet List Tight (No Blank Lines Between Items)`):
+  colon, under a separate `**Explanation of Widget**` heading, one blank line
+  below the `**Goal**` bullets (see
+  `## Separate Goal from Widget Explanation, Keep Each List Tight`):
 
   ```markdown
   **Goal**:
   - Build intuition for <concept>
   - <Learning objective 2>
+
+  **Explanation of Widget**
   - _Population bin_: Shows the full unknown population as colored marbles
   - _Sample bin_: Shows a random sample drawn from the population
   - _Comments_: Current parameter values and state observations
