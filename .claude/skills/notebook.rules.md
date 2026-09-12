@@ -605,6 +605,29 @@
 - Follow rules from `.claude/skills/text.rules.md`
   - `## Nested Bullets`
   - `## Multi-Level Organization`
+  - `## Lists Over Prose`
+
+## Nest Bullets as Deep as the Ideas Require
+
+- The more a bullet's ideas are organized into nested sub-bullets, the
+  better: a compound bullet that crams several clauses together is harder
+  to scan than the same content split into a parent bullet and its
+  children
+- Whenever a bullet chains more than one clause together (with a comma,
+  `;`, or "and"), split it into a parent bullet plus one nested bullet per
+  clause, per `.claude/skills/text.rules.md` `## Lists Over Prose`
+- **Bad** (one bullet crams two clauses together):
+  ```markdown
+  - "The model satisfies the sentence" reads backwards at first, the
+    model (the world) is what varies across rows, the sentence's truth
+    is read off each fixed row
+  ```
+- **Good** (parent bullet plus nested sub-bullets):
+  ```markdown
+  - "The model satisfies the sentence" reads backwards at first
+    - The model (the world) is what varies across rows
+    - The sentence's truth is read off each fixed row
+  ```
 
 ## Keep One Bullet List Tight (No Blank Lines Between Items)
 
