@@ -26,7 +26,7 @@ model: sonnet
   notebook:
   - **Markdown cell**: Section header, goal, and pedagogical content (before viz)
   - **Code cell**: Visualization, widgets, and interactive controls
-  - **Markdown cell**: Key observations and what to learn (after viz)
+  - **Markdown cell**: Guided usage, actions plus observations (after viz)
 
 ## Numbering and Naming
 
@@ -59,12 +59,18 @@ model: sonnet
   - <widget name>: <description, range, effect on display>
   - Each widget description is close to the widget itself
 
-  **Key observations** (post-visualization):
-  - <Discovery 1 students should make>
-  - <Discovery 2 students should make>
+  **Guided usage** (post-visualization):
+  - <Action on a widget, plus the observation it produces>
+  - <Action on a widget, plus the observation it produces>
 
   **Implementation**: Libraries and functions used
   ```
+
+- In the final notebook, **Plots and their descriptions** plus **Widgets**
+  become the `**Usage**` markdown cell (split into `- Inputs` and
+  `- Panels`), and **Implementation** becomes its own `**Implementation**`
+  markdown cell, expanded into one bullet per algorithmic step: see
+  `.claude/skills/notebook.rules.md` `## Visualization Cell Triplet Details`
 
 ### Goal (Required)
 
@@ -94,15 +100,15 @@ model: sonnet
 - Keep widgets focused on pedagogically important parameters
 - Avoid: redundant controls, parameters students won't care about
 
-### Key Observations (Required, Post-Visualization)
+### Guided Usage (Required, Post-Visualization)
 
-- List 2-3 bullet points of discoveries students should make by
-  - Looking at the output or visualization
-  - Interacting with the widgets
+- List 2-3 bullets, each an action on a control plus the observation it
+  produces, e.g., `Drag mu from 0.2 to 0.8` / `Observe the sample bin's
+  color mix shift to match`
 - These appear in a markdown cell **after** the visualization cell
-- Focus on learning outcomes, not mechanics
+- Focus on what to do and what it reveals, not general facts about the topic
 - Include what experiments can be done with the widgets and what students will
-  learn
+  learn from doing them
 - Do NOT repeat the Goal: go deeper
 
 ### Comments Panel (Required)
@@ -151,11 +157,13 @@ model: sonnet
 
 - Commentary
   ```markdown
-  **Key observations**:
-  - Population parameters are fixed but hidden: we only see samples
-  - Small parameter changes produce visually distinct distributions
-  - Intuition: different populations look different when fully observed
-    (which we can't do)
+  **Guided usage**:
+  - Drag `mu` from 0.2 to 0.8, leaving `sample_size` fixed
+    - Observe the sample bin's color mix shift to track the hidden
+      population, even though the population itself stays unseen
+  - Repeat with a different `seed`
+    - Observe the sample bin change while the population bin does not:
+      only the sample is one random draw
   ```
 
 # Lint

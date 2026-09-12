@@ -16,14 +16,15 @@ model: opus
 - **Purpose**: Implement the pedagogical design as a fully executable,
   interactive notebook
 - Each visualization follows the triplet structure:
-  - Pre-visualization markdown (goal + plot descriptions under each title)
+  - Pre-visualization markdown (goal, implementation, and input/panel
+    descriptions under each title)
   - Code cell (visualization / interactive widget)
-  - Post-visualization markdown (key observations)
+  - Post-visualization markdown (guided usage: actions plus observations)
 
 # Core Workflow
 
 - **Understand the outline**: Review each cell's Purpose, Display, and (if
-  present) Widgets and Key Insights
+  present) Widgets and Guided Usage
 - **Implement utility functions**: Write reusable widget and visualization code
   in `*_utils.py`
 - **Create notebook cells**: Add markdown cells (context) and code cells (widget
@@ -69,11 +70,14 @@ model: opus
 
 ## Cell Structure in Notebook
 
-- Each visualization in the outline becomes three notebook cells (triplet):
-  1. **Markdown cell (pre-viz)**: Goal + plot descriptions (under each title)
+- Each visualization in the outline becomes the cell sequence (triplet of
+  stages, more than one cell per stage):
+  1. **Markdown cells (pre-viz)**: Goal, then Implementation, then (after the
+     `print_obj_info()` code cell) Usage split into Inputs and Panels
   2. **Code cell**: Visualization / interactive widget with comments panel
      containing only variable state
-  3. **Markdown cell (post-viz)**: Key observations and what to learn
+  3. **Markdown cell (post-viz)**: Guided usage: one action per control plus
+     the observation it produces, not general facts to learn
 - Make sure to follow the section `## Visualization Cell Triplet Details` from
   the file `.claude/skills/notebook.rules.md`
 
