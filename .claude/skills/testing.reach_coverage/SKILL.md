@@ -1,36 +1,38 @@
 ---
-description: Increase unit test coverage toward 100 percent for a given function, file or files
+description: Increase unit test coverage toward 100 percent for a function or file
 model: haiku
 ---
 
-Given the passed function, file, or files `<files>` increase unit test coverage
-from the corresponding files `<test_files>` to approach 100 percent using a
-plan-then-implement approach
+# Goal
+- Given the passed function, file, or files `<FILES>`, increase unit test
+  coverage from the corresponding files `<TEST_FILES>` to approach 100 percent
+  using a plan-then-implement approach
 
-# Step 1: Establish Current Coverage
+# Workflow
 
+## Establish Current Coverage
 - Identify the test files corresponding to the target function, file, files
-  `<test_files>` using the rules
+  `<TEST_FILES>` using the rules
   - E.g.,
-    ```
+    ```text
     helpers/hllm_cli.py -> helpers/test/test_hllm_cli.py
     ```
 - Print the files to test
-  ```
-  Target files: <files>
-  Test files: <test_files>
+  ```text
+  Target files: <FILES>
+  Test files: <TEST_FILES>
   ```
 - Run the following command and record the results:
   ```bash
   # Using invoke (preferred):
   > i run_coverage --suite fast --generate-html-report
   # Or directly with pytest inside Docker:
-  > pytest --cov=<pkg> --cov-report=term-missing --cov-report=html <test_file>
+  > pytest --cov=<PKG> --cov-report=term-missing --cov-report=html <TEST_FILE>
   ```
 
 - Summarize which lines and branches are not covered
 
-# Step 2: Design a Testing Plan
+## Design a Testing Plan
 - Analyze uncovered code paths and behaviors
 - Propose a clear testing plan that:
   - Tests functions modularly before testing interactions
@@ -40,19 +42,19 @@ plan-then-implement approach
     are critical to correctness
 - Explicitly map each uncovered area to one or more proposed tests
 
-# Step 3: Specify Tests Without Implementation
+## Specify Tests Without Implementation
 - Define test classes and test method names
 - For each proposed test:
   - Describe the input data
   - Describe the expected output or observable behavior
 - Do not write executable test code at this stage
 
-# Step 4: Implement After Approval
+## Implement After Approval
 - Wait for user confirmation or feedback on the testing plan
 - After approval:
   - Implement the tests according to the approved plan
-  - Re-run coverage and verify that coverage for the target function is near 100
-    percent
+  - Re-run coverage and verify that coverage for the target function is near
+    100 percent
   - Report final coverage results and remaining gaps, if any
 
 # Important Rules
@@ -65,3 +67,8 @@ plan-then-implement approach
   - `.claude/skills/testing.rules.md` for tests
 - If any part of the task is unclear or underspecified, stop and ask for
   clarification before proceeding
+
+# Verification
+- [ ] Confirm coverage for the target function or file is near 100 percent
+- [ ] Confirm every proposed test was implemented and passes
+- [ ] Confirm no uncovered critical branch remains unexplained

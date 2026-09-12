@@ -1,8 +1,7 @@
----
-description: Conventions and standards for interactive Jupyter notebook structure, formatting, and cell organization
----
+- This file contains conventions and standards for interactive Jupyter notebook
+  structure, formatting, and cell organization
 
-# Effective Notebook Design Principles
+# Design Principles and Setup
 
 ## Core Goals
 
@@ -22,8 +21,6 @@ description: Conventions and standards for interactive Jupyter notebook structur
   the explanation"
 - **Build on context**: Each cell should reference and extend what came before
 
-# Setup and Initialization
-
 ## Use Python Style
 
 - For all Python code in notebooks, follow the rules in
@@ -40,7 +37,9 @@ description: Conventions and standards for interactive Jupyter notebook structur
 
 - Third Cell: Notebook-specific imports and logger
 
-## Utilities Vs. Notebook Responsibilities
+# Code Architecture and Responsibility
+
+## Utilities vs. Notebook Responsibilities
 
 ### Notebook-to-File Pairing
 
@@ -49,15 +48,21 @@ description: Conventions and standards for interactive Jupyter notebook structur
 - Each notebook has a corresponding `*_utils.py` file containing the code
   corresponding to that notebook
 
-- Use hyphens in notebook filenames and underscores in Python filenames and
-  utility files
+- **Modern naming convention** (for new lesson notebooks):
+  - Use underscores throughout all filenames
+  - Organize in a lesson-specific directory
+  - Format: `<COURSE_CODE>_<LESSON_NUM>_<TOPIC_NAME>` for all three files
+  - Example (MSML610 Lesson 3, Wumpus World topic):
+    - Notebook: `msml610/tutorials/L03_knowledge_representation/L03_02_wumpus_world.ipynb`
+    - Paired Python file: `msml610/tutorials/L03_knowledge_representation/L03_02_wumpus_world.py`
+    - Paired utility file: `msml610/tutorials/L03_knowledge_representation/L03_02_wumpus_world_utils.py`
 
-- Example
-
-  - Notebook: `msml610/tutorials/Lesson94-Information_Theory.ipynb`
-  - Paired Python file: `msml610/tutorials/Lesson94-Information_Theory.py`
-  - Paired utility file:
-    `msml610/tutorials/Lesson94_Information_Theory_utils.py`
+- **Legacy naming convention** (kept for reference):
+  - Use hyphens in notebook filenames and underscores in Python filenames
+  - Example (Lesson 94):
+    - Notebook: `msml610/tutorials/Lesson94-Information_Theory.ipynb`
+    - Paired Python file: `msml610/tutorials/Lesson94-Information_Theory.py`
+    - Paired utility file: `msml610/tutorials/Lesson94_Information_Theory_utils.py`
 
 ### Responsibility Division
 
@@ -99,7 +104,7 @@ description: Conventions and standards for interactive Jupyter notebook structur
   project conventions. Using them avoids duplication, keeps cells clean, and
   maintains consistency across notebooks
 
-## Library Calls Vs. Visualization in Package Tutorials
+## Library Calls vs. Visualization in Package Tutorials
 
 - When writing a tutorial for a package:
   - Keep the code that executes library calls and explores the API in the
@@ -176,7 +181,7 @@ description: Conventions and standards for interactive Jupyter notebook structur
   - Continue in ascending order by Part and Cell ID
   - Group related cell functions together
 
-# Code Cell Design and Content
+# Cell Design and Content
 
 ## Single Responsibility Per Cell
 
@@ -250,14 +255,14 @@ description: Conventions and standards for interactive Jupyter notebook structur
     - First cell
       ```python
       # Test with fair coin.
-      # Two equally likely outcomes → maximum uncertainty, $H = 1$ bit
+      # Two equally likely outcomes -> maximum uncertainty, $H = 1$ bit
       fair_coin = [0.5, 0.5]
       print(f"Fair coin entropy: {utils.calculate_entropy(fair_coin):.4f} bits")
       ```
     - Second cell
       ```python
       # Test with biased coin.
-      # If heads occurs 90% of the time → less uncertainty, $H < 1$ bit
+      # If heads occurs 90% of the time -> less uncertainty, $H < 1$ bit
       biased_coin = [0.9, 0.1]
       print(f"Biased coin (90-10) entropy: {utils.calculate_entropy(biased_coin):.4f} bits")
       ```
@@ -404,7 +409,7 @@ description: Conventions and standards for interactive Jupyter notebook structur
 ## Comment Complex Code
 
 - Add comments for non-trivial code blocks:
-  - Aim for 1 comment per 2–3 lines of code
+  - Aim for 1 comment per 2-3 lines of code
   - Focus on high-level intent, not obvious operations
   - End each comment with a period
 - Example:
@@ -436,7 +441,55 @@ description: Conventions and standards for interactive Jupyter notebook structur
   print(getattr(contract_out["messages"][-1], "content", ""))
   ```
 
-# Notebook Organization
+# Notebook Structure and Headers
+
+## Markdown Header Structure and Naming
+
+- Every notebook must group its cells under at least one `# Part N:` header,
+  even when there is a single logical part
+
+- Never use a level-1 header (`#`) for an individual cell; cells always use
+  `## Cell <PART>.<ID>:`
+
+- Use level 1 headers (`#`) for Parts:
+
+  - Format: `# Part XYZ: Description`
+  - Parts group multiple related cells together
+
+- Use level 2 headers (`##`) for Cells within Parts:
+
+  - Format: `## Cell <PART>.<ID>: Description`
+  - Each cell is a sub-section of its Part
+  - Configuration cells (Imports, Logging) do not need `Cell <NUMBER>:` prefix
+
+- Numbering convention: `<PART>.<ID>` where:
+
+  - `<PART>`: Part number (1, 2, 3, etc.)
+  - `<ID>`: Cell ID within that Part (1, 2, 3, etc.)
+  - Example: `Cell 1.1`, `Cell 1.2`, `Cell 2.1`, `Cell 2.2`
+
+- Example
+
+  - **Good** structure:
+    ```markdown
+    # Part 1: Data Exploration and Loading
+
+    ## Cell 1.1: Import libraries and load data
+
+    ## Cell 1.2: Display data summary
+
+    # Part 2: Data Preprocessing
+
+    ## Cell 2.1: Handle missing values
+
+    ## Cell 2.2: Normalize features
+    ```
+
+## Sequential Cell Numbering
+
+- Cell numbers must be sequential with no gaps within each Part:
+  - **Bad**: Cell 1.1 -> Cell 1.5 (skips 1.2, 1.3, 1.4)
+  - **Good**: Cell 1.1 -> Cell 1.2 -> Cell 1.3
 
 ## API Notebook Overview and Summary Sections
 
@@ -465,184 +518,11 @@ description: Conventions and standards for interactive Jupyter notebook structur
 - **Rationale**: The overview gives the big picture before diving into details;
   the summary reinforces what to remember after closing the notebook
 
-## API Mental Model Tables
-
-For API teaching notebooks, present the library's mental model as a structured markdown table:
-
-- **When to use**: In primitive sections when introducing core classes and their relationships
-
-- **Format**: 3 columns minimum:
-
-  - **Object**: Class name or method (e.g., `LimeTabularExplainer`, `Explanation.values`)
-  - **Description**: What it does / represents
-  - **Type/Comments**: Array shape, return type, or behavioral notes
-
-- **Example**:
-
-  ```markdown
-  | Object | Description | Comments |
-  |--------|-------------|----------|
-  | `Explainer(data)` | Configured for dataset | Wraps model + feature stats |
-  | `.explain_instance(x)` | Single-instance explanation | Returns Explanation object |
-  | `Explanation.values` | Per-feature contributions | shape (n_samples, n_features) |
-  ```
-
-- **Rationale**: Tables compress related concepts into scannable format; easier than prose or bullet lists for API reference
-
-## Use Introspection Code for Public APIs
-
-- When displaying public methods/attributes of a library object, use `hintrospection.print_obj_info()`:
-
-  - **Bad** (manual introspection with `inspect` module):
-    ```python
-    import inspect
-    for name in dir(explainer):
-        if not name.startswith("_"):
-            attr = getattr(explainer, name)
-            if callable(attr):
-                sig = inspect.signature(attr)
-                doc = inspect.getdoc(attr)
-                print(f"{name}: {sig}")
-    ```
-
-  - **Bad** (bare `dir()` with no context):
-
-    ```python
-    dir(library_module)
-    ```
-
-  - **Bad** (manually printing method names):
-
-    ```python
-    methods = [m for m in dir(library_module) if not m.startswith("_") and callable(getattr(library_module, m))]
-    print(methods)
-    ```
-
-  - **Good** (standardized helper):
-
-    ```python
-    import helpers.hintrospection as hintros
-    hintros.print_obj_info(explainer)
-    ```
-
-- **Rationale**: Standardized output, consistent formatting, reduces boilerplate, renders cleanly in notebooks
-
-## Pair GitHub Link with Interface Listing
-
-- When introducing a class in a notebook, pair its GitHub source link with its
-  public interface listing via a single call:
-
-  ```python
-  import helpers.hintrospection as hintros
-
-  # Link to the class definition on GitHub, and list its public surface.
-  hintros.print_obj_info(sim.MultiArmedBandit)
-  ```
-
-## Cell Triplet Structure
-
-- Each visualization in a notebook is composed of three notebook cells:
-
-  1. **Markdown cell**: Explains what we want to achieve, the goal
-
-     ```markdown
-     ## Cell 1: Visualizing Population Distribution
-
-     **Goal**:
-     - Visualize the true population distribution
-     - Understand sampling from a finite population
-     ```
-
-  2. **Code cell**: Visualization / interactive widget (optionally with
-     ipywidget)
-
-     ```python
-     # Display the population as a bin of colored marbles.
-     utils.visualize_population_distribution()
-     ```
-
-     - Documents the plots and their diagrams with comments, e.g.,
-       ```
-       _Population bin_: Shows the full population as colored marbles
-       _Sample bin_: Shows a random sample drawn from the population
-       ```
-
-  3. **Explanation cell**: A markdown cell explaining key observations, what
-     experiments can be done, and what we will learn
-
-     ```markdown
-     **Key observations**:
-     - Population parameters are fixed but hidden: we only see samples
-     - Small parameter changes produce visually distinct distributions
-     - Try changing the sample size to see how the estimate improves
-     ```
-
-- For all the markdown cells use bullet points with nested bullets for clarity
-  and conciseness, following the rules in
-
-  - `.claude/skills/slides.rules.md`: rules for formatting slides
-  - `.claude/skills/text.rules.md`: rules for formatting bullet points
-
-## Markdown Header Structure and Naming
-
-- Every notebook must group its cells under at least one `# Part N:` header,
-  even when there is a single logical part
-
-- Never use a level-1 header (`#`) for an individual cell; cells always use
-  `## Cell <part>.<id>:`
-
-- Use level 1 headers (`#`) for Parts:
-
-  - Format: `# Part XYZ: Description`
-  - Parts group multiple related cells together
-
-- Use level 2 headers (`##`) for Cells within Parts:
-
-  - Format: `## Cell <part>.<id>: Description`
-  - Each cell is a sub-section of its Part
-  - Configuration cells (Imports, Logging) do not need `Cell <number>:` prefix
-
-- Numbering convention: `<part>.<id>` where:
-
-  - `<part>`: Part number (1, 2, 3, etc.)
-  - `<id>`: Cell ID within that Part (1, 2, 3, etc.)
-  - Example: `Cell 1.1`, `Cell 1.2`, `Cell 2.1`, `Cell 2.2`
-
-- Example
-
-  - **Good** structure:
-    ```markdown
-    # Part 1: Data Exploration and Loading
-
-    ## Cell 1.1: Import libraries and load data
-
-    ## Cell 1.2: Display data summary
-
-    # Part 2: Data Preprocessing
-
-    ## Cell 2.1: Handle missing values
-
-    ## Cell 2.2: Normalize features
-    ```
-
-## Sequential Cell Numbering
-
-- Cell numbers must be sequential with no gaps within each Part:
-  - **Bad**: Cell 1.1 -> Cell 1.5 (skips 1.2, 1.3, 1.4)
-  - **Good**: Cell 1.1 -> Cell 1.2 -> Cell 1.3
-
-## Avoid Anti-Pattern Sections
-
-- Do not add sections labeled "Anti-patterns" or discuss anti-patterns as a
-  formal section in notebook content
-- Notebooks should focus on teaching correct concepts and best practices rather
-  than cataloging mistakes
-- Use the **Bad** / **Good** pattern for individual examples when showing what
-  to avoid, not full "Anti-patterns" sections
-
 ## Contextual Background Explanations
 
-- For key concepts that are used throughout the notebook (e.g., "background data" in SHAP), add a dedicated brief explanation cell **before first use**:
+- For key concepts that are used throughout the notebook (e.g., "background
+  data" in SHAP), add a dedicated brief explanation cell **before first
+  use**:
 
 - **Format**: Code cell with a comment block explaining:
 
@@ -660,12 +540,22 @@ For API teaching notebooks, present the library's mental model as a structured m
   # - expected_value = mean(model(background))
   # - Features are centered: X[i, j] - mean(background[:, j])
   #
-  # Larger background → stable estimates (slower)
+  # Larger background -> stable estimates (slower)
   # Smaller background (100-1000 samples) usually sufficient
   print("Background data shapes expectations and baseline.")
   ```
 
-- **Rationale**: Clarifies prerequisites and design decisions before readers encounter them in code
+- **Rationale**: Clarifies prerequisites and design decisions before readers
+  encounter them in code
+
+## Avoid Anti-Pattern Sections
+
+- Do not add sections labeled "Anti-patterns" or discuss anti-patterns as a
+  formal section in notebook content
+- Notebooks should focus on teaching correct concepts and best practices rather
+  than cataloging mistakes
+- Use the **Bad** / **Good** pattern for individual examples when showing what
+  to avoid, not full "Anti-patterns" sections
 
 # Text and Markdown Formatting
 
@@ -673,7 +563,11 @@ For API teaching notebooks, present the library's mental model as a structured m
 
 - Organize markdown text with nested bullets for clarity:
   - **Bad**: Single paragraph with multiple ideas
-    `    Examine what happens when we repeatedly sample N points. Each trial produces an empirical mean nu. This cell shows the distribution of nu and compares it with predictions from the Law of Large Numbers.    `
+    ```text
+    Examine what happens when we repeatedly sample N points. Each trial
+    produces an empirical mean nu. This cell shows the distribution of nu and
+    compares it with predictions from the Law of Large Numbers.
+    ```
   - **Good**: Nested structure with related ideas grouped
     ```
     - Examine what happens when we repeatedly sample N points many times
@@ -709,8 +603,44 @@ For API teaching notebooks, present the library's mental model as a structured m
 ## Rules for Bullet-Points
 
 - Follow rules from `.claude/skills/text.rules.md`
-  - `## Use Nested Bullets`
-  - `## Structure Bullet-Points using Multiple Levels`
+  - `## Nested Bullets`
+  - `## Multi-Level Organization`
+
+## Keep One Bullet List Tight (No Blank Lines Between Items)
+
+- A single bullet list must not have a blank line between its items: a blank
+  line splits it into two lists and reads as a paragraph break, not a
+  continuation
+- This applies even when a list mixes different kinds of bullets, e.g., a
+  cell's `**Goal**` bullets followed directly by its `_Panel_: description`
+  bullets: keep them as one continuous list
+- Wrap each bullet to 85 characters maximum, following
+  `.claude/skills/markdown.rules.md` `## Text Wrapping and Structure`
+- **Bad** (blank line splits one list into two):
+  ```markdown
+  **Goal**:
+  - Define $KB \models \alpha$ as $M(KB) \subseteq M(\alpha)$, and verify
+    that $KB = \{Rain, Rain \implies WetGround\}$ entails $WetGround$
+  - Run the model-checking algorithm explicitly: enumerate every model,
+    find $M(KB)$, check $\alpha$ in each of those rows
+
+  - _Model table_: the same 4-row table, with $M(KB)$ shaded blue and
+    $M(\alpha)$ outlined in dashed orange
+  - _Comments_: which `KB` sentences are toggled on, the query $\alpha$,
+    and the entailment verdict
+  ```
+- **Good** (one continuous list, wrapped to 85 characters):
+  ```markdown
+  **Goal**:
+  - Define $KB \models \alpha$ as $M(KB) \subseteq M(\alpha)$, and verify
+    that $KB = \{Rain, Rain \implies WetGround\}$ entails $WetGround$
+  - Run the model-checking algorithm explicitly: enumerate every model,
+    find $M(KB)$, check $\alpha$ in each of those rows
+  - _Model table_: the same 4-row table, with $M(KB)$ shaded blue and
+    $M(\alpha)$ outlined in dashed orange
+  - _Comments_: which `KB` sentences are toggled on, the query $\alpha$,
+    and the entailment verdict
+  ```
 
 ## Convert Inline Comma Lists to Bullets
 
@@ -784,7 +714,7 @@ For API teaching notebooks, present the library's mental model as a structured m
 - Exception: LaTeX formulas within markdown (e.g., `$\mu$`, `$\alpha$`) are
   acceptable
 
-# Data Processing and Visualization
+# Visualization and Interactivity
 
 ## Prefer Pandas and Seaborn
 
@@ -832,49 +762,221 @@ For API teaching notebooks, present the library's mental model as a structured m
 - This function provides consistent styling and formatting for causal graphs
   across all notebooks
 
-# Code Cleanup
+## API Mental Model Tables
 
-## Remove Development Environment Cells
+- For API teaching notebooks, present the library's mental model as a
+  structured markdown table
 
-- Remove cells for JupyterLab extensions or environment setup:
-  ```python
-  !sudo /bin/bash -c "(source /venv/bin/activate; pip install --quiet jupyterlab-vim)"
-  !jupyter labextension enable
+- **When to use**: In primitive sections when introducing core classes and
+  their relationships
+
+- **Format**: 3 columns minimum:
+
+  - **Object**: Class name or method (e.g., `LimeTabularExplainer`,
+    `Explanation.values`)
+  - **Description**: What it does / represents
+  - **Type/Comments**: Array shape, return type, or behavioral notes
+
+- **Example**:
+
+  ```markdown
+  | Object | Description | Comments |
+  |--------|-------------|----------|
+  | `Explainer(data)` | Configured for dataset | Wraps model + feature stats |
+  | `.explain_instance(x)` | Single-instance explanation | Returns Explanation object |
+  | `Explanation.values` | Per-feature contributions | shape (n_samples, n_features) |
   ```
 
-## Remove Package Installation Cells
+- **Rationale**: Tables compress related concepts into scannable format;
+  easier than prose or bullet lists for API reference
 
-- Do not install packages in notebooks; use `requirements.txt` and Docker
-  instead:
-  - **Remove**: `!pip install --quiet PyGithub`
-  - **Instead**: Add `PyGithub` to `requirements.txt` and rebuild Docker image
+## Use Introspection Code for Public APIs
 
-## Remove Secret and Token Assignments
+- When displaying public methods/attributes of a library object, use
+  `hintrospection.print_obj_info()`:
 
-- Remove all cells that hardcode secrets, tokens, or credentials:
-  - **Remove**: `os.environ["GITHUB_ACCESS_TOKEN"] = "..."`
-  - **Instead**: Pass secrets as read-only environment variables at container
-    startup
+  - **Bad** (manual introspection with `inspect` module):
+    ```python
+    import inspect
+    for name in dir(explainer):
+        if not name.startswith("_"):
+            attr = getattr(explainer, name)
+            if callable(attr):
+                sig = inspect.signature(attr)
+                doc = inspect.getdoc(attr)
+                print(f"{name}: {sig}")
+    ```
 
-## Keep Introspection Lines
+  - **Bad** (bare `dir()` with no context):
 
-- It is acceptable to keep a `func??` introspection line to display a function's
-  source or signature
+    ```python
+    dir(library_module)
+    ```
 
-# Interactive Cells
+  - **Bad** (manually printing method names):
 
-- Jupyter notebooks can contain `ipywidgets` widgets for interactive cells
+    ```python
+    methods = [m for m in dir(library_module) if not m.startswith("_") and callable(getattr(library_module, m))]
+    print(methods)
+    ```
+
+  - **Good** (standardized helper):
+
+    ```python
+    import helpers.hintrospection as hintros
+    hintros.print_obj_info(explainer)
+    ```
+
+- **Rationale**: Standardized output, consistent formatting, reduces
+  boilerplate, renders cleanly in notebooks
+
+## Pair GitHub Link with Interface Listing
+
+- When introducing a class in a notebook, pair its GitHub source link with its
+  public interface listing via a single call:
+
+  ```python
+  import helpers.hintrospection as hintros
+
+  # Link to the class definition on GitHub, and list its public surface.
+  hintros.print_obj_info(sim.MultiArmedBandit)
+  ```
+
+## Cell Triplet Structure
+
+- Each visualization in a notebook is composed of three notebook cells:
+
+  1. **Markdown cell**: Explains what we want to achieve, the goal
+
+     ```markdown
+     ## Cell 1: Visualizing Population Distribution
+
+     **Goal**:
+     - Visualize the true population distribution
+     - Understand sampling from a finite population
+     ```
+
+  2. **Code cell**: Visualization / interactive widget (optionally with
+     ipywidget)
+
+     ```python
+     # Display the population as a bin of colored marbles.
+     utils.visualize_population_distribution()
+     ```
+
+     - Documents the plots and their diagrams with comments, e.g.,
+       ```
+       _Population bin_: Shows the full population as colored marbles
+       _Sample bin_: Shows a random sample drawn from the population
+       ```
+
+  3. **Explanation cell**: A markdown cell explaining key observations, what
+     experiments can be done, and what we will learn
+
+     ```markdown
+     **Key observations**:
+     - Population parameters are fixed but hidden: we only see samples
+     - Small parameter changes produce visually distinct distributions
+     - Try changing the sample size to see how the estimate improves
+     ```
+
+- For all the markdown cells use bullet points with nested bullets for clarity
+  and conciseness, following the rules in
+
+  - `.claude/skills/slides.rules.md`: rules for formatting slides
+  - `.claude/skills/text.rules.md`: rules for formatting bullet points
+
+## Visualization Cell Triplet Details
+
+- Each visualization follows a three-cell structure:
+
+### Markdown Cell (Before the Visualization)
+
+- Title and Goal format:
+
+  ```markdown
+  ## Cell <PART>.<ID>: <Short Description>
+
+  **Goal**:
+  - Build intuition for <CONCEPT>
+  - <Learning objective 2>
+  ```
+
+- Each plot's description is placed underneath the plot title, not in a separate
+  "Plots" section. Describe them as bullet points with an italicized label and a
+  colon, continuing the same list as the `**Goal**` bullets above with no blank
+  line in between (see
+  `## Keep One Bullet List Tight (No Blank Lines Between Items)`):
+
+  ```markdown
+  **Goal**:
+  - Build intuition for <concept>
+  - <Learning objective 2>
+  - _Population bin_: Shows the full unknown population as colored marbles
+  - _Sample bin_: Shows a random sample drawn from the population
+  - _Comments_: Current parameter values and state observations
+  ```
+
+- Each widget has its description close to it (in the widget's `description`
+  parameter or as a label above the widget), ensuring it is entirely readable.
+
+- Parameters and their ranges can be listed as bullet points under a
+  `**Parameters**` heading, but keep them concise.
+
+### Code Cell (The Visualization)
+
+- The visualization code, optionally with ipywidgets for interactivity.
+
+- The "Comments" panel (subplot or text box) should contain **only variable
+  state and observations associated to the current state**, not general "key
+  idea" commentary:
+
+  ```python
+  comment_text = (
+      f"Parameters:\n"
+      f"  alpha: {alpha:.2f}\n"
+      f"  beta: {beta:.2f}\n"
+      f"  N: {n_samples}\n\n"
+      f"Sample statistics:\n"
+      f"  mean: {mean_sample:.4f}\n"
+      f"  std: {std_sample:.4f}"
+  )
+  ```
+
+  Remove comments like "key insight" or "observation" from the Comments panel;
+  keep only the information about the current parameter state.
+
+### Markdown Cell (After the Visualization)
+
+- After the interactive / visualization cell, add a markdown cell with key
+  observations:
+  ```markdown
+  **Key observations**:
+  - Utility spreads backward from the terminals, one ring of cells per sweep
+  - Cells near the $+1$ terminal end high
+  - Cells near the $-1$ terminal end low
+  - The change per sweep shrinks geometrically: convergence is guaranteed
+
+  - Early sweeps only affect cells adjacent to the terminals
+  - Later sweeps refine the interior until nothing changes
+  - Higher gamma propagates value further but converges more slowly
+  ```
 
 ## Interactive Idiom for Notebooks
+
+- Jupyter notebooks can contain `ipywidgets` widgets for interactive cells
 
 - Each `cellN_*()` function must follow this exact pattern:
 
   1. Create parameter controls using functions in `helpers/htutorials.py`, such
      as
 
-     - `htutori.build_widget_control()` for linear-scale sliders (alpha, beta, epsilon, etc.)
-     - `htutori.build_log_widget_control()` for logarithmic-scale parameters (N, sample count)
-     - `ipywidgets.Dropdown()` for categorical choices (plot type, model selector)
+     - `htutori.build_widget_control()` for linear-scale sliders (alpha,
+       beta, epsilon, etc.)
+     - `htutori.build_log_widget_control()` for logarithmic-scale parameters
+       (N, sample count)
+     - `ipywidgets.Dropdown()` for categorical choices (plot type, model
+       selector)
 
   2. Create `ipywidgets.Output()` to capture live updates
 
@@ -884,7 +986,8 @@ For API teaching notebooks, present the library's mental model as a structured m
      - Reads current widget values
      - Creates figure
      - Fills content panels with plots/data
-     - Fills last panel with comments via `htutori.add_fitted_text_box(ax4, text_content, ...)`
+     - Fills last panel with comments via
+       `htutori.add_fitted_text_box(ax4, text_content, ...)`
      - Ends with: `plt.tight_layout()` then `plt.show()`
 
   4. Attach observers to all widgets
@@ -1046,9 +1149,11 @@ For API teaching notebooks, present the library's mental model as a structured m
 
 - The widget to select the seed must always be the first widget
 
-- `htutori.build_widget_control()` for linear-scale sliders (alpha, beta, epsilon, etc.)
+- `htutori.build_widget_control()` for linear-scale sliders (alpha, beta,
+  epsilon, etc.)
 
-- `htutori.build_log_widget_control()` for logarithmic-scale parameters (N, sample count)
+- `htutori.build_log_widget_control()` for logarithmic-scale parameters (N,
+  sample count)
 
 - Each returns `(slider, HBox)` where the `HBox` includes the slider, +/-
   buttons, and text display
@@ -1089,76 +1194,6 @@ For API teaching notebooks, present the library's mental model as a structured m
   - Avoid: `mean_value`, `num_samples`, `noise_std_dev`, `shape_param`
 
 - Place `seed` parameter last in widget controls
-
-## Visualization Cell Triplet Details
-
-Each visualization follows a three-cell structure:
-
-### Markdown Cell (Before the Visualization)
-
-- Title and Goal format:
-
-  ```markdown
-  ## Cell <part>.<id>: <Short Description>
-
-  **Goal**:
-  - Build intuition for <concept>
-  - <Learning objective 2>
-  ```
-
-- Each plot's description is placed underneath the plot title, not in a separate
-  "Plots" section. Describe them as italicized phrases with a colon:
-
-  ```markdown
-  _Population bin_: Shows the full unknown population as colored marbles
-  _Sample bin_: Shows a random sample drawn from the population
-  _Comments_: Current parameter values and state observations
-  ```
-
-- Each widget has its description close to it (in the widget's `description`
-  parameter or as a label above the widget), ensuring it is entirely readable.
-
-- Parameters and their ranges can be listed as bullet points under a
-  `**Parameters**` heading, but keep them concise.
-
-### Code Cell (The Visualization)
-
-- The visualization code, optionally with ipywidgets for interactivity.
-
-- The "Comments" panel (subplot or text box) should contain **only variable
-  state and observations associated to the current state**, not general "key
-  idea" commentary:
-
-  ```python
-  comment_text = (
-      f"Parameters:\n"
-      f"  alpha: {alpha:.2f}\n"
-      f"  beta: {beta:.2f}\n"
-      f"  N: {n_samples}\n\n"
-      f"Sample statistics:\n"
-      f"  mean: {mean_sample:.4f}\n"
-      f"  std: {std_sample:.4f}"
-  )
-  ```
-
-  Remove comments like "key insight" or "observation" from the Comments panel;
-  keep only the information about the current parameter state.
-
-### Markdown Cell (After the Visualization)
-
-- After the interactive / visualization cell, add a markdown cell with key
-  observations:
-  ```markdown
-  **Key observations**:
-  - Utility spreads backward from the terminals, one ring of cells per sweep
-  - Cells near the $+1$ terminal end high
-  - Cells near the $-1$ terminal end low
-  - The change per sweep shrinks geometrically: convergence is guaranteed
-
-  - Early sweeps only affect cells adjacent to the terminals
-  - Later sweeps refine the interior until nothing changes
-  - Higher gamma propagates value further but converges more slowly
-  ```
 
 ## Simple Interactive Widgets
 
@@ -1208,24 +1243,57 @@ def complex_entropy_interactive():
 
 ### Best Practices for Complex Widgets
 
-1. **Add controls first**: Both sliders (coarse adjustment) and numeric inputs
-   (precise entry)
-2. **Use a single row layout**: Not 2x2 grids; arrange subplots horizontally
-3. **Information in Comments subplot**: Do NOT use `print()` statements
-   - Create a text matplotlib axis or HTML widget
-   - Dynamically generate explanation text based on current parameter values
-   - Update it in the same callback as other plots
-4. **Legend per plot**: Add informative legends to each subplot, not just one
-   global legend
-5. **Reference implementation**: study
-   - `plot_joint_entropy_interactive()` in
-     `msml610/tutorials/Lesson94_Information_Theory_utils.py`
-   - `cell3_interactive_sample_generator()` in `notebook_utils_template.py`
+- Follow these best practices:
 
-# Testing Notebook
+  1. **Add controls first**: Both sliders (coarse adjustment) and numeric
+     inputs (precise entry)
+  2. **Use a single row layout**: Not 2x2 grids; arrange subplots
+     horizontally
+  3. **Information in Comments subplot**: Do NOT use `print()` statements
+     - Create a text matplotlib axis or HTML widget
+     - Dynamically generate explanation text based on current parameter
+       values
+     - Update it in the same callback as other plots
+  4. **Legend per plot**: Add informative legends to each subplot, not just
+     one global legend
+  5. **Reference implementation**: study
+     - `plot_joint_entropy_interactive()` in
+       `msml610/tutorials/Lesson94_Information_Theory_utils.py`
+     - `cell3_interactive_sample_generator()` in `notebook_utils_template.py`
+
+# Code Quality and Testing
+
+## Remove Development Environment Cells
+
+- Remove cells for JupyterLab extensions or environment setup:
+  ```python
+  !sudo /bin/bash -c "(source /venv/bin/activate; pip install --quiet jupyterlab-vim)"
+  !jupyter labextension enable
+  ```
+
+## Remove Package Installation Cells
+
+- Do not install packages in notebooks; use `requirements.txt` and Docker
+  instead:
+  - **Remove**: `!pip install --quiet PyGithub`
+  - **Instead**: Add `PyGithub` to `requirements.txt` and rebuild Docker image
+
+## Remove Secret and Token Assignments
+
+- Remove all cells that hardcode secrets, tokens, or credentials:
+  - **Remove**: `os.environ["GITHUB_ACCESS_TOKEN"] = "..."`
+  - **Instead**: Pass secrets as read-only environment variables at container
+    startup
+
+## Keep Introspection Lines
+
+- It is acceptable to keep a `func??` introspection line to display a function's
+  source or signature
+
+## Testing Notebook
 
 - You run a command like:
   ```
-  > docker_cmd.sh "python /git_root/tutorials/<package>/<paired python file>.py
+  > docker_cmd.sh "python /git_root/tutorials/<PACKAGE>/<paired python file>.py
   ```
   to run a notebook top to bottom and make sure it works

@@ -1,11 +1,11 @@
 ---
-description: Remove AI-style writing patterns from text to make it sound more natural and human
+description: Remove AI-style writing patterns from text to sound more natural and human
 model: haiku
 ---
 
 # Goal
 
-- Change text with recognizable AI mannerisms (hedging, dramatic pivots, clichéd
+- Change text with recognizable AI mannerisms (hedging, dramatic pivots, cliched
   transitions) and clean up AI-written content that's factually correct but tonally
   flat
 
@@ -51,7 +51,7 @@ Scan for these AI markers before applying detailed rules:
 - Structural Patterns
   - Gift-wrapped endings: "In summary", "In conclusion", "Ultimately", "At the
     end of the day", "Moving forward"
-  - Exhaustive lists: 7–10 items when 3–4 would suffice
+  - Exhaustive lists: 7-10 items when 3-4 would suffice
   - Passive voice clusters: 2+ passive sentences in a row
   - Corrective antithesis: "Not X. But Y." setup-payoff constructions
 - Meta-Language and Vagueness
@@ -149,7 +149,7 @@ Scan for these AI markers before applying detailed rules:
 
 ### Rule 11: Cookie-Cutter Paragraphs
 - Vary paragraph length
-- If every paragraph is 3–4 sentences, break some into one-liners and let others
+- If every paragraph is 3-4 sentences, break some into one-liners and let others
   stretch
 - The shape on the page should look uneven, like real thinking
 
@@ -172,7 +172,7 @@ Scan for these AI markers before applying detailed rules:
 - Good: "I micromanaged someone last Tuesday."
 
 ### Rule 14: Exhaustive Lists
-- Trim bullet lists that run to 7–10 items when 3–4 would cover the essential
+- Trim bullet lists that run to 7-10 items when 3-4 would cover the essential
   points
 - Long lists signal AI comprehensiveness, not human judgment
 - Cut the weakest items
@@ -221,3 +221,7 @@ Scan for these AI markers before applying detailed rules:
 ## Save
 - Save the cleaned up text on top of the input file, without changing the format
   but only the text
+
+# Verification
+- [ ] Confirm the file's structure, order, and meaning are unchanged
+- [ ] Confirm no AI markers listed in `## Pattern Checklist` remain

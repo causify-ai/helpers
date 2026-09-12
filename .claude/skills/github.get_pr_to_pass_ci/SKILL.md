@@ -8,10 +8,6 @@ model: haiku
 
 # Workflow
 
-## Constraints
-- This skill runs both when executed locally on a dev computer and remotely on cloud
-  (e.g., on GitHub or Anthropic infrastructure)
-
 ## Create and Update a Plan
 - Create a file `plan_pr.get_ci_to_pass.md` with a plan in the form of a bullet
   list of actions and maintain it updated, by marking each action
@@ -21,36 +17,36 @@ model: haiku
 
 ## Get the PR Number and Branch Name
 - Get the PR number
-  ```
+  ```bash
   > GH_PR_NUM=$(gh pr view --json number -q .number)
   ```
 
 - Get the branch name
-  ```
+  ```bash
   > BRANCH_NAME=$(git branch --show-current)
   ```
 
 ## Make Sure the PR is Ready
 
 - Run
-  ```
+  ```bash
   > gh pr view $GH_PR_NUM
   ```
-- If the PR is a draft and not ready 
-  ```
+- If the PR is a draft and not ready
+  ```bash
   > gh pr view $GH_PR_NUM
   gp_5 causify-ai/helpers#1353
   Draft • gpsaggese (GP Saggese) wants to merge 2 commits into master from gp_5 • about 10 minutes ago
   +1499 -240 • ✓ Checks passing
   ```
   run
-  ```
+  ```bash
   > gh pr ready
   ```
 
 ## Run and Monitor GitHub CI
 - Start monitoring GitHub CI checks:
-  ```
+  ```bash
   > gh pr checks --watch $GH_PR_NUM
   All checks were successful
   0 cancelled, 0 failing, 5 successful, 2 skipped, and 0 pending checks
@@ -69,11 +65,11 @@ model: haiku
 
 ## Report Status on the PR
 - If GitHub CI is passing, update the corresponding PR with
-  ```
+  ```bash
   > gh pr comment $GH_PR_NUM --body "GitHub CI checks passing"
   ```
 - If any failures, document error and post:
-  ```
+  ```bash
   > gh pr comment $GH_PR_NUM --body "GitHub CI failed: [error summary]. Investigating..."
   ```
 
@@ -97,3 +93,13 @@ model: haiku
 
 ## Loop
 - Keep repeating until the PR is passing all the CI tests
+
+# Constraints
+- This skill runs both when executed locally on a dev computer and remotely on cloud
+  (e.g., on GitHub or Anthropic infrastructure)
+
+# Verification
+
+- [ ] `gh pr checks --watch $GH_PR_NUM` reports all checks successful
+- [ ] A PR comment reports the final CI status
+- [ ] `git status --short` shows only the intended files staged before commit

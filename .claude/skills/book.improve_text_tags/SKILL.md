@@ -43,10 +43,10 @@ model: haiku
 - Do not use bold
 - Use italic for terms that are introduced and important
 
-### Example of Summary
+### Example: Summary Chapter
 
-- Input
-  ```
+- **Bad** (no italic on introduced terms)
+  ```text
   From there, the discussion turns to the languages available for encoding knowledge,
   spanning natural language, programming languages, propositional logic, and
   first-order logic, each offering a different point in that tradeoff space. Semantics
@@ -63,8 +63,8 @@ model: haiku
   reused across tasks and domains.
   ```
 
-- Output
-  ```
+- **Good** (italic marks each introduced term)
+  ```text
   From there, the discussion turns to the #emph[languages] available for encoding
   knowledge, spanning natural language, programming languages, propositional logic, and
   first-order logic, each offering a different point in that tradeoff space.
@@ -88,8 +88,8 @@ model: haiku
 
 ### Example: Apply Bold to Chapter
 
-- Input
-  ```
+- **Bad** (no bold on the defined terms)
+  ```text
   KR defines two essential aspects of any encoding. Syntax determines
   how knowledge is organized: whether as a flat set of propositions, a hierarchy
   of classes and instances, or a graph of interconnected concepts.
@@ -99,8 +99,8 @@ model: haiku
   clear structure, it becomes unwieldy as the domain grows.
   ```
 
-- Output
-  ```
+- **Good** (bold marks each defined term)
+  ```text
   KR defines two essential aspects of any encoding. #strong[Syntax] determines
   how knowledge is organized: whether as a flat set of propositions, a hierarchy
   of classes and instances, or a graph of interconnected concepts.
@@ -112,8 +112,8 @@ model: haiku
 
 ### Example: Apply Italic to Chapter
 
-- Input
-  ```
+- **Bad** (no italic on the highlighted concepts)
+  ```text
   Machines need to reason about the world, not just recognize patterns. A
   medical AI trained on patient data can predict diseases with impressive
   accuracy, but to explain a diagnosis to a doctor, it needs structured
@@ -122,8 +122,8 @@ model: haiku
   often useless.
   ```
 
-- Output
-  ```
+- **Good** (italic marks each highlighted concept)
+  ```text
   Machines need to #emph[reason] about the world, not just recognize patterns. A
   medical AI trained on patient data can #emph[predict] diseases with impressive
   accuracy, but to #emph[explain] a diagnosis to a doctor, it needs structured
@@ -142,8 +142,8 @@ model: haiku
 - Leave fenced code blocks, math, and citations untouched
 
 # Verification
-- Diff the file before and after: confirm only tags were added, with no
-  wording changed, removed, or reordered
-- Confirm tag density is reasonable: not every sentence has a tagged term
-- For Typst or Latex files, render the chapter to confirm the tags compile
-  without errors
+- [ ] Diff the file before and after: confirm only tags were added, with no
+      wording changed, removed, or reordered
+- [ ] Confirm tag density is reasonable: not every sentence has a tagged term
+- [ ] For Typst or Latex files, render the chapter to confirm the tags compile
+      without errors

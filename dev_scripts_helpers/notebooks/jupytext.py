@@ -385,7 +385,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
     files = hseinout.parse_file_selection_args(args)
     hdbg.dassert(
         len(files) > 0,
-        "No files selected; use --all_files, --files, --modified, --branch, --last_commit, or --from_file",
+        "No files selected; use --all_files, -f/--files, --modified, --branch, --last_commit, or --from_file",
     )
     # Suppress routine "Skipping non-.ipynb file" messages.
     files = _filter_ipynb_files(files, log_level=logging.DEBUG)

@@ -1,10 +1,11 @@
 ---
-description: Split Jupyter notebook header cells so each cell has a single header and comment
+description: Split notebook header cells so each cell has a single header and comment
 model: haiku
 ---
 
 # Goal
-- Format the markdown cells to match
+- Split each markdown cell in a Jupyter notebook so it contains at most one
+  header
 
 # Workflow
 
@@ -18,7 +19,7 @@ model: haiku
 
     ## Example 1: Minimal End-to-End Workflow
 
-    Rain → Sprinkler → Grass Wet
+    Rain -> Sprinkler -> Grass Wet
     
     ### Mental Model
     ```
@@ -30,7 +31,7 @@ model: haiku
     # %% [markdown]
     ## Example 1: Minimal End-to-End Workflow
 
-    Rain → Sprinkler → Grass Wet
+    Rain -> Sprinkler -> Grass Wet
 
     # %% [markdown]
     ### Mental Model
@@ -54,9 +55,17 @@ model: haiku
     # Part 3: Composition Examples
     ```
 
-## Important
-- Do not change or remove any Python code cell
+## Sync with Jupytext
 - At the end of the transformation, run `jupytext --sync` to update the Python
   paired notebook, following the conventions in
-  `# Setup and Initialization` → `## Utilities vs. Notebook Responsibilities`
-  in `.claude/skills/notebook.rules.md`
+  `# Code Architecture and Responsibility` -> `## Utilities vs. Notebook
+  Responsibilities` in `.claude/skills/notebook.rules.md`
+
+# Constraints
+- Do not change or remove any Python code cell
+- Do not change the content of the markdown text besides splitting cells
+
+# Verification
+- [ ] Confirm no markdown cell contains more than one header
+- [ ] Confirm every Python code cell is unchanged
+- [ ] Confirm the `.ipynb` and paired `.py` file are in sync via Jupytext

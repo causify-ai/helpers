@@ -6,7 +6,7 @@ model: haiku
 # Goal
 
 - Execute one GitHub issue as a stack of sequential branches and PRs, each named
-  `<Base>_<id>` (`id` = 1, 2, 3, ...) and each branched from the previous one, so
+  `<BASE>_<ID>` (`ID` = 1, 2, 3, ...) and each branched from the previous one, so
   the PRs stack in review order
 - Create the whole stack without stopping for review between branches
   - The user then reviews, edits, and merges each PR bottom-up at their own pace,
@@ -17,7 +17,7 @@ model: haiku
 ## Input
 - The user will pass you a task in the format 
 
-## When to Use This Skill
+# When to Use This Skill
 
 - Use it only when the tasks favor stacked execution: specs are complete, tasks form
   a real dependency chain, and the user prefers one batch review over interruptions
@@ -36,7 +36,7 @@ model: haiku
 
 - Read the ordered tasks that will become the stack's branches and check each one
   states a problem and a solution
-  ```
+  ```text
   ### [ ] <Goal of first task>
   - <Change 1>
   - <Change 2>
@@ -45,7 +45,7 @@ model: haiku
   - <Change 1>
   - <Change 2>
   ```
-- Confirm task `<id+1>` depends only on task `<id>`, not on `master` and not on an
+- Confirm task `<ID+1>` depends only on task `<ID>`, not on `master` and not on an
   earlier task in the list
 - If the order or a dependency is unclear, ask before starting: fixing a wrong
   dependency after the stack is built means rebasing everything above it
@@ -54,11 +54,11 @@ model: haiku
 
 - One GH issue covers the whole stack, not one issue per branch
 
-- Create the issue and the first branch / PR `<Base>_1`
+- Create the issue and the first branch / PR `<BASE>_1`
 
   ```bash
   > git_create_issue_and_branch.py \
-      --title "<Title>" --body "<Description of entire stack>"
+      --title "<TITLE>" --body "<Description of entire stack>"
       --suffix 1
   ```
 - The description of the entire task is 
@@ -67,41 +67,41 @@ model: haiku
 
 - Implement task 1, run the tests it touches, commit, push
 
-## Stack Each Following Branch (`_<id>`)
+## Stack Each Following Branch (`_<ID>`)
 
-- For `id` from 2 to `N`, while still checked out on branch `<Base>_<id-1>`:
-  - Derive branch `<Base>_<id>` fresh from the issue, not from the current branch
-    name, and branch it from `<Base>_<id-1>` instead of `master`:
+- For `ID` from 2 to `N`, while still checked out on branch `<BASE>_<ID-1>`:
+  - Derive branch `<BASE>_<ID>` fresh from the issue, not from the current branch
+    name, and branch it from `<BASE>_<ID-1>` instead of `master`:
 
     ```bash
-    > invoke git_branch_create --issue-id <Num> --suffix <id> \
+    > invoke git_branch_create --issue-id <NUM> --suffix <ID> \
         --no-only-branch-from-master --no-abort-if-not-master --no-create-pr
     ```
 
     - Do not use `invoke git_branch_next_name` for this: it appends its own
       `_1`, `_2`, ... onto whatever branch is currently checked out, so run from
-      `<Base>_<id-1>` it produces `<Base>_<id-1>_1`, not `<Base>_<id>`; only
-      `--issue-id --suffix <id>` derives `<Base>_<id>` correctly
+      `<BASE>_<ID-1>` it produces `<BASE>_<ID-1>_1`, not `<BASE>_<ID>`; only
+      `--issue-id --suffix <ID>` derives `<BASE>_<ID>` correctly
     - Pass both `--no-only-branch-from-master` and `--no-abort-if-not-master`:
       with `only_branch_from_master` left at its default (`True`), the task
       switches to `master` before branching regardless of `abort_if_not_master`
-  - Implement task `<id>`, following `.claude/skills/coding.rules.md`
+  - Implement task `<ID>`, following `.claude/skills/coding.rules.md`
   - Run the tests it touches, following `.claude/skills/testing.rules.md`
   - Commit and push
   - Open the PR against the previous branch in the stack, not against `master`:
 
     ```bash
-    > gh pr create --base <Base>_<id-1> --head <Base>_<id> --title "<title>"
+    > gh pr create --base <BASE>_<ID-1> --head <BASE>_<ID> --title "<TITLE>"
     ```
 
-  - Do not stop for review between branches: move straight to `<Base>_<id+1>`
-    once `<Base>_<id>`'s tests pass
+  - Do not stop for review between branches: move straight to `<BASE>_<ID+1>`
+    once `<BASE>_<ID>`'s tests pass
 
 ## Report the Stack
 
-- Confirm each PR's base with `gh pr view <Base>_<id> --json baseRefName`
+- Confirm each PR's base with `gh pr view <BASE>_<ID> --json baseRefName`
 - Report one ordered list back to the user: branch, PR link, base branch, for every
-  `id` in the stack, so the whole sequence can be reviewed at once
+  `ID` in the stack, so the whole sequence can be reviewed at once
 
 # How the Stack Gets Merged
 
@@ -109,20 +109,20 @@ model: haiku
   later run of this skill picks up an in-progress stack correctly
 - The user reviews, edits, and merges PRs bottom-up, one at a time, not the whole
   stack at once
-- After `<Base>_<id-1>`'s PR merges into `master`:
-  - Retarget `<Base>_<id>`'s PR base to `master`, if GitHub did not already do it
-    when the merged branch was deleted: `gh pr edit <Base>_<id> --base master`
-  - Sync `<Base>_<id>` with the now-updated `master`:
+- After `<BASE>_<ID-1>`'s PR merges into `master`:
+  - Retarget `<BASE>_<ID>`'s PR base to `master`, if GitHub did not already do it
+    when the merged branch was deleted: `gh pr edit <BASE>_<ID> --base master`
+  - Sync `<BASE>_<ID>` with the now-updated `master`:
 
     ```bash
     > invoke git_merge_master
     ```
 
     then resolve whatever conflicts come up, commit, push
-    - This is a merge, not a rebase: if `<Base>_<id-1>` was squash-merged, expect
+    - This is a merge, not a rebase: if `<BASE>_<ID-1>` was squash-merged, expect
       a conflict even on identical content, since Git cannot tell the squashed
       commit and the original commits are the same change
-  - Repeat for `<Base>_<id+1>` once `<Base>_<id>`'s PR merges, continuing
+  - Repeat for `<BASE>_<ID+1>` once `<BASE>_<ID>`'s PR merges, continuing
     bottom-up until the stack is gone
 - Never force-push a branch whose PR has unresolved review comments without
   telling the user first
@@ -132,7 +132,7 @@ model: haiku
 - Follow `.claude/skills/auto_task.rules.md` for queue, spec, and naming conventions
 - Follow `.claude/skills/coding.rules.md` when implementing each task
 - Follow `.claude/skills/testing.rules.md` for the tests each task adds or runs
-- Follow the template `.claude/templates/github_PR_plan.template.md` if a task in the
+- Follow the template `.claude/templates/auto_task.template.md` if a task in the
   stack turns out to need splitting mid-run
 - Unlike a single-PR task in `.claude/skills/auto_task.rules.md`, a stack shares one
   issue across every branch
@@ -149,13 +149,13 @@ model: haiku
 
 # Verification
 
-- Every branch is named `<Base>_<id>`, including the first, with `id` increasing by
-  1 up the stack
-- Every branch's Git merge base is the previous branch in the stack, not `master`,
-  except `<Base>_1`, whose base is `master`
-- Every PR's base matches its parent branch in the stack, not the repo's default
-  branch, except `<Base>_1`'s PR, whose base is `master`
-- Every branch and PR in the stack was created under the one shared GH issue
-  created alongside `<Base>_1`
-- The tests touched by each task passed before that task's branch was pushed
-- The final report lists every branch and PR in dependency order with links
+- [ ] Every branch is named `<BASE>_<ID>`, including the first, with `ID` increasing
+  by 1 up the stack
+- [ ] Every branch's Git merge base is the previous branch in the stack, not
+  `master`, except `<BASE>_1`, whose base is `master`
+- [ ] Every PR's base matches its parent branch in the stack, not the repo's default
+  branch, except `<BASE>_1`'s PR, whose base is `master`
+- [ ] Every branch and PR in the stack was created under the one shared GH issue
+  created alongside `<BASE>_1`
+- [ ] The tests touched by each task passed before that task's branch was pushed
+- [ ] The final report lists every branch and PR in dependency order with links

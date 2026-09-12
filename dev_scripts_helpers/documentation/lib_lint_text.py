@@ -1168,6 +1168,21 @@ def _is_action_supported_for_format(action: str, extension: str) -> bool:
     return extension in VALID_ACTIONS[action]
 
 
+def get_actions_for_format(extension: str) -> List[str]:
+    """
+    Return the actions (in `VALID_ACTIONS` order) supported by a file format.
+
+    Used to keep the actions offered to the user (e.g., the CLI's action
+    selection table) limited to what actually applies to a given file type,
+    instead of listing every action and then skipping the unsupported ones
+    with a warning.
+
+    :param extension: The file extension (md, tex, txt, smd, typ).
+    :return: Actions supported for `extension`.
+    """
+    return [a for a in VALID_ACTIONS if extension in VALID_ACTIONS[a]]
+
+
 def _filter_actions_by_format(
     actions: Optional[List[str]], extension: str
 ) -> Optional[List[str]]:

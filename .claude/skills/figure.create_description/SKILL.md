@@ -31,3 +31,8 @@ model: opus
 - Keep the full description under 200 words unless the diagram is unusually
   complex
 - Do not invent details that are not present in the input
+
+# Verification
+- [ ] Confirm the description covers Overview, Structure, and Key insight
+- [ ] Confirm the description is under 200 words, or the diagram justifies more
+- [ ] Confirm every detail traces back to the input image or concept

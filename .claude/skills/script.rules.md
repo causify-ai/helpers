@@ -190,6 +190,43 @@
   hdbg.init_logger(verbosity=args.log_level, use_exec_path=True)
   ```
 
+## Forward `-v` to Every Called Script, So It Applies Recursively
+
+- When a script shells out to another script that itself takes `-v` (any
+  `hsystem.system()`/`subprocess` call building a command line for another repo
+  script), append `-v {log_level}` to that command
+- Do this unconditionally, not only when `args.log_level == "DEBUG"`: forwarding the
+  level always keeps behavior correct at every verbosity and avoids a conditional
+  that itself needs maintaining. The common trigger is a user passing `-v DEBUG` to
+  the outer script and expecting every script it calls to also run at `DEBUG`
+- Thread `log_level` through helper functions as an explicit `str` parameter (see
+  `log_level` in `_compress_pdf()`/`_release()` in
+  `gen_slides.py`/`render_book_chapter.py`), never read `args.log_level` deep inside
+  a helper that isn't passed `args`
+- `-v` is a short flag with no `--log_level` long form
+  (`hparser.add_verbosity_arg()`), so pass it as two separate tokens (`"-v"`,
+  `log_level`) or two words in one string (`f"-v {log_level}"`); never
+  `f"-v={log_level}"`, which argparse parses as the literal value `"=DEBUG"` and
+  rejects
+- **Bad**: `-v DEBUG` on the outer script never reaches `notes_to_pdf.py`
+  ```python
+  cmd = f"notes_to_pdf.py --input {input_file} --output {output_file}"
+  hsystem.system(cmd)
+  ```
+- **Good**
+  ```python
+  cmd = (
+      f"notes_to_pdf.py --input {input_file} --output {output_file} "
+      f"-v {args.log_level}"
+  )
+  hsystem.system(cmd)
+  ```
+- Applies to any script-to-script call in the repo (e.g., `gen_slides.py`
+  -> `notes_to_pdf.py`, `render_book_chapter.py` -> `run_typst.py`,
+  `for_loop_lessons.py` -> `gen_slides.py`/`render_book_chapter.py`); it
+  does not apply to calls to non-repo executables with no such flag
+  (e.g. `pandoc`, `open`, `typstyle`, `perl`)
+
 ## Do Not Use `action="store_true"` for a Path-Valued Flag
 
 - A flag that carries a path or string value must use `action="store"` (the
@@ -214,10 +251,8 @@
 
   ```verbatim
   -i, --input FILE      Select a single file
-  --files FILES
-                        Select specific files (space-separated list in a single argument)
-  --from_file FROM_FILE
-                        Path to file containing one file path per line
+  -f, --files FILES     Select specific files (space-separated list in a single argument)
+  --from_file FROM_FILE Path to file containing one file path per line
   --modified            Select only files modified in the client (staged and unstaged)
   --branch              Select only files modified with respect to the branch point
   --last_commit         Select only files part of the previous commit

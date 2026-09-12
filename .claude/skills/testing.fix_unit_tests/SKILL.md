@@ -9,30 +9,27 @@ model: haiku
 
 # Workflow
 
-## Step 1: Read Rules
+## Read Rules
 - Read the transformations from `.claude/skills/testing.rules.md` in the
   following headers
-  - `## Dedent Strings to the Code`
+  - `### Dedent Strings to the Code`
   - `## Test Method Names`
   - `## Use Helper Methods When You Have Repetitive Tests`
-  - `## Avoid Replicated Assignment`
-  - `## Consolidate inputs and outputs`
+  - `### Avoid Replicated Assignment`
+  - `## Consolidate Inputs and Outputs`
   - `## Assign Variables and Then Call Functions`
   - `## Compare Whole Output with assert_equal, Not Piecewise`
-  - `## Replace Checking Invariants with assert_equal`
+  - ``## Do Not Use `hdbg.dassert` to Test Assertions``
 
-## Step 2: Come up with Plan
+## Draft a Plan
 - Given the code passed in `<FILE>` and the list of all the transformations
   create a list of transformations and code lines to apply them, since the
   code violates them
 
-## Step 3: Implement Plan
+## Implement the Plan
 - Apply the transformations one at the time to the parts of the code
 
-## Step 4: Verification
-- Check that no remaining part of the code violates the list of transformations
-
-## Step 5: Refactor the Code
+## Refactor the Code
 - Run the skill `/coding.factor_common_code` on the file `<FILE>` to factor out
   common code
 
@@ -41,3 +38,8 @@ model: haiku
 - For all the code you must follow the instructions in:
   - `.claude/skills/coding.rules.md`
   - `.claude/skills/testing.rules.md`
+
+# Verification
+- [ ] Check that no remaining part of the code violates the list of
+  transformations
+- [ ] Run the tests and confirm behavior is unchanged

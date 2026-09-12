@@ -1,18 +1,18 @@
 ---
-description: Implement a Jupyter notebook from an outline description (including interactive notebooks with widgets)
+description: Implement a Jupyter notebook with widgets from an outline description
 model: opus
 ---
 
 # Goal
 
-- **Input**: A `notebook_outline.<tag>.md` outline file describing each notebook
+- **Input**: A `notebook_outline.<TAG>.md` outline file describing each notebook
   cell (created via `.claude/skills/notebook.create_outline/SKILL.md`)
 - **Outputs**:
   1. `.ipynb` file: Fully functional Jupyter notebook with working code,
      visualizations, and interactive widgets
   2. `.py` file: A Python file paired using `jupytext` to the `.ipynb` using
-     py:percent 
-  2. `*_utils.py` file: Reusable helper functions for the notebook code
+     py:percent
+  3. `*_utils.py` file: Reusable helper functions for the notebook code
 - **Purpose**: Implement the pedagogical design as a fully executable,
   interactive notebook
 - Each visualization follows the triplet structure:
@@ -36,17 +36,18 @@ model: opus
 - Follow `.claude/skills/notebook.rules.md`: General notebook conventions and
   structure, especially:
   - `## Visualization Cell Triplet Details`: Pre-viz and post-viz markdown cells
-  - `# Interactive Cells`: Widget patterns and comments panel conventions
+  - `# Visualization and Interactivity`: Widget patterns and comments panel
+    conventions
 - Follow outline cell format from `.claude/skills/notebook.create_outline/SKILL.md`
 - Follow `.claude/skills/coding.rules.md` for Python code in `*_utils.py` and in
   the Python cells in `.ipynb` file
 
 - Follow `.claude/skills/notebook.rules.md`
-  `# Utilities vs. Notebook Responsibilities` for organizing utility files and
-  notebooks
+  `# Code Architecture and Responsibility` -> `## Utilities vs. Notebook
+  Responsibilities` for organizing utility files and notebooks
 
 ## Code Organization
-- Follow the section `Utilities vs. Notebook Responsibilities` from the file
+- Follow the section `## Utilities vs. Notebook Responsibilities` from the file
   `.claude/skills/notebook.rules.md` for organizing utility files and notebook
   cells
 
@@ -88,5 +89,14 @@ model: opus
 
 # Sync with Jupytext
 - After all modifications are complete, sync the paired `.py` file with Jupytext
-  following the conventions in `# Setup and Initialization` → `## Utilities vs.
-  Notebook Responsibilities` in `.claude/skills/notebook.rules.md`
+  following the conventions in `# Code Architecture and Responsibility` ->
+  `## Utilities vs. Notebook Responsibilities` in
+  `.claude/skills/notebook.rules.md`
+
+# Verification
+- [ ] Confirm the `.ipynb`, paired `.py`, and `*_utils.py` files are in sync via
+  Jupytext
+- [ ] Run the notebook top to bottom following `## Testing Notebook` in
+  `.claude/skills/notebook.rules.md` and confirm it completes without errors
+- [ ] Check that every outline cell has a corresponding notebook cell and no
+  step from `notebook_outline.<TAG>.md` was skipped
