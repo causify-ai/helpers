@@ -5,8 +5,10 @@ model: haiku
 
 # Goal
 
-Write a concise, engaging, and educational "Today I Learned" (TIL) blog post
-about the topic / content from the user
+- Write a concise, engaging, and educational "Today I Learned" (TIL) blog post
+  about the topic / content from the user
+
+# Workflow
 
 ## Structure
 
@@ -29,10 +31,19 @@ about the topic / content from the user
   - End with key takeaways and actionable advice for readers who want to explore
     the topic further
 
-## Use Front Matter and TLDR
+## Use Front Matter and TL;DR
 
 - Add front matter as in `.claude/skills/blog.rules.md` `## Front Matter (YAML)`
 - Add TL;DR as in `.claude/skills/blog.rules.md` `## TL;DR Section`
+
+## Beautify
+
+- Run a command to format the code for proper visualization
+  ```bash
+  > prettier --tab-width 4 --prose-wrap always --print-width 80 -w <FILE>
+  ```
+
+# Conventions
 
 ## Tone
 
@@ -42,8 +53,8 @@ about the topic / content from the user
 
 ## Length
 
-- Keep the post between 500–1000 words and focus on clarity, practical value,
-  and genuine learning rather than exhaustive coverage
+- Keep the post between 500 and 1000 words and focus on clarity, practical
+  value, and genuine learning rather than exhaustive coverage
 
 ## Formatting Rules
 
@@ -55,9 +66,9 @@ about the topic / content from the user
   - `.claude/skills/markdown.rules.md`
   - `.claude/skills/text.rules.md`
 
-## Beautify
+# Verification
 
-- Run a command to format the code for proper visualization
-  ```
-  > prettier --tab-width 4 --prose-wrap always --print-width 80 -w <FILE>
-  ```
+- [ ] Confirm front matter and a TL;DR are present per
+      `.claude/skills/blog.rules.md`
+- [ ] Confirm the post is between 500 and 1000 words
+- [ ] Confirm `prettier` ran without errors

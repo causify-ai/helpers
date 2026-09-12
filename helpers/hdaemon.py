@@ -20,9 +20,11 @@ import helpers.hdaemon as hdaemon
 import argparse
 import hashlib
 import logging
+import os
 import shlex
+import tempfile
 import time
-from typing import Callable
+from typing import Callable, Optional
 
 import helpers.hdbg as hdbg
 import helpers.hsystem as hsystem
@@ -128,6 +130,25 @@ def _file_hash(file_path: str) -> str:
     return hasher.hexdigest()
 
 
+def get_conflict_marker_path(file_path: str) -> str:
+    """
+    Return the marker file path used to signal a write conflict on
+    `file_path`.
+
+    A watched command that rewrites `file_path` in place (e.g.
+    `render_images.py` re-rendering a `.typ` file) can detect that the user
+    changed the file while it was running and, instead of overwriting that
+    newer edit, touch this marker file. `_daemon_watch()` checks for it after
+    each run to tell a benign self-rewrite (settle, don't re-fire) apart from a
+    real conflict (keep waiting for quiet, then retry).
+
+    :param file_path: path to the watched file
+    :return: path to its conflict marker file
+    """
+    key = hashlib.md5(file_path.encode()).hexdigest()
+    return os.path.join(tempfile.gettempdir(), f"hdaemon.{key}.conflict")
+
+
 def _daemon_watch(
     file_path: str,
     cmd: str,
@@ -173,31 +194,57 @@ def _daemon_watch(
     _LOG.info("Initial run complete")
     # Build watch command with optional suffix.
     watch_cmd = cmd if not watch_cmd_suffix else cmd + watch_cmd_suffix
+    # Clear any stale marker left over from a previous, unrelated run.
+    conflict_marker = get_conflict_marker_path(file_path)
+    if os.path.exists(conflict_marker):
+        os.remove(conflict_marker)
     prev_hash = _file_hash(file_path)
-    stable_hash: str = ""
-    time_since_last_change = 0
+    # Wall-clock timestamp of the last detected change, so `debounce_sec` is
+    # measured in actual seconds regardless of `wait_in_sec` (counting polls
+    # instead would make the debounce period `wait_in_sec * debounce_sec`,
+    # correct only when `wait_in_sec == 1`).
+    last_change_time: Optional[float] = None
     while True:
         time.sleep(wait_in_sec)
         cur_hash = _file_hash(file_path)
         if cur_hash != prev_hash:
-            # File changed, start debounce.
+            # File changed, (re)start the debounce countdown.
             _LOG.info(
                 "File changed (hash: %s -> %s). Debouncing...",
                 prev_hash,
                 cur_hash,
             )
-            stable_hash = cur_hash
-            time_since_last_change = 0
             prev_hash = cur_hash
-        elif stable_hash:
-            # In debounce period, tracking time without changes.
-            time_since_last_change += 1
-            if time_since_last_change >= debounce_sec:
-                # Debounce complete, regenerate.
-                _LOG.info("Debounce complete. Regenerating...")
-                _run_cmd(watch_cmd)
-                _LOG.info("Regeneration complete")
-                stable_hash = ""
+            last_change_time = time.time()
+        elif (
+            last_change_time is not None
+            and time.time() - last_change_time >= debounce_sec
+        ):
+            # Debounce complete, regenerate.
+            _LOG.info("Debounce complete. Regenerating...")
+            _run_cmd(watch_cmd)
+            _LOG.info("Regeneration complete")
+            # Re-baseline against the post-run file content. The watched
+            # command itself can rewrite `file_path` in place (e.g.
+            # `render_images.py` rewriting a `.typ` file), and without this
+            # that self-inflicted change would look like a new user edit and
+            # immediately re-trigger another debounce cycle.
+            prev_hash = _file_hash(file_path)
+            if os.path.exists(conflict_marker):
+                # The command found the user had changed `file_path` while
+                # it was running and skipped writing its own output to avoid
+                # clobbering that edit. Don't treat this as settled: go back
+                # to waiting for quiet on the user's newer content, then
+                # retry.
+                os.remove(conflict_marker)
+                _LOG.info(
+                    "'%s' changed during the run; waiting for quiet again "
+                    "before retrying",
+                    file_path,
+                )
+                last_change_time = time.time()
+            else:
+                last_change_time = None
 
 
 def run_reactive_daemon_mode(
@@ -206,6 +253,8 @@ def run_reactive_daemon_mode(
     window_name_str: str,
     *,
     watch_cmd_suffix: str = "",
+    debounce_sec: int = 2,
+    wait_in_sec: int = 1,
 ) -> None:
     """
     Run daemon mode: watch file for changes and regenerate with debouncing.
@@ -218,10 +267,18 @@ def run_reactive_daemon_mode(
         --daemon), used to rebuild the command for the watch runs
     :param window_name_str: Tmux window name to use while daemon is running
     :param watch_cmd_suffix: Suffix to append to command for watch runs
+    :param debounce_sec: Debounce duration in seconds
+    :param wait_in_sec: Poll interval in seconds
     """
     # Build command without --daemon flag for _daemon_watch to execute.
     cmd_parts = [part for part in shlex.split(cmd) if part != "--daemon"]
     cmd = " ".join(shlex.quote(part) for part in cmd_parts)
     _LOG.info("Daemon mode: watching '%s' for changes", input_file)
     with htmux.window_name(window_name_str):
-        _daemon_watch(input_file, cmd, watch_cmd_suffix=watch_cmd_suffix)
+        _daemon_watch(
+            input_file,
+            cmd,
+            wait_in_sec=wait_in_sec,
+            watch_cmd_suffix=watch_cmd_suffix,
+            debounce_sec=debounce_sec,
+        )

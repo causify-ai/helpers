@@ -12,7 +12,7 @@ model: opus
 
 # Workflow
 
-## Step 1: Read the Material
+## Read the Material
 - Read `.claude/skills/slides.rules.md` for the rules that slides must follow
 
 - Read the slide deck file passed by the user
@@ -24,7 +24,7 @@ model: opus
   - What is the assumed prior knowledge?
   - Are there adjacent slide decks or prerequisite presentations?
 
-## Step 2: Criticize
+## Criticize
 - Read `.claude/skills/text.criticize/SKILL.md` to understand general approaches
   to review and criticize text
 
@@ -59,15 +59,21 @@ model: opus
     - Missing opportunities for interaction or questions
 
 - Rank each issue by severity:
-  - **HIGH**: loses attention, undermines a key point, or creates wrong takeaway
-  - **MEDIUM**: reduces clarity or engagement
-  - **LOW**: minor polish or consistency
+  - **High**: loses attention, undermines a key point, or creates wrong takeaway
+  - **Medium**: reduces clarity or engagement
+  - **Low**: minor polish or consistency
 
-## Step 3: Write Result
+## Write Result
 - Write results as `plan.slides.criticize.md` in the current directory
 
-## Step 4: Wait for Approval
+## Wait for Approval
 - Present the criticism to the user
 - Wait for the user to select items to apply by index and give corrections
 - Only then edit the slide deck
 - Preserve formatting, speaker notes, and visual structure
+
+# Verification
+- [ ] Make sure that the updated slides render correctly, e.g.,
+  ```bash
+  > gen_slides.py -i <FILE> --notes_to_pdf_args="--skip_action open_pdf"
+  ```

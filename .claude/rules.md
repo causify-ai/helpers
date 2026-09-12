@@ -23,7 +23,7 @@ rules
 
 ## Visuals
 - For diagrams, images, and other illustrations you MUST follow instructions in
-  `.claude/skills/visuals.rules.md`, specifically:
+  `.claude/skills/figure.rules.md`, specifically:
   - For Graphviz: you MUST follow the rules `.claude/skills/graphviz.rules.md` and
     the template `.claude/templates/graphviz.template.md`
   - For a publication-quality SVG figure: you MUST follow

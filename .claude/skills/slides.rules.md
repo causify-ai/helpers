@@ -475,7 +475,7 @@
   * Individual Treatment Effect
   - @Definition@: the impact of the treatment $T$ on the outcome $Y$ for an
     individual unit $i$ is:
-    $$\tau_i \defeq Y_i|do(T=t_1) - Y_i|do(T=t_0)$$
+    $$\tau_i \triangleq Y_i|do(T=t_1) - Y_i|do(T=t_0)$$
     - The effect $\tau_i$ of going from treatment $t_0$ to $t_1$ for unit $i$ is
       the difference in the outcome of that unit under $t_1$ compared to $t_0$
 
@@ -694,7 +694,7 @@ Use these commands consistently across all slides:
 - `$\EE[...]$`: Expectation (mean), instead of  `\mathbb{E}`
 - `$\VV[...]$`: Variance
 - `$\mathcal{X}$`: Sets or spaces (use calligraphic)
-- `\defeq`: "Defined as"
+- `\triangleq`: "Defined as" (≜) — see "Defining a New Quantity" below
 - `\iff`: "If and only if"
 - `\implies`: Logical implication ($X \implies Y$)
 - `\land`, `\lor`, `\lnot`: Logical and / or / not
@@ -718,6 +718,22 @@ Use these commands consistently across all slides:
   $$Rain \perp Sprinkler | Weather$$
   $$Rain \not\perp Sprinkler \iff Rain \leftrightarrow Sprinkler$$
   ```
+
+### Defining a New Quantity
+- When a formula defines a new named quantity (e.g., introducing MSE, precision,
+  an update rule's target symbol), use `\triangleq` (≜, "equal by definition"),
+  never `=`, `:=`, `\defeq`, or `\equiv`, for that first defining relation
+  - This mirrors the `eq.delta` convention used for the same purpose in the
+    Typst book chapters (see `.claude/skills/typst.rules.md`), so a definition
+    reads the same symbol whether in slides or in the rendered book
+- Keep plain `=` for everything else in the same formula: a later step that
+  simplifies or substitutes into an already-defined quantity, a computed
+  numeric result, an asserted property, or an algorithm's update/recurrence
+  rule
+- E.g., `$MSE \triangleq \frac{1}{N}\sum_{i=1}^N (h(\vx_i) - f(\vx_i))^2$`
+  defines MSE, while `$RMSE \triangleq \sqrt{MSE} = \sqrt{\frac{1}{N}
+  \sum_{i=1}^N (h(\vx_i) - f(\vx_i))^2}$` uses `\triangleq` only for the RMSE
+  definition and keeps `=` for substituting MSE's already-defined formula
 
 ### Avoid `\text{...}` in Math Mode
 - Do **not** use `\text{...}` for variable or concept names inside `$ $`
@@ -793,7 +809,7 @@ Use these commands consistently across all slides:
 # Visuals
 
 - Always add visuals to help explain the concepts
-  - Follow the instructions from `.claude/skills/visuals.rules.md`
+  - Follow the instructions from `.claude/skills/figure.rules.md`
 - When a slide pairs prose with a figure (graphviz/diagram) or a table, put
   them side by side in columns rather than stacking:
   ```

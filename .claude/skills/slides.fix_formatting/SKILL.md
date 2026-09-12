@@ -18,30 +18,31 @@ model: haiku
 
 - **Semantic tags and bold labels**: Ensure every first-level bullet starts
   with an approved `@Tag@` label
-  - See `slides.rules.md` → `# Slide Organization` → `## Use Tags for Slide
-    Sections` for the approved tag list and ordering
+  - See `.claude/skills/slides.rules.md`, section `## Use Tags for Slide
+    Sections`, for the approved tag list and ordering
   - Add a missing tag when a first-level bullet has none; do not invent a tag
     outside the approved list
 
 - **Bold and italic emphasis**: Apply `**bold**` and `_italic_` where the
   rules call for them
-  - See `slides.rules.md` → `# Slide Organization` → `## Use Bold` and
+  - See `.claude/skills/slides.rules.md`, sections `## Use Bold` and
     `## Use Italic`
   - When both apply to the same phrase, bold takes precedence: see
-    `slides.rules.md` → `### Emphasis Precedence: Bold Over Italic`
+    `.claude/skills/slides.rules.md`, section `### Emphasis Precedence: Bold
+    Over Italic`
 
 - **Unicode characters**: Replace non-ASCII characters with LaTeX equivalents
-  - See `slides.rules.md` → `# Slide Organization` → `## General Formatting
+  - See `.claude/skills/slides.rules.md`, sections `## General Formatting
     Rules` and `### Symbols and Characters`
 
-- **Emoji**: Remove emoji characters per `slides.rules.md` → `# Slide
-  Organization` → `## General Formatting Rules`
+- **Emoji**: Remove emoji characters per `.claude/skills/slides.rules.md`,
+  section `## General Formatting Rules`
 
-- **Page separators**: Remove `---` lines per `slides.rules.md` → `# Slide
-  Organization` → `## General Formatting Rules` and `### Spacing and Breaks`
+- **Page separators**: Remove `---` lines per `.claude/skills/slides.rules.md`,
+  sections `## General Formatting Rules` and `### Spacing and Breaks`
 
 - **Punctuation**: Remove trailing periods from bullet point phrases per
-  `slides.rules.md` → `# Slide Organization` → `## Slide Structure`
+  `.claude/skills/slides.rules.md`, section `## Slide Structure`
 
 ## Leave Structure and Content Unchanged
 - Do not change the structure of the text (titles, bullet hierarchy, div
@@ -50,4 +51,11 @@ model: haiku
 
 ## Output
 - Emit the improved output in markdown, wrapped to 80 columns (see
-  `slides.rules.md` → `## Use 80 columns`), without any other comment
+  `.claude/skills/slides.rules.md`, section `## Use 80 columns`), without any
+  other comment
+
+# Verification
+- [ ] Make sure that the updated slides render correctly, e.g.,
+  ```bash
+  > gen_slides.py -i <FILE> --notes_to_pdf_args="--skip_action open_pdf"
+  ```

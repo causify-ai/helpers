@@ -279,6 +279,8 @@ def _process_typst_file(
             cmd_line,
             "run_typst",
             watch_cmd_suffix=" --skip_action=open_pdf",
+            debounce_sec=4,
+            wait_in_sec=1,
         )
         return
     # Get actions.
@@ -327,7 +329,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
     hdbg.dassert_lt(
         0,
         len(files),
-        "No files selected; use -i/--input, --files, --from_file, "
+        "No files selected; use -i/--input, -f/--files, --from_file, "
         "--modified, --branch, --last_commit, or --all_files",
     )
     in_file_paths = [os.path.abspath(file_) for file_ in files]

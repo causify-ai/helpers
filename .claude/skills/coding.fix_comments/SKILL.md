@@ -9,3 +9,7 @@ model: haiku
     - `# Docstrings`
     - `# Comments`
   - You must not change the actual intention or behavior of the Python code
+
+# Verification
+- [ ] Confirm docstrings and comments follow `.claude/skills/coding.rules.md`
+- [ ] Confirm the code logic and behavior are unchanged

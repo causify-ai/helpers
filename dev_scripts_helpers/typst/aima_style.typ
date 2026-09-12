@@ -20,8 +20,8 @@
 #let aima-maroon = rgb("#8B3A62")
 #let aima-blue = rgb("#0066CC")
 #let aima-gray = rgb("#F0F0F0")
-#let aima-rust = rgb("#B5654A")
-#let aima-gold = rgb("#C9A96E")
+#let aima-rust = rgb("#91513B")
+#let aima-gold = rgb("#977F53")
 
 // Document-wide template: apply with `#show: aima-style`
 #let aima-style(body) = {
@@ -80,7 +80,7 @@
     } else if it.level == 3 {
       block(spacing: 0.6em)[
         #v(0.6em)
-        #set text(size: 10pt, weight: "bold", fill: aima-gold)
+        #set text(size: 12pt, weight: "bold", fill: aima-gold)
         #numbering("1.1.1", ..nums)
         #h(0.4em)
         #it.body
@@ -89,6 +89,13 @@
     } else {
       it
     }
+  }
+
+  // Figure/table captions render smaller than body text (mirrors the
+  // `\footnotesize` caption convention used in the `.smd` slide source).
+  show figure.caption: it => {
+    set text(size: 9pt)
+    it
   }
 
   body
@@ -175,13 +182,23 @@
     breakable: false,
     stroke: 0.5pt + rgb("#E0E0E0"),
   )[
-    #set text(weight: "bold", size: 8pt, font: "CMU Typewriter")
+    #set text(weight: "bold", size: 8pt, font: "CMU Typewriter Text")
     //#set text(weight: "bold", size: 8pt, font: "Courier New")
     Figure. #name
     #v(0.2em)
-    #set text(weight: "regular", size: 7.8pt, font: "CMU Typewriter", fill: black)
+    #set text(weight: "regular", size: 7.8pt, font: "CMU Typewriter Text", fill: black)
     //#set text(weight: "regular", size: 7.8pt, font: "Courier New", fill: black)
-    #content
+    // `content` is an array of steps at every call site (e.g.
+    // `#algorithm("Name", ([Step one.], [Step two.]))`), not a single content
+    // value, so interpolating it directly with `#content` prints Typst's debug
+    // repr (`sequence(...)`, `strong(body: ...)`) instead of rendering the
+    // text. Render it as a numbered list of steps; fall back to plain content
+    // for the rare single-block call.
+    #if type(content) == array {
+      enum(..content)
+    } else {
+      content
+    }
   ]
 }
 

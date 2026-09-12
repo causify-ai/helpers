@@ -11,7 +11,7 @@ model: sonnet
 
 # Workflow
 
-## Step 1: Read File
+## Read File
 
 - Read the file `<FILE>` to understand its code structure:
   - Parse all function and class definitions
@@ -20,7 +20,7 @@ model: sonnet
   - Identify external dependencies (imports from other modules, libraries)
   - Note the module's purpose and role in the broader system
 
-## Step 2: Check the Existing Readme
+## Check the Existing Readme
 
 - Check if `<FILE>.README.md` already exists:
   - If it exists, read it and plan what to update
@@ -28,12 +28,12 @@ model: sonnet
 
 - Make sure there is a note in the docstring of the corresponding files
   pointing to `<FILE>.README.md`, e.g.,
-  ```
+  ```text
   For a description of the architecture of this file, see the file
   <FILE>.README.md
   ```
 
-## Step 3: Generate Document
+## Generate Document
 
 - Follow the template `.claude/templates/architecture_doc.template.md`
 
@@ -42,7 +42,7 @@ model: sonnet
   - `.claude/skills/markdown.rules.md` for markdown formatting
   - `.claude/skills/text.rules.md` for text formatting
 
-## Step 4: Update Document
+## Update Document
 
 - Write the results to `<FILE>.README.md` in the same directory as `<FILE>`
 
@@ -87,3 +87,10 @@ model: sonnet
 - Do not invent architecture that is not present in the code
 - When uncertain about intent, mark the observation as an assumption
 - Do not use emojis or decorative formatting
+
+# Verification
+
+- [ ] `<FILE>.README.md` exists and documents `<FILE>`'s architecture
+- [ ] The docstring in `<FILE>` references `<FILE>.README.md`
+- [ ] Diagrams use Mermaid syntax with the C4 element types
+- [ ] No architecture is invented that is not present in the code

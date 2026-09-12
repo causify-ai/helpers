@@ -21,8 +21,7 @@ model: haiku
 
 - Follow `.claude/skills/auto_task.rules.md` for queue, spec, and naming conventions
 - Follow `.claude/skills/coding.rules.md` when implementing each task
-- Follow `.claude/skills/testing.rules.md` for the tests each task adds or runs stack
-  turns out to need splitting mid-run
+- Follow `.claude/skills/testing.rules.md` for the tests each task adds or runs
 
 # Constraints
 
@@ -34,7 +33,7 @@ model: haiku
 ## Confirm the Task List
 
 - Read `<FILE>` and extract the list of tasks
-  ```
+  ```text
   ### [ ] <Goal of first task>
   - <Change 1>
   - <Change 2>
@@ -54,7 +53,7 @@ model: haiku
 
 ### Execute Each Task
 
-- Execute each task following the instructions in `@.claude/instr.md`
+- Execute each task following the instructions in `@.claude/task_instructions.md`
 - Keep updated the `<FILE>` by marking task `[ ] ...` with
   - `[-]` in progress
   - `[x]` when done
@@ -73,3 +72,11 @@ model: haiku
   changes and then commit
 - Once the user confirms that the N-th task is complete, move to the N+1 following
   the same procedure as per `Loop over the Tasks`
+
+# Verification
+- [ ] Every task's status in `<FILE>` reflects its actual progress (`[ ]`, `[-]`,
+  or `[x]`)
+- [ ] The tests touched by each task pass locally and in CI before that task is
+  marked done
+- [ ] No task started before its spec was clarified with the user
+- [ ] No commit was made without the user's confirmation

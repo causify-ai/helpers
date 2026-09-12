@@ -1,5 +1,5 @@
 ---
-description: Summarize markdown content preserving header structure and converting to bullet points
+description: Summarize markdown content into bullet points while preserving header structure
 model: sonnet
 ---
 
@@ -27,11 +27,11 @@ model: sonnet
 
 # Workflow
 
-## 1. Parse Input
+## Parse Input
 - Read file from `<INPUT>` path
 - Extract headers using markdown syntax (# ## ### etc.)
 
-## 2. Determine Header Strategy
+## Determine Header Strategy
 
 **Case A: Input has header structure**
 - Extract all headers from the document
@@ -41,38 +41,39 @@ model: sonnet
 - Skip header extraction
 - Proceed directly to summarization
 
-## 3. Apply Header Level Filter
+## Apply Header Level Filter
 
 **If `<MAX_HEADER_LEV>` not specified:**
 - Preserve all header levels from original
 - Prefix headers with chapter numbers (e.g., `# 1. Title`, `## 1.1. Subtitle`)
 
 **If `<MAX_HEADER_LEV>` specified:**
-- Keep only headers with level ≤ `<MAX_HEADER_LEV>`
+- Keep only headers with level <= `<MAX_HEADER_LEV>`
 - Summarize/collapse all deeper sections into bullet points
-- Example: `<MAX_HEADER_LEV>` = 1 → only H1 headers kept, all H2+ become bullets
+- Example: `<MAX_HEADER_LEV>` = 1 results in only H1 headers kept, all H2+
+  become bullets
 
-## 4. Calculate Target Length
-- Count original word count → `<ORIG_NUM_WORDS>`
-- If `<FRACTION>` given: `<TARGET_WORDS>` = `<ORIG_NUM_WORDS>` × `<FRACTION>`
+## Calculate Target Length
+- Count original word count as `<ORIG_NUM_WORDS>`
+- If `<FRACTION>` given: `<TARGET_WORDS>` = `<ORIG_NUM_WORDS>` x `<FRACTION>`
 - If `<NUM_WORDS>` given: `<TARGET_WORDS>` = `<NUM_WORDS>`
 
-## 5. Summarize Content
+## Summarize Content
 - Convert to nested bullet points
 - Follow rules from:
   - `.claude/skills/markdown.rules.md`
   - `.claude/skills/text.rules.md`
 - Constraints:
-  - All mathematical formulas → LaTeX format
+  - Convert all mathematical formulas to LaTeX format
   - Wrap text at 80 columns
-  - Target `<TARGET_WORDS>` word count (±10% tolerance)
+  - Target `<TARGET_WORDS>` word count (within 10% tolerance)
   - Preserve key concepts and important details
 
-## 6. Output Results
-- Print statistics: `<ORIG_NUM_WORDS>` → actual output word count
+## Output Results
+- Print statistics: `<ORIG_NUM_WORDS>` compared to actual output word count
 - Write `explanation.<tag>.md` file (overwrite if exists)
 
-## 7. Interactive Follow-up
+## Interactive Follow-up
 - Wait for user questions
 - Answer questions referencing specific sections of the summary
 
@@ -106,9 +107,9 @@ model: sonnet
 | Empty input | Return error message |
 | Very short input | Return minimal summary maintaining structure |
 
-# Success Criteria
+# Verification
 
-- [ ] Output word count ≈ `<TARGET_WORDS>` (within 10%)
+- [ ] Output word count is close to `<TARGET_WORDS>` (within 10%)
 - [ ] Header structure preserved (or filtered by `<MAX_HEADER_LEV>`)
 - [ ] All key information extracted into bullet points
 - [ ] Text wrapped at 80 columns

@@ -3,7 +3,9 @@ description: Convert formulas in the image to their Latex equivalent
 model: haiku
 ---
 
+# Goal
 - Convert image with a mathematical formula into the equivalent Latex
 - Follow the rules and conventions in `.claude/skills/latex.rules.md`
 
-- Do not emit anything else only the Latex output
+# Constraints
+- Emit only the Latex output, nothing else

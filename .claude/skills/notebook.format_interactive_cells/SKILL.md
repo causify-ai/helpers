@@ -1,5 +1,5 @@
 ---
-description: Format the markdown cells corresponding to interactive cells in a Jupyter Notebook
+description: Format markdown cells corresponding to interactive cells in a Jupyter notebook
 model: haiku
 ---
 
@@ -13,7 +13,7 @@ model: haiku
 
 # Workflow
 
-## Step 1
+## Update the Cell Triplets
 - Update all markdown cells around interactive cells to follow the triplet
   structure:
   - **Before the visualization**: A markdown cell with the goal, plot
@@ -24,15 +24,22 @@ model: haiku
 - Follow the conventions from `## Visualization Cell Triplet Details`
   in `.claude/skills/notebook.rules.md`
 
-## Step 2
+## Sync with Jupytext
 - At the end, sync the paired `.py` file with Jupytext following the conventions
-  in `# Setup and Initialization` → `## Utilities vs. Notebook Responsibilities`
-  in `.claude/skills/notebook.rules.md`
+  in `# Code Architecture and Responsibility` -> `## Utilities vs. Notebook
+  Responsibilities` in `.claude/skills/notebook.rules.md`
 
-## Conventions
+# Conventions
 - Follow the rules in `.claude/skills/notebook.rules.md`, especially:
   - `## Visualization Cell Triplet Details` for the structure of pre- and
     post-visualization markdown cells
-  - `## Interactive Cells` for the interactive widget patterns
+  - `# Visualization and Interactivity` for the interactive widget patterns
   - `## Cell Triplet Structure` for the overall three-cell organization
+
+# Constraints
 - Do not change the intent of the notebook
+
+# Verification
+- [ ] Confirm each interactive cell has both a pre- and post-visualization
+  markdown cell
+- [ ] Confirm the `.ipynb` and paired `.py` file are in sync via Jupytext

@@ -1,27 +1,33 @@
 ---
-description: Find and update the references in other Git repos to files that were moved, renamed, or deleted in the current Git repo
+description: Update references in other Git repos to files moved, renamed, or deleted here
 model: haiku
 ---
 
-# Step 1
+# Goal
+- Find files that were moved, renamed, updated, or deleted in the current repo
+  and update all references to them in the other Git repos
+
+# Workflow
+
+## Find Changed Files
 - Find all the files moved, renamed, updated, or deleted in the current repo
-  using a command line
+  using a command line:
   ```bash
   > invoke git_files --branch --only-print-files
   ```
 
-- Print all the file that are moved, renamed, or deleted
+- Print all the files that are moved, renamed, or deleted
   - Print the main functions changed
 
-# Step 2
-- For each file `<FILE>`, look for all the references to `<FILE>` in the repos
+## Search for References
+- For each file `<FILE>`, look for all the references to `<FILE>` in the repos:
   - `helper`: the current repo
   - `umd_classes`: located at `~/src/umd_classes1`
   - `csfy`: located at `~/src/csfy1`
   - `orange`: located at `~/src/orange1`
   - `lemonade`: located at `~/src/lemonade1`
 
-- You must
+- You must:
   - Ignore searching in any Git sub repository of each repo (e.g.,
     `helpers_root`)
   - Only search in files that are under Git control
@@ -48,14 +54,19 @@ model: haiku
   }
   ```
 
-- Print the references in a table organized by
+- Print the references in a table organized by:
   - Repos
   - Files
 
 - Create a vim quickfile cfile for the locations using the conventions in
-  `@.claude/skills/cfile.rules.md`
+  `.claude/skills/cfile.rules.md`
 
 - Pause and ask the user to continue
 
-# Step 3
+## Update References
 - Update the references in all the repos
+
+# Verification
+- [ ] Confirm every reference to each moved, renamed, or deleted file was
+      updated in every repo
+- [ ] Re-run the search and confirm no stale reference remains

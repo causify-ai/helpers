@@ -25,12 +25,12 @@ model: haiku
 - Never collapse a sub-point into a colon-joined clause on the parent bullet:
   shorten the words in each bullet, don't merge bullets together
   - **Bad**
-    ```
+    ```markdown
     - **Collections of data**: organized datasets for analysis
       - E.g., customer purchase histories in CRM
     ```
   - **Good**
-    ```
+    ```markdown
     - **Collections of data**
       - Organized datasets for analysis
       - E.g., customer purchase histories in CRM
@@ -45,20 +45,20 @@ model: haiku
 - Delete a whole bullet point outright when it is unclear or adds no
   information beyond a nearby bullet, rather than trying to trim it
   - E.g., for a slide in input like:
-    ```
+    ```markdown
     * Slide title
     - This is a very long bullet point that is not clear and should be removed
     - This is a clear bullet point that should be kept
     ```
     the output is:
-    ```
+    ```markdown
     * Slide title
     - This is a clear bullet point that should be kept
     ```
 
 ## Example
 - Input
-  ```
+  ```markdown
   - **Collections of data**
     - Aggregated, organized data sets for analysis
     - E.g., customer purchase histories in a CRM system
@@ -81,7 +81,7 @@ model: haiku
   ```
 
 - Output
-  ```
+  ```markdown
   - **Collections of data**
     - Organized datasets for analysis
     - E.g., customer purchase histories in a CRM
@@ -101,4 +101,10 @@ model: haiku
   - **Models**
     - Statistical tools to _forecast, explain_
     - E.g., churn prediction from customer behavior
+  ```
+
+# Verification
+- [ ] Make sure that the updated slides render correctly, e.g.,
+  ```bash
+  > gen_slides.py -i <FILE> --notes_to_pdf_args="--skip_action open_pdf"
   ```

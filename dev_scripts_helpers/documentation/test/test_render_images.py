@@ -1739,6 +1739,120 @@ class Test_render_images1(hunitest.TestCase):
         """
         self.helper(in_lines, file_ext, expected)
 
+    def test26(self) -> None:
+        """
+        Check that trailing `width=`/`placement=` metadata lines in a Typst
+        file are applied to the rendered `#figure(...)` (regression test:
+        these used to be silently dropped from the figure and leaked as raw,
+        uncommented text into the output).
+        """
+        in_lines = r"""
+        ```graphviz
+        digraph { A -> B }
+        ```
+        label=fig:test_diagram
+        caption=Test diagram caption
+        width=80%
+        placement=none
+        """
+        file_ext = "typ"
+        expected = r"""
+        // rendered_images:begin
+        // ```graphviz
+        // digraph { A -> B }
+        // ```
+        // label=fig:test_diagram
+        // caption=Test diagram caption
+        // width=80%
+        // placement=none
+        // rendered_images:end
+        // render_images:begin
+        #figure(
+          image(
+            "figs/out.1.png",
+            width: 80%,
+          ),
+          caption: [Test diagram caption],
+          kind: "figure",
+          supplement: [Fig.],
+          placement: none,
+        ) <fig:test_diagram>
+        // render_images:end
+        """
+        self.helper(in_lines, file_ext, expected)
+
+
+# #############################################################################
+# Test_render_images_metadata1
+# #############################################################################
+
+
+class Test_render_images_metadata1(hunitest.TestCase):
+    """
+    Test that `_render_images()` rejects trailing metadata keys that are not
+    recognized for the target output file's extension, instead of silently
+    leaking them into the rendered output.
+    """
+
+    def helper(self, txt: str, file_ext: str) -> None:
+        txt_lines = hprint.dedent(
+            txt, remove_lead_trail_empty_lines_=True
+        ).split("\n")
+        out_file = os.path.join(self.get_scratch_space(), f"out.{file_ext}")
+        dst_ext = "png"
+        dst_dir = os.path.join(self.get_scratch_space(), "figs")
+        with self.assertRaises(AssertionError):
+            dshdreim._render_images(
+                txt_lines,
+                out_file,
+                dst_ext,
+                dst_dir,
+                dry_run=True,
+            )
+
+    def test1(self) -> None:
+        """
+        Check that an unknown metadata key (typo) in a Typst file is
+        rejected.
+        """
+        in_lines = r"""
+        ```graphviz
+        digraph { A -> B }
+        ```
+        label=fig:test_diagram
+        bogus=oops
+        """
+        self.helper(in_lines, "typ")
+
+    def test2(self) -> None:
+        """
+        Check that `width=` metadata is rejected in a Markdown file, since
+        size there is only supported via the `[...]` fence bracket, not as
+        trailing metadata.
+        """
+        in_lines = r"""
+        ```graphviz
+        digraph { A -> B }
+        ```
+        caption=Test diagram caption
+        width=80%
+        """
+        self.helper(in_lines, "md")
+
+    def test3(self) -> None:
+        """
+        Check that `placement=` metadata is rejected in a LaTeX file, since
+        LaTeX output does not support a placement override.
+        """
+        in_lines = r"""
+        ```graphviz
+        digraph { A -> B }
+        ```
+        label=fig:test_diagram
+        placement=none
+        """
+        self.helper(in_lines, "tex")
+
 
 # #############################################################################
 # Test_render_images2

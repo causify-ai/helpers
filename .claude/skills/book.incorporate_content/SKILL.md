@@ -16,3 +16,9 @@ model: sonnet
 
 - Propose how to integrate the `<CONTENT>` in `<TARGET>` using bullet points
   following `.claude/skills/markdown.rules.md` and `.claude/skills/text.rules.md`
+
+# Verification
+- [ ] Confirm the proposed location exists in `<TARGET>` (e.g., a real
+      chapter or slide)
+- [ ] Confirm the proposal follows `.claude/skills/markdown.rules.md` and
+      `.claude/skills/text.rules.md`

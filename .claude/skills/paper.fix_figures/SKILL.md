@@ -1,5 +1,5 @@
 ---
-description: Fix figures in a LaTeX paper by ensuring every figure has a label, caption, and is referenced in the text
+description: Add labels, captions, and text references to every figure in a LaTeX paper
 model: haiku
 ---
 
@@ -50,7 +50,7 @@ model: haiku
 
 - If a figure has no caption or label, infer them from the filename and
   surrounding context
-  - E.g., `figs/02_architecture.1.png` → `label=fig:architecture`,
+  - E.g., `figs/02_architecture.1.png` becomes `label=fig:architecture`,
     `caption=System architecture overview`
 - Choose label names that are short, lowercase, and use underscores
 
@@ -67,3 +67,10 @@ model: haiku
 - Scan the text for `\ref{fig:xxx}` or `\ref{tab:xxx}` that have no matching
   `\label{fig:xxx}` or `\label{tab:xxx}` in any figure or table environment
 - Report orphaned references as warnings; do not silently delete them
+
+# Verification
+
+- [ ] Every figure and table has a `\label` and a `\caption`
+- [ ] Every figure and table `\label` is referenced by a `\ref` in the text
+- [ ] No orphaned `\ref{fig:xxx}` or `\ref{tab:xxx}` exists without a matching
+      `\label` in any figure or table environment

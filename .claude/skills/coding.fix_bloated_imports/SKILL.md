@@ -3,7 +3,7 @@ description: Fix Python imports of large packages needed only for few functions 
 model: haiku
 ---
 
-- I will pass you one of more files `<FILES>` and one or more packages `<PACKAGES>` that
+- I will pass you one or more files `<FILES>` and one or more packages `<PACKAGES>` that
   are usually large to import (e.g., `ipython`, `pandas`) and are needed only in
   few functions in the files
 
@@ -27,16 +27,22 @@ model: haiku
         ...
     ```
 
-- You want to use forward imports only for the types in the package to remove and
-  not for the including 
-  - **Bad**
+- Use forward references only for the types in the package to remove and
+  not for the including
+  - **Bad** (quotes the whole expression as one string)
     ```python
     "Tuple[Union[ipywidgets.FloatSlider, ipywidgets.IntSlider], ipywidgets.HBox]"
     ```
-  - **Good**
+  - **Good** (quotes only the package types)
     ```python
     Tuple[Union["ipywidgets.FloatSlider", "ipywidgets.IntSlider"], "ipywidgets.HBox"]
     ```
 
 - If you see that most of the functions in `<FILES>` require the passed package
   `<PACKAGES>`, you might suggest to not do this transform
+
+# Verification
+- [ ] Confirm `<PACKAGES>` is imported only under `TYPE_CHECKING` or inside the
+      functions that use it
+- [ ] Confirm forward references quote only the package types, not full
+      expressions
