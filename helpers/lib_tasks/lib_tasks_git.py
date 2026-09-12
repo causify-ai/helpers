@@ -933,7 +933,7 @@ def git_branch_copy(  # type: ignore
     use_patch=False,
     check_branch_name=True,
     method="auto",
-    submodules=True,
+    submodules=False,
 ):
     """
     Create a new branch with the same content of the current branch.
@@ -948,10 +948,10 @@ def git_branch_copy(  # type: ignore
         - 'github_api': use only GitHub API method (fast)
         - 'linear_scan': use only linear scan method (always works)
     :param submodules: also fetch/merge master in submodules when syncing
-        with master. Set to `False` to avoid errors like "refusing to
-        fetch into branch ... checked out" when a submodule (e.g.,
-        `helpers_root`) has its master branch checked out in its own
-        git dir
+        with master (default: `False`, since this otherwise causes errors
+        like "refusing to fetch into branch ... checked out" when a
+        submodule, e.g., `helpers_root`, has its master branch checked out
+        in its own git dir)
     """
     # Patch-based copying is not yet implemented.
     hdbg.dassert(

@@ -23,10 +23,9 @@ model: haiku
   exploratory or need a tight local feedback loop between runs
 - Prefer `.claude/skills/auto_task.execute_with_stacked_prs/SKILL.md` when tasks form
   a real dependency chain and must be branched from each other, not run independently
-- If a task's spec is unclear or incomplete:
-  - Stop before dispatching it
-  - Ask for clarification on that task
-  - Do not guess and let a remote run build on top of a guess
+- Follow `.claude/skills/auto_task.rules.md` section "Ask for Clarification
+  Before Executing an Unclear Plan" when a task's spec is unclear or
+  incomplete: do not let a remote run build on top of a guess
 
 # Conventions
 
@@ -55,7 +54,7 @@ model: haiku
 
 ## Confirm the Task List
 
-- Read `<FILE>` and extract the list of tasks comprising the largest task
+- Read `<FILE>`, wrapped around the task list like
   ```text
   # Title
   <TITLE>
@@ -73,11 +72,11 @@ model: haiku
   - <Change 1>
   - <Change 2>
   ```
-- Check that each task states a problem and a solution
-- Keep `<FILE>` updated by marking each task
-  - `[-]` in progress (dispatched, remote run not finished)
-  - `[x]` done (PR ready for human review)
-  - `[ ]` not started
+- Follow `.claude/skills/auto_task.rules.md` section "Confirm the Task List
+  Before Executing" for the task list format and the problem/solution check
+- Keep `<FILE>` updated per that file's section "Track Task Status": `[-]`
+  means dispatched with the remote run not finished, `[x]` means the PR is
+  ready for human review
 
 ## Dispatch Each Task
 
@@ -88,9 +87,11 @@ model: haiku
   ```bash
   > git_create_issue_and_branch.py \
       --gh_issue_title "<TITLE>" \
-      --gh_issue_body_file <FILE> \
-      --no_submodules
+      --gh_issue_body_file <FILE>
   ```
+  - By default this only opens a branch/PR in the outer repo; pass `--submodules`
+    when the task also touches a submodule, per
+    `.claude/skills/auto_task.rules.md`
 - Return to `master` once the branch and draft PR exist: the implementation happens
   on GitHub, not in this checkout
   ```bash

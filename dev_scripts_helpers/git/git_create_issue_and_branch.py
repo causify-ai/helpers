@@ -6,9 +6,9 @@ Create a GitHub issue and corresponding git worktree for a repo.
 Workflow:
 1. Creates a GitHub issue with the provided title and body (or uses existing
    issue ID) in one repo
-2. Creates a git branch (and worktree) based on the issue ID, symmetrically
-   in the outer repo and, if present, every submodule (e.g., `helpers_root`)
-   unless `--no_submodules` is passed
+2. Creates a git branch (and worktree) based on the issue ID, in the outer
+   repo only, unless `--submodules` is passed, in which case it also branches,
+   symmetrically, every submodule (e.g., `helpers_root`)
 3. Commits workflow template files to the branch
 4. Prints instructions for using the worktree
 
@@ -55,7 +55,7 @@ _LOG = logging.getLogger(__name__)
 
 
 # TODO(gp): This is general enough that it could go in hgit.py
-def _get_repo_targets(no_submodules: bool) -> List[str]:
+def _get_repo_targets(submodules: bool) -> List[str]:
     """
     Return the repo directories to operate on symmetrically.
 
@@ -63,13 +63,14 @@ def _get_repo_targets(no_submodules: bool) -> List[str]:
     `repo_targets[0]` being the outer repo and `repo_targets[1:]` being the
     submodules.
 
-    :param no_submodules: if True, disable symmetric submodule handling and
-        always return the outer repo only, even if submodules are present
+    :param submodules: if True, enable symmetric submodule handling and
+        also return every submodule, if present; if False, always return
+        the outer repo only, even if submodules are present
     :return: `["."]`, or `["."] + <submodule paths>` when submodules are
-        present and `no_submodules` is False
+        present and `submodules` is True
     """
     repo_targets = ["."]
-    if not no_submodules and hgit.has_submodules():
+    if submodules and hgit.has_submodules():
         repo_targets.extend(hgit.get_submodule_paths())
     _LOG.debug("repo_targets=%s", repo_targets)
     return repo_targets
@@ -452,12 +453,13 @@ def _parse() -> argparse.ArgumentParser:
         help="Skip creating a draft PR for the branch (default: create a draft PR)",
     )
     parser.add_argument(
-        "--no_submodules",
+        "--submodules",
         action="store_true",
         default=False,
         help=(
-            "Disable symmetric submodule handling and only operate on the "
-            "outer repo, even if submodules are present"
+            "Enable symmetric submodule handling: also create the branch "
+            "(and PR) in every submodule, if present. Default: operate on "
+            "the outer repo only"
         ),
     )
     parser.add_argument(
@@ -488,7 +490,7 @@ def _main_workflow(
     :param args: Parsed command-line arguments
     :param original_branch: Original git branch name for restoration
     :param repo_targets: repo directories to operate on symmetrically (outer
-        repo first, then every submodule, unless `--no_submodules` was passed)
+        repo first, then every submodule, when `--submodules` was passed)
     """
     # Load issue body from file or use provided text.
     gh_issue_body = _get_issue_body(args.gh_issue_body, args.gh_issue_body_file)
@@ -570,8 +572,8 @@ def _main(parser: argparse.ArgumentParser) -> None:
     args = parser.parse_args()
     hdbg.init_logger(verbosity=args.log_level)
     # Determine which repos to operate on symmetrically (outer + submodules,
-    # unless `--no_submodules` was passed).
-    repo_targets = _get_repo_targets(args.no_submodules)
+    # when `--submodules` was passed).
+    repo_targets = _get_repo_targets(args.submodules)
     # Assert that every repo target is clean (no uncommitted changes), before
     # mutating any of them.
     _dassert_all_targets_clean(repo_targets)

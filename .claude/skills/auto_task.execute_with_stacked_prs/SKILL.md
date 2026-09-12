@@ -22,10 +22,9 @@ model: haiku
 - Use it only when the tasks favor stacked execution: specs are complete, tasks form
   a real dependency chain, and the user prefers one batch review over interruptions
 
-- If a task's spec is unclear or incomplete:
-  - Stop before stacking it
-  - Ask for clarification on that task
-  - Do not guess and keep building downstream tasks on top of a guess
+- Follow `.claude/skills/auto_task.rules.md` section "Ask for Clarification
+  Before Executing an Unclear Plan" when a task's spec is unclear or
+  incomplete: do not keep building downstream tasks on top of a guess
 
 - Make sure that once you start implementing the stack all the doubts have been
   clarified by asking to the user, so that you can proceed without interruptions
@@ -34,17 +33,9 @@ model: haiku
 
 ## Confirm the Task List
 
-- Read the ordered tasks that will become the stack's branches and check each one
-  states a problem and a solution
-  ```text
-  ### [ ] <Goal of first task>
-  - <Change 1>
-  - <Change 2>
-
-  ### [ ] <Goal of second task>
-  - <Change 1>
-  - <Change 2>
-  ```
+- Follow `.claude/skills/auto_task.rules.md` section "Confirm the Task List
+  Before Executing" for the task list format and the problem/solution check;
+  these ordered tasks are the stack's branches, one task per branch
 - Confirm task `<ID+1>` depends only on task `<ID>`, not on `master` and not on an
   earlier task in the list
 - If the order or a dependency is unclear, ask before starting: fixing a wrong
