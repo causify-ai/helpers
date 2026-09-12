@@ -446,6 +446,8 @@ def git_files(  # type: ignore
     last_commit=False,
     all_files=False,
     #
+    branch_point=False,
+    #
     file_types="",
     skip_file_types="",
     pbcopy=False,
@@ -454,15 +456,22 @@ def git_files(  # type: ignore
     mode="files",
 ):
     """
-    Report which files are changed in the current branch with respect to master.
+    Report which files are changed in the current branch with respect to
+    `origin/master`.
 
     File selection options (mutually exclusive):
     :param files: Specific files (space-separated string)
     :param from_file: Path to file containing file list (one per line)
     :param modified: Select files modified in the client
-    :param branch: Select files modified with respect to branch point (default)
+    :param branch: Select files modified with respect to the tip of
+        `origin/master` (default)
     :param last_commit: Select files from last commit
     :param all_files: Select all repo files
+
+    :param branch_point: only relevant with `branch`; instead of the files
+        currently different vs the tip of `origin/master`, select every file
+        touched since the branch diverged from `origin/master` (i.e., since the
+        merge-base, aka "branch point").
 
     Filtering options:
     :param file_types: Comma-separated list of file extensions to include
@@ -499,6 +508,7 @@ def git_files(  # type: ignore
         last_commit,
         all_files,
         mutually_exclusive=mutually_exclusive,
+        branch_point=branch_point,
         remove_dirs=remove_dirs,
     )
     # Filter by file type.

@@ -1445,12 +1445,15 @@ def get_previous_committed_files(
 
 
 def get_modified_files_in_branch(
-    dst_branch: str, dir_name: str = ".", remove_files_non_present: bool = True
+    dst_branch: str,
+    *,
+    dir_name: str = ".",
+    remove_files_non_present: bool = True,
+    use_branch_point: bool = False,
 ) -> List[str]:
     """
     Return files modified in the current branch with respect to `dst_branch`.
 
-    Equivalent to `git diff --name-only master...`
     Please remember that there is a difference between `master` and `origin/master`.
     See https://stackoverflow.com/questions/18137175
 
@@ -1458,12 +1461,24 @@ def get_modified_files_in_branch(
     :param dst_branch: branch to compare to, e.g., `master`, `HEAD`
     :param remove_files_non_present: remove the files that are not
         currently present in the client
+    :param use_branch_point: control which Git diff notation is used
+        - `False` (default): equivalent to `git diff --name-only dst_branch..`,
+          i.e., the files that are currently different between the tip of
+          `dst_branch` and the current branch (the diff a PR would actually
+          show)
+        - `True`: equivalent to `git diff --name-only dst_branch...`, i.e., the
+          files touched by any commit since the current branch diverged from
+          `dst_branch` (the merge-base, aka "branch point"). On a long-lived
+          branch that hasn't been rebased on `dst_branch` in a while, this can
+          report more files than are actually different right now
     :return: list of files
     """
     if dst_branch == "HEAD":
         target = dst_branch
-    else:
+    elif use_branch_point:
         target = f"{dst_branch}..."
+    else:
+        target = f"{dst_branch}.."
     cmd = f"git diff --name-only {target}"
     files: List[str] = hsystem.system_to_files(
         cmd, dir_name, remove_files_non_present
@@ -1640,6 +1655,7 @@ def get_files_to_process(
     # TODO(gp): Can mutually_exclusive be removed? When is it actually useful?
     mutually_exclusive: bool = True,
     use_branch_by_default: bool = True,
+    branch_point: bool = False,
     remove_dirs: bool = False,
     dir_name: str = ".",
 ) -> List[str]:
@@ -1649,7 +1665,7 @@ def get_files_to_process(
     The files are selected based on the switches:
     - `files`: space-separated list of files to process
     - `from_file`: file with a list of files inside
-    - `branch`: changed in the branch
+    - `branch`: changed with respect to the tip of `origin/master`
     - `modified`: changed in the client (both staged and modified)
     - `last_commit`: part of the previous commit
     - `all_`: all the files in the repo
@@ -1658,12 +1674,17 @@ def get_files_to_process(
     :param from_file: file storing files to process
     :param modified: return files modified in the client (i.e., changed with
         respect to HEAD)
-    :param branch: return files modified with respect to the branch point
+    :param branch: return files modified with respect to `origin/master`
     :param last_commit: return files part of the previous commit
     :param all_: return all repo files
     :param mutually_exclusive: ensure that all options are mutually exclusive
     :param use_branch_by_default: if True and no option is selected, default to
         branch=True
+    :param branch_point: only relevant when `branch` is used; if True, report
+        every file touched since the branch diverged from `origin/master` (the
+        merge-base, aka "branch point") instead of the files that are currently
+        different vs the tip of `origin/master`. See
+        `hgit.get_modified_files_in_branch()`
     :param remove_dirs: whether directories should be processed
     :param dir_name: directory to process (default: current directory)
     :return: paths to process
@@ -1724,7 +1745,9 @@ def get_files_to_process(
     elif modified:
         files_list = get_modified_files(dir_name)
     elif branch:
-        files_list = get_modified_files_in_branch("master", dir_name)
+        files_list = get_modified_files_in_branch(
+            "origin/master", dir_name, use_branch_point=branch_point
+        )
     elif last_commit:
         files_list = get_previous_committed_files(dir_name)
     elif all_:
