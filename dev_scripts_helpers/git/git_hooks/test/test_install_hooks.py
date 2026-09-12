@@ -30,6 +30,56 @@ class Test_git_hooks_utils1(hunitest.TestCase):
         abort_on_error = False
         dsgghout.check_file_size(abort_on_error)
 
+    def test_is_tmp_log_file1(self) -> None:
+        """
+        Test `_is_tmp_log_file()` on matching and non-matching file names.
+        """
+        tmp_log_files = ["tmp.pytest.log", "tmp.log", "dir/tmp.build.log"]
+        for file_name in tmp_log_files:
+            self.assertTrue(dsgghout._is_tmp_log_file(file_name))
+        other_files = [
+            "tmp.precommit_output.txt",
+            "foo.log",
+            "log.tmp",
+            "tmp.pytest.txt",
+        ]
+        for file_name in other_files:
+            self.assertFalse(dsgghout._is_tmp_log_file(file_name))
+
+    def test_check_tmp_log_files1(self) -> None:
+        """
+        Test `check_tmp_log_files()` passes when a `tmp.*.log` file is only
+        deleted.
+        """
+        # Prepare inputs.
+        abort_on_error = True
+        file_statuses = [("D", "tmp.pytest.log"), ("M", "foo.py")]
+        # Run test.
+        dsgghout.check_tmp_log_files(abort_on_error, file_statuses)
+
+    def test_check_tmp_log_files2(self) -> None:
+        """
+        Test `check_tmp_log_files()` aborts when a `tmp.*.log` file is added.
+        """
+        # Prepare inputs.
+        abort_on_error = True
+        file_statuses = [("A", "tmp.pytest.log")]
+        # Run test and check output.
+        with self.assertRaises(SystemExit):
+            dsgghout.check_tmp_log_files(abort_on_error, file_statuses)
+
+    def test_check_tmp_log_files3(self) -> None:
+        """
+        Test `check_tmp_log_files()` aborts when a `tmp.*.log` file is
+        modified.
+        """
+        # Prepare inputs.
+        abort_on_error = True
+        file_statuses = [("M", "tmp.pytest.log")]
+        # Run test and check output.
+        with self.assertRaises(SystemExit):
+            dsgghout.check_tmp_log_files(abort_on_error, file_statuses)
+
     def test_caesar1(self) -> None:
         txt = """
         1 2 3 4 5 6 7 8 9 0
