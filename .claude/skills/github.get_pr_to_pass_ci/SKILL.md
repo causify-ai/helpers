@@ -9,7 +9,7 @@ model: haiku
 # Workflow
 
 ## Create and Update a Plan
-- Create a file `plan_pr.get_ci_to_pass.md` with a plan in the form of a bullet
+- Create a file `plan_github.get_pr_to_pass_ci.md` with a plan in the form of a bullet
   list of actions and maintain it updated, by marking each action
   - [.] when something is in progress
   - [x] when something is done

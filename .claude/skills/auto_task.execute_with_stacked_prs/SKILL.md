@@ -58,7 +58,7 @@ model: haiku
 
   ```bash
   > git_create_issue_and_branch.py \
-      --title "<TITLE>" --body "<Description of entire stack>"
+      --gh_issue_title "<TITLE>" --gh_issue_body "<Description of entire stack>" \
       --suffix 1
   ```
 - The description of the entire task is 
