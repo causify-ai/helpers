@@ -10,8 +10,8 @@ model: sonnet
 # Workflow
 - Read the proposed content `<CONTENT>`
 
-- For a book / course (e.g., `book_springer/map.md`), read the `map.md` to
-  understand the structure of the material covered
+- For a book / course (e.g., `book_springer/book_map.md`), read the
+  `book_map.md` to understand the structure of the material covered
 - Find out which part of the `<TARGET>` material the content is relevant for
 
 - Propose how to integrate the `<CONTENT>` in `<TARGET>` using bullet points
