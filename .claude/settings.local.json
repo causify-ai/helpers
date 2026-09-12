@@ -16,7 +16,8 @@
     ],
     "deny": [
       "Bash(*git_authorized*)",
-      "Edit(/.claude/git_authorized)"
+      "Edit(/.claude/git_authorized)",
+      "Write(/.claude/git_authorized)"
     ]
   },
   "model": "sonnet",
