@@ -12,10 +12,10 @@ model: opus
 
 # Workflow
 
-## Step 1: Read the Material
+## Read the Material
 - Read the text passed by the user carefully
 
-## Step 2: Identify and Rank Mistakes
+## Identify and Rank Mistakes
 - Identify mistakes in the passed text
 
 ### Definition
@@ -34,7 +34,7 @@ model: opus
 ### TODOs
 - Ignore the TODOs that already exist in the text
 
-## Step 3: Suggest Improvements
+## Suggest Improvements
 - Identify opportunities to improve clarity, structure, or completeness without
   changing facts
 
@@ -51,11 +51,11 @@ model: opus
   - _Medium_: Moderately improves clarity or adds useful detail
   - _Low_: Minor improvement in readability or polish
 
-## Step 4: Write the Results
+## Write the Results
 - The output format is a vim cfile following `.claude/skills/cfile.rules.md`
   ```markdown
-  <full path file>:<line_number>:1 [HIGH/MEDIUM/LOW] Short description of error
-  <full path file>:<line_number>:1 [HIGH/MEDIUM/LOW] Why this is wrong and what the correct statement should be
+  <full path file>:<LINE_NUMBER>:1 [HIGH/MEDIUM/LOW] Short description of error
+  <full path file>:<LINE_NUMBER>:1 [HIGH/MEDIUM/LOW] Why this is wrong and what the correct statement should be
   ...
   ```
 
@@ -67,12 +67,17 @@ model: opus
   ```
 
 - Save this in a file related to the file being processed
-  `<DIR>/<FILE>.CRITIZE.md`
+  `<DIR>/<FILE>.CRITICIZE.md`
   - E.g., `msml610/lectures_source/Lesson03.1-Knowledge_representation.txt`
     -> `msml610/lectures_source/Lesson03.1-Knowledge_representation.CRITICIZE.txt`
 
-## Step 5: Wait for User Approval
+## Wait for User Approval
 - Wait for user to:
   - Select which mistakes and improvements using the index to fix
   - Provide any additional context or corrections
 - Once approved, implement the selected changes
+
+# Verification
+- [ ] Confirm the cfile follows `.claude/skills/cfile.rules.md`
+- [ ] Confirm every issue has a severity level and a file:line reference
+- [ ] Confirm the output file `<DIR>/<FILE>.CRITICIZE.md` was created

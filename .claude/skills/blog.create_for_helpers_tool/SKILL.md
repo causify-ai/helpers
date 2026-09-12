@@ -9,32 +9,31 @@ model: haiku
 
 # Workflow
 
-## Step 1: Read and Follow the Rules to Write a Blog
+## Read and Follow the Rules to Write a Blog
 - Read context about rules from `.claude/skills/blog.rules.md`
 
 - When writing follow the rules from:
   - `.claude/skills/markdown.rules.md`
   - `.claude/skills/text.rules.md`
 
-## Step 2: Improve the Text
+## Gather Source Material
 - Find the related documentation, such as
   - the source code
     - E.g., `helpers/hcache_simple.py`
   - the testing code
-    - E.g,, `helpers/test/test_hcache_simple.py`
+    - E.g., `helpers/test/test_hcache_simple.py`
   - README describing the tool
     - E.g., `docs/tools/helpers/all.hcache_simple.explanation.md`
   - Notebooks and tutorials
-    - E.g., `notebooks/hcache_simple.tutorial.ipynb`
+    - E.g., `helpers/notebooks/hcache_simple.tutorial.ipynb`
 
-
-## Step 3: Write the Blog Text
+## Write the Blog Text
 - The format of the file should follow:
-  ```
+  ```markdown
   # Introduction
   ## What Is ...?
   ## When To Use ...?
-  ## When NOT To Use ?
+  ## When NOT To Use ...?
   # How It Works
   # Real-World Scenarios
   ## Scenario 1: ...
@@ -67,24 +66,31 @@ model: haiku
   # References
   ```
 
-## Step 4: Reference GitHub Files
-- When referring to files in the repo follow 
+## Reference GitHub Files
+- When referring to files in the repo follow
   `.claude/skills/blog.rules.md` `## References to GitHub Files`
 
-## Step 5: Add Visuals
+## Add Visuals
 - Add visuals to a blog following `.claude/skills/blog.rules.md` `# Visuals`
   - `## Add Visuals to Blog Posts`: suggestions
   - `## Types of Visuals`: types of visuals (such as mermaid, graphviz, tikz,
     images, website screenshots)
 
-## Step 6: Write File
+## Write File
 - The file should be called like
-  `website/docs/blog/posts/draft.in_<INT>_mins.helpers_<TOOl>.md`
+  `website/docs/blog/posts/draft.in_<INT>_mins.helpers_<TOOL>.md`
   where `<INT>` is how long it will take to read the blog (e.g., 5 mins, 15 mins,
   30 mins) which is a function of the complexity
 
-## Step 7: Format
-- At the very hand, format the text with
+## Format
+- At the end, format the text with
+  ```bash
+  > website/format_blog.sh <BLOG_FILE>
   ```
-  > website/format_blog.sh $FILE
-  ```
+
+# Verification
+- [ ] Confirm the file name matches
+      `website/docs/blog/posts/draft.in_<INT>_mins.helpers_<TOOL>.md`
+- [ ] Confirm the blog follows the section structure in
+      `## Write the Blog Text`
+- [ ] Confirm `website/format_blog.sh` ran without errors

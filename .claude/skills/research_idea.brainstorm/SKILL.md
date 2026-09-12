@@ -9,12 +9,12 @@ model: opus
 
 # Workflow
 
-## Step 1: Read the Existing Ideas
+## Read the Existing Ideas
 - Read the research ideas under `research/ideas/*.md`
 - Read `research/ideas/README.md`
-- Read the template `research/ideas/template.research_idea.md`
+- Read the template `.claude/templates/research_idea.template.md`
 
-## Step 2: Come Up with 5 Ideas
+## Come Up with 5 Ideas
 - Propose 5 new ideas that are thought provoking and worth researching, along
   the lines of the current research ideas
 - Prefer ideas that are non-obvious and open a concrete research question,
@@ -22,7 +22,7 @@ model: opus
 - Do not duplicate an idea already covered by an existing file in
   `research/ideas/*.md`
 
-## Step 3: Present the Ideas
+## Present the Ideas
 - For each idea, give a short title and a 1-2 paragraph pitch (the seed of a
   `Core Idea` section)
 - Do not create the idea files yet; wait for the user to pick which ideas to

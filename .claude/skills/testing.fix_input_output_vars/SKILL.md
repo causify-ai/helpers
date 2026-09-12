@@ -19,5 +19,5 @@ model: haiku
 
 - Do not change the intent of the test
 
-# Verify
-- Run the tests to make sure that the tests are passing
+# Verification
+- [ ] Run the tests to make sure that the tests are passing

@@ -37,4 +37,11 @@ model: haiku
   - The figures are readable and not too small
   - There is no excessive space around the figure due to poorly wrapping text
 - If there are visual problems, change the Typst file without changing the text and
-  re-run Step 1 until the PDF looks good
+  regenerate the PDF (see `## Generate the PDF`) until it looks good
+
+# Verification
+- [ ] Confirm the Typst file follows `.claude/skills/typst.rules.md` and
+      `.claude/templates/typst.template.typ`
+- [ ] Confirm every page's figures are readable and not too small
+- [ ] Confirm there is no excessive space around a figure from poorly
+      wrapped text

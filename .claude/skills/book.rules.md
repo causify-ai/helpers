@@ -48,6 +48,7 @@
 
 - Follow `.claude/skills/markdown.rules.md` and `.claude/skills/text.rules.md`
   for text formatting
+- Follow `.claude/skills/typst.rules.md` when writing book chapters in typst
 - Keep coverage percentages grounded in the actual lecture files, not guessed
 - Chapter numbers in `## <NN>: <Chapter Title>` are zero-padded two digits and
   match the numbering in `## Short TOC`

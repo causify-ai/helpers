@@ -1,5 +1,5 @@
 ---
-description: Review slides for structure, content correctness, and readability; propose and apply improvements
+description: Review slide structure and content, then propose and apply improvements
 model: opus
 ---
 
@@ -13,25 +13,31 @@ model: opus
 
 - Read the conventions in `.claude/skills/slides.rules.md`
 
-## Step 1: Propose Structural Improvements
+## Propose Structural Improvements
 - Run the flow from `.claude/skills/slides.reorganize/SKILL.md` through its
-  Step 3, saving the proposal
+  `## Wait for User` section, saving the proposal
 
-## Step 2: Propose Content Improvements
+## Propose Content Improvements
 - Run the flow from `.claude/skills/slides.criticize/SKILL.md` on the deck, using the
-  same axes and HIGH/MEDIUM/LOW ranking
+  same axes and High/Medium/Low ranking
 - Also propose how to change and improve the titles of the slides
 
 ### Ignore TODOs and Comments
 - Leave the TODOs or comments in the format
-  ```
+  ```text
   // TODO...
   ```
   untouched
 
-## Step 3: Ask User and Implement
-- Present the structural proposal (Step 1) and the ranked content findings (Step 2)
-  together, numbered so each is easy to refer to
+## Ask User and Implement
+- Present the structural proposal and the ranked content findings together,
+  numbered so each is easy to refer to
 - Ask the user which structural moves and which content fixes to apply
 - After the user approves a subset, perform the reorganization and the content
   changes together in place
+
+# Verification
+- [ ] Make sure that the updated slides render correctly, e.g.,
+  ```bash
+  > gen_slides.py -i <FILE> --notes_to_pdf_args="--skip_action open_pdf"
+  ```

@@ -31,8 +31,8 @@ separate sections: "Flat Style" and "Architecture Style"
 - For the architecture style, pick `rankdir=LR` for pipelines/architectures
   with parallel lanes, `rankdir=TB` for sequential/vertical flows (e.g. a loop
   or process)
-- For the architecture style, use `bgcolor="transparent"` so the diagram
-  blends into the surrounding document
+- Use `bgcolor="transparent"` in both styles so the diagram blends into the
+  surrounding document; this is not architecture-style-only
 
 ## Rank Control and Alignment
 - Use `{ rank=same; A; B; C; }` to force nodes onto the same horizontal level,
@@ -80,6 +80,10 @@ separate sections: "Flat Style" and "Architecture Style"
 - `fillcolor` sets the interior color, `color` sets the border/outline color,
   `fontcolor` sets the label text color
 - Avoid high-contrast combinations that strain the eyes
+- Use at most 3-5 of these categories in one diagram, plus neutral gray for
+  containment (see "General-Purpose Palette" and
+  `.claude/skills/figure.rules.md` "Geometry and Restraint"): the tables here
+  are a menu to pick from, not a mandate to use every hue in every diagram
 
 ## Color Scheme (Architecture Style)
 - Give every semantic category a triad — `fillcolor` (pastel), `color`
@@ -121,8 +125,13 @@ separate sections: "Flat Style" and "Architecture Style"
      `// actor : rose | process : blue | monitoring : sage green | external : violet`
 
 ## General-Purpose Palette
-- For a palette that applies across GraphViz, Mermaid, and TikZ diagrams, use
-  the palette in `.claude/skills/visuals.rules.md` `## Color Palette`
+- For a palette that applies across GraphViz, Mermaid, TikZ, and SVG diagrams,
+  use the anchor hues and meanings in `.claude/skills/figure.rules.md`
+  `## Color Palette`
+- Whichever anchor a category maps to here (e.g. "orange = input/source"),
+  keep that same meaning in Mermaid, TikZ, and SVG diagrams in the same
+  document set — never let one format's "orange" mean "action" while
+  another's means "input"
 
 ## Emphasis and Multi-line Labels
 - Use `\n` for line breaks in labels
@@ -160,10 +169,12 @@ separate sections: "Flat Style" and "Architecture Style"
   relationship
 
 ## Labels and Arrows
+- Node and edge labels use sentence case (see `.claude/skills/figure.rules.md`
+  "Typography"): never ALL CAPS or Title Case
 - Center label text with spaces, e.g. `"  Label  "` (looks better than the
   default)
-- Capitalize the first letter of edge label text, e.g. `label="  Loop  "`, not
-  `label="  loop  "`
+- Capitalize only the first letter of edge label text, e.g.
+  `label="  Loop  "`, not `label="  loop  "` or `label="  LOOP  "`
 - Use `fontcolor` to match or contrast with the edge `color`
 - `labelpos="t"` places the label at the top, useful for tall diagrams
 - Arrow types: `arrowhead="normal"` (default), `arrowhead="diamond"`,
@@ -211,7 +222,8 @@ separate sections: "Flat Style" and "Architecture Style"
 
 ## Fonts
 - Use a consistent font across graphs; Helvetica is the default recommended
-  choice
+  choice, matching the cross-format default in `.claude/skills/figure.rules.md`
+  "Typography"
 - `fontname="Helvetica"`: clean, professional
 - `fontname="Courier"`: code, monospace
 - `fontname="Times"`: formal, serif
@@ -225,35 +237,30 @@ separate sections: "Flat Style" and "Architecture Style"
 - Use multiple lines with `\n` instead
 - Reserve HTML-like labels for the two-tier name+subtitle pattern in the
   architecture style (see the "Architecture Style" section of
-  `.claude/templates/graphviz.template.md`), or for bolding the first line of
-  a flat-style multi-line label (see "Emphasis and Multi-line Labels")
+  `.claude/templates/graphviz.template.md`), for bolding the first line of a
+  flat-style multi-line label (see "Emphasis and Multi-line Labels"), or for
+  `<SUB>`/`<SUP>` subscript/superscript in a label (e.g. `H<SUB>2</SUB>O`, see
+  `.claude/skills/figure.rules.md` "Subscript and Superscript")
 
-# Color Palettes for Different Domains
+# Domain Mapping
 
-## Machine Learning / Reinforcement Learning
-- State: `fillcolor="#A9DDB0", color="#4F9A5C"` (soft green)
-- Action: `fillcolor="#FFC98A", color="#D98E2B"` (warm orange)
-- Reward: `fillcolor="#9CC4F2", color="#3C6FB0"` (cool blue)
-- Value: `fillcolor="#E8D9F7", color="#9B7DB1"` (purple)
-- Policy: `fillcolor="#FFD4D4", color="#B23A48"` (soft red)
+- Map domain-specific concepts onto the categories already defined in "Color
+  Scheme (Flat Style)" and "Color Scheme (Architecture Style)" above by
+  meaning; never invent a new hex per domain, that is how the palette drifts
+  and categories start to conflict across diagrams
+  - Reinforcement learning: state -> green, action -> orange, reward -> blue,
+    value -> purple, policy -> red (Flat Style triads)
+  - Data flow / ETL: source -> green, transform -> orange, sink -> blue,
+    error -> red (Flat Style triads)
+  - System architecture: core/pluggable process -> blue, planning/stateful
+    step -> teal, monitoring -> sage green, tool call/action -> coral,
+    external dependency -> violet (Architecture Style triads)
 
-## Data Flow / ETL
-- Source: `fillcolor="#C8E6C9", color="#2E7D32"` (green)
-- Transform: `fillcolor="#FFECB3", color="#F57F17"` (amber)
-- Sink: `fillcolor="#BBDEFB", color="#1565C0"` (blue)
-- Error: `fillcolor="#FFCDD2", color="#C62828"` (red)
+# Footer
 
-## System Architecture (Flat Style)
-- Frontend: `fillcolor="#E1BEE7", color="#6A1B9A"` (purple)
-- Backend: `fillcolor="#B3E5FC", color="#0277BD"` (light blue)
-- Database: `fillcolor="#C8E6C9", color="#558B2F"` (dark green)
-- Cache: `fillcolor="#FFE0B2", color="#E65100"` (orange)
-- External: `fillcolor="#F8BBD0", color="#AD1457"` (pink)
-
-# Footer (Architecture Style)
-
-- After the closing code fence for an architecture-style diagram, always emit
-  two lines:
+- After the closing code fence, for both Flat and Architecture style diagrams,
+  always emit two lines (see `.claude/skills/figure.rules.md` "Captions and
+  Labels" for why every diagram format needs this):
   ```
   label=fig:<short-kebab-slug>
   caption=<one sentence: what the diagram shows, plus what the colors mean>

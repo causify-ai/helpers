@@ -1,26 +1,23 @@
 ---
-description: Add links from lecture slides to the corresponding sections of a rendered tutorial notebook
+description: Link lecture slides to matching sections of a rendered tutorial notebook
 model: sonnet
 ---
 
 # Goal
-- Given a slides file `<FILE>` and a rendered HTML tutorial `<TUTORIAL_URL>`,
-  add links from each slide to the tutorial section it corresponds to
-  - E.g., `<FILE>` =
+- Given a slides file `<SMD_FILE>` and a rendered HTML tutorial `<TUTORIAL_URL>`, add
+  links from each slide to the tutorial section it corresponds to
+
+  - E.g., `<SMD_FILE>` =
     `msml610/lectures_source/Lesson09.3-Multi_Armed_Bandits.txt` and
     `<TUTORIAL_URL>` =
     `https://raw.githack.com/gpsaggese/gpsaggese.github.io/gp_scratch/msml610/tutorials/L09_multi_armed_bandits/L09_03_02_multi_armed_bandits.html`
 
 # Workflow
 
-## Conventions
-- Follow the role specified in `.claude/skills/role.ai_researcher.md`
-- Follow the conventions in `.claude/skills/slides.rules.md`
-
 ## Find the Relationship
-- Read `<FILE>` and `<TUTORIAL_URL>`
+- Read `<SMD_FILE>` and `<TUTORIAL_URL>`
 - If a companion tutorial markdown file exists next to the notebook (e.g.,
-  `<tutorial_dir>/<tutorial_name>.md`), use it to help match slide content to
+  `<TUTORIAL_DIR>/<TUTORIAL_NAME>.md`), use it to help match slide content to
   tutorial cells
 - Match each slide to the tutorial cell(s) that cover the same concept
 
@@ -32,9 +29,17 @@ model: sonnet
 - Do not add a link when no tutorial cell clearly corresponds to the slide
 
 ## Leave Structure and Content Unchanged
-- Do not change the structure of the text (titles, bullet hierarchy, div
-  fenced blocks) or the substantive content: add only the link
+- Do not change the structure of the text (titles, bullet hierarchy, div fenced
+  blocks) or the substantive content: add only the link
 
-## Verification
+# Conventions
+- Follow the role specified in `.claude/skills/role.ai_researcher.md`
+- Follow the conventions in `.claude/skills/slides.rules.md`
+
+# Verification
 - [ ] Check that each added anchor points to an actual heading in
   `<TUTORIAL_URL>`, not a guessed slug
+- [ ] Make sure that the updated slides render correctly, e.g.,
+  ```bash
+  > gen_slides.py -i <FILE> --notes_to_pdf_args="--skip_action open_pdf"
+  ```

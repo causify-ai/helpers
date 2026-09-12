@@ -1,10 +1,10 @@
 ---
-description: Remove empty lines in Python functions.
+description: Remove empty lines in Python functions
 model: haiku
 ---
 
-- Given one or more Python files `<files>` replace the empty lines in the
-  functions of `<files>` with comments describing the next block of code
+- Given one or more Python files `<FILES>` replace the empty lines in the
+  functions of `<FILES>` with comments describing the next block of code
 
 - After this skill, Python functions should have no empty line
 
@@ -12,3 +12,7 @@ model: haiku
   `# Comments`
 
 - Do not change the behavior of the code
+
+# Verification
+- [ ] Confirm no empty lines remain inside functions in `<FILES>`
+- [ ] Confirm the code logic and behavior are unchanged

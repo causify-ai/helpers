@@ -1,5 +1,5 @@
 ---
-description: Write a practical technical tutorial for engineers, covering one tool or concept in 10-15 mins of reading time
+description: Write a practical tutorial for engineers covering one tool or concept
 model: opus
 ---
 
@@ -80,13 +80,19 @@ model: opus
 
 # Examples to Reference
 - Located in `website/docs/blog/posts/`
-  - `website/docs/blog/posts/uv_in_30_mins.md`: Tool intro with installation,
+  - `website/docs/blog/posts/in_30_mins.uv.md`: Tool intro with installation,
     core concepts, examples
-  - `website/docs/blog/posts/ripgrep_in_30_mins.md`: Search tool with practical
-    use cases
-  - `website/docs/blog/posts/python_packaging_in_30_mins.md`: Concept-based
+  - `website/docs/blog/posts/in_30_mins.ripgrep.md`: Search tool with
+    practical use cases
+  - `website/docs/blog/posts/in_30_mins.Python_Packaging.md`: Concept-based
     tutorial with workflow
-  - `website/docs/blog/posts/mdm_unified_markdown_manager.md`: Multi-tool
-    tutorial
+  - `website/docs/blog/posts/in_30_mins.mdm_unified_markdown_manager.md`:
+    Multi-tool tutorial
 
 - Study these for structure, tone, depth, and length
+
+# Verification
+- [ ] Confirm the tutorial reads in 10-15 minutes (roughly 1500-2500 words)
+- [ ] Confirm every code block has a language tag and shows expected output
+- [ ] Confirm the tutorial follows `.claude/skills/markdown.rules.md` and
+      `.claude/skills/text.rules.md`

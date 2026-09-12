@@ -58,7 +58,7 @@ This document contains all the rules that must be followed when writing a blog
     appropriate code block (mermaid, graphviz, tikz)
 
 ## Types of Visuals
-- Follow the instructions from `.claude/skills/visuals.rules.md`
+- Follow the instructions from `.claude/skills/figure.rules.md`
 
 ## Screenshots of Commands
 

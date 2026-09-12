@@ -3,12 +3,12 @@ description: Find and remove the functions that are too thin
 model: haiku
 ---
 
-- I will pass you one of more files `<FILES>`
+- I will pass you one or more files `<FILES>`
 
 - Look for functions that are too "thin", i.e., that call another function
   directly without doing much else
   - E.g.,
-		```
+		```python
 		def cell1_plot_dag(
 				G: nx.DiGraph,
 				title: str,
@@ -32,9 +32,14 @@ model: haiku
 				)
 		```
 
-- Ask to the user if it's ok to remove them
+- Ask the user if it's ok to remove them
 
 - Remove the functions and then look for all the invocations of the removed
 	function and inline the called function
 
 - Read and apply to `<FILES>` the rules from `.claude/skills/coding.rules.md`
+
+# Verification
+- [ ] Confirm the user approved removal before any thin function is deleted
+- [ ] Confirm every call site of a removed function is inlined correctly
+- [ ] Confirm the code logic and behavior are unchanged

@@ -6,8 +6,8 @@ model: haiku
 # Goal
 
 - You are an expert technical writer
-- Given a source file `<SRC_FILE>` and a destination file `<DST_FILE>`, you
-  will move and merge the content of `<SRC_FILE>` into `<DST_FILE>` following
+- Given a source file `<SRC_FILE>` and a destination file `<DST_FILE>`, move
+  and merge the content of `<SRC_FILE>` into `<DST_FILE>` following
   conventions in
   - `.claude/skills/markdown.rules.md`
   - `.claude/skills/text.rules.md`
@@ -21,5 +21,9 @@ model: haiku
   - When you move chunks you must delete them from `<SRC_FILE>`
 - Remove the chunks from `<SRC_FILE>` that are redundant with the content of
   `<DST_FILE>`
-- Leave in `<SRC_FILE>` only text can't be moved since it doesn't apply to
+- Leave in `<SRC_FILE>` only text that can't be moved since it doesn't apply to
   `<DST_FILE>`
+
+# Verification
+- [ ] Confirm no redundant content remains in `<DST_FILE>`
+- [ ] Confirm `<SRC_FILE>` contains only content that could not be moved

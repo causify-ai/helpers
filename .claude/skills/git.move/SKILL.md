@@ -28,7 +28,7 @@ model: haiku
 
 ## Update All References
 - Search the entire repository for any occurrences of `<SRC>`
-  ```
+  ```bash
   > grep -r -i <SRC> .
   ```
 - Replace each occurrence of `<SRC>` with `<DST>`
@@ -46,14 +46,14 @@ model: haiku
     per file
   - Flag any ambiguous matches that may need manual review
 
-## Ask for Help If Unsure How to Do
+# Ask for Help If Unsure How to Do
 - If the task is not perfectly clear, you MUST not perform it, but ask for
   clarifications
-  - When the task is complex, create a plan.md with 5 bullet points explaining
+  - When the task is complex, create a `plan.md` with 5 bullet points explaining
     what the plan is
 
-## Verify Results
-- Make sure that there is no reference left over about file `<SRC>`
-  ```
+# Verification
+- [ ] Confirm there is no reference left over about file `<SRC>`
+  ```bash
   > grep -r -i <SRC> .
   ```

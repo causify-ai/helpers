@@ -1,5 +1,6 @@
 ---
-description: Split the current changes in a Git client in small cohesive PRs to simplify merging
+description: Split current Git changes into small, cohesive PRs to simplify merging
+model: sonnet
 ---
 
 # Goal
@@ -15,13 +16,13 @@ description: Split the current changes in a Git client in small cohesive PRs to 
 
 # Workflow
 
-## Step 1: Read rules
+## Read Rules
 
 - Read rules about:
   - Coding: `.claude/skills/coding.rules.md`
   - Unit tests: `.claude/skills/testing.rules.md`
 
-## Step 2: Read the changes in the current Git client
+## Read the Changes in the Current Git Client
 
 - Obtain the files that need to be merged with:
   ```bash
@@ -37,7 +38,7 @@ description: Split the current changes in a Git client in small cohesive PRs to 
   git diff origin/master...HEAD --name-only
   ```
 
-## Step 3: Propose PRs
+## Propose PRs
 - Propose a set of PRs that decompose the changes in the current Git client, so
   that there are coherent and tightly coupled changes
 
@@ -51,14 +52,14 @@ description: Split the current changes in a Git client in small cohesive PRs to 
   - In this case, the description is multiple bullets explain what each smaller
     unit does
 
-## Step 4: Order the PRs
+## Order the PRs
 - Start with the PRs that have low risk and touch most files
 
-## Step 5: Create pytest Command
+## Create pytest Commands
 
 - For each PR create:
   - A file `pr<NUM>.files.txt` with the files changed, e.g.,
-    ```
+    ```verbatim
     .claude/skills
     .claude/templates
     .claude/notify.sh
@@ -77,13 +78,18 @@ description: Split the current changes in a Git client in small cohesive PRs to 
     ```
   - Make this script executable with `chmod +x pr<NUM>.pytest.sh`
 
-## Step 6: Report the output in the following format
+## Report the Output
 
 - Create a file `github_PR_plan.md` with the plan to split the PRs, following
   strictly the format in `.claude/templates/github_PR_plan.template.md`
 - If the file `github_PR_plan.md` already exists then updated it removing
   the PRs already merged based on the current `i git_files` and the `git log`
 - Run the linter on `github_PR_plan.md`
-  ```
+  ```bash
   > lint_text.py -i github_PR_plan.md
   ```
+
+# Verification
+- [ ] Confirm every changed file is assigned to exactly one PR
+- [ ] Confirm each PR's `pr<NUM>.pytest.sh` is executable and passes
+- [ ] Confirm `github_PR_plan.md` passes `lint_text.py`

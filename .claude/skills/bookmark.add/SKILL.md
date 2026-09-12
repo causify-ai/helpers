@@ -1,5 +1,6 @@
 ---
 description: Find the research idea or blog file related to given links and add a TODO
+model: haiku
 ---
 
 # Goal
@@ -13,14 +14,14 @@ description: Find the research idea or blog file related to given links and add 
 
 # Workflow
 
-## Step 1: Collect Material
+## Collect Material
 - Read the title / content of each link in `<LINKS>` (use `WebFetch` if the
   URL alone is not descriptive enough to judge topic)
 - List all candidate files:
   - `research/ideas/*.md`
   - `website/docs/blog/posts/*.md`
 
-## Step 2: Match Links to Files
+## Match Links to Files
 - For each link, compare its topic against the content of each candidate file
   (title, headers, first paragraph) and rank candidates by relevance
 - Pick the single best-matching file for each link
@@ -29,7 +30,7 @@ description: Find the research idea or blog file related to given links and add 
   - If no file is a plausible match (topic not covered anywhere), do not
     force a match: report this to the user instead of guessing
 
-## Step 3: Add the TODO
+## Add the TODO
 - In the matched file, add one line:
   ```text
   // TODO(gp): incorporate the link <LINK> to <TOPIC>
@@ -44,8 +45,15 @@ description: Find the research idea or blog file related to given links and add 
 - Do not change any other content of the file
 - If multiple links map to the same file, add one TODO line per link
 
-## Step 4: Report
+## Report
 - Print, for each link, which file it was added to and the exact TODO line
   that was inserted
 - For any link that could not be matched, report that explicitly instead of
   silently skipping it
+
+# Verification
+- [ ] Each link is matched to at most one file, with no forced or guessed match
+- [ ] Each inserted line follows the exact `// TODO(gp): incorporate the link <LINK>
+  to <TOPIC>` format
+- [ ] No content other than the new TODO line(s) was changed in the matched file
+- [ ] The report lists every link with its target file or its "not matched" status
