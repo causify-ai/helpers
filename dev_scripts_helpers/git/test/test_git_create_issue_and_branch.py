@@ -17,8 +17,8 @@ import dev_scripts_helpers.git.git_create_issue_and_branch as dshggciab
 
 def _make_is_clean_side_effect(clean_dir_name: str):
     """
-    Build a `hgit.is_client_clean()` side effect where only `clean_dir_name`
-    is reported as clean.
+    Build a `hgit.is_client_clean()` side effect where only `clean_dir_name` is
+    reported as clean.
 
     :param clean_dir_name: the only repo target considered clean
     :return: side effect function suitable for `mock.patch(...,
@@ -46,8 +46,7 @@ class Test__get_repo_targets(hunitest.TestCase):
 
     def _helper(self, submodules: bool, expected: List[str]) -> None:
         """
-        Run `_get_repo_targets()` with a submodule present and check the
-        result.
+        Run `_get_repo_targets()` with a submodule present and check the result.
 
         :param submodules: value passed to `submodules` param
         :param expected: expected repo targets
