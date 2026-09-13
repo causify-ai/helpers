@@ -5,10 +5,10 @@ Extract images, text content, and notes from PowerPoint presentations.
 # Usage Example
 
 - Extract content from a PowerPoint presentation into an output directory:
-> extract_png_from_ppt.py --in_file presentation.pptx --out_dir extracted
+> extract_png_from_ppt.py -i presentation.pptx --out_dir extracted
 
 Options:
-    --in_file: Path to PowerPoint presentation file (required)
+    -i/--input: Path to PowerPoint presentation file (required)
     --out_dir: Output directory for extracted content (default: presentation_name_extracted)
     --from_scratch: Clean output directory from scratch
     --extract-images: Extract embedded images from slides
@@ -215,8 +215,8 @@ def _parse() -> argparse.Namespace:
         description=__doc__,
     )
     hparser.add_verbosity_arg(parser)
-    parser.add_argument(
-        "--in_file", required=True, help="Path to PowerPoint presentation file"
+    hparser.add_input_file_arg(
+        parser, help_="Path to PowerPoint presentation file"
     )
     parser.add_argument(
         "--out_dir",
@@ -250,7 +250,7 @@ def _main(args: argparse.Namespace) -> None:
     """
     hdbg.init_logger(verbosity=args.log_level, use_exec_path=True)
     # Validate input file.
-    ppt_path = args.in_file
+    ppt_path = args.input
     hdbg.dassert_file_exists(ppt_path)
     # TODO(ai): Make this parameter mandatory and remove the default value.
     # Determine output directory.

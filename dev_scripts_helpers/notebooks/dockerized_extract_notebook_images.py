@@ -388,12 +388,7 @@ def _parse() -> argparse.ArgumentParser:
         description=__doc__,
         formatter_class=hparser.CustomHelpFormatter,
     )
-    parser.add_argument(
-        "--in_notebook_filename",
-        required=True,
-        type=str,
-        help="Input notebook filename",
-    )
+    hparser.add_input_file_arg(parser, help_="Input notebook filename")
     parser.add_argument(
         "--out_image_dir",
         required=True,
@@ -421,9 +416,9 @@ def _parse() -> argparse.ArgumentParser:
 def _main(parser: argparse.ArgumentParser) -> None:
     args = parser.parse_args()
     hdbg.init_logger(verbosity=args.log_level, use_exec_path=True)
-    _LOG.info("Extracting images from notebook %s", args.in_notebook_filename)
+    _LOG.info("Extracting images from notebook %s", args.input)
     extractor = _NotebookImageExtractor(
-        args.in_notebook_filename,
+        args.input,
         args.out_image_dir,
     )
     if args.extract_all_cells:

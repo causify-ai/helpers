@@ -14,7 +14,7 @@ See documentation at:
   `screenshots` directory:
 > extract_notebook_images.py \
     -i dev_scripts_helpers/notebooks/test_images.ipynb \
-    -o dev_scripts_helpers/notebooks/screenshots
+    --out_image_dir dev_scripts_helpers/notebooks/screenshots
 """
 
 import argparse
@@ -36,12 +36,7 @@ def _parse() -> argparse.ArgumentParser:
         description=__doc__,
         formatter_class=hparser.CustomHelpFormatter,
     )
-    parser.add_argument(
-        "--in_notebook_filename",
-        required=True,
-        type=str,
-        help="Input notebook filename",
-    )
+    hparser.add_input_file_arg(parser, help_="Input notebook filename")
     parser.add_argument(
         "--out_image_dir",
         required=True,
@@ -217,7 +212,7 @@ def _run_dockerized_extract_notebook_images(
     )
     cmd = [
         script,
-        f"--in_notebook_filename {notebook_path}",
+        f"-i {notebook_path}",
         f"--out_image_dir {output_dir}",
     ]
     if extract_all_cells:
@@ -246,7 +241,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
         verbosity=args.log_level, use_exec_path=True, force_white=False
     )
     _run_dockerized_extract_notebook_images(
-        args.in_notebook_filename,
+        args.input,
         args.out_image_dir,
         extract_all_cells=args.extract_all_cells,
         min_cell_height=args.min_cell_height,

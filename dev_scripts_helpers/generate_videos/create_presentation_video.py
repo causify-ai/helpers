@@ -31,13 +31,13 @@ Duration modes:
 # Usage Example
 
 - Basic usage with default positioning:
-> create_presentation_video.py --in_dir ./videos --out_file final.mp4
+> create_presentation_video.py --input_dir ./videos --out_file final.mp4
 
 - Use custom video settings:
-> create_presentation_video.py --in_dir ./videos --out_file final.mp4 --resolution 1920x1080 --quality high
+> create_presentation_video.py --input_dir ./videos --out_file final.mp4 --resolution 1920x1080 --quality high
 
 - Use a plan file for custom positioning:
-> create_presentation_video.py --in_dir ./videos --out_file final.mp4 --plan plan.txt
+> create_presentation_video.py --input_dir ./videos --out_file final.mp4 --plan plan.txt
 
 Import as:
     import create_presentation_video as cpv
@@ -809,9 +809,10 @@ def _parse() -> argparse.ArgumentParser:
         formatter_class=hparser.CustomHelpFormatter,
     )
     hparser.add_verbosity_arg(parser)
-    parser.add_argument(
-        "--in_dir",
-        help="Input directory containing XXX_slide.mp4, XXX_pip.mp4, and XXX_comment.mp4 files (default: current directory)",
+    hparser.add_input_dir_arg(
+        parser,
+        required=False,
+        help_="Input directory containing XXX_slide.mp4, XXX_pip.mp4, and XXX_comment.mp4 files (default: current directory)",
     )
     parser.add_argument(
         "--out_file",
@@ -861,7 +862,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
     args = parser.parse_args()
     hdbg.init_logger(verbosity=args.log_level, use_exec_path=True)
     # Set input directory.
-    in_dir = args.in_dir if args.in_dir else "."
+    in_dir = args.input_dir if args.input_dir else "."
     hdbg.dassert_dir_exists(in_dir)
     # Validate output file extension.
     out_file = args.out_file

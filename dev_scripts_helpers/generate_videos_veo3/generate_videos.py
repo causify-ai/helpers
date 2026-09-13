@@ -10,10 +10,10 @@ descriptions, then generates videos for each scene using the Google Veo3 API.
 
 - Generate videos from a storyboard file, writing outputs with the given
   prefix:
-> generate_videos.py --in_file storyboard.txt --out_file video.mp4
+> generate_videos.py -i storyboard.txt --out_file video.mp4
 
 - Generate videos using a global reference image for all scenes:
-> generate_videos.py --in_file storyboard.txt --image_file reference.jpg
+> generate_videos.py -i storyboard.txt --image_file reference.jpg
 
 Expected text format:
 ```
@@ -414,8 +414,8 @@ def _parse() -> argparse.ArgumentParser:
         description=__doc__,
         formatter_class=hparser.CustomHelpFormatter,
     )
-    parser.add_argument(
-        "--in_file", required=True, help="Input text file containing scenes"
+    hparser.add_input_file_arg(
+        parser, help_="Input text file containing scenes"
     )
     parser.add_argument(
         "--out_file",
@@ -448,7 +448,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
     args = parser.parse_args()
     hdbg.init_logger(verbosity=args.log_level, use_exec_path=True)
     # Validate arguments.
-    hdbg.dassert_file_exists(args.in_file)
+    hdbg.dassert_file_exists(args.input)
     if args.image_file:
         hdbg.dassert_file_exists(args.image_file)
     # Validate API key.
@@ -468,9 +468,9 @@ def _main(parser: argparse.ArgumentParser) -> None:
     # veo-3.0-fast-generate-preview
     _LOG.info("Veo model access confirmed: %s", model.name)
     # Parse scenes from markdown.
-    scenes = _parse_markdown_scenes(args.in_file)
+    scenes = _parse_markdown_scenes(args.input)
     hdbg.dassert_lt(
-        0, len(scenes), "No scenes found in input file: %s", args.in_file
+        0, len(scenes), "No scenes found in input file: %s", args.input
     )
     # Parse limit range from command line arguments.
     limit_range = hseinout.parse_limit_range_args(args)

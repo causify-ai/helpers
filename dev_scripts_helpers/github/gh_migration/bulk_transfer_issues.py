@@ -13,7 +13,7 @@ Dry-run (preview only):
     python .github/gh_migration/bulk_transfer_issues.py \
       --src causify-ai/cmamp \
       --dst causify-ai/csfy \
-      --file .github/gh_migration/issues_to_transfer.txt \
+      -i .github/gh_migration/issues_to_transfer.txt \
       --state closed \
       --dry-run \
       --why \
@@ -24,7 +24,7 @@ Execute for real:
     python .github/gh_migration/bulk_transfer_issues.py \
       --src causify-ai/cmamp \
       --dst causify-ai/csfy \
-      --file .github/gh_migration/issues_to_transfer.txt \
+      -i .github/gh_migration/issues_to_transfer.txt \
       --state closed \
       --sleep 2 \
       --why \
@@ -299,8 +299,11 @@ def main() -> None:
     )
     ap.add_argument("--src", default="causify-ai/cmamp")
     ap.add_argument("--dst", default="causify-ai/csfy")
-    ap.add_argument(
-        "--file", default=".github/gh_migration/issues_to_transfer.txt"
+    hparser.add_input_file_arg(
+        ap,
+        required=False,
+        default=".github/gh_migration/issues_to_transfer.txt",
+        help_="Path to file with issue numbers/ranges",
     )
     ap.add_argument(
         "--state", default="closed", choices=["open", "closed", "all"]
@@ -318,11 +321,11 @@ def main() -> None:
     src_owner, src_repo = split_owner_repo(args.src)
     dst_owner, dst_repo = split_owner_repo(args.dst)
     # Parse and validate the input file with issue numbers.
-    numbers = parse_numbers_file(args.file)
+    numbers = parse_numbers_file(args.input)
     # Log run configuration.
     _LOG.info("Source repo:      %s", args.src)
     _LOG.info("Destination repo: %s", args.dst)
-    _LOG.info("List file:        %s", args.file)
+    _LOG.info("List file:        %s", args.input)
     _LOG.info("State filter:     %s", args.state)
     _LOG.info("Dry run:          %d", 1 if args.dry_run else 0)
     _LOG.info("Explain skips:    %d", 1 if args.why else 0)

@@ -324,13 +324,20 @@ def add_verbosity_arg(
 
 
 def add_input_file_arg(
-    parser: argparse.ArgumentParser, *, required: bool = True
+    parser: argparse.ArgumentParser,
+    *,
+    required: bool = True,
+    default: Optional[str] = None,
+    help_: Optional[str] = None,
 ) -> argparse.ArgumentParser:
     """
     Add standardized `-i`/`--input` argument for single file input.
 
     :param parser: ArgumentParser instance to extend
     :param required: Whether the argument is required (default: True)
+    :param default: Default value when not required (default: None)
+    :param help_: Override the default help text, for scripts where `-i`
+        is used for something other than "the" input file (default: None)
     :return: Parser with added argument
     """
     parser.add_argument(
@@ -339,19 +346,24 @@ def add_input_file_arg(
         dest="input",
         type=str,
         required=required,
-        help="Input file (or '-' for stdin)",
+        default=default,
+        help=help_ or "Input file (or '-' for stdin)",
     )
     return parser
 
 
 def add_files_list_arg(
-    parser: argparse.ArgumentParser, *, required: bool = True
+    parser: argparse.ArgumentParser,
+    *,
+    required: bool = True,
+    help_: Optional[str] = None,
 ) -> argparse.ArgumentParser:
     """
     Add standardized `-f`/`--files` argument for file list input.
 
     :param parser: ArgumentParser instance to extend
     :param required: Whether the argument is required (default: True)
+    :param help_: Override the default help text (default: None)
     :return: Parser with added argument
     """
     parser.add_argument(
@@ -361,19 +373,26 @@ def add_files_list_arg(
         type=str,
         nargs="+",
         required=required,
-        help="List of input files (space-separated or comma-separated)",
+        help=help_
+        or "List of input files (space-separated or comma-separated)",
     )
     return parser
 
 
 def add_input_dir_arg(
-    parser: argparse.ArgumentParser, *, required: bool = True
+    parser: argparse.ArgumentParser,
+    *,
+    required: bool = True,
+    default: Optional[str] = None,
+    help_: Optional[str] = None,
 ) -> argparse.ArgumentParser:
     """
     Add standardized `--input_dir` argument for directory input.
 
     :param parser: ArgumentParser instance to extend
     :param required: Whether the argument is required (default: True)
+    :param default: Default value when not required (default: None)
+    :param help_: Override the default help text (default: None)
     :return: Parser with added argument
     """
     parser.add_argument(
@@ -381,7 +400,8 @@ def add_input_dir_arg(
         dest="input_dir",
         type=str,
         required=required,
-        help="Input directory path",
+        default=default,
+        help=help_ or "Input directory path",
     )
     return parser
 

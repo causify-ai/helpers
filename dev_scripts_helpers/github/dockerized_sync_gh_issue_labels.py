@@ -137,10 +137,8 @@ def _parse() -> argparse.ArgumentParser:
         formatter_class=hparser.CustomHelpFormatter,
     )
     hparser.add_verbosity_arg(parser)
-    parser.add_argument(
-        "--input_file",
-        required=True,
-        help="Path to label inventory manifest file",
+    hparser.add_input_file_arg(
+        parser, help_="Path to label inventory manifest file"
     )
     parser.add_argument(
         "--owner",
@@ -181,7 +179,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
     args = parser.parse_args()
     hdbg.init_logger(verbosity=args.log_level, use_exec_path=True)
     # Load labels from label inventory manifest file.
-    labels = Label.load_labels(args.input_file)
+    labels = Label.load_labels(args.input)
     labels_map = {label.name.strip().lower(): label for label in labels}
     token = os.environ[args.token_env_var]
     hdbg.dassert(token)

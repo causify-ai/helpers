@@ -192,7 +192,7 @@ This directory has no subdirectories.
 
 ### What It Does
 
-- Runs `tree` on each subdirectory of `--in_dir` and summarizes it with an LLM
+- Runs `tree` on each subdirectory of `--input_dir` and summarizes it with an LLM
   (`gpt-4o-mini`)
 - Combines all per-directory summaries into a single `google_drive_map.md`
 - Optionally builds a `directory_table.md` with owner/department/content
@@ -204,20 +204,20 @@ This directory has no subdirectories.
 
 - Process a directory using the default actions (tree and llm):
   ```bash
-  > create_google_drive_map.py --in_dir /path/to/process
+  > create_google_drive_map.py --input_dir /path/to/process
   ```
 
 - Run all available actions (tree, llm, combine, table):
   ```bash
   > create_google_drive_map.py \
-      --in_dir /path/to/process \
+      --input_dir /path/to/process \
       --all_actions
   ```
 
 - Process only the first 3 directories, saving to a custom output directory:
   ```bash
   > create_google_drive_map.py \
-      --in_dir /path/to/process \
+      --input_dir /path/to/process \
       --limit 1:3 \
       --out_dir analysis
   ```
@@ -225,14 +225,14 @@ This directory has no subdirectories.
 - Combine existing per-directory LLM outputs into one markdown file:
   ```bash
   > create_google_drive_map.py \
-      --in_dir /path/to/process \
+      --input_dir /path/to/process \
       --clear_actions --action combine \
       --out_dir existing_results
   ```
 
 - Start fresh by deleting the existing output directory first:
   ```bash
-  > create_google_drive_map.py --in_dir /path/to/process --from_scratch
+  > create_google_drive_map.py --input_dir /path/to/process --from_scratch
   ```
 
 ## `to_local_dir.py`

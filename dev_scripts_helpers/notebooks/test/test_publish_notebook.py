@@ -21,7 +21,7 @@ class Test_publish_notebook1(hunitest.TestCase):
         cmd = []
         cmd.append("publish_notebook.py")
         cmd.append("--action publish")
-        cmd.append(f"--file {file_name}")
+        cmd.append(f"-i {file_name}")
         dst_dir = self.get_scratch_space()
         cmd.append(f"--target_dir {dst_dir}")
         cmd = " ".join(cmd)
@@ -32,7 +32,7 @@ class Test_publish_notebook1(hunitest.TestCase):
 
 # TODO(gp): Add test for something like:
 #  > publish_notebook.py \
-#   --file http://127.0.0.1:2908/notebooks/notebooks/AmpTask40_Optimizer.ipynb \
+#   -i http://127.0.0.1:2908/notebooks/notebooks/AmpTask40_Optimizer.ipynb \
 #   --action post_on_s3 \
 #   --s3_path s3://.../notebooks \
 #   --aws_profile am

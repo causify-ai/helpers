@@ -10,7 +10,7 @@ issue labels using the provided manifest file.
 - Synchronize labels for the `helpers` repository from a YAML manifest file
   with a dry run:
 > sync_gh_issue_labels.py \
-    --input_file ./dev_scripts_helpers/github/labels/gh_issues_labels.yml \
+    -i ./dev_scripts_helpers/github/labels/gh_issues_labels.yml \
     --owner causify-ai \
     --repo tutorials \
     --token_env_var GITHUB_TOKEN \
@@ -37,10 +37,8 @@ def _parse() -> argparse.ArgumentParser:
         description=__doc__,
         formatter_class=hparser.CustomHelpFormatter,
     )
-    parser.add_argument(
-        "--input_file",
-        required=True,
-        help="Path to label inventory manifest file",
+    hparser.add_input_file_arg(
+        parser, help_="Path to label inventory manifest file"
     )
     parser.add_argument(
         "--owner",
@@ -165,7 +163,7 @@ def _run_dockerized_sync_gh_issue_labels(
     )
     cmd = [
         script,
-        f"--input_file {input_file}",
+        f"-i {input_file}",
         f"--owner {owner}",
         f"--repo {repo}",
         f"--token_env_var {token_env_var}",
@@ -201,7 +199,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
         verbosity=args.log_level, use_exec_path=True, force_white=False
     )
     _run_dockerized_sync_gh_issue_labels(
-        args.input_file,
+        args.input,
         args.owner,
         args.repo,
         args.token_env_var,

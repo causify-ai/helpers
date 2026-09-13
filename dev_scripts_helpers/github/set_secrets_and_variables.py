@@ -6,7 +6,7 @@ Script to set batch of GitHub secrets/variables from `.json` file in one go.
 
 - Set the secrets/variables from a JSON file on the given repo:
 > set_secrets_and_variables.py \
-     --file 'dev_scripts/github/vars.json' \
+     -i 'dev_scripts/github/vars.json' \
      --repo 'cryptomtc/cmamp_test'
 
 The JSON file looks like:
@@ -45,12 +45,8 @@ def _parse() -> argparse.ArgumentParser:
         formatter_class=hparser.CustomHelpFormatter,
     )
     hparser.add_verbosity_arg(parser)
-    parser.add_argument(
-        "--file",
-        action="store",
-        required=True,
-        type=str,
-        help="Location of `.json` file with desired secrets.",
+    hparser.add_input_file_arg(
+        parser, help_="Location of `.json` file with desired secrets."
     )
     parser.add_argument(
         "--repo",
@@ -75,7 +71,7 @@ def _parse() -> argparse.ArgumentParser:
 def _main(parser: argparse.ArgumentParser) -> None:
     args = parser.parse_args()
     hdbg.init_logger(verbosity=args.log_level, use_exec_path=True)
-    file_dict = hio.from_json(args.file)
+    file_dict = hio.from_json(args.input)
     # Sort secrets.
     if args.dry_run:
         print(pprint.pformat(file_dict))

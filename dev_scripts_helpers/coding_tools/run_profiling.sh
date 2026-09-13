@@ -36,7 +36,7 @@ if [[ 1 == 0 ]]; then
     python -m cProfile -o $PROF_FILE $cmd_line 2>&1 | tee $LOG_FILE
 
     # Post-process.
-    ${AMP_DIR}/dev_scripts/process_prof.py --file_name $PROF_FILE
+    ${AMP_DIR}/dev_scripts/process_prof.py -i $PROF_FILE
 fi;
 
 # Line profile.

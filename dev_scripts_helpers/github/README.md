@@ -87,14 +87,14 @@ with Dockerized execution for dependency isolation.
 - Upload secrets and variables:
   ```bash
   > set_secrets_and_variables.py \
-      --file vars.json \
+      -i vars.json \
       --repo owner/repo
   ```
 
 - Preview changes with dry run:
   ```bash
   > set_secrets_and_variables.py \
-      --file vars.json \
+      -i vars.json \
       --repo owner/repo \
       --dry_run
   ```
@@ -102,7 +102,7 @@ with Dockerized execution for dependency isolation.
 - Remove secrets:
   ```bash
   > set_secrets_and_variables.py \
-      --file vars.json \
+      -i vars.json \
       --repo owner/repo \
       --remove
   ```
@@ -121,7 +121,7 @@ with Dockerized execution for dependency isolation.
 - Sync labels with backup and dry run:
   ```bash
   > sync_gh_issue_labels.py \
-      --input_file labels.yml \
+      -i labels.yml \
       --owner org \
       --repo repo \
       --token_env_var GITHUB_TOKEN \
@@ -131,7 +131,7 @@ with Dockerized execution for dependency isolation.
 - Apply label synchronization:
   ```bash
   > sync_gh_issue_labels.py \
-      --input_file labels.yml \
+      -i labels.yml \
       --owner org \
       --repo repo \
       --token_env_var GITHUB_TOKEN

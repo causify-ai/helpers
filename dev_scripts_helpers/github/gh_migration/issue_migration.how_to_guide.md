@@ -95,7 +95,7 @@ export GITHUB_TOKEN=ghp_your_token_here
 python .github/gh_migration/bulk_transfer_issues.py \
   --src causify-ai/cmamp \
   --dst causify-ai/csfy \
-  --file .github/gh_migration/issues_to_transfer.txt \
+  -i .github/gh_migration/issues_to_transfer.txt \
   --state closed \
   --dry-run \
   --why \
@@ -115,7 +115,7 @@ This prints:
 python .github/gh_migration/bulk_transfer_issues.py \
   --src causify-ai/cmamp \
   --dst causify-ai/csfy \
-  --file .github/gh_migration/issues_to_transfer.txt \
+  -i .github/gh_migration/issues_to_transfer.txt \
   --state closed \
   --sleep 2 \
   --why \
@@ -128,7 +128,7 @@ python .github/gh_migration/bulk_transfer_issues.py \
 | --------------------------- | --------------------------------------------- | ---------------------------------------------------------------------------- |
 | `--src owner/repo`          | `causify-ai/cmamp`                            | Source repository.                                                           |
 | `--dst owner/repo`          | `causify-ai/csfy`                             | Destination repository.                                                      |
-| `--file path`               | `.github/gh_migration/issues_to_transfer.txt` | Input file with ranges/IDs.                                                  |
+| `-i path`               | `.github/gh_migration/issues_to_transfer.txt` | Input file with ranges/IDs.                                                  |
 | `--state closed\|open\|all` | `closed`                                      | Filter by **source issue** state. Applies to **all IDs** (ranges & singles). |
 | `--sleep N`                 | `2`                                           | Seconds to sleep between transfers (avoid rate limiting).                    |
 | `--dry-run`                 | off                                           | Preview only; no changes made.                                               |
@@ -169,7 +169,7 @@ Dry-run with reasons & redirects:
 python .github/gh_migration/bulk_transfer_issues.py \
   --src causify-ai/cmamp \
   --dst causify-ai/csfy \
-  --file .github/gh_migration/issues_to_transfer.txt \
+  -i .github/gh_migration/issues_to_transfer.txt \
   --state closed \
   --dry-run --why --trace-redirect --max-title 100
 ```
@@ -180,7 +180,7 @@ Execute:
 python .github/gh_migration/bulk_transfer_issues.py \
   --src causify-ai/cmamp \
   --dst causify-ai/csfy \
-  --file .github/gh_migration/issues_to_transfer.txt \
+  -i .github/gh_migration/issues_to_transfer.txt \
   --state closed \
   --sleep 2
 ```
@@ -199,7 +199,7 @@ Run with `--state all`:
 python .github/gh_migration/bulk_transfer_issues.py \
   --src causify-ai/cmamp \
   --dst causify-ai/csfy \
-  --file .github/gh_migration/issues_to_transfer.txt \
+  -i .github/gh_migration/issues_to_transfer.txt \
   --state all \
   --dry-run --why
 ```
@@ -293,6 +293,6 @@ PY
 printf "6 7 9 10\n" > .github/gh_migration/issues_to_transfer.txt
 python .github/gh_migration/bulk_transfer_issues.py \
   --src causify-ai/cmamp --dst causify-ai/csfy \
-  --file .github/gh_migration/issues_to_transfer.txt \
+  -i .github/gh_migration/issues_to_transfer.txt \
   --state closed --dry-run --why --max-title 100
 ```
