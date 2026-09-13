@@ -334,6 +334,12 @@ class Test_git_modified_files1(hunitest.TestCase):
         actual = hgit.get_modified_files_in_branch("master")
         _LOG.debug("actual=%s", actual)
 
+    def test_get_modified_files_in_branch2(self) -> None:
+        actual = hgit.get_modified_files_in_branch(
+            "master", use_branch_point=True
+        )
+        _LOG.debug("actual=%s", actual)
+
     def test_get_summary_files_in_branch1(self) -> None:
         actual = hgit.get_summary_files_in_branch("master")
         _LOG.debug("actual=%s", actual)
@@ -1145,10 +1151,7 @@ class Test_find_git_root6(hunitest.TestCase):
 # #############################################################################
 
 
-@pytest.mark.skipif(
-    not hgit.is_git_worktree(),
-    reason="Not in a Git worktree"
-)
+@pytest.mark.skipif(not hgit.is_git_worktree(), reason="Not in a Git worktree")
 class Test_find_git_root_in_active_worktree(hunitest.TestCase):
     """
     Tests for find_git_root() behavior in an active Git worktree.
@@ -1175,7 +1178,6 @@ class Test_find_git_root_in_active_worktree(hunitest.TestCase):
 
 
 class Test_git_add_file(hunitest.TestCase):
-
     def _setup_git_repo_helper(self, repo_name: str) -> str:
         """
         Create and initialize a git repo.
@@ -1190,12 +1192,10 @@ class Test_git_add_file(hunitest.TestCase):
         with hsystem.cd(git_repo):
             hsystem.system("git init", suppress_output=True)
             hsystem.system(
-                "git config user.email 'test@test.com'",
-                suppress_output=True
+                "git config user.email 'test@test.com'", suppress_output=True
             )
             hsystem.system(
-                "git config user.name 'Test User'",
-                suppress_output=True
+                "git config user.name 'Test User'", suppress_output=True
             )
         return git_repo
 
@@ -1235,7 +1235,9 @@ class Test_git_add_file(hunitest.TestCase):
             self.assertTrue(len(added_files) > 0, "Expected files to be added")
             self.assertIn(test_file, added_files)
         else:
-            self.assertEqual(len(added_files), 0, "Expected no files to be added")
+            self.assertEqual(
+                len(added_files), 0, "Expected no files to be added"
+            )
 
     def test1(self) -> None:
         """
@@ -1280,7 +1282,6 @@ class Test_git_add_file(hunitest.TestCase):
 
 
 class Test_is_git_worktree(hunitest.TestCase):
-
     def test1(self) -> None:
         """
         Test that is_git_worktree() returns a boolean.

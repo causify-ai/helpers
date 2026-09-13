@@ -17,8 +17,8 @@ import dev_scripts_helpers.git.git_create_issue_and_branch as dshggciab
 
 def _make_is_clean_side_effect(clean_dir_name: str):
     """
-    Build a `hgit.is_client_clean()` side effect where only `clean_dir_name`
-    is reported as clean.
+    Build a `hgit.is_client_clean()` side effect where only `clean_dir_name` is
+    reported as clean.
 
     :param clean_dir_name: the only repo target considered clean
     :return: side effect function suitable for `mock.patch(...,
@@ -44,12 +44,11 @@ class Test__get_repo_targets(hunitest.TestCase):
     Test `git_create_issue_and_branch._get_repo_targets()`.
     """
 
-    def _helper(self, no_submodules: bool, expected: List[str]) -> None:
+    def _helper(self, submodules: bool, expected: List[str]) -> None:
         """
-        Run `_get_repo_targets()` with a submodule present and check the
-        result.
+        Run `_get_repo_targets()` with a submodule present and check the result.
 
-        :param no_submodules: value passed to `no_submodules` param
+        :param submodules: value passed to `submodules` param
         :param expected: expected repo targets
         """
         # Run test.
@@ -60,7 +59,7 @@ class Test__get_repo_targets(hunitest.TestCase):
                 return_value=["helpers_root"],
             ),
         ):
-            repo_targets = dshggciab._get_repo_targets(no_submodules)
+            repo_targets = dshggciab._get_repo_targets(submodules)
         # Check outputs.
         self.assertEqual(repo_targets, expected)
 
@@ -70,36 +69,37 @@ class Test__get_repo_targets(hunitest.TestCase):
         submodules.
         """
         # Prepare inputs.
-        no_submodules = False
+        submodules = True
         # Run test.
         with mock.patch("helpers.hgit.has_submodules", return_value=False):
-            repo_targets = dshggciab._get_repo_targets(no_submodules)
+            repo_targets = dshggciab._get_repo_targets(submodules)
         # Check outputs.
         expected = ["."]
         self.assertEqual(repo_targets, expected)
 
     def test2(self) -> None:
         """
-        Test that submodules are appended after the outer repo, by default.
+        Test that submodules are appended after the outer repo when
+        `submodules=True` is requested.
         """
         # Prepare inputs.
-        no_submodules = False
+        submodules = True
         # Prepare outputs.
         expected = [".", "helpers_root"]
         # Run test.
-        self._helper(no_submodules, expected)
+        self._helper(submodules, expected)
 
     def test3(self) -> None:
         """
-        Test that `no_submodules=True` returns the outer repo only, even
-        when submodules are present.
+        Test that the default (`submodules=False`) returns the outer repo
+        only, even when submodules are present.
         """
         # Prepare inputs.
-        no_submodules = True
+        submodules = False
         # Prepare outputs.
         expected = ["."]
         # Run test.
-        self._helper(no_submodules, expected)
+        self._helper(submodules, expected)
 
 
 # #############################################################################
@@ -604,9 +604,9 @@ class Test_git_create_issue_and_branch_py(hunitest.TestCase):
     def test5(self) -> None:
         """
         Test symmetric branch and worktree creation with one submodule
-        present: the branch is created in both the outer repo and the
-        submodule, and the submodule's worktree is checked out on that
-        branch.
+        present and `--submodules` passed: the branch is created in both
+        the outer repo and the submodule, and the submodule's worktree is
+        checked out on that branch.
         """
         # Prepare inputs.
         argv = [
@@ -614,6 +614,7 @@ class Test_git_create_issue_and_branch_py(hunitest.TestCase):
             "--gh_issue_id",
             "1290",
             "--create_worktree",
+            "--submodules",
         ]
         # Run test with mocked system calls.
         with (
@@ -692,13 +693,15 @@ class Test_git_create_issue_and_branch_py(hunitest.TestCase):
 
     def test6(self) -> None:
         """
-        Test that a dirty outer repo aborts before touching the submodule.
+        Test that a dirty outer repo aborts before touching the submodule,
+        with `--submodules` passed.
         """
         # Prepare inputs.
         argv = [
             "git_create_issue_and_branch.py",
             "--gh_issue_id",
             "1290",
+            "--submodules",
         ]
         is_clean_side_effect = _make_is_clean_side_effect("helpers_root")
         # Run test with mocked system calls.
@@ -722,13 +725,15 @@ class Test_git_create_issue_and_branch_py(hunitest.TestCase):
 
     def test7(self) -> None:
         """
-        Test that a dirty submodule aborts before touching the outer repo.
+        Test that a dirty submodule aborts before touching the outer repo,
+        with `--submodules` passed.
         """
         # Prepare inputs.
         argv = [
             "git_create_issue_and_branch.py",
             "--gh_issue_id",
             "1290",
+            "--submodules",
         ]
         is_clean_side_effect = _make_is_clean_side_effect(".")
         # Run test with mocked system calls.
@@ -753,13 +758,14 @@ class Test_git_create_issue_and_branch_py(hunitest.TestCase):
     def test8(self) -> None:
         """
         Test that the outer repo not being on `master` aborts before
-        creating any branch.
+        creating any branch, with `--submodules` passed.
         """
         # Prepare inputs.
         argv = [
             "git_create_issue_and_branch.py",
             "--gh_issue_id",
             "1290",
+            "--submodules",
         ]
         # Run test with mocked system calls.
         with (
@@ -784,13 +790,14 @@ class Test_git_create_issue_and_branch_py(hunitest.TestCase):
     def test9(self) -> None:
         """
         Test that a submodule not being on `master` aborts before creating
-        any branch.
+        any branch, with `--submodules` passed.
         """
         # Prepare inputs.
         argv = [
             "git_create_issue_and_branch.py",
             "--gh_issue_id",
             "1290",
+            "--submodules",
         ]
         # Run test with mocked system calls.
         with (
@@ -814,16 +821,14 @@ class Test_git_create_issue_and_branch_py(hunitest.TestCase):
 
     def test10(self) -> None:
         """
-        Test that `--no_submodules` reproduces today's outer-repo-only
-        behavior, even when a submodule is present (the submodule is never
-        touched).
+        Test that the default (no `--submodules` flag) is outer-repo-only,
+        even when a submodule is present (the submodule is never touched).
         """
         # Prepare inputs.
         argv = [
             "git_create_issue_and_branch.py",
             "--gh_issue_id",
             "1290",
-            "--no_submodules",
         ]
         # Run test with mocked system calls.
         with (
@@ -833,8 +838,8 @@ class Test_git_create_issue_and_branch_py(hunitest.TestCase):
                 "helpers.hgit.get_branch_name",
                 return_value="HelpersTask1290_Test",
             ),
-            # A submodule is present, but must be ignored due to
-            # `--no_submodules`.
+            # A submodule is present, but must be ignored since
+            # `--submodules` was not passed.
             mock.patch("helpers.hgit.has_submodules", return_value=True),
             mock.patch(
                 "helpers.hgit.get_submodule_paths",

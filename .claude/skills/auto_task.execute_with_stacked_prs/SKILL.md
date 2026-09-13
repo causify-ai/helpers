@@ -6,8 +6,8 @@ model: haiku
 # Goal
 
 - Execute one GitHub issue as a stack of sequential branches and PRs, each named
-  `<BASE>_<ID>` (`ID` = 1, 2, 3, ...) and each branched from the previous one, so
-  the PRs stack in review order
+  `<BASE>_<ID>` (`ID` = 1, 2, 3, ...) and each branched from the previous one, so the
+  PRs stack in review order
 - Create the whole stack without stopping for review between branches
   - The user then reviews, edits, and merges each PR bottom-up at their own pace,
     after this skill's job is done
@@ -15,18 +15,16 @@ model: haiku
   named before they reach this skill
 
 ## Input
-- The user will pass you a task in the format 
+
+- The user will pass you a task in the format
 
 # When to Use This Skill
 
 - Use it only when the tasks favor stacked execution: specs are complete, tasks form
   a real dependency chain, and the user prefers one batch review over interruptions
-
-- If a task's spec is unclear or incomplete:
-  - Stop before stacking it
-  - Ask for clarification on that task
-  - Do not guess and keep building downstream tasks on top of a guess
-
+- Follow `.claude/skills/auto_task.rules.md` section "Ask for Clarification Before
+  Executing an Unclear Plan" when a task's spec is unclear or incomplete: do not keep
+  building downstream tasks on top of a guess
 - Make sure that once you start implementing the stack all the doubts have been
   clarified by asking to the user, so that you can proceed without interruptions
 
@@ -34,17 +32,9 @@ model: haiku
 
 ## Confirm the Task List
 
-- Read the ordered tasks that will become the stack's branches and check each one
-  states a problem and a solution
-  ```text
-  ### [ ] <Goal of first task>
-  - <Change 1>
-  - <Change 2>
-
-  ### [ ] <Goal of second task>
-  - <Change 1>
-  - <Change 2>
-  ```
+- Follow `.claude/skills/auto_task.rules.md` section "Confirm the Task List Before
+  Executing" for the task list format and the problem/solution check; these ordered
+  tasks are the stack's branches, one task per branch
 - Confirm task `<ID+1>` depends only on task `<ID>`, not on `master` and not on an
   earlier task in the list
 - If the order or a dependency is unclear, ask before starting: fixing a wrong
@@ -53,7 +43,6 @@ model: haiku
 ## Create the Issue and the First Branch (`_1`)
 
 - One GH issue covers the whole stack, not one issue per branch
-
 - Create the issue and the first branch / PR `<BASE>_1`
 
   ```bash
@@ -61,10 +50,9 @@ model: haiku
       --gh_issue_title "<TITLE>" --gh_issue_body "<Description of entire stack>" \
       --suffix 1
   ```
-- The description of the entire task is 
 
+- The description of the entire task is
 - Commit the file passed by the user (e.g., `tasks.md`)
-
 - Implement task 1, run the tests it touches, commit, push
 
 ## Stack Each Following Branch (`_<ID>`)
@@ -78,13 +66,13 @@ model: haiku
         --no-only-branch-from-master --no-abort-if-not-master --no-create-pr
     ```
 
-    - Do not use `invoke git_branch_next_name` for this: it appends its own
-      `_1`, `_2`, ... onto whatever branch is currently checked out, so run from
+    - Do not use `invoke git_branch_next_name` for this: it appends its own `_1`,
+      `_2`, ... onto whatever branch is currently checked out, so run from
       `<BASE>_<ID-1>` it produces `<BASE>_<ID-1>_1`, not `<BASE>_<ID>`; only
       `--issue-id --suffix <ID>` derives `<BASE>_<ID>` correctly
-    - Pass both `--no-only-branch-from-master` and `--no-abort-if-not-master`:
-      with `only_branch_from_master` left at its default (`True`), the task
-      switches to `master` before branching regardless of `abort_if_not_master`
+    - Pass both `--no-only-branch-from-master` and `--no-abort-if-not-master`: with
+      `only_branch_from_master` left at its default (`True`), the task switches to
+      `master` before branching regardless of `abort_if_not_master`
   - Implement task `<ID>`, following `.claude/skills/coding.rules.md`
   - Run the tests it touches, following `.claude/skills/testing.rules.md`
   - Commit and push
@@ -94,8 +82,8 @@ model: haiku
     > gh pr create --base <BASE>_<ID-1> --head <BASE>_<ID> --title "<TITLE>"
     ```
 
-  - Do not stop for review between branches: move straight to `<BASE>_<ID+1>`
-    once `<BASE>_<ID>`'s tests pass
+  - Do not stop for review between branches: move straight to `<BASE>_<ID+1>` once
+    `<BASE>_<ID>`'s tests pass
 
 ## Report the Stack
 
@@ -119,13 +107,13 @@ model: haiku
     ```
 
     then resolve whatever conflicts come up, commit, push
-    - This is a merge, not a rebase: if `<BASE>_<ID-1>` was squash-merged, expect
-      a conflict even on identical content, since Git cannot tell the squashed
-      commit and the original commits are the same change
-  - Repeat for `<BASE>_<ID+1>` once `<BASE>_<ID>`'s PR merges, continuing
-    bottom-up until the stack is gone
-- Never force-push a branch whose PR has unresolved review comments without
-  telling the user first
+    - This is a merge, not a rebase: if `<BASE>_<ID-1>` was squash-merged, expect a
+      conflict even on identical content, since Git cannot tell the squashed commit
+      and the original commits are the same change
+  - Repeat for `<BASE>_<ID+1>` once `<BASE>_<ID>`'s PR merges, continuing bottom-up
+    until the stack is gone
+- Never force-push a branch whose PR has unresolved review comments without telling
+  the user first
 
 # Conventions
 
@@ -150,12 +138,12 @@ model: haiku
 # Verification
 
 - [ ] Every branch is named `<BASE>_<ID>`, including the first, with `ID` increasing
-  by 1 up the stack
+      by 1 up the stack
 - [ ] Every branch's Git merge base is the previous branch in the stack, not
-  `master`, except `<BASE>_1`, whose base is `master`
+      `master`, except `<BASE>_1`, whose base is `master`
 - [ ] Every PR's base matches its parent branch in the stack, not the repo's default
-  branch, except `<BASE>_1`'s PR, whose base is `master`
+      branch, except `<BASE>_1`'s PR, whose base is `master`
 - [ ] Every branch and PR in the stack was created under the one shared GH issue
-  created alongside `<BASE>_1`
+      created alongside `<BASE>_1`
 - [ ] The tests touched by each task passed before that task's branch was pushed
 - [ ] The final report lists every branch and PR in dependency order with links

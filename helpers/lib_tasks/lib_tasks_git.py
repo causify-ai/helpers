@@ -122,8 +122,8 @@ def git_set_symlink_perms(ctx, dir_name="."):  # type: ignore
     """
     Add write permissions for all on each symlink in a directory.
 
-    Makes all symlinks writable by all users (chmod a+w on the symlink inode,
-    not the target).
+    Makes all symlinks writable by all users (chmod a+w on the symlink inode, not
+    the target).
 
     :param dir_name: directory to process (default: ".")
     """
@@ -446,6 +446,8 @@ def git_files(  # type: ignore
     last_commit=False,
     all_files=False,
     #
+    branch_point=False,
+    #
     file_types="",
     skip_file_types="",
     pbcopy=False,
@@ -454,15 +456,22 @@ def git_files(  # type: ignore
     mode="files",
 ):
     """
-    Report which files are changed in the current branch with respect to master.
+    Report which files are changed in the current branch with respect to
+    `origin/master`.
 
     File selection options (mutually exclusive):
     :param files: Specific files (space-separated string)
     :param from_file: Path to file containing file list (one per line)
     :param modified: Select files modified in the client
-    :param branch: Select files modified with respect to branch point (default)
+    :param branch: Select files modified with respect to the tip of
+        `origin/master` (default)
     :param last_commit: Select files from last commit
     :param all_files: Select all repo files
+
+    :param branch_point: only relevant with `branch`; instead of the files
+        currently different vs the tip of `origin/master`, select every file
+        touched since the branch diverged from `origin/master` (i.e., since the
+        merge-base, aka "branch point").
 
     Filtering options:
     :param file_types: Comma-separated list of file extensions to include
@@ -499,6 +508,7 @@ def git_files(  # type: ignore
         last_commit,
         all_files,
         mutually_exclusive=mutually_exclusive,
+        branch_point=branch_point,
         remove_dirs=remove_dirs,
     )
     # Filter by file type.
@@ -808,11 +818,10 @@ def git_branch_rename(ctx, new_branch_name):  # type: ignore
     """
     Rename current branch both locally and remotely.
 
-    If an open PR exists for the current branch and its title still
-    matches the branch name (i.e., it was not customized), the PR is
-    recreated under the new branch name, since GitHub always closes a
-    PR once its head branch is deleted and there is no way to migrate
-    an existing PR to a differently-named branch.
+    If an open PR exists for the current branch and its title still matches the
+    branch name (i.e., it was not customized), the PR is recreated under the new
+    branch name, since GitHub always closes a PR once its head branch is deleted
+    and there is no way to migrate an existing PR to a differently-named branch.
     """
     hltltaut.report_task()
     old_branch_name = hgit.get_branch_name(".")
@@ -923,7 +932,7 @@ def git_branch_copy(  # type: ignore
     use_patch=False,
     check_branch_name=True,
     method="auto",
-    submodules=True,
+    submodules=False,
 ):
     """
     Create a new branch with the same content of the current branch.
@@ -938,10 +947,10 @@ def git_branch_copy(  # type: ignore
         - 'github_api': use only GitHub API method (fast)
         - 'linear_scan': use only linear scan method (always works)
     :param submodules: also fetch/merge master in submodules when syncing
-        with master. Set to `False` to avoid errors like "refusing to
-        fetch into branch ... checked out" when a submodule (e.g.,
-        `helpers_root`) has its master branch checked out in its own
-        git dir
+        with master (default: `False`, since this otherwise causes errors
+        like "refusing to fetch into branch ... checked out" when a
+        submodule, e.g., `helpers_root`, has its master branch checked out
+        in its own git dir)
     """
     # Patch-based copying is not yet implemented.
     hdbg.dassert(
@@ -1494,8 +1503,7 @@ def _get_submodule_paths() -> List[str]:
     """
     Get list of submodule paths from .gitmodules file.
 
-    :return: List of submodule directory paths, empty if no submodules
-        found
+    :return: List of submodule directory paths, empty if no submodules found
     """
     gitmodules_path = ".gitmodules"
     if not os.path.exists(gitmodules_path):
@@ -1561,7 +1569,8 @@ def git_branch_is_merged(ctx):  # type: ignore
     """
     Check if the current branch was merged into master using GitHub API and git.
 
-    Uses GitHub API to check for open/closed PRs and git to verify branch presence on remote.
+    Uses GitHub API to check for open/closed PRs and git to verify branch
+    presence on remote.
     """
     _ = ctx
     hltltaut.report_task()
@@ -1715,8 +1724,8 @@ def gh_watch(ctx, *, interval=60):  # type: ignore
     Watch GitHub workflow status with periodic updates.
 
     Runs `invoke gh_workflow_list` every N seconds. If running in tmux,
-    temporarily renames the window to "*GH_WATCH*" for visibility and
-    restores it on exit.
+    temporarily renames the window to "*GH_WATCH*" for visibility and restores it
+    on exit.
 
     :param interval: Update interval in seconds
     """
@@ -1765,7 +1774,8 @@ def git_fix_perms(ctx, check=True, fix=False, dir_name="."):  # type: ignore
     """
     Fix file and directory permissions to be writable by owner and group.
 
-    Makes all files and directories readable and writable by owner and group (chmod ug+w).
+    Makes all files and directories readable and writable by owner and group
+    (chmod ug+w).
 
     :param check: if True (default), only report files with wrong permissions
     :param fix: if True, apply chmod ug+w to fix permissions
