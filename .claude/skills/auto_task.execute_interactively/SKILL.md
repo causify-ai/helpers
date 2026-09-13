@@ -15,10 +15,8 @@ model: haiku
 
 # When to Use This Skill
 
-- If a task's spec is unclear or incomplete:
-  - Stop before stacking it
-  - Ask for clarification on that task
-  - Do not guess and keep building downstream tasks on top of a guess
+- Follow `.claude/skills/auto_task.rules.md` section "Ask for Clarification
+  Before Executing an Unclear Plan" when a task's spec is unclear or incomplete
 
 # Conventions
 
@@ -37,18 +35,9 @@ model: haiku
 
 ## Confirm the Task List
 
-- Read `<FILE>` and extract the list of tasks
-  ```text
-  ### [ ] <Goal of first task>
-  - <Change 1>
-  - <Change 2>
-
-  ### [ ] <Goal of second task>
-  - <Change 1>
-  - <Change 2>
-  ```
-
-- Check that each task states a problem and a solution
+- Read `<FILE>` and follow `.claude/skills/auto_task.rules.md` section "Confirm
+  the Task List Before Executing" for the task list format and the
+  problem/solution check
 - Make sure each task is clear and create a plan in 5 markdown bullets in `<FILE>`
   under each task
 - If the order or a dependency is unclear, ask before starting: fixing a wrong
@@ -81,10 +70,8 @@ model: haiku
 ### Execute Each Task
 
 - Execute each task following the instructions in `@.claude/task_instructions.md`
-- Keep updated the `<FILE>` by marking task `[ ] ...` with
-  - `[-]` in progress
-  - `[x]` when done
-  - `[ ]` not started
+- Keep `<FILE>` updated per `.claude/skills/auto_task.rules.md` section "Track
+  Task Status"
 
 ### Verify Each Task
 

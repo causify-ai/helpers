@@ -26,7 +26,7 @@ model: sonnet
   notebook:
   - **Markdown cell**: Section header, goal, and pedagogical content (before viz)
   - **Code cell**: Visualization, widgets, and interactive controls
-  - **Markdown cell**: Key observations and what to learn (after viz)
+  - **Markdown cell**: Guided usage, actions plus observations (after viz)
 
 ## Numbering and Naming
 
@@ -51,20 +51,26 @@ model: sonnet
   - <Learning objective 2>
 
   **Plots and their descriptions**:
-  - _<Plot 1 name>_: <Description of what it shows>
-  - _<Plot 2 name>_: <Description of what it shows>
-  - _Comments_: Current parameter values and state observations
+  - **`<Plot 1 name>`**: <Description of what it shows>
+  - **`<Plot 2 name>`**: <Description of what it shows>
+  - **`Comments`**: Current parameter values and state observations
 
   **Widgets** (if applicable):
-  - <widget name>: <description, range, effect on display>
+  - **`<widget name>`**: <description, range, effect on display>
   - Each widget description is close to the widget itself
 
-  **Key observations** (post-visualization):
-  - <Discovery 1 students should make>
-  - <Discovery 2 students should make>
+  **Guided usage** (post-visualization):
+  - <Action on a widget, plus the observation it produces>
+  - <Action on a widget, plus the observation it produces>
 
   **Implementation**: Libraries and functions used
   ```
+
+- In the final notebook, **Plots and their descriptions** plus **Widgets**
+  become the `**Usage**` markdown cell (split into `- Inputs` and
+  `- Panels`), and **Implementation** becomes its own `**Implementation**`
+  markdown cell, expanded into one bullet per algorithmic step: see
+  `.claude/skills/notebook.rules.md` `## Visualization Cell Triplet Details`
 
 ### Goal (Required)
 
@@ -74,14 +80,14 @@ model: sonnet
 
 ### Plots and Their Descriptions (Required)
 
-- Describe each plot using the pattern `_<Plot name>_: <DESCRIPTION>`
+- Describe each plot using the pattern `**\`<Plot name>\`**: <DESCRIPTION>`
 - Each plot's description is placed together with the plot title, not in a
   separate section
 - Be specific about what the visualization shows (not implementation details)
 - Include: axes labels, color scheme, what each panel displays
 - Example:
   ```
-  _Population bin_: Shows full population as colored marbles
+  **`Population bin`**: Shows full population as colored marbles
   ```
 
 ### Widgets (If Applicable)
@@ -94,15 +100,15 @@ model: sonnet
 - Keep widgets focused on pedagogically important parameters
 - Avoid: redundant controls, parameters students won't care about
 
-### Key Observations (Required, Post-Visualization)
+### Guided Usage (Required, Post-Visualization)
 
-- List 2-3 bullet points of discoveries students should make by
-  - Looking at the output or visualization
-  - Interacting with the widgets
+- List 2-3 bullets, each an action on a control plus the observation it
+  produces, e.g., `Drag mu from 0.2 to 0.8` / `Observe the sample bin's
+  color mix shift to match`
 - These appear in a markdown cell **after** the visualization cell
-- Focus on learning outcomes, not mechanics
+- Focus on what to do and what it reveals, not general facts about the topic
 - Include what experiments can be done with the widgets and what students will
-  learn
+  learn from doing them
 - Do NOT repeat the Goal: go deeper
 
 ### Comments Panel (Required)
@@ -139,23 +145,25 @@ model: sonnet
     for control, matplotlib patches for marble visualization
 
   **Plots and their descriptions**:
-  - _Population bin_: Animated bin visualization with colored marbles
+  - **`Population bin`**: Animated bin visualization with colored marbles
     (red vs blue) showing the true population
-  - _Sample bin_: Shows a random sample drawn from the population
-  - _Comments_: Current parameter values (mu, sample count)
+  - **`Sample bin`**: Shows a random sample drawn from the population
+  - **`Comments`**: Current parameter values (mu, sample count)
 
   **Widgets**:
-  - `mu`: slider for true proportion of red marbles (0.0-1.0)
-  - `seed`: random seed for reproducibility
+  - **`mu`**: slider for true proportion of red marbles (0.0-1.0)
+  - **`seed`**: random seed for reproducibility
   ```
 
 - Commentary
   ```markdown
-  **Key observations**:
-  - Population parameters are fixed but hidden: we only see samples
-  - Small parameter changes produce visually distinct distributions
-  - Intuition: different populations look different when fully observed
-    (which we can't do)
+  **Guided usage**:
+  - Drag `mu` from 0.2 to 0.8, leaving `sample_size` fixed
+    - Observe the sample bin's color mix shift to track the hidden
+      population, even though the population itself stays unseen
+  - Repeat with a different `seed`
+    - Observe the sample bin change while the population bin does not:
+      only the sample is one random draw
   ```
 
 # Lint

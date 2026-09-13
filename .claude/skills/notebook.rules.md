@@ -559,6 +559,16 @@
 
 # Text and Markdown Formatting
 
+## Wrap Markdown Cells at 85 Characters
+
+- Every markdown cell (Goal, Implementation, Usage, Guided usage, and any
+  other prose or bullet) wraps at 85 characters maximum, per
+  `.claude/skills/markdown.rules.md` `## Text Wrapping and Structure`
+- In the paired `.py` file, this is the full comment line, the leading `# `
+  (or `#   - `) prefix included, not just the text after it
+- Tables and fenced code blocks are exempt, the same as in
+  `.claude/skills/markdown.rules.md`
+
 ## Use Nested Bullet Lists
 
 - Organize markdown text with nested bullets for clarity:
@@ -605,18 +615,68 @@
 - Follow rules from `.claude/skills/text.rules.md`
   - `## Nested Bullets`
   - `## Multi-Level Organization`
+  - `## Lists Over Prose`
 
-## Keep One Bullet List Tight (No Blank Lines Between Items)
+## Nest Bullets as Deep as the Ideas Require
 
-- A single bullet list must not have a blank line between its items: a blank
-  line splits it into two lists and reads as a paragraph break, not a
+- The more a bullet's ideas are organized into nested sub-bullets, the
+  better: a compound bullet that crams several clauses together is harder
+  to scan than the same content split into a parent bullet and its
+  children
+- Whenever a bullet chains more than one clause together (with a comma,
+  `;`, or "and"), split it into a parent bullet plus one nested bullet per
+  clause, per `.claude/skills/text.rules.md` `## Lists Over Prose`
+- **Bad** (one bullet crams two clauses together):
+  ```markdown
+  - "The model satisfies the sentence" reads backwards at first, the
+    model (the world) is what varies across rows, the sentence's truth
+    is read off each fixed row
+  ```
+- **Good** (parent bullet plus nested sub-bullets):
+  ```markdown
+  - "The model satisfies the sentence" reads backwards at first
+    - The model (the world) is what varies across rows
+    - The sentence's truth is read off each fixed row
+  ```
+
+## Separate Goal, Implementation, and Usage, Keep Each List Tight
+
+- A widget cell's markdown splits into separate bullet lists, each its own
+  markdown cell, with a blank line between lists that share one cell:
+  - `**Goal**`: what the cell teaches, with no mention of individual panels
+    or controls
+  - `**Implementation**: \`function_name(params)\``: how the function gets
+    there, one bullet per algorithmic step, naming the helper it calls
+  - `**Usage**`: split into two nested lists:
+    - `- Inputs`: one `` **`name`**: description `` bullet per interactive
+      control, name plus what it changes
+    - `- Panels`: one `` **`Panel`**: description `` bullet per panel or
+      subplot the widget renders, plus the `` **`Comments`**: `` bullet
+  - `**Guided usage**`: one bullet per action on a control, with the
+    observation it produces nested underneath, instead of general facts
+    about the cell's topic
+- Bold plus backtick for `Inputs`/`Panels` names is an intentional exception
+  to `.claude/skills/markdown.rules.md` `## Do Not Combine Bold with
+  Verbatim`, kept only for this label position so every item name scans the
+  same way down the list
+- Within each of these lists, there must be no blank line between items: a
+  blank line splits a list into two and reads as a paragraph break, not a
   continuation
-- This applies even when a list mixes different kinds of bullets, e.g., a
-  cell's `**Goal**` bullets followed directly by its `_Panel_: description`
-  bullets: keep them as one continuous list
 - Wrap each bullet to 85 characters maximum, following
   `.claude/skills/markdown.rules.md` `## Text Wrapping and Structure`
-- **Bad** (blank line splits one list into two):
+- **Bad** (Goal and panel bullets crammed into one list):
+  ```markdown
+  **Goal**:
+  - Define $KB \models \alpha$ as $M(KB) \subseteq M(\alpha)$, and verify
+    that $KB = \{Rain, Rain \implies WetGround\}$ entails $WetGround$
+  - Run the model-checking algorithm explicitly: enumerate every model,
+    find $M(KB)$, check $\alpha$ in each of those rows
+  - **`Model table`**: the same 4-row table, with $M(KB)$ shaded blue and
+    $M(\alpha)$ outlined in dashed orange
+  - **`Comments`**: which `KB` sentences are toggled on, the query $\alpha$,
+    and the entailment verdict
+  ```
+- **Good** (Goal, Implementation, and Usage as separate tight lists):
   ```markdown
   **Goal**:
   - Define $KB \models \alpha$ as $M(KB) \subseteq M(\alpha)$, and verify
@@ -624,22 +684,28 @@
   - Run the model-checking algorithm explicitly: enumerate every model,
     find $M(KB)$, check $\alpha$ in each of those rows
 
-  - _Model table_: the same 4-row table, with $M(KB)$ shaded blue and
-    $M(\alpha)$ outlined in dashed orange
-  - _Comments_: which `KB` sentences are toggled on, the query $\alpha$,
-    and the entailment verdict
+  **Implementation**: `cell_kb_entailment(figsize=None)`
+  - Enumerates every model with `enumerate_assignments()`, and evaluates
+    `KB` and $\alpha$ in each one with `truth_values()`
+  - Shades $M(KB)$ and outlines $M(\alpha)$ on the same table
+
+  **Usage**
+  - Inputs
+    - **`kb_sentence`**: which `KB` sentences are toggled on
+    - **`alpha`**: the query sentence checked against $M(KB)$
+
+  - Panels
+    - **`Model table`**: the same 4-row table, with $M(KB)$ shaded blue and
+      $M(\alpha)$ outlined in dashed orange
+    - **`Comments`**: which `KB` sentences are toggled on, the query
+      $\alpha$, and the entailment verdict
   ```
-- **Good** (one continuous list, wrapped to 85 characters):
+- **Good** (Guided usage as actions plus observations, not general facts):
   ```markdown
-  **Goal**:
-  - Define $KB \models \alpha$ as $M(KB) \subseteq M(\alpha)$, and verify
-    that $KB = \{Rain, Rain \implies WetGround\}$ entails $WetGround$
-  - Run the model-checking algorithm explicitly: enumerate every model,
-    find $M(KB)$, check $\alpha$ in each of those rows
-  - _Model table_: the same 4-row table, with $M(KB)$ shaded blue and
-    $M(\alpha)$ outlined in dashed orange
-  - _Comments_: which `KB` sentences are toggled on, the query $\alpha$,
-    and the entailment verdict
+  **Guided usage**
+  - Toggle `Rain => WetGround` off, leaving only `Rain` in `KB`
+    - Observe $M(\alpha)$ no longer contains $M(KB)$: the verdict flips to
+      "not entailed", and a counterexample row appears
   ```
 
 ## Convert Inline Comma Lists to Bullets
@@ -844,9 +910,12 @@
 
 ## Cell Triplet Structure
 
-- Each visualization in a notebook is composed of three notebook cells:
+- Each visualization in a notebook is composed of notebook cells grouped into
+  three stages: pre-visualization markdown, the visualization code, and
+  post-visualization markdown. Each stage can be more than one cell:
 
-  1. **Markdown cell**: Explains what we want to achieve, the goal
+  1. **Pre-visualization markdown**: what the cell teaches, then how it
+     teaches it
 
      ```markdown
      ## Cell 1: Visualizing Population Distribution
@@ -856,8 +925,12 @@
      - Understand sampling from a finite population
      ```
 
-  2. **Code cell**: Visualization / interactive widget (optionally with
-     ipywidget)
+     followed by its own `**Implementation**` cell (see
+     `## Visualization Cell Triplet Details`)
+
+  2. **Code cells**: the function-info call, then the visualization / widget
+     itself (optionally with ipywidgets), with a `**Usage**` markdown cell
+     between them describing every input and panel
 
      ```python
      # Display the population as a bin of colored marbles.
@@ -866,18 +939,18 @@
 
      - Documents the plots and their diagrams with comments, e.g.,
        ```
-       _Population bin_: Shows the full population as colored marbles
-       _Sample bin_: Shows a random sample drawn from the population
+       **`Population bin`**: Shows the full population as colored marbles
+       **`Sample bin`**: Shows a random sample drawn from the population
        ```
 
-  3. **Explanation cell**: A markdown cell explaining key observations, what
-     experiments can be done, and what we will learn
+  3. **Guided-usage markdown**: what to do on the controls, and what to
+     observe as a result, not general facts about the topic
 
      ```markdown
-     **Key observations**:
-     - Population parameters are fixed but hidden: we only see samples
-     - Small parameter changes produce visually distinct distributions
-     - Try changing the sample size to see how the estimate improves
+     **Guided usage**
+     - Drag `sample_size` from 10 up to 500
+       - Observe the sample distribution converge toward the population
+         distribution shown on the left
      ```
 
 - For all the markdown cells use bullet points with nested bullets for clarity
@@ -888,7 +961,8 @@
 
 ## Visualization Cell Triplet Details
 
-- Each visualization follows a three-cell structure:
+- Each visualization follows the cell sequence: Goal, Implementation,
+  function-info code, Usage, widget code, Guided usage
 
 ### Markdown Cell (Before the Visualization)
 
@@ -902,26 +976,41 @@
   - <Learning objective 2>
   ```
 
-- Each plot's description is placed underneath the plot title, not in a separate
-  "Plots" section. Describe them as bullet points with an italicized label and a
-  colon, continuing the same list as the `**Goal**` bullets above with no blank
-  line in between (see
-  `## Keep One Bullet List Tight (No Blank Lines Between Items)`):
+- Right after `**Goal**`, in its own markdown cell, add an `**Implementation**`
+  section naming the function and walking through how it gets there, one
+  bullet per algorithmic step (see
+  `## Separate Goal, Implementation, and Usage, Keep Each List Tight`):
 
   ```markdown
-  **Goal**:
-  - Build intuition for <concept>
-  - <Learning objective 2>
-  - _Population bin_: Shows the full unknown population as colored marbles
-  - _Sample bin_: Shows a random sample drawn from the population
-  - _Comments_: Current parameter values and state observations
+  **Implementation**: `visualize_population_distribution(figsize=None)`
+  - Draws `n_population` marbles, colored by `mu`, the true red fraction
+  - Draws a random sample of `sample_size` marbles from the same population
+  ```
+
+- The code cell right after `**Implementation**` calls
+  `hintros.print_obj_info()` on the function, instead of printing its
+  docstring and linking to its source separately (see
+  `## Use Introspection Code for Public APIs`).
+
+- After that code cell, describe every input and every panel in one
+  `**Usage**` markdown cell, split into `- Inputs` and `- Panels`, with a
+  blank line between the two nested lists:
+
+  ```markdown
+  **Usage**
+  - Inputs
+    - **`mu`**: true proportion of red marbles in the population, 0.0-1.0
+    - **`sample_size`**: number of marbles drawn into the sample bin
+
+  - Panels
+    - **`Population bin`**: Shows the full unknown population as colored
+      marbles
+    - **`Sample bin`**: Shows a random sample drawn from the population
+    - **`Comments`**: Current parameter values and state observations
   ```
 
 - Each widget has its description close to it (in the widget's `description`
   parameter or as a label above the widget), ensuring it is entirely readable.
-
-- Parameters and their ranges can be listed as bullet points under a
-  `**Parameters**` heading, but keep them concise.
 
 ### Code Cell (The Visualization)
 
@@ -948,18 +1037,18 @@
 
 ### Markdown Cell (After the Visualization)
 
-- After the interactive / visualization cell, add a markdown cell with key
-  observations:
+- After the interactive / visualization cell, add a markdown cell with guided
+  usage: one bullet per action on a control, with the observation it produces
+  nested underneath it. This replaces a "key observations" list of general
+  facts with something more precise and actionable:
   ```markdown
-  **Key observations**:
-  - Utility spreads backward from the terminals, one ring of cells per sweep
-  - Cells near the $+1$ terminal end high
-  - Cells near the $-1$ terminal end low
-  - The change per sweep shrinks geometrically: convergence is guaranteed
-
-  - Early sweeps only affect cells adjacent to the terminals
-  - Later sweeps refine the interior until nothing changes
-  - Higher gamma propagates value further but converges more slowly
+  **Guided usage**
+  - Raise `gamma` from 0.5 toward 0.99, leaving everything else fixed
+    - Observe utility spread further from the terminals each sweep, and
+      convergence take more sweeps to settle
+  - Watch the terminal-adjacent cells across the first few sweeps
+    - Observe only cells next to a terminal move at first; the interior
+      refines only in later sweeps
   ```
 
 ## Interactive Idiom for Notebooks

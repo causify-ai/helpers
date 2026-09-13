@@ -1,0 +1,17 @@
+#!/bin/bash -e
+
+# """
+# Recursive `git clean -fd`
+# """
+
+source helpers.sh
+
+if [[ -f .gitmodules ]]; then
+    echo "===================== supermodule ====================="
+fi;
+execute_with_verbose "git clean -fd"
+
+if [[ -f .gitmodules ]]; then
+  echo "===================== submodule ====================="
+  execute_with_verbose "git submodule foreach git clean -fd"
+fi;
