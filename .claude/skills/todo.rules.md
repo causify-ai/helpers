@@ -1,4 +1,7 @@
-- TODOs are organized in different stage of executing , using H1 markdown headers
+## Execution Stages
+
+- TODOs are organized in different stage of execution, using H1 markdown headers,
+  e.g.,
   ```
   # IN PROGRESS
   <Tasks that are in progress>
@@ -15,6 +18,8 @@
   # ALL TOPICS
   <Contains a list of all the possible H2 topics, separated by // in mega-topics>
   ```
+
+## Topic
   
 - Each "topic" groups several tasks and uses H2 markdown headers
   - Some topics are general engineering 
@@ -38,8 +43,11 @@
     ...
     ```
 
-- In general the same topics should be present in all H1 levels
-  - If there is a task in one stage, it should have the same 
+- Make sure that the same topics are present in all H1 levels
+  - If there is a task `### ...` in one stage, it should be under the correct H2
+    header
+
+## Task
 
 - Each task is represented by a H3 markdown header, under the corresponding H2 header
   ```
@@ -48,5 +56,8 @@
   - ...
   ```
 
-- There is a file called `DONE.md` that contains all the tasks that were completed
-  using the same organization of H2 markdowns as the 
+## DONE.md
+- The `DONE.md` contains all the tasks that were completed
+- It uses the same organization of H2 markdowns as in `# ALL TOPICS` in
+  `ai_task_queue.md`
+- Only tasks marked as completed can be there `### [x] <Title>`
