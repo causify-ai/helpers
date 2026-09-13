@@ -10,7 +10,7 @@ model: haiku
 # Workflow
 
 ## Gather Context
-- Read `.claude/skills/book.rules.md`
+- Read `.claude/skills/book_map.rules.md`
 
 ## Identify Chapters to Process
 - If multiple chapters are passed, process each one independently: apply

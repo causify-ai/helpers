@@ -39,11 +39,11 @@ def _parse() -> argparse.ArgumentParser:
         formatter_class=hparser.CustomHelpFormatter,
     )
     hparser.add_verbosity_arg(parser)
-    parser.add_argument(
-        "--file_name",
-        action="store",
+    hparser.add_input_file_arg(
+        parser,
+        required=False,
         default="prof.bin",
-        help="Path to the .bin file produced by profiling",
+        help_="Path to the .bin file produced by profiling",
     )
     parser.add_argument(
         "--ext", action="store", default="png", help="File format for the graph"
@@ -59,7 +59,7 @@ def _parse() -> argparse.ArgumentParser:
 def _main(parser: argparse.ArgumentParser) -> None:
     args = parser.parse_args()
     hdbg.init_logger(verbosity=args.log_level, use_exec_path=False)
-    prof_file = args.file_name
+    prof_file = args.input
     _LOG.info("Processing %s", prof_file)
     hdbg.dassert_file_exists(prof_file)
     p = pstats.Stats(prof_file).strip_dirs()

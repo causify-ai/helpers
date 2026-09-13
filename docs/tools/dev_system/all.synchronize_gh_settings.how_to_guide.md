@@ -150,7 +150,7 @@
 
   ```bash
   > dockerized_sync_gh_repo_settings.py sync \
-      --input_file settings.yaml \
+      -i settings.yaml \
       --owner your-org \
       --repo your-repo \
       --token_env_var GITHUB_TOKEN
@@ -160,7 +160,7 @@
 
   ```bash
   > dockerized_sync_gh_repo_settings.py sync \
-      --input_file settings.yaml \
+      -i settings.yaml \
       --owner your-org \
       --repo your-repo \
       --token_env_var GITHUB_TOKEN \

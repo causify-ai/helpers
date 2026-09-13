@@ -64,7 +64,7 @@ model: opus
   - **Low**: minor polish or consistency
 
 ## Write Result
-- Write results as `plan.slides.criticize.md` in the current directory
+- Write results as `plan-slides.criticize.md` in the current directory
 
 ## Wait for Approval
 - Present the criticism to the user

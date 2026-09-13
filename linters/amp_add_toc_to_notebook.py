@@ -46,7 +46,7 @@ class _AddTOC(liaction.Action):
         # Run the script that adds a TOC to a notebook.
         cmd = []
         cmd.append(self._executable)
-        cmd.append(f"--input_files {file_name}")
+        cmd.append(f"-f {file_name}")
         cmd_as_str = " ".join(cmd)
         rc, output = liutils.tee(
             cmd_as_str, self._executable, abort_on_error=False

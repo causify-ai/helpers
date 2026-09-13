@@ -228,7 +228,7 @@ class TestDockerizedSyncGitHubIssueLabels(hunitest.TestCase):
         :param extra_args: additional arguments to pass to the script
         """
         args = [
-            "--input_file",
+            "-i",
             self.input_args["input_file"],
             "--owner",
             self.input_args["owner"],

@@ -113,8 +113,11 @@ def _parse() -> argparse.ArgumentParser:
     )
     group = parser.add_mutually_exclusive_group(required=True)
     group.add_argument(
-        "--input_files",
-        action="append",
+        "-f",
+        "--files",
+        dest="files",
+        type=str,
+        nargs="+",
         help="Ipynb files to add a TOC to",
     )
     group.add_argument(
@@ -131,8 +134,8 @@ def _main(parser: argparse.ArgumentParser) -> None:
     hdbg.init_logger(verbosity=args.log_level)
     # Get the ipynb files to add a TOC to.
     files_to_process = []
-    if args.input_files:
-        for input_file in args.input_files:
+    if args.files:
+        for input_file in args.files:
             hdbg.dassert_path_exists(input_file)
             hdbg.dassert_file_extension(input_file, ".ipynb")
             files_to_process.append(input_file)

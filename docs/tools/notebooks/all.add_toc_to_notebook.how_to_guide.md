@@ -60,7 +60,7 @@
 
 ```bash
 > dev_scripts/notebooks/add_toc_to_notebook.py \
-    --input_files dir1/file1.ipynb dir2/file2.ipynb
+    -f dir1/file1.ipynb dir2/file2.ipynb
 ```
 
 - Run on a directory to process all the notebooks in it:

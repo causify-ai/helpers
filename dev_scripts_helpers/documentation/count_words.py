@@ -20,6 +20,9 @@ Count words in a file and estimate reading time.
 
 - Count words across multiple files passed as a comma-separated list:
 > count_words.py --input_files "file1.md,file2.md,file3.md"
+
+- Count words in files listed in a file (one per line):
+> count_words.py --from_file files_to_count.txt
 """
 
 import argparse
@@ -46,19 +49,7 @@ def _parse() -> argparse.ArgumentParser:
         description=__doc__,
         formatter_class=hparser.CustomHelpFormatter,
     )
-    parser.add_argument(
-        "-i",
-        "--input_file",
-        type=str,
-        required=False,
-        help="Path to input file",
-    )
-    parser.add_argument(
-        "--input_files",
-        nargs="+",
-        default="",
-        help="One or more files (space-separated) or comma-separated list",
-    )
+    hseinout.add_input_output_args(parser, in_required=False)
     hparser.add_verbosity_arg(parser)
     return parser
 
@@ -149,14 +140,16 @@ def _main(parser: argparse.ArgumentParser) -> None:
     args = parser.parse_args()
     hdbg.init_logger(verbosity=args.log_level, use_exec_path=True)
     files_to_process: List[str]
-    if args.input_files:
+    if args.input_files or args.from_file:
         result = hseinout.parse_input_output_files(args)
         hdbg.dassert_ne(result, None, "parse_input_output_files returned None")
         files_to_process = cast(List[str], result)
-    elif args.input_file:
-        files_to_process = [args.input_file]
+    elif args.input:
+        files_to_process = [args.input]
     else:
-        parser.error("Either --input_file or --input_files must be specified")
+        parser.error(
+            "Either -i/--input, --input_files, or --from_file must be specified"
+        )
     hdbg.dassert_ne(len(files_to_process), 0, "No files to process")
     total_words, file_counts = _count_words(file_paths=files_to_process)
     _print_table(file_counts=file_counts, total_words=total_words)

@@ -473,7 +473,7 @@ The supported File types and code blocks are:
 ### Examples
 - Count words in a file
   ```bash
-  > count_words.py input.txt
+  > count_words.py -i input.txt
   ```
 
 ## `md_to_speech.py`
@@ -1124,17 +1124,17 @@ The `--md_end "END"` special value is useful for reading from a starting section
 ### Examples
 - Check links in a Markdown file
   ```bash
-  > check_links.py --in_file README.md
+  > check_links.py -i README.md
   ```
 
 - Check links with verbose output
   ```bash
-  > check_links.py --in_file docs.txt -v DEBUG
+  > check_links.py -i docs.txt -v DEBUG
   ```
 
 - Check links and save broken URLs to custom cfile
   ```bash
-  > check_links.py --in_file README.md --cfile broken_links.txt
+  > check_links.py -i README.md --cfile broken_links.txt
   ```
 
 - The script will:
@@ -1252,22 +1252,22 @@ The `--md_end "END"` special value is useful for reading from a starting section
 ### Examples
 - Apply replacements to a file
   ```bash
-  > replace_latex.py -a replace --file notes/finance.portfolio_theory.txt
+  > replace_latex.py -a replace -i notes/finance.portfolio_theory.txt
   ```
 
 - Check transformations with Pandoc before and after
   ```bash
-  > replace_latex.py -a pandoc_before -a replace -a pandoc_after --file notes/finance.txt
+  > replace_latex.py -a pandoc_before -a replace -a pandoc_after -i notes/finance.txt
   ```
 
 - Apply aggressive transformations
   ```bash
-  > replace_latex.py -a replace --file notes/finance.txt --aggressive
+  > replace_latex.py -a replace -i notes/finance.txt --aggressive
   ```
 
 - Reset file to git version and apply replacements
   ```bash
-  > replace_latex.py -a checkout -a replace --file notes/finance.txt
+  > replace_latex.py -a checkout -a replace -i notes/finance.txt
   ```
 
 ## `extract_gdoc_map.py`
@@ -1383,42 +1383,42 @@ The `--md_end "END"` special value is useful for reading from a starting section
 ### Examples
 - Basic usage: run tree and LLM on all directories
   ```bash
-  > create_google_drive_map.py --in_dir /path/to/google_drive
+  > create_google_drive_map.py --input_dir /path/to/google_drive
   ```
 
 - Run only tree collection
   ```bash
-  > create_google_drive_map.py --in_dir /path/to/folders --action tree
+  > create_google_drive_map.py --input_dir /path/to/folders --action tree
   ```
 
 - Run only LLM summarization (requires existing tree files)
   ```bash
-  > create_google_drive_map.py --in_dir /path/to/folders --action llm
+  > create_google_drive_map.py --input_dir /path/to/folders --action llm
   ```
 
 - Combine existing summaries into single file
   ```bash
-  > create_google_drive_map.py --in_dir /path/to/folders --action combine
+  > create_google_drive_map.py --input_dir /path/to/folders --action combine
   ```
 
 - Create directory metadata table
   ```bash
-  > create_google_drive_map.py --in_dir /path/to/folders --action table
+  > create_google_drive_map.py --input_dir /path/to/folders --action table
   ```
 
 - Process only first 5 directories
   ```bash
-  > create_google_drive_map.py --in_dir /path/to/folders --limit 1:5
+  > create_google_drive_map.py --input_dir /path/to/folders --limit 1:5
   ```
 
 - Full workflow with custom output directory
   ```bash
-  > create_google_drive_map.py --in_dir /projects/code --out_dir analysis --all_actions
+  > create_google_drive_map.py --input_dir /projects/code --out_dir analysis --all_actions
   ```
 
 - Start fresh by deleting existing output
   ```bash
-  > create_google_drive_map.py --in_dir /path/to/folders --from_scratch
+  > create_google_drive_map.py --input_dir /path/to/folders --from_scratch
   ```
 
 ## `generate_latex_sty.py`

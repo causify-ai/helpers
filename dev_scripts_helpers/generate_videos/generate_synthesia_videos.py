@@ -6,13 +6,13 @@ Create a video from a text script and a chosen avatar using the Synthesia API.
 
 - Do a dry run without generating videos:
 > generate_synthesia_videos.py \
-    --in_dir videos \
+    --input_dir videos \
     --limit "1:3" \
     --dry_run
 
 - Do a real run that generates videos:
 > generate_synthesia_videos.py \
-    --in_dir videos \
+    --input_dir videos \
     --limit "1:3"
 
 Environment:
@@ -159,10 +159,10 @@ def _parse() -> argparse.Namespace:
     )
     hparser.add_verbosity_arg(parser)
     # Flow to process slides from a directory.
-    parser.add_argument(
-        "--in_dir",
+    hparser.add_input_dir_arg(
+        parser,
         required=False,
-        help="Directory containing xyz_comment.txt files",
+        help_="Directory containing xyz_comment.txt files",
     )
     parser.add_argument(
         "--out_dir",
@@ -171,10 +171,10 @@ def _parse() -> argparse.Namespace:
     )
     hseinout.add_limit_range_arg(parser)
     # Flow to process a single text file.
-    parser.add_argument(
-        "--in_file",
+    hparser.add_input_file_arg(
+        parser,
         required=False,
-        help="Text file containing the script to be used for the video",
+        help_="Text file containing the script to be used for the video",
     )
     parser.add_argument(
         "--out_file",
@@ -276,8 +276,8 @@ def _main(args: argparse.Namespace) -> None:
     aspect = "5:4"
     resolution = "720p"
     # Process slides.
-    if args.in_dir:
-        in_dir = args.in_dir
+    if args.input_dir:
+        in_dir = args.input_dir
         hdbg.dassert_dir_exists(in_dir)
         #
         if args.no_incremental:
@@ -306,18 +306,18 @@ def _main(args: argparse.Namespace) -> None:
         _process_slides(
             args, slides_info, avatar, background, aspect, resolution
         )
-    elif args.in_file:
-        hdbg.dassert_file_exists(args.in_file)
+    elif args.input:
+        hdbg.dassert_file_exists(args.input)
         hio.backup_file_or_dir_if_exists(args.out_file)
         hio.create_enclosing_dir(args.out_file, incremental=True)
         # Prepare workload.
-        slides_info = [(0, args.in_file, args.out_file)]
+        slides_info = [(0, args.input, args.out_file)]
         # Process slides.
         _process_slides(
             args, slides_info, avatar, background, aspect, resolution
         )
     else:
-        raise ValueError("Either --in_dir or --in_file must be provided")
+        raise ValueError("Either --input_dir or -i/--input must be provided")
 
 
 def main() -> None:
