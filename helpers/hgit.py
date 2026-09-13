@@ -1746,7 +1746,7 @@ def get_files_to_process(
         files_list = get_modified_files(dir_name)
     elif branch:
         files_list = get_modified_files_in_branch(
-            "origin/master", dir_name, use_branch_point=branch_point
+            "origin/master", dir_name=dir_name, use_branch_point=branch_point
         )
     elif last_commit:
         files_list = get_previous_committed_files(dir_name)
