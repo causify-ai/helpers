@@ -98,8 +98,8 @@ def _dassert_all_targets_on_master(
     repo_targets: List[str], original_branch: str
 ) -> None:
     """
-    Assert that every repo target is on `master`, before creating a branch in
-    any of them.
+    Assert that every repo target is on `master`, before creating a branch in any
+    of them.
 
     Reuses `original_branch` (already captured by the caller) for the outer
     repo instead of issuing a redundant `hgit.get_branch_name()` call.
@@ -346,15 +346,15 @@ def _print_usage_instructions(
     """
     Print instructions on how to use the created worktree.
 
-    Also reports, for every repo target, whether the branch was created there
-    and whether that repo is currently clean (e.g., after the "Draft PR" empty
-    commit / push).
+    Also reports, for every repo target, whether the branch was created there and
+    whether that repo is currently clean (e.g., after the "Draft PR" empty commit
+    / push).
 
     :param worktree_path: Path to the created worktree
     :param issue_id: GitHub issue number
     :param branch_name: name of the branch created in every repo target
-    :param repo_targets: repo directories the branch was created in (outer
-        repo first)
+    :param repo_targets: repo directories the branch was created in (outer repo
+        first)
     """
     # Build the per-repo summary (branch name is identical everywhere).
     summary_lines = []
@@ -489,8 +489,8 @@ def _main_workflow(
 
     :param args: Parsed command-line arguments
     :param original_branch: Original git branch name for restoration
-    :param repo_targets: repo directories to operate on symmetrically (outer
-        repo first, then every submodule, when `--submodules` was passed)
+    :param repo_targets: repo directories to operate on symmetrically (outer repo
+        first, then every submodule, when `--submodules` was passed)
     """
     # Load issue body from file or use provided text.
     gh_issue_body = _get_issue_body(args.gh_issue_body, args.gh_issue_body_file)

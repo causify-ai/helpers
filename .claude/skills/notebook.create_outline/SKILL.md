@@ -5,16 +5,16 @@ model: sonnet
 
 # Goal
 
-- Create a comprehensive outline for an interactive Jupyter notebook that teaches
-  a concept (passed from the user) through visualization and hands-on exploration
+- Create a comprehensive outline for an interactive Jupyter notebook that teaches a
+  concept (passed from the user) through visualization and hands-on exploration
 - The outline is a markdown file that:
   - Describes what each cell in the the notebook will contain without
   - Writing any code, serving as a blueprint for implementation
 
 # Key Principles
 
-- Make sure to follow the section `# Design Principles and Setup` from the
-  file `.claude/skills/notebook.rules.md`
+- Make sure to follow the section `# Design Principles and Setup` from the file
+  `.claude/skills/notebook.rules.md`
 - The output is a `notebook_outline.<TAG>.md` markdown file that describes the
   notebook units
 - Save markdown file in the current dir
@@ -22,8 +22,7 @@ model: sonnet
 
 # Outline Unit Structure
 
-- Each unit in the outline corresponds to a triplet of cells in the final
-  notebook:
+- Each unit in the outline corresponds to a triplet of cells in the final notebook:
   - **Markdown cell**: Section header, goal, and pedagogical content (before viz)
   - **Code cell**: Visualization, widgets, and interactive controls
   - **Markdown cell**: Guided usage, actions plus observations (after viz)
@@ -31,7 +30,7 @@ model: sonnet
 ## Numbering and Naming
 
 - Number units incrementally:
-  - E.g., `Cell 1`, `Cell 2`, etc.
+  - E.g., `Cell 1`, `Cell 2`, etc
 - Use descriptive titles that signal the learning objective
   - Not just "Plot" or "Widget"
 - Keep titles concise (5-7 words)
@@ -41,8 +40,8 @@ model: sonnet
 - Each outline unit describes the full visualization triplet
   - 3 notebook cells: pre-visualization markdown, code, and post-visualization
     markdown
-
 - Use this structure for each unit:
+
   ```markdown
   ## Cell i: <Concise Learning Objective>
 
@@ -66,11 +65,11 @@ model: sonnet
   **Implementation**: Libraries and functions used
   ```
 
-- In the final notebook, **Plots and their descriptions** plus **Widgets**
-  become the `**Usage**` markdown cell (split into `- Inputs` and
-  `- Panels`), and **Implementation** becomes its own `**Implementation**`
-  markdown cell, expanded into one bullet per algorithmic step: see
-  `.claude/skills/notebook.rules.md` `## Visualization Cell Triplet Details`
+- In the final notebook, **Plots and their descriptions** plus **Widgets** become the
+  `**Usage**` markdown cell (split into `- Inputs` and `- Panels`), and
+  **Implementation** becomes its own `**Implementation**` markdown cell, expanded
+  into one bullet per algorithmic step: see `.claude/skills/notebook.rules.md`
+  `## Visualization Cell Triplet Details`
 
 ### Goal (Required)
 
@@ -80,12 +79,13 @@ model: sonnet
 
 ### Plots and Their Descriptions (Required)
 
-- Describe each plot using the pattern `**\`<Plot name>\`**: <DESCRIPTION>`
-- Each plot's description is placed together with the plot title, not in a
-  separate section
+- Describe each plot using the pattern `**\`<Plot name>\`\*\*: <DESCRIPTION>`
+- Each plot's description is placed together with the plot title, not in a separate
+  section
 - Be specific about what the visualization shows (not implementation details)
 - Include: axes labels, color scheme, what each panel displays
 - Example:
+
   ```
   **`Population bin`**: Shows full population as colored marbles
   ```
@@ -94,21 +94,21 @@ model: sonnet
 
 - List each control with its name and range
   - E.g., `Slider for mu in [0.0, 1.0]`
-- Each widget description is placed close to the widget itself (in its
-  `description` parameter or as an adjacent label)
+- Each widget description is placed close to the widget itself (in its `description`
+  parameter or as an adjacent label)
 - Explain the effect of changing each parameter on the display
 - Keep widgets focused on pedagogically important parameters
 - Avoid: redundant controls, parameters students won't care about
 
 ### Guided Usage (Required, Post-Visualization)
 
-- List 2-3 bullets, each an action on a control plus the observation it
-  produces, e.g., `Drag mu from 0.2 to 0.8` / `Observe the sample bin's
-  color mix shift to match`
+- List 2-3 bullets, each an action on a control plus the observation it produces,
+  e.g., `Drag mu from 0.2 to 0.8` /
+  `Observe the sample bin's color mix shift to match`
 - These appear in a markdown cell **after** the visualization cell
 - Focus on what to do and what it reveals, not general facts about the topic
-- Include what experiments can be done with the widgets and what students will
-  learn from doing them
+- Include what experiments can be done with the widgets and what students will learn
+  from doing them
 - Do NOT repeat the Goal: go deeper
 
 ### Comments Panel (Required)
@@ -121,15 +121,15 @@ model: sonnet
 ### Implementation (Required)
 
 - Name specific libraries
-  - E.g., `matplotlib`, `plotly`, `ipywidgets`, etc.
+  - E.g., `matplotlib`, `plotly`, `ipywidgets`, etc
 - List key functions or classes
   - E.g., `ipywidgets.FloatSlider`, `matplotlib.animation`
 
 # Example Outline
 
 - Here's a well-structured unit outline to emulate:
-
 - Description (pre-visualization) cell
+
   ```markdown
   ## Cell 1: Visualizing Population Distribution
 
@@ -140,6 +140,7 @@ model: sonnet
   ```
 
 - Visualization cell
+
   ```markdown
   **Implementation**: Matplotlib animation for marbles, ipywidgets FloatSlider
     for control, matplotlib patches for marble visualization
@@ -156,6 +157,7 @@ model: sonnet
   ```
 
 - Commentary
+
   ```markdown
   **Guided usage**:
   - Drag `mu` from 0.2 to 0.8, leaving `sample_size` fixed
@@ -167,7 +169,9 @@ model: sonnet
   ```
 
 # Lint
+
 - After generating the file `notebook_outline.<TAG>.md`
+
   ```
   > lint_text.py -i `notebook_outline.<TAG>.md`
   ```
@@ -175,9 +179,8 @@ model: sonnet
 # Conventions
 
 - Follow `.claude/skills/notebook.rules.md` for general notebook formatting
-  conventions, including the `## Utilities vs. Notebook Responsibilities`
-  section for organizing utility files and notebooks
-
+  conventions, including the `## Utilities vs. Notebook Responsibilities` section for
+  organizing utility files and notebooks
 - When writing markdown text follow
   - `.claude/skills/markdown.rules.md`: Markdown formatting rules
   - `.claude/skills/text.rules.md`: Bullet point conventions

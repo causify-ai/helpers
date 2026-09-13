@@ -122,8 +122,8 @@ def git_set_symlink_perms(ctx, dir_name="."):  # type: ignore
     """
     Add write permissions for all on each symlink in a directory.
 
-    Makes all symlinks writable by all users (chmod a+w on the symlink inode,
-    not the target).
+    Makes all symlinks writable by all users (chmod a+w on the symlink inode, not
+    the target).
 
     :param dir_name: directory to process (default: ".")
     """
@@ -818,11 +818,10 @@ def git_branch_rename(ctx, new_branch_name):  # type: ignore
     """
     Rename current branch both locally and remotely.
 
-    If an open PR exists for the current branch and its title still
-    matches the branch name (i.e., it was not customized), the PR is
-    recreated under the new branch name, since GitHub always closes a
-    PR once its head branch is deleted and there is no way to migrate
-    an existing PR to a differently-named branch.
+    If an open PR exists for the current branch and its title still matches the
+    branch name (i.e., it was not customized), the PR is recreated under the new
+    branch name, since GitHub always closes a PR once its head branch is deleted
+    and there is no way to migrate an existing PR to a differently-named branch.
     """
     hltltaut.report_task()
     old_branch_name = hgit.get_branch_name(".")
@@ -1504,8 +1503,7 @@ def _get_submodule_paths() -> List[str]:
     """
     Get list of submodule paths from .gitmodules file.
 
-    :return: List of submodule directory paths, empty if no submodules
-        found
+    :return: List of submodule directory paths, empty if no submodules found
     """
     gitmodules_path = ".gitmodules"
     if not os.path.exists(gitmodules_path):
@@ -1571,7 +1569,8 @@ def git_branch_is_merged(ctx):  # type: ignore
     """
     Check if the current branch was merged into master using GitHub API and git.
 
-    Uses GitHub API to check for open/closed PRs and git to verify branch presence on remote.
+    Uses GitHub API to check for open/closed PRs and git to verify branch
+    presence on remote.
     """
     _ = ctx
     hltltaut.report_task()
@@ -1725,8 +1724,8 @@ def gh_watch(ctx, *, interval=60):  # type: ignore
     Watch GitHub workflow status with periodic updates.
 
     Runs `invoke gh_workflow_list` every N seconds. If running in tmux,
-    temporarily renames the window to "*GH_WATCH*" for visibility and
-    restores it on exit.
+    temporarily renames the window to "*GH_WATCH*" for visibility and restores it
+    on exit.
 
     :param interval: Update interval in seconds
     """
@@ -1775,7 +1774,8 @@ def git_fix_perms(ctx, check=True, fix=False, dir_name="."):  # type: ignore
     """
     Fix file and directory permissions to be writable by owner and group.
 
-    Makes all files and directories readable and writable by owner and group (chmod ug+w).
+    Makes all files and directories readable and writable by owner and group
+    (chmod ug+w).
 
     :param check: if True (default), only report files with wrong permissions
     :param fix: if True, apply chmod ug+w to fix permissions

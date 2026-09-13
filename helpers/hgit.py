@@ -333,8 +333,8 @@ def get_branch_hash(dir_name: str = ".") -> str:
     """
     Return the hash of the commit right before the branch was created.
 
-    This finds the merge-base between the current branch and master, which is
-    the commit where the branch was created.
+    This finds the merge-base between the current branch and master, which is the
+    commit where the branch was created.
 
     :param dir_name: directory containing the git repository
     :return: the hash of the commit where the branch diverged from master
@@ -361,7 +361,8 @@ def is_inside_submodule(git_dir: str = ".") -> bool:
     """
     Return whether a dir is inside a Git submodule or a Git supermodule.
 
-    We determine this by checking if the current Git repo is included inside another Git repo.
+    We determine this by checking if the current Git repo is included inside
+    another Git repo.
 
     :param git_dir: directory to check
     :return: True if the directory is inside a submodule
@@ -506,10 +507,11 @@ def is_git_worktree(path: str = ".") -> bool:
     """
     Check if a path is within a Git worktree.
 
-    Uses `git rev-parse --git-dir` to detect if the path is in a worktree
-    by checking if the git directory path contains `.git/worktrees/`.
+    Uses `git rev-parse --git-dir` to detect if the path is in a worktree by
+    checking if the git directory path contains `.git/worktrees/`.
 
-    :param path: starting file system path. Defaults to the current directory (".")
+    :param path: starting file system path. Defaults to the current directory
+        (".")
     :return: True if in a worktree, False otherwise
     """
     path = os.path.abspath(path)
@@ -541,13 +543,15 @@ def is_git_worktree(path: str = ".") -> bool:
 # TODO(gp): Add a caching decorator
 def find_file(file_name: str, *, dir_path: Optional[str] = None) -> str:
     """
-    Find a file within a directory hierarchy, excluding version control and cache dirs.
+    Find a file within a directory hierarchy, excluding version control and cache
+    dirs.
 
-    Searches for the file starting from a directory, skipping .git and .mypy_cache
-    to avoid expensive traversals.
+    Searches for the file starting from a directory, skipping .git and
+    .mypy_cache to avoid expensive traversals.
 
     :param file_name: the name of the file to find
-    :param dir_path: the directory to start the search from (defaults to git root)
+    :param dir_path: the directory to start the search from (defaults to git
+        root)
     :return: the first absolute path to the file found
     """
     if dir_path is None:
@@ -568,9 +572,11 @@ def _is_repo(repo_short_name: str) -> bool:
     """
     Check if the current directory is in a repository with the given short name.
 
-    Uses repo config to determine the repository type without relying on directory names.
+    Uses repo config to determine the repository type without relying on
+    directory names.
 
-    :param repo_short_name: the short name of the repository to check (e.g., "helpers", "amp")
+    :param repo_short_name: the short name of the repository to check (e.g.,
+        "helpers", "amp")
     :return: True if the current directory is in the specified repository
     """
     import helpers.repo_config_utils as hrecouti
@@ -584,8 +590,8 @@ def is_helpers() -> bool:
     """
     Return whether we are inside `helpers` repo.
 
-    Either as super module, or a sub module depending on a current
-    working directory.
+    Either as super module, or a sub module depending on a current working
+    directory.
     """
     return _is_repo("helpers")
 
@@ -631,8 +637,8 @@ def resolve_git_client_dir(git_client_name: str) -> str:
 
     Supports both relative names (assumed to be in ~/src/) and absolute paths.
 
-    :param git_client_name: the name of the Git client (e.g., "helpers1"
-        or "/Users/saggese/src/helpers1")
+    :param git_client_name: the name of the Git client (e.g., "helpers1" or
+        "/Users/saggese/src/helpers1")
     :return: the absolute path of the Git client directory
     """
     if not os.path.isabs(git_client_name):
@@ -703,7 +709,8 @@ def project_file_name_in_git_client(
 
 def get_project_dirname(only_index: bool = False) -> str:
     """
-    Return the name of the project directory (e.g., `/Users/saggese/src/amp1` -> `amp1`).
+    Return the name of the project directory (e.g., `/Users/saggese/src/amp1` ->
+    `amp1`).
 
     NOTE: This works properly only outside Docker. Inside Docker the Git client is
     mapped to `/app`, so the result might be incorrect.
@@ -732,8 +739,8 @@ def is_amp() -> bool:
     """
     Return whether we are inside `amp` repo.
 
-    Either as super module or a sub module depending on a current
-    working directory.
+    Either as super module or a sub module depending on a current working
+    directory.
     """
     return _is_repo("amp") or _is_repo("cmamp") or _is_repo("sorr")
 
@@ -931,8 +938,8 @@ def _group_hashes(head_hash: str, remh_hash: str, subm_hash: str) -> str:
     """
     Group multiple hashes and display which ones are equal.
 
-    Transform three hashes into a string that shows which ones are identical.
-    For example, if head_hash == remh_hash, display "head_hash = remh_hash = <hash>".
+    Transform three hashes into a string that shows which ones are identical. For
+    example, if head_hash == remh_hash, display "head_hash = remh_hash = <hash>".
 
     :param head_hash: the head hash
     :param remh_hash: the remote head hash
@@ -1055,8 +1062,9 @@ def get_head_hash(dir_name: str = ".", short_hash: bool = False) -> str:
     """
     Return the git commit hash of a repository with submodule/random suffix.
 
-    Gets the HEAD commit hash and appends either the amp submodule hash (if present)
-    or a random suffix to make the hash unique across different module configurations.
+    Gets the HEAD commit hash and appends either the amp submodule hash (if
+    present) or a random suffix to make the hash unique across different module
+    configurations.
 
     ```
     > git rev-parse HEAD
@@ -1126,8 +1134,8 @@ def report_submodule_status(dir_names: List[str], short_hash: bool) -> str:
     """
     Return a formatted string reporting the status of git repositories.
 
-    Reports whether each directory is a submodule, current branch, and commit hashes
-    (local, remote, and submodule hash if applicable).
+    Reports whether each directory is a submodule, current branch, and commit
+    hashes (local, remote, and submodule hash if applicable).
 
     :param dir_names: list of directory paths to report on
     :param short_hash: if True, truncate hashes to 8 characters
@@ -1160,8 +1168,7 @@ def report_submodule_status(dir_names: List[str], short_hash: bool) -> str:
 
 def get_repo_full_name_from_client(super_module: bool) -> str:
     """
-    Return the full name of the repo (e.g., "alphamatic/amp") from a Git
-    client.
+    Return the full name of the repo (e.g., "alphamatic/amp") from a Git client.
 
     :param super_module: like in get_client_root()
     """
@@ -1366,7 +1373,8 @@ def get_current_commit_hash(dir_name: str = ".") -> str:
     Return the full SHA-1 hash of the current HEAD commit.
 
     :param dir_name: directory containing the git repository
-    :return: the full commit hash (e.g., "0011776388b4c0582161eb2749b665fc45b87e7e")
+    :return: the full commit hash (e.g.,
+        "0011776388b4c0582161eb2749b665fc45b87e7e")
     """
     hdbg.dassert_path_exists(dir_name)
     cmd = f"cd {dir_name} && git rev-parse HEAD"
@@ -1429,8 +1437,8 @@ def get_previous_committed_files(
 
     :param dir_name: directory with Git client
     :param num_commits: how many commits in the past to consider
-    :param remove_files_non_present: remove the files that are not
-        currently present in the client
+    :param remove_files_non_present: remove the files that are not currently
+        present in the client
     :return: list of files
     """
     cmd = []
@@ -1802,8 +1810,8 @@ def git_log(num_commits: int = 5, my_commits: bool = False) -> str:
     """
     Return a formatted git log with graph, timestamps, and author information.
 
-    Uses a custom pretty format to display commits in a user-friendly layout
-    with graph visualization, relative time, and author name.
+    Uses a custom pretty format to display commits in a user-friendly layout with
+    graph visualization, relative time, and author name.
 
     :param num_commits: number of commits to report
     :param my_commits: if True, filter to only commits by the current git user
@@ -1875,8 +1883,8 @@ def git_stash_apply(
     """
     Apply or pop the most recent git stash.
 
-    Displays the stash list before applying to help the user verify they're applying
-    the correct stash.
+    Displays the stash list before applying to help the user verify they're
+    applying the correct stash.
 
     :param mode: "apply" to keep the stash or "pop" to remove after applying
     :param log_level: logging level for system output
@@ -1928,7 +1936,8 @@ def git_tag(
     Overwrites existing tags with the same name (using -f flag).
 
     :param tag_name: the name of the tag to create
-    :param super_module: if True, tag the supermodule; else tag the current module
+    :param super_module: if True, tag the supermodule; else tag the current
+        module
     :param log_level: logging level for system output
     """
     _LOG.debug("# Tagging current commit ...")
@@ -1948,7 +1957,8 @@ def git_push_tag(
 
     :param tag_name: the name of the tag to push
     :param remote: the remote name to push to (default: origin)
-    :param super_module: if True, tag the supermodule; else tag the current module
+    :param super_module: if True, tag the supermodule; else tag the current
+        module
     :param log_level: logging level for system output
     """
     _LOG.debug("# Pushing current commit ...")
@@ -1986,9 +1996,11 @@ def git_add_update(
     """
     Add files to the git staging area.
 
-    If no file list is provided, adds all modified and deleted files (git add -u).
+    If no file list is provided, adds all modified and deleted files (git add
+    -u).
 
-    :param file_list: list of specific files to add; if None, add all modified files
+    :param file_list: list of specific files to add; if None, add all modified
+        files
     :param log_level: logging level for system output
     """
     _LOG.debug("# Adding all changed files to staging ...")
@@ -2001,8 +2013,8 @@ def fetch_origin_master_if_needed() -> None:
     Fetch the master branch from origin if running in a CI environment.
 
     In CI, master may not be fetched when testing a branch, but it's often needed
-    for tests that compare against baseline or merge behavior. This ensures master
-    is available if needed.
+    for tests that compare against baseline or merge behavior. This ensures
+    master is available if needed.
     """
     if hserver.is_inside_ci():
         _LOG.warning("Running inside CI so fetching master")
@@ -2032,11 +2044,12 @@ def is_client_clean(
     """
     Return whether there are files modified, added, or removed in a directory.
 
-    Ignores submodule changes (amp, helpers_root) to focus on actual code changes.
+    Ignores submodule changes (amp, helpers_root) to focus on actual code
+    changes.
 
     :param dir_name: directory containing the git repository
-    :param abort_if_not_clean: if True and the client is not clean,
-        abort with a detailed message showing the modified files
+    :param abort_if_not_clean: if True and the client is not clean, abort with a
+        detailed message showing the modified files
     :return: True if no files are modified (excluding submodules)
     """
     _LOG.debug(hprint.to_str("abort_if_not_clean"))

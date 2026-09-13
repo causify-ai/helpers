@@ -34,6 +34,7 @@
 ## Confirm the Task List Before Executing
 
 - A task list is an ordered set of tasks, each with a goal and its changes
+
   ```text
   ### [ ] <Goal of first task>
   - <Change 1>
@@ -43,9 +44,10 @@
   - <Change 1>
   - <Change 2>
   ```
+
 - Check that each task states a problem and a solution before starting on it
-- If a task's spec is unclear or incomplete, follow "Ask for Clarification
-  Before Executing an Unclear Plan" above instead of guessing
+- If a task's spec is unclear or incomplete, follow "Ask for Clarification Before
+  Executing an Unclear Plan" above instead of guessing
 
 ## Track Task Status
 
@@ -77,12 +79,14 @@
 
 - When a task's solution spans more than one repo (e.g., an outer repo and its
   `helpers_root` submodule), there is still only one GitHub issue, filed in the
-  outermost repo's tracker: a submodule has its own, disjoint issue numbering
-  and is never where the issue lives
+  outermost repo's tracker: a submodule has its own, disjoint issue numbering and is
+  never where the issue lives
 - The task description explicitly clarifies this through
+
   ```
   * Repo: <Which repos are affected>
   ```
+
 - The branch and the PR opened in every affected repo share one name, derived once
   from that single issue (see "Name Branches and PRs After the Issue" above), not a
   separate name per repo
