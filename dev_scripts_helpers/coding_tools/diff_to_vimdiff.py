@@ -494,11 +494,11 @@ def _parse() -> argparse.ArgumentParser:
         action="store_true",
         help="Diff content of only files that are not present in both dirs",
     )
-    parser.add_argument(
-        "--from_file",
-        action="store",
+    hparser.add_input_file_arg(
+        parser,
+        required=False,
         default=None,
-        help="Specify a file that contains the files to actually consider "
+        help_="Specify a file that contains the files to actually consider "
         "for the diff (one per line)",
     )
     parser.add_argument(
@@ -557,8 +557,8 @@ def _main(parser: argparse.ArgumentParser) -> None:
         args.ignore_files,
         not args.skip_tmp,
     )
-    # Filter diff output if from_file is specified.
-    _filter_diff_output(diff_file, args.from_file)
+    # Filter diff output if an input file list is specified.
+    _filter_diff_output(diff_file, args.input)
     _LOG.info("Processing diff output to generate vimdiff script")
     _parse_diff_output(diff_file, dir1, dir2, args)
     _LOG.info("Done")

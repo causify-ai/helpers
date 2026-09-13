@@ -182,7 +182,7 @@ def _parse() -> argparse.ArgumentParser:
         formatter_class=hparser.CustomHelpFormatter,
     )
     # File selection.
-    parser.add_argument("-i", "--in_file_path", type=str, help="File to review")
+    hparser.add_input_file_arg(parser, help_="File to review")
     # Reviewer guidelines file.
     parser.add_argument(
         "--guidelines_doc_filename",
@@ -204,7 +204,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
     args = parser.parse_args()
     hdbg.init_logger(verbosity=args.log_level, use_exec_path=True)
     # Run.
-    comments = _review(args.in_file_path, args.guidelines_doc_filename)
+    comments = _review(args.input, args.guidelines_doc_filename)
     _process_comments(comments, args.reviewer_log)
 
 

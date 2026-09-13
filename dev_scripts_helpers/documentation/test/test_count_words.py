@@ -347,13 +347,13 @@ class Test_count_words_py(hunitest.TestCase):
 
     def test1(self) -> None:
         """
-        Test single `--input_file` argument.
+        Test single `-i`/`--input` argument.
         """
         # Prepare inputs.
         scratch_dir = self.get_scratch_space()
         input_file = os.path.join(scratch_dir, "doc.txt")
         hio.to_file(input_file, "one two three four five")
-        argv = ["count_words.py", "--input_file", input_file]
+        argv = ["count_words.py", "-i", input_file]
         # Prepare outputs.
         expected = f"""
         File  Words  Reading Time

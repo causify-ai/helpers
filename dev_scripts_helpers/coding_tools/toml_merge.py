@@ -8,8 +8,7 @@ merge multiple poetry files.
 
 - Merge two pyproject.toml files into a single output file:
 > toml_merge.py \
-    --in_file devops/docker_build/pyproject.toml \
-    --in_file amp/devops/docker_build/pyproject.toml \
+    -f devops/docker_build/pyproject.toml amp/devops/docker_build/pyproject.toml \
     --out_file pyproject.toml
 
 Import as:
@@ -82,9 +81,7 @@ def _parse() -> argparse.ArgumentParser:
         description=__doc__,
         formatter_class=hparser.CustomHelpFormatter,
     )
-    parser.add_argument(
-        "--in_file", action="append", help="Files to read", required=True
-    )
+    hparser.add_files_list_arg(parser)
     parser.add_argument(
         "--out_file", action="store", help="File to write", required=True
     )
@@ -97,7 +94,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
     hdbg.init_logger(verbosity=args.log_level, use_exec_path=True)
     # Load all the toml files requested as dictionaries.
     pyprojs: List[_DepDict] = []
-    for file_name in args.in_file:
+    for file_name in args.files:
         file_name = os.path.abspath(file_name)
         _LOG.info("Reading file '%s'", file_name)
         pyproj = toml.load(file_name)

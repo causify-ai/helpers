@@ -42,7 +42,7 @@ This directory has no subdirectories.
 
 - Convert PNG directory to MP4s:
   ```bash
-  > convert_png_to_movie.py --in_dir ./slides --duration 3.0
+  > convert_png_to_movie.py --input_dir ./slides --duration 3.0
   ```
 
 ## `create_presentation_video.py`
@@ -57,7 +57,7 @@ This directory has no subdirectories.
 
 - Create presentation with PIP:
   ```bash
-  > create_presentation_video.py --in_dir ./videos --out_file final.mp4
+  > create_presentation_video.py --input_dir ./videos --out_file final.mp4
   ```
 
 ## `extract_png_from_ppt.py`
@@ -107,12 +107,12 @@ This directory has no subdirectories.
 
 - Generate videos with dry run:
   ```bash
-  > generate_synthesia_videos.py --dry_run --in_dir videos -v DEBUG
+  > generate_synthesia_videos.py --dry_run --input_dir videos -v DEBUG
   ```
 
 - Generate specific slide range:
   ```bash
-  > generate_synthesia_videos.py --in_dir videos --slide 002:009
+  > generate_synthesia_videos.py --input_dir videos --slide 002:009
   ```
 
 ## `get_synthesia_status.py`
@@ -186,7 +186,7 @@ This directory has no subdirectories.
 
 2. Generate new Synthesia videos in dry-run mode:
    ```bash
-   > generate_synthesia_videos.py --dry_run --in_dir videos -v DEBUG
+   > generate_synthesia_videos.py --dry_run --input_dir videos -v DEBUG
    ```
 
 3. Monitor job completion status:
@@ -208,10 +208,10 @@ This directory has no subdirectories.
 
 2. Convert PNGs to individual MP4s:
    ```bash
-   > convert_png_to_movie.py --in_dir ./slides_png --duration 3.0
+   > convert_png_to_movie.py --input_dir ./slides_png --duration 3.0
    ```
 
 3. Compose presentation with overlays:
    ```bash
-   > create_presentation_video.py --in_dir ./slide_videos --out_file presentation.mp4
+   > create_presentation_video.py --input_dir ./slide_videos --out_file presentation.mp4
    ```

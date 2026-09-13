@@ -9,8 +9,8 @@ model: sonnet
 # Workflow
 
 ## Create and Update a Plan
-- Create a file `plan.pr_get_local_tests_to_pass.md` with a plan in the form of a bullet
-  list of actions and maintain it updated, by marking each action
+- Create a file `plan-github.get_pr_to_pass_local_tests.md` with a plan in the form
+  of a bullet list of actions and maintain it updated, by marking each action
   - [.] when something is in progress
   - [x] when something is done
   - [F] when something failed

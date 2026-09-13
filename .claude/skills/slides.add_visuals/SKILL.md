@@ -76,7 +76,7 @@ model: haiku
   ```
 
 ## Save the Plan
-- Save the plan to a file `plan.slides.add_visuals.md`
+- Save the plan to a file `plan-slides.add_visuals.md`
 
 ## Ask User to Confirm
 - Make numbered list of proposed changes for the user

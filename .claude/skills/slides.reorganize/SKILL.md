@@ -46,7 +46,7 @@ model: sonnet
 
 ## Wait for User
 
-- Save the entire proposal in `plan.slides.reorganize.md` in the current dir
+- Save the entire proposal in `plan-slides.reorganize.md` in the current dir
 - Save the proposal in the file `plan.slides.after.txt` in the same format as
   `plan.slides.before.txt`
 

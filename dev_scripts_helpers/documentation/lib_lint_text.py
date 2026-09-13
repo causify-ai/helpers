@@ -345,7 +345,7 @@ def _check_links(in_file_name: str) -> None:
     hdbg.dassert_file_exists(script_path)
     _LOG.debug("Found check_links.py at: %s", script_path)
     # Build command.
-    cmd = f"{script_path} --in_file {in_file_name}"
+    cmd = f"{script_path} -i {in_file_name}"
     hsystem.system(cmd, abort_on_error=False, suppress_output=False)
 
 

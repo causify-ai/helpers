@@ -22,49 +22,49 @@ Use --from_scratch to delete the output directory before processing.
 # Usage Example
 
 - Process a directory using the default actions (tree and llm):
-> create_google_drive_map.py --in_dir /path/to/process
+> create_google_drive_map.py --input_dir /path/to/process
 
 - Process a directory and save output to a custom directory:
-> create_google_drive_map.py --in_dir /path/to/analyze --out_dir results
+> create_google_drive_map.py --input_dir /path/to/analyze --out_dir results
 
 - Run all available actions (tree, llm, combine, table):
-> create_google_drive_map.py --in_dir /path/to/process --all_actions
+> create_google_drive_map.py --input_dir /path/to/process --all_actions
 
 - Run the default actions except the tree action:
-> create_google_drive_map.py --in_dir /path/to/process --skip_action tree
+> create_google_drive_map.py --input_dir /path/to/process --skip_action tree
 
 - Run only the llm summarization action:
-> create_google_drive_map.py --in_dir /path/to/process --clear_actions --action llm
+> create_google_drive_map.py --input_dir /path/to/process --clear_actions --action llm
 
 - Run only the tree action:
-> create_google_drive_map.py --in_dir /path/to/process --clear_actions --action tree
+> create_google_drive_map.py --input_dir /path/to/process --clear_actions --action tree
 
 - Run only the combine action:
-> create_google_drive_map.py --in_dir /path/to/process --clear_actions --action combine
+> create_google_drive_map.py --input_dir /path/to/process --clear_actions --action combine
 
 - Run only the table action:
-> create_google_drive_map.py --in_dir /path/to/process --clear_actions --action table
+> create_google_drive_map.py --input_dir /path/to/process --clear_actions --action table
 
 - Process a directory and save output to an "analysis" directory:
-> create_google_drive_map.py --in_dir /path/to/process --out_dir analysis
+> create_google_drive_map.py --input_dir /path/to/process --out_dir analysis
 
 - Process a directory and save output to a "reports" directory:
-> create_google_drive_map.py --in_dir /path/to/process --out_dir reports
+> create_google_drive_map.py --input_dir /path/to/process --out_dir reports
 
 - Run full processing with custom settings on a different input directory:
-> create_google_drive_map.py --in_dir /projects/code --out_dir analysis
+> create_google_drive_map.py --input_dir /projects/code --out_dir analysis
 
 - Combine existing LLM outputs into a single markdown file:
-> create_google_drive_map.py --in_dir /path/to/process --clear_actions --action combine --out_dir existing_results
+> create_google_drive_map.py --input_dir /path/to/process --clear_actions --action combine --out_dir existing_results
 
 - Create a directory table:
-> create_google_drive_map.py --in_dir /path/to/process --clear_actions --action table --out_dir results
+> create_google_drive_map.py --input_dir /path/to/process --clear_actions --action table --out_dir results
 
 - Process only the first 3 directories (1st to 3rd):
-> create_google_drive_map.py --in_dir /path/to/process --limit 1:3
+> create_google_drive_map.py --input_dir /path/to/process --limit 1:3
 
 - Start fresh by deleting the existing output directory:
-> create_google_drive_map.py --in_dir /path/to/process --from_scratch
+> create_google_drive_map.py --input_dir /path/to/process --from_scratch
 """
 
 import argparse
@@ -104,11 +104,8 @@ def _parse() -> argparse.ArgumentParser:
         description=__doc__,
         formatter_class=hparser.CustomHelpFormatter,
     )
-    parser.add_argument(
-        "--in_dir",
-        action="store",
-        required=True,
-        help="Directory containing subdirectories to process",
+    hparser.add_input_dir_arg(
+        parser, help_="Directory containing subdirectories to process"
     )
     parser.add_argument(
         "--out_dir",
@@ -469,7 +466,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
     # Parse limit range if specified.
     limit_range = hseinout.parse_limit_range_args(args)
     # Get directories to process.
-    directories = _get_directories(args.in_dir, limit_range=limit_range)
+    directories = _get_directories(args.input_dir, limit_range=limit_range)
     hdbg.dassert_lt(0, len(directories), "No directories found to process")
     # Handle output directory.
     if args.from_scratch:

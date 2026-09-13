@@ -68,6 +68,41 @@
   - `SKILL.md`: Main skill instruction file
   - Supporting directories or files (e.g., templates, examples)
 
+## Generated File Naming
+
+- A skill's workflow often creates a file that refers back to the skill itself
+  (e.g., a plan, an output, a report); name it
+  ```
+  <TYPE>-<TOPIC>.<ACTION>.<EXT>
+  ```
+  - `<TYPE>` says what the file is: `plan`, `output`, `report`, `spec`, etc.
+  - `<TOPIC>.<ACTION>` is the skill's own name, copied unchanged from its
+    directory name
+  - `<EXT>` is the file extension (`md`, `txt`, etc.)
+
+- Separate `<TYPE>` from `<TOPIC>.<ACTION>` with `-`, never `.` or `_`
+  - `.` already separates `<TOPIC>` from `<ACTION>`, and `_` already appears
+    inside multi-word actions (e.g., `get_pr_to_pass_ci`), so reusing either
+    character as the outer separator makes the file name ambiguous to parse
+  - `-` never appears inside a topic or action name, so it stays unambiguous
+  - **Bad** (`_` collides with the underscores inside `get_pr_to_pass_ci`)
+    ```
+    plan_github.get_pr_to_pass_ci.md
+    ```
+  - **Bad** (`.` collides with the dot between topic and action)
+    ```
+    plan.github.get_pr_to_pass_ci.md
+    ```
+  - **Good**
+    ```
+    plan-github.get_pr_to_pass_ci.md
+    ```
+
+- This naming makes the file's purpose (`<TYPE>`) and its owning skill
+  (`<TOPIC>.<ACTION>`) both recoverable by inspection, e.g.,
+  `plan-slides.reorganize.md` is unambiguously the plan produced by
+  `.claude/skills/slides.reorganize/SKILL.md`
+
 ## Skill Rule File
 - For the passed skill file `<SKILL_FILE>` in the format
   ```

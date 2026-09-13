@@ -764,10 +764,8 @@ def _parse() -> argparse.ArgumentParser:
         formatter_class=hparser.CustomHelpFormatter,
     )
     hparser.add_verbosity_arg(sync_parser)
-    sync_parser.add_argument(
-        "--input_file",
-        required=True,
-        help="Path to settings manifest file",
+    hparser.add_input_file_arg(
+        sync_parser, help_="Path to settings manifest file"
     )
     sync_parser.add_argument(
         "--owner",
@@ -860,7 +858,7 @@ def _sync_repo_settings(args: argparse.Namespace) -> None:
     :param args: Command line arguments containing input file path,
         owner, repo name, token env var, and dry run flag
     """
-    _LOG.debug("Importing repository settings from %s", args.input_file)
+    _LOG.debug("Importing repository settings from %s", args.input)
     # Get GitHub repository object.
     repo = _get_repo(args)
     # Create backup of current settings.
@@ -870,7 +868,7 @@ def _sync_repo_settings(args: argparse.Namespace) -> None:
     _LOG.info("Repository settings backed up to %s", backup_file)
     # Load settings from input file.
     target_repo_and_branch_settings = _RepoAndBranchSettings.load_settings(
-        args.input_file
+        args.input
     )
     # Apply branch protection and repository settings.
     target_repo_and_branch_settings.apply_branch_protection(

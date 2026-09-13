@@ -9,13 +9,13 @@ This script performs several actions on a Jupyter notebook, such as:
 
 - Open an archived notebook as HTML into the browser:
 > publish_notebook.py \
-    --file s3://.../notebooks/PTask768_event_filtering.html \
+    -i s3://.../notebooks/PTask768_event_filtering.html \
     --action open \
     --aws_profile 'am'
 
 - Publish a notebook:
 > publish_notebook.py \
-    --file nlp/notebooks/PTask768_event_filtering.ipynb \
+    -i nlp/notebooks/PTask768_event_filtering.ipynb \
     --action publish \
     --aws_profile 'am'
 
@@ -147,7 +147,7 @@ def _export_notebook_to_dir(ipynb_file_name: str, tag: str, dst_dir: str) -> str
     _LOG.info("Generated HTML file '%s'", norm_html_dst_path)
     cmd = f"""
         # To open the notebook run:
-        > publish_notebook.py --file {norm_html_dst_path} --action open
+        > publish_notebook.py -i {norm_html_dst_path} --action open
         """
     print(hprint.dedent(cmd))
     return norm_html_dst_path
@@ -210,12 +210,9 @@ def _parse() -> argparse.ArgumentParser:
         description=__doc__,
         formatter_class=hparser.CustomHelpFormatter,
     )
-    parser.add_argument(
-        "--file",
-        action="store",
-        required=True,
-        type=str,
-        help="The path to the ipynb file, a Jupyter URL, or a GitHub URL",
+    hparser.add_input_file_arg(
+        parser,
+        help_="The path to the ipynb file, a Jupyter URL, or a GitHub URL",
     )
     parser.add_argument(
         "--branch",
@@ -271,7 +268,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
     hdbg.init_logger(verbosity=args.log_level)
     if args.action == "open":
         # Open an existing HTML notebook.
-        src_file_name = args.file
+        src_file_name = args.input
         if hs3.is_s3_path(src_file_name):
             # We use AWS CLI to minimize the dependencies from Python packages.
             aws_profile = args.aws_profile
@@ -290,9 +287,9 @@ def _main(parser: argparse.ArgumentParser) -> None:
         sys.exit(0)
     # Compute the path of the src file.
     if args.branch:
-        src_file_name = _get_file_from_git_branch(args.branch, args.file)
+        src_file_name = _get_file_from_git_branch(args.branch, args.input)
     else:
-        src_file_name = _get_path(args.file)
+        src_file_name = _get_path(args.input)
     # Process the action.
     if args.action == "convert":
         # Convert to HTML.
@@ -333,7 +330,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
             # TODO(gp): Remove the file or save it directly in a temp dir.
             cmd = f"""
             # To open the notebook from S3 run:
-            > publish_notebook.py --file {s3_file_name} --action open --aws_profile {aws_profile}
+            > publish_notebook.py -i {s3_file_name} --action open --aws_profile {aws_profile}
             """
             print(hprint.dedent(cmd))
             #
