@@ -38,13 +38,25 @@ import warnings
 warnings.filterwarnings("ignore")
 
 # %%
+# Only needed for a package not preinstalled in the Docker image; drop this
+# cell entirely otherwise.
+# !pip install -q <PACKAGE_NAME>==<VERSION>
+
+# import <PACKAGE_NAME>
+# print("<PACKAGE_NAME> version: ", <PACKAGE_NAME>.__version__)
+
+# %%
 import helpers.hdbg as hdbg
 import helpers.hintrospection as hintros
-import helpers.hnotebook as hnotebo
+import helpers.hnotebook as hnotebook
+
+# Replace `PACKAGE_NAME_utils` with this notebook's own paired utils module,
+# e.g. `import sklearn_distributions_utils as utils`.
+import PACKAGE_NAME_utils as utils
 
 hdbg.init_logger(verbosity=logging.INFO)
 _LOG = logging.getLogger(__name__)
-hnotebo.config_notebook()
+hnotebook.config_notebook()
 
 try:
     from IPython.display import display
@@ -76,8 +88,10 @@ except ImportError:
 #
 # **Goal**:
 # - Visualize how distribution shape parameters affect the Beta distribution
-# - Understand the relationship between parameters and key statistical properties
-# - Observe the probability density, cumulative distribution, and statistics simultaneously
+# - Understand the relationship between parameters and key statistical
+#   properties
+# - Observe the probability density, cumulative distribution, and statistics
+#   simultaneously
 
 # %% [markdown]
 # **Implementation**: `cell1_interactive_distribution_explorer(figsize=None)`
@@ -97,18 +111,18 @@ hintros.print_obj_info(utils.cell1_interactive_distribution_explorer)
 # %% [markdown]
 # **Usage**
 # - Inputs
-#   - `alpha`: shape parameter $\alpha$ for `Beta`, or the mean $\mu$ for
-#     `Normal`
-#   - `beta`: shape parameter $\beta$ for `Beta`, or the variance $\sigma^2$
+#   - **`alpha`**: shape parameter $\alpha$ for `Beta`, or the mean $\mu$
 #     for `Normal`
-#   - `Distribution Type`: toggle between `Beta` (bounded on $[0, 1]$) and
-#     `Normal` (unbounded)
+#   - **`beta`**: shape parameter $\beta$ for `Beta`, or the variance
+#     $\sigma^2$ for `Normal`
+#   - **`Distribution Type`**: toggle between `Beta` (bounded on $[0, 1]$)
+#     and `Normal` (unbounded)
 #
 # - Panels
-#   - _PDF Reference_: Shows the probability density function of the
+#   - **`PDF Reference`**: Shows the probability density function of the
 #     distribution
-#   - _CDF Reference_: Shows the cumulative distribution function
-#   - _Comments_: Current parameter values (alpha, beta, mean)
+#   - **`CDF Reference`**: Shows the cumulative distribution function
+#   - **`Comments`**: Current parameter values (alpha, beta, mean)
 
 # %%
 # Create interactive widget to explore the Beta distribution.
@@ -157,18 +171,19 @@ hintros.print_obj_info(utils.cell2_interactive_sample_generator)
 # %% [markdown]
 # **Usage**
 # - Inputs
-#   - `alpha`: shape parameter $\alpha$ of the `Beta` distribution sampled
-#   - `beta`: shape parameter $\beta$ of the `Beta` distribution sampled
-#   - `N (total samples)`: number of samples drawn, on a log scale
-#   - `seed`: random seed, so the same draw can be reproduced
+#   - **`alpha`**: shape parameter $\alpha$ of the `Beta` distribution
+#     sampled
+#   - **`beta`**: shape parameter $\beta$ of the `Beta` distribution sampled
+#   - **`N (total samples)`**: number of samples drawn, on a log scale
+#   - **`seed`**: random seed, so the same draw can be reproduced
 #
 # - Panels
-#   - _Sample Distribution_: histogram of the drawn samples, with the
+#   - **`Sample Distribution`**: histogram of the drawn samples, with the
 #     theoretical PDF overlaid
-#   - _Sample Statistics_: sample mean, std, min, max, and median, next to
-#     the theoretical mean and their difference
-#   - _CDF Comparison_: the empirical CDF against the theoretical CDF
-#   - _Comments_: current parameters and sample size
+#   - **`Sample Statistics`**: sample mean, std, min, max, and median, next
+#     to the theoretical mean and their difference
+#   - **`CDF Comparison`**: the empirical CDF against the theoretical CDF
+#   - **`Comments`**: current parameters and sample size
 
 # %%
 # Create interactive widget to generate and visualize samples.

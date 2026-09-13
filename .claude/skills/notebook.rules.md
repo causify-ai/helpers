@@ -559,6 +559,16 @@
 
 # Text and Markdown Formatting
 
+## Wrap Markdown Cells at 85 Characters
+
+- Every markdown cell (Goal, Implementation, Usage, Guided usage, and any
+  other prose or bullet) wraps at 85 characters maximum, per
+  `.claude/skills/markdown.rules.md` `## Text Wrapping and Structure`
+- In the paired `.py` file, this is the full comment line, the leading `# `
+  (or `#   - `) prefix included, not just the text after it
+- Tables and fenced code blocks are exempt, the same as in
+  `.claude/skills/markdown.rules.md`
+
 ## Use Nested Bullet Lists
 
 - Organize markdown text with nested bullets for clarity:
@@ -638,13 +648,17 @@
   - `**Implementation**: \`function_name(params)\``: how the function gets
     there, one bullet per algorithmic step, naming the helper it calls
   - `**Usage**`: split into two nested lists:
-    - `- Inputs`: one bullet per interactive control, name plus what it
-      changes
-    - `- Panels`: one `_Panel_: description` bullet per panel or subplot
-      the widget renders, plus the `_Comments_:` bullet
+    - `- Inputs`: one `` **`name`**: description `` bullet per interactive
+      control, name plus what it changes
+    - `- Panels`: one `` **`Panel`**: description `` bullet per panel or
+      subplot the widget renders, plus the `` **`Comments`**: `` bullet
   - `**Guided usage**`: one bullet per action on a control, with the
     observation it produces nested underneath, instead of general facts
     about the cell's topic
+- Bold plus backtick for `Inputs`/`Panels` names is an intentional exception
+  to `.claude/skills/markdown.rules.md` `## Do Not Combine Bold with
+  Verbatim`, kept only for this label position so every item name scans the
+  same way down the list
 - Within each of these lists, there must be no blank line between items: a
   blank line splits a list into two and reads as a paragraph break, not a
   continuation
@@ -657,9 +671,9 @@
     that $KB = \{Rain, Rain \implies WetGround\}$ entails $WetGround$
   - Run the model-checking algorithm explicitly: enumerate every model,
     find $M(KB)$, check $\alpha$ in each of those rows
-  - _Model table_: the same 4-row table, with $M(KB)$ shaded blue and
+  - **`Model table`**: the same 4-row table, with $M(KB)$ shaded blue and
     $M(\alpha)$ outlined in dashed orange
-  - _Comments_: which `KB` sentences are toggled on, the query $\alpha$,
+  - **`Comments`**: which `KB` sentences are toggled on, the query $\alpha$,
     and the entailment verdict
   ```
 - **Good** (Goal, Implementation, and Usage as separate tight lists):
@@ -677,14 +691,14 @@
 
   **Usage**
   - Inputs
-    - `kb_sentence`: which `KB` sentences are toggled on
-    - `alpha`: the query sentence checked against $M(KB)$
+    - **`kb_sentence`**: which `KB` sentences are toggled on
+    - **`alpha`**: the query sentence checked against $M(KB)$
 
   - Panels
-    - _Model table_: the same 4-row table, with $M(KB)$ shaded blue and
+    - **`Model table`**: the same 4-row table, with $M(KB)$ shaded blue and
       $M(\alpha)$ outlined in dashed orange
-    - _Comments_: which `KB` sentences are toggled on, the query $\alpha$,
-      and the entailment verdict
+    - **`Comments`**: which `KB` sentences are toggled on, the query
+      $\alpha$, and the entailment verdict
   ```
 - **Good** (Guided usage as actions plus observations, not general facts):
   ```markdown
@@ -925,8 +939,8 @@
 
      - Documents the plots and their diagrams with comments, e.g.,
        ```
-       _Population bin_: Shows the full population as colored marbles
-       _Sample bin_: Shows a random sample drawn from the population
+       **`Population bin`**: Shows the full population as colored marbles
+       **`Sample bin`**: Shows a random sample drawn from the population
        ```
 
   3. **Guided-usage markdown**: what to do on the controls, and what to
@@ -985,13 +999,14 @@
   ```markdown
   **Usage**
   - Inputs
-    - `mu`: true proportion of red marbles in the population, 0.0-1.0
-    - `sample_size`: number of marbles drawn into the sample bin
+    - **`mu`**: true proportion of red marbles in the population, 0.0-1.0
+    - **`sample_size`**: number of marbles drawn into the sample bin
 
   - Panels
-    - _Population bin_: Shows the full unknown population as colored marbles
-    - _Sample bin_: Shows a random sample drawn from the population
-    - _Comments_: Current parameter values and state observations
+    - **`Population bin`**: Shows the full unknown population as colored
+      marbles
+    - **`Sample bin`**: Shows a random sample drawn from the population
+    - **`Comments`**: Current parameter values and state observations
   ```
 
 - Each widget has its description close to it (in the widget's `description`

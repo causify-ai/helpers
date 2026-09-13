@@ -51,12 +51,12 @@ model: sonnet
   - <Learning objective 2>
 
   **Plots and their descriptions**:
-  - _<Plot 1 name>_: <Description of what it shows>
-  - _<Plot 2 name>_: <Description of what it shows>
-  - _Comments_: Current parameter values and state observations
+  - **`<Plot 1 name>`**: <Description of what it shows>
+  - **`<Plot 2 name>`**: <Description of what it shows>
+  - **`Comments`**: Current parameter values and state observations
 
   **Widgets** (if applicable):
-  - <widget name>: <description, range, effect on display>
+  - **`<widget name>`**: <description, range, effect on display>
   - Each widget description is close to the widget itself
 
   **Guided usage** (post-visualization):
@@ -80,14 +80,14 @@ model: sonnet
 
 ### Plots and Their Descriptions (Required)
 
-- Describe each plot using the pattern `_<Plot name>_: <DESCRIPTION>`
+- Describe each plot using the pattern `**\`<Plot name>\`**: <DESCRIPTION>`
 - Each plot's description is placed together with the plot title, not in a
   separate section
 - Be specific about what the visualization shows (not implementation details)
 - Include: axes labels, color scheme, what each panel displays
 - Example:
   ```
-  _Population bin_: Shows full population as colored marbles
+  **`Population bin`**: Shows full population as colored marbles
   ```
 
 ### Widgets (If Applicable)
@@ -145,14 +145,14 @@ model: sonnet
     for control, matplotlib patches for marble visualization
 
   **Plots and their descriptions**:
-  - _Population bin_: Animated bin visualization with colored marbles
+  - **`Population bin`**: Animated bin visualization with colored marbles
     (red vs blue) showing the true population
-  - _Sample bin_: Shows a random sample drawn from the population
-  - _Comments_: Current parameter values (mu, sample count)
+  - **`Sample bin`**: Shows a random sample drawn from the population
+  - **`Comments`**: Current parameter values (mu, sample count)
 
   **Widgets**:
-  - `mu`: slider for true proportion of red marbles (0.0-1.0)
-  - `seed`: random seed for reproducibility
+  - **`mu`**: slider for true proportion of red marbles (0.0-1.0)
+  - **`seed`**: random seed for reproducibility
   ```
 
 - Commentary
