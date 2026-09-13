@@ -4,7 +4,7 @@ model: haiku
 ---
 
 # Goal
-The user will pass you one of more files `<FILES>` and you will make the code
+The user will pass you one or more files `<FILES>` and you will make the code
 more readable and debuggable for humans.
 
 # Workflow
@@ -17,6 +17,10 @@ more readable and debuggable for humans.
 - Track function execution by adding `_LOG.debug` statements.
 - Follow the section `# Logging` from the file `.claude/skills/coding.rules.md`
 
-## Conventions
+# Conventions
 - Do not change the behavior of the code in any way
 - You must follow the rules in `.claude/skills/coding.rules.md`
+
+# Verification
+- [ ] Confirm the code's behavior is unchanged
+- [ ] Run the file's unit tests to confirm nothing broke

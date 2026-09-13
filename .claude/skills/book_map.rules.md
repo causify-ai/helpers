@@ -1,12 +1,12 @@
-- Conventions for maintaining a book map (`map.md`) that tracks a book's title,
-  audience, roadmap, and chapter-by-chapter table of contents mapped to existing
-  course lecture materials
+- Conventions for maintaining a book map (`book_map.md`) that tracks a book's
+  title, audience, roadmap, and chapter-by-chapter table of contents mapped to
+  existing course lecture materials
 
 # Concepts
-- `map.md`: the map of a book / course
+- `book_map.md`: the map of a book / course
   - E.g.,
-    - `/Users/saggese/src/umd_classes2/book_springer/map.md`
-    - `/Users/saggese/src/umd_classes1/msml610/map.md`
+    - `/Users/saggese/src/umd_classes2/book_springer/book_map.md`
+    - `/Users/saggese/src/umd_classes1/msml610/book_map.md`
 - `chap_toc`: contains a description of a book chapter
   - It corresponds to the `### Topics` in a map
 - `skeleton_slides`: describes the high level flow of slides
@@ -48,6 +48,7 @@
 
 - Follow `.claude/skills/markdown.rules.md` and `.claude/skills/text.rules.md`
   for text formatting
+- Follow `.claude/skills/typst.rules.md` when writing book chapters in typst
 - Keep coverage percentages grounded in the actual lecture files, not guessed
 - Chapter numbers in `## <NN>: <Chapter Title>` are zero-padded two digits and
   match the numbering in `## Short TOC`
@@ -175,4 +176,4 @@
 - Optional freeform bullets for open questions or caveats about the chapter
 
 # Examples
-- `book_springer/map.md`
+- `book_springer/book_map.md`

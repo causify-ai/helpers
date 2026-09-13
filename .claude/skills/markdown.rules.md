@@ -145,6 +145,28 @@ text
     Extraction and Conversion Tools
     ```
 
+## Text Wrapping and Structure
+- Wrap all generated prose text to 85 characters maximum
+  - Line breaks improve readability and make diffs clearer
+  - Fenced code blocks are exempt from this rule
+  - Applies to all markdown text (documentation, rules, guides)
+- Structure examples and explanations as nested bullet points
+  instead of dense prose
+  - **Bad** (dense wall of text):
+    ```markdown
+    Use verbatim for libraries like `pandas`, `numpy`, and
+    `scikit-learn`. For example, when referring to the library
+    for data manipulation, write `pandas` not pandas. Similarly,
+    for the numerical computing library, write `numpy` not numpy.
+    ```
+  - **Good** (nested bullets with examples):
+    ```markdown
+    - Use verbatim for libraries, executables, scripts
+      - E.g., `pandas`, `numpy`, `scikit-learn`
+      - For data manipulation library, write `pandas` not pandas
+      - For numerical computing library, write `numpy` not numpy
+    ```
+
 ## Avoid Unstable Details
 
 - Do not add details that change frequently and cannot be maintained

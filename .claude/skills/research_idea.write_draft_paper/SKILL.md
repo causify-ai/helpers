@@ -9,7 +9,7 @@ model: opus
 
 # Workflow
 
-## Step 1: Read the Inputs
+## Read the Inputs
 - Read the research idea passed by the user (a file under `research/ideas/*.md`,
   or idea text pasted directly)
 - Read the paper template `papers/template/paper.md`, including the comment
@@ -17,7 +17,7 @@ model: opus
 - Read an existing paper for style and depth, e.g.
   `papers/Optimal_strategy_for_racket_sports/paper.md`
 
-## Step 2: Set Up the Paper Directory
+## Set Up the Paper Directory
 - Derive a short `Title_Case` name for the paper from the idea (e.g.
   `RL_for_Automated_EDA`); ask the user if the idea does not suggest an
   obvious name
@@ -26,7 +26,7 @@ model: opus
   `papers/template/` into the new directory
 - Do not overwrite an existing `paper.md` without confirming with the user
 
-## Step 3: Write `paper.md`
+## Write `paper.md`
 - Fill in every `<...>` placeholder with content derived from the idea:
   title, author(s) (use the assignee(s) listed in `research/ideas/README.md`
   for this idea, plus GP Saggese), abstract, keywords, and all body sections

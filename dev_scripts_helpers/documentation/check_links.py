@@ -16,10 +16,10 @@ The script:
 # Usage Example
 
 - Check links in a Markdown file:
-> check_links.py --in_file README.md
+> check_links.py -i README.md
 
 - Check links in a text file with verbose output:
-> check_links.py --in_file docs.txt -v DEBUG
+> check_links.py -i docs.txt -v DEBUG
 
 Import as:
 
@@ -262,11 +262,8 @@ def _parse() -> argparse.ArgumentParser:
         description=__doc__,
         formatter_class=hparser.CustomHelpFormatter,
     )
-    parser.add_argument(
-        "--in_file",
-        action="store",
-        required=True,
-        help="Input file to check for URLs.",
+    hparser.add_input_file_arg(
+        parser, help_="Input file to check for URLs."
     )
     parser.add_argument(
         "--cfile",
@@ -282,11 +279,11 @@ def _main(parser: argparse.ArgumentParser) -> None:
     args = parser.parse_args()
     hdbg.init_logger(verbosity=args.log_level, use_exec_path=True)
     # Check links in the input file.
-    reachable_urls, broken_urls = _check_links_in_file(args.in_file)
+    reachable_urls, broken_urls = _check_links_in_file(args.input)
     # Generate cfile by default if there are broken URLs.
     if broken_urls:
         cfile_content = _generate_cfile_for_broken_urls(
-            args.in_file, broken_urls
+            args.input, broken_urls
         )
         hio.to_file(args.cfile, "\n".join(cfile_content))
         _LOG.info("Generated cfile with broken URLs: %s", args.cfile)

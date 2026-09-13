@@ -12,7 +12,7 @@ manipulation to extract, reorder, and organize functions according to the map.
 - Reorganize functions from a source file into multiple target files based
   on a map:
 > reorder_python_code.py \
-    --input_file helpers/hpandas.py \
+    -i helpers/hpandas.py \
     --map_file hpandas_map.md
 
 The map file uses markdown structure:
@@ -392,12 +392,7 @@ def _parse() -> argparse.ArgumentParser:
         description=__doc__,
         formatter_class=hparser.CustomHelpFormatter,
     )
-    parser.add_argument(
-        "--input_file",
-        action="store",
-        required=True,
-        help="Path to the input Python file to reorganize",
-    )
+    hparser.add_input_file_arg(parser)
     parser.add_argument(
         "--map_file",
         action="store",
@@ -412,7 +407,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
     args = parser.parse_args()
     hdbg.init_logger(verbosity=args.log_level, use_exec_path=True)
     # Reorganize the code.
-    _reorder_python_code(input_file=args.input_file, map_file=args.map_file)
+    _reorder_python_code(input_file=args.input, map_file=args.map_file)
 
 
 if __name__ == "__main__":

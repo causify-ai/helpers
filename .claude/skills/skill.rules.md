@@ -68,6 +68,41 @@
   - `SKILL.md`: Main skill instruction file
   - Supporting directories or files (e.g., templates, examples)
 
+## Generated File Naming
+
+- A skill's workflow often creates a file that refers back to the skill itself
+  (e.g., a plan, an output, a report); name it
+  ```
+  <TYPE>-<TOPIC>.<ACTION>.<EXT>
+  ```
+  - `<TYPE>` says what the file is: `plan`, `output`, `report`, `spec`, etc.
+  - `<TOPIC>.<ACTION>` is the skill's own name, copied unchanged from its
+    directory name
+  - `<EXT>` is the file extension (`md`, `txt`, etc.)
+
+- Separate `<TYPE>` from `<TOPIC>.<ACTION>` with `-`, never `.` or `_`
+  - `.` already separates `<TOPIC>` from `<ACTION>`, and `_` already appears
+    inside multi-word actions (e.g., `get_pr_to_pass_ci`), so reusing either
+    character as the outer separator makes the file name ambiguous to parse
+  - `-` never appears inside a topic or action name, so it stays unambiguous
+  - **Bad** (`_` collides with the underscores inside `get_pr_to_pass_ci`)
+    ```
+    plan_github.get_pr_to_pass_ci.md
+    ```
+  - **Bad** (`.` collides with the dot between topic and action)
+    ```
+    plan.github.get_pr_to_pass_ci.md
+    ```
+  - **Good**
+    ```
+    plan-github.get_pr_to_pass_ci.md
+    ```
+
+- This naming makes the file's purpose (`<TYPE>`) and its owning skill
+  (`<TOPIC>.<ACTION>`) both recoverable by inspection, e.g.,
+  `plan-slides.reorganize.md` is unambiguously the plan produced by
+  `.claude/skills/slides.reorganize/SKILL.md`
+
 ## Skill Rule File
 - For the passed skill file `<SKILL_FILE>` in the format
   ```
@@ -84,14 +119,60 @@
 - Skills should be organized with clear sections:
   1. **Frontmatter**: YAML description
   2. **Goal**: 1-2 sentences describing what the skill does
-  3. **Workflow**: Including workflow steps
+  3. **Workflow**: Including workflow steps (see "Workflow Steps" below)
   4. **Conventions**: Point to rule files
   5. **Constraints**: Constraints to satisfy
   6. **Examples**: Pointers to potential examples
-  6. **Verification**: How to make sure the work was done properly
+  7. **Verification**: How to make sure the work was done properly (required when possible)
 
 - Use headers from `## ` down (skip `#` for section titles)
 - Keep sections focused and actionable
+
+## Workflow Steps
+- Write workflow steps as bullet points without numbering (no "Step 1:", "Step 2:",
+  etc.)
+- Numbering is difficult to maintain as content evolves; unnumbered bullets remain
+  valid when reordered
+- Use clear action verbs and logical sequencing through structure and description
+
+- **Bad** (do not use numbering):
+  ```
+  # Workflow
+
+  - Step 1: Read the input file to understand its structure
+  - Step 2: Identify the target section where the rule belongs
+  - Step 3: Add the new rule following existing conventions
+  ```
+- **Good** (use H2 headers, no numbering)
+  ```
+  # Workflow
+
+  ## Read input
+  - Read the input file to understand its structure
+  ...
+
+  ## Identify target
+  - Identify the target section where the rule belongs
+  ...
+  ```
+
+## Verification Steps
+- Include a `# Verification` section whenever possible to help confirm the skill
+  output is well-formed
+- Verification sections should list concrete checks or tests to validate:
+  - File references exist and are correct
+  - Content follows formatting conventions
+  - Output meets the skill's stated goals
+  - Related files remain consistent
+- Example verification checklist:
+  ```
+  # Verification
+
+  - [ ] Confirm the rule is placed in the correct section
+  - [ ] Verify no overlapping rules already cover this behavior
+  - [ ] Check file references point to existing files
+  - [ ] Ensure examples follow the Good/Bad format
+  ```
 
 # Writing Conventions
 

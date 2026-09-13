@@ -27,22 +27,22 @@ Result: output.txt contains "First chunk\nSecond chunk"
 # Usage Example
 
 - Split a file with tags into separate files:
-> split_in_files.py --input_file input.txt
+> split_in_files.py -i input.txt
 
 - Split with custom output directory:
-> split_in_files.py --input_file input.txt --output_dir ./output
+> split_in_files.py -i input.txt --output_dir ./output
 
 - Preview what would be done without writing files:
-> split_in_files.py --input_file input.txt --dry_run
+> split_in_files.py -i input.txt --dry_run
 
 - Keep the input file unchanged after splitting:
-> split_in_files.py --input_file input.txt --preserve_input
+> split_in_files.py -i input.txt --preserve_input
 
 - Append to existing files instead of overwriting:
-> split_in_files.py --input_file input.txt --append
+> split_in_files.py -i input.txt --append
 
 - Skip content verification for faster processing:
-> split_in_files.py --input_file input.txt --skip_verify
+> split_in_files.py -i input.txt --skip_verify
 
 Import as:
 
@@ -377,12 +377,7 @@ def _parse() -> argparse.ArgumentParser:
         description=__doc__,
         formatter_class=hparser.CustomHelpFormatter,
     )
-    parser.add_argument(
-        "--input_file",
-        action="store",
-        required=True,
-        help="Path to input file to split",
-    )
+    hparser.add_input_file_arg(parser)
     parser.add_argument(
         "--output_dir",
         action="store",
@@ -420,11 +415,11 @@ def _main(parser: argparse.ArgumentParser) -> None:
         output_dir = args.output_dir
     else:
         # Use same directory as input file.
-        output_dir = os.path.dirname(os.path.abspath(args.input_file))
+        output_dir = os.path.dirname(os.path.abspath(args.input))
     _LOG.debug("Output directory: %s", output_dir)
     # Split the file.
     _split_file(
-        args.input_file,
+        args.input,
         output_dir=output_dir,
         dry_run=args.dry_run,
         skip_verify=args.skip_verify,

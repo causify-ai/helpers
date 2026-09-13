@@ -1,24 +1,27 @@
 ---
-description: Summarize the discussion on Hacker News on a topic
+description: Summarize a Hacker News discussion on a topic in bullet points
 model: haiku
 ---
 
-For bullet point formatting rules, refer to
-`.claude/skills/text.rules.md`
+# Goal
+- Summarize a Hacker News discussion for a given topic
+- Follow the bullet point formatting rules in `.claude/skills/text.rules.md`
 
-## Input
+# Workflow
+
+## Read the Input
 - Given a pointer to a discussion on HackerNews in the form of a URL
-  - E.g., https://news.ycombinator.com/item?id=47743628
+  - E.g., `https://news.ycombinator.com/item?id=47743628`
 
-## Step 1: Summarize Article
+## Summarize the Article
 - Summarize the main article in 5 bullet points
-  ```
+  ```markdown
   # The peril of laziness lost
   - ...
   - ...
   ```
 
-## Step 2: Summarize Comments
+## Summarize the Comments
 - Analyze the Hacker News comment section for the linked article
 
 - From all comments, summarize the 5 most interesting ones based on the
@@ -35,7 +38,7 @@ For bullet point formatting rules, refer to
   - Very short reactions
   - Repetitive or low-effort
 
-## Step 3: Output
+## Write the Output
 - Do not output any comment on screen
 - Output the result in a file `hn.txt` without bold or other markdown formatting
 - Run the command:
@@ -46,3 +49,7 @@ For bullet point formatting rules, refer to
   ```bash
   > cat hn.txt
   ```
+
+# Verification
+- [ ] Confirm `hn.txt` was created and contains no bold or markdown formatting
+- [ ] Confirm `lint_text.py -i hn.txt` completed without errors

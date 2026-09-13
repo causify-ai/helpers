@@ -279,6 +279,8 @@ def _process_typst_file(
             cmd_line,
             "run_typst",
             watch_cmd_suffix=" --skip_action=open_pdf",
+            debounce_sec=4,
+            wait_in_sec=1,
         )
         return
     # Get actions.

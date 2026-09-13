@@ -744,7 +744,7 @@ class Test_lint_markdown_files(hunitest.TestCase):
         expected = r"""[
         {
         'function': hsystem.system,
-        'args': ('/fake/lint_text.py --input_files doc.md readme.md',),
+        'args': ('/fake/lint_text.py -f doc.md readme.md',),
         'kwargs': {'print_command': True, 'abort_on_error': True, 'suppress_output': False},
         },
         ]"""

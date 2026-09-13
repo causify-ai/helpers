@@ -1,10 +1,12 @@
 ---
-description: Implement all TODO(ai_gp) items in a file including renames, code updates, and update references
+description: Implement TODO(ai_gp) items in a file: renames, code updates, references
 model: haiku
 ---
 
 # Goal
-- Implement all the `TODO(ai_gp)` in the passed file
+Implement all the `TODO(ai_gp)` items in the passed file `<FILE>`.
+
+# Workflow
 
 ## Renaming and Moving Objects
 - When renaming an object make sure to update all the references to those objects
@@ -29,11 +31,11 @@ model: haiku
 - If you can't implement a TODO, leave the TODO in place and add a comment
   shortly explaining why can't be done
 
-# Verification
-- Run the corresponding unit tests to make sure the code works
-- Grep in the repo for the renamed, removed objects to make sure there are no
-  hanging references
-
 # Conventions
-- Depending on the file type follow the instructions for the file type based on
-  `@.claude/rules.md`
+- Depending on the file type, follow the corresponding instructions in
+  `.claude/rules.md`
+
+# Verification
+- [ ] Run the corresponding unit tests to make sure the code works
+- [ ] Grep in the repo for the renamed or removed objects to confirm there are
+      no hanging references

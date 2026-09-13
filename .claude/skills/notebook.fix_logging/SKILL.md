@@ -4,7 +4,7 @@ model: haiku
 ---
 
 # Goal
-- Implement the instructions in 
+- Implement the instructions in
   `.claude/skills/notebook.rules.md` under
   `## Use Standard Template Structure`
 
@@ -30,11 +30,18 @@ model: haiku
       hnotebo.set_logger_to_print(causalml_logger)
   ```
 
+# Workflow
+
 ## Sync Notebook
 - At the end, sync the paired `.py` file with Jupytext following the conventions
-  in `# Setup and Initialization` → `## Utilities vs. Notebook Responsibilities`
-  in `.claude/skills/notebook.rules.md`
+  in `# Code Architecture and Responsibility` -> `## Utilities vs. Notebook
+  Responsibilities` in `.claude/skills/notebook.rules.md`
 
-## Follow Conventions
+# Conventions
 - Always follow the conventions and guidelines in
   `.claude/skills/notebook.rules.md`
+
+# Verification
+- [ ] Confirm the notebook init cell matches `.claude/templates/notebook.template.py`
+- [ ] Confirm `init_logger()` is called and log messages print in the notebook
+- [ ] Confirm the `.ipynb` and paired `.py` file are in sync via Jupytext

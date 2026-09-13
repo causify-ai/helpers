@@ -429,6 +429,84 @@ def check_merge_conflict_markers(
 
 
 # #############################################################################
+# check_tmp_log_files
+# #############################################################################
+
+
+def _is_tmp_log_file(file_name: str) -> bool:
+    """
+    Return whether `file_name` is a `tmp.*.log` scratch file (e.g.,
+    `tmp.pytest.log`), which is meant to be a throwaway output file and
+    should never be checked into the repo.
+    """
+    base_name = os.path.basename(file_name)
+    is_tmp_log_file = base_name.startswith("tmp.") and base_name.endswith(
+        ".log"
+    )
+    return is_tmp_log_file
+
+
+def _get_file_statuses() -> List[Tuple[str, str]]:
+    """
+    Get the Git status code and name of all the tracked files that are
+    staged or modified, skipping untracked files.
+
+    :return: list of (status, file_name), e.g., `[("M", "foo.py"), ("D",
+        "tmp.pytest.log")]`
+    """
+    # > git status --porcelain -uno
+    #  M dev_scripts/git/git_hooks/pre-commit.py
+    # D  tmp.pytest.log
+    cmd = f"{_GIT_BINARY_PATH} status --porcelain --untracked-files=no"
+    rc, txt = _system_to_string(cmd)
+    _ = rc
+    file_statuses = []
+    for line in txt.splitlines():
+        # The first 2 chars are the status code, the rest (after a space) is
+        # the file name.
+        status = line[:2].strip()
+        file_name = line[3:]
+        file_statuses.append((status, file_name))
+    return file_statuses
+
+
+def check_tmp_log_files(
+    abort_on_error: bool = True,
+    file_statuses: Optional[List[Tuple[str, str]]] = None,
+) -> None:
+    """
+    Ensure that `tmp.*.log` files are only deleted, never added or modified.
+
+    These files (e.g., `tmp.pytest.log`) are scratch output and should never
+    be checked into the repo.
+    """
+    func_name = _report()
+    if file_statuses is None:
+        file_statuses = _get_file_statuses()
+    _LOG.info(
+        "Files:\n%s",
+        "\n".join(f"{status} {file_name}" for status, file_name in file_statuses),
+    )
+    # Check all the files.
+    error = False
+    for status, file_name in file_statuses:
+        if not _is_tmp_log_file(file_name):
+            continue
+        if status == "D":
+            # Deleting a `tmp.*.log` file is fine.
+            continue
+        msg = (
+            f"File '{file_name}' matches the `tmp.*.log` pattern and can't "
+            "be added or modified: these files are scratch output and "
+            "should only be deleted"
+        )
+        _LOG.error(msg)
+        error = True
+    # Handle error.
+    _handle_error(func_name, error, abort_on_error)
+
+
+# #############################################################################
 # check_author
 # #############################################################################
 

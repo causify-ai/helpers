@@ -10,9 +10,15 @@ model: sonnet
 # Workflow
 - Read the proposed content `<CONTENT>`
 
-- For a book / course (e.g., `book_springer/map.md`), read the `map.md` to
-  understand the structure of the material covered
+- For a book / course (e.g., `book_springer/book_map.md`), read the
+  `book_map.md` to understand the structure of the material covered
 - Find out which part of the `<TARGET>` material the content is relevant for
 
 - Propose how to integrate the `<CONTENT>` in `<TARGET>` using bullet points
   following `.claude/skills/markdown.rules.md` and `.claude/skills/text.rules.md`
+
+# Verification
+- [ ] Confirm the proposed location exists in `<TARGET>` (e.g., a real
+      chapter or slide)
+- [ ] Confirm the proposal follows `.claude/skills/markdown.rules.md` and
+      `.claude/skills/text.rules.md`

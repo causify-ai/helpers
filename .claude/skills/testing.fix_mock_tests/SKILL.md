@@ -10,6 +10,7 @@ model: haiku
   - Avoiding mocking in Python unit tests means designing code so dependencies
     are easy to control naturally, rather than being intercepted artificially
 
+# Workflow
 - Avoid mocking using the strategies below
 
 ## Prefer Pure Functions
@@ -23,7 +24,7 @@ model: haiku
 
 ## Design for Dependency Injection (DI)
 - Instead of hard coding dependencies inside functions or classes, pass them in
-- **Bad approach:**
+- **Bad** (hardcodes the dependency, forcing a mock to test it)
   ```python
   from typing import Any
   import requests
@@ -31,7 +32,7 @@ model: haiku
   def get_user(user_id: int) -> Any:
     return requests.get(f"https://api.com/users/{user_id}").json()
   ```
-- **Good approach:**
+- **Good** (injects the dependency, so a fake can be substituted in tests)
   ```python
   from typing import Any, Protocol
 
@@ -41,7 +42,7 @@ model: haiku
   def get_user(user_id: int, http_client: HttpClient) -> Any:
     return http_client.get(f"https://api.com/users/{user_id}").json()
   ```
-- **Bad approach:**
+- **Bad** (creates its own dependency inside `__init__`)
   ```python
   class Database: pass
 
@@ -49,7 +50,7 @@ model: haiku
     def __init__(self) -> None:
       self.db: Database = Database()
   ```
-- **Good approach:**
+- **Good** (accepts the dependency, so a fake can be passed in)
   ```python
   class Database: pass
 
@@ -78,7 +79,7 @@ model: haiku
 
 ## Separate Side Effects From Logic
 - Keep core logic independent from I/O
-- **Bad approach:**
+- **Bad** (mixes I/O and logic, forcing mocks for the database and email)
   ```python
   from typing import Any
 
@@ -86,7 +87,7 @@ model: haiku
       user: Any = db.get(user_id)
       send_email(user)
   ```
-- **Good approach:**
+- **Good** (logic is separated from I/O, so no mocking is needed)
   ```python
   from typing import Any, Callable
 
@@ -116,3 +117,8 @@ model: haiku
   `.claude/skills/testing.rules.md`
 - For all code you must follow the instructions in
   `.claude/skills/coding.rules.md`
+
+# Verification
+- [ ] Run the tests and confirm they still pass
+- [ ] Confirm no mocking constructs (`Mock`, `patch`, `MagicMock`) remain
+  unless truly unavoidable

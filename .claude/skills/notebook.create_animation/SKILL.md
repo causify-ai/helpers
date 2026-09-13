@@ -4,8 +4,8 @@ model: haiku
 ---
 
 # Goal
-- Given the function passed that can go in `ipywidget.interact()` create an
-  animation using the template below:
+- Given the function passed that can go in `ipywidget.interact()` create an animation
+  using the template below:
   ```python
   # Parameters for video generation.
   n_steps = 11
@@ -32,5 +32,4 @@ model: haiku
   ```
 
 # Conventions
-- Always follow the conventions and guidelines in
-  `.claude/skills/notebook.rules.md`
+- Always follow the conventions and guidelines in `.claude/skills/notebook.rules.md`

@@ -9,13 +9,13 @@ model: sonnet
 
 # Workflow
 
-## Step 1: Read the Inputs
+## Read the Inputs
 - Read `<FILE>`
-- Read the template `research/ideas/template.research_idea.md`
+- Read the template `.claude/templates/research_idea.template.md`
 - Read `.claude/skills/research_idea.rules.md` `# Examples` for a worked
   example
 
-## Step 2: Apply the Template
+## Apply the Template
 - Map the content already in `<FILE>` onto the template's sections (`Status`,
   `Core Idea`, `Formalization`, `Key Examples`, `Questions`, `Research
   Topics`, `Next steps`, `Implementation plan`, `References`)
@@ -35,6 +35,6 @@ model: sonnet
 - `research/ideas/in_progress.RL_for_pickleball.md`
 
 # Verification
-- [ ] `<FILE>` follows the section order of `research/ideas/template.research_idea.md`
+- [ ] `<FILE>` follows the section order of `.claude/templates/research_idea.template.md`
 - [ ] No fabricated content was added for sections the input did not cover
 - [ ] Lines fit in 85 characters

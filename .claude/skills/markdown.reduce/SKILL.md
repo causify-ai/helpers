@@ -1,7 +1,9 @@
 ---
-description: Reduce the text of a markdown file according to conventions for clarity, structure, and consistency
+description: Reduce a markdown file's text while keeping structure and clarity
 model: haiku
 ---
+
+# Goal
 
 - Summarize the given text in fewer words while keeping the main ideas,
   important details, and original intent
@@ -9,3 +11,9 @@ model: haiku
 - Avoid unnecessary words and repetition
 - Maintain the exact structure in terms of markdown headers
 - Write the output in the same file
+
+# Verification
+
+- [ ] Markdown header structure is unchanged
+- [ ] Main ideas and important details are preserved
+- [ ] Output is written back to the same file

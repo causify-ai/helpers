@@ -1,10 +1,16 @@
 ---
-description: Generate a Graphviz legend template for causal knowledge graphs with node types and edge styles
+description: Generate a Graphviz legend template with node types and edge styles
 model: haiku
 ---
 
-## Template Nodes
-```
+# Goal
+- Generate a Graphviz legend for causal knowledge graphs, covering node types
+  and edge styles
+
+# Templates
+
+## Node Legend
+```dot
 digraph WindTurbineCKG {
   rankdir=LR;
   splines=true;
@@ -44,7 +50,7 @@ subgraph cluster_legend {
 ```
 
 ## Edge Legend
-```
+```dot
 digraph legend {
     graph [rankdir=TB, nodesep=0.5, ranksep=0.7];
     node [shape=point, width=0, height=0, margin=0];
@@ -115,3 +121,9 @@ digraph legend {
     b1 -> b2 -> b3 -> b4 -> b5 -> b6 [style=invis];
 }
 ```
+
+# Verification
+- [ ] Render each template with `dot -Tpng` and confirm it produces a valid
+      image with no syntax errors
+- [ ] Confirm the legend covers every node type and edge style used in the
+      target graph

@@ -1,11 +1,21 @@
 ---
-description: Reorganize a markdown file to use bullet points and ensure all fenced code blocks have syntax labels
+description: Convert a markdown file to bullet points and label all fenced code blocks
 model: haiku
 ---
 
-Given a markdown file passed from the user apply the transformations below
-related to bullet point formatting, fenced code blocks, command formatting, and
-markdown conventions referring to:
+# Goal
 
-- `.claude/skills/markdown.rules.md`: Complete markdown formatting guidelines
-- `.claude/skills/text.rules.md`: Rules for creating and formatting bullet points
+- Apply bullet point formatting, fenced code block language labels, and
+  command formatting conventions to a markdown file passed by the user
+
+# Conventions
+
+- Follow `.claude/skills/markdown.rules.md` for complete markdown formatting
+  guidelines
+- Follow `.claude/skills/text.rules.md` for bullet point creation and
+  formatting rules
+
+# Verification
+
+- [ ] Every fenced code block has a language label
+- [ ] Content follows the bullet point rules in `.claude/skills/text.rules.md`

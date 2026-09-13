@@ -10,10 +10,10 @@ duration.
 # Usage Example
 
 - Convert all PNG files in a directory to individual movies:
-> convert_png_to_movie.py --in_dir ./slides --duration 3.0
+> convert_png_to_movie.py --input_dir ./slides --duration 3.0
 
 - Convert specific PNG files:
-> convert_png_to_movie.py --in_dir ./images --files "image1.png,image2.png"
+> convert_png_to_movie.py --input_dir ./images --files "image1.png,image2.png"
 """
 
 import argparse
@@ -68,10 +68,8 @@ def _parse() -> argparse.ArgumentParser:
         formatter_class=hparser.CustomHelpFormatter,
     )
     hparser.add_verbosity_arg(parser)
-    parser.add_argument(
-        "--in_dir",
-        required=True,
-        help="Input directory containing PNG files",
+    hparser.add_input_dir_arg(
+        parser, help_="Input directory containing PNG files"
     )
     parser.add_argument(
         "--out_dir",
@@ -99,7 +97,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
     args = parser.parse_args()
     hdbg.init_logger(verbosity=args.log_level, use_exec_path=True)
     # Validate input directory.
-    in_dir = args.in_dir
+    in_dir = args.input_dir
     hdbg.dassert_dir_exists(in_dir)
     # Determine output directory.
     out_dir = args.out_dir if args.out_dir else in_dir

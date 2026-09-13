@@ -6,7 +6,7 @@ Generate ElevenLabs voice files from markdown slides.
 
 - Generate voice files for slides:
 > generate_elevenlabs_voice.py \
-    --in_file slides.md \
+    -i slides.md \
     --out_dir output_voices \
     --limit "0:2"
 
@@ -203,12 +203,8 @@ def _parse() -> argparse.Namespace:
         description=__doc__,
         formatter_class=hparser.CustomHelpFormatter,
     )
-    parser.add_argument(
-        "--in_file",
-        action="store",
-        required=True,
-        type=str,
-        help="Input markdown file with slides",
+    hparser.add_input_file_arg(
+        parser, help_="Input markdown file with slides"
     )
     parser.add_argument(
         "--out_dir",
@@ -233,7 +229,7 @@ def _main(args: argparse.Namespace) -> None:
     limit_range = hseinout.parse_limit_range_args(args)
     # Process slides.
     _process_slides(
-        args.in_file,
+        args.input,
         args.out_dir,
         limit_range=limit_range,
     )

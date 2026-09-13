@@ -208,17 +208,17 @@ Development utilities for code analysis, profiling, synchronization, and refacto
 
 - Reorganize Python file using map:
   ```bash
-  > reorder_python_code.py --input_file helpers/hpandas.py --map_file hpandas_map.md
+  > reorder_python_code.py -i helpers/hpandas.py --map_file hpandas_map.md
   ```
 
 - Preview changes without writing files (dry run):
   ```bash
-  > reorder_python_code.py --input_file module.py --map_file map.md --dry_run
+  > reorder_python_code.py -i module.py --map_file map.md --dry_run
   ```
 
 - Run with debug logging to see processing details:
   ```bash
-  > reorder_python_code.py --input_file module.py --map_file map.md -v DEBUG
+  > reorder_python_code.py -i module.py --map_file map.md -v DEBUG
   ```
 
 ## `process_prof.py`
@@ -233,17 +233,17 @@ Development utilities for code analysis, profiling, synchronization, and refacto
 
 - Show profiling statistics:
   ```bash
-  > process_prof.py --file_name prof.bin --action stats
+  > process_prof.py -i prof.bin --action stats
   ```
 
 - Generate call graph as PNG:
   ```bash
-  > process_prof.py --file_name prof.bin --action plot --ext png
+  > process_prof.py -i prof.bin --action plot --ext png
   ```
 
 - Generate call graph as PostScript:
   ```bash
-  > process_prof.py --file_name prof.bin --action plot --ext ps
+  > process_prof.py -i prof.bin --action plot --ext ps
   ```
 
 ## `traceback_to_cfile.py`
@@ -330,17 +330,17 @@ Development utilities for code analysis, profiling, synchronization, and refacto
 
 - Merge two TOML files:
   ```bash
-  > toml_merge.py --in_file base/pyproject.toml --in_file extra/pyproject.toml --out_file merged.toml
+  > toml_merge.py -f base/pyproject.toml extra/pyproject.toml --out_file merged.toml
   ```
 
 - Merge multiple files in sequence:
   ```bash
-  > toml_merge.py --in_file file1.toml --in_file file2.toml --in_file file3.toml --out_file result.toml
+  > toml_merge.py -f file1.toml file2.toml file3.toml --out_file result.toml
   ```
 
 - Merge multiple files with debug logging:
   ```bash
-  > toml_merge.py --in_file file1.toml --in_file file2.toml --in_file file3.toml --out_file result.toml -v DEBUG
+  > toml_merge.py -f file1.toml file2.toml file3.toml --out_file result.toml -v DEBUG
   ```
 
 ## `manage_cache.py`
@@ -454,32 +454,32 @@ themselves and any untagged content.
 
 - Split a file with tags into separate files in the same directory:
   ```bash
-  > split_in_files.py --input_file input.txt
+  > split_in_files.py -i input.txt
   ```
 
 - Split with custom output directory:
   ```bash
-  > split_in_files.py --input_file input.txt --output_dir output
+  > split_in_files.py -i input.txt --output_dir output
   ```
 
 - Append to existing files instead of overwriting:
   ```bash
-  > split_in_files.py --input_file input.txt --append
+  > split_in_files.py -i input.txt --append
   ```
 
 - Preview what would be done without writing files (dry run):
   ```bash
-  > split_in_files.py --input_file input.txt --dry_run
+  > split_in_files.py -i input.txt --dry_run
   ```
 
 - Keep the input file unchanged after splitting:
   ```bash
-  > split_in_files.py --input_file input.txt --preserve_input
+  > split_in_files.py -i input.txt --preserve_input
   ```
 
 - Split with verbose logging:
   ```bash
-  > split_in_files.py --input_file input.txt --output_dir output -v DEBUG
+  > split_in_files.py -i input.txt --output_dir output -v DEBUG
   ```
 
 ## `clean_up_text_files.sh`

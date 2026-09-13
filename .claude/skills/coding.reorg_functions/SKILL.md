@@ -50,3 +50,7 @@ model: haiku
   - Changing APIs
   - Changing imports unnecessarily
   - Modifying formatting beyond what is required for reorganization
+
+# Verification
+- [ ] Confirm every function from the original file is still present
+- [ ] Run the file's unit tests to confirm behavior is unchanged

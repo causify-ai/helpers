@@ -1,8 +1,9 @@
 ---
-description: Read a plan for an `auto_task`
+description: Review a plan or GitHub issue for an `auto_task` before execution
+model: haiku
 ---
 
-# Goal 
+# Goal
 - The user will pass you a file or a GitHub issue number, and you will read carefully
   the content and make sure both the problem and the solution is clear
 
@@ -17,9 +18,11 @@ description: Read a plan for an `auto_task`
   - Ask for clarifications
   - Propose changes to the file to clarify
 
-## Conventions
-- When writing code you must always follow the instructions in
-  `.claude/skills/coding.rules.md`
+# Conventions
+- Follow `.claude/skills/coding.rules.md` when writing code
+- Follow `.claude/skills/testing.rules.md` when writing testing code
 
-- When writing testing code you must always follow the instructions in
-  `.claude/skills/testing.rules.md`
+# Verification
+- [ ] The problem statement is clear and unambiguous
+- [ ] The proposed solution is clear and unambiguous
+- [ ] Any needed clarification was requested before the task moves to execution

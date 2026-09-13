@@ -22,10 +22,10 @@
 ## Usage
 
 * Basic Command
-- Command = `create_google_drive_map.py --in_dir /path/to/drive/folder`
+- Command = `create_google_drive_map.py --input_dir /path/to/drive/folder`
 
 * Common Options
-- `--in_dir` = directory to process (required)
+- `--input_dir` = directory to process (required)
 - `--out_dir` = output directory (default: tmp.run_tree_and_llm)
 - `--from_scratch` = delete output directory before processing
 - `--limit` = process specific range of directories (e.g., 1:3)
@@ -55,33 +55,33 @@
 
 - Full Processing with Custom Settings
   ```bash
-  > create_google_drive_map.py --in_dir /drive/projects \
+  > create_google_drive_map.py --input_dir /drive/projects \
     --out_dir analysis
   ```
 
 - Process First 5 Directories
 
   ```bash
-  > create_google_drive_map.py --in_dir /drive/folder --limit 1:5
+  > create_google_drive_map.py --input_dir /drive/folder --limit 1:5
   ```
 
 - Combine Existing Results
   ```bash
-  > create_google_drive_map.py --in_dir /drive/folder \
+  > create_google_drive_map.py --input_dir /drive/folder \
     --action combine \
     --out_dir existing_results
   ```
 
 - Start Fresh Analysis
   ```bash
-  > create_google_drive_map.py --in_dir /drive/folder \
+  > create_google_drive_map.py --input_dir /drive/folder \
     --from_scratch \
     --all_actions
   ```
 
 - Create Directory Table Only
   ```bash
-  > create_google_drive_map.py --in_dir /drive/folder \
+  > create_google_drive_map.py --input_dir /drive/folder \
     --action table \
     --out_dir results
   ```

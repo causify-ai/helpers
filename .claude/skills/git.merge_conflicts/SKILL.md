@@ -12,7 +12,7 @@ model: haiku
 ## Identify the Operation In Progress
 - Determine whether the repo is in the middle of a `merge`, `rebase`, or
   `cherry-pick`, since finalizing the resolution differs by operation
-  ```
+  ```bash
   > ls -a .git | grep -E "MERGE_HEAD|rebase-merge|rebase-apply|CHERRY_PICK_HEAD"
   ```
 - Note `<SOURCE>`, the branch/commit being merged, rebased, or cherry-picked in, and
@@ -21,20 +21,20 @@ model: haiku
 
 ## Find the Files with Conflicts
 - Find the files with conflicts running
-  ```
+  ```bash
   > git diff --name-only --diff-filter=U
   ```
 
 ## Understand the Context
 - Understand the context, e.g., by looking at the PR description, if present
-  ```
+  ```bash
   > gh pr view
   ```
   - If there is no open PR, `gh pr view` fails: skip it and rely on commit history
     instead
 - Look at the previous commits on `<SOURCE>` and `<TARGET>` that lead to the
   conflict, to understand the intent behind each side
-  ```
+  ```bash
   > git log <TARGET>..<SOURCE>
   > git log <SOURCE>..<TARGET>
   ```
@@ -67,11 +67,11 @@ model: haiku
 - Edit each conflicted file to remove the conflict markers and apply the chosen
   resolution
 - Confirm no conflict markers remain in any resolved file
-  ```
+  ```bash
   > grep -rn '^<<<<<<<\|^=======\|^>>>>>>>' <RESOLVED_FILES>
   ```
 - Stage each resolved file
-  ```
+  ```bash
   > git add <FILE>
   ```
 
@@ -85,11 +85,11 @@ model: haiku
 - Do not skip hooks (e.g., `--no-verify`) or force anything unless the user
   explicitly asks for it
 
-## Verification
-- Run the related unit tests to make sure everything is fine
-- Make sure there are no conflict markers `<<<<<<<` / `=======` / `>>>>>>>`
-- Confirm the operation finished cleanly
-  ```
+# Verification
+- [ ] Run the related unit tests to make sure everything is fine
+- [ ] Confirm there are no conflict markers `<<<<<<<` / `=======` / `>>>>>>>`
+- [ ] Confirm the operation finished cleanly
+  ```bash
   > git status
   ```
 

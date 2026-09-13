@@ -1,5 +1,5 @@
 ---
-description: Write lecture slides for a graduate-level course following academic formatting and pedagogical style
+description: Write graduate-level lecture slides in academic, pedagogical style
 model: opus
 ---
 
@@ -27,7 +27,7 @@ model: opus
 - Each slide needs to start with a `* <TITLE>` format
 
 ## Add Visuals
-- Follow the instructions from `.claude/skills/visuals.rules.md`
+- Follow the instructions from `.claude/skills/figure.rules.md`
 
 ## Save Result
 - Do not print anything on the screen
@@ -36,3 +36,9 @@ model: opus
     in the current dir
   - If a file `<FILE>` was provided then create a file like `<FILE>.slides.md`
   - If the destination file already exists, delete it and create a new one
+
+# Verification
+- [ ] Make sure that the new slides render correctly, e.g.,
+  ```bash
+  > gen_slides.py -i <OUTPUT_FILE> --notes_to_pdf_args="--skip_action open_pdf"
+  ```

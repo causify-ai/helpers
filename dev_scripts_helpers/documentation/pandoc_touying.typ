@@ -60,6 +60,10 @@ $endif$
 //#show raw.where(block: false): set text(size: 1.15em)
 #show raw.where(block: false): set text(size: 0.95em)
 
+// Shrink image captions and drop the "Figure N:" numbering/label prefix
+// (keep just the caption text).
+#show figure.caption.where(kind: image): it => text(size: 0.7em, style: "italic", it.body)
+
 // Styled table with zebra striping, lateral lines, and configurable width.
 #let styled-table(headers: (), rows: (), caption: none, col-widths: none, bold-first-col: true, size: 0.8em, width: 80%) = {
   let n = headers.len()
