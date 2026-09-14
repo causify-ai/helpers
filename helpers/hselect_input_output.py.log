@@ -1,0 +1,28 @@
+22:01:56 - [36mINFO [0m hdbg.py init_logger:1167                               22:01:56 - [36mINFO [0m hdbg.py init_logger:1167                               Saving log to file '/Users/saggese/src/umd_classes2/helpers_root/helpers/hselect_input_output.py.log'
+22:01:56 - [36mINFO [0m hdbg.py init_logger:1177                               22:01:56 - [36mINFO [0m hdbg.py init_logger:1177                               [94m> /Users/saggese/src/umd_classes2/helpers_root/dev_scripts_helpers/documentation/lint_text.py -i website/docs/blog/posts/draft.how_to.GitHub_Manual_Workflows.md[0m
+22:01:56 - [36mINFO [0m lint_text.py _main:180             22:01:56 - [36mINFO [0m lint_text.py _main:180             args.backend='', args.mode=''
+22:01:56 - [36mINFO [0m lint_text.py _main:226             22:01:56 - [36mINFO [0m lint_text.py _main:226             
+################################################################################
+# Action selected:
+################################################################################
+                             preprocess: Yes
+                               beautify: Yes
+                            postprocess: Yes
+    remove_code_block_extra_indentation: Yes
+                 remove_page_separators: Yes
+                     handle_empty_lines: Yes
+        add_blank_lines_between_headers: Yes
+     convert_asterisk_bullets_to_dashes: Yes
+                remove_trailing_periods: Yes
+             replace_em_dash_with_colon: Yes
+             remove_markdown_formatting: -
+                         frame_chapters: -
+                      capitalize_header: Yes
+                            refresh_toc: -
+                            check_links: -
+                              md_format: Yes
+22:01:56 - [36mINFO [0m lint_text.py _main:228             22:01:56 - [36mINFO [0m lint_text.py _main:228             Processing 1 file(s)
+22:01:56 - [36mINFO [0m lint_text.py _main:231             22:01:56 - [36mINFO [0m lint_text.py _main:231             Processing: website/docs/blog/posts/draft.how_to.GitHub_Manual_Workflows.md
+22:01:57 - [36mINFO [0m lib_prettier.py prettier:342                           22:01:57 - [36mINFO [0m lib_prettier.py prettier:342                           prettier time=1.424 secs
+22:01:57 - [36mINFO [0m lib_prettier.py prettier_on_str:394                    22:01:57 - [36mINFO [0m lib_prettier.py prettier_on_str:394                    prettier_on_str time=1.427 secs
+22:01:57 - [36mINFO [0m hselect_input_output.py to_file:367                    22:01:57 - [36mINFO [0m hselect_input_output.py to_file:367                    Written file 'website/docs/blog/posts/draft.how_to.GitHub_Manual_Workflows.md'
