@@ -48,7 +48,7 @@
 
 - You can find all the Python dockerized executable with:
   ```bash
-  > ffind.py dockerized | grep py
+  > ffind dockerized | grep py
   ./dev_scripts_helpers/dockerize/dockerized_template.py
   ./dev_scripts_helpers/documentation/dockerized_graphviz.py
   ./dev_scripts_helpers/documentation/dockerized_latex.py
