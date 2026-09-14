@@ -1,36 +1,30 @@
 # Summary
 
-- This document describes two scripts, `create_links.py` and
-  `stage_linked_file.py` used to manage symbolic links between a
-  source directory and a destination directory
-- These tools simplify workflows where you want to create read-only symbolic
-  links for files, stage modifications, and later restore the links
-- For automated linking of standard configuration files from `helpers_root` to
-  the repository root, see
-  [`create_all_helpers_links.py`](/dev_scripts_helpers/thin_client/create_all_helpers_links.py)
-  which is documented in
-  [Managing common files](/docs/tools/dev_system/all.runnable_repo.reference.md#managing-common-files)
+- This document describes two scripts, `create_links.py` and `stage_linked_file.py`
+  used to manage symbolic links between a source directory and a destination
+  directory
+- These tools simplify workflows where you want to create read-only symbolic links
+  for files, stage modifications, and later restore the links
 
 # Managing Symbolic Links Between Directories
 
 ## Why Do We Need This Approach?
 
-- In our codebases, it is common to have duplicate files or files that are
-  identical between two directories
+- In a codebases, it is common to have duplicate files or files that are identical
+  between two directories
 - Maintaining these files manually can lead to inefficiencies and errors:
-  - Synchronization: If changes are made in one location, they may not reflect
-    in the other, leading to inconsistencies
+  - Synchronization: If changes are made in one location, they may not reflect in the
+    other, leading to inconsistencies
   - Accidental Modifications: Directly modifying files that should remain
     synchronized can result in unintended discrepancies
-
-- With our approach:
+- With the described approach:
   - We avoid file duplication by creating links that point to the original files
   - Links in the destination directory remain read-only, reducing the risk of
     accidental changes
-  - If modifications are needed, the "staging process" ensures you can work
-    safely on copies without altering the original source files
-  - After the code has been developed, one can then convert copies of files, back
-    to links
+  - If modifications are needed, the "staging process" ensures you can work safely on
+    copies without altering the original source files
+  - After the code has been developed, one can then convert copies of files, back to
+    links
 
 ## Workflow and Commands
 
@@ -38,83 +32,78 @@
 
 ### Step 1: Replace Files with Symbolic Links
 
-- Use `create_links.py` to replace files in `dst_dir` with read-only symbolic
-  links to the corresponding files in `src_dir`
+- Use `create_links.py` to replace files in `dst_dir` with read-only symbolic links
+  to the corresponding files in `src_dir`
+- Example:
 
-- Command:
   ```bash
   > create_links.py --src_dir /path/to/src --dst_dir /path/to/dst --replace_links
   ```
 
 - What it does:
-  - Scans all files in `src_dir` and checks for files with the same name and
-    content in `dst_dir`
-  - For each match, the file in `dst_dir` is replaced with a symbolic link
-    pointing to the file in `src_dir`
+  - Scans all files in `src_dir` and checks for files with the same name and content
+    in `dst_dir`
+  - For each match, the file in `dst_dir` is replaced with a symbolic link pointing
+    to the file in `src_dir`
   - Sets the symbolic link to `read-only` (permission 444) to prevent accidental
     modifications
-
 - Why it is important:
-  - This ensures that all common files are linked to a single source,
-    eliminating duplication and keeping the directories in sync
+  - This ensures that all common files are linked to a single source, eliminating
+    duplication and keeping the directories in sync
 
 ### Step 2: Stage Files for Modification
 
-- If you want to edit the files in `dst_dir` (which are currently symbolic
-  links), use `stage_linked_file.py` to stage them. Staging replaces the
-  symbolic links with writable copies of the original files
+- If you want to edit the files in `dst_dir` (which are currently symbolic links),
+  use `stage_linked_file.py` to stage them. Staging replaces the symbolic links with
+  writable copies of the original files
+- Example:
 
-- Command:
   ```bash
   > stage_linked_file.py --dst_dir /path/to/dst
   ```
 
 - What it does:
   - Finds all the symbolic links in `dst_dir`
-  - Replaces each symbolic link with a writable copy of the file it points
-    to
+  - Replaces each symbolic link with a writable copy of the file it points to
   - Sets file permissions to `644` (writable)
-
 - Why it is important:
-  - It allows safe modifications to the files without directly editing the
-    original source files in `src_dir`. This ensures a clean and reversible
-    workflow
+  - It allows safe modifications to the files without directly editing the original
+    source files in `src_dir`. This ensures a clean and reversible workflow
 
 ### Step 3: Restore Symbolic Links After Modifications
 
-- Once you've finished modifying the files, you can restore the symbolic links
-  by running `create_links.py` again with the `--replace_links` flag
+- Once you've finished modifying the files, you can restore the symbolic links by
+  running `create_links.py` again with the `--replace_links` flag
+- Example:
 
-- Command:
   ```bash
   > create_links.py --src_dir /path/to/src --dst_dir /path/to/dst --replace_links
   ```
 
 - What it does:
   - Compares the modified files in `dst_dir` to those in `src_dir`
-  - Replaces the matching files with symbolic links, resetting them to
-    `read-only`
-
+  - Replaces the matching files with symbolic links, resetting them to `read-only`
 - Why it is important:
-  - This step cleans up your workspace and restores the optimized
-    `symbolic link` structure, ensuring minimal disk usage and consistent file
-    management
+  - This step cleans up your workspace and restores the optimized `symbolic link`
+    structure, ensuring minimal disk usage and consistent file management
 
 ### Workflow Summary
 
 - Set up `symbolic links`:
+
   ```bash
   > create_links.py --src_dir /path/to/src --dst_dir /path/to/dst --replace_links
   ```
 
 - Stage `symbolic links` for modification:
+
   ```bash
   > stage_linked_file.py --dst_dir /path/to/dst
   ```
 
 - Modify files as required
-
 - After modifications, restore the `symbolic links`:
+
   ```bash
   > create_links.py --src_dir /path/to/src --dst_dir /path/to/dst --replace_links
   ```
@@ -122,6 +111,7 @@
 ### Example Directory Structure
 
 - Before running `create_links.py`:
+
   ```verbatim
   src_dir/
       file1.txt
@@ -135,6 +125,7 @@
   ```
 
 - After running `create_links.py`:
+
   ```verbatim
   dst_dir/
       file1.txt -> src_dir/file1.txt  (symlink, read-only)
@@ -143,6 +134,7 @@
   ```
 
 - After running `stage_linked_file.py`:
+
   ```verbatim
   dst_dir/
       file1.txt  (writable copy of src_dir/file1.txt)

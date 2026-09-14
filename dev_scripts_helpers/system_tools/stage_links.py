@@ -4,11 +4,7 @@ Stage symbolic links for modification.
 # Usage Example
 
 - Stage all symbolic links under a destination directory for modification:
-> stage_linked_file.py --dst_dir /path/to/dst
-
-Import as:
-
-import helpers.stage_linked_file as hstlifil
+> stage_links.py --dst_dir /path/to/dst
 """
 
 import argparse
