@@ -1,31 +1,32 @@
 ---
-description: Implement a Jupyter notebook from an outline description (including interactive notebooks with widgets)
+description: Implement a Jupyter notebook with widgets from an outline description
 model: opus
 ---
 
 # Goal
 
-- **Input**: A `notebook_outline.<tag>.md` outline file describing each notebook
-  cell (created via `.claude/skills/notebook.create_outline/SKILL.md`)
+- **Input**: A `notebook_outline.<TAG>.md` outline file describing each notebook cell
+  (created via `.claude/skills/notebook.create_outline/SKILL.md`)
 - **Outputs**:
   1. `.ipynb` file: Fully functional Jupyter notebook with working code,
      visualizations, and interactive widgets
   2. `.py` file: A Python file paired using `jupytext` to the `.ipynb` using
-     py:percent 
-  2. `*_utils.py` file: Reusable helper functions for the notebook code
-- **Purpose**: Implement the pedagogical design as a fully executable,
-  interactive notebook
+     py:percent
+  3. `*_utils.py` file: Reusable helper functions for the notebook code
+- **Purpose**: Implement the pedagogical design as a fully executable, interactive
+  notebook
 - Each visualization follows the triplet structure:
-  - Pre-visualization markdown (goal + plot descriptions under each title)
+  - Pre-visualization markdown (goal, implementation, and input/panel descriptions
+    under each title)
   - Code cell (visualization / interactive widget)
-  - Post-visualization markdown (key observations)
+  - Post-visualization markdown (guided usage: actions plus observations)
 
 # Core Workflow
 
-- **Understand the outline**: Review each cell's Purpose, Display, and (if
-  present) Widgets and Key Insights
-- **Implement utility functions**: Write reusable widget and visualization code
-  in `*_utils.py`
+- **Understand the outline**: Review each cell's Purpose, Display, and (if present)
+  Widgets and Guided Usage
+- **Implement utility functions**: Write reusable widget and visualization code in
+  `*_utils.py`
 - **Create notebook cells**: Add markdown cells (context) and code cells (widget
   calls) to the notebook
 - **Follow the separation principle**: Utilities contain implementation; notebook
@@ -36,19 +37,19 @@ model: opus
 - Follow `.claude/skills/notebook.rules.md`: General notebook conventions and
   structure, especially:
   - `## Visualization Cell Triplet Details`: Pre-viz and post-viz markdown cells
-  - `# Interactive Cells`: Widget patterns and comments panel conventions
+  - `# Visualization and Interactivity`: Widget patterns and comments panel
+    conventions
 - Follow outline cell format from `.claude/skills/notebook.create_outline/SKILL.md`
-- Follow `.claude/skills/coding.rules.md` for Python code in `*_utils.py` and in
-  the Python cells in `.ipynb` file
-
-- Follow `.claude/skills/notebook.rules.md`
-  `# Utilities vs. Notebook Responsibilities` for organizing utility files and
+- Follow `.claude/skills/coding.rules.md` for Python code in `*_utils.py` and in the
+  Python cells in `.ipynb` file
+- Follow `.claude/skills/notebook.rules.md` `# Code Architecture and Responsibility`
+  -> `## Utilities vs. Notebook Responsibilities` for organizing utility files and
   notebooks
 
 ## Code Organization
-- Follow the section `Utilities vs. Notebook Responsibilities` from the file
-  `.claude/skills/notebook.rules.md` for organizing utility files and notebook
-  cells
+
+- Follow the section `## Utilities vs. Notebook Responsibilities` from the file
+  `.claude/skills/notebook.rules.md` for organizing utility files and notebook cells
 
 ## Reference Templates
 
@@ -56,9 +57,8 @@ model: opus
   - `.claude/templates/notebook.template.py`
     - End-to-end notebook covering both static and interactive cell types
   - `.claude/templates/notebook_utils_template.py`
-    - Paired utilities file with widget creation, state management, and
-      visualization functions
-
+    - Paired utilities file with widget creation, state management, and visualization
+      functions
 - Examples of notebooks
   - `msml610/tutorials/Lesson94_Information_Theory_utils.py`
   - Production example with complex interactive patterns (especially
@@ -68,13 +68,16 @@ model: opus
 
 ## Cell Structure in Notebook
 
-- Each visualization in the outline becomes three notebook cells (triplet):
-  1. **Markdown cell (pre-viz)**: Goal + plot descriptions (under each title)
-  2. **Code cell**: Visualization / interactive widget with comments panel
-     containing only variable state
-  3. **Markdown cell (post-viz)**: Key observations and what to learn
-- Make sure to follow the section `## Visualization Cell Triplet Details` from
-  the file `.claude/skills/notebook.rules.md`
+- Each visualization in the outline becomes the cell sequence (triplet of stages,
+  more than one cell per stage):
+  1. **Markdown cells (pre-viz)**: Goal, then Implementation, then (after the
+     `print_obj_info()` code cell) Usage split into Inputs and Panels
+  2. **Code cell**: Visualization / interactive widget with comments panel containing
+     only variable state
+  3. **Markdown cell (post-viz)**: Guided usage: one action per control plus the
+     observation it produces, not general facts to learn
+- Make sure to follow the section `## Visualization Cell Triplet Details` from the
+  file `.claude/skills/notebook.rules.md`
 
 ## Simple Interactive Widgets
 
@@ -87,6 +90,16 @@ model: opus
   `## Complex Interactive Widgets`
 
 # Sync with Jupytext
+
 - After all modifications are complete, sync the paired `.py` file with Jupytext
-  following the conventions in `# Setup and Initialization` → `## Utilities vs.
-  Notebook Responsibilities` in `.claude/skills/notebook.rules.md`
+  following the conventions in `# Code Architecture and Responsibility` ->
+  `## Utilities vs. Notebook Responsibilities` in `.claude/skills/notebook.rules.md`
+
+# Verification
+
+- [ ] Confirm the `.ipynb`, paired `.py`, and `*_utils.py` files are in sync via
+      Jupytext
+- [ ] Run the notebook top to bottom following `## Testing Notebook` in
+      `.claude/skills/notebook.rules.md` and confirm it completes without errors
+- [ ] Check that every outline cell has a corresponding notebook cell and no step
+      from `notebook_outline.<TAG>.md` was skipped

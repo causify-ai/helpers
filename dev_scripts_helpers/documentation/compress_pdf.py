@@ -262,7 +262,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
     hdbg.dassert_lt(
         0,
         len(input_files),
-        "No files selected; use -i/--input, --files, --from_file, "
+        "No files selected; use -i/--input, -f/--files, --from_file, "
         "--modified, --branch, --last_commit, or --all_files",
     )
     if args.output:

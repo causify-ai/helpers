@@ -67,7 +67,7 @@ testing workflows.
   - Add TOC to a single notebook file:
 
     ```bash
-    > ./add_toc_to_notebook.py --input_files my_notebook.ipynb
+    > ./add_toc_to_notebook.py -f my_notebook.ipynb
     ```
 
   - Add TOC to all notebooks in a directory:
@@ -79,7 +79,7 @@ testing workflows.
   - Add TOC to multiple specific files:
 
     ```bash
-    > ./add_toc_to_notebook.py --input_files "notebook1.ipynb notebook2.ipynb"
+    > ./add_toc_to_notebook.py -f notebook1.ipynb notebook2.ipynb
     ```
 
 ### `extract_notebook_images.py`
@@ -96,7 +96,7 @@ testing workflows.
 
     ```bash
     > ./extract_notebook_images.py \
-        --in_notebook_filename ./test/input/test_notebook.ipynb \
+        -i ./test/input/test_notebook.ipynb \
         --out_image_dir ./screenshots
     ```
 
@@ -104,7 +104,7 @@ testing workflows.
 
     ```bash
     > ./extract_notebook_images.py \
-        --in_notebook_filename my_notebook.ipynb \
+        -i my_notebook.ipynb \
         --out_image_dir ./output \
         --dockerized_force_rebuild
     ```
@@ -113,7 +113,7 @@ testing workflows.
 
     ```bash
     > ./extract_notebook_images.py \
-        --in_notebook_filename notebook.ipynb \
+        -i notebook.ipynb \
         --out_image_dir ./images \
         --dockerized_use_sudo
     ```
@@ -159,7 +159,7 @@ testing workflows.
 
     ```bash
     > ./process_jupytext.py \
-        --file vendors/kibot/data_exploratory_analysis.ipynb \
+        -i vendors/kibot/data_exploratory_analysis.ipynb \
         --action pair
     ```
 
@@ -167,7 +167,7 @@ testing workflows.
 
     ```bash
     > ./process_jupytext.py \
-        --file vendors/kibot/data_exploratory_analysis.ipynb \
+        -i vendors/kibot/data_exploratory_analysis.ipynb \
         --action sync
     ```
 
@@ -175,7 +175,7 @@ testing workflows.
 
     ```bash
     > ./process_jupytext.py \
-        --file my_notebook.ipynb \
+        -i my_notebook.ipynb \
         --action test
     ```
 
@@ -183,7 +183,7 @@ testing workflows.
 
     ```bash
     > ./process_jupytext.py \
-        --file my_notebook.ipynb \
+        -i my_notebook.ipynb \
         --action test_strict
     ```
 
@@ -191,7 +191,7 @@ testing workflows.
 
     ```bash
     > ./process_jupytext.py \
-        --file my_notebook.ipynb \
+        -i my_notebook.ipynb \
         --action diff
     ```
 
@@ -199,7 +199,7 @@ testing workflows.
 
     ```bash
     > ./process_jupytext.py \
-        --file my_script.py \
+        -i my_script.py \
         --action diff
     ```
 
@@ -216,7 +216,7 @@ testing workflows.
 
     ```bash
     > ./publish_notebook.py \
-        --file nlp/notebooks/PTask768_event_filtering.ipynb \
+        -i nlp/notebooks/PTask768_event_filtering.ipynb \
         --action publish \
         --aws_profile 'am'
     ```
@@ -225,7 +225,7 @@ testing workflows.
 
     ```bash
     > ./publish_notebook.py \
-        --file s3://.../notebooks/PTask768_event_filtering.html \
+        -i s3://.../notebooks/PTask768_event_filtering.html \
         --action open \
         --aws_profile 'am'
     ```
@@ -234,7 +234,7 @@ testing workflows.
 
     ```bash
     > ./publish_notebook.py \
-        --file my_notebook.ipynb \
+        -i my_notebook.ipynb \
         --action convert \
         --target_dir ./html_output
     ```
@@ -243,7 +243,7 @@ testing workflows.
 
     ```bash
     > ./publish_notebook.py \
-        --file my_notebook.ipynb \
+        -i my_notebook.ipynb \
         --action publish \
         --tag "version_2.0" \
         --aws_profile 'default'

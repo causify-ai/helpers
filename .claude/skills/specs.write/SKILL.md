@@ -9,25 +9,25 @@ model: opus
 
 # Workflow
 
-## Step 1: Understand the Context
+## Understand the Context
 - Read related code in the codebase
 - Read existing code in the target directory
-- If the user references a roadmap/plan file (e.g., `plan.<topic>.md`), read
+- If the user references a roadmap/plan file (e.g., `plan.<TOPIC>.md`), read
   it to extract the exact scope of the requested PR/feature
 - If an architecture doc already exists for the target directory, read it to
   understand the current design
 
-## Step 2: Write the Spec
+## Write the Spec
 - Create a markdown document following the template
   `.claude/templates/specs.template.md`
 - Follow the rules in `.claude/skills/markdown.rules.md` and
   `.claude/skills/text.rules.md`
-- Save the result in a file `spec.<topic>.md` in the current directory
+- Save the result in a file `spec.<TOPIC>.md` in the current directory
   - E.g., to spec out `PR_P2b` from `plan.Noesis.md`, save `spec.PR_P2b.md`
-  - Do not name it `plan.<topic>.md`: that name is reserved for the roadmap
+  - Do not name it `plan.<TOPIC>.md`: that name is reserved for the roadmap
     document that lists PRs, not for a single PR's spec
 
-## Step 3: Update the Architecture Doc
+## Update the Architecture Doc
 - Update an architecture file, if one exists, following the instructions in
   `.claude/skills/readme.write_architecture/SKILL.md`
   - Only add what matters to understand how the pieces work together, not
@@ -53,7 +53,7 @@ model: opus
 - The entire spec should be no longer than 100 lines using 85 wrapped text
 
 # Verification
-- [ ] File saved as `spec.<topic>.md`, not `plan.<topic>.md`
+- [ ] File saved as `spec.<TOPIC>.md`, not `plan.<TOPIC>.md`
 - [ ] Every section in `.claude/templates/specs.template.md` is filled in or
   explicitly marked "Not applicable"
 - [ ] No full implementation code, only interfaces/illustrative snippets

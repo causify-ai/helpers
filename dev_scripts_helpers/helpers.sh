@@ -29,7 +29,8 @@ resolve_diff_files() {
   # If called with exactly 2 args where the 1st is an existing directory and
   # the 2nd looks like a file extension (no `/`), expand to only the changed
   # git-tracked files with that extension under that directory (e.g.,
-  # `. py` -> the changed `*.py` files under `.`). Otherwise return the args
+  # `. py` -> the changed `*.py` files under `.`). Deleted files are skipped
+  # since they no longer exist in the working tree. Otherwise return the args
   # unchanged (e.g., a single file is passed to git as-is).
 
   # :param $1: 1 to look at staged (cached) changes, 0 for unstaged changes
@@ -41,9 +42,9 @@ resolve_diff_files() {
     local dir=$1
     local ext=$2
     if [[ "$cached" == "1" ]]; then
-      git diff --cached --name-only -- "$dir" | { grep "\.$ext\$" || true; }
+      git diff --cached --name-only --diff-filter=d -- "$dir" | { grep "\.$ext\$" || true; }
     else
-      git diff --name-only -- "$dir" | { grep "\.$ext\$" || true; }
+      git diff --name-only --diff-filter=d -- "$dir" | { grep "\.$ext\$" || true; }
     fi
   else
     echo "$*"

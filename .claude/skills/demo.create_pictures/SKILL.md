@@ -1,16 +1,21 @@
 ---
-description: Generate image prompts for each slide in a storyboard and create a demo_images.md file
+description: Generate image prompts per storyboard slide and write them to demo_images.md
 model: haiku
 ---
 
-# Step 1)
-- Given the text of a storyboard for a presentation, for each slide generate
-  images in the following format, where you can add a description in <Complete>
+# Goal
+- Given the text of a storyboard for a presentation, generate an image prompt
+  for each slide and save the result to `demo_images.md`
 
+# Workflow
+
+## Generate Image Prompts
+- For each slide, generate an image prompt in the following format, adding a
+  description in `<DESCRIPTION>`
 - The prompt should be like:
   ```verbatim
   CHARACTERS
-  <Complete>
+  <DESCRIPTION>
 
   STYLE ANCHOR:
   Clean, modern vector-illustration style, flat colors, soft gradients, consistent
@@ -28,10 +33,17 @@ model: haiku
   CAMERA: Medium shot, straight-on.
   ```
 
-# Step 2)
-- You need to generate a file demo_images.md that can be used with the command
-  ```python
+## Create the Output File
+- Write the generated prompts to `demo_images.md` so it can be used with the
+  command:
+  ```bash
   > ./helpers_root/dev_scripts_helpers/documentation/generate_images.py \
      -i demo_images.md \
      --dst_dir demo_images.md.figs
   ```
+
+# Verification
+- [ ] Confirm `demo_images.md` has one prompt per storyboard slide
+- [ ] Confirm each prompt follows the CHARACTERS / STYLE ANCHOR / SETTINGS /
+      CAMERA format
+- [ ] Run `generate_images.py` against `demo_images.md` and confirm it succeeds

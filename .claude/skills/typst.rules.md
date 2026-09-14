@@ -2,9 +2,12 @@
 
 ## Boilerplate and Imports
 
-- Every `.typ` chapter starts with the same boilerplate, in this order: the AIMA
-  style import, the citation import, `#set document(...)` metadata,
-  `#show: aima-style`, then a single `#chapter(...)` call
+- Every `.typ` chapter starts with the same boilerplate, in this order
+  - the AIMA style import
+  - the citation import
+  - `#set document(...)` metadata,
+  - `#show: aima-style`
+  - a single `#chapter(...)` call
 - Follow the template `.claude/templates/typst.template.typ`
 - Import both shared modules with a root-absolute path (resolved against
   `typst compile --root`), never a relative `../../` path: a relative path breaks as
@@ -120,26 +123,24 @@
 
 ## Highlighting and Emphasis
 
-- `#strong[...]` (or native `*text*`) is for the term or claim being formally defined
-  or named for the first time, usually in a sentence shaped like "#strong[Term]
-  is/refers to/means ...". Use it sparingly: a handful of times per section, never
-  for a list item's lead phrase
-- `#emph[...]` (or native `_text_`) is for everything else marked for emphasis: a
-  bold list-item lead phrase from the source, a term already defined earlier and
-  mentioned again, or rhetorical emphasis
+- `#strong[...]` is for the term or claim being formally defined or named for the
+  first time, usually in a sentence shaped like "#strong[Term] is/refers to/means
+  ...". Use it sparingly: a handful of times per section, never for a list item's
+  lead phrase
+- `#emph[...]` is for everything else marked for emphasis: a bold list-item lead
+  phrase from the source, a term already defined earlier and mentioned again, or
+  rhetorical emphasis
 - Decide `#strong` vs `#emph` by the role the phrase plays in the sentence, not by
   mechanically mapping the source's markdown (`**bold**` does not automatically mean
   `#strong`)
-- Prefer the function form (`#strong[...]`, `#emph[...]`) over the native shorthand
-  (`*...*`, `_..._`) for any phrase containing an underscore, hyphen, or other
-  punctuation: Typst's shorthand delimiters look for the next matching character and
-  misparse around it. Plain single/multi-word phrases with no such characters may use
-  either form
+- Always use the function form (`#strong[...]`, `#emph[...]`) over the native shorthand
+  (`*...*`, `_..._`)
 - Never leave Markdown-only syntax that has no meaning in Typst body text:
   `**double-star bold**`, `~~strikethrough~~`, or a lone `*`/`_` used the Markdown
   way: Typst renders these as literal punctuation, not emphasis
 - A plain quoted phrase (`"..."`) stays a plain quoted string: never prefix it with
   `#`: `#"text"` is a Typst string _expression_ and drops the visible quote marks
+
 - Cross-check against the source `.smd` when deciding `#strong` vs `#emph`, but apply
   the role-based test above rather than copying its markdown verbatim:
   - A term that anchors its own paragraph and is being named for the first time (the
@@ -153,7 +154,7 @@
     properly defined later), becomes `#emph`, not `#strong`
   - When a source line pairs a bold term with an italic citation, e.g
     `**Reinforcement Learning** _(Sutton, 1988)_`, bold the term and leave the
-    citation/author name plain (or in `#cite(...)`): never swap them so the person's
+    citation/author name plain or in `#cite(...)`: never swap them so the person's
     name ends up emphasized and the term plain
   - A term already `#strong`-defined earlier and mentioned again later (e.g. a
     second, separate reference to "narrow AI" after "Weak AI ... aka narrow AI" was
@@ -189,12 +190,19 @@
   `\leq`, `\geq` | `lt.eq`, `gt.eq` | | `\to`, `\gets` | `arrow.r`, `arrow.l` | |
   `\cdot`, `\times` | `dot.op`, `times` | | `\infty` | `oo` | | `\|x\|` | `\|x\|`
   (unchanged) |
-- For a single variable mentioned inline in prose (not a full formula), use a Unicode
-  character instead of math mode, to avoid Pandoc mangling a `$\theta$` into stray
-  characters: θ, α, β, μ, σ, ∈, ⊆, ∪, 𝒟, 𝒢, ℝ,
 - Keep a formula single-line when possible; a multi-line formula is more likely to
   break Typst's line-wrapping in the `wrap-content` narrow column (see "Visuals"
   below)
+- When a formula defines a new named quantity (e.g., introducing MSE, precision, an
+  update rule's target symbol), use `eq.delta` (≜, "equal by definition"), never `=`,
+  `:=`, or `equiv`, for that first defining relation
+- Keep plain `=` for everything else in the same formula: a later step that
+  simplifies or substitutes into an already-defined quantity, a computed numeric
+  result, an asserted property, or an algorithm's update/recurrence rule
+- Example: `$ "MSE" eq.delta 1/N sum_(i=1)^N (h(x_i) - f(x_i))^2 $` defines MSE, while
+  `$ "RMSE" eq.delta sqrt("MSE") = sqrt(1/N sum_(i=1)^N (h(x_i) - f(x_i))^2) $` uses
+  `eq.delta` only for the RMSE definition and keeps `=` for substituting MSE's
+  already-defined formula
 
 # Algorithms and Pseudocode
 
@@ -370,6 +378,33 @@
 
 - `placement:` takes a bare keyword (`auto`, `none`, `top`, `bottom`), never a string
   — `placement: "auto"` is a type error
+- Every caption already renders small: `aima_style.typ`'s `show figure.caption`
+  rule (applied by `#show: aima-style`) sets caption text to 9pt against an
+  11pt body, chapter-wide. Never add per-caption sizing
+  (`#text(size: ...)[...]`) to get a small caption — that duplicates the
+  global rule and risks a different size than the rest of the book
+- The `.smd` source marks a caption as the image's markdown alt text:
+  `![Caption text](path/to/image.png)`. When converting to Typst, carry that
+  alt text over verbatim as the caption: `caption: [Caption text]`. The 9pt
+  size comes from the global rule above, not from anything in the caption
+  call itself
+  - **Bad** (drops the alt text instead of carrying it over as the caption):
+
+    ```typst
+    image("figures/L02.4.Gradient_descent_contour.png", width: 100%),
+    ```
+
+  - **Bad** (hand-sizes one caption instead of relying on the shared rule):
+
+    ```typst
+    caption: [#text(size: 9pt)[Descent path on a 3D error surface]],
+    ```
+
+  - **Good**:
+
+    ```typst
+    caption: [Descent path on a 3D error surface.],
+    ```
 - Write a label as `fig:<description>` / `tab:<description>` in all lowercase with no
   separators (`fig:alanturing`, not `fig:Alan_Turing` or `fig:alan-turing`)
 - Image paths are relative to the `.typ` file's own location (use `../` to reach a
@@ -379,6 +414,91 @@
   produced later by a separate rendering step; guessing one produces a "file not
   found" compile error. Leave the raw source fence, or its placeholder, exactly as
   given
+
+## Diagram Placeholders and `wrap-content`
+
+- `render_images.py` (run by `render_book_chapter.py` on every render) deletes and
+  regenerates everything between its `render_images:begin` / `render_images:end`
+  markers from scratch, using the `label=` / `caption=` metadata preserved in the
+  paired `rendered_images:begin` / `rendered_images:end` comment block right above
+  it. Anything else placed between those markers does not survive a rerun
+- When a not-yet-rendered diagram belongs in a `#wrap-content(...)` pairing (per
+  "Every Visual Pairs With Its Text" above), nest the whole placeholder — the raw
+  fence, its `label=`/`caption=` metadata, and all four
+  `rendered_images:begin`/`rendered_images:end`/`render_images:begin`/
+  `render_images:end` markers — inside `#wrap-content(...)`'s first `[ ... ]`
+  argument (the image slot). Keep the `#wrap-content(...)` call itself, its
+  `align:`/`column-gutter:`/`columns:` arguments, and the prose in its trailing
+  `)[ ... ]` argument OUTSIDE the markers, never between them
+- Putting the markers around the whole `#wrap-content(...)` call instead — so the
+  paired prose sits inside `render_images:begin`/`render_images:end` too — means the
+  next rerun silently deletes that prose and collapses the two-column layout to a
+  bare `#figure(...)`: the regenerated block is always just the figure, never the
+  wrapper and prose around it
+- Write `label=` and `caption=` as two separate lines, `label=fig:...` then
+  `caption=...` directly below it: never combine them on one line
+  (`label=fig:x caption=...`). The parser treats everything after the first `=` as
+  the label's value, so a combined line produces an invalid Typst label
+  (`<fig:x caption=...>`) and an "unclosed label" compile error
+- **Bad** (markers wrap the whole `#wrap-content` call; the prose is destroyed the
+  next time `render_images.py` runs):
+
+  ```typst
+  // rendered_images:begin
+  // ```graphviz
+  //   ...
+  // ```
+  // label=fig:example
+  // caption=One-line description of the diagram.
+  // rendered_images:end
+  // render_images:begin
+  #wrap-content(
+    [
+      #figure(
+        image("...", width: 100%),
+        caption: [...],
+        kind: "figure",
+        supplement: [Fig.],
+        placement: auto,
+      ) <fig:example>
+    ],
+    align: right,
+    columns: (1fr, 40%),
+  )[
+    Prose explaining @fig:example, paired beside it.
+  ]
+  // render_images:end
+  ```
+
+- **Good** (markers nested inside the image slot only; the `#wrap-content(...)` call
+  and its prose survive every rerun):
+
+  ```typst
+  #wrap-content(
+    [
+      // rendered_images:begin
+      //     ```graphviz
+      //       ...
+      //     ```
+      //     label=fig:example
+      //     caption=One-line description of the diagram.
+      // rendered_images:end
+      // render_images:begin
+      #figure(
+        image("...", width: 100%),
+        caption: [...],
+        kind: "figure",
+        supplement: [Fig.],
+        placement: auto,
+      ) <fig:example>
+      // render_images:end
+    ],
+    align: right,
+    columns: (1fr, 40%),
+  )[
+    Prose explaining @fig:example, paired beside it.
+  ]
+  ```
 
 ## Sizing: Minimum Width and Readability
 

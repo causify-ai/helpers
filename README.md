@@ -217,7 +217,7 @@ This repo also ships "how we keep repos healthy" primitives:
 - `.claude/`: Claude Code configuration and hooks
 - `CLAUDE.md`: Architecture overview and development patterns for Claude Code
 - `conftest.py`: Pytest configuration and shared test fixtures
-- `instr.md`: Development instructions and task specifications
+- `task_instructions.md`: Development instructions and task specifications
 - `main_pytest.py`: Main pytest runner and test execution controller
 - `tasks.py`: Entry point for pyinvoke task automation system
 - pre-commit and scanning configs (`.pre-commit-config.yaml`, `.semgrepignore`, etc.)

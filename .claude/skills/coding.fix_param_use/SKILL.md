@@ -1,15 +1,19 @@
 ---
-description: Fix function call sites to pass positional args by position and assign constants to intermediate variables
+description: Fix call sites to pass positional/keyword args and name constants correctly
 model: haiku
 ---
 
-- I will pass you a file
+# Goal
+I will pass you a file `<FILE>`. In that file, make sure that:
+- Callers pass required parameters by position and optional parameters by
+  keyword
+- Constants are assigned to an intermediate variable with the same name as
+  the corresponding formal parameter
 
-- In that file, make sure that:
-  - Callers pass the parameters by position and pass the keywords arguments
-  - Constant should be assigned to intermediate variable with the same name
-    corresponding to the formal parameters
+# Conventions
+- Follow `## Call Functions with Position Arguments for Required, Keywords for Optional` in `.claude/skills/coding.rules.md`
 
+# Examples
 - For a function with the signature
   ```python
   def apply_llm_prompt_to_df(
@@ -28,7 +32,7 @@ model: haiku
   ) -> Tuple[pd.DataFrame, Dict[str, int]]:
   ```
 
-- **Bad**
+- **Bad** (required parameters passed by keyword, constant not named)
   ```python
   df, stats = hllmcli.apply_llm_prompt_to_df(
       prompt=prompt,
@@ -42,7 +46,7 @@ model: haiku
   )
   ```
 
-- **Good**
+- **Good** (required parameters positional, optional parameters by keyword, constant named)
   ```python
   target_col = "industry"
   df, stats = hllmcli.apply_llm_prompt_to_df(
@@ -56,3 +60,8 @@ model: haiku
       tag=tag,
   )
   ```
+
+# Verification
+- [ ] Confirm required parameters are passed positionally and optional parameters by keyword
+- [ ] Confirm constants used at call sites are assigned to named intermediate variables
+- [ ] Run the file's unit tests to confirm behavior is unchanged

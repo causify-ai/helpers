@@ -1,7 +1,14 @@
 ---
-description: Add a summary paragraph to a markdown files
+description: Add a summary paragraph to a markdown file
 model: haiku
 ---
 
-Add a summary paragraph with a header `# Summary` with a short paragraph
-containing what's the content of the document
+# Goal
+
+- Add a summary paragraph to the markdown file under a `# Summary` header
+- Write a short paragraph describing the content of the document
+
+# Verification
+
+- [ ] The file contains a `# Summary` header
+- [ ] The paragraph under it accurately summarizes the document content

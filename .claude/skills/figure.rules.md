@@ -22,6 +22,17 @@
   - **Purple** `#C6A6F4`: External entities, mixed dependencies
   - **Lavender** `#F0E6FF`: Reference or auxiliary notes, used with `shape=note`
 
+- These are anchor hues and meanings, not final fill/border/font values: each
+  format builds its own concrete triad (fill/border/font) and syntax from
+  these anchors, documented in that format's rules file
+  - GraphViz: `.claude/skills/graphviz.rules.md` "Color Scheme" tables
+  - TikZ: `.claude/skills/tikz.rules.md` "Colors" section
+  - SVG: `.claude/skills/svg.rules.md` "Color System" section (`c-{ramp}`
+    classes)
+- Keep one hue meaning one thing across every diagram in a document set, e.g.
+  orange always means "input/source", never "action" in one diagram and
+  "input" in another
+
 ## Tables
 
 - Use markdown tables for structured data comparisons and side-by-side content
@@ -128,34 +139,72 @@
   - Follow the rules `.claude/skills/graphviz.rules.md` and the "Architecture
     Style" section of the template `.claude/templates/graphviz.template.md`
 
-## Text and Typography
+## Typography
 
-- Use HTML subscript/superscript tags in diagram text labels instead of LaTeX or
-  unicode notation
-  - **Good** (renders correctly in all diagram formats):
-    ```
-    H<SUB>2</SUB>O
-    E = mc<SUP>2</SUP>
-    H<SUP>+</SUP> ions
-    T<SUB>t-1</SUB>
-    ```
-  - **Bad** (LaTeX or unicode-style, may not render):
-    ```
-    H_2 O
-    E = mc^2
-    H⁺ ions
-    H₂O
-    ```
-- Applies to all diagram types: Graphviz, Mermaid, and TikZ
-- HTML tags preserve compatibility across rendering engines
+- One font family per document set: sans-serif (Helvetica) by default; serif
+  (Times) only to match a serif surrounding document; monospace (Courier) for
+  code
+- Sentence case for every label: never ALL CAPS or Title Case
+- A clear size hierarchy: title/heading label > body label > annotation/tick
+  label
+- Concrete font syntax and size numbers per format: see the "Typography"
+  section of `.claude/skills/graphviz.rules.md`, `.claude/skills/tikz.rules.md`,
+  and `.claude/skills/svg.rules.md`
+
+### Subscript and Superscript
+
+- The right syntax for e.g. H<SUB>2</SUB>O depends on how the format renders
+  text, so it is NOT the same across formats
+  - GraphViz and Mermaid render labels as HTML-like markup: use `<SUB>`/`<SUP>`
+    tags
+    - **Good**: `H<SUB>2</SUB>O`, `E = mc<SUP>2</SUP>`, `T<SUB>t-1</SUB>`
+    - **Bad**: `H_2 O`, `E = mc^2`, `H₂O` (LaTeX/unicode notation may not
+      render)
+  - TikZ renders through LaTeX itself: use native math mode (`$H_2O$`,
+    `$x^2$`), never HTML tags — LaTeX does not interpret `<SUB>`/`<SUP>`, they
+    show up as literal text on the figure
+  - SVG `<text>` has no HTML subscript tag: use
+    `<tspan baseline-shift="sub" font-size="70%">2</tspan>`
+
+## Geometry and Restraint
+
+- One restrained palette per diagram: 3-5 semantic colors max, plus neutral
+  gray for structure/containment
+- 3+ color categories in one diagram: add a compact legend (small swatch +
+  meaning, not the category name)
+- No more than 2-3 distinct stroke/line weights in one diagram; reserve the
+  heaviest weight for the one or two "so what" elements
+- Consistent corner rounding across all shapes in one diagram: all sharp, or
+  all rounded, never mixed
+- Diagrams blend into the surrounding page: transparent or white background,
+  never a filled canvas
+- Concrete numbers and syntax per format: see `.claude/skills/graphviz.rules.md`,
+  `.claude/skills/tikz.rules.md`, and `.claude/skills/svg.rules.md`
+
+## Captions and Labels
+
+- Every rendered diagram gets a short id and a one-sentence caption: what the
+  diagram shows, and what the colors mean when color encodes a category
+- Implementation differs by format:
+  - GraphViz: trailing `label=fig:<slug>` / `caption=<sentence>` lines (see
+    `.claude/skills/graphviz.rules.md` "Footer")
+  - TikZ: `\label{fig:<slug>}` + `\caption{<sentence>}` inside a `figure`
+    environment for a standalone figure; for a `.smd` slide fence, put the
+    caption as `\footnotesize _<sentence>_` text below the rendered image in
+    the slide markdown, since the fence itself carries no comments
+  - SVG: the required `<title>`/`<desc>` (see "Accessibility" in
+    `.claude/skills/svg.rules.md`) doubles as the id/caption, no extra footer
+    needed
 
 ## Best Practices
 
-1. **Consistency**: Use semantic colors consistently across all diagrams
-2. **Contrast**: Ensure label text is readable on filled backgrounds
-3. **Hierarchy**: Use clustering and color to show conceptual grouping
-4. **Simplicity**: Avoid over-styling; let structure speak
-5. **Testing**: Always render and review in target format (PDF/SVG/PNG)
-6. **Alignment**: Use `rank=same` and invisible edges for professional layout
-7. **Spacing**: Adjust `nodesep` and `ranksep` for diagram clarity
-8. **Fonts**: Stick with Helvetica or Times for professional appearance
+1. **Consistency**: One semantic color means one thing across every diagram in
+   a document set (see "Color Palette")
+2. **Contrast**: Label text must stay readable on every filled background
+3. **Hierarchy**: Use clustering/grouping and color to show conceptual
+   structure, not decoration
+4. **Simplicity**: Avoid over-styling; let structure speak (see "Geometry and
+   Restraint")
+5. **Testing**: Always render and review in the target format (PDF/SVG/PNG)
+6. **Documentation**: Every diagram gets an id and a one-sentence caption (see
+   "Captions and Labels")

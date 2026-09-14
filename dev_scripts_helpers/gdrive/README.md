@@ -34,32 +34,32 @@ This directory has no subdirectories.
 
 - Process directory with default tree and LLM actions:
   ```bash
-  > create_google_drive_map.py --in_dir /path/to/process
+  > create_google_drive_map.py --input_dir /path/to/process
   ```
 
 - Run only tree collection without LLM:
   ```bash
-  > create_google_drive_map.py --in_dir /path/to/process --action tree
+  > create_google_drive_map.py --input_dir /path/to/process --action tree
   ```
 
 - Combine existing LLM summaries into single file:
   ```bash
-  > create_google_drive_map.py --in_dir /path/to/process --action combine
+  > create_google_drive_map.py --input_dir /path/to/process --action combine
   ```
 
 - Create metadata table for directories:
   ```bash
-  > create_google_drive_map.py --in_dir /path/to/process --action table
+  > create_google_drive_map.py --input_dir /path/to/process --action table
   ```
 
 - Process first 3 directories only:
   ```bash
-  > create_google_drive_map.py --in_dir /path/to/process --limit 1:3
+  > create_google_drive_map.py --input_dir /path/to/process --limit 1:3
   ```
 
 - Start fresh from scratch:
   ```bash
-  > create_google_drive_map.py --in_dir /path/to/process --from_scratch
+  > create_google_drive_map.py --input_dir /path/to/process --from_scratch
   ```
 
 ## `to_local_dir.py`

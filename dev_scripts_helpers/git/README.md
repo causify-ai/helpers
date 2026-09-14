@@ -275,7 +275,7 @@ Git utility commands and scripts for streamlined development workflows.
   ```
   > git_conflict_files.sh
   + git diff --name-only --diff-filter=U
-  .claude/skills/book.rules.md
+  .claude/skills/book_map.rules.md
   .claude/skills/slides.rules.md
   ```
 

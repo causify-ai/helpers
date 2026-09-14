@@ -55,6 +55,7 @@ from typing import List, Tuple
 from tqdm import tqdm
 
 import helpers.hcache_simple as hcacsimp
+import helpers.hdaemon as hdaemon
 import helpers.hdbg as hdbg
 import helpers.hio as hio
 import helpers.hdocker as hdocker
@@ -68,6 +69,22 @@ _LOG = logging.getLogger(__name__)
 
 # Number of AI-generated images to create per prompt.
 _AI_IMAGE_COUNT = 1
+
+# Trailing metadata keys recognized after an image code fence (e.g.,
+# `label=...`, `caption=...`), keyed by output file extension. `width` and
+# `placement` are only meaningful for Typst output (`_insert_image_code()`
+# is the only place that consumes them, via `_typst_image_params()`): `.tex`
+# output ignores image size entirely (always uses `\linewidth`), and
+# `.md`/`.txt` size comes only from the `[...]` fence bracket, not from
+# trailing metadata. Any metadata key outside this set is a typo or a
+# misplaced setting (e.g., `width=` meant for the fence bracket) and should
+# fail loudly rather than silently leak into the rendered output.
+_RECOGNIZED_METADATA_KEYS = {
+    ".md": frozenset(["label", "caption"]),
+    ".txt": frozenset(["label", "caption"]),
+    ".tex": frozenset(["label", "caption"]),
+    ".typ": frozenset(["label", "caption", "width", "placement"]),
+}
 
 
 # #############################################################################
@@ -579,43 +596,49 @@ def _remove_image_code(
 _NO_AUTO_WIDTH_IMAGE_TYPES = frozenset(["image"])
 
 
-def _typst_image_size_param(
+def _typst_image_params(
     user_img_size: str, inside_wrap_content: bool, image_code_type: str
-) -> str:
+) -> Tuple[str, str]:
     """
-    Compute the Typst `image(...)` sizing parameter for a rendered figure.
+    Compute the Typst `image(...)` width and `#figure(...)` placement
+    parameters for a rendered figure.
 
-    Per `typst.rules.md` ("Sizing: Minimum Width and Readability"), a bare
-    full-width figure needs `width: 70%` or more, while a figure nested
-    inside a `#wrap-content(...)` column should fill that column (its own
-    `columns:` argument already constrains the on-page width), so it gets
-    `width: 100%`. That floor only applies to rendered diagrams
-    (graphviz/tikz/mermaid/...): an AI-generated single-subject image (e.g.,
-    a portrait) is left without an invented width so it stays small.
-
-    :param user_img_size: user-specified size (e.g., "width=28%",
-        "height=60%", or a bare percentage like "80%", treated as `width`),
-        empty to fall back to the rules.md default for the context
+    :param user_img_size: user-specified size and/or placement, e.g.
+        "width=28%", "height=60%", a bare percentage like "80%" (treated
+        as `width`), "placement=top", or a comma-separated combination
+        like "width=50%,placement=top"; empty to fall back to the
+        rules.md default for the context
     :param inside_wrap_content: whether the figure sits inside a
         `#wrap-content(...)` call
     :param image_code_type: the source block type (e.g., "graphviz", "tikz",
         "image"); see `_NO_AUTO_WIDTH_IMAGE_TYPES`
-    :return: a `key: value` Typst parameter (no trailing comma), e.g.
-        `"width: 70%"`, or "" to add no size parameter at all
+    :return: `(width_param, placement_param)`, e.g. `("width: 70%",
+        "placement: auto")`; `width_param` is "" to add no width
+        parameter at all
     """
-    if user_img_size:
-        if "=" in user_img_size:
-            key, value = user_img_size.split("=", 1)
+    width_param = ""
+    placement_value = "auto"
+    for part in user_img_size.split(","):
+        part = part.strip()
+        if not part:
+            continue
+        if "=" in part:
+            key, value = part.split("=", 1)
             key, value = key.strip(), value.strip()
         else:
-            key, value = "width", user_img_size.strip()
-    elif image_code_type in _NO_AUTO_WIDTH_IMAGE_TYPES:
-        return ""
-    elif inside_wrap_content:
-        key, value = "width", "100%"
-    else:
-        key, value = "width", "70%"
-    return f"{key}: {value}"
+            key, value = "width", part
+        if key == "placement":
+            placement_value = value
+        else:
+            width_param = f"{key}: {value}"
+    if not width_param:
+        if image_code_type in _NO_AUTO_WIDTH_IMAGE_TYPES:
+            width_param = ""
+        elif inside_wrap_content:
+            width_param = "width: 100%"
+        else:
+            width_param = "width: 70%"
+    return width_param, f"placement: {placement_value}"
 
 
 def _insert_image_code(
@@ -642,7 +665,7 @@ def _insert_image_code(
         inside a `#wrap-content(...)` call, which changes the default image
         width (see `typst.rules.md`)
     :param image_code_type: (Typst only) the source block type (e.g.,
-        "graphviz", "image"); see `_typst_image_size_param()`
+        "graphviz", "image"); see `_typst_image_params()`
     :return: formatted image code as a string
     """
     out_lines: List[str] = []
@@ -683,14 +706,14 @@ def _insert_image_code(
             if rel_img_path.startswith("/")
             else rel_img_path
         )
-        size_param = _typst_image_size_param(
+        width_param, placement_param = _typst_image_params(
             user_img_size, inside_wrap_content, image_code_type
         )
         out_lines.append("#figure(")
-        if size_param:
+        if width_param:
             out_lines.append("  image(")
             out_lines.append(f'    "{typst_img_path}",')
-            out_lines.append(f"    {size_param},")
+            out_lines.append(f"    {width_param},")
             out_lines.append("  ),")
         else:
             out_lines.append(f'  image("{typst_img_path}"),')
@@ -705,7 +728,7 @@ def _insert_image_code(
         # Elements").
         out_lines.append('  kind: "figure",')
         out_lines.append("  supplement: [Fig.],")
-        out_lines.append("  placement: auto,")
+        out_lines.append(f"  {placement_param},")
         closing_paren = ")"
         if label:
             closing_paren = f") <{label}>"
@@ -715,6 +738,41 @@ def _insert_image_code(
     out_lines.append(_comment_line("render_images:end", extension))
     txt = "\n".join(out_lines)
     return txt
+
+
+def _merge_metadata_size(
+    user_img_size: str,
+    metadata_width: str,
+    metadata_placement: str,
+) -> str:
+    """
+    Merge trailing `width=`/`placement=` metadata into the fence-bracket
+    size string consumed by `_insert_image_code()`.
+
+    :param user_img_size: size/placement from the fence bracket (e.g.,
+        `` ```graphviz[width=80%]``); "" if none was given
+    :param metadata_width: value of a trailing `width=` metadata line; ""
+        if none was given
+    :param metadata_placement: value of a trailing `placement=` metadata
+        line; "" if none was given
+    :return: combined size string, e.g. "width=80%,placement=none"
+    """
+    metadata_size_parts = []
+    if metadata_width:
+        metadata_size_parts.append(f"width={metadata_width}")
+    if metadata_placement:
+        metadata_size_parts.append(f"placement={metadata_placement}")
+    if not metadata_size_parts:
+        return user_img_size
+    hdbg.dassert_eq(
+        user_img_size,
+        "",
+        "Both a fence-header size ('[%s]') and trailing width=/placement= "
+        "metadata were given for the same image block; specify the size "
+        "in only one place",
+        user_img_size,
+    )
+    return ",".join(metadata_size_parts)
 
 
 def _render_images(
@@ -810,6 +868,10 @@ def _render_images(
     # Store parsed metadata.
     metadata_label = ""
     metadata_caption = ""
+    # Store parsed `width=`/`placement=` metadata (Typst only; see
+    # `_RECOGNIZED_METADATA_KEYS`).
+    metadata_width = ""
+    metadata_placement = ""
     # Store the current metadata field being parsed (for multi-line values).
     current_metadata_field = ""
     # Variables initialized for loop processing.
@@ -837,11 +899,15 @@ def _render_images(
         """,
         re.VERBOSE,
     )
-    # Regex for metadata lines (label=... or caption=...).
+    # Regex for metadata lines (e.g., `label=...`, `caption=...`,
+    # `width=...`). Matches any `key=value`-shaped line so an unrecognized
+    # key (e.g., a typo, or `width=` on a file type that doesn't support it)
+    # is caught by the `_RECOGNIZED_METADATA_KEYS` check below instead of
+    # silently falling through as a "not metadata" line.
     metadata_start_regex = re.compile(
         r"""
         ^\s*                # Start of the line and any leading whitespace
-        (label|caption)     # Metadata field name
+        ([a-zA-Z_][\w-]*)   # Metadata field name
         \s*=\s*             # Equals sign with optional whitespace
         (.*)$               # Value (rest of the line)
         """,
@@ -925,6 +991,22 @@ def _render_images(
                     dpi=dpi,
                     output_format=output_format,
                 )
+                # Verify the images actually exist on disk.
+                # `_render_image_code` is wrapped by `@hcacsimp.simple_cache`,
+                # so a cache hit returns a previously-recorded path without
+                # re-rendering; if the file was since deleted (e.g., a cleaned
+                # `.figs` dir, a stale `tmp.cache_simple.*` cache), that would
+                # otherwise go unnoticed until the downstream `typst compile`
+                # fails.
+                if not dry_run:
+                    out_file_dir = os.path.dirname(os.path.abspath(out_file))
+                    for rel_img_path in rel_img_paths:
+                        img_path = (
+                            rel_img_path
+                            if os.path.isabs(rel_img_path)
+                            else os.path.join(out_file_dir, rel_img_path)
+                        )
+                        hdbg.dassert_file_exists(img_path)
                 # Override the image name if explicitly set by the user.
                 if user_rel_img_path != "":
                     rel_img_paths = [user_rel_img_path]
@@ -934,6 +1016,8 @@ def _render_images(
                 # Reset metadata for this image.
                 metadata_label = ""
                 metadata_caption = ""
+                metadata_width = ""
+                metadata_placement = ""
                 current_metadata_field = ""
                 # Transition to parse_metadata state to check for optional metadata.
                 state = "parse_metadata"
@@ -944,21 +1028,37 @@ def _render_images(
                 # Comment out the inside of the image code.
                 out_lines.append(_comment_line(line, extension))
         elif state == "parse_metadata":
-            # Check if this line starts a new metadata field (label= or caption=).
+            # Check if this line starts a new metadata field (label=,
+            # caption=, width=, placement=, ...).
             m_metadata = metadata_start_regex.search(line)
             if m_metadata:
                 # Found a metadata field.
                 field_name = m_metadata.group(1)
                 field_value = m_metadata.group(2).strip()
+                hdbg.dassert_in(
+                    field_name,
+                    _RECOGNIZED_METADATA_KEYS[extension],
+                    "Unrecognized metadata key '%s=' after an image code "
+                    "block in a '%s' file (valid keys: %s); a size/"
+                    "placement override belongs in the fence header "
+                    "instead, e.g. '```graphviz[width=80%%,placement=none]'",
+                    field_name,
+                    extension,
+                    sorted(_RECOGNIZED_METADATA_KEYS[extension]),
+                )
                 current_metadata_field = field_name
                 if field_name == "label":
                     metadata_label = field_value
                 elif field_name == "caption":
                     metadata_caption = field_value
+                elif field_name == "width":
+                    metadata_width = field_value
+                elif field_name == "placement":
+                    metadata_placement = field_value
                 # Comment out the metadata line.
                 out_lines.append(_comment_line(line, extension))
             elif (
-                current_metadata_field
+                current_metadata_field in ("label", "caption")
                 and metadata_continuation_regex.search(line)
                 and not metadata_continuation_stop_regex.search(line)
             ):
@@ -973,6 +1073,13 @@ def _render_images(
             else:
                 # Add marker.
                 out_lines.append(_comment_line("rendered_images:end", extension))
+                # Merge any trailing `width=`/`placement=` metadata into the
+                # fence-bracket size string.
+                user_img_size = _merge_metadata_size(
+                    user_img_size, metadata_width, metadata_placement
+                )
+                metadata_width = ""
+                metadata_placement = ""
                 # End of metadata section, insert the image code with metadata.
                 # Insert all images (usually 1, but 3 for AI-generated images).
                 for idx, rel_img_path in enumerate(rel_img_paths):
@@ -1006,6 +1113,11 @@ def _render_images(
     if state == "parse_metadata":
         # Add marker.
         out_lines.append(_comment_line("rendered_images:end", extension))
+        # Merge any trailing `width=`/`placement=` metadata into the
+        # fence-bracket size string.
+        user_img_size = _merge_metadata_size(
+            user_img_size, metadata_width, metadata_placement
+        )
         # Insert the image code with whatever metadata was collected.
         # Insert all images (usually 1, but 3 for AI-generated images).
         for idx, rel_img_path in enumerate(rel_img_paths):
@@ -1155,7 +1267,8 @@ def _process_single_file(
         out_file = tempfile.mktemp(suffix="." + in_file_ext)
         dst_ext = "svg"
     # Read the input file.
-    in_lines = hio.from_file(in_file).split("\n")
+    in_content = hio.from_file(in_file)
+    in_lines = in_content.split("\n")
     # Get the updated file lines after rendering.
     out_lines = _render_images(
         in_lines,
@@ -1172,6 +1285,23 @@ def _process_single_file(
     out_lines = hprint.remove_empty_lines(
         out_lines, mode="no_consecutive_empty_lines"
     )
+    # `_render_images()` can be slow so when writing back in place (e.g., the
+    # `render` action), guard against clobbering an edit the user saved to
+    # `in_file` while this was running: only overwrite if the source is still
+    # exactly what we read at the start, otherwise skip the write and let the
+    # caller's next pass (e.g., the next `--daemon` debounce cycle) pick up the
+    # newer edit.
+    if out_file == in_file and hio.from_file(in_file) != in_content:
+        _LOG.warning(
+            "'%s' changed while rendering images; skipping write to avoid "
+            "clobbering the newer edit",
+            in_file,
+        )
+        # Signal the conflict to a `--daemon` caller (see `hdaemon`) so it
+        # keeps waiting for quiet on the newer content instead of treating
+        # this run as settled.
+        hio.to_file(hdaemon.get_conflict_marker_path(in_file), "")
+        return
     # Save the output into a file.
     hio.to_file(out_file, "\n".join(out_lines))
     # Open if needed.

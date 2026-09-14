@@ -24,6 +24,15 @@ model: opus
   - A short list of the issues you found with line references
   - A corrected version of the code
   - A short one line description of why each fix works
-  - A few test cases (including edge cases) and expected outputs
-    `    - Observed behavior / error message: ...
-    - Expected behavior: ...    `
+  - A few test cases (including edge cases) and expected outputs, in the format:
+    ```text
+    - Observed behavior / error message: ...
+    - Expected behavior: ...
+    ```
+
+# Verification
+- [ ] Every reported issue cites a line reference in `<INPUT_FILE>`
+- [ ] The fix preserves the original input/output behavior and structure unless a
+  change was necessary
+- [ ] Each fix has a short one-line explanation of why it works
+- [ ] Test cases, including edge cases, are provided with expected outputs

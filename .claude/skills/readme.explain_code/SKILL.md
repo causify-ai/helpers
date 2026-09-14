@@ -11,11 +11,11 @@ model: sonnet
 
 # Workflow
 
-## Step 1: Read the Files
+## Read the Files
 
 - Read every Python file `<FILE>` passed by the user or referenced in the request
 
-## Step 2: Generate the Document
+## Generate the Document
 
 - Generate the file in the directory where you are running, named
   `explain_code.<descr>.md`
@@ -31,7 +31,7 @@ model: sonnet
   to report; never print an empty header or a placeholder bullet like `- `
 - Do not print result to screen but only to file
 
-## Step 3: Verify
+## Verify
 
 - Follow the `# Verification` checklist below before returning the result
 

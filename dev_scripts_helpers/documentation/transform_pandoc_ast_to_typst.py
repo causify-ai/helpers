@@ -48,6 +48,7 @@ import helpers.hdbg as hdbg
 import helpers.hio as hio
 import helpers.hparser as hparser
 import helpers.hselect_action as hselacti
+import helpers.hselect_input_output as hseinout
 
 _LOG = logging.getLogger(__name__)
 
@@ -735,20 +736,7 @@ def _parse() -> argparse.ArgumentParser:
         description=__doc__,
         formatter_class=hparser.CustomHelpFormatter,
     )
-    parser.add_argument(
-        "-i",
-        "--in_file",
-        type=str,
-        default="",
-        help="Input AST JSON file (or - for stdin)",
-    )
-    parser.add_argument(
-        "-o",
-        "--out_file",
-        type=str,
-        default="",
-        help="Output AST JSON file (or - for stdout)",
-    )
+    hseinout.add_input_output_args(parser, in_required=False, out_required=False)
     dshdlipa.add_pandoc_backend_arg(parser, default=_DEFAULT_PANDOC_BACKEND)
     hselacti.add_action_arg(parser, _VALID_ACTIONS, _DEFAULT_ACTIONS)
     hparser.add_verbosity_arg(parser)
@@ -767,8 +755,8 @@ def _main(parser: argparse.ArgumentParser) -> None:
     _LOG.info(
         hselacti.actions_to_string(actions, _VALID_ACTIONS, add_frame=True)
     )
-    _LOG.info("Loading AST from '%s'", args.in_file)
-    ast = _load_ast(args.in_file)
+    _LOG.info("Loading AST from '%s'", args.input)
+    ast = _load_ast(args.input)
     while actions:
         action = actions[0]
         to_execute, actions = hselacti.mark_action(action, actions)
@@ -794,8 +782,8 @@ def _main(parser: argparse.ArgumentParser) -> None:
     hdbg.dassert_eq(
         len(actions), 0, "There are unprocessed actions: %s", str(actions)
     )
-    _LOG.info("Saving transformed AST to '%s'", args.out_file)
-    _save_ast(ast, args.out_file)
+    _LOG.info("Saving transformed AST to '%s'", args.output)
+    _save_ast(ast, args.output)
     _LOG.info("Done")
 
 

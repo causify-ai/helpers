@@ -25,12 +25,12 @@
 
 - Format a markdown file:
   ```bash
-  > ./lint_text.py --in my_file.md
+  > ./lint_text.py -i my_file.md
   ```
 
 - Format multiple files:
   ```bash
-  > ./lint_text.py --in file1.md file2.md file3.md
+  > ./lint_text.py --files "file1.md file2.md file3.md"
   ```
 
 - Process stdin/stdout:
@@ -40,12 +40,12 @@
 
 - Revert a file from backup:
   ```bash
-  > ./lint_text.py --in my_file.md --revert
+  > ./lint_text.py -i my_file.md --revert
   ```
 
 - Run specific actions only:
   ```bash
-  > ./lint_text.py --in my_file.md --action preprocess beautify postprocess
+  > ./lint_text.py -i my_file.md --action preprocess beautify postprocess
   ```
 
 ## Available Actions
@@ -152,8 +152,20 @@
 
 ### Input/Output
 
-- `--in <file>`: Input file (or `-` for stdin)
-- `--out <file>`: Output file (defaults to `--in` for in-place editing)
+- File selection (mutually exclusive; see
+  `helpers.hselect_input_output.add_file_selection_args`):
+  - `-i, --input <file>`: A single file (or `-` for stdin)
+  - `-f, --files <"file1 file2 ...">`: One or more files, space-separated in a
+    single argument
+  - `--from_file <file>`: File containing one file path per line
+  - `--modified`: Files modified in the client (staged and unstaged)
+  - `--branch`: Files modified with respect to the branch point
+  - `--last_commit`: Files part of the previous commit
+  - `--all_files`: All repo files
+  - If none of the above is specified, defaults to `--branch`
+- `-o, --output <file>`: Output file (or `-` for stdout); defaults to
+  overwriting the input file in place; only valid when a single input file
+  is selected
 - `--type <type>`: File type when using stdin (required for stdin input), or
   to force a type instead of inferring it from the file extension
   - Options: `md`, `tex`, `txt`, `smd`, `typ`
@@ -253,61 +265,67 @@
 ### Format with All Default Actions
 
 ```bash
-> ./lint_text.py --in documentation.md
+> ./lint_text.py -i documentation.md
 ```
 
 ### Format and Refresh Table of Contents
 
 ```bash
-> ./lint_text.py --in documentation.md --action preprocess beautify postprocess refresh_toc
+> ./lint_text.py -i documentation.md --action preprocess beautify postprocess refresh_toc
 ```
 
 ### Convert Markdown to Plain Text
 
 ```bash
-> ./lint_text.py --in content.md --action remove_markdown_formatting --out content.txt
+> ./lint_text.py -i content.md --action remove_markdown_formatting --output content.txt
 ```
 
 ### Check Links Only
 
 ```bash
-> ./lint_text.py --in documentation.md --action check_links
+> ./lint_text.py -i documentation.md --action check_links
 ```
 
 ### Process with Custom Line Width
 
 ```bash
-> ./lint_text.py --in article.md --width 100
+> ./lint_text.py -i article.md --width 100
 ```
 
 ### Use Alternative Markdown Backend
 
 ```bash
-> ./lint_text.py --in document.md --backend mdformat --mode library
+> ./lint_text.py -i document.md --backend mdformat --mode library
 ```
 
 ### Revert Previous Formatting
 
 ```bash
-> ./lint_text.py --in document.md --revert
+> ./lint_text.py -i document.md --revert
 ```
 
 ### Process Multiple Files
 
 ```bash
-> ./lint_text.py --in chapter1.md chapter2.md chapter3.md
+> ./lint_text.py --files "chapter1.md chapter2.md chapter3.md"
+```
+
+### Process All Files Modified on the Current Branch
+
+```bash
+> ./lint_text.py --branch
 ```
 
 ### Format a Lecture Slide Source as Slide Markdown
 
 ```bash
-> ./lint_text.py --in lesson.txt --type smd
+> ./lint_text.py -i lesson.txt --type smd
 ```
 
 ### Format a Typst File
 
 ```bash
-> ./lint_text.py --in chapter.typ
+> ./lint_text.py -i chapter.typ
 ```
 
 ## Notes and Considerations

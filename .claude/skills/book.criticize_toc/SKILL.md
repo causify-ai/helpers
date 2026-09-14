@@ -31,7 +31,7 @@ model: opus
 - Read `.claude/skills/text.criticize/SKILL.md` to understand general approaches
   to review and criticize text
 
-- Evaluate along these axes, reporting only issues you are confident about:
+- Evaluate along these axes, reporting only high-confidence issues:
   - **Internal flow**:
     - Order of the `### Topics` bullets
     - Prerequisite ordering
@@ -73,6 +73,13 @@ model: opus
 ## Wait for Approval
 - Present the criticism to the user
 - Wait for the user to select items to apply by index and give corrections
-- Only then edit `map.md`
+- Only then edit `book_map.md`
 - Make sure to update all the sections (e.g., Topics, Lessons, Tutorials, Related
   packages, Related books, Related papers)
+
+# Verification
+- [ ] Confirm each reported issue cites the exact `### Topics` bullet or
+      chapter it refers to
+- [ ] Confirm no edit to `book_map.md` was made before the user approved it
+- [ ] Confirm applied corrections update every affected section (Topics,
+      Lessons, Tutorials, Related packages, Related books, Related papers)

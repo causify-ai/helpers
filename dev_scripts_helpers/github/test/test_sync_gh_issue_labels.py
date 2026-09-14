@@ -66,7 +66,7 @@ class Test_sync_gh_issue_labels1(hunitest.TestCase):
             "sys.argv",
             [
                 "script",
-                "--input_file",
+                "-i",
                 input_file_path,
                 "--owner",
                 input_args["owner"],

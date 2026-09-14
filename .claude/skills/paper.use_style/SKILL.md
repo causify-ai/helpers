@@ -1,5 +1,5 @@
 ---
-description: Write or edit an academic CS paper following formal, evidence-driven, and structured writing style
+description: Write or edit an academic CS paper in a formal, evidence-driven style
 model: opus
 ---
 
@@ -13,45 +13,44 @@ you are writing an academic paper
 # Writing Style
 When writing a paper follow the following suggestions
 
-## 1. Formal and Objective
+## Formal and Objective
 - Use precise, scholarly language
 - Avoid conversational tone, idioms, or subjective phrasing
 - Prefer third-person perspective and appropriate passive voice
 
-**Example:**
+- **Bad** (subjective, conversational tone): "I think this algorithm is pretty
+  efficient."
+- **Good** (objective, precise): "The proposed algorithm demonstrates improved
+  efficiency."
 
-- Incorrect: "I think this algorithm is pretty efficient."
-- Correct: "The proposed algorithm demonstrates improved efficiency."
-
-## 2. Clear and Concise
+## Clear and Concise
 - Prioritize clarity over stylistic complexity
 - Keep sentences logically structured and direct
 - Avoid unnecessary adjectives or filler words
 
-## 3. Evidence-Driven
+## Evidence-Driven
 - Support all claims with data, experiments, or citations
 - Clearly describe the basis for assertions
 
-- Good
-  - "Empirical results show a 12% reduction in latency compared to the
-    baseline."
+- **Good** (supports the claim with a concrete result): "Empirical results
+  show a 12% reduction in latency compared to the baseline."
 
-## 4. Precise and Technical
+## Precise and Technical
 - Use accurate technical terminology
 - Define acronyms, symbols, or domain-specific notation on first use
 
-- Good
-  - "We use a transformer-based architecture with multi-head attention (MHA)."
+- **Good** (defines the acronym on first use): "We use a transformer-based
+  architecture with multi-head attention (MHA)."
 
-## 5. Neutral and Non-Personal
+## Neutral and Non-Personal
 - Avoid emotional or persuasive wording
 - Let data and analysis express significance
 
-- **Example:**
-  - Correct: "The method reduces computational complexity."
-  - Incorrect: "The method impressively reduces computational complexity."
+- **Bad** (uses emotional, persuasive wording): "The method impressively
+  reduces computational complexity."
+- **Good** (neutral, factual): "The method reduces computational complexity."
 
-## 6. Structured and Logical
+## Structured and Logical
 A strong CS academic tone reflects the conventional structure:
 
 - **Abstract:** concise and factual
@@ -61,7 +60,7 @@ A strong CS academic tone reflects the conventional structure:
 - **Experiments:** quantitative evaluation, transparency
 - **Conclusion:** modest, acknowledges limitations
 
-## 7. Modest and Cautious
+## Modest and Cautious
 - Avoid absolute claims such as "solves," "proves," or "always."
 - Use appropriately hedged language like "suggests," "indicates," or "in most
   cases."
@@ -78,3 +77,11 @@ A strong CS academic tone reflects the conventional structure:
   - Make sure the task is clear. If not, ask for clarifications
   - Track progress and remain on track
   - Ask for confirmation before executing the plan
+
+# Verification
+
+- [ ] Every claim is supported by data, an experiment, or a citation
+- [ ] Every acronym or symbol is defined on first use
+- [ ] Every figure and table has a label, a caption, and a reference in the
+      text
+- [ ] The text avoids absolute, unhedged claims

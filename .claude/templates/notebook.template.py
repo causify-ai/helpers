@@ -38,12 +38,25 @@ import warnings
 warnings.filterwarnings("ignore")
 
 # %%
+# Only needed for a package not preinstalled in the Docker image; drop this
+# cell entirely otherwise.
+# !pip install -q <PACKAGE_NAME>==<VERSION>
+
+# import <PACKAGE_NAME>
+# print("<PACKAGE_NAME> version: ", <PACKAGE_NAME>.__version__)
+
+# %%
 import helpers.hdbg as hdbg
-import helpers.hnotebook as hnotebo
+import helpers.hintrospection as hintros
+import helpers.hnotebook as hnotebook
+
+# Replace `PACKAGE_NAME_utils` with this notebook's own paired utils module,
+# e.g. `import sklearn_distributions_utils as utils`.
+import PACKAGE_NAME_utils as utils
 
 hdbg.init_logger(verbosity=logging.INFO)
 _LOG = logging.getLogger(__name__)
-hnotebo.config_notebook()
+hnotebook.config_notebook()
 
 try:
     from IPython.display import display
@@ -75,26 +88,58 @@ except ImportError:
 #
 # **Goal**:
 # - Visualize how distribution shape parameters affect the Beta distribution
-# - Understand the relationship between parameters and key statistical properties
-# - Observe the probability density, cumulative distribution, and statistics simultaneously
+# - Understand the relationship between parameters and key statistical
+#   properties
+# - Observe the probability density, cumulative distribution, and statistics
+#   simultaneously
+
+# %% [markdown]
+# **Implementation**: `cell1_interactive_distribution_explorer(figsize=None)`
+# - Builds `alpha` and `beta` sliders via `build_widget_control()`, and a
+#   `Distribution Type` dropdown for `Beta` vs `Normal`
+# - Recomputes the PDF and CDF on every change, via `_beta_pdf()` /
+#   `_beta_cdf()` or `_norm_pdf()` / `_norm_cdf()` depending on the dropdown
+# - Draws 3 panels:
+#   - The PDF, via `ax1.plot()`
+#   - The CDF, via `ax2.plot()`
+#   - A comments panel with the current parameters and the distribution's
+#     mean
+
+# %%
+hintros.print_obj_info(utils.cell1_interactive_distribution_explorer)
+
+# %% [markdown]
+# **Usage**
+# - Inputs
+#   - **`alpha`**: shape parameter $\alpha$ for `Beta`, or the mean $\mu$
+#     for `Normal`
+#   - **`beta`**: shape parameter $\beta$ for `Beta`, or the variance
+#     $\sigma^2$ for `Normal`
+#   - **`Distribution Type`**: toggle between `Beta` (bounded on $[0, 1]$)
+#     and `Normal` (unbounded)
 #
-# _PDF Reference_: Shows the probability density function of the distribution
-# _CDF Reference_: Shows the cumulative distribution function
-# _Comments_: Current parameter values (alpha, beta, mean)
+# - Panels
+#   - **`PDF Reference`**: Shows the probability density function of the
+#     distribution
+#   - **`CDF Reference`**: Shows the cumulative distribution function
+#   - **`Comments`**: Current parameter values (alpha, beta, mean)
 
 # %%
 # Create interactive widget to explore the Beta distribution.
 utils.cell1_interactive_distribution_explorer()
 
 # %% [markdown]
-# **Key observations** (applies to both Beta and Normal distributions):
-# - **Symmetric distributions**: When $\alpha = \beta$ (Beta) or when centered around the mean (Normal), the distribution is symmetric
-# - **Concentration**: Increasing both parameters concentrates the distribution — larger $\alpha, \beta$ values for Beta, or smaller $\sigma$ for Normal
-# - **Skew / Asymmetry**: For Beta, asymmetry appears when $\alpha \neq \beta$, shifting the density left or right
-# - **Support**: Beta is bounded on $[0, 1]$ (ideal for proportions), while Normal is unbounded $(-\infty, \infty)$ (ideal for real-valued data)
-# - **Parameter interpretation**: Beta parameters $\alpha, \beta$ control shape flexibly; Normal parameters $\mu, \sigma$ control location and scale
-# - **Complementary views**: PDF and CDF provide complementary views of the same distribution regardless of type
-# - **Interactive exploration**: Try changing the slider values to see how the shape evolves continuously
+# **Guided usage**
+# - Leave `Distribution Type` on `Beta`, with `alpha=2` and `beta=5`
+#   - Observe the PDF skew toward 0, since `beta > alpha`
+# - Set `alpha` and `beta` to the same value, e.g. both 5
+#   - Observe the PDF become symmetric around 0.5
+# - Raise `alpha` and `beta` together, e.g. to 8 and 8
+#   - Observe the PDF narrow and concentrate around the mean
+# - Switch `Distribution Type` to `Normal`
+#   - Observe `alpha` and `beta` now read as $\mu$ and $\sigma^2$, and the
+#     x-axis stretch to $(-\infty, \infty)$ instead of staying inside
+#     $[0, 1]$
 
 # %% [markdown]
 # # Part 2: Sample Generator
@@ -108,14 +153,53 @@ utils.cell1_interactive_distribution_explorer()
 # - See the Law of Large Numbers in action
 # - Observe convergence to the true mean
 
+# %% [markdown]
+# **Implementation**: `cell2_interactive_sample_generator(figsize=None)`
+# - Builds `alpha`/`beta` sliders, a logarithmic `N (total samples)` slider
+#   via `build_log_widget_control()`, and a `seed` slider
+# - Draws `n_samples` from `np.random.beta(alpha, beta, size=n_samples)`
+#   with a fixed seed, for reproducibility
+# - Draws 4 panels:
+#   - The sample histogram against the theoretical PDF
+#   - Sample statistics (mean, std, min, max, median) against theory
+#   - The empirical CDF against the theoretical CDF
+#   - A comments panel with the current parameters and sample size
+
+# %%
+hintros.print_obj_info(utils.cell2_interactive_sample_generator)
+
+# %% [markdown]
+# **Usage**
+# - Inputs
+#   - **`alpha`**: shape parameter $\alpha$ of the `Beta` distribution
+#     sampled
+#   - **`beta`**: shape parameter $\beta$ of the `Beta` distribution sampled
+#   - **`N (total samples)`**: number of samples drawn, on a log scale
+#   - **`seed`**: random seed, so the same draw can be reproduced
+#
+# - Panels
+#   - **`Sample Distribution`**: histogram of the drawn samples, with the
+#     theoretical PDF overlaid
+#   - **`Sample Statistics`**: sample mean, std, min, max, and median, next
+#     to the theoretical mean and their difference
+#   - **`CDF Comparison`**: the empirical CDF against the theoretical CDF
+#   - **`Comments`**: current parameters and sample size
+
 # %%
 # Create interactive widget to generate and visualize samples.
 utils.cell2_interactive_sample_generator()
 
 # %% [markdown]
-# **Key observations**:
-# - As $N$ increases, the histogram approaches the theoretical PDF
-# - The sample mean converges to the theoretical mean $\mu = \frac{\alpha}{\alpha + \beta}$
-# - The difference between sample and theoretical mean decreases with more samples
-# - Try different seeds at the same N to see sampling variability
-# - Try different alpha/beta values to see how the distribution shape affects convergence
+# **Guided usage**
+# - Leave `N (total samples)` at its smallest value
+#   - Observe the histogram sit far from the theoretical PDF, and the
+#     sample mean noticeably off the theoretical mean
+# - Drag `N (total samples)` up toward its largest value
+#   - Observe the histogram approach the theoretical PDF, and the
+#     sample/theory mean difference in the Statistics panel shrink toward 0
+# - Keep `N` fixed and change `seed`
+#   - Observe the histogram and statistics shift slightly each time: the
+#     same $N$ still leaves sampling variability
+# - Change `alpha` and `beta` to a more skewed pair, e.g. `alpha=1, beta=8`
+#   - Observe the empirical CDF need a larger `N` to hug the theoretical
+#     CDF as tightly as it did for the symmetric case

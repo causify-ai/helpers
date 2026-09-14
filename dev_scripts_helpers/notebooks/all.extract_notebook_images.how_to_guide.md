@@ -5,7 +5,7 @@ determine which cells and how they need to be saved:
   ```bash
   # Extract images from notebook and save them to `screenshots` directory:
   > dev_scripts_helpers/notebooks/extract_notebook_images.py \
-      --in_notebook_filename ./dev_scripts_helpers/notebooks/test/outcomes/Test_run_dockerized_notebook_image_extractor1.test_run_dockerized_notebook_image_extractor/input/test_notebook_image_extractor.ipynb \
+      -i ./dev_scripts_helpers/notebooks/test/outcomes/Test_run_dockerized_notebook_image_extractor1.test_run_dockerized_notebook_image_extractor/input/test_notebook_image_extractor.ipynb \
       --out_image_dir screenshots
   ```
 

@@ -211,12 +211,10 @@ _PANDOC_TEXLIVE_DOCKERFILE = rf"""
 FROM texlive/texlive{_TEXLIVE_VERSION}
 
 ENV DEBIAN_FRONTEND=noninteractive
-# Pin the `pandoc` version so that upstream apt updates don't silently
-# change the version baked into the image (which would break
-# `Test_build_pandoc_container1.test2`). Bump this pin deliberately and
-# update the corresponding golden outcome when upgrading.
+# Note: Version pin was previously `pandoc=3.10-1` but that version is not
+# available in Debian testing. Using latest available version instead.
 RUN apt-get update && \
-    apt-get install -y --no-install-recommends pandoc=3.10-1 && \
+    apt-get install -y --no-install-recommends pandoc && \
     apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # Verify installation.

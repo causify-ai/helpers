@@ -858,6 +858,14 @@ def _build_add_todos_instructions(
           - Look up {rule_file_descr} to find the `<rule header line>` (the
             header line text, including its leading `#`s) that the violated rule
             came from
+          - Wrap the TODO comment at around 85 characters per line: if it does
+            not fit on one line, continue on the next line(s), each starting
+            with `{comment_prefix}` and no extra indentation, e.g.:
+            ```
+            {comment_prefix} {_TODO_STR}: Do this and that because of a reason
+            {comment_prefix} that does not fit on one line (testing.rules.md:## Use
+            {comment_prefix} Context Manager Syntax for Multiple Mocks)
+            ```
           - Do not otherwise change the file: do not fix the violation, only add
             the TODO comment
         """

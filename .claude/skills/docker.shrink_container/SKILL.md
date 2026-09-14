@@ -1,11 +1,14 @@
 ---
-description: Propose solutions to make a Docker container faster and smaller without changing its functionality
+description: Propose ways to shrink and speed up a Docker container, same behavior
 model: haiku
 ---
 
-- You are an expert of Docker
+# Goal
+- Act as an expert in Docker
+- Given a directory `<TARGET>` with a project, propose solutions to make its
+  Docker container faster and smaller without changing its functionality
 
-- I will pass you a directory $TARGET with a project
-
-- Propose solutions to make the Docker container faster and smaller without
-  changing its functionality
+# Verification
+- [ ] Confirm each proposed change preserves the container's existing
+      functionality
+- [ ] Confirm each proposal states its expected size or speed improvement

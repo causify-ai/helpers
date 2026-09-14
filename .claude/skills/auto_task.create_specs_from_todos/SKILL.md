@@ -1,17 +1,18 @@
 ---
-description: Create a plan for fixing TODOs
+description: Create a plan for fixing a list of TODOs
+model: sonnet
 ---
 
 # Goal
-- Given a list of TODOs provided by the user in the form 
-  ```
+- Given a list of TODOs provided by the user in the form
+  ```text
   <FILE>:<LINE_NUM>:<TODO description>
   ./helpers/hmarkdown_coloring.py:235:def colorize_bullet_points_in_slide(
   ```
 
 # Workflow
 
-## Step 1
+## Understand Each TODO
 - Read each TODO and understand the problem
 - If it's a bug:
   - Make sure to understand the root cause
@@ -19,11 +20,11 @@ description: Create a plan for fixing TODOs
 - Devise a plan to fix the problem
 - Devise a plan to verify that the problem is fixed
 
-## Step 2
+## Write the Fix Plan
 - Create a plan `plan.todo_janitor.md` for fixing the tests using the template
   below:
-  ```
-  ## [ ] Issue<num>: <short description of the issue>
+  ```text
+  ## [ ] Issue<NUM>: <short description of the issue>
 
   ### Info
   - **Original description**: <FILE>:<LINE_NUM>:<TODO description>
@@ -68,12 +69,21 @@ description: Create a plan for fixing TODOs
 - For change of function signature, make sure all the calling instances have been
   updated
 
-## Step 3: Rank the Issues
+## Rank the Issues
 - Reorder the issues in increasing complexity, starting from the issues with high
   confidence in the fix
 
-## Step 4: Lint the file
+## Lint the Plan File
 - Run
-  ```
+  ```bash
   > lint_text.py -i plan.todo_janitor.md --skip_action capitalize_header
   ```
+
+# Verification
+- [ ] `plan.todo_janitor.md` contains one issue block per input TODO
+- [ ] Every issue block has type, reason, proposed fix, confidence, complexity, and
+  verification plan filled in
+- [ ] Issues are ordered by increasing complexity, starting from the highest
+  confidence fixes
+- [ ] No code was changed, only the plan file was written
+- [ ] `lint_text.py` was run on `plan.todo_janitor.md` with no errors

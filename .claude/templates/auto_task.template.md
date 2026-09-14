@@ -1,6 +1,9 @@
 ### [ ] <Title of the GitHub Issue>
 
-* Affected repo: <Which repos are affected> (e.g., helpers, umd_classes)
+* Repo: <Which repos are affected>
+- [ ] helpers (https://github.com/causify-ai/helpers)
+- [ ] umd_classes (https://github.com/gpsaggese/gpsaggese.github.io)
+- ...
 
 * Problem
 - <Problem statement and goal>

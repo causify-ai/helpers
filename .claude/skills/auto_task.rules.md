@@ -19,12 +19,42 @@
   - Ask for clarification
   - Create a `plan.Issue<GH ISSUE NUM>.PR<PR NUM>.md` in the same directory with 5
     bullet points explaining the plan and wait for confirmation
+- This applies per task when executing a task list (below): stop before that task,
+  ask for clarification on it, and do not guess and build (or dispatch) further work
+  on top of a guess
 
 ## Follow the Coding and Testing Rules
 
 - When writing code, follow `.claude/skills/coding.rules.md`
 - When writing testing code, follow `.claude/skills/testing.rules.md`
 - Follow the specs in `.claude/rules.md` for other types of files
+
+# Executing a Task List
+
+## Confirm the Task List Before Executing
+
+- A task list is an ordered set of tasks, each with a goal and its changes
+
+  ```text
+  ### [ ] <Goal of first task>
+  - <Change 1>
+  - <Change 2>
+
+  ### [ ] <Goal of second task>
+  - <Change 1>
+  - <Change 2>
+  ```
+
+- Check that each task states a problem and a solution before starting on it
+- If a task's spec is unclear or incomplete, follow "Ask for Clarification Before
+  Executing an Unclear Plan" above instead of guessing
+
+## Track Task Status
+
+- Mark each task's status in the task list file as work proceeds
+  - `[ ]` not started
+  - `[-]` in progress (e.g., dispatched, or a run in progress)
+  - `[x]` done
 
 # The Unit of Work
 
@@ -44,6 +74,26 @@
   `<RepoPrefix>Task<IssueNum>_<Description>_<Id>`
   - Get the next free suffix with `invoke git_branch_next_name`
 - `invoke git_branch_create` enforces this pattern (`{RepoPrefix}Task\d+_\S+`)
+
+## Multi-Repo Issues, Branches, and PRs
+
+- When a task's solution spans more than one repo (e.g., an outer repo and its
+  `helpers_root` submodule), there is still only one GitHub issue, filed in the
+  outermost repo's tracker: a submodule has its own, disjoint issue numbering and is
+  never where the issue lives
+- The task description explicitly clarifies this through
+
+  ```
+  * Repo: <Which repos are affected>
+  ```
+
+- The branch and the PR opened in every affected repo share one name, derived once
+  from that single issue (see "Name Branches and PRs After the Issue" above), not a
+  separate name per repo
+- `git_create_issue_and_branch.py` creates the branch (and draft PR) in the outer
+  repo only by default
+  - Pass `--submodules` to also create the same branch/PR, by name, in every
+    submodule, so the issue, the branches, and the PRs all stay aligned
 
 ## Review Specs Before Executing
 

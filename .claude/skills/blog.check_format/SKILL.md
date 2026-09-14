@@ -8,20 +8,20 @@ model: haiku
 
 # Workflow
 
-## Step 1: Find Files
+## Find Files
 - Look for all the markdown files both `SKILL.md` and `<TOPIC>.rules.md`
-  ```
-  > find website/docs/blog/post -name "*.md"
+  ```bash
+  > find website/docs/blog/posts -name "*.md"
   ```
 
-## Step 2: Read Context
+## Read Context
 
 - Read context about rules from
   - `.claude/skills/blog.rules.md`
   - `.claude/skills/markdown.rules.md`
   - `.claude/skills/text.rules.md`
 
-## Step 3: Check Rules
+## Check Rules
 - For each file apply all the following rules and report violations as described
   below
 
@@ -35,13 +35,19 @@ model: haiku
 
 ### Check for Other Violations
 - Use the rules in `.claude/skills/blog.rules.md` to look for clear violations
-- Report them only if you are really sure about it
+- Report a violation only when confident about it
 
-## Step 4: Report Violations
+## Report Violations
 
 - Report all the violations in a file `cfile` using the format in
   `.claude/skills/cfile.rules.md`
 
-## Step 5: Ask Users Whether to Fix the Problems
+## Ask Users Whether to Fix the Problems
 - Ask for the user which problems should be fixed by printing a list of problem
   with indices
+
+# Verification
+- [ ] Confirm `cfile` lists concrete file and line references for each
+      violation
+- [ ] Confirm each reported violation maps to a rule in
+      `.claude/skills/blog.rules.md`

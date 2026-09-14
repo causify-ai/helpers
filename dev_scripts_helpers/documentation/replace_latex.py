@@ -7,10 +7,10 @@ Scripts for one-off processing of latex files.
 # Usage Example
 
 - Replace only:
-> replace_latex.py -a replace --file notes/IN_PROGRESS/finance.portfolio_theory.txt
+> replace_latex.py -a replace -i notes/IN_PROGRESS/finance.portfolio_theory.txt
 
 - Replace and check:
-> replace_latex.py -a pandoc_before -a replace -a pandoc_after --file notes/IN_PROGRESS/finance.portfolio_theory.txt
+> replace_latex.py -a pandoc_before -a replace -a pandoc_after -i notes/IN_PROGRESS/finance.portfolio_theory.txt
 
 Import as:
 
@@ -103,7 +103,7 @@ def _parse() -> argparse.ArgumentParser:
         choices=["checkout", "pandoc_before", "pandoc_after", "replace"],
         action="append",
     )
-    parser.add_argument("--file", action="store", type=str, required=True)
+    hparser.add_input_file_arg(parser)
     parser.add_argument("--aggressive", action="store_true")
     hparser.add_verbosity_arg(parser)
     return parser
@@ -113,23 +113,23 @@ def _main(parser: argparse.ArgumentParser) -> None:
     args = parser.parse_args()
     hdbg.init_logger(verbosity=args.log_level, use_exec_path=True)
     #
-    hdbg.dassert_path_exists(args.file)
+    hdbg.dassert_path_exists(args.input)
     actions = args.action
     if not isinstance(actions, list):
         actions = list(actions)
     if "checkout" in actions:
-        cmd = f"git checkout -- {args.file}"
+        cmd = f"git checkout -- {args.input}"
         _ = hsystem.system(cmd)
     if "pandoc_before" in actions:
         cmd = (
-            f"notes_to_pdf.py -a pdf --no_toc --no_open_pdf --input {args.file}"
+            f"notes_to_pdf.py -a pdf --no_toc --no_open_pdf --input {args.input}"
         )
         _ = hsystem.system(cmd)
     if "replace" in actions:
-        _standard_cleanup(args.file, args.aggressive)
+        _standard_cleanup(args.input, args.aggressive)
     if "pandoc_after" in actions:
         cmd = (
-            f"notes_to_pdf.py -a pdf --no_toc --no_open_pdf --input {args.file}"
+            f"notes_to_pdf.py -a pdf --no_toc --no_open_pdf --input {args.input}"
         )
         _ = hsystem.system(cmd)
 

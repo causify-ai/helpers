@@ -144,7 +144,7 @@ class Test_replace_latex_py(hunitest.TestCase):
             "replace_latex.py",
             "-a",
             "checkout",
-            "--file",
+            "-i",
             file_path,
         ]
         # Prepare outputs.
@@ -173,7 +173,7 @@ class Test_replace_latex_py(hunitest.TestCase):
             "pandoc_before",
             "-a",
             "pandoc_after",
-            "--file",
+            "-i",
             file_path,
         ]
         # Prepare outputs.
@@ -204,7 +204,7 @@ class Test_replace_latex_py(hunitest.TestCase):
             "replace_latex.py",
             "-a",
             "replace",
-            "--file",
+            "-i",
             file_path,
         ]
         # Prepare outputs.

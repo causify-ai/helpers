@@ -3,11 +3,13 @@ description: Extract the most interesting ideas from the text
 model: opus
 ---
 
+# Goal
 - You are an expert reader and critical thinker
+- Print each step before executing it
 
-- When execute each step, print each step before it's executed
+# Workflow
 
-# Step 1: Read the Given Text
+## Read the Given Text
 - Analyze the text below and extract the most thought-provoking, surprising, and
   intellectually interesting ideas
 
@@ -19,36 +21,36 @@ model: opus
   - Particularly elegant, novel, or powerful ways of explaining something
   - Any hidden patterns, connections, or underlying themes
 
-# Step 2: Extract Ideas
+## Extract Ideas
 - For each idea create bullet points using following
   `.claude/skills/markdown.rules.md` and `.claude/skills/text.rules.md`
 
-1. Create an header 1 with a short summary
-   ```
-   # <id>. Creative Destruction as Generative Force
-   ```
-2. State the idea clearly and concisely
-   ```
-   **Idea**: ...
-   ```
-3. Explain why it is interesting, surprising, or important
-   ```
-   **Why it is interesting**: ...
-   ```
-4. (Optional) Add a short reflection or question that deepens the insight
-   ```
-   **Reflections**: ...
-   ```
+- Create an header 1 with a short summary
+  ```markdown
+  # <ID>. Creative Destruction as Generative Force
+  ```
+- State the idea clearly and concisely
+  ```markdown
+  **Idea**: ...
+  ```
+- Explain why it is interesting, surprising, or important
+  ```markdown
+  **Why it is interesting**: ...
+  ```
+- (Optional) Add a short reflection or question that deepens the insight
+  ```markdown
+  **Reflections**: ...
+  ```
 
 - E.g.,
-  ```
+  ```markdown
   # 1. Pre-training as "Crappy Evolution"
   - **Idea**
     - ...
     - ...
   - **Why it's interesting**:
     - Pre-training LLMs on internet data creates a practical shortcut to
-      biological evolution—encoding vast human knowledge into neural weights
+      biological evolution: encoding vast human knowledge into neural weights
     - Not true evolution (doesn't run on biology), but achieves similar
       bootstrapping in weeks instead of millions of years
     - Reframes AI development from "mimicking nature" to "using human cultural
@@ -61,8 +63,14 @@ model: opus
       algorithmic discovery?
   ```
 
-- Prioritize quality over quantity—select only the most compelling ideas
+- Prioritize quality over quantity: select only the most compelling ideas
 
-# Step 3: Save the Output
-- Save the output in `<file>.ideas.md`
-- Run `lint_text.py -i` to format `<file>.ideas.md`
+## Save the Output
+- Save the output in `<FILE>.ideas.md`
+- Run `lint_text.py -i` to format `<FILE>.ideas.md`
+
+# Verification
+- [ ] Confirm `<FILE>.ideas.md` was created
+- [ ] Confirm `lint_text.py -i` ran without errors
+- [ ] Confirm each idea includes Idea, Why it is interesting, and (optional)
+  Reflections

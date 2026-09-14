@@ -1,5 +1,5 @@
 ---
-description: Update a skill or prompt so it captures the lessons learned from how a file changed across Git versions
+description: Update a skill or prompt using lessons learned from a file's Git history
 argument-hint: <FILE> <PROMPT>
 model: sonnet
 ---
@@ -25,7 +25,7 @@ model: sonnet
 
 # Workflow
 
-## Step 1: Determine the changes
+## Determine the Changes
 
 - Find the commits that touched `<FILE>`:
   ```bash
@@ -44,7 +44,7 @@ model: sonnet
     ```
 - Do not use interactive commands (e.g. `git difftool`): they block
 
-## Step 2: Read the prompt and the conventions
+## Read the Prompt and the Conventions
 
 - Read `<PROMPT>` in full
 - Read `.claude/skills/skill.rules.md` for the conventions and rules that
@@ -52,10 +52,10 @@ model: sonnet
 - Read any files `<PROMPT>` references, so you don't duplicate a rule that
   already lives elsewhere
 
-## Step 3: Infer the rules
+## Infer the Rules
 
 - For each meaningful hunk in `<CHANGES>`, write down:
-  - what changed (before → after)
+  - what changed (before -> after)
   - the general rule it implies
   - whether `<PROMPT>` already covers it (fully / partially / not at all)
 - Drop hunks that are one-off content edits rather than repeatable rules
@@ -64,7 +64,7 @@ model: sonnet
 - Merge rules that are restatements of each other. Prefer one sharp rule
   over three overlapping ones
 
-## Step 4: Improve the prompt
+## Improve the Prompt
 
 - Draft the minimal edit to `<PROMPT>` that encodes the inferred rules:
   - Amend an existing rule when one is close but imprecise
@@ -75,7 +75,7 @@ model: sonnet
 - Do not grow the prompt unnecessarily: if the new rule makes an old one
   redundant, remove the old one
 
-## Step 5: Apply via skill.add
+## Apply via skill.add
 
 - Follow the approach in `.claude/skills/skill.add/SKILL.md`: propose the
   change to the user first, then apply it once approved
@@ -85,6 +85,12 @@ model: sonnet
 Report, in this order:
 
 1. The commit range and files inspected
-2. A table of inferred rules: change observed → rule → covered / new
+2. A table of inferred rules: change observed -> rule -> covered / new
 3. The proposed diff to `<PROMPT>`
 4. Anything you deliberately did not encode, and why
+
+# Verification
+- [ ] The proposed diff was shown to the user before `<PROMPT>` was changed
+- [ ] Each inferred rule is a general rule, not a hard-coded string from the
+      one diff inspected
+- [ ] No rule made redundant by the new edit was left in `<PROMPT>`

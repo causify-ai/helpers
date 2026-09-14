@@ -5,7 +5,7 @@ model: haiku
 
 # Goal
 - Add end-to-end tests for command-line tools using the rules in
-  `.claude/skills/testing.rules.md` 
+  `.claude/skills/testing.rules.md`
   `# End-to-end Unit Tests for Executables`
 
 # Important
@@ -13,3 +13,8 @@ model: haiku
   `.claude/skills/testing.rules.md`
 - For all code you must follow the instructions in
   `.claude/skills/coding.rules.md`
+
+# Verification
+- [ ] Run the new end-to-end tests and confirm they pass
+- [ ] Confirm the tests follow `# End-to-end Unit Tests for Executables` in
+  `.claude/skills/testing.rules.md`

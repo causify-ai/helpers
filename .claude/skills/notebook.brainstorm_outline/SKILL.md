@@ -5,18 +5,16 @@ model: opus
 
 # Goal
 
-- Given some technical material provided from the user, come up with
-  5 ideas of interactive Jupyter notebooks that teaches the concepts
-  in the materials using
+- Given some technical material provided from the user, come up with 5 ideas of
+  interactive Jupyter notebooks that teaches the concepts in the materials using:
   - Visualization
   - Interaction
   - Exploration
+- When possible suggest and use "famous" examples, data, experiments, and problems
+  related to the provided material
 
-- When possible suggest and use "famous" examples, data, experiments, and
-  problems related to the provided material
-
-- The output is a file `notebook_ideas.<tag>.md` markdown file that
-  describe the ideas
+- The output is a file `notebook_ideas.<TAG>.md` markdown file that describe the
+  ideas
 
 # Template
 - For each ideas use a template like
@@ -24,8 +22,8 @@ model: opus
   ## 1. <Title>
 
   ### Goal
-  Students gain intuitive understanding of ... by building and
-  analyzing ... and exploring the relationship between ...
+  Students gain intuitive understanding of ... by building and analyzing ... and
+  exploring the relationship between ...
 
   ### Learning Objectives
   - Understand ...
@@ -67,20 +65,20 @@ model: opus
   - Visualize how expressiveness and tractability trade off
 
   ### Core Concepts
-  - Propositional logic syntax (operators: ¬, ∧, ∨, ⟹, ⟺)
+  - Propositional logic syntax (operators: not, and, or, implies, iff)
   - Semantics via truth tables and model interpretation
   - Inference rules (Modus Ponens, Modus Tollens, Resolution)
   - Model checking algorithm (sound and complete)
   - Satisfiability and NP-completeness
 
   ### Key Packages
-  - **sympy** — symbolic logic, propositional formula manipulation
-  - **python-sat** — SAT solver backends
+  - **sympy**: symbolic logic, propositional formula manipulation
+  - **python-sat**: SAT solver backends
 
   ### Learning Activities
-  - Build formulas interactively: `(Rain ∧ Cold) ∨ Sunny`
+  - Build formulas interactively: `(Rain and Cold) or Sunny`
   - Generate and display truth tables for arbitrary formulas
-  - Test entailment between two formulas: does KB ⊨ α?
+  - Test entailment between two formulas: does KB entail alpha?
   - Explore inference rules (modus ponens, resolution)
   - Measure SAT solver complexity as # variables increases
   - Interactive "Wumpus World" knowledge base reasoning
@@ -92,7 +90,7 @@ model: opus
   - `.claude/skills/text.rules.md`: Bullet point conventions
 
 # Lint
-- After generating the file `notebook_ideas.<tag>.md`
+- After generating the file `notebook_ideas.<TAG>.md`
   ```
-  > lint_text.py -i `notebook_ideas.<tag>.md`
+  > lint_text.py -i `notebook_ideas.<TAG>.md`
   ```
