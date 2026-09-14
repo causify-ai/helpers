@@ -75,9 +75,9 @@ model: sonnet
 - Do not grow the prompt unnecessarily: if the new rule makes an old one
   redundant, remove the old one
 
-## Apply via skill.add
+## Apply via rules.add
 
-- Follow the approach in `.claude/skills/skill.add/SKILL.md`: propose the
+- Follow the approach in `.claude/skills/rules.add/SKILL.md`: propose the
   change to the user first, then apply it once approved
 
 # Output

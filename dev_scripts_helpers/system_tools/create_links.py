@@ -21,9 +21,17 @@ A detailed description is:
 - Links can be absolute or relative (using `--replace_links --link_type
   absolute`)
 
+- Use `--dry_run` to only report which files would be replaced or staged,
+  without touching the filesystem
+
 - Example: `msml610/tutorials/L12_reinforcement_learning` was copied from
   `class_project/project_template`:
 > create_links.py --src_dir class_project/project_template --dst_dir msml610/tutorials/L12_reinforcement_learning --replace_links
+
+- Example: find files in `msml610/tutorials/L03_knowledge_representation` that
+  are the same as in `class_project/project_template`, without modifying
+  anything:
+> create_links.py --src_dir class_project/project_template --dst_dir msml610/tutorials/L03_knowledge_representation --replace_links --dry_run
 
 Import as:
 
@@ -36,16 +44,84 @@ import logging
 import os
 import shutil
 import stat
-from typing import List, Tuple
+from typing import List, Set, Tuple
 
 import helpers.hdbg as hdbg
 import helpers.hio as hio
 import helpers.hparser as hparser
+import helpers.htable as htable
 
 _LOG = logging.getLogger(__name__)
 
 
-def _find_common_files(src_dir: str, dst_dir: str) -> List[Tuple[str, str]]:
+def _classify_files(src_dir: str, dst_dir: str) -> List[Tuple[str, str, str]]:
+    """
+    Classify every file under `src_dir` and `dst_dir` by content.
+
+    :param src_dir: source directory
+    :param dst_dir: destination directory
+    :return: list of `(src_file, dst_file, current_state)`, where
+        `current_state` is one of:
+        - "copy": the file is identical in both directories
+        - "diff": the file exists in both directories with different content
+        - "missing": the file exists only in `src_dir`
+        - "extra": the file exists only in `dst_dir`
+        `src_file`/`dst_file` are always the joined paths (i.e., they are
+        reported even when the file does not exist on that side)
+    """
+
+    def _list_rel_paths(dir_name: str) -> Set[str]:
+        rel_paths: Set[str] = set()
+        for root, _, files in os.walk(dir_name):
+            for file_name in files:
+                path = os.path.join(root, file_name)
+                rel_paths.add(os.path.relpath(path, dir_name))
+        return rel_paths
+
+    src_rel_paths = _list_rel_paths(src_dir)
+    dst_rel_paths = _list_rel_paths(dst_dir)
+    rows: List[Tuple[str, str, str]] = []
+    for rel_path in sorted(src_rel_paths | dst_rel_paths):
+        src_file = os.path.join(src_dir, rel_path)
+        dst_file = os.path.join(dst_dir, rel_path)
+        if rel_path in src_rel_paths and rel_path in dst_rel_paths:
+            if filecmp.cmp(src_file, dst_file, shallow=False):
+                current_state = "copy"
+            else:
+                current_state = "diff"
+        elif rel_path in src_rel_paths:
+            current_state = "missing"
+        else:
+            current_state = "extra"
+        rows.append((src_file, dst_file, current_state))
+    return rows
+
+
+def _build_status_table(src_dir: str, dst_dir: str) -> htable.Table:
+    """
+    Build a table summarizing what `--replace_links` would do.
+
+    :param src_dir: source directory
+    :param dst_dir: destination directory
+    :return: table with columns `src_file`, `dst_file`, `current_state`,
+        `target_state` (`target_state` is "link" for a file that would be
+        turned into a symlink, "-" otherwise)
+    """
+    column_names = ["src_file", "dst_file", "current_state", "target_state"]
+    rows = []
+    for src_file, dst_file, current_state in _classify_files(src_dir, dst_dir):
+        target_state = "link" if current_state == "copy" else "-"
+        if current_state == "missing":
+            dst_file = "-"
+        elif current_state == "extra":
+            src_file = "-"
+        rows.append([src_file, dst_file, current_state, target_state])
+    return htable.Table(rows, column_names)
+
+
+def _find_common_files(
+    src_dir: str, dst_dir: str, *, dry_run: bool = False
+) -> List[Tuple[str, str]]:
     """
     Find common files in dst_dir and change to links.
 
@@ -55,10 +131,18 @@ def _find_common_files(src_dir: str, dst_dir: str) -> List[Tuple[str, str]]:
 
     :param src_dir: The source directory containing the original files
     :param dst_dir: The destination directory to compare files against
+    :param dry_run: If True, only report what would be done without
+        creating `dst_dir` or copying any file
     :return: paths of matching files from `src_dir` and `dst_dir`
     """
     # Ensure the destination directory exists; create it if it doesn't.
     if not os.path.exists(dst_dir):
+        if dry_run:
+            _LOG.warning(
+                "DRY_RUN: '%s' does not exist, skipping",
+                dst_dir,
+            )
+            return []
         user_input = input(
             "Destination directory %s does not exist. Would you like to create copy all files from source? (y/n): "
         )
@@ -92,33 +176,20 @@ def _find_common_files(src_dir: str, dst_dir: str) -> List[Tuple[str, str]]:
             )
             return []
     # After copying files, continue with comparing files.
-    common_files = []
-    for root, _, files in os.walk(src_dir):
-        for file in files:
-            src_file = os.path.join(root, file)
-            dst_file = os.path.join(dst_dir, os.path.relpath(src_file, src_dir))
-            # Check if the file exists in the destination folder.
-            # Certain files do not need to be copied, so we skip them.
-            if not os.path.exists(dst_file):
-                _LOG.warning(
-                    "Warning: %s is missing in the destination directory.",
-                    dst_file,
-                )
-                continue
-            # Compare file contents after copying.
-            if filecmp.cmp(src_file, dst_file, shallow=False):
-                _LOG.info(
-                    "Files are the same and will be replaced: %s -> %s",
-                    src_file,
-                    dst_file,
-                )
-                common_files.append((src_file, dst_file))
-            else:
-                _LOG.warning(
-                    "Warning: %s and %s have different content.",
-                    dst_file,
-                    src_file,
-                )
+    common_files: List[Tuple[str, str]] = []
+    for src_file, dst_file, current_state in _classify_files(src_dir, dst_dir):
+        if current_state == "copy":
+            _LOG.debug("'%s' matches '%s'", src_file, dst_file)
+            common_files.append((src_file, dst_file))
+        elif current_state == "diff":
+            _LOG.warning(
+                "'%s' and '%s' have different content", dst_file, src_file
+            )
+        elif current_state == "missing":
+            _LOG.warning(
+                "'%s' is missing in the destination directory", dst_file
+            )
+        # "extra": file only in `dst_dir`, nothing to do for `--replace_links`.
     return common_files
 
 
@@ -126,6 +197,7 @@ def _replace_with_links(
     common_files: List[Tuple[str, str]],
     link_type: str,
     *,
+    dry_run: bool = False,
     abort_on_first_error: bool = False,
 ) -> None:
     """
@@ -133,8 +205,11 @@ def _replace_with_links(
 
     :param common_files: Matching file paths from `src_dir` and `dst_dir`
     :param link_type: Type of symlink paths: "absolute" or "relative"
+    :param dry_run: If True, only report which files would be replaced with
+        symlinks without touching the filesystem
     :param abort_on_first_error: If True, abort on the first error; if False, continue processing
     """
+    hdbg.dassert_in(link_type, ("relative", "absolute"))
     for src_file, dst_file in common_files:
         try:
             hdbg.dassert_file_exists(src_file)
@@ -143,20 +218,20 @@ def _replace_with_links(
             if abort_on_first_error:
                 _LOG.error("Aborting: Source file %s doesn't exist.", src_file)
             continue
+        if link_type == "relative":
+            link_target = os.path.relpath(src_file, os.path.dirname(dst_file))
+        else:
+            link_target = os.path.abspath(src_file)
+        if dry_run:
+            _LOG.info(
+                "DRY_RUN: Would create symlink '%s' -> '%s'",
+                dst_file,
+                link_target,
+            )
+            continue
         if os.path.exists(dst_file):
             os.remove(dst_file)
-        hdbg.dassert_in(link_type, ("relative", "absolute"))
         try:
-            if link_type == "relative":
-                link_target = os.path.relpath(
-                    src_file, os.path.dirname(dst_file)
-                )
-            elif link_type == "absolute":
-                link_target = os.path.abspath(src_file)
-            else:
-                raise ValueError(
-                    f"Invalid link_type '{link_type}': must be 'absolute' or 'relative'"
-                )
             os.symlink(link_target, dst_file)
             # Remove write permissions from the file to prevent accidental
             # modifications.
@@ -194,20 +269,48 @@ def _find_symlinks(dst_dir: str) -> List[str]:
     return symlinks
 
 
-def _stage_links(symlinks: List[str]) -> None:
+def _build_stage_status_table(symlinks: List[str]) -> htable.Table:
+    """
+    Build a table summarizing what `--stage_links` would do.
+
+    :param symlinks: list of symbolic links to stage
+    :return: table with columns `link`, `target_file`, `current_state`,
+        `target_state` (`target_state` is "copy" for a link that would be
+        staged, "-" if its target is missing)
+    """
+    column_names = ["link", "target_file", "current_state", "target_state"]
+    rows = []
+    for link in symlinks:
+        target_file = os.readlink(link)
+        if os.path.exists(target_file):
+            current_state = "link"
+            target_state = "copy"
+        else:
+            current_state = "missing"
+            target_state = "-"
+        rows.append([link, target_file, current_state, target_state])
+    return htable.Table(rows, column_names)
+
+
+def _stage_links(symlinks: List[str], *, dry_run: bool = False) -> None:
     """
     Replace symbolic links with writable copies of the linked files.
 
     :param symlinks: List of symbolic links to replace.
+    :param dry_run: If True, only report which symlinks would be staged
+        without touching the filesystem
     """
     for link in symlinks:
         # Resolve the original file the symlink points to.
         target_file = os.readlink(link)
         if not os.path.exists(target_file):
             _LOG.warning(
-                "Warning: Target file does not exist for link %s -> %s",
-                link,
-                target_file,
+                "'%s' is missing (target of link '%s')", target_file, link
+            )
+            continue
+        if dry_run:
+            _LOG.info(
+                "DRY_RUN: Would stage '%s' -> '%s'", link, target_file
             )
             continue
         # Replace the symlink with a writable copy of the target file.
@@ -242,22 +345,38 @@ def _main(parser: argparse.ArgumentParser) -> None:
     Usage:
     - `--replace_links`: Replace files with symbolic links
     - `--stage_links`: Replace symbolic links with writable file copies
+    - `--dry_run`: Report what would be done without touching the filesystem
     :return: None
     """
     args = parser.parse_args()
     hdbg.init_logger(verbosity=args.log_level, use_exec_path=True)
     if args.replace_links:
-        common_files = _find_common_files(args.src_dir, args.dst_dir)
-        _replace_with_links(common_files, link_type=args.link_type)
-        _LOG.info("Replaced %d files with symbolic links.", len(common_files))
+        common_files = _find_common_files(
+            args.src_dir, args.dst_dir, dry_run=args.dry_run
+        )
+        table = _build_status_table(args.src_dir, args.dst_dir)
+        _LOG.info("\n%s", str(table))
+        _replace_with_links(
+            common_files, link_type=args.link_type, dry_run=args.dry_run
+        )
+        action_verb = "DRY_RUN: Would replace" if args.dry_run else "Replaced"
+        _LOG.info(
+            "%s %d files with symbolic links", action_verb, len(common_files)
+        )
     elif args.stage_links:
         symlinks = _find_symlinks(args.dst_dir)
         if not symlinks:
-            _LOG.info("No symbolic links found to stage.")
-        _stage_links(symlinks)
-        _LOG.info("Staged %d symbolic links for modification.", len(symlinks))
+            _LOG.info("No symbolic links found to stage")
+        else:
+            table = _build_stage_status_table(symlinks)
+            _LOG.info("\n%s", str(table))
+        _stage_links(symlinks, dry_run=args.dry_run)
+        action_verb = "DRY_RUN: Would stage" if args.dry_run else "Staged"
+        _LOG.info(
+            "%s %d symbolic links for modification", action_verb, len(symlinks)
+        )
     else:
-        _LOG.error("You must specify either --replace_links or --stage_links.")
+        _LOG.error("You must specify either --replace_links or --stage_links")
 
 
 def _parse() -> argparse.ArgumentParser:
@@ -289,6 +408,11 @@ def _parse() -> argparse.ArgumentParser:
         choices=["absolute", "relative"],
         default="relative",
         help='Type of symbolic link paths: "absolute" or "relative"',
+    )
+    parser.add_argument(
+        "--dry_run",
+        action="store_true",
+        help="Report what would be done without touching the filesystem.",
     )
     hparser.add_verbosity_arg(parser)
     return parser

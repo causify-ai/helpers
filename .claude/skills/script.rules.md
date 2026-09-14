@@ -607,6 +607,18 @@
 
 # Dry Run
 
+## Add `--dry_run` Whenever a Script Has Side Effects
+
+- Give every script a `--dry_run` option whenever possible, i.e., whenever it
+  performs a side effect: writes or deletes files, runs a subprocess, issues
+  git/gh commands, or calls a network API
+- Skip it only for a script that is purely read-only (e.g., prints a report,
+  computes and returns a value, queries state without mutating anything)
+- **Bad**: a script that runs `git push` with no way to preview the command
+  first
+- **Good**: a script that runs `git push` gates it behind `--dry_run` (see the
+  Guard the Side Effect section below for how)
+
 ## Add `--dry_run` as a Standard Flag
 
 - If the script already calls `helpers.hjoblib.add_parallel_processing_arg()` (see

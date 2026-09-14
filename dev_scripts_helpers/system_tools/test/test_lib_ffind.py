@@ -1,9 +1,13 @@
+# TODO(ai_gp): Add 'import logging' before other imports per template
+# (testing.rules.md:## Unit Test Code Structure)
 from typing import Any, Dict, List, Optional, Type
 
 import dev_scripts_helpers.system_tools.lib_ffind as dshstliff
 import helpers.hunit_test as hunitest
 import helpers.hunit_test_utils as hunteuti
 
+# TODO(ai_gp): Add '_LOG = logging.getLogger(__name__)' after imports
+# per template (testing.rules.md:## Unit Test Code Structure)
 _FIND_PRUNE = (
     r"\( -path './.git' -o -path './.ipynb_checkpoints' -o -path "
     r"./.mypy_cache \) -prune -o"
@@ -15,7 +19,12 @@ _FIND_PRUNE = (
 # #############################################################################
 
 
+# TODO(ai_gp): Rename test class to Test_main to match function being
+# tested (testing.rules.md:## Naming Conventions for a Function)
 class TestFfindScript(hunitest.TestCase):
+    # TODO(ai_gp): Update docstring to reference 'lib_ffind.main()'
+    # function being tested per naming conventions
+    # (testing.rules.md:## Test Class Documentation)
     """
     Test `ffind` script functionality through `lib_ffind` module integration.
     """
@@ -32,12 +41,16 @@ class TestFfindScript(hunitest.TestCase):
         :param expected_cmd: expected command string
         """
         self.assertEqual(len(sys_calls), 1, "Expected exactly one call")
+        # TODO(ai_gp): Use self.assert_equal() when comparing strings instead of
+        # self.assertEqual() (testing.rules.md:## Assertion Patterns)
         self.assertEqual(
             sys_calls[0]["function"],
             "hsystem.system",
             "Expected hsystem.system call",
         )
         actual_cmd = sys_calls[0]["args"][0]
+        # TODO(ai_gp): Use self.assert_equal() when comparing strings instead of
+        # self.assertEqual() (testing.rules.md:## Assertion Patterns)
         self.assertEqual(actual_cmd, expected_cmd)
 
     def helper(
@@ -64,6 +77,8 @@ class TestFfindScript(hunitest.TestCase):
                 exit_code = dshstliff.main(args)
             except SystemExit as e:
                 exit_code = e.code
+        # TODO(ai_gp): Use assert_sys_calls extending it if needed to also
+        # check exit code
         # Check command output.
         if expected_cmd != "":
             self._assert_cmd_invocation(sys_calls, expected_cmd)
