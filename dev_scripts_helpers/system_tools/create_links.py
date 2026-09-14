@@ -105,16 +105,23 @@ def _build_status_table(src_dir: str, dst_dir: str) -> htable.Table:
     :param dst_dir: destination directory
     :return: table with columns `src_file`, `dst_file`, `current_state`,
         `target_state` (`target_state` is "link" for a file that would be
-        turned into a symlink, "-" otherwise)
+        turned into a symlink, "-" otherwise); `src_file`/`dst_file` report
+        only the basename, since the caller prints the shared `src_dir`/
+        `dst_dir` prefix once above the table
     """
     column_names = ["src_file", "dst_file", "current_state", "target_state"]
     rows = []
     for src_file, dst_file, current_state in _classify_files(src_dir, dst_dir):
         target_state = "link" if current_state == "copy" else "-"
         if current_state == "missing":
+            src_file = os.path.basename(src_file)
             dst_file = "-"
         elif current_state == "extra":
             src_file = "-"
+            dst_file = os.path.basename(dst_file)
+        else:
+            src_file = os.path.basename(src_file)
+            dst_file = os.path.basename(dst_file)
         rows.append([src_file, dst_file, current_state, target_state])
     return htable.Table(rows, column_names)
 
@@ -276,7 +283,9 @@ def _build_stage_status_table(symlinks: List[str]) -> htable.Table:
     :param symlinks: list of symbolic links to stage
     :return: table with columns `link`, `target_file`, `current_state`,
         `target_state` (`target_state` is "copy" for a link that would be
-        staged, "-" if its target is missing)
+        staged, "-" if its target is missing); `link`/`target_file` report
+        only the basename, since the caller prints the shared `dst_dir`
+        prefix once above the table
     """
     column_names = ["link", "target_file", "current_state", "target_state"]
     rows = []
@@ -288,7 +297,14 @@ def _build_stage_status_table(symlinks: List[str]) -> htable.Table:
         else:
             current_state = "missing"
             target_state = "-"
-        rows.append([link, target_file, current_state, target_state])
+        rows.append(
+            [
+                os.path.basename(link),
+                os.path.basename(target_file),
+                current_state,
+                target_state,
+            ]
+        )
     return htable.Table(rows, column_names)
 
 
@@ -355,7 +371,12 @@ def _main(parser: argparse.ArgumentParser) -> None:
             args.src_dir, args.dst_dir, dry_run=args.dry_run
         )
         table = _build_status_table(args.src_dir, args.dst_dir)
-        _LOG.info("\n%s", str(table))
+        _LOG.info(
+            "\nsrc_dir=%s\ndst_dir=%s\n\n%s",
+            args.src_dir,
+            args.dst_dir,
+            str(table),
+        )
         _replace_with_links(
             common_files, link_type=args.link_type, dry_run=args.dry_run
         )
@@ -369,7 +390,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
             _LOG.info("No symbolic links found to stage")
         else:
             table = _build_stage_status_table(symlinks)
-            _LOG.info("\n%s", str(table))
+            _LOG.info("\ndst_dir=%s\n\n%s", args.dst_dir, str(table))
         _stage_links(symlinks, dry_run=args.dry_run)
         action_verb = "DRY_RUN: Would stage" if args.dry_run else "Staged"
         _LOG.info(

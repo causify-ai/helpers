@@ -64,13 +64,22 @@ def build_status_table(symlinks: List[str]) -> htable.Table:
     :param symlinks: list of symbolic links to stage
     :return: table with columns `link`, `target_file`, `current_state`,
         `target_state` (`target_state` is "copy" for a link that would be
-        staged, "-" if its target is missing)
+        staged, "-" if its target is missing); `link`/`target_file` report
+        only the basename, since the caller prints the shared `dst_dir`
+        prefix once above the table
     """
     column_names = ["link", "target_file", "current_state", "target_state"]
     rows = []
     for link, target_file, current_state in _classify_symlinks(symlinks):
         target_state = "copy" if current_state == "link" else "-"
-        rows.append([link, target_file, current_state, target_state])
+        rows.append(
+            [
+                os.path.basename(link),
+                os.path.basename(target_file),
+                current_state,
+                target_state,
+            ]
+        )
     return htable.Table(rows, column_names)
 
 
@@ -124,7 +133,7 @@ def main():
         _LOG.info("No symbolic links found to stage")
         return
     table = build_status_table(symlinks)
-    _LOG.info("\n%s", str(table))
+    _LOG.info("\ndst_dir=%s\n\n%s", args.dst_dir, str(table))
     stage_links(symlinks, dry_run=args.dry_run)
     action_verb = "DRY_RUN: Would stage" if args.dry_run else "Staged"
     _LOG.info("%s %s files for modification", action_verb, len(symlinks))

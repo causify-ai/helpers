@@ -395,9 +395,10 @@ def purify_docker_image_name(txt: str) -> str:
             \s+                      # One or more whitespace
             tmp\.\S+\.\S+\.          # tmp.something.something.
         )                            # End capture group 1
-        [a-z0-9]{8}                  # 8 character hex hash
+        (?:\d{8}_)?[a-z0-9]{8}       # optional YYYYMMDD_ date prefix, then
+                                     # 8 character hex hash
         \.                           # Literal dot
-        [a-z0-9]{8}                  # Another 8 character hex hash
+        (?:\d{8}_)?[a-z0-9]{8}       # Another (optionally dated) hex hash
         (                            # Start capture group 2
             \s+                      # One or more whitespace
             .*                       # Rest of the line
@@ -419,7 +420,8 @@ def purify_docker_image_name(txt: str) -> str:
             \s+                      # One or more whitespace
             tmp\.\S+\.               # tmp.something.
         )                            # End capture group 1
-        [a-z0-9]{8}                  # 8 character hex hash
+        (?:\d{8}_)?[a-z0-9]{8}       # optional YYYYMMDD_ date prefix, then
+                                     # 8 character hex hash
         (                            # Start capture group 2
             \s+                      # One or more whitespace
             .*                       # Rest of the line

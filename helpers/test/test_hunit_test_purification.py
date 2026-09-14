@@ -1517,6 +1517,41 @@ class Test_purify_docker_image_name(hunitest.TestCase):
         actual = huntepur.purify_docker_image_name(txt)
         self.assert_equal(actual, expected)
 
+    def test6(self) -> None:
+        """
+        Test the date-stamped tag `tmp.pandoc_texlive.arm64.20260914_4867bd42`.
+        """
+        # Prepare inputs.
+        txt = r"""
+        docker run --rm --user $(id -u):$(id -g) --workdir /app --mount type=bind,source=/Users/saggese/src/helpers1,target=/app tmp.pandoc_texlive.arm64.20260914_4867bd42 pdflatex -output-directory
+        """
+        # Prepare outputs.
+        expected = r"""
+        docker run --rm --user $(id -u):$(id -g) --workdir /app --mount type=bind,source=/Users/saggese/src/helpers1,target=/app tmp.pandoc_texlive.$ARCH.$CONTAINER_ID pdflatex -output-directory
+        """
+        # Run test.
+        actual = huntepur.purify_docker_image_name(txt)
+        # Check outputs.
+        self.assert_equal(actual, expected, fuzzy_match=True)
+
+    def test7(self) -> None:
+        """
+        Test the date-stamped double-hash pattern
+        `tmp.latex.aarch64.20260914_2f590c86.20260914_2f590c86`.
+        """
+        # Prepare inputs.
+        txt = r"""
+        docker run --rm --user $(id -u):$(id -g) --workdir $GIT_ROOT --mount type=bind,source=/Users/saggese/src/helpers1,target=$GIT_ROOT tmp.latex.aarch64.20260914_2f590c86.20260914_2f590c86 pdflatex -output-directory
+        """
+        # Prepare outputs.
+        expected = r"""
+        docker run --rm --user $(id -u):$(id -g) --workdir $GIT_ROOT --mount type=bind,source=/Users/saggese/src/helpers1,target=$GIT_ROOT tmp.latex.$ARCH.$CONTAINER_ID pdflatex -output-directory
+        """
+        # Run test.
+        actual = huntepur.purify_docker_image_name(txt)
+        # Check outputs.
+        self.assert_equal(actual, expected, fuzzy_match=True)
+
 
 # #############################################################################
 # Test_purify_docker_cmd
