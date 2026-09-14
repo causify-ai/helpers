@@ -47,6 +47,20 @@
   - If there is a task `### ...` in one stage, it should be under the correct H2
     header
 
+- Since the same topic name repeats under multiple H1 stages, each H2 header
+  (except in `# ALL TOPICS`) must be suffixed with its stage in parenthesis,
+  `## <Topic> (<Stage>)`, e.g.,
+  ```
+  ## umd_msml610 (IN PROGRESS)
+  ...
+  ## umd_msml610 (BACKLOG)
+  ...
+  ## umd_msml610 (ICEBOX)
+  ```
+  - The `# ALL TOPICS` list keeps the bare topic name (no stage suffix), since
+    it is the canonical list of topics matched by `todo.reorg` and
+    `todo.move_done`
+
 ## Task
 
 - Each task is represented by a H3 markdown header, under the corresponding H2 header
