@@ -126,6 +126,50 @@
     // - ...
     ```
 
+## Roadmap Slide
+- Right after the metadata-comment block and before the first `# <Topic>`
+  heading, add a standalone `* Roadmap` slide (not nested under any `#`/`##`)
+  previewing the lesson's topics
+  - One short bullet per top-level `#` topic in the file, naming what it
+    covers and why it matters, in the order the topics appear
+  - Mirrors the `.typ` book chapter's mandatory `= Roadmap` section (see
+    `.claude/skills/typst.rules.md` `## Mandatory Sections`): the chapter
+    generation pipeline converts this slide directly into that section's
+    opening prose, the same way it converts every other slide
+  - Normalize whatever slide already plays this role (`Overview`, `Outline`,
+    `Agenda`, ...) to `Roadmap`, and write one from scratch if the lesson has
+    none
+  - E.g.,
+    ```markdown
+    * Roadmap
+
+    - This lesson covers **propositional logic**: syntax, semantics, and
+      sound/complete inference via model checking and resolution
+    - It then extends to **first-order logic**: quantifiers, predicates, and
+      the added expressiveness/complexity trade-off
+    ```
+
+## Summary Slide
+- Right before the standalone `* References` slide at the end of the file
+  (see "Source Attribution" below — `References` already sits outside any
+  `#`/`##` section), add a standalone `* Summary` slide recapping the
+  lesson's key takeaways
+  - Mirrors the `.typ` chapter's mandatory `= Summary` section, the same way
+    the Roadmap slide mirrors `= Roadmap`
+  - Normalize whatever slide already plays this role (`Key Takeaways`,
+    `Conclusion`, `Wrap-up`, ...) to `Summary`, and write one from scratch if
+    the lesson has none
+  - E.g.,
+    ```markdown
+    * Summary
+
+    - @Key idea@: propositional logic trades expressiveness for
+      tractability; first-order logic trades tractability for
+      expressiveness
+    - Both rest on the same core principles: syntax/semantics separation,
+      entailment as truth preservation, and sound/complete inference
+    ```
+
 ## Use 80 columns
 - Wrap text into 80 columns
 

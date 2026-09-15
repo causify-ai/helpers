@@ -27,6 +27,12 @@ Pass `--suffix <suffix>` (e.g., `--suffix 1`) to name the branch
 `<Base>_<suffix>` (e.g., `AmpTask1234_..._1`), for splitting one issue into a
 stack of sequential branches/PRs.
 
+When `--submodules` is passed and a PR exists in more than one repo, the
+issue's body gets a `## Companion PRs` section listing each repo's PR link,
+so the single issue stays the source of truth. Pass `--update_pr_links`
+with `--gh_issue_id` to refresh that section later on its own, e.g. after a
+PR deferred with `--no_create_pr` is opened.
+
 Import as:
 
 import dev_scripts_helpers.git.git_create_issue_and_branch as dsggiab
@@ -37,6 +43,7 @@ import logging
 import os
 import re
 import shlex
+import tempfile
 from typing import List, Optional
 
 import helpers.hdbg as hdbg
@@ -76,17 +83,28 @@ def _get_repo_targets(submodules: bool) -> List[str]:
     return repo_targets
 
 
-def _dassert_all_targets_clean(repo_targets: List[str]) -> None:
+def _dassert_all_targets_clean(
+    repo_targets: List[str], *, no_abort_if_not_clean: bool = False
+) -> None:
     """
     Assert that every repo target is clean, before mutating any of them.
 
     :param repo_targets: repo directories to check
+    :param no_abort_if_not_clean: if True, only warn (do not raise) when a
+        repo target is not clean
     """
     dirty_targets = [
         target
         for target in repo_targets
         if not hgit.is_client_clean(dir_name=target, abort_if_not_clean=False)
     ]
+    if no_abort_if_not_clean:
+        if dirty_targets:
+            _LOG.warning(
+                "The following repo(s) are not clean: %s",
+                ", ".join(dirty_targets),
+            )
+        return
     hdbg.dassert(
         not dirty_targets,
         "The following repo(s) are not clean: %s",
@@ -180,6 +198,7 @@ def _create_branch_and_pr(
     create_pr: bool = True,
     gh_issue_id_provided: bool = False,
     no_abort_if_not_master: bool = False,
+    no_abort_if_not_clean: bool = False,
     suffix: str = "",
 ) -> str:
     """
@@ -192,6 +211,8 @@ def _create_branch_and_pr(
     :param no_abort_if_not_master: if True, allow branching from a non-'master'
         branch instead of aborting (the underlying invoke task switches to
         'master' first)
+    :param no_abort_if_not_clean: if True, allow branching with uncommitted
+        changes instead of aborting
     :param suffix: if specified (e.g., "1"), append `_<suffix>` to the branch
         name derived from the issue (e.g., `AmpTask1234_..._1`)
     :return: Created branch name
@@ -227,6 +248,8 @@ def _create_branch_and_pr(
         # Let git_branch_create switch to 'master' itself instead of
         # aborting when the current branch isn't 'master'.
         cmd += " --no-abort-if-not-master"
+    if no_abort_if_not_clean:
+        cmd += " --no-abort-if-not-clean"
     _LOG.info("Creating branch via invoke: %s", cmd)
     hsystem.system(cmd, log_level=logging.INFO)
     # Get the current branch name (invoke git_branch_create creates and checks out the branch).
@@ -246,6 +269,7 @@ def _create_branch_in_submodule(
     *,
     create_pr: bool = True,
     no_abort_if_not_master: bool = False,
+    no_abort_if_not_clean: bool = False,
 ) -> None:
     """
     Create (or check out) `branch_name` inside a submodule.
@@ -262,6 +286,8 @@ def _create_branch_in_submodule(
     :param no_abort_if_not_master: if True, allow branching from a non-'master'
         branch instead of aborting (the underlying invoke task switches to
         'master' first)
+    :param no_abort_if_not_clean: if True, allow branching with uncommitted
+        changes instead of aborting
     """
     if hgit.does_branch_exist(branch_name, mode="all", dir_name=submodule_path):
         _LOG.info(
@@ -282,8 +308,73 @@ def _create_branch_in_submodule(
         # Let git_branch_create switch to 'master' itself instead of
         # aborting when the current branch isn't 'master'.
         cmd += " --no-abort-if-not-master"
+    if no_abort_if_not_clean:
+        cmd += " --no-abort-if-not-clean"
     _LOG.info("Creating branch in '%s' via invoke: %s", submodule_path, cmd)
     hsystem.system(cmd, log_level=logging.INFO)
+
+
+def _get_pr_url(target: str) -> str:
+    """
+    Get the URL of the PR open on the current branch in `target`, if any.
+
+    :param target: repo directory ("." for the outer repo, or a submodule
+        path)
+    :return: PR URL, or "" if no PR is open yet (e.g., before the first
+        commit, when a branch was created with `--no_create_pr`)
+    """
+    cmd = "gh pr view --json url -q .url"
+    if target != ".":
+        cmd = f"cd {shlex.quote(target)} && {cmd}"
+    rc, output = hsystem.system_to_string(cmd, abort_on_error=False)
+    if rc != 0:
+        return ""
+    return output.strip()
+
+
+def _update_issue_body_with_pr_links(
+    issue_id: int, repo_targets: List[str]
+) -> None:
+    """
+    Refresh the issue's `## Companion PRs` section with every repo's PR link.
+
+    Keeps the single GitHub issue as the source of truth for a multi-repo
+    task's PRs, instead of opening a second issue per repo. Safe to call more
+    than once: re-running replaces the section instead of duplicating it.
+
+    :param issue_id: GitHub issue number, in the outer repo's tracker
+    :param repo_targets: repo directories to report PR links for (outer repo
+        first, then every submodule)
+    """
+    rc, body = hsystem.system_to_string(
+        f"gh issue view {issue_id} --json body -q .body", abort_on_error=False
+    )
+    if rc != 0:
+        _LOG.warning(
+            "Could not read issue #%s body; skipping companion PR links",
+            issue_id,
+        )
+        return
+    # Build the section listing every repo's current PR link.
+    section_lines = ["## Companion PRs"]
+    for target in repo_targets:
+        repo_label = "outer repo" if target == "." else f"submodule `{target}`"
+        pr_url = _get_pr_url(target)
+        section_lines.append(
+            f"- {repo_label}: {pr_url if pr_url else '_no PR yet_'}"
+        )
+    section = "\n".join(section_lines)
+    # Drop a previously-added section, if any, before re-appending it.
+    body = body.split("## Companion PRs")[0].rstrip("\n")
+    new_body = body + "\n\n" + section + "\n"
+    tmp_file = os.path.join(
+        tempfile.gettempdir(),
+        f"tmp.git_create_issue_and_branch.issue_{issue_id}_body.md",
+    )
+    hio.to_file(tmp_file, new_body)
+    cmd = f"gh issue edit {issue_id} --body-file {tmp_file}"
+    hsystem.system(cmd, log_level=logging.INFO)
+    _LOG.info("Updated issue #%s with companion PR links", issue_id)
 
 
 def _create_worktree(
@@ -463,10 +554,27 @@ def _parse() -> argparse.ArgumentParser:
         ),
     )
     parser.add_argument(
+        "--update_pr_links",
+        action="store_true",
+        default=False,
+        help=(
+            "Only refresh the issue's '## Companion PRs' section from each "
+            "repo target's current PR (requires --gh_issue_id); skip issue/"
+            "branch/PR creation. Use after opening a PR this script deferred "
+            "with --no_create_pr"
+        ),
+    )
+    parser.add_argument(
         "--no_abort_if_not_master",
         action="store_true",
         default=False,
         help="Skip checking that every repo target is on 'master'",
+    )
+    parser.add_argument(
+        "--no_abort_if_not_clean",
+        action="store_true",
+        default=False,
+        help="Warn, instead of aborting, if a repo target is not clean",
     )
     parser.add_argument(
         "--suffix",
@@ -519,6 +627,16 @@ def _main_workflow(
             args.gh_issue_title,
             "Issue title is required when creating a new issue",
         )
+        # Fail fast if an open issue with the same title already exists
+        # (e.g., from a prior run of this script that failed after creating
+        # the issue but before finishing the branch/PR steps), instead of
+        # silently creating a duplicate.
+        repo_full_name_with_host, _ = hltltagh._get_repo_full_name_from_cmd(
+            "current"
+        )
+        hltltagh._dassert_no_duplicate_open_issue(
+            repo_full_name_with_host, args.gh_issue_title
+        )
         cmd = "invoke gh_issue_create"
         cmd += f" --title {shlex.quote(args.gh_issue_title)}"
         if gh_issue_body:
@@ -542,6 +660,7 @@ def _main_workflow(
         create_pr=args.create_pr,
         gh_issue_id_provided=bool(args.gh_issue_id),
         no_abort_if_not_master=args.no_abort_if_not_master,
+        no_abort_if_not_clean=args.no_abort_if_not_clean,
         suffix=args.suffix,
     )
     _LOG.info("Branch name: '%s'", branch_name)
@@ -553,6 +672,7 @@ def _main_workflow(
             branch_name,
             create_pr=args.create_pr,
             no_abort_if_not_master=args.no_abort_if_not_master,
+            no_abort_if_not_clean=args.no_abort_if_not_clean,
         )
     # Create worktree, if requested.
     if args.create_worktree:
@@ -563,6 +683,10 @@ def _main_workflow(
         _print_usage_instructions(
             worktree_path, issue_id, branch_name, repo_targets
         )
+    # Keep the single issue as the source of truth for every repo's PR, once
+    # a PR exists in more than one repo.
+    if args.create_pr and len(repo_targets) > 1:
+        _update_issue_body_with_pr_links(issue_id, repo_targets)
 
 
 def _main(parser: argparse.ArgumentParser) -> None:
@@ -574,9 +698,22 @@ def _main(parser: argparse.ArgumentParser) -> None:
     # Determine which repos to operate on symmetrically (outer + submodules,
     # when `--submodules` was passed).
     repo_targets = _get_repo_targets(args.submodules)
+    if args.update_pr_links:
+        # Only refresh the issue's companion PR links: skip issue/branch/PR
+        # creation and the cleanliness/branch checks that precede it.
+        hdbg.dassert_ne(
+            args.gh_issue_id,
+            0,
+            "--update_pr_links requires --gh_issue_id to know which issue "
+            "to update",
+        )
+        _update_issue_body_with_pr_links(args.gh_issue_id, repo_targets)
+        return
     # Assert that every repo target is clean (no uncommitted changes), before
     # mutating any of them.
-    _dassert_all_targets_clean(repo_targets)
+    _dassert_all_targets_clean(
+        repo_targets, no_abort_if_not_clean=args.no_abort_if_not_clean
+    )
     # Capture original branch to restore on failure.
     original_branch = hgit.get_branch_name()
     if len(repo_targets) > 1 and not args.no_abort_if_not_master:

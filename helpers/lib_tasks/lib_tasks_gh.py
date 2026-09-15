@@ -9,6 +9,7 @@ import json
 import logging
 import os
 import re
+import shlex
 import subprocess
 from typing import Any, Dict, List, Optional, Tuple
 
@@ -400,6 +401,41 @@ def _get_repo_full_name_from_cmd(repo_short_name: str) -> Tuple[str, str]:
     return repo_full_name_with_host, ret_repo_short_name
 
 
+def _dassert_no_duplicate_open_issue(
+    repo_full_name_with_host: str, title: str
+) -> None:
+    """
+    Assert that no open issue titled exactly `title` already exists.
+
+    Guards against creating duplicate issues when a caller (e.g.,
+    `git_create_issue_and_branch.py`) is re-run after a later step (e.g.,
+    branch creation) failed, since a naive retry would otherwise create a
+    fresh issue every time instead of reusing the one already created.
+
+    :param repo_full_name_with_host: e.g., "github.com/org/repo"
+    :param title: exact issue title to check for
+    """
+    cmd = (
+        "gh issue list"
+        + f" --repo {repo_full_name_with_host}"
+        + " --state open"
+        + " --json number,title"
+        + " --limit 200"
+    )
+    _, output = hsystem.system_to_string(cmd)
+    issues = json.loads(output)
+    duplicate_ids = [
+        str(issue["number"]) for issue in issues if issue["title"] == title
+    ]
+    hdbg.dassert(
+        not duplicate_ids,
+        "An open issue titled '%s' already exists: #%s. Pass "
+        "--gh_issue_id to reuse it instead of creating a duplicate.",
+        title,
+        ", #".join(duplicate_ids),
+    )
+
+
 def _get_gh_issue_title(issue_id: int, repo_short_name: str) -> Tuple[str, str]:
     """
     Get the title of a GitHub issue.
@@ -524,28 +560,43 @@ def gh_issue_create(  # type: ignore
     repo_full_name_with_host, repo_short_name = _get_repo_full_name_from_cmd(
         repo_short_name
     )
+    # Avoid creating a duplicate issue, e.g., when a caller is re-run after a
+    # later step (like branch creation) failed.
+    _dassert_no_duplicate_open_issue(repo_full_name_with_host, title)
     _LOG.info(
         "Creating issue with title '%s' in %s",
         title,
         repo_full_name_with_host,
     )
-    # Build the command.
-    cmd = (
-        "gh issue create"
-        + f" --repo {repo_full_name_with_host}"
-        + f' --title "{title}"'
-        + f' --body "{body}"'
-    )
-    if labels:
-        cmd += f' --label "{labels}"'
-    if assignees:
-        cmd += f' --assignee "{assignees}"'
-    if project:
-        cmd += f' --project "{project}"'
-    # Execute the command and capture output.
-    # gh issue create outputs the URL of the created issue, e.g.,
-    # https://github.com/cryptokaizen/csfy/issues/7572
-    _, output = hsystem.system_to_string(cmd)
+    # Write the body to a temp file and pass it to `gh` via `--body-file`
+    # instead of interpolating it inline as `--body "{body}"`: `hsystem.system*`
+    # runs the command through a shell, so an inline double-quoted body with
+    # backticks or `$(...)` (e.g., a body listing shell commands or code
+    # snippets) gets executed as command substitution instead of being passed
+    # through literally.
+    body_file_name = "tmp.gh_issue_create.body.txt"
+    hio.to_file(body_file_name, body)
+    try:
+        # Build the command.
+        cmd = [
+            "gh issue create",
+            f"--repo {repo_full_name_with_host}",
+            f"--title {shlex.quote(title)}",
+            f"--body-file {shlex.quote(body_file_name)}",
+        ]
+        if labels:
+            cmd.append(f"--label {shlex.quote(labels)}")
+        if assignees:
+            cmd.append(f"--assignee {shlex.quote(assignees)}")
+        if project:
+            cmd.append(f"--project {shlex.quote(project)}")
+        cmd = " ".join(cmd)
+        # Execute the command and capture output.
+        # gh issue create outputs the URL of the created issue, e.g.,
+        # https://github.com/cryptokaizen/csfy/issues/7572
+        _, output = hsystem.system_to_string(cmd)
+    finally:
+        os.remove(body_file_name)
     _LOG.debug("gh issue create output: %s", output)
     # Extract the issue ID from the URL.
     # The URL format is: https://github.com/org/repo/issues/123
@@ -650,23 +701,35 @@ def gh_create_pr(  # type: ignore
         if issue_id and str(issue_id) not in body:
             body += f"\n\n#{issue_id}"
             _LOG.info("Added issue id %s to the PR body", issue_id)
-        cmd = (
-            "gh pr create"
-            + f" --repo {repo_full_name_with_host}"
-            + (" --draft" if draft else "")
-            + f' --title "{title}"'
-            + f' --body "{body}"'
-        )
-        if reviewer:
-            cmd += f" --reviewer {reviewer}"
-            _LOG.info("Added reviewer %s to the PR", reviewer)
-        if labels:
-            cmd += f' --label "{labels}"'
-            _LOG.info("Added labels %s to the PR", labels)
-        if assignee:
-            cmd += f" --assignee {assignee}"
-        # TODO(gp): Use _to_single_line_cmd
-        hltltaut.run(ctx, cmd)
+        # Write the body to a temp file and pass it to `gh` via `--body-file`
+        # instead of interpolating it inline as `--body "{body}"`: `ctx.run()`
+        # runs the command through a shell, so an inline double-quoted body
+        # with backticks or `$(...)` (e.g., a body listing shell commands or
+        # code snippets) gets executed as command substitution instead of
+        # being passed through literally.
+        body_file_name = "tmp.gh_create_pr.body.txt"
+        hio.to_file(body_file_name, body)
+        try:
+            cmd = [
+                "gh pr create",
+                f"--repo {repo_full_name_with_host}",
+                "--draft" if draft else "",
+                f"--title {shlex.quote(title)}",
+                f"--body-file {shlex.quote(body_file_name)}",
+            ]
+            if reviewer:
+                cmd.append(f"--reviewer {reviewer}")
+                _LOG.info("Added reviewer %s to the PR", reviewer)
+            if labels:
+                cmd.append(f"--label {shlex.quote(labels)}")
+                _LOG.info("Added labels %s to the PR", labels)
+            if assignee:
+                cmd.append(f"--assignee {assignee}")
+            cmd = " ".join(part for part in cmd if part)
+            # TODO(gp): Use _to_single_line_cmd
+            hltltaut.run(ctx, cmd)
+        finally:
+            os.remove(body_file_name)
     if auto_merge:
         cmd = f"gh pr ready {title}"
         hltltaut.run(ctx, cmd)

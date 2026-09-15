@@ -27,6 +27,16 @@
 // instead for one chapter of a single larger numbered book.
 #chapter("Example Chapter")
 
+// Mandatory (see "Mandatory Sections" in `typst.rules.md`): every chapter
+// opens with a real `= Roadmap` heading, converted directly from the
+// `.smd`'s own standalone `* Roadmap` slide. Prose, like the rest of the
+// chapter body, not a bullet list.
+= Roadmap
+
+This chapter walks through the topics below, in the order they appear:
+intuition first, then formalism, worked examples, and a discussion of
+trade-offs.
+
 // `#` (H1) in the source becomes a bold paragraph, not a heading: the
 // `#chapter(...)` call above already carries the document's top title.
 #strong[Introduction]
@@ -159,14 +169,18 @@ Paragraph text discussing the diagram, referencing it as
 Paragraph text discussing the wide table, referencing it as
 @tab:example-wide-table.
 
-== Conclusion
+// Mandatory: recap the chapter's key takeaways, converted directly from the
+// `.smd`'s own standalone `* Summary` slide (right before its `* References`
+// slide). Prose, like Roadmap above and the rest of the chapter body: per
+// `book.improve_text_tags`, Roadmap/Summary read as flowing narrative, not
+// reference material, so no bold and no bullet list here.
+= Summary
 
-#strong[Summary]
+One or two paragraphs restating the chapter's key insight and how the pieces
+introduced above fit together.
 
-- Point 1: first key insight
-- Point 2: second key insight
-
-// End every chapter that cites sources with the references section.
-== References
+// Mandatory, real level-1 heading (not `==`): end every chapter that cites
+// sources with the references section.
+= References
 
 #references("/msml610/lectures_source/refs.bib")

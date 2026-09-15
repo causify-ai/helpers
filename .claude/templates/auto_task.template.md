@@ -8,6 +8,15 @@
 * Problem
 - <Problem statement and goal>
 
+* Info
+- **Type**: [feature|bug|improvement|cosmetic]
+- **Reason of the problem**: ...
+- **Confidence in the fix**: [low|medium|high]
+- **Fix complexity**: [low|medium|high]
+- **Verification plan**:
+  - <How to verify that the problem is fixed>
+  - ...
+
 * Solution
 
 - [ ] PR1: <Goal of first task>
@@ -17,5 +26,3 @@
 - [ ] PR2: <Goal of second task>
   - <Change 1>
   - <Change 2>
-
-...

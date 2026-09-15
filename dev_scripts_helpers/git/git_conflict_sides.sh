@@ -80,7 +80,3 @@ else
   echo "No merge/rebase/cherry-pick/revert in progress."
   exit 0
 fi
-
-echo
-echo "Unmerged files:"
-execute "git diff --name-only --diff-filter=U"

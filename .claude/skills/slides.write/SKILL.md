@@ -25,6 +25,10 @@ model: opus
 ## Create Slides
 - Create `<NUM_SLIDES>` slides
 - Each slide needs to start with a `* <TITLE>` format
+- Open with a standalone `* Roadmap` slide and close with a standalone
+  `* Summary` slide (before `* References`, if the deck has one); see
+  `.claude/skills/slides.rules.md` `## Roadmap Slide` / `## Summary Slide`.
+  These two do not count against `<NUM_SLIDES>`
 
 ## Add Visuals
 - Follow the instructions from `.claude/skills/figure.rules.md`

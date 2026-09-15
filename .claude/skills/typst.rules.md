@@ -112,12 +112,18 @@
   section
   - `= Summary`
   - `= References` at the end
-  - All three are required even when the `.smd` has no slide by that exact name:
-    normalize whatever the source calls its opening/closing slide (`Overview`,
-    `Outline`, `Agenda`, `Key Takeaways`, `Conclusion`, `Wrap-up`, ...) to `Roadmap`
-    / `Summary`, and write the section from scratch when the `.smd` has no such slide
-    at all. Keep the `// Slide: <original title>` comment above the heading either
-    way, for traceability back to the source
+  - All three are required regardless of what the `.smd` source has. Per the
+    slides convention (`.claude/skills/slides.rules.md` `## Roadmap Slide` /
+    `## Summary Slide`), every `.smd` now carries its own standalone
+    `* Roadmap` (first slide, before the first `#` topic) and `* Summary`
+    (last content slide, right before `* References`): convert those directly
+    into `= Roadmap` / `= Summary`, the same as any other slide. For an older
+    lesson written before that convention existed, normalize whatever it calls
+    its opening/closing slide (`Overview`, `Outline`, `Agenda`, `Key
+    Takeaways`, `Conclusion`, `Wrap-up`, ...) to `Roadmap` / `Summary`, and
+    write the section from scratch only if the lesson has no such slide at
+    all. Keep the `// Slide: <original title>` comment above the heading
+    either way, for traceability back to the source
 
 # Text Formatting
 
@@ -203,6 +209,34 @@
   `$ "RMSE" eq.delta sqrt("MSE") = sqrt(1/N sum_(i=1)^N (h(x_i) - f(x_i))^2) $` uses
   `eq.delta` only for the RMSE definition and keeps `=` for substituting MSE's
   already-defined formula
+
+## Mathematical Symbols in Text
+
+- Never use Unicode symbols directly in body text: use Typst math expressions
+  (within `$...$` delimiters) or Typst command names for all mathematical symbols
+- This includes Greek letters (α, β, γ, ...), special operators, and mathematical
+  constants: always use their Typst equivalents
+- When a symbol appears inline with regular prose, wrap it in `$...$`:
+  - **Bad** (literal Unicode symbols):
+    ```typst
+    Variables α and β represent parameters.
+    Let α → β denote the transformation.
+    ```
+  - **Good** (Typst math expressions):
+    ```typst
+    Variables $alpha$ and $beta$ represent parameters.
+    Let $alpha arrow.r beta$ denote the transformation.
+    ```
+- When a symbol is part of a larger formula, keep it inside the formula's `$...$`
+  delimiters and use Typst syntax, never mix Unicode and Typst
+  - **Bad**:
+    ```typst
+    The update rule is α ← β, which simplifies the model.
+    ```
+  - **Good**:
+    ```typst
+    The update rule is $alpha arrow.l beta$, which simplifies the model.
+    ```
 
 # Algorithms and Pseudocode
 
