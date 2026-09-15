@@ -15,7 +15,7 @@ import helpers.htranslate as htransl
 import argparse
 import configparser
 import logging
-import pathlib
+import os
 import sys
 from typing import Optional, Tuple
 
@@ -41,15 +41,15 @@ def _parse_args() -> argparse.Namespace:
     parser.add_argument("text", help="string to translate")
     parser.add_argument(
         "--aws",
-        type=pathlib.Path,
+        type=str,
         dest="credentials",
-        default=pathlib.Path().home() / ".aws/credentials",
+        default=os.path.join(os.path.expanduser("~"), ".aws/credentials"),
         help="Path to the aws credentials file.",
     )
     return parser.parse_args()
 
 
-def _load_credentials(conf_path: pathlib.Path) -> Tuple[str, str]:
+def _load_credentials(conf_path: str) -> Tuple[str, str]:
     """
     Load aws credentilas from config file.
 
