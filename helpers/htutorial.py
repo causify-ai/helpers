@@ -671,14 +671,24 @@ def generate_animation(
 
             with PILImage.open(frame_path) as img:
                 dimensions.append((frame_file, img.size))
-        # Check if all dimensions are the same.
-        unique_dimensions = set(dim[1] for dim in dimensions)
-        if len(unique_dimensions) == 1:
-            width, height = dimensions[0][1]
+        # Check that dimensions are consistent, within a small tolerance.
+        # `tight_layout()` can shift the rendered bbox by a pixel or two
+        # depending on how much text a frame contains (e.g., an interpretation
+        # panel whose line count varies by frame), so exact equality is too
+        # brittle.
+        max_dimension_diff_px = 2
+        widths = [dim[1][0] for dim in dimensions]
+        heights = [dim[1][1] for dim in dimensions]
+        width_diff = max(widths) - min(widths)
+        height_diff = max(heights) - min(heights)
+        if (
+            width_diff <= max_dimension_diff_px
+            and height_diff <= max_dimension_diff_px
+        ):
             _LOG.info(
-                "All frames have consistent dimensions: %sx%s pixels",
-                width,
-                height,
+                "Frame dimensions are consistent (width diff=%s, height diff=%s px)",
+                width_diff,
+                height_diff,
             )
             # Convert frames to movie if requested.
             if convert_to_movie:
@@ -690,5 +700,6 @@ def generate_animation(
             for frame_file, size in dimensions:
                 _LOG.warning("  %s: %sx%s pixels", frame_file, size[0], size[1])
             hdbg.dfatal(
-                "Frame dimensions are inconsistent. Expected all frames to have the same size."
+                "Frame dimensions are inconsistent. Expected all frames to have "
+                f"roughly the same size (within {max_dimension_diff_px}px)."
             )
