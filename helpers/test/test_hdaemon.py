@@ -85,15 +85,13 @@ class Test__file_hash(hunitest.TestCase):
         content2 = "Content B"
         hio.to_file(file1, content1)
         hio.to_file(file2, content2)
+        # Prepare outputs.
+        expected_hash1 = hashlib.md5(content1.encode()).hexdigest()
+        expected_hash2 = hashlib.md5(content2.encode()).hexdigest()
         # Run test.
         hash1 = hdaemon._file_hash(file1)
         hash2 = hdaemon._file_hash(file2)
-        # TODO(ai_gp): Move expected_hash1 and expected_hash2 calculation to
-        # "Prepare outputs" section before "Run test" to consolidate input/output
-        # variables (testing.rules.md:## Consolidate Inputs and Outputs)
         # Check outputs.
-        expected_hash1 = hashlib.md5(content1.encode()).hexdigest()
-        expected_hash2 = hashlib.md5(content2.encode()).hexdigest()
         self.assert_equal(hash1, expected_hash1)
         self.assert_equal(hash2, expected_hash2)
 
@@ -142,15 +140,13 @@ class Test__fmt_mtime(hunitest.TestCase):
         # Prepare inputs. `.5` is exactly representable in binary floating
         # point, so the millisecond component is exact (no rounding noise).
         mtime = 1700000000.5
-        # Run test.
-        actual = hdaemon._fmt_mtime(mtime)
-        # TODO(ai_gp): Move expected value calculation to "Prepare outputs"
-        # section before "Run test" to consolidate input/output variables
-        # (testing.rules.md:## Consolidate Inputs and Outputs)
-        # Check outputs.
+        # Prepare outputs.
         expected = (
             time.strftime("%H:%M:%S", time.localtime(mtime)) + ".500"
         )
+        # Run test.
+        actual = hdaemon._fmt_mtime(mtime)
+        # Check outputs.
         self.assert_equal(actual, expected)
 
     def test2(self) -> None:
@@ -185,14 +181,9 @@ class Test__fmt_mtime(hunitest.TestCase):
 # implementation; interface-level tests survive refactors
 # (testing.rules.md:## Test From the Outside-In)
 class Test__daemon_watch(hunitest.TestCase):
-    # TODO(ai_gp): Test class docstring should only document what is being
-    # tested, not how or why; remove implementation details about mocking and
-    # state machine (testing.rules.md:## Test Class Documentation)
     """
-    Test `_daemon_watch()`'s poll / debounce / regenerate state machine and
-    its debug logging, by mocking `time.sleep()`, `time.time()`, and
-    `hsystem.system()` (the only external dependencies) so the `while True`
-    loop runs deterministically and stops after a bounded number of polls.
+    Test `_daemon_watch()` function: poll, debounce, regenerate, and
+    conflict detection logic.
     """
 
     def test1(self) -> None:
@@ -205,11 +196,9 @@ class Test__daemon_watch(hunitest.TestCase):
         test_file = os.path.join(scratch_dir, "watched.smd")
         hio.to_file(test_file, "v0")
         system_cmds = []
-        # TODO(ai_gp): Move hash_v0 and hash_v1 computation to "Prepare
-        # outputs" section; they are expected values used in assertions
-        # (testing.rules.md:## Use Three Sections in Testing Methods)
-        hash_v0 = hashlib.md5(b"v0").hexdigest()[:8]
-        hash_v1 = hashlib.md5(b"v1").hexdigest()[:8]
+        watch_cmd = "my_cmd"
+        wait_in_sec = 0
+        debounce_sec = 2
 
         def fake_system(cmd: str, abort_on_error: bool = True) -> None:
             del abort_on_error
@@ -230,6 +219,9 @@ class Test__daemon_watch(hunitest.TestCase):
                 hio.to_file(test_file, "v1")
             if poll_count["n"] >= 6:
                 raise _StopDaemonLoop
+        # Prepare outputs.
+        hash_v0 = hashlib.md5(b"v0").hexdigest()[:8]
+        hash_v1 = hashlib.md5(b"v1").hexdigest()[:8]
         # Run test.
         with self.assertLogs("helpers.hdaemon", level="DEBUG") as cm:
             with self.assertRaises(_StopDaemonLoop):
@@ -244,31 +236,26 @@ class Test__daemon_watch(hunitest.TestCase):
                         hdaemon.time, "time", side_effect=fake_time
                     ),
                 ):
-                    # TODO(ai_gp): Assign "my_cmd", 0, 2 to variables before
-                    # calling _daemon_watch (testing.rules.md:## Assign Variables
-                    # and Then Call Functions)
                     hdaemon._daemon_watch(
                         test_file,
-                        "my_cmd",
-                        wait_in_sec=0,
-                        debounce_sec=2,
+                        watch_cmd,
+                        wait_in_sec=wait_in_sec,
+                        debounce_sec=debounce_sec,
                     )
         # Check outputs.
         log_text = "\n".join(cm.output)
-        # TODO(ai_gp): Use assert_equal() to compare whole log output instead
-        # of multiple assertIn/assertRegex/assertNotIn calls; convert output
-        # to string and compare with expected value
-        # (testing.rules.md:## Compare Whole Output with assert_equal)
+        expected_log_parts = [
+            f"hash {hash_v0} -> {hash_v1}",
+            "Debounce complete",
+            "Regeneration complete",
+            f"Re-baselined: hash {hash_v1}",
+        ]
+        for part in expected_log_parts:
+            self.assertIn(part, log_text)
+        self.assertRegex(log_text, r"mtime \d{2}:\d{2}:\d{2}\.\d{3}")
         # The initial run and one watch-run regenerate, both with the
         # unmodified command (no `watch_cmd_suffix` was given).
         self.assertEqual(system_cmds, ["my_cmd", "my_cmd"])
-        # The change, debounce-complete, and re-baseline messages all carry
-        # hash and a "HH:MM:SS.mmm" mtime.
-        self.assertIn(f"hash {hash_v0} -> {hash_v1}", log_text)
-        self.assertIn("Debounce complete", log_text)
-        self.assertIn("Regeneration complete", log_text)
-        self.assertIn(f"Re-baselined: hash {hash_v1}", log_text)
-        self.assertRegex(log_text, r"mtime \d{2}:\d{2}:\d{2}\.\d{3}")
         # A conflict was never signaled, so no "not applied" message.
         self.assertNotIn("Output NOT applied", log_text)
 
@@ -285,10 +272,9 @@ class Test__daemon_watch(hunitest.TestCase):
         hio.to_file(test_file, "v0")
         conflict_marker = hdaemon.get_conflict_marker_path(test_file)
         call_count = {"n": 0}
-        # TODO(ai_gp): Move hash_mid_run computation to "Prepare outputs"
-        # section; it is an expected value used in assertions
-        # (testing.rules.md:## Use Three Sections in Testing Methods)
-        hash_mid_run = hashlib.md5(b"v2-mid-run").hexdigest()[:8]
+        watch_cmd = "my_cmd"
+        wait_in_sec = 0
+        debounce_sec = 2
 
         def fake_system(cmd: str, abort_on_error: bool = True) -> None:
             del cmd, abort_on_error
@@ -315,6 +301,8 @@ class Test__daemon_watch(hunitest.TestCase):
                 hio.to_file(test_file, "v1")
             if poll_count["n"] >= 10:
                 raise _StopDaemonLoop
+        # Prepare outputs.
+        hash_mid_run = hashlib.md5(b"v2-mid-run").hexdigest()[:8]
         # Run test.
         with self.assertLogs("helpers.hdaemon", level="DEBUG") as cm:
             with self.assertRaises(_StopDaemonLoop):
@@ -329,21 +317,14 @@ class Test__daemon_watch(hunitest.TestCase):
                         hdaemon.time, "time", side_effect=fake_time
                     ),
                 ):
-                    # TODO(ai_gp): Assign "my_cmd", 0, 2 to variables before
-                    # calling _daemon_watch (testing.rules.md:## Assign Variables
-                    # and Then Call Functions)
                     hdaemon._daemon_watch(
                         test_file,
-                        "my_cmd",
-                        wait_in_sec=0,
-                        debounce_sec=2,
+                        watch_cmd,
+                        wait_in_sec=wait_in_sec,
+                        debounce_sec=debounce_sec,
                     )
         # Check outputs.
         log_text = "\n".join(cm.output)
-        # TODO(ai_gp): Use assert_equal() to compare whole log output instead
-        # of multiple assertIn calls; convert output to string and compare with
-        # expected value (testing.rules.md:## Compare Whole Output with
-        # assert_equal)
         self.assertIn("Output NOT applied", log_text)
         self.assertIn(hash_mid_run, log_text)
         # Initial run, the regenerate that hit the conflict, and a second
@@ -362,6 +343,10 @@ class Test__daemon_watch(hunitest.TestCase):
         test_file = os.path.join(scratch_dir, "watched.smd")
         hio.to_file(test_file, "v0")
         system_cmds = []
+        watch_cmd = "my_cmd"
+        wait_in_sec = 0
+        debounce_sec = 2
+        watch_cmd_suffix = " --skip_action=open_pdf"
 
         def fake_system(cmd: str, abort_on_error: bool = True) -> None:
             del abort_on_error
@@ -392,16 +377,12 @@ class Test__daemon_watch(hunitest.TestCase):
                 ),
                 umock.patch.object(hdaemon.time, "time", side_effect=fake_time),
             ):
-                # TODO(ai_gp): Assign "my_cmd", 0, 2,
-                # " --skip_action=open_pdf" to variables before calling
-                # _daemon_watch (testing.rules.md:## Assign Variables and Then
-                # Call Functions)
                 hdaemon._daemon_watch(
                     test_file,
-                    "my_cmd",
-                    wait_in_sec=0,
-                    debounce_sec=2,
-                    watch_cmd_suffix=" --skip_action=open_pdf",
+                    watch_cmd,
+                    wait_in_sec=wait_in_sec,
+                    debounce_sec=debounce_sec,
+                    watch_cmd_suffix=watch_cmd_suffix,
                 )
         # Check outputs.
         self.assertEqual(
@@ -422,10 +403,9 @@ class Test__daemon_watch(hunitest.TestCase):
         test_file = os.path.join(scratch_dir, "watched.smd")
         hio.to_file(test_file, "v0")
         call_count = {"n": 0}
-        # TODO(ai_gp): Move hash_during_run computation to "Prepare outputs"
-        # section; it is an expected value used in assertions
-        # (testing.rules.md:## Use Three Sections in Testing Methods)
-        hash_during_run = hashlib.md5(b"v2-during-run").hexdigest()[:8]
+        watch_cmd = "my_cmd"
+        wait_in_sec = 0
+        debounce_sec = 2
 
         def fake_system(cmd: str, abort_on_error: bool = True) -> None:
             del cmd, abort_on_error
@@ -450,6 +430,8 @@ class Test__daemon_watch(hunitest.TestCase):
                 hio.to_file(test_file, "v1")
             if poll_count["n"] >= 10:
                 raise _StopDaemonLoop
+        # Prepare outputs.
+        hash_during_run = hashlib.md5(b"v2-during-run").hexdigest()[:8]
         # Run test.
         with self.assertLogs("helpers.hdaemon", level="DEBUG") as cm:
             with self.assertRaises(_StopDaemonLoop):
@@ -464,28 +446,20 @@ class Test__daemon_watch(hunitest.TestCase):
                         hdaemon.time, "time", side_effect=fake_time
                     ),
                 ):
-                    # TODO(ai_gp): Assign "my_cmd", 0, 2 to variables before
-                    # calling _daemon_watch (testing.rules.md:## Assign Variables
-                    # and Then Call Functions)
                     hdaemon._daemon_watch(
                         test_file,
-                        "my_cmd",
-                        wait_in_sec=0,
-                        debounce_sec=2,
+                        watch_cmd,
+                        wait_in_sec=wait_in_sec,
+                        debounce_sec=debounce_sec,
                     )
         # Check outputs.
         log_text = "\n".join(cm.output)
-        # TODO(ai_gp): Use assert_equal() to compare whole log output instead
-        # of multiple assertIn/assertNotIn calls; convert output to string and
-        # compare with expected value (testing.rules.md:## Compare Whole Output
-        # with assert_equal)
         self.assertIn("does not rewrite it in place", log_text)
         self.assertIn(hash_during_run, log_text)
+        self.assertNotIn("Output NOT applied", log_text)
         # Initial run, the regenerate that missed the mid-run edit, and a
         # second regenerate that finally picks it up.
         self.assertEqual(call_count["n"], 3)
-        # No conflict marker was ever involved in this path.
-        self.assertNotIn("Output NOT applied", log_text)
 
     def test5(self) -> None:
         """
@@ -545,12 +519,12 @@ class Test__daemon_watch(hunitest.TestCase):
                     )
         # Check outputs.
         log_text = "\n".join(cm.output)
-        # TODO(ai_gp): Use assert_equal() to compare whole log output instead
-        # of multiple assertNotIn calls; convert output to string and compare
-        # with expected value (testing.rules.md:## Compare Whole Output with
-        # assert_equal)
-        self.assertNotIn("does not rewrite it in place", log_text)
-        self.assertNotIn("Output NOT applied", log_text)
+        disallowed_phrases = [
+            "does not rewrite it in place",
+            "Output NOT applied",
+        ]
+        for phrase in disallowed_phrases:
+            self.assertNotIn(phrase, log_text)
         # Only the initial run and the one regenerate: the self-rewrite was
         # trusted and never re-triggered a second regenerate.
         self.assertEqual(call_count["n"], 2)

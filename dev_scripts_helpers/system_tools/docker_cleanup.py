@@ -101,9 +101,8 @@ def _parse_docker_size_to_bytes(size_str: str) -> float:
     :return: size in bytes
     """
     match = re.match(r"^([\d.]+)\s*([A-Za-z]+)$", size_str.strip())
-    # TODO(ai_gp): Use dassert_re_match and update coding.rules.md to explain to use this.
-    hdbg.dassert(
-        match is not None, "Cannot parse Docker size string '%s'", size_str
+    match = hdbg.dassert_re_match(
+        match, "Cannot parse Docker size string '%s'", size_str
     )
     value_str, unit = match.groups()
     unit = unit.upper()
@@ -134,11 +133,19 @@ def _format_bytes(num_bytes: float) -> str:
     return formatted
 
 
-# Matches one row of `docker system df` output, e.g.:
+# Compiled regex matches one row of `docker system df` output, e.g.:
 #   Images          26        1         25.21GB   13.03GB (51%)
-# The row type (e.g., "Local Volumes", "Build Cache") can contain internal
-# spaces, so it is separated from the numeric columns via `\s{2,}`.
-# TODO(ai_gp): Inline it and add verbose + comments.
+# Parsing logic:
+# - Row type (e.g., "Local Volumes", "Build Cache") can contain internal
+#   spaces, so it is separated from numeric columns via `\s{2,}` (2+ spaces)
+# TODO(ai_gp): move the comments inlined in the regex below
+# - `(?P<type>[A-Za-z ]+?)` : row type with non-greedy matching
+# - `\s{2,}` : at least 2 spaces separate type from columns
+# - `(?P<total>\d+)` : total count
+# - `(?P<active>\d+)` : active count
+# - `(?P<size>\S+)` : total size (e.g., "25.21GB")
+# - `(?P<reclaimable>\S+)` : reclaimable size
+# - `(?:\s+\(\d+%\))?` : optional "(%)" suffix
 _SYSTEM_DF_ROW_RE = re.compile(
     r"^(?P<type>[A-Za-z ]+?)\s{2,}"
     r"(?P<total>\d+)\s+"
