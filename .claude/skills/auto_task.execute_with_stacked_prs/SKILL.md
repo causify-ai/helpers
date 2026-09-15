@@ -124,6 +124,19 @@ model: haiku
   stack turns out to need splitting mid-run
 - Unlike a single-PR task in `.claude/skills/auto_task.rules.md`, a stack shares one
   issue across every branch
+- If the issue also spans a submodule (see `.claude/skills/auto_task.rules.md`
+  "Multi-Repo Issues, Branches, and PRs"), only the outer repo's branches stack
+  (`_1` .. `_N`): a submodule gets one companion branch/PR, not a stack, since
+  `invoke git_branch_create --suffix` does not fan out to submodules
+  - Pass `--submodules` alongside `--suffix 1` on the first
+    `git_create_issue_and_branch.py` call below to create that companion
+    branch/PR once, then refresh the issue's companion PR links after the stack
+    is built:
+
+    ```bash
+    > git_create_issue_and_branch.py --gh_issue_id <NUM> --submodules \
+        --update_pr_links
+    ```
 
 # Constraints
 

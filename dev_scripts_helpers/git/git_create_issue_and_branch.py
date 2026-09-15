@@ -27,6 +27,12 @@ Pass `--suffix <suffix>` (e.g., `--suffix 1`) to name the branch
 `<Base>_<suffix>` (e.g., `AmpTask1234_..._1`), for splitting one issue into a
 stack of sequential branches/PRs.
 
+When `--submodules` is passed and a PR exists in more than one repo, the
+issue's body gets a `## Companion PRs` section listing each repo's PR link,
+so the single issue stays the source of truth. Pass `--update_pr_links`
+with `--gh_issue_id` to refresh that section later on its own, e.g. after a
+PR deferred with `--no_create_pr` is opened.
+
 Import as:
 
 import dev_scripts_helpers.git.git_create_issue_and_branch as dsggiab
@@ -37,6 +43,7 @@ import logging
 import os
 import re
 import shlex
+import tempfile
 from typing import List, Optional
 
 import helpers.hdbg as hdbg
@@ -307,6 +314,69 @@ def _create_branch_in_submodule(
     hsystem.system(cmd, log_level=logging.INFO)
 
 
+def _get_pr_url(target: str) -> str:
+    """
+    Get the URL of the PR open on the current branch in `target`, if any.
+
+    :param target: repo directory ("." for the outer repo, or a submodule
+        path)
+    :return: PR URL, or "" if no PR is open yet (e.g., before the first
+        commit, when a branch was created with `--no_create_pr`)
+    """
+    cmd = "gh pr view --json url -q .url"
+    if target != ".":
+        cmd = f"cd {shlex.quote(target)} && {cmd}"
+    rc, output = hsystem.system_to_string(cmd, abort_on_error=False)
+    if rc != 0:
+        return ""
+    return output.strip()
+
+
+def _update_issue_body_with_pr_links(
+    issue_id: int, repo_targets: List[str]
+) -> None:
+    """
+    Refresh the issue's `## Companion PRs` section with every repo's PR link.
+
+    Keeps the single GitHub issue as the source of truth for a multi-repo
+    task's PRs, instead of opening a second issue per repo. Safe to call more
+    than once: re-running replaces the section instead of duplicating it.
+
+    :param issue_id: GitHub issue number, in the outer repo's tracker
+    :param repo_targets: repo directories to report PR links for (outer repo
+        first, then every submodule)
+    """
+    rc, body = hsystem.system_to_string(
+        f"gh issue view {issue_id} --json body -q .body", abort_on_error=False
+    )
+    if rc != 0:
+        _LOG.warning(
+            "Could not read issue #%s body; skipping companion PR links",
+            issue_id,
+        )
+        return
+    # Build the section listing every repo's current PR link.
+    section_lines = ["## Companion PRs"]
+    for target in repo_targets:
+        repo_label = "outer repo" if target == "." else f"submodule `{target}`"
+        pr_url = _get_pr_url(target)
+        section_lines.append(
+            f"- {repo_label}: {pr_url if pr_url else '_no PR yet_'}"
+        )
+    section = "\n".join(section_lines)
+    # Drop a previously-added section, if any, before re-appending it.
+    body = body.split("## Companion PRs")[0].rstrip("\n")
+    new_body = body + "\n\n" + section + "\n"
+    tmp_file = os.path.join(
+        tempfile.gettempdir(),
+        f"tmp.git_create_issue_and_branch.issue_{issue_id}_body.md",
+    )
+    hio.to_file(tmp_file, new_body)
+    cmd = f"gh issue edit {issue_id} --body-file {tmp_file}"
+    hsystem.system(cmd, log_level=logging.INFO)
+    _LOG.info("Updated issue #%s with companion PR links", issue_id)
+
+
 def _create_worktree(
     branch_name: str,
     issue_id: int,
@@ -484,6 +554,17 @@ def _parse() -> argparse.ArgumentParser:
         ),
     )
     parser.add_argument(
+        "--update_pr_links",
+        action="store_true",
+        default=False,
+        help=(
+            "Only refresh the issue's '## Companion PRs' section from each "
+            "repo target's current PR (requires --gh_issue_id); skip issue/"
+            "branch/PR creation. Use after opening a PR this script deferred "
+            "with --no_create_pr"
+        ),
+    )
+    parser.add_argument(
         "--no_abort_if_not_master",
         action="store_true",
         default=False,
@@ -602,6 +683,10 @@ def _main_workflow(
         _print_usage_instructions(
             worktree_path, issue_id, branch_name, repo_targets
         )
+    # Keep the single issue as the source of truth for every repo's PR, once
+    # a PR exists in more than one repo.
+    if args.create_pr and len(repo_targets) > 1:
+        _update_issue_body_with_pr_links(issue_id, repo_targets)
 
 
 def _main(parser: argparse.ArgumentParser) -> None:
@@ -613,6 +698,17 @@ def _main(parser: argparse.ArgumentParser) -> None:
     # Determine which repos to operate on symmetrically (outer + submodules,
     # when `--submodules` was passed).
     repo_targets = _get_repo_targets(args.submodules)
+    if args.update_pr_links:
+        # Only refresh the issue's companion PR links: skip issue/branch/PR
+        # creation and the cleanliness/branch checks that precede it.
+        hdbg.dassert_ne(
+            args.gh_issue_id,
+            0,
+            "--update_pr_links requires --gh_issue_id to know which issue "
+            "to update",
+        )
+        _update_issue_body_with_pr_links(args.gh_issue_id, repo_targets)
+        return
     # Assert that every repo target is clean (no uncommitted changes), before
     # mutating any of them.
     _dassert_all_targets_clean(

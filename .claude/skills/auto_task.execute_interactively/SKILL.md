@@ -89,6 +89,15 @@ model: haiku
   changes and then commit
 - Push the commit; if the branch has no PR yet (first task), open the draft PR now
   that there is a commit to diff against `master`
+  - If the task spans more than one repo (see `.claude/skills/auto_task.rules.md`
+    "Multi-Repo Issues, Branches, and PRs"), open the draft PR in every affected
+    repo, then refresh the issue's companion PR links:
+
+    ```bash
+    > git_create_issue_and_branch.py --gh_issue_id <NUM> --submodules \
+        --update_pr_links
+    ```
+
 - Once the user confirms that the N-th task is complete, move to the N+1 following
   the same procedure as per `Loop over the Tasks`
 

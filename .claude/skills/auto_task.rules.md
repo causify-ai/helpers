@@ -94,6 +94,24 @@
   repo only by default
   - Pass `--submodules` to also create the same branch/PR, by name, in every
     submodule, so the issue, the branches, and the PRs all stay aligned
+- When a PR ends up existing in more than one repo,
+  `git_create_issue_and_branch.py` appends a `## Companion PRs` section to the
+  issue body listing every repo's PR link, so the one issue stays the source of
+  truth for the whole task, instead of opening a second issue per repo
+  - This runs automatically at the end of a `--submodules` call that also
+    creates the PRs
+  - If a PR is opened later instead (e.g., a draft PR opened after the first
+    commit, per
+    `.claude/skills/auto_task.execute_interactively/SKILL.md`), refresh the
+    section on its own:
+
+    ```bash
+    > git_create_issue_and_branch.py --gh_issue_id <NUM> --submodules \
+        --update_pr_links
+    ```
+
+  - Never hand-edit the `## Companion PRs` section: it is regenerated, not
+    appended to, so a hand edit is overwritten on the next refresh
 
 ## Review Specs Before Executing
 

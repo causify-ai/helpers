@@ -101,6 +101,10 @@ model: haiku
 
   - By default this only opens a branch/PR in the outer repo; pass `--submodules`
     when the task also touches a submodule, per `.claude/skills/auto_task.rules.md`
+  - With `--submodules`, once a PR exists in more than one repo this call also
+    refreshes the issue's `## Companion PRs` section automatically: no separate
+    `--update_pr_links` step is needed here since the PR is created immediately,
+    not deferred
 - Return to `master` once the branch and draft PR exist: the implementation happens
   on GitHub, not in this checkout
 

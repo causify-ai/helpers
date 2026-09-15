@@ -30,6 +30,14 @@ model: haiku
     - ...
     ```
 
+  - When more than one repo is checked, confirm each `PR<NUM>` block in
+    "Solution" states which repo it targets: an unlabeled `PR<NUM>` for a
+    multi-repo task is an unclear plan (see "Ask for Clarification Before
+    Executing an Unclear Plan" in `.claude/skills/auto_task.rules.md`)
+  - Do not add or edit a `## Companion PRs` section: `git_create_issue_and_branch.py`
+    generates it automatically once PRs exist, per
+    `.claude/skills/auto_task.rules.md` "Multi-Repo Issues, Branches, and PRs"
+
 - If the task is not perfectly clear:
   - Ask for clarifications
   - Propose changes to the file to clarify

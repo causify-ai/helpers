@@ -28,6 +28,13 @@ model: sonnet
 ## Write the Fix Plan
 - Create a plan `tasks.md` for fixing the tests using the template below
   `.claude/templates/auto_task.template.md`
+- Determine which repos the TODOs touch: a `<FILE>` path under `helpers_root/`
+  is the `helpers` repo, everything else is `umd_classes`
+  - Fill in the template's `* Repo:` checklist accordingly
+  - Follow `.claude/skills/auto_task.rules.md` section "Multi-Repo Issues,
+    Branches, and PRs" when TODOs span more than one repo: this stays one
+    issue with one `PR<NUM>` block per affected repo, not a separate issue
+    per repo
 - Write the comments as bullet points according to `.claude/skills/markdown.rules.md`
   and `.claude/skills/text.rules.md` with minimal text
 - Do not make any change to the code, but only propose the fixes
