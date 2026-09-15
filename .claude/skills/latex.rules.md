@@ -15,6 +15,17 @@
 - `\argmin` instead of `\arg\min` for the argmin operator
 - Do not use `\left[`, `\left(`, `\right]`, `\right)` unless necessary
 
+## Quantifier Spacing
+- Add space `\ ` after quantifier variable binding in `\forall` and `\exists`
+  - **Bad** (no space, harder to read)
+    ```
+    \forall x \lnot P(x) \iff \lnot \exists x P(x)
+    ```
+  - **Good** (space separates quantifier from predicate)
+    ```
+    \forall x \ \lnot P(x) \iff \lnot \exists x \ P(x)
+    ```
+
 # Formula Formatting
 
 ## Multi-line Layout

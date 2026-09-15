@@ -1439,6 +1439,23 @@ it with an underscore to mark it as private
   _LOG.info("Downloading '%s' from '%s'", book_name, url)
   ```
 
+## Do Not End Printed Messages With a Period
+
+- When printing to screen (e.g., `_LOG`, `print`), enclose objects such as files
+  and values in single quotes and do not end the message with a period
+- A trailing period after a quoted value adds visual noise
+- **Bad**: Trailing period after a quoted value
+
+  ```python
+  _LOG.info("Created '%s'.", file_name)
+  ```
+
+- **Good**: No trailing period
+
+  ```python
+  _LOG.info("Created '%s'", file_name)
+  ```
+
 # Script Structure
 
 - When writing or changing a Python script follow the rules

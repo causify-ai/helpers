@@ -6,10 +6,12 @@ import helpers.hdocker as hdocker
 
 import argparse
 import copy
+import datetime
 import hashlib
 import logging
 import os
 import platform
+import re
 import time
 from typing import List, Optional, Tuple
 
@@ -553,14 +555,59 @@ def get_docker_base_cmd(
     return docker_cmd
 
 
+def _find_image_by_hash(
+    image_name: str, current_arch: str, short_hash: str, use_sudo: bool
+) -> Optional[str]:
+    """
+    Find an already-built image for `image_name`/`current_arch` tagged with
+    `short_hash`, no matter when it was built.
+
+    This allows reusing an image built earlier when the Dockerfile content
+    hasn't changed, instead of triggering a rebuild just because the
+    timestamp-stamped tag differs.
+
+    :param image_name: name of the Docker container (e.g., `tmp.pandoc_texlive`)
+    :param current_arch: canonical CPU architecture (e.g., `arm64`)
+    :param short_hash: 8-character hex hash of the Dockerfile content
+    :param use_sudo: whether to use sudo for the Docker command
+    :return: name of the matching image, or `None` if none is found
+    """
+    executable = get_docker_executable(use_sudo)
+    cmd = f"{executable} images --format '{{{{.Repository}}}}'"
+    _, output = hsystem.system_to_string(cmd, abort_on_error=False)
+    prefix = f"{image_name}.{current_arch}."
+    # Match the `<date>.<time>_<hash>` tag, the older `<date>_<hash>` tag, and
+    # the legacy `<hash>`-only tag.
+    pattern = re.compile(
+        rf"^{re.escape(prefix)}(?:\d{{8}}(?:\.\d{{6}})?_)?{short_hash}$"
+    )
+    found_image_name = None
+    for line in output.splitlines():
+        line = line.strip()
+        if pattern.match(line):
+            found_image_name = line
+            break
+    return found_image_name
+
+
 def get_container_image_name(
-    image_name: str, dockerfile: str
+    image_name: str, dockerfile: str, *, use_sudo: bool = False
 ) -> Tuple[str, str]:
     """
     Get the name of the container image.
 
+    The tag encodes the CPU architecture, the build timestamp, and a hash of
+    the Dockerfile content, e.g.
+    `tmp.pandoc_texlive.arm64.20260914.144612_4867bd42`, so that `docker
+    images` makes it obvious which image is the most recent one. If an image
+    already exists for the same Dockerfile content (built at an earlier
+    time), its existing tag is reused instead of minting a new one, so an
+    unchanged Dockerfile doesn't trigger a rebuild.
+
     :param image_name: Name of the Docker container to build.
     :param dockerfile: Content of the Dockerfile for building the container.
+    :param use_sudo: Whether to use sudo for the Docker command used to look
+        up an already-built image.
     :return: Name of the container image.
     """
     _LOG.debug(hprint.func_signature_to_str("image_name dockerfile"))
@@ -587,8 +634,21 @@ def get_container_image_name(
     current_arch = get_current_arch()
     sha256_hash = hashlib.sha256(dockerfile.encode()).hexdigest()
     short_hash = sha256_hash[:8]
-    # Build the name of the container image.
-    image_name_out = f"{image_name}.{current_arch}.{short_hash}"
+    # Reuse an already-built image for the same Dockerfile content, no
+    # matter when it was built.
+    cached_image_name = _find_image_by_hash(
+        image_name, current_arch, short_hash, use_sudo
+    )
+    if cached_image_name is not None:
+        image_name_out = cached_image_name
+    else:
+        # No matching image exists yet: mint a new tag stamped with the
+        # current timestamp, so `docker images` makes it obvious which image
+        # is newest.
+        timestamp = datetime.datetime.now().strftime("%Y%m%d.%H%M%S")
+        image_name_out = (
+            f"{image_name}.{current_arch}.{timestamp}_{short_hash}"
+        )
     return image_name_out, dockerfile
 
 
@@ -619,7 +679,9 @@ def build_container_image(
     # Verify that the Docker system is running before attempting to build.
     hdbg.dassert(is_docker_running(), "Docker engine is not running")
     #
-    image_name_out, dockerfile = get_container_image_name(image_name, dockerfile)
+    image_name_out, dockerfile = get_container_image_name(
+        image_name, dockerfile, use_sudo=use_sudo
+    )
     # Check if the container already exists. If not, build it.
     has_container, _ = image_exists(image_name_out, use_sudo)
     coverage_enabled = os.environ.get("COVERAGE_PROCESS_START")

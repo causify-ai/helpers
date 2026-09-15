@@ -23,6 +23,9 @@ model: haiku
   ```bash
   > ls -1 .claude/skills/*.rules.md
   ```
+- If `<CONTENT>` fits more than one rule file equally well, or fits none of
+  them clearly, do not guess: ask the user which `<TARGET_RULE_FILE>` to use,
+  listing the candidate files
 
 ## Read Target Rule File
 - Read the target rules file `<TARGET_RULE_FILE>` to understand its structure
@@ -44,3 +47,5 @@ model: haiku
 # Verification
 - [ ] `<CONTENT>` is added under the correct H1 header in `<TARGET_RULE_FILE>`
 - [ ] No existing rule in `<TARGET_RULE_FILE>` already covers `<CONTENT>`
+- [ ] `<TARGET_RULE_FILE>` was confirmed with the user instead of guessed, if
+      it was ambiguous

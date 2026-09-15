@@ -324,6 +324,37 @@
   - Step-by-step instructions for a particular action
   - Implementation guidance for achieving a specific output
 
+## Skills vs Slash Commands
+
+- This repo supports two ways to package an invocable prompt:
+  - Slash command: `.claude/commands/<name>.md`
+    - Invoked only by explicit `/<name>`
+    - File content becomes the prompt verbatim, with `$ARGUMENTS` substituted
+    - Frontmatter is limited to `description`, `argument-hint`, `allowed-tools`,
+      `model`
+    - Cannot bundle extra files, scripts, or references
+  - Skill: `.claude/skills/<TOPIC>.<ACTION>/SKILL.md`
+    - Invoked by explicit `/<TOPIC>.<ACTION>` or auto-triggered when the task
+      matches its `description`
+    - Can bundle extra files, scripts, or references in the same directory
+    - Can run in a subagent or background and return a structured result
+
+- Project-specific exception: `.claude/commands/instr.md`, `instr2.md`,
+  `instr3.md`, and `lint.md` are flat slash-command files that this repo's
+  Claude Code setup also surfaces as invocable skills
+  - This is custom behavior for this repo, not standard Claude Code harness
+    behavior
+  - Flat `.rules.md` files under `.claude/skills/` (e.g. `coding.rules.md`) are
+    not surfaced as invocable; they stay reference-only, per
+    `## Referencing Rules Files` above
+  - Flat files directly at `.claude/` root (e.g. `rules.md`,
+    `task_instructions.md`) are also not surfaced as invocable
+
+- To register a new lightweight, task-specific prompt:
+  - Prefer the standard `.claude/skills/<TOPIC>.<ACTION>/SKILL.md` convention
+  - Only use a flat file under `.claude/commands/` to match the `instr`/`lint`
+    family
+
 ## Rules vs Templates
 
 - `<RULE_FILE>` holds why/when: principles, decision criteria, do/don't

@@ -36,7 +36,8 @@ def get_graphviz_container_image_name() -> str:
     """
     Get the name of the container image built in this module.
 
-    E.g., `tmp.graphviz.amd64.12345678` or `tmp.graphviz.arm64.12345678`
+    E.g., `tmp.graphviz.amd64.20260914_12345678` or
+    `tmp.graphviz.arm64.20260914_12345678`
     """
     container_image, _ = hdocker.get_container_image_name(
         _CONTAINER_PREFIX, _DOCKERFILE

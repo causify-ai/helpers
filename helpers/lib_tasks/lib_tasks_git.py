@@ -902,12 +902,20 @@ def git_branch_rename(ctx, new_branch_name):  # type: ignore
 
 
 @task
-def git_branch_next_name(ctx, branch_name=None, method="auto"):  # type: ignore
+def git_branch_next_name(  # type: ignore
+    ctx, branch_name=None, issue_id=0, repo_short_name="current", method="auto"
+):
     """
     Return a name derived from the current branch so that the branch doesn't
     exist.
 
     :param branch_name: if `None` use the current branch name, otherwise specify it
+    :param issue_id: use the canonical branch name for this GitHub issue instead
+        of `branch_name` (mutually exclusive with `branch_name`)
+    :param repo_short_name: name of the GitHub repo_short_name that `issue_id`
+        belongs to
+        - "current" (default): the current repo_short_name
+        - short name (e.g., "amp", "lm") of the branch
     :param method: method to use ('auto', 'github_api', 'linear_scan')
         - 'auto' (default): tries GitHub API first, falls back to linear scan
         - 'github_api': use only GitHub API method (fast)
@@ -918,6 +926,20 @@ def git_branch_next_name(ctx, branch_name=None, method="auto"):  # type: ignore
     """
     hltltaut.report_task()
     _ = ctx
+    if issue_id > 0:
+        # Convert GitHub issue ID to branch name.
+        hdbg.dassert_eq(
+            branch_name,
+            None,
+            "Cannot specify both --issue-id and --branch-name; choose one",
+        )
+        branch_name, _ = hltltagh._get_gh_issue_title(issue_id, repo_short_name)
+        _LOG.info(
+            "Issue %d in %s repo_short_name corresponds to '%s'",
+            issue_id,
+            repo_short_name,
+            branch_name,
+        )
     branch_next_name = hgit.get_branch_next_name(
         curr_branch_name=branch_name, method=method, log_verb=logging.INFO
     )

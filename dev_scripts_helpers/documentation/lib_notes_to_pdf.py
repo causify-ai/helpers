@@ -950,6 +950,10 @@ def run_pandoc_to_typst_slides(
     # deprecation warnings.
     txt = re.sub(r"\bangle\.l\b", "chevron.l", txt)
     txt = re.sub(r"\bangle\.r\b", "chevron.r", txt)
+    # Pandoc's LaTeX->Typst math writer emits `sect` (e.g., for `\sqcap`),
+    # which recent Typst versions deprecate in favor of `inter`. Rewrite it
+    # to avoid `typst compile` deprecation warnings.
+    txt = re.sub(r"\bsect\b", "inter", txt)
     hio.to_file(typ_file, txt)
     # Return the `.typ` file if typst_only mode is requested.
     if typst_only:

@@ -20,12 +20,14 @@ This directory has no subdirectories.
   - Send email notifications via SMTP
 - `extract_cfile.py`
   - Extract code from C-style vim cfile format
-- `ffind.py`
-  - Find files and directories by name pattern
+- `ffind`
+  - Find files and directories by name pattern (command-line tool)
 - `fix_perms.sh`
   - Fix file permissions recursively in a directory tree
 - `git_fix_perms.sh`
   - Correct git repository file permissions
+- `lib_ffind.py`
+  - `ffind` library implementation
 - `lib_rig.py`
   - Library and rig management utilities
 - `mdm`
@@ -111,19 +113,28 @@ This directory has no subdirectories.
   > website_screenshot.py --url "https://example.com" --output screenshot.png
   ```
 
-## `ffind.py`
+## `ffind`
 
 ### What It Does
 
-- Finds files and directories by name pattern or glob expression
-- Supports recursive directory search with multiple filters
+- Finds files and directories whose name matches a pattern, wrapping `find`
+- Supports an optional file extension filter and a `--dir` option to restrict
+  the search to a specific directory
 - Outputs results suitable for pipeline processing
 
 ### Examples
 
-- Find Python files in directory tree:
+- Find files/dirs whose name contains a pattern:
   ```bash
-  > ffind.py --pattern "*.py" /path/to/search
+  > ffind Task243
+  ```
+- Search only in a given directory:
+  ```bash
+  > ffind stocktwits --dir this_dir
+  ```
+- Filter by file extension:
+  ```bash
+  > ffind stocktwits .py --dir this_dir
   ```
 
 ## `replace_text.py`
