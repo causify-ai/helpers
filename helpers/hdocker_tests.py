@@ -125,8 +125,8 @@ class DockerTestCase(hunitest.TestCase):
     """
     Base test class for Docker tests.
 
-    Subclasses must set `_test_file = __file__` and may add notebook test
-    methods that call `self.helper(notebook_name)`.
+    Subclasses must set `_test_file = __file__` and may add notebook test methods
+    that call `self.helper(notebook_name)`.
     """
 
     # Assigned by subclasses.
@@ -195,9 +195,7 @@ class DockerTestCase(hunitest.TestCase):
         cmd = f"echo '{shell_cmd}' | bash {docker_bash_script}"
         hsystem.system(cmd)
 
-    def helper(
-        self, notebook_name: str, *, generate_html: bool = False
-    ) -> None:
+    def helper(self, notebook_name: str, *, generate_html: bool = False) -> None:
         """
         Run a single notebook inside Docker.
 

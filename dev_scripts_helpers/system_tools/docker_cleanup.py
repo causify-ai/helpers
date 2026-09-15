@@ -346,7 +346,7 @@ def _report_all_images(engine: str, *, images_order: str) -> None:
     Print all images once, sorted by size or by creation date (descending).
 
     :param engine:`"docker"` or `"apple"`
-    :param images_order: `"size"` or `"date"`, the field to sort images by
+    :param images_order:`"size"` or `"date"`, the field to sort images by
     """
     images = _list_images(engine)
     hdbg.dassert_in(images_order, _IMAGES_ORDER_KEYS)
@@ -358,9 +358,7 @@ def _report_all_images(engine: str, *, images_order: str) -> None:
         f"All images ({len(images)}), sorted by {sort_label} (descending), "
         f"engine='{engine}'"
     )
-    _LOG.info(
-        "%s\n%s", hprint.frame(title), _format_images_table(images_sorted)
-    )
+    _LOG.info("%s\n%s", hprint.frame(title), _format_images_table(images_sorted))
 
 
 # #############################################################################
@@ -610,12 +608,11 @@ def _cleanup_dangling_images(engine: str, *, dry_run: bool) -> None:
         raise ValueError(f"Invalid engine='{engine}'")
 
 
-# Matches the `<image_name>.<arch>.<date>.<time>_<hash>` (or older
-# `<date>_<hash>`, or legacy `<hash>`-only) image-tagging convention minted
+# Matches the `<image_name>.<arch>.<hash>` image-tagging convention minted
 # by `hdocker.get_container_image_name()`, e.g.
-# `tmp.pandoc_texlive.arm64.20260914.144612_4867bd42`,
-# `tmp.pandoc_texlive.arm64.20260914_4867bd42`, or, for the legacy tag,
-# `tmp.pandoc_texlive.arm64.4867bd42`.
+# `tmp.pandoc_texlive.arm64.4867bd42`, or, for images built before the tag
+# was made purely hash-based, the legacy date-prefixed `<date>_<hash>` (or
+# `<date>.<time>_<hash>`) tag.
 _IMAGE_HASH_TAG_RE = re.compile(
     r"^(?P<base>.+)\.(?:\d{8}(?:\.\d{6})?_)?(?P<hash>[0-9a-f]{8})$"
 )
@@ -640,7 +637,7 @@ def _get_image_dedup_key(name: str) -> Optional[str]:
 
 
 def _get_duplicate_hash_images(
-    images: List[Dict[str, Any]]
+    images: List[Dict[str, Any]],
 ) -> List[Dict[str, Any]]:
     """
     Find hash-tagged images superseded by a more recently created one.
@@ -677,7 +674,7 @@ def _cleanup_duplicate_hash_images(engine: str, *, dry_run: bool) -> None:
     """
     Remove hash-tagged images superseded by a more recently created one.
 
-    :param engine: `"docker"` or `"apple"`
+    :param engine:`"docker"` or `"apple"`
     :param dry_run: if True, only report what would be removed
     """
     hdocker.set_docker_engine(engine)
@@ -722,8 +719,8 @@ def _cleanup_engine(engine: str, *, dry_run: bool, images_order: str) -> None:
 
     :param engine:`"docker"` or `"apple"`
     :param dry_run: if True, only report what would be removed
-    :param images_order: `"size"` or `"date"`, the field to sort the final
-        images report by
+    :param images_order:`"size"` or `"date"`, the field to sort the final images
+        report by
     """
     hdocker.set_docker_engine(engine)
     _LOG.info("\n%s", hprint.frame(f"Engine: '{engine}'"))
@@ -749,9 +746,7 @@ def _cleanup_engine(engine: str, *, dry_run: bool, images_order: str) -> None:
     # Remove hash-tagged images superseded by a more recent rebuild (run
     # before the dangling-image cleanup, so any layers it frees up are swept
     # up right after).
-    _LOG.info(
-        "\n%s", hprint.frame("Duplicate hash-tagged images", char1="/")
-    )
+    _LOG.info("\n%s", hprint.frame("Duplicate hash-tagged images", char1="/"))
     _cleanup_duplicate_hash_images(engine, dry_run=dry_run)
     # Remove dangling images.
     _LOG.info("\n%s", hprint.frame("Dangling images", char1="/"))
@@ -854,8 +849,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
     hdbg.init_logger(verbosity=args.log_level, use_exec_path=True)
     _LOG.debug(
         hprint.to_str(
-            "args.docker_engine args.dry_run args.images_only "
-            "args.images_order"
+            "args.docker_engine args.dry_run args.images_only args.images_order"
         )
     )
     engines = _get_engines(args.docker_engine)

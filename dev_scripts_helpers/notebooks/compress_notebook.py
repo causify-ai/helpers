@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 
 """
-Compress PNG images embedded in a Jupyter notebook (`.ipynb`) or nbconvert
-HTML export (`.html`) using `pngquant`.
+Compress PNG images embedded in a Jupyter notebook (`.ipynb`) or nbconvert HTML
+export (`.html`) using `pngquant`.
 
 Notebooks that use ipywidgets `interact()` embed each captured plot twice
 over: once as the normal cell output, and again inside the ipywidgets
@@ -77,7 +77,9 @@ _WIDGET_STATE_RE = re.compile(
     re.DOTALL,
 )
 
-_INLINE_PNG_DATA_URI_RE = re.compile(r"(data:image/png;base64,)([A-Za-z0-9+/=]+)")
+_INLINE_PNG_DATA_URI_RE = re.compile(
+    r"(data:image/png;base64,)([A-Za-z0-9+/=]+)"
+)
 
 
 # #############################################################################
@@ -105,8 +107,8 @@ def _quantize_png(
     png_bytes: bytes, *, pngquant_binary: str, quality: str
 ) -> bytes:
     """
-    Re-compress one PNG through `pngquant`, keeping the result only if it
-    shrinks the image.
+    Re-compress one PNG through `pngquant`, keeping the result only if it shrinks
+    the image.
 
     :param png_bytes: raw PNG file content
     :param pngquant_binary: absolute path to the `pngquant` binary
@@ -174,8 +176,8 @@ def _compress_widget_state_payload(
     payload: Dict[str, Any], *, pngquant_binary: str, quality: str
 ) -> int:
     """
-    Re-compress every PNG stored inside a parsed ipywidgets widget-state
-    payload, in place.
+    Re-compress every PNG stored inside a parsed ipywidgets widget-state payload,
+    in place.
 
     :param payload: parsed
         `application/vnd.jupyter.widget-state+json` payload

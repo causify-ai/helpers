@@ -109,8 +109,8 @@ def get_latex_container_image_name() -> str:
     """
     Get the name of the LaTeX container image.
 
-    E.g., `tmp.latex.amd64.20260914_12345678` or
-    `tmp.latex.arm64.20260914_12345678`
+    E.g., `tmp.latex.amd64.12345678` or
+    `tmp.latex.arm64.12345678`
     """
     container_image, _ = hdocker.get_container_image_name(
         _CONTAINER_PREFIX, _DOCKERFILE
@@ -198,9 +198,8 @@ def convert_latex_arguments_to_cmd(
     """
     Convert parsed pandoc arguments back to a command string.
 
-    This function takes the parsed latex arguments and converts them
-    back into a command string that can be executed directly or in a
-    Dockerized container.
+    This function takes the parsed latex arguments and converts them back into a
+    command string that can be executed directly or in a Dockerized container.
 
     :return: The constructed pandoc command string.
     """

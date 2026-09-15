@@ -35,8 +35,8 @@ def get_svg_rsvg_convert_container_image_name() -> str:
     """
     Get the name of the SVG rsvg-convert container image.
 
-    E.g., `tmp.svg_rsvg_convert.amd64.20260914_12345678` or
-    `tmp.svg_rsvg_convert.arm64.20260914_12345678`
+    E.g., `tmp.svg_rsvg_convert.amd64.12345678` or
+    `tmp.svg_rsvg_convert.arm64.12345678`
     """
     container_image, _ = hdocker.get_container_image_name(
         _RSVG_CONVERT_CONTAINER_PREFIX, _RSVG_CONVERT_DOCKERFILE
@@ -167,8 +167,8 @@ def get_svg_inkscape_container_image_name() -> str:
     """
     Get the name of the SVG inkscape container image.
 
-    E.g., `tmp.svg_inkscape.amd64.20260914_12345678` or
-    `tmp.svg_inkscape.arm64.20260914_12345678`
+    E.g., `tmp.svg_inkscape.amd64.12345678` or
+    `tmp.svg_inkscape.arm64.12345678`
     """
     container_image, _ = hdocker.get_container_image_name(
         _INKSCAPE_CONTAINER_PREFIX, _INKSCAPE_DOCKERFILE

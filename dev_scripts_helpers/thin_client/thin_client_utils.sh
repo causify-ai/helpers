@@ -568,8 +568,8 @@ set_up_docker_git() {
     # """
     # Configure Git safe.directory entries for the Docker container.
     #
-    # Marks /app, /app/amp, /src/amp, and /src as safe directories so Git
-    # operations work inside the container.
+    # Marks /app, /app/amp, /app/helpers_root, /src/amp, and /src as safe
+    # directories so Git operations work inside the container.
     # """
     echo "# set_up_docker_git()"
     VAL=$(git --version)
@@ -578,6 +578,9 @@ set_up_docker_git() {
     git config --global --add safe.directory /app
     if [[ -d /app/amp ]]; then
         git config --global --add safe.directory /app/amp
+    fi;
+    if [[ -d /app/helpers_root ]]; then
+        git config --global --add safe.directory /app/helpers_root
     fi;
     if [[ -d /src/amp ]]; then
         git config --global --add safe.directory /src/amp

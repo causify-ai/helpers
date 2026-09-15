@@ -765,7 +765,11 @@ def _format_with_prettier(
     hdbg.dassert_in(backend, ["dockerized", "global"])
     if backend == "dockerized":
         _LOG.debug("Using dockerized prettier for formatting")
-        formatted_txt = dshdlipr.prettier_on_str(txt, "md", width=width)
+        # Use `use_hash=True` so concurrent / overlapping calls (e.g., parallel
+        # test runs) don't clobber each other's shared tmp file.
+        formatted_txt = dshdlipr.prettier_on_str(
+            txt, "md", width=width, use_hash=True
+        )
     elif backend == "global":
         # backend == "global": use global prettier executable.
         hdbg.dassert(

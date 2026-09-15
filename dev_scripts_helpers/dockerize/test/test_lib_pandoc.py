@@ -10,7 +10,7 @@ import helpers.hprint as hprint
 import helpers.hserver as hserver
 import helpers.hsystem as hsystem
 import helpers.hunit_test as hunitest
-import dev_scripts_helpers.dockerize.dockerized_utils as dshddut
+import dev_scripts_helpers.dockerize.dockerized_utils as dshddou
 import dev_scripts_helpers.dockerize.lib_pandoc as dshdlipa
 
 
@@ -154,7 +154,7 @@ class Test_run_dockerized_pandoc1(hunitest.TestCase):
         :param expected: Expected HTML output with table of contents
         """
         # Prepare inputs.
-        in_file_path = dshddut.create_test_file(self, txt, extension="md")
+        in_file_path = dshddou.create_test_file(self, txt, extension="md")
         out_file_path = os.path.join(self.get_scratch_space(), "output.md")
         cmd_opts = [
             "pandoc",
@@ -221,6 +221,7 @@ class Test_build_pandoc_container1(hunitest.TestCase):
     Test building the `pandoc` container.
     """
 
+    @pytest.mark.order(1)
     @pytest.mark.timeout(0)
     def test1(self) -> None:
         """
@@ -243,6 +244,7 @@ class Test_build_pandoc_container1(hunitest.TestCase):
     #
     # > container run --rm --entrypoint "bash" tmp.pandoc_texlive.arm64.9a4bae9a -c 'pandoc --version | head -1'
     # pandoc 3.9.0.2
+    @pytest.mark.order(2)
     @pytest.mark.skipif(
         hserver.is_host_mac() and hdocker.get_docker_engine() == "apple",
         reason="Fails with Apple container engine, see HelpersTask1273",
@@ -283,9 +285,8 @@ class Test_build_pandoc_container1(hunitest.TestCase):
 @pytest.mark.slow
 class Test_convert_pandoc_cmd_to_arguments1(hunitest.TestCase):
     def test1(self) -> None:
-        """
-        Test `convert_pandoc_cmd_to_arguments` to parse a pandoc command string
-        into a dictionary.
+        """Test `convert_pandoc_cmd_to_arguments` to parse a pandoc command
+        string into a dictionary.
         """
         # Prepare inputs.
         cmd = (
@@ -308,9 +309,8 @@ class Test_convert_pandoc_cmd_to_arguments1(hunitest.TestCase):
         self.assert_equal(actual, expected, fuzzy_match=True)
 
     def test2(self) -> None:
-        """
-        Test `convert_pandoc_arguments_to_cmd` to build a command string from a
-        dictionary of parameters.
+        """Test `convert_pandoc_arguments_to_cmd` to build a command string from
+        a dictionary of parameters.
         """
         # Prepare inputs.
         params = {
@@ -345,8 +345,7 @@ class Test_convert_pandoc_cmd_to_arguments1(hunitest.TestCase):
 class Test_run_dockerized_pandoc2(hunitest.TestCase):
     @pytest.mark.timeout(0)
     def test1(self) -> None:
-        """
-        Test Dockerized Pandoc reads an externally provided input file,
+        """Test Dockerized Pandoc reads an externally provided input file,
         converts it, and writes the output file in the output directory.
         """
         # Prepare inputs.

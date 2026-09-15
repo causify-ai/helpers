@@ -54,6 +54,11 @@ class Test__cleanup_engine(hunitest.TestCase):
         },
         {
         'function': hsystem.system_to_string,
+        'args': ('docker images --format "{{.ID}} {{.Repository}}:{{.Tag}} {{.Size}}"',),
+        'kwargs': {'abort_on_error': False},
+        },
+        {
+        'function': hsystem.system_to_string,
         'args': ('docker images --filter "dangling=true" -q',),
         'kwargs': {'abort_on_error': False},
         },
@@ -71,7 +76,9 @@ class Test__cleanup_engine(hunitest.TestCase):
         expected = hprint.dedent(expected)
         # Run test.
         with hunteuti.capture_sys_calls() as invocations:
-            dshstdocl._cleanup_engine("docker", dry_run=True)
+            dshstdocl._cleanup_engine(
+                "docker", dry_run=True, images_order="size"
+            )
         # Check outputs.
         hunteuti.assert_sys_calls(self, invocations, expected)
 
@@ -124,6 +131,11 @@ class Test__cleanup_engine(hunitest.TestCase):
         },
         {
         'function': hsystem.system_to_string,
+        'args': ('docker images --format "{{.ID}} {{.Repository}}:{{.Tag}} {{.Size}}"',),
+        'kwargs': {'abort_on_error': False},
+        },
+        {
+        'function': hsystem.system_to_string,
         'args': ('docker images --filter "dangling=true" -q',),
         'kwargs': {'abort_on_error': False},
         },
@@ -141,7 +153,9 @@ class Test__cleanup_engine(hunitest.TestCase):
         expected = hprint.dedent(expected)
         # Run test.
         with hunteuti.capture_sys_calls() as invocations:
-            dshstdocl._cleanup_engine("docker", dry_run=False)
+            dshstdocl._cleanup_engine(
+                "docker", dry_run=False, images_order="size"
+            )
         # Check outputs.
         hunteuti.assert_sys_calls(self, invocations, expected)
 
@@ -176,6 +190,11 @@ class Test__cleanup_engine(hunitest.TestCase):
         },
         {
         'function': hsystem.system_to_string,
+        'args': ('container image list --format json',),
+        'kwargs': {'abort_on_error': False},
+        },
+        {
+        'function': hsystem.system_to_string,
         'args': ('container system df',),
         'kwargs': {'abort_on_error': False},
         },
@@ -183,7 +202,7 @@ class Test__cleanup_engine(hunitest.TestCase):
         expected = hprint.dedent(expected)
         # Run test.
         with hunteuti.capture_sys_calls() as invocations:
-            dshstdocl._cleanup_engine("apple", dry_run=True)
+            dshstdocl._cleanup_engine("apple", dry_run=True, images_order="size")
         # Check outputs.
         hunteuti.assert_sys_calls(self, invocations, expected)
 

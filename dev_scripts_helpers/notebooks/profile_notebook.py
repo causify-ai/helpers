@@ -63,7 +63,9 @@ _START_KEY = "iopub.status.busy"
 _END_KEY = "iopub.status.idle"
 # Relative path (from the Git root) to the template used to render the HTML
 # export, matching `run_nbconvert.sh` / `helpers.hdocker_tests`.
-_TEMPLATE_REL_DIR = "helpers_root/dev_scripts_helpers/notebooks/nbconvert_templates"
+_TEMPLATE_REL_DIR = (
+    "helpers_root/dev_scripts_helpers/notebooks/nbconvert_templates"
+)
 # Number of leading characters of a cell's source kept in the profile.
 _SOURCE_PREVIEW_LEN = 200
 
@@ -238,8 +240,7 @@ def _get_cell_duration(cell: Dict[str, Any]) -> Optional[float]:
 
 def _get_cell_rows(executed_notebook_path: str) -> List[Dict[str, Any]]:
     """
-    Build a per-cell timing record for an executed notebook, in notebook
-    order.
+    Build a per-cell timing record for an executed notebook, in notebook order.
 
     :param executed_notebook_path: path to the notebook with outputs and
         timing metadata already saved
@@ -265,8 +266,7 @@ def _get_cell_rows(executed_notebook_path: str) -> List[Dict[str, Any]]:
 
 def _write_json_profile(rows: List[Dict[str, Any]], json_path: str) -> None:
     """
-    Write the per-cell profile to `json_path`, or print it if `json_path` is
-    `-`.
+    Write the per-cell profile to `json_path`, or print it if `json_path` is `-`.
 
     :param rows: per-cell records from `_get_cell_rows()`
     :param json_path: destination JSON file, or `-` to print to stdout
@@ -357,9 +357,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
             "Found '%s': running the notebook inside Docker", docker_cmd_script
         )
     else:
-        _LOG.info(
-            "No 'docker_cmd.sh' next to the notebook: running on the host"
-        )
+        _LOG.info("No 'docker_cmd.sh' next to the notebook: running on the host")
     # Execute the notebook once, capturing per-cell timing metadata. Use a
     # `tmp.` prefix per the repo convention for debuggable scratch files: no
     # need to clean it up.

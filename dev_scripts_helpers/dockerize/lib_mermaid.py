@@ -90,8 +90,8 @@ def get_mermaid_container_image_name() -> str:
     """
     Get the name of the mermaid container image.
 
-    E.g., `tmp.mermaid.amd64.20260914_12345678` or
-    `tmp.mermaid.arm64.20260914_12345678`
+    E.g., `tmp.mermaid.amd64.12345678` or
+    `tmp.mermaid.arm64.12345678`
     """
     container_image, _ = hdocker.get_container_image_name(
         _MERMAID_CONTAINER_PREFIX, _DOCKERFILE
@@ -133,8 +133,8 @@ def run_dockerized_mermaid(
     mermaid_dpi: Optional[int] = None,
 ) -> None:
     """
-    Run `mermaid` in a Docker container, building the container from scratch
-    and using a puppeteer config.
+    Run `mermaid` in a Docker container, building the container from scratch and
+    using a puppeteer config.
 
     :param in_file_path: path to the mermaid diagram file to render
     :param cmd_opts: additional command-line options (currently unused)

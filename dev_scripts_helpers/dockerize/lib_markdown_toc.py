@@ -38,8 +38,8 @@ def get_markdown_toc_container_image_name() -> str:
     """
     Get the name of the markdown-toc container image.
 
-    E.g., `tmp.markdown_toc.amd64.20260914_12345678` or
-    `tmp.markdown_toc.arm64.20260914_12345678`
+    E.g., `tmp.markdown_toc.amd64.12345678` or
+    `tmp.markdown_toc.arm64.12345678`
     """
     container_image, _ = hdocker.get_container_image_name(
         _CONTAINER_PREFIX, _DOCKERFILE
