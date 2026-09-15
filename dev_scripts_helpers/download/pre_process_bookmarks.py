@@ -74,6 +74,7 @@ import helpers.hprint as hprint
 import helpers.hselect_action as hselacti
 import helpers.hcache_simple as hcacsimp
 import dev_scripts_helpers.download.bookmark_utils as dshdbout
+import dev_scripts_helpers.download.download_utils as dshddut
 
 _LOG = logging.getLogger(__name__)
 
@@ -562,8 +563,8 @@ def _parse() -> argparse.ArgumentParser:
     parser.add_argument(
         "--model",
         action="store",
-        default="gpt-4o-mini",
-        help="LLM model name to use for tagging (default: gpt-4o-mini)",
+        default=dshddut.SUMMARY_MODEL,
+        help=f"LLM model name to use for tagging (default: {dshddut.SUMMARY_MODEL})",
     )
     hselacti.add_action_arg(parser, _VALID_ACTIONS, _DEFAULT_ACTIONS)
     hcacsimp.add_cache_control_arg(parser)

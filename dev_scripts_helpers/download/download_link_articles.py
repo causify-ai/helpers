@@ -110,11 +110,12 @@ characters replaced with underscores:
     --url "https://docs.google.com/spreadsheets/d/..." \
     --clear_actions --action summarize_hn_url
 
-- Summarize articles with a specific LLM model instead of the default:
+- Summarize articles with a specific LLM model instead of the default
+  (default is routed through OpenRouter; see `download_utils.SUMMARY_MODEL`):
 > download_link_articles.py \
     --url "https://docs.google.com/spreadsheets/d/..." \
     --clear_actions --action summarize_article_url \
-    --model gpt-4o
+    --model openrouter/anthropic/claude-haiku-4.5
 
 - Show what would be done without downloading or summarizing:
 > download_link_articles.py \
@@ -150,8 +151,9 @@ import dev_scripts_helpers.download.bookmark_utils as dshdbout
 _LOG = logging.getLogger(__name__)
 
 # Default LLM model used by `summarize_article_url` / `summarize_hn_url`,
-# overridable via `--model`.
-_DEFAULT_MODEL = "gpt-4o-mini"
+# overridable via `--model`. Routed through OpenRouter; see
+# `download_utils.SUMMARY_MODEL`.
+_DEFAULT_MODEL = dshddut.SUMMARY_MODEL
 
 
 # #############################################################################
