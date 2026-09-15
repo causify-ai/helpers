@@ -34,17 +34,7 @@
 ## Confirm the Task List Before Executing
 
 - A task list is an ordered set of tasks, each with a goal and its changes
-
-  ```text
-  ### [ ] <Goal of first task>
-  - <Change 1>
-  - <Change 2>
-
-  ### [ ] <Goal of second task>
-  - <Change 1>
-  - <Change 2>
-  ```
-
+  following the format in `.claude/templates/auto_task.template.md`
 - Check that each task states a problem and a solution before starting on it
 - If a task's spec is unclear or incomplete, follow "Ask for Clarification Before
   Executing an Unclear Plan" above instead of guessing
