@@ -90,8 +90,8 @@ def get_mermaid_container_image_name() -> str:
     """
     Get the name of the mermaid container image.
 
-    E.g., `tmp.mermaid.amd64.20260914_12345678` or
-    `tmp.mermaid.arm64.20260914_12345678`
+    E.g., `tmp.mermaid.amd64.12345678` or
+    `tmp.mermaid.arm64.12345678`
     """
     container_image, _ = hdocker.get_container_image_name(
         _MERMAID_CONTAINER_PREFIX, _DOCKERFILE

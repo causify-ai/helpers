@@ -221,6 +221,7 @@ class Test_build_pandoc_container1(hunitest.TestCase):
     Test building the `pandoc` container.
     """
 
+    @pytest.mark.order(1)
     @pytest.mark.timeout(0)
     def test1(self) -> None:
         """
@@ -243,6 +244,7 @@ class Test_build_pandoc_container1(hunitest.TestCase):
     #
     # > container run --rm --entrypoint "bash" tmp.pandoc_texlive.arm64.9a4bae9a -c 'pandoc --version | head -1'
     # pandoc 3.9.0.2
+    @pytest.mark.order(2)
     @pytest.mark.skipif(
         hserver.is_host_mac() and hdocker.get_docker_engine() == "apple",
         reason="Fails with Apple container engine, see HelpersTask1273",

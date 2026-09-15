@@ -610,12 +610,11 @@ def _cleanup_dangling_images(engine: str, *, dry_run: bool) -> None:
         raise ValueError(f"Invalid engine='{engine}'")
 
 
-# Matches the `<image_name>.<arch>.<date>.<time>_<hash>` (or older
-# `<date>_<hash>`, or legacy `<hash>`-only) image-tagging convention minted
+# Matches the `<image_name>.<arch>.<hash>` image-tagging convention minted
 # by `hdocker.get_container_image_name()`, e.g.
-# `tmp.pandoc_texlive.arm64.20260914.144612_4867bd42`,
-# `tmp.pandoc_texlive.arm64.20260914_4867bd42`, or, for the legacy tag,
-# `tmp.pandoc_texlive.arm64.4867bd42`.
+# `tmp.pandoc_texlive.arm64.4867bd42`, or, for images built before the tag
+# was made purely hash-based, the legacy date-prefixed `<date>_<hash>` (or
+# `<date>.<time>_<hash>`) tag.
 _IMAGE_HASH_TAG_RE = re.compile(
     r"^(?P<base>.+)\.(?:\d{8}(?:\.\d{6})?_)?(?P<hash>[0-9a-f]{8})$"
 )

@@ -77,8 +77,8 @@ def get_prettier_container_image_name(file_type: str) -> str:
     """
     Get the name of the Prettier container image for a given file type.
 
-    E.g., `tmp.prettier.md.amd64.20260914_12345678` or
-    `tmp.prettier.tex.arm64.20260914_12345678`
+    E.g., `tmp.prettier.md.amd64.12345678` or
+    `tmp.prettier.tex.arm64.12345678`
     """
     container_prefix = f"tmp.prettier.{file_type}"
     dockerfile = _get_prettier_dockerfile(file_type)

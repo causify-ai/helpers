@@ -23,6 +23,7 @@ class Test_build_latex_container1(hunitest.TestCase):
     Test building the `latex` container.
     """
 
+    @pytest.mark.order(1)
     @pytest.mark.timeout(0)
     def test1(self) -> None:
         """
@@ -34,6 +35,7 @@ class Test_build_latex_container1(hunitest.TestCase):
             force_rebuild=force_rebuild, use_sudo=use_sudo
         )
 
+    @pytest.mark.order(2)
     def test2(self) -> None:
         """
         Test that the LaTeX version matches expected output.

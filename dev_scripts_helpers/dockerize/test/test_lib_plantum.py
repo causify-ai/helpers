@@ -22,6 +22,7 @@ class Test_build_plantum_container1(hunitest.TestCase):
     Test building the `plantum` container.
     """
 
+    @pytest.mark.order(1)
     def test1(self) -> None:
         """
         Test that the PlantUML Docker container is built correctly.
@@ -32,6 +33,7 @@ class Test_build_plantum_container1(hunitest.TestCase):
             force_rebuild=force_rebuild, use_sudo=use_sudo
         )
 
+    @pytest.mark.order(2)
     def test2(self) -> None:
         """
         Test that the PlantUML version matches expected output.
