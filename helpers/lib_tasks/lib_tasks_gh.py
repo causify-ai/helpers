@@ -9,6 +9,7 @@ import json
 import logging
 import os
 import re
+import shlex
 import subprocess
 from typing import Any, Dict, List, Optional, Tuple
 
@@ -567,23 +568,35 @@ def gh_issue_create(  # type: ignore
         title,
         repo_full_name_with_host,
     )
-    # Build the command.
-    cmd = (
-        "gh issue create"
-        + f" --repo {repo_full_name_with_host}"
-        + f' --title "{title}"'
-        + f' --body "{body}"'
-    )
-    if labels:
-        cmd += f' --label "{labels}"'
-    if assignees:
-        cmd += f' --assignee "{assignees}"'
-    if project:
-        cmd += f' --project "{project}"'
-    # Execute the command and capture output.
-    # gh issue create outputs the URL of the created issue, e.g.,
-    # https://github.com/cryptokaizen/csfy/issues/7572
-    _, output = hsystem.system_to_string(cmd)
+    # Write the body to a temp file and pass it to `gh` via `--body-file`
+    # instead of interpolating it inline as `--body "{body}"`: `hsystem.system*`
+    # runs the command through a shell, so an inline double-quoted body with
+    # backticks or `$(...)` (e.g., a body listing shell commands or code
+    # snippets) gets executed as command substitution instead of being passed
+    # through literally.
+    body_file_name = "tmp.gh_issue_create.body.txt"
+    hio.to_file(body_file_name, body)
+    try:
+        # Build the command.
+        cmd = [
+            "gh issue create",
+            f"--repo {repo_full_name_with_host}",
+            f"--title {shlex.quote(title)}",
+            f"--body-file {shlex.quote(body_file_name)}",
+        ]
+        if labels:
+            cmd.append(f"--label {shlex.quote(labels)}")
+        if assignees:
+            cmd.append(f"--assignee {shlex.quote(assignees)}")
+        if project:
+            cmd.append(f"--project {shlex.quote(project)}")
+        cmd = " ".join(cmd)
+        # Execute the command and capture output.
+        # gh issue create outputs the URL of the created issue, e.g.,
+        # https://github.com/cryptokaizen/csfy/issues/7572
+        _, output = hsystem.system_to_string(cmd)
+    finally:
+        os.remove(body_file_name)
     _LOG.debug("gh issue create output: %s", output)
     # Extract the issue ID from the URL.
     # The URL format is: https://github.com/org/repo/issues/123
@@ -688,23 +701,35 @@ def gh_create_pr(  # type: ignore
         if issue_id and str(issue_id) not in body:
             body += f"\n\n#{issue_id}"
             _LOG.info("Added issue id %s to the PR body", issue_id)
-        cmd = (
-            "gh pr create"
-            + f" --repo {repo_full_name_with_host}"
-            + (" --draft" if draft else "")
-            + f' --title "{title}"'
-            + f' --body "{body}"'
-        )
-        if reviewer:
-            cmd += f" --reviewer {reviewer}"
-            _LOG.info("Added reviewer %s to the PR", reviewer)
-        if labels:
-            cmd += f' --label "{labels}"'
-            _LOG.info("Added labels %s to the PR", labels)
-        if assignee:
-            cmd += f" --assignee {assignee}"
-        # TODO(gp): Use _to_single_line_cmd
-        hltltaut.run(ctx, cmd)
+        # Write the body to a temp file and pass it to `gh` via `--body-file`
+        # instead of interpolating it inline as `--body "{body}"`: `ctx.run()`
+        # runs the command through a shell, so an inline double-quoted body
+        # with backticks or `$(...)` (e.g., a body listing shell commands or
+        # code snippets) gets executed as command substitution instead of
+        # being passed through literally.
+        body_file_name = "tmp.gh_create_pr.body.txt"
+        hio.to_file(body_file_name, body)
+        try:
+            cmd = [
+                "gh pr create",
+                f"--repo {repo_full_name_with_host}",
+                "--draft" if draft else "",
+                f"--title {shlex.quote(title)}",
+                f"--body-file {shlex.quote(body_file_name)}",
+            ]
+            if reviewer:
+                cmd.append(f"--reviewer {reviewer}")
+                _LOG.info("Added reviewer %s to the PR", reviewer)
+            if labels:
+                cmd.append(f"--label {shlex.quote(labels)}")
+                _LOG.info("Added labels %s to the PR", labels)
+            if assignee:
+                cmd.append(f"--assignee {assignee}")
+            cmd = " ".join(part for part in cmd if part)
+            # TODO(gp): Use _to_single_line_cmd
+            hltltaut.run(ctx, cmd)
+        finally:
+            os.remove(body_file_name)
     if auto_merge:
         cmd = f"gh pr ready {title}"
         hltltaut.run(ctx, cmd)
