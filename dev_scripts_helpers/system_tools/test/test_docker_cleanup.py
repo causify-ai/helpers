@@ -134,6 +134,11 @@ class Test__cleanup_engine(hunitest.TestCase):
         },
         {
         'function': hsystem.system_to_string,
+        'args': ('docker images --format "{{.ID}} {{.Repository}}:{{.Tag}} {{.Size}}"',),
+        'kwargs': {'abort_on_error': False},
+        },
+        {
+        'function': hsystem.system_to_string,
         'args': ('docker system df',),
         'kwargs': {'abort_on_error': False},
         },
@@ -167,6 +172,11 @@ class Test__cleanup_engine(hunitest.TestCase):
         {
         'function': hsystem.system_to_string,
         'args': ('container builder status',),
+        'kwargs': {'abort_on_error': False},
+        },
+        {
+        'function': hsystem.system_to_string,
+        'args': ('container image list --format json',),
         'kwargs': {'abort_on_error': False},
         },
         {
