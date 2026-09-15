@@ -28,14 +28,14 @@ A row whose `Hn_url` isn't a real HN item URL (`news.ycombinator.com/
 item?id=...`) is set to `Done=skipped` immediately instead, with no
 download.
 
-Separately, every invocation also runs a **destination reconciliation
-pass** over *all* `Done=yes` rows (not bounded by `--limit`): for the
-`--dest_type`/`--dest_dir` selected this run, any row whose cached merged
-summary (under `--output_dir`) is missing from the destination gets copied
-there -- no re-download, no re-summarize, no LLM cost. This is what makes
-`--dest_type gdrive` and `--dest_type obsidian` independent: switching to a
-new destination later backfills it for free from rows already processed.
-`--limit 0` runs reconciliation only (no new rows processed).
+Every invocation also runs a "destination reconciliation pass" over all
+`Done=yes` rows: for the `--dest_type`/`--dest_dir` selected this run, any row
+whose cached merged summary (under `--output_dir`) is missing from the
+destination gets copied there -- no re-download, no re-summarize, no LLM cost.
+
+This is what makes `--dest_type gdrive` and `--dest_type obsidian` independent:
+switching to a new destination later backfills it for free from rows already
+processed.
 
 Every invocation also always backs up merged summaries into a fixed,
 git-tracked dir (see `_GIT_BACKUP_DIR`), independent of `--dest_type`

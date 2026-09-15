@@ -112,6 +112,88 @@ class Test_update_bookmarks_from_raindrop_py(hunitest.TestCase):
         # Check outputs.
         self.assert_equal(str(actual_rows), str(expected_rows))
 
+    def test2(self) -> None:
+        """
+        Test `combine_data` deletes the `raindrop_data.csv` tmp file it
+        consumed, so a stray re-run of `combine_data` alone (e.g. a second
+        pipeline invocation that finds the tmp file still there and skips
+        a fresh `download_raindrop_data`, per `--target local_csv`'s
+        incremental mode) fails loudly instead of silently re-merging the
+        same batch into `--local_csv` a second time.
+        """
+        scratch_dir = self.get_scratch_space()
+        cwd = os.getcwd()
+        os.chdir(scratch_dir)
+        try:
+            # Prepare inputs.
+            local_csv = os.path.join(scratch_dir, "local.csv")
+            columns = ["Title", "Hn_url", "Article_url", "Timestamp", "Done"]
+            existing_rows = [
+                {
+                    "Title": "Existing",
+                    "Hn_url": "https://news.ycombinator.com/item?id=0",
+                    "Article_url": "",
+                    "Timestamp": "2024-01-01 00:00:00",
+                    "Done": "yes",
+                },
+            ]
+            dshdbou.write_csv(local_csv, existing_rows, fieldnames=columns)
+            items = [
+                {
+                    "_id": "1",
+                    "title": "New | Hacker News",
+                    "link": "https://news.ycombinator.com/item?id=1",
+                    "created": "2024-06-01T00:00:00.000Z",
+                },
+            ]
+            response = umock.MagicMock()
+            response.status_code = 200
+            response.json.return_value = {"items": items}
+            argv = [
+                "update_bookmarks_from_raindrop.py",
+                "--target",
+                "local_csv",
+                "--local_csv",
+                local_csv,
+                "--clear_actions",
+                "--action",
+                "download_raindrop_data",
+                "--action",
+                "combine_data",
+            ]
+            with (
+                umock.patch.dict(
+                    os.environ, {"RAINDROP_API_TOKEN": "fake_token"}
+                ),
+                umock.patch.object(
+                    dsbfr.requests, "get", return_value=response
+                ),
+            ):
+                self.helper(argv)
+            raindrop_csv = dshdbou.get_tmp_file_path(
+                dsbfr.RAINDROP_CSV_FILE, "update_bookmarks_from_raindrop"
+            )
+            # Run test / check outputs: the consumed tmp file is gone.
+            self.assertFalse(os.path.exists(raindrop_csv))
+            # A stray re-run of `combine_data` alone (no fresh
+            # `download_raindrop_data`, simulating the tmp file's absence
+            # being wrongly treated as "nothing new") now fails loudly
+            # instead of duplicating rows.
+            combine_only_argv = [
+                "update_bookmarks_from_raindrop.py",
+                "--target",
+                "local_csv",
+                "--local_csv",
+                local_csv,
+                "--clear_actions",
+                "--action",
+                "combine_data",
+            ]
+            with self.assertRaises(AssertionError):
+                self.helper(combine_only_argv)
+        finally:
+            os.chdir(cwd)
+
 
 # #############################################################################
 # Test__combine_raindrop_with_gsheet_links
@@ -345,6 +427,38 @@ class Test__combine_raindrop_with_gsheet_links(hunitest.TestCase):
         self.assert_equal(str(actual_rows), str(expected_rows))
 
 
+    def test5(self) -> None:
+        """
+        Test a Raindrop row whose `url` already matches an existing row's
+        `Hn_url` is dropped instead of being prepended as a duplicate.
+        """
+        # Prepare inputs.
+        gsheet_columns = ["Title", "Hn_url", "Article_url", "Timestamp"]
+        gsheet_rows = [
+            {
+                "Title": "Existing",
+                "Hn_url": "https://news.ycombinator.com/item?id=0",
+                "Article_url": "",
+                "Timestamp": "2024-06-01 00:00:00",
+            },
+        ]
+        raindrop_rows = [
+            {
+                "id": "0",
+                "title": "Existing",
+                "url": "https://news.ycombinator.com/item?id=0",
+                "created": "2024-06-01T00:00:00.734Z",
+            },
+        ]
+        # Prepare outputs. The Raindrop row duplicates the existing
+        # `Hn_url`, so it's dropped: the gsheet row is left unchanged.
+        expected_rows = gsheet_rows
+        # Run test.
+        actual_rows = self.helper(gsheet_columns, gsheet_rows, raindrop_rows)
+        # Check outputs.
+        self.assert_equal(str(actual_rows), str(expected_rows))
+
+
 # #############################################################################
 # Test__download_raindrop_data
 # #############################################################################
@@ -477,6 +591,33 @@ class Test__download_raindrop_data(hunitest.TestCase):
         self.assert_equal(str(actual_rows), str(expected_rows))
 
     def test3(self) -> None:
+        """
+        Test a bookmark created in the same second as the cutoff, but with
+        a later sub-second component, is filtered out (not re-downloaded
+        as a duplicate of the item that set the cutoff).
+        """
+        # Prepare inputs. The gsheet cutoff has only second precision (as
+        # always written by `_combine_raindrop_with_gsheet_links()`), while
+        # the Raindrop `created` field for the very same item still carries
+        # its original sub-second component.
+        gsheet_timestamp = "2024-06-01 00:00:00"
+        items = [
+            {
+                "_id": "1",
+                "title": "Boundary bookmark",
+                "link": "https://news.ycombinator.com/item?id=1",
+                "created": "2024-06-01T00:00:00.734Z",
+            },
+        ]
+        response = self.helper2(items)
+        # Prepare outputs.
+        expected_rows: list = []
+        # Run test.
+        actual_rows = self.helper(gsheet_timestamp, get_return_value=response)
+        # Check outputs.
+        self.assert_equal(str(actual_rows), str(expected_rows))
+
+    def test4(self) -> None:
         """
         Test pagination continues past a full first page (`perpage=50`
         items) and stops at the following short page.

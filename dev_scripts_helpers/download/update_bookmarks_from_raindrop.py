@@ -66,6 +66,7 @@ from typing import Optional
 import requests
 
 import helpers.hdbg as hdbg
+import helpers.hio as hio
 import helpers.hparser as hparser
 import helpers.hprint as hprint
 import helpers.hselect_action as hselacti
@@ -220,12 +221,19 @@ def _download_raindrop_data(base_csv: str) -> str:
         data = response.json()
         items = data.get("items", [])
         _LOG.info("Fetched %d items from Raindrop (page %d)", len(items), page)
-        # Filter bookmarks: keep only those created after the latest gsheet timestamp.
+        # Filter bookmarks: keep only those created after the latest gsheet
+        # timestamp. The gsheet `Timestamp` column only has second
+        # precision, so truncate the Raindrop `created` field's sub-second
+        # part before comparing -- otherwise the item that *was* the cutoff
+        # itself re-passes `>` (thanks to its own fractional second) and
+        # gets re-downloaded as a duplicate on every subsequent run.
         for item in items:
-            if (
-                "created" in item
-                and _parse_timestamp(item["created"]) > latest_timestamp
-            ):
+            if "created" not in item:
+                continue
+            item_timestamp = _parse_timestamp(item["created"]).replace(
+                microsecond=0
+            )
+            if item_timestamp > latest_timestamp:
                 all_bookmarks.append(item)
                 count += 1
         # Stop once we hit a short page (last page) or an empty page.
@@ -281,6 +289,8 @@ def _combine_raindrop_with_gsheet_links(base_csv: str, output_csv: str) -> str:
     - For `--target local_csv`, `output_csv` is the same path as `base_csv`,
       so this call merges the new rows into it in place, leaving every
       existing row (`Done` included) untouched
+    - A Raindrop row whose `url` already matches an existing row's `Hn_url`
+      is dropped (not re-prepended as a duplicate)
 
     :param base_csv: path to the CSV file providing existing rows and the
         column schema
@@ -305,9 +315,27 @@ def _combine_raindrop_with_gsheet_links(base_csv: str, output_csv: str) -> str:
     if rows_raindrop:
         _log_first_rows(raindrop_csv, action_desc="Read")
     _LOG.debug(hprint.to_str("len(rows_raindrop)"))
+    # Existing `Hn_url` values already in the base CSV, so a Raindrop item
+    # that's already present (e.g., the boundary item at the previous
+    # cutoff timestamp, see `_download_raindrop_data()`) is dropped instead
+    # of being re-added as a duplicate row.
+    existing_hn_urls = {
+        row["Hn_url"] for row in rows_gsheet if row.get("Hn_url")
+    }
     # Transform Raindrop rows to match gsheet structure: map fields and convert timestamps.
     rows_combined = []
+    duplicate_count = 0
     for row in rows_raindrop:
+        url = row.get("url", "")
+        if url and url in existing_hn_urls:
+            _LOG.warning(
+                "Skipping Raindrop item '%s': already present in base CSV "
+                "(Hn_url='%s')",
+                row.get("id", ""),
+                url,
+            )
+            duplicate_count += 1
+            continue
         # Initialize combined row with empty strings for all gsheet columns.
         combined_row = {col: "" for col in gsheet_columns}
         # Map Raindrop title field: strip "| Hacker News" suffix if present.
@@ -341,8 +369,10 @@ def _combine_raindrop_with_gsheet_links(base_csv: str, output_csv: str) -> str:
     rows_combined.extend(rows_gsheet)
     _LOG.debug(hprint.to_str("len(rows_combined)"))
     _LOG.info(
-        "Combining data: %d raindrop items, %d existing items",
+        "Combining data: %d raindrop items (%d skipped as duplicates), "
+        "%d existing items",
         len(rows_raindrop),
+        duplicate_count,
         len(rows_gsheet),
     )
     _LOG.info("Writing combined data to CSV file: '%s'", output_csv)
@@ -545,6 +575,21 @@ def _main(parser: argparse.ArgumentParser) -> None:
                     COMBINED_CSV_FILE, "update_bookmarks_from_raindrop"
                 )
             _combine_raindrop_with_gsheet_links(base_csv, output_csv)
+            if args.target == "local_csv":
+                # Unlike `--target gsheet` (where `combine_data`'s own
+                # output file, `COMBINED_CSV_FILE`, gates the incremental
+                # skip above), `combine_data` for `local_csv` has no output
+                # file to check (see `_get_action_output_file()`) and always
+                # runs. So the consumed `raindrop_data.csv` tmp file is
+                # deleted right after merging it in, otherwise a second,
+                # unrelated invocation would find that stale tmp file still
+                # there, skip `download_raindrop_data` (incremental mode),
+                # and have `combine_data` silently re-merge the very same
+                # batch into `--local_csv` a second time.
+                raindrop_csv = dshdbout.get_tmp_file_path(
+                    RAINDROP_CSV_FILE, "update_bookmarks_from_raindrop"
+                )
+                hio.delete_file(raindrop_csv)
         elif action == "upload_gsheet_links":
             url = dshdbout.resolve_gsheet_url(args.url)
             _upload_to_gsheet(url)

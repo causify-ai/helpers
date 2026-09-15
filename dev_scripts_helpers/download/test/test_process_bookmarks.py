@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 
-import logging
 import os
 import unittest.mock as umock
 from typing import Dict, List, Tuple
@@ -9,8 +8,6 @@ import helpers.hio as hio
 import helpers.hunit_test as hunitest
 import dev_scripts_helpers.download.bookmark_utils as dshdbou
 import dev_scripts_helpers.download.process_bookmarks as dshdprbo
-
-_LOG = logging.getLogger(__name__)
 
 
 # #############################################################################
@@ -374,6 +371,22 @@ class Test__build_info_section(hunitest.TestCase):
     Test `process_bookmarks._build_info_section()`.
     """
 
+    def helper(
+        self, row: Dict[str, str], article_url: str, hn_url: str, expected: str
+    ) -> None:
+        """
+        Helper for `_build_info_section()`.
+
+        :param row: Input row dict
+        :param article_url: Article URL
+        :param hn_url: HN URL
+        :param expected: Expected output
+        """
+        # Run test.
+        actual = dshdprbo._build_info_section(row, article_url, hn_url)
+        # Check outputs.
+        self.assert_equal(actual, expected)
+
     def test1(self) -> None:
         """
         Test the `# Info` section includes an empty `Score: ` placeholder
@@ -402,9 +415,7 @@ class Test__build_info_section(hunitest.TestCase):
             ]
         )
         # Run test.
-        actual = dshdprbo._build_info_section(row, article_url, hn_url)
-        # Check outputs.
-        self.assert_equal(actual, expected)
+        self.helper(row, article_url, hn_url, expected)
 
     def test2(self) -> None:
         """
@@ -426,9 +437,7 @@ class Test__build_info_section(hunitest.TestCase):
             ]
         )
         # Run test.
-        actual = dshdprbo._build_info_section(row, article_url, hn_url)
-        # Check outputs.
-        self.assert_equal(actual, expected)
+        self.helper(row, article_url, hn_url, expected)
 
 
 # #############################################################################
@@ -671,6 +680,38 @@ class Test__reconcile_destination(hunitest.TestCase):
     Test `process_bookmarks._reconcile_destination()`.
     """
 
+    def helper(
+        self,
+        rows: List[Dict[str, str]],
+        merged_filename: str,
+        output_dir: str,
+        dest_dir: str,
+        dry_run: bool,
+        expected_copied: List[str],
+        dest_file_exists: bool = False,
+    ) -> None:
+        """
+        Helper for `_reconcile_destination()`.
+
+        :param rows: Input rows
+        :param merged_filename: Filename to create in output_dir
+        :param output_dir: Output directory
+        :param dest_dir: Destination directory
+        :param dry_run: Dry run flag
+        :param expected_copied: Expected list of copied files
+        :param dest_file_exists: True if dest file should exist after call
+        """
+        # Run test.
+        actual_copied = dshdprbo._reconcile_destination(
+            rows, output_dir=output_dir, dest_dir=dest_dir, dry_run=dry_run
+        )
+        # Check outputs.
+        self.assert_equal(str(actual_copied), str(expected_copied))
+        if dest_file_exists:
+            self.assertTrue(os.path.exists(os.path.join(dest_dir, merged_filename)))
+        else:
+            self.assertFalse(os.path.exists(os.path.join(dest_dir, merged_filename)))
+
     def test1(self) -> None:
         """
         Test a `Done=yes` row whose merged file is missing from the
@@ -695,13 +736,14 @@ class Test__reconcile_destination(hunitest.TestCase):
         # Prepare outputs.
         expected_copied = [merged_filename]
         # Run test.
-        actual_copied = dshdprbo._reconcile_destination(
-            rows, output_dir=output_dir, dest_dir=dest_dir, dry_run=False
-        )
-        # Check outputs.
-        self.assert_equal(str(actual_copied), str(expected_copied))
-        self.assertTrue(
-            os.path.exists(os.path.join(dest_dir, merged_filename))
+        self.helper(
+            rows,
+            merged_filename,
+            output_dir,
+            dest_dir,
+            dry_run=False,
+            expected_copied=expected_copied,
+            dest_file_exists=True,
         )
 
     def test2(self) -> None:
@@ -731,11 +773,15 @@ class Test__reconcile_destination(hunitest.TestCase):
         # Prepare outputs.
         expected_copied: list = []
         # Run test.
-        actual_copied = dshdprbo._reconcile_destination(
-            rows, output_dir=output_dir, dest_dir=dest_dir, dry_run=False
+        self.helper(
+            rows,
+            merged_filename,
+            output_dir,
+            dest_dir,
+            dry_run=False,
+            expected_copied=expected_copied,
+            dest_file_exists=True,
         )
-        # Check outputs.
-        self.assert_equal(str(actual_copied), str(expected_copied))
 
     def test3(self) -> None:
         """
@@ -750,7 +796,7 @@ class Test__reconcile_destination(hunitest.TestCase):
         ]
         # Prepare outputs.
         expected_copied: list = []
-        # Run test.
+        # Run test and check outputs.
         actual_copied = dshdprbo._reconcile_destination(
             rows, output_dir="unused", dest_dir=None, dry_run=False
         )
