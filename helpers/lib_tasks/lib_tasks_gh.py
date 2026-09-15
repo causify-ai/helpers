@@ -400,6 +400,41 @@ def _get_repo_full_name_from_cmd(repo_short_name: str) -> Tuple[str, str]:
     return repo_full_name_with_host, ret_repo_short_name
 
 
+def _dassert_no_duplicate_open_issue(
+    repo_full_name_with_host: str, title: str
+) -> None:
+    """
+    Assert that no open issue titled exactly `title` already exists.
+
+    Guards against creating duplicate issues when a caller (e.g.,
+    `git_create_issue_and_branch.py`) is re-run after a later step (e.g.,
+    branch creation) failed, since a naive retry would otherwise create a
+    fresh issue every time instead of reusing the one already created.
+
+    :param repo_full_name_with_host: e.g., "github.com/org/repo"
+    :param title: exact issue title to check for
+    """
+    cmd = (
+        "gh issue list"
+        + f" --repo {repo_full_name_with_host}"
+        + " --state open"
+        + " --json number,title"
+        + " --limit 200"
+    )
+    _, output = hsystem.system_to_string(cmd)
+    issues = json.loads(output)
+    duplicate_ids = [
+        str(issue["number"]) for issue in issues if issue["title"] == title
+    ]
+    hdbg.dassert(
+        not duplicate_ids,
+        "An open issue titled '%s' already exists: #%s. Pass "
+        "--gh_issue_id to reuse it instead of creating a duplicate.",
+        title,
+        ", #".join(duplicate_ids),
+    )
+
+
 def _get_gh_issue_title(issue_id: int, repo_short_name: str) -> Tuple[str, str]:
     """
     Get the title of a GitHub issue.
@@ -524,6 +559,9 @@ def gh_issue_create(  # type: ignore
     repo_full_name_with_host, repo_short_name = _get_repo_full_name_from_cmd(
         repo_short_name
     )
+    # Avoid creating a duplicate issue, e.g., when a caller is re-run after a
+    # later step (like branch creation) failed.
+    _dassert_no_duplicate_open_issue(repo_full_name_with_host, title)
     _LOG.info(
         "Creating issue with title '%s' in %s",
         title,

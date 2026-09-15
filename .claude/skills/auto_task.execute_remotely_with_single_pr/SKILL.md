@@ -16,6 +16,10 @@ model: haiku
 - Follow `.claude/skills/auto_task.rules.md` for how tasks are queued, specified, and
   named before they reach this skill
 
+## Inputs
+- `<FILE>` or a GitHub issue already filed (e.g., #580 or
+  https://github.com/gpsaggese/gpsaggese.github.io/issues/580)
+
 # When to Use This Skill
 
 - Use it when tasks are specified clearly enough to hand to an unattended agent and
@@ -45,16 +49,17 @@ model: haiku
   monitor and report on the resulting run and PR
 - Do not commit, push, or amend the branch created for a task: that branch is Claude
   on GitHub's to push to, and merging it is the user's decision
-- Do not dispatch the next task's issue while still checked out on the previous
-  task's branch: return to `master` first, since `git_create_issue_and_branch.py`
-  requires branching from `master`
 - Keep one PR per task: multiple commits on that PR's branch are fine when the spec
   has several parts, but never open a second issue/branch/PR for a task already
   dispatched
 
 # Workflow
 
-## Confirm the Task List
+## Create Issue, if Needed
+
+- If the GitHub issue has not been filed, then create it
+
+### Confirm the Task List
 
 - Read `<FILE>`, wrapped around the task list like
 
@@ -82,7 +87,6 @@ model: haiku
   dispatched with the remote run not finished, `[x]` means the PR is ready for human
   review
 
-## Dispatch Each Task
 
 ### Create the Issue, Branch, and Draft PR
 
@@ -104,7 +108,7 @@ model: haiku
   > git checkout master
   ```
 
-### Trigger Claude on GitHub
+## Trigger Claude on GitHub
 
 - Post the task's spec as a PR comment with an explicit `@claude` mention, so
   `helpers_root/.github/workflows/claude.yml` picks it up

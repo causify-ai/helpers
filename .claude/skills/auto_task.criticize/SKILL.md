@@ -5,7 +5,7 @@ model: haiku
 
 # Goal
 
-- The user will pass you a file `<FILE>` or a GitHub issue number
+- The user will pass you a file `<FILE>` (e.g., `tasks.md`) or a GitHub issue number
   `<GITHUB_ISSUE_NUM>`
 - You will read carefully the passed content and make sure both the problem and the
   solution is clear and complete
@@ -14,7 +14,7 @@ model: haiku
 
 ## Read Context
 
-- Read the content (file or GitHub issue)
+- Read the content of the plan (file or GitHub issue)
 - Analyze the problem and the solution, reviewing it carefully
 
 ## Create a Plan, If Needed

@@ -76,17 +76,28 @@ def _get_repo_targets(submodules: bool) -> List[str]:
     return repo_targets
 
 
-def _dassert_all_targets_clean(repo_targets: List[str]) -> None:
+def _dassert_all_targets_clean(
+    repo_targets: List[str], *, no_abort_if_not_clean: bool = False
+) -> None:
     """
     Assert that every repo target is clean, before mutating any of them.
 
     :param repo_targets: repo directories to check
+    :param no_abort_if_not_clean: if True, only warn (do not raise) when a
+        repo target is not clean
     """
     dirty_targets = [
         target
         for target in repo_targets
         if not hgit.is_client_clean(dir_name=target, abort_if_not_clean=False)
     ]
+    if no_abort_if_not_clean:
+        if dirty_targets:
+            _LOG.warning(
+                "The following repo(s) are not clean: %s",
+                ", ".join(dirty_targets),
+            )
+        return
     hdbg.dassert(
         not dirty_targets,
         "The following repo(s) are not clean: %s",
@@ -180,6 +191,7 @@ def _create_branch_and_pr(
     create_pr: bool = True,
     gh_issue_id_provided: bool = False,
     no_abort_if_not_master: bool = False,
+    no_abort_if_not_clean: bool = False,
     suffix: str = "",
 ) -> str:
     """
@@ -192,6 +204,8 @@ def _create_branch_and_pr(
     :param no_abort_if_not_master: if True, allow branching from a non-'master'
         branch instead of aborting (the underlying invoke task switches to
         'master' first)
+    :param no_abort_if_not_clean: if True, allow branching with uncommitted
+        changes instead of aborting
     :param suffix: if specified (e.g., "1"), append `_<suffix>` to the branch
         name derived from the issue (e.g., `AmpTask1234_..._1`)
     :return: Created branch name
@@ -227,6 +241,8 @@ def _create_branch_and_pr(
         # Let git_branch_create switch to 'master' itself instead of
         # aborting when the current branch isn't 'master'.
         cmd += " --no-abort-if-not-master"
+    if no_abort_if_not_clean:
+        cmd += " --no-abort-if-not-clean"
     _LOG.info("Creating branch via invoke: %s", cmd)
     hsystem.system(cmd, log_level=logging.INFO)
     # Get the current branch name (invoke git_branch_create creates and checks out the branch).
@@ -246,6 +262,7 @@ def _create_branch_in_submodule(
     *,
     create_pr: bool = True,
     no_abort_if_not_master: bool = False,
+    no_abort_if_not_clean: bool = False,
 ) -> None:
     """
     Create (or check out) `branch_name` inside a submodule.
@@ -262,6 +279,8 @@ def _create_branch_in_submodule(
     :param no_abort_if_not_master: if True, allow branching from a non-'master'
         branch instead of aborting (the underlying invoke task switches to
         'master' first)
+    :param no_abort_if_not_clean: if True, allow branching with uncommitted
+        changes instead of aborting
     """
     if hgit.does_branch_exist(branch_name, mode="all", dir_name=submodule_path):
         _LOG.info(
@@ -282,6 +301,8 @@ def _create_branch_in_submodule(
         # Let git_branch_create switch to 'master' itself instead of
         # aborting when the current branch isn't 'master'.
         cmd += " --no-abort-if-not-master"
+    if no_abort_if_not_clean:
+        cmd += " --no-abort-if-not-clean"
     _LOG.info("Creating branch in '%s' via invoke: %s", submodule_path, cmd)
     hsystem.system(cmd, log_level=logging.INFO)
 
@@ -469,6 +490,12 @@ def _parse() -> argparse.ArgumentParser:
         help="Skip checking that every repo target is on 'master'",
     )
     parser.add_argument(
+        "--no_abort_if_not_clean",
+        action="store_true",
+        default=False,
+        help="Warn, instead of aborting, if a repo target is not clean",
+    )
+    parser.add_argument(
         "--suffix",
         type=str,
         default="",
@@ -519,6 +546,16 @@ def _main_workflow(
             args.gh_issue_title,
             "Issue title is required when creating a new issue",
         )
+        # Fail fast if an open issue with the same title already exists
+        # (e.g., from a prior run of this script that failed after creating
+        # the issue but before finishing the branch/PR steps), instead of
+        # silently creating a duplicate.
+        repo_full_name_with_host, _ = hltltagh._get_repo_full_name_from_cmd(
+            "current"
+        )
+        hltltagh._dassert_no_duplicate_open_issue(
+            repo_full_name_with_host, args.gh_issue_title
+        )
         cmd = "invoke gh_issue_create"
         cmd += f" --title {shlex.quote(args.gh_issue_title)}"
         if gh_issue_body:
@@ -542,6 +579,7 @@ def _main_workflow(
         create_pr=args.create_pr,
         gh_issue_id_provided=bool(args.gh_issue_id),
         no_abort_if_not_master=args.no_abort_if_not_master,
+        no_abort_if_not_clean=args.no_abort_if_not_clean,
         suffix=args.suffix,
     )
     _LOG.info("Branch name: '%s'", branch_name)
@@ -553,6 +591,7 @@ def _main_workflow(
             branch_name,
             create_pr=args.create_pr,
             no_abort_if_not_master=args.no_abort_if_not_master,
+            no_abort_if_not_clean=args.no_abort_if_not_clean,
         )
     # Create worktree, if requested.
     if args.create_worktree:
@@ -576,7 +615,9 @@ def _main(parser: argparse.ArgumentParser) -> None:
     repo_targets = _get_repo_targets(args.submodules)
     # Assert that every repo target is clean (no uncommitted changes), before
     # mutating any of them.
-    _dassert_all_targets_clean(repo_targets)
+    _dassert_all_targets_clean(
+        repo_targets, no_abort_if_not_clean=args.no_abort_if_not_clean
+    )
     # Capture original branch to restore on failure.
     original_branch = hgit.get_branch_name()
     if len(repo_targets) > 1 and not args.no_abort_if_not_master:
