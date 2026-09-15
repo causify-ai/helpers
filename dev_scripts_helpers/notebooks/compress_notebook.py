@@ -1,16 +1,18 @@
 #!/usr/bin/env python
 
 """
-Compress PNG images embedded in a Jupyter nbconvert HTML export using
-`pngquant`.
+Compress PNG images embedded in a Jupyter notebook (`.ipynb`) or nbconvert
+HTML export (`.html`) using `pngquant`.
 
-Notebook HTML exports that use ipywidgets `interact()` embed each captured
-plot twice over: once as the normal cell output, and again inside the
-`<script type="application/vnd.jupyter.widget-state+json">` blob that stores
-the ipywidgets `OutputModel` state, so those PNGs are usually the largest
-contributor to file size. This script re-compresses PNGs in two places:
-- Inline `data:image/png;base64,...` URIs anywhere in the HTML
-- PNGs stored inside the ipywidgets widget-state JSON blob above
+Notebooks that use ipywidgets `interact()` embed each captured plot twice
+over: once as the normal cell output, and again inside the ipywidgets
+`OutputModel` state (an `application/vnd.jupyter.widget-state+json` blob), so
+those PNGs are usually the largest contributor to file size. This script
+re-compresses PNGs in every place they can appear:
+- `.ipynb`: `outputs[].data["image/png"]` in each cell, and the
+  `metadata.widgets["application/vnd.jupyter.widget-state+json"]` blob
+- `.html`: inline `data:image/png;base64,...` URIs anywhere in the HTML, and
+  the `<script type="application/vnd.jupyter.widget-state+json">` blob above
 
 `pngquant` performs lossy palette quantization: fine for the flat-color line
 plots and tables typical of tutorial notebooks, since it only re-encodes an
@@ -19,21 +21,25 @@ dimensions, surrounding markup, or non-PNG content.
 
 # Usage Example
 
-- Compress a notebook HTML file in place:
-> compress_notebook_html.py --input L06_01_exact_inference.html
+- Compress a notebook in place (`.ipynb` or `.html`, detected from the
+  extension):
+> compress_notebook.py --input L06_01_exact_inference.ipynb
+
+- Compress an nbconvert HTML export instead:
+> compress_notebook.py --input L06_01_exact_inference.html
 
 - Compress and write the result to a new file:
-> compress_notebook_html.py --input L06_01_exact_inference.html --output L06_01_exact_inference.small.html
+> compress_notebook.py --input L06_01_exact_inference.ipynb --output L06_01_exact_inference.small.ipynb
 
 - Use a different `pngquant` quality range:
-> compress_notebook_html.py --input L06_01_exact_inference.html --quality 60-90
+> compress_notebook.py --input L06_01_exact_inference.ipynb --quality 60-90
 
 - Preview the size reduction without writing any file:
-> compress_notebook_html.py --input L06_01_exact_inference.html --dry_run
+> compress_notebook.py --input L06_01_exact_inference.ipynb --dry_run
 
 Import as:
 
-import dev_scripts_helpers.notebooks.compress_notebook_html as dshncnoht
+import dev_scripts_helpers.notebooks.compress_notebook as dsnocono
 """
 
 import argparse
@@ -43,7 +49,9 @@ import logging
 import os
 import re
 import shutil
-from typing import Match
+from typing import Any, Dict, Match
+
+import nbformat
 
 import helpers.hdbg as hdbg
 import helpers.hio as hio
@@ -109,8 +117,8 @@ def _quantize_png(
     # `pngquant` only takes file paths, not stdin/stdout bytes, so round-trip
     # through scratch files (same idiom as `compress_pdf.py`/
     # `compress_figures.py`).
-    tmp_in_file = "tmp.compress_notebook_html.quantize_in.png"
-    tmp_out_file = "tmp.compress_notebook_html.quantize_out.png"
+    tmp_in_file = "tmp.compress_notebook.quantize_in.png"
+    tmp_out_file = "tmp.compress_notebook.quantize_out.png"
     with open(tmp_in_file, "wb") as f:
         f.write(png_bytes)
     cmd = (
@@ -136,6 +144,57 @@ def _quantize_png(
 # #############################################################################
 
 
+def _compress_output_png(
+    output: Dict[str, Any], *, pngquant_binary: str, quality: str
+) -> bool:
+    """
+    Re-compress the `image/png` entry of one cell/widget output, in place.
+
+    :param output: one Jupyter `output` dict (from a cell or from an
+        ipywidgets `OutputModel` state)
+    :param pngquant_binary: absolute path to the `pngquant` binary
+    :param quality: `pngquant` `--quality` range
+    :return: whether `output` contained an `image/png` entry
+    """
+    png_b64 = output.get("data", {}).get("image/png")
+    if not png_b64:
+        return False
+    png_bytes = base64.b64decode(png_b64)
+    new_png_bytes = _quantize_png(
+        png_bytes, pngquant_binary=pngquant_binary, quality=quality
+    )
+    if new_png_bytes is not png_bytes:
+        output["data"]["image/png"] = base64.b64encode(new_png_bytes).decode(
+            "ascii"
+        )
+    return True
+
+
+def _compress_widget_state_payload(
+    payload: Dict[str, Any], *, pngquant_binary: str, quality: str
+) -> int:
+    """
+    Re-compress every PNG stored inside a parsed ipywidgets widget-state
+    payload, in place.
+
+    :param payload: parsed
+        `application/vnd.jupyter.widget-state+json` payload
+    :param pngquant_binary: absolute path to the `pngquant` binary
+    :param quality: `pngquant` `--quality` range
+    :return: number of `image/png` outputs found
+    """
+    num_images = 0
+    for model in payload.get("state", {}).values():
+        if model.get("model_name") != "OutputModel":
+            continue
+        for output in model.get("state", {}).get("outputs", []):
+            if _compress_output_png(
+                output, pngquant_binary=pngquant_binary, quality=quality
+            ):
+                num_images += 1
+    return num_images
+
+
 def _compress_widget_state_images(
     html: str, *, pngquant_binary: str, quality: str
 ) -> str:
@@ -152,23 +211,9 @@ def _compress_widget_state_images(
         _LOG.debug("No ipywidgets widget-state blob found")
         return html
     payload = json.loads(match.group(2))
-    num_images = 0
-    for model in payload.get("state", {}).values():
-        if model.get("model_name") != "OutputModel":
-            continue
-        for output in model.get("state", {}).get("outputs", []):
-            png_b64 = output.get("data", {}).get("image/png")
-            if not png_b64:
-                continue
-            png_bytes = base64.b64decode(png_b64)
-            new_png_bytes = _quantize_png(
-                png_bytes, pngquant_binary=pngquant_binary, quality=quality
-            )
-            if new_png_bytes is not png_bytes:
-                output["data"]["image/png"] = base64.b64encode(
-                    new_png_bytes
-                ).decode("ascii")
-            num_images += 1
+    num_images = _compress_widget_state_payload(
+        payload, pngquant_binary=pngquant_binary, quality=quality
+    )
     _LOG.info("Compressed %s image(s) in the widget-state blob", num_images)
     new_payload = json.dumps(payload, separators=(",", ":"))
     return (
@@ -223,6 +268,62 @@ def _compress_notebook_html(html: str, *, quality: str) -> str:
     return html
 
 
+def _compress_ipynb_cell_outputs(
+    nb: nbformat.NotebookNode, *, pngquant_binary: str, quality: str
+) -> int:
+    """
+    Re-compress every PNG stored in a cell `outputs[].data["image/png"]`, in
+    place.
+
+    :param nb: parsed notebook
+    :param pngquant_binary: absolute path to the `pngquant` binary
+    :param quality: `pngquant` `--quality` range
+    :return: number of `image/png` outputs found
+    """
+    num_images = 0
+    for cell in nb.get("cells", []):
+        for output in cell.get("outputs", []):
+            if _compress_output_png(
+                output, pngquant_binary=pngquant_binary, quality=quality
+            ):
+                num_images += 1
+    return num_images
+
+
+def _compress_notebook_ipynb(nb_text: str, *, quality: str) -> str:
+    """
+    Re-compress every embedded PNG in a Jupyter notebook.
+
+    :param nb_text: full `.ipynb` JSON content
+    :param quality: `pngquant` `--quality` range
+    :return: `nb_text` with all embedded PNGs re-compressed
+    """
+    pngquant_binary = _find_pngquant_binary()
+    nb = nbformat.reads(nb_text, as_version=4)
+    num_cell_images = _compress_ipynb_cell_outputs(
+        nb, pngquant_binary=pngquant_binary, quality=quality
+    )
+    _LOG.info("Compressed %s image(s) in cell outputs", num_cell_images)
+    widget_state = (
+        nb.get("metadata", {})
+        .get("widgets", {})
+        .get("application/vnd.jupyter.widget-state+json")
+    )
+    if widget_state is not None:
+        num_widget_images = _compress_widget_state_payload(
+            widget_state, pngquant_binary=pngquant_binary, quality=quality
+        )
+        _LOG.info(
+            "Compressed %s image(s) in the widget-state blob",
+            num_widget_images,
+        )
+    else:
+        _LOG.debug("No ipywidgets widget-state blob found")
+    # `nbformat.writes()` does not add the trailing newline that
+    # `nbformat.write()` (and Jupyter itself) always writes to disk.
+    return nbformat.writes(nb) + "\n"
+
+
 # #############################################################################
 # CLI
 # #############################################################################
@@ -255,10 +356,13 @@ def _main(parser: argparse.ArgumentParser) -> None:
     hdbg.init_logger(verbosity=args.log_level, use_exec_path=True)
     in_file_name, out_file_name = hseinout.parse_input_output_args(args)
     hdbg.dassert_file_exists(in_file_name)
-    html = hio.from_file(in_file_name)
-    size_before = len(html.encode("utf-8"))
-    html = _compress_notebook_html(html, quality=args.quality)
-    size_after = len(html.encode("utf-8"))
+    text = hio.from_file(in_file_name)
+    size_before = len(text.encode("utf-8"))
+    if in_file_name.endswith(".ipynb"):
+        text = _compress_notebook_ipynb(text, quality=args.quality)
+    else:
+        text = _compress_notebook_html(text, quality=args.quality)
+    size_after = len(text.encode("utf-8"))
     reduction = hprint.perc(
         size_after, size_before, invert=True, allow_increase=True
     )
@@ -271,7 +375,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
             reduction,
         )
     else:
-        hio.to_file(out_file_name, html)
+        hio.to_file(out_file_name, text)
         _LOG.info(
             "Compressed '%s' to '%s': %s -> %s bytes (%s smaller)",
             in_file_name,
