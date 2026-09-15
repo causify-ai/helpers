@@ -18,6 +18,10 @@ Conventions for writing a README for a directory with executables.
   for text formatting
 - Keep descriptions concise and action-oriented
 - Limit descriptions to specified word counts
+- Focus on the current state only: explain how things work right now, not how
+  they got there. Omit references to past interfaces, iteration history, or PRs
+  (e.g., "before this PR", "we used to", "this replaced X"). Readers need to
+  understand the present system, not its evolution
 
 # Section Details
 
