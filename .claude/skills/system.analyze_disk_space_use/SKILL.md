@@ -88,6 +88,7 @@ model: haiku
 - Fill in the template
   `.claude/skills/system.analyze_disk_space_use/report.template.md`, formatted per
   `.claude/skills/markdown.rules.md`
+- Save the file in the current dir
 - List the top 10 directories measured in "Survey The Home Directory" and "Check
   Container And VM Engines First" by size, largest first; prefer the most specific
   directory that explains the bytes over a vague ancestor (e.g. list the Docker VM
@@ -101,8 +102,8 @@ model: haiku
 - Rank the breakdown by impact (space freed) first, then by risk
 
 ## Create a Script to Perform the Cleanup
-- Create a Bash script `cleanup.sh` to perform the clean up but don't make it
-  executable since the user needs to review it
+- Create a Bash script `cleanup.sh` in the current dir to perform the clean up but
+  don't make it executable since the user needs to review it
 - For each potential space saving operation add a comment
   - how safe it is to perform,
   - how much space will be saved
