@@ -1,11 +1,10 @@
 ---
-description: Move completed tasks from ai_task_queue.md and TODO.md into DONE.md, organized by the topics in ai_task_queue.md's ALL TOPICS section
+description: Move completed tasks from ai_task_queue.md into DONE.md, organized by the topics in ai_task_queue.md's ALL TOPICS section
 ---
 
 # Goal
 
-- Find every top-level completed task (`### [x] <Title>`) in `ai_task_queue.md` and
-  `TODO.md`
+- Find every top-level completed task (`### [x] <Title>`) in `ai_task_queue.md`
 - Move each one into `DONE.md`, grouped under the same `## <Topic>` headers used in
   the `# ALL TOPICS` section of `ai_task_queue.md`
 - Leave in-progress (`[ ]`, `[.]`) tasks and nested checklist items untouched
@@ -27,8 +26,7 @@ description: Move completed tasks from ai_task_queue.md and TODO.md into DONE.md
 
 ## Find Completed Tasks
 
-- In `ai_task_queue.md` and `TODO.md`, find every H3 header that matches exactly
-  `### [x] <Title>`
+- In `ai_task_queue.md`, find every H3 header that matches exactly `### [x] <Title>`
   - Do NOT move `### [ ]`, `### [.]`, or any other marker
   - Do NOT move nested checklist items like `- [x] ...`; those are subtask progress
     inside a task that is not itself done
@@ -40,9 +38,8 @@ description: Move completed tasks from ai_task_queue.md and TODO.md into DONE.md
 - Find the nearest enclosing H2 header for the task in its source file
 - If that H2 header name matches (case-insensitively) one of the ALL TOPICS entries,
   use it as the target topic
-- Otherwise (e.g. the enclosing header is a placeholder like `## ?`, or the file uses
-  a different H2 taxonomy, as `TODO.md` often does), infer the target topic from the
-  task's content against the ALL TOPICS list
+- Otherwise, infer the target topic from the task's content against the ALL TOPICS
+  list
 - If no ALL TOPICS entry is a plausible match, do not guess: list the task and ask
   the user which topic to use, or whether to add a new topic to `# ALL TOPICS`
 
@@ -65,9 +62,9 @@ description: Move completed tasks from ai_task_queue.md and TODO.md into DONE.md
 
 # Verification
 
-- [ ] Every `### [x] ...` task originally in `ai_task_queue.md` or `TODO.md` is now
+- [ ] Every `### [x] ...` task originally in `ai_task_queue.md` is now
       in `DONE.md`, and no longer in its source file
-todo.move_done- [ ] No `[ ]`, `[.]`, or nested `- [x]` item was moved or altered
+- [ ] No `[ ]`, `[.]`, or nested `- [x]` item was moved or altered
 - [ ] Each moved task sits under a `## <Topic>` header that also appears in
       `ai_task_queue.md`'s `# ALL TOPICS` section
 - [ ] Task content (title, body) is unchanged from the source file
