@@ -181,6 +181,7 @@ class DockerTestCase(hunitest.TestCase):
         hsystem.system(cmd)
 
     @pytest.mark.order(3)
+    @pytest.mark.slow
     def test_docker_bash(self) -> None:
         """
         Test that `docker_bash.sh` runs 'ls /git_root' without error.
