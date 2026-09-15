@@ -236,53 +236,74 @@ def _get_cell_duration(cell: Dict[str, Any]) -> Optional[float]:
     return duration
 
 
-def _get_cell_stats(executed_notebook_path: str) -> pd.DataFrame:
+def _get_cell_rows(executed_notebook_path: str) -> List[Dict[str, Any]]:
     """
-    Build a per-cell timing report for an executed notebook.
+    Build a per-cell timing record for an executed notebook, in notebook
+    order.
 
     :param executed_notebook_path: path to the notebook with outputs and
         timing metadata already saved
-    :return: DataFrame sorted by descending `duration_sec`, with columns:
+    :return: one record per cell, in original notebook order, each with:
         - `cell_index`: 0-based position in the notebook
-        - `cell_type`: `code` or `markdown`
-        - `duration_sec`: wall-clock execution time in seconds, `NaN` for
+        - `duration_sec`: wall-clock execution time in seconds, `None` for
           cells with no timing (e.g., markdown)
-        - `source_preview`: first line of the cell's source, truncated
+        - `source_preview`: first `_SOURCE_PREVIEW_LEN` characters of the
+          cell's source, verbatim (may contain newlines)
     """
     hdbg.dassert_file_exists(executed_notebook_path)
     nb = nbformat.read(executed_notebook_path, as_version=4)
     rows = []
     for idx, cell in enumerate(nb.cells):
-        source_first_line = cell.get("source", "").split("\n", 1)[0]
         row = {
             "cell_index": idx,
-            "cell_type": cell.get("cell_type", ""),
             "duration_sec": _get_cell_duration(cell),
-            "source_preview": source_first_line[:70],
+            "source_preview": cell.get("source", "")[:_SOURCE_PREVIEW_LEN],
         }
         rows.append(row)
-    stats = pd.DataFrame(rows)
-    stats = stats.sort_values(
-        "duration_sec", ascending=False, na_position="last"
-    )
-    stats = stats.reset_index(drop=True)
-    return stats
+    return rows
 
 
-def _print_stats(stats: pd.DataFrame, *, top_n: int) -> None:
+def _write_json_profile(rows: List[Dict[str, Any]], json_path: str) -> None:
+    """
+    Write the per-cell profile to `json_path`, or print it if `json_path` is
+    `-`.
+
+    :param rows: per-cell records from `_get_cell_rows()`
+    :param json_path: destination JSON file, or `-` to print to stdout
+    """
+    payload = {"cells": rows}
+    if json_path == "-":
+        print(json.dumps(payload, indent=2))
+    else:
+        hio.to_json(json_path, payload)
+        _LOG.info("Saved per-cell profile to '%s'", json_path)
+
+
+def _print_summary(rows: List[Dict[str, Any]], *, top_n: int) -> None:
     """
     Print the slowest cells and the overall execution time.
 
-    :param stats: per-cell timing DataFrame from `_get_cell_stats()`
+    :param rows: per-cell records from `_get_cell_rows()`
     :param top_n: number of slowest cells to print; `0` prints all of them
     """
+    stats = pd.DataFrame(rows)
     total_duration = stats["duration_sec"].sum()
     num_executed = stats["duration_sec"].notna().sum()
     print(
         f"Total execution time: {total_duration:.1f}s across "
         f"{num_executed} executed cell(s) ({len(stats)} cell(s) total)"
     )
+    stats = stats.sort_values(
+        "duration_sec", ascending=False, na_position="last"
+    )
     to_print = stats if top_n == 0 else stats.head(top_n)
+    # Collapse embedded newlines so the table stays aligned; the JSON
+    # profile keeps the verbatim source.
+    to_print = to_print.assign(
+        source_preview=to_print["source_preview"].str.replace(
+            "\n", "\\n", regex=False
+        )
+    )
     print(f"\nSlowest {len(to_print)} cell(s):")
     with pd.option_context("display.max_colwidth", None):
         print(to_print.to_string(index=False))
@@ -296,23 +317,9 @@ def _parse() -> argparse.ArgumentParser:
         description=__doc__,
         formatter_class=hparser.CustomHelpFormatter,
     )
-    parser.add_argument(
-        "-i",
-        "--input",
-        dest="input",
-        action="store",
-        required=True,
-        help="Path to the `.ipynb` file to profile",
-    )
-    parser.add_argument(
-        "-o",
-        "--output",
-        dest="output",
-        action="store",
-        default="",
-        help="Path to the HTML file to generate; default: next to the "
-        "notebook, same base name",
-    )
+    # `-i` is the notebook to profile; `-o` is the JSON profile file (`-`
+    # prints it to stdout instead), defaulting to `<notebook>.profile.json`.
+    hseinout.add_input_output_args(parser, in_required=True, out_required=False)
     parser.add_argument(
         "--top_n",
         action="store",
@@ -368,9 +375,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
     )
     # Export the already-executed notebook to HTML, without re-running it.
     if args.generate_html:
-        html_path = args.output or os.path.join(
-            notebook_dir, f"{notebook_name}.html"
-        )
+        html_path = os.path.join(notebook_dir, f"{notebook_name}.html")
         _convert_to_html(
             executed_notebook_path,
             html_path,
@@ -378,12 +383,18 @@ def _main(parser: argparse.ArgumentParser) -> None:
             git_root=git_root,
             dry_run=args.dry_run,
         )
-    # Print per-cell timing statistics.
+    # Write the per-cell timing profile.
     if args.dry_run:
-        _LOG.warning("[DRY_RUN] Skipping stats: the notebook was not executed")
+        _LOG.warning(
+            "[DRY_RUN] Skipping the profile: the notebook was not executed"
+        )
         return
-    stats = _get_cell_stats(executed_notebook_path)
-    _print_stats(stats, top_n=args.top_n)
+    json_path = args.output or os.path.join(
+        notebook_dir, f"{notebook_name}.profile.json"
+    )
+    rows = _get_cell_rows(executed_notebook_path)
+    _write_json_profile(rows, json_path)
+    _print_summary(rows, top_n=args.top_n)
 
 
 if __name__ == "__main__":
