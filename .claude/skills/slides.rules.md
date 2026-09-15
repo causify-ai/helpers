@@ -698,6 +698,9 @@ Use these commands consistently across all slides:
 - `\iff`: "If and only if"
 - `\implies`: Logical implication ($X \implies Y$)
 - `\land`, `\lor`, `\lnot`: Logical and / or / not
+- `\forall x \ ...`, `\exists x \ ...`: add space `\ ` after the quantifier
+  variable binding, e.g.,
+  `\forall x \ \lnot P(x) \iff \lnot \exists x \ P(x)`
 - `\perp`: Conditional independence, e.g., `$X \perp Y | Z$`
 - `\not\perp`: Dependence, e.g., `$Rain \not\perp Sprinkler$`
 - `\cancel{...}`: Cross out conditioning variables made irrelevant, e.g.,
