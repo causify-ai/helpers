@@ -12,6 +12,49 @@
 //  - Chap 7: Logical agents
 ```
 
+## Roadmap and Summary Slides
+
+Every lesson opens with a standalone `* Roadmap` slide (right after the
+frontmatter, before the first `# Topic` heading) and closes with a standalone
+`* Summary` slide (right before `* References`). Neither sits under a
+`#`/`##` heading. See `.claude/skills/slides.rules.md` `## Roadmap Slide` /
+`## Summary Slide`.
+
+```markdown
+// type=UMD_slides
+// course_title=MSML610: Advanced Machine Learning
+// lesson_title=L03.2: Propositional and First Order Logic
+// slides_engine=typst
+// references=
+// - Russell et al.: _"Artificial Intelligence: A Modern Approach"_ (4th ed, 2020)
+
+* Roadmap
+
+- This lesson covers **propositional logic**: syntax, semantics, and
+  sound/complete inference via model checking and resolution
+- It then extends to **first-order logic**: quantifiers, predicates, and the
+  added expressiveness/complexity trade-off
+
+# Propositional Logic
+...
+```
+
+````markdown
+* Summary
+
+- @Key idea@: propositional logic trades expressiveness for tractability;
+  first-order logic trades tractability for expressiveness
+- Both rest on the same core principles: syntax/semantics separation,
+  entailment as truth preservation, and sound/complete inference
+
+* References
+
+```{=typst}
+#set text(size: 0.75em)
+#references("/msml610/lectures_source/refs.bib")
+```
+````
+
 ## Slide Structure
 
 Each slide starts with `*` and contains hierarchical bullet points. Every

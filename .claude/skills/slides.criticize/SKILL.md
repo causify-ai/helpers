@@ -47,7 +47,11 @@ model: opus
   - **Structure & consistency**:
     - Inconsistent formatting or visual style
     - Slides that break the template (if one exists)
-    - Missing agenda, summary, or chapter breaks
+    - Missing the mandatory standalone `* Roadmap` (first slide) or
+      `* Summary` (last content slide, before `* References`); see
+      `.claude/skills/slides.rules.md` `## Roadmap Slide` / `## Summary Slide`
+    - `* Roadmap` out of sync with the deck's actual `#` topics (stale after
+      edits), or `* Summary` restating stale takeaways
     - Speaker notes missing or incomplete
   - **Timing & scope**:
     - Deck too long or too short for the slot

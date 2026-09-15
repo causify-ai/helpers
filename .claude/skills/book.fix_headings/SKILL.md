@@ -53,7 +53,12 @@ model: sonnet
 
 ## Apply the Rule From `typst.rules.md`
 
-For each block found in Step 2, make its title line match:
+// TODO(ai_gp): Make reference to the typst.rules.md instead of this wall of text
+For each block found in Step 2, make its title line match the `## Structural
+Hierarchy` and `## Mandatory Sections` rules in `typst.rules.md`. This is the
+skill-specific decision logic for choosing *which* of those rules applies to
+each block; for what the resulting heading syntax must look like, see the
+rules themselves:
 - **H1** (`#`), title equal to the chapter title already shown by `#chapter(...)`
   (the common case: one `#` per lesson, and it's the lesson title): delete the title
   line entirely, keep the `// From:`/`// Slide:` comments. If a body-level H1 has
@@ -62,12 +67,18 @@ For each block found in Step 2, make its title line match:
   subsections, use `#strong[Title]` instead of deleting it; if it owns nested
   `##`/`###` subsections (e.g. a lesson combining two topics under one chapter
   title, each `# Topic` with its own `##` subsections), keep it a real `= Title`
-  heading instead -- `#strong` would flatten the tree and make each topic's
-  identically-named subsections indistinguishable in the outline. Cross-check with
-  `extract_toc_from_txt.py -i <SMD_FILE>` vs `grep "^=" <TYP_FILE>` if unsure
-- **`##`/`###`/deeper**: `==`/`===`/... one more `=` per level. Leave alone if
-  already correct
-- **`* Slide Title`**:
+  heading instead, per `typst.rules.md`'s rule that `#strong` may never stand in
+  for a heading. Cross-check with `extract_toc_from_txt.py -i <SMD_FILE>` vs
+  `grep "^=" <TYP_FILE>` if unsure
+- **`##`/`###`/deeper**: apply the `## Structural Hierarchy` heading-level
+  mapping. Leave alone if already correct
+- **`* Roadmap`**, **`* Summary`**, **`* References`**: always the mandatory
+  level-1 headings required by `## Mandatory Sections`, regardless of
+  `seen_subheading` or how many slides came before them. These are the
+  mandatory structural sections, not ordinary content slides, so the
+  `seen_subheading` rule below (which governs whether an ordinary slide gets a
+  heading, gets dropped, or becomes a transition) never applies to them
+- **`* Slide Title`** (any other slide):
   - `seen_subheading` was `False` at this slide -> `= Title`, a real heading (add the
     line if it's missing, replace it if it's currently `#strong[Title]` or a
     transitioned-in paragraph)
