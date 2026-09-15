@@ -17,6 +17,11 @@ import helpers.hio as hio
 import helpers.hunit_test as hunitest
 
 
+# #############################################################################
+# _StopDaemonLoop
+# #############################################################################
+
+
 class _StopDaemonLoop(Exception):
     """
     Sentinel raised from a mocked `time.sleep()` to break out of
@@ -140,9 +145,7 @@ class Test__fmt_mtime(hunitest.TestCase):
         # point, so the millisecond component is exact (no rounding noise).
         mtime = 1700000000.5
         # Prepare outputs.
-        expected = (
-            time.strftime("%H:%M:%S", time.localtime(mtime)) + ".500"
-        )
+        expected = time.strftime("%H:%M:%S", time.localtime(mtime)) + ".500"
         # Run test.
         actual = hdaemon._fmt_mtime(mtime)
         # Check outputs.
@@ -155,9 +158,7 @@ class Test__fmt_mtime(hunitest.TestCase):
         # Prepare inputs.
         mtime = 1700000000.0
         # Prepare outputs.
-        expected = (
-            time.strftime("%H:%M:%S", time.localtime(mtime)) + ".000"
-        )
+        expected = time.strftime("%H:%M:%S", time.localtime(mtime)) + ".000"
         # Run test.
         actual = hdaemon._fmt_mtime(mtime)
         # Check outputs.
@@ -195,8 +196,8 @@ class Test__daemon_watch(hunitest.TestCase):
         """
         Create a fake clock and a `time.time()` replacement.
 
-        :return: `(fake_clock, fake_time)` where `fake_clock["t"]` holds
-            the current fake time and `fake_time()` reads it
+        :return:`(fake_clock, fake_time)` where `fake_clock["t"]` holds the
+            current fake time and `fake_time()` reads it
         """
         fake_clock = {"t": 0.0}
 
@@ -248,8 +249,7 @@ class Test__daemon_watch(hunitest.TestCase):
         fake_time: Callable[[], float],
     ) -> Iterator[None]:
         """
-        Patch `hdaemon`'s `hsystem.system()`, `time.sleep()`, and
-        `time.time()`.
+        Patch `hdaemon`'s `hsystem.system()`, `time.sleep()`, and `time.time()`.
 
         :param fake_system: side effect for `hsystem.system()`
         :param fake_sleep: side effect for `time.sleep()`
@@ -259,12 +259,8 @@ class Test__daemon_watch(hunitest.TestCase):
             umock.patch.object(
                 hdaemon.hsystem, "system", side_effect=fake_system
             ),
-            umock.patch.object(
-                hdaemon.time, "sleep", side_effect=fake_sleep
-            ),
-            umock.patch.object(
-                hdaemon.time, "time", side_effect=fake_time
-            ),
+            umock.patch.object(hdaemon.time, "sleep", side_effect=fake_sleep),
+            umock.patch.object(hdaemon.time, "time", side_effect=fake_time),
         ):
             yield
 

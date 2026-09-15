@@ -76,7 +76,9 @@ class Test__cleanup_engine(hunitest.TestCase):
         expected = hprint.dedent(expected)
         # Run test.
         with hunteuti.capture_sys_calls() as invocations:
-            dshstdocl._cleanup_engine("docker", dry_run=True, images_order="size")
+            dshstdocl._cleanup_engine(
+                "docker", dry_run=True, images_order="size"
+            )
         # Check outputs.
         hunteuti.assert_sys_calls(self, invocations, expected)
 
@@ -151,7 +153,9 @@ class Test__cleanup_engine(hunitest.TestCase):
         expected = hprint.dedent(expected)
         # Run test.
         with hunteuti.capture_sys_calls() as invocations:
-            dshstdocl._cleanup_engine("docker", dry_run=False, images_order="size")
+            dshstdocl._cleanup_engine(
+                "docker", dry_run=False, images_order="size"
+            )
         # Check outputs.
         hunteuti.assert_sys_calls(self, invocations, expected)
 

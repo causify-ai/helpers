@@ -1,4 +1,5 @@
 import logging
+
 # Trivial edit.
 from typing import List, Optional, Type
 
@@ -41,8 +42,8 @@ class Test_main(hunitest.TestCase):
         :param args: arguments to pass to `lib_ffind.main()`
         :param expected_cmd: expected command string or "" to skip command
             verification
-        :param expected_exit_code: expected exit code or None to skip exit
-            code verification
+        :param expected_exit_code: expected exit code or None to skip exit code
+            verification
         :param side_effect: exception to raise from `hsystem.system()`
         """
         # Run test.
@@ -57,7 +58,10 @@ class Test_main(hunitest.TestCase):
                 {
                     "function": "hsystem.system",
                     "args": (expected_cmd,),
-                    "kwargs": {"suppress_output": False, "abort_on_error": False},
+                    "kwargs": {
+                        "suppress_output": False,
+                        "abort_on_error": False,
+                    },
                 }
             ]
             expected_str = hunteuti._sys_calls_to_str(expected_sys_calls)

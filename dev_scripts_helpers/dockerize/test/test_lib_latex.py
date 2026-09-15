@@ -7,7 +7,7 @@ import helpers.hdocker as hdocker
 import helpers.hserver as hserver
 import helpers.hsystem as hsystem
 import helpers.hunit_test as hunitest
-import dev_scripts_helpers.dockerize.dockerized_utils as dshddout
+import dev_scripts_helpers.dockerize.dockerized_utils as dshddou
 import dev_scripts_helpers.dockerize.lib_latex as dshdlila
 
 
@@ -80,7 +80,7 @@ class Test_run_dockerized_latex1(hunitest.TestCase):
 
         \end{document}
         """
-        in_file_path = dshddout.create_test_file(self, txt, extension="tex")
+        in_file_path = dshddou.create_test_file(self, txt, extension="tex")
         out_file_path = os.path.join(self.get_scratch_space(), "output.pdf")
         cmd_opts: List[str] = []
         run_latex_again = True

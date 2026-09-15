@@ -1,6 +1,6 @@
 """
-Utilities for daemon-mode operations, i.e., scripts that keep re-running
-instead of exiting after one pass
+Utilities for daemon-mode operations, i.e., scripts that keep re-running instead
+of exiting after one pass.
 
 - There are two flows:
   1. Reactive daemon (`_daemon_watch()` / `run_reactive_daemon_mode()`):
@@ -63,8 +63,8 @@ def add_periodic_daemon_args(
     parser: argparse.ArgumentParser, *, default_interval: int = 5
 ) -> argparse.ArgumentParser:
     """
-    Add `--daemon` and `--interval` arguments to an argument parser, for
-    scripts using periodic daemon mode (see `run_periodic_daemon_mode()`).
+    Add `--daemon` and `--interval` arguments to an argument parser, for scripts
+    using periodic daemon mode (see `run_periodic_daemon_mode()`).
 
     :param parser: argument parser to add arguments to
     :param default_interval: default seconds between periodic runs
@@ -145,8 +145,7 @@ def _fmt_mtime(mtime: float) -> str:
 
 def get_conflict_marker_path(file_path: str) -> str:
     """
-    Return the marker file path used to signal a write conflict on
-    `file_path`.
+    Return the marker file path used to signal a write conflict on `file_path`.
 
     A watched command that rewrites `file_path` in place (e.g.
     `render_images.py` re-rendering a `.typ` file) can detect that the user

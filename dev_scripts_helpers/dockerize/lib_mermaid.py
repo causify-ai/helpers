@@ -133,8 +133,8 @@ def run_dockerized_mermaid(
     mermaid_dpi: Optional[int] = None,
 ) -> None:
     """
-    Run `mermaid` in a Docker container, building the container from scratch
-    and using a puppeteer config.
+    Run `mermaid` in a Docker container, building the container from scratch and
+    using a puppeteer config.
 
     :param in_file_path: path to the mermaid diagram file to render
     :param cmd_opts: additional command-line options (currently unused)

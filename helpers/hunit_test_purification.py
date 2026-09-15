@@ -105,8 +105,8 @@ def _apply_regex_replacements(
     Apply a series of regex replacements to text.
 
     :param txt: input text to process
-    :param regex_patterns: list of (pattern, replacement) tuples to
-        apply in order
+    :param regex_patterns: list of (pattern, replacement) tuples to apply in
+        order
     :return: text with all regex replacements applied
     """
     # Apply regex replacements in order.
@@ -448,8 +448,7 @@ def purify_docker_image_name(txt: str) -> str:
 
 def purify_docker_cmd(txt: str) -> str:
     """
-    Normalize a Docker/Apple `container` run command for golden
-    comparisons.
+    Normalize a Docker/Apple `container` run command for golden comparisons.
 
     This handles two sources of environment-dependent variance in
     commands built by `hdocker.get_docker_base_cmd()`:

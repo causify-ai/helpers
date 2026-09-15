@@ -299,9 +299,7 @@ def prettier(
                 tmp_dir, f"tmp.prettier.{uuid.uuid4().hex[:8]}.{file_type}"
             )
         else:
-            tmp_file_name = os.path.join(
-                tmp_dir, f"tmp.prettier.{file_type}"
-            )
+            tmp_file_name = os.path.join(tmp_dir, f"tmp.prettier.{file_type}")
         hio.to_file(tmp_file_name, txt)
         in_file_path = tmp_file_name
     # Run prettier.
@@ -373,9 +371,7 @@ def prettier_on_str(
             tmp_dir, f"tmp.prettier_on_str.{uuid.uuid4().hex[:8]}.{file_type}"
         )
     else:
-        tmp_file_name = os.path.join(
-            tmp_dir, f"tmp.prettier_on_str.{file_type}"
-        )
+        tmp_file_name = os.path.join(tmp_dir, f"tmp.prettier_on_str.{file_type}")
     hio.to_file(tmp_file_name, txt)
     # Call `prettier` in-place.
     prettier(

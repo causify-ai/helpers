@@ -6,7 +6,7 @@ import helpers.hdocker as hdocker
 import helpers.hserver as hserver
 import helpers.hsystem as hsystem
 import helpers.hunit_test as hunitest
-import dev_scripts_helpers.dockerize.dockerized_utils as dshddout
+import dev_scripts_helpers.dockerize.dockerized_utils as dshddou
 import dev_scripts_helpers.dockerize.lib_mermaid as dshdlime
 
 
@@ -74,7 +74,7 @@ class Test_run_dockerized_mermaid1(hunitest.TestCase):
         :param txt: Mermaid diagram code
         """
         # Prepare inputs.
-        in_file_path = dshddout.create_test_file(self, txt, extension="mmd")
+        in_file_path = dshddou.create_test_file(self, txt, extension="mmd")
         out_file_path = os.path.join(self.get_scratch_space(), "output.svg")
         cmd_opts = []
         force_rebuild = False
@@ -94,8 +94,8 @@ class Test_run_dockerized_mermaid1(hunitest.TestCase):
         )
 
     def test1(self) -> None:
-        """
-        Run `mermaid` flowchart with simple sequence inside a Docker container.
+        """Run `mermaid` flowchart with simple sequence inside a Docker
+        container.
         """
         # Prepare inputs.
         txt = """
@@ -107,8 +107,8 @@ class Test_run_dockerized_mermaid1(hunitest.TestCase):
         self.helper(txt)
 
     def test2(self) -> None:
-        """
-        Run `mermaid` flowchart with decision branches inside a Docker container.
+        """Run `mermaid` flowchart with decision branches inside a Docker
+        container.
         """
         # Prepare inputs.
         txt = """

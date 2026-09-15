@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """
-This tool allows to handle sets of links to files that are shared across many dirs.
+This tool allows to handle sets of links to files that are shared across many
+dirs.
 
 A detailed description is:
 
@@ -323,8 +324,8 @@ def _stage_links(symlinks: List[str], *, dry_run: bool = False) -> None:
     Replace symbolic links with writable copies of the linked files.
 
     :param symlinks: List of symbolic links to replace.
-    :param dry_run: If True, only report which symlinks would be staged
-        without touching the filesystem
+    :param dry_run: If True, only report which symlinks would be staged without
+        touching the filesystem
     """
     for link in symlinks:
         # Resolve the original file the symlink points to.
@@ -337,9 +338,7 @@ def _stage_links(symlinks: List[str], *, dry_run: bool = False) -> None:
             )
             continue
         if dry_run:
-            _LOG.info(
-                "DRY_RUN: Would stage '%s' -> '%s'", link, target_file
-            )
+            _LOG.info("DRY_RUN: Would stage '%s' -> '%s'", link, target_file)
             continue
         # Replace the symlink with a writable copy of the target file.
         try:

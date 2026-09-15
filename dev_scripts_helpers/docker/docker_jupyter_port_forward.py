@@ -157,8 +157,8 @@ def _open_browser_when_up(host_port: int) -> None:
     """
     Open the forwarded URL in the default browser, macOS only.
 
-    Meant to run in a background thread so it does not delay the forwarder
-    from starting.
+    Meant to run in a background thread so it does not delay the forwarder from
+    starting.
 
     :param host_port: local port the forwarder listens on
     """
@@ -184,7 +184,10 @@ def _run_forwarder(
     _LOG.info("Container: %s", container_name)
     _LOG.info("Bridge IP: %s", container_ip)
     _LOG.info(
-        "Forwarding localhost:%s -> %s:%s", host_port, container_ip, container_port
+        "Forwarding localhost:%s -> %s:%s",
+        host_port,
+        container_ip,
+        container_port,
     )
     _LOG.info("Press Ctrl+C to stop.")
     # Open the forwarded URL once the forwarder is up (no-op outside macOS).
@@ -237,7 +240,9 @@ def _main(parser: argparse.ArgumentParser) -> None:
     hdbg.init_logger(verbosity=args.log_level, use_exec_path=True)
     with htmux.window_name("tunnel"):
         try:
-            _run_forwarder(args.container_name, args.host_port, args.container_port)
+            _run_forwarder(
+                args.container_name, args.host_port, args.container_port
+            )
         except KeyboardInterrupt:
             _LOG.info("Stopping forwarder.")
 

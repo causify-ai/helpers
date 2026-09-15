@@ -57,6 +57,7 @@ import shutil
 import subprocess
 import sys
 import time
+import uuid
 from typing import Any, Dict, List, Optional, Tuple
 
 from tqdm import tqdm
@@ -79,7 +80,7 @@ _DEFAULT_SPEED = 1.5
 # _DEFAULT_VOICE = "en_US-joe-medium"
 _DEFAULT_VOICE = "en_US-amy-medium"
 _DEFAULT_MAX_LENGTH = 0
-_TMP_EXTRACT_FILE = "tmp.md_to_speech.extract.md"
+_TMP_EXTRACT_FILE = "tmp.md_to_speech.extract"
 _WORDS_PER_MINUTE = 150
 _DEFAULT_ENGINE = "kokoro"
 
@@ -185,8 +186,8 @@ def _extract_markdown_section(
     """
     Extract a markdown section, write to tmp file, run lint_text.py.
 
-    Extracts lines between md_start and md_end headers, writes them to
-    `tmp.md_to_speech.extract.md`, runs `lint_text.py -w 1000`
+    Extracts lines between md_start and md_end headers, writes them to a
+    `tmp.md_to_speech.extract.<hash>.md` file, runs `lint_text.py -w 1000`
     to unroll bullet list breaks, and returns the processed content.
 
     :param file_path: path to markdown input file
@@ -202,16 +203,20 @@ def _extract_markdown_section(
         lines, md_start, md_end
     )
     extracted_content = "\n".join(extracted_lines)
-    hio.to_file(_TMP_EXTRACT_FILE, extracted_content)
-    _LOG.info("Extracted section written to '%s'", _TMP_EXTRACT_FILE)
+    # Use a unique file name (instead of the fixed `_TMP_EXTRACT_FILE`) so
+    # that concurrent / overlapping calls (e.g., parallel test runs) don't
+    # clobber each other's tmp file.
+    tmp_extract_file = f"{_TMP_EXTRACT_FILE}.{uuid.uuid4().hex[:8]}.md"
+    hio.to_file(tmp_extract_file, extracted_content)
+    _LOG.info("Extracted section written to '%s'", tmp_extract_file)
     # Lint.
     _LOG.info("Linting ...")
     lint_script = hgit.find_file_in_git_tree("lint_text.py")
-    cmd = f"{lint_script} -i {_TMP_EXTRACT_FILE} -w 1000"
+    cmd = f"{lint_script} -i {tmp_extract_file} -w 1000"
     hsystem.system(cmd)
     _LOG.info("Linting ... done")
     # Read back.
-    processed_content = hio.from_file(_TMP_EXTRACT_FILE)
+    processed_content = hio.from_file(tmp_extract_file)
     return processed_content
 
 

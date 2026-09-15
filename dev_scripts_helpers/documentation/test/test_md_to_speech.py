@@ -1,3 +1,4 @@
+import glob
 import hashlib
 import logging
 import os
@@ -195,17 +196,18 @@ class Test__extract_markdown_section(hunitest.TestCase):
     @pytest.mark.slow
     def test7(self) -> None:
         """
-        Test that intermediate file is created.
+        Test that a uniquely-named intermediate file is created.
         """
         # Prepare inputs.
         in_file = self._create_input_file()
         # Run test.
         dshdmtosp._extract_markdown_section(in_file, "# Methods", "# Results")
         # Check outputs.
-        tmp_file = dshdmtosp._TMP_EXTRACT_FILE
+        tmp_file_pattern = f"{dshdmtosp._TMP_EXTRACT_FILE}.*.md"
+        tmp_files = glob.glob(tmp_file_pattern)
         self.assertTrue(
-            os.path.exists(tmp_file),
-            f"Intermediate file {tmp_file} was not created",
+            tmp_files,
+            f"No intermediate file matching {tmp_file_pattern} was created",
         )
 
 

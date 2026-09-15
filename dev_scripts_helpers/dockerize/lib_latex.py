@@ -198,9 +198,8 @@ def convert_latex_arguments_to_cmd(
     """
     Convert parsed pandoc arguments back to a command string.
 
-    This function takes the parsed latex arguments and converts them
-    back into a command string that can be executed directly or in a
-    Dockerized container.
+    This function takes the parsed latex arguments and converts them back into a
+    command string that can be executed directly or in a Dockerized container.
 
     :return: The constructed pandoc command string.
     """

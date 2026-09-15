@@ -7,7 +7,7 @@ import helpers.hio as hio
 import helpers.hserver as hserver
 import helpers.hsystem as hsystem
 import helpers.hunit_test as hunitest
-import dev_scripts_helpers.dockerize.dockerized_utils as dshddout
+import dev_scripts_helpers.dockerize.dockerized_utils as dshddou
 import dev_scripts_helpers.dockerize.lib_markdown_toc as dshdlmato
 
 
@@ -54,7 +54,9 @@ class Test_build_markdown_toc_container1(hunitest.TestCase):
         # `npm` sometimes prints an "npm notice" banner about available
         # updates, so strip it.
         output_lines = [
-            line for line in output.split("\n") if not line.startswith("npm notice")
+            line
+            for line in output.split("\n")
+            if not line.startswith("npm notice")
         ]
         output = "\n".join(output_lines)
         expected = "/usr/local/lib\n`-- markdown-toc@1.2.0\n"
@@ -77,7 +79,7 @@ class Test_run_dockerized_markdown_toc1(hunitest.TestCase):
         :param expected: Expected output after running markdown-toc
         """
         # Prepare inputs.
-        in_file_path = dshddout.create_test_file(self, txt, extension="md")
+        in_file_path = dshddou.create_test_file(self, txt, extension="md")
         cmd_opts: List[str] = []
         use_sudo = hdocker.get_use_sudo()
         force_rebuild = False

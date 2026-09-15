@@ -28,11 +28,10 @@ class Test_create_links(hunitest.TestCase):
         """
         Create a file with the given content in the specified directory.
 
-        This helper function ensures the directory exists before
-        creating the file and writing the specified content into it.
+        This helper function ensures the directory exists before creating the
+        file and writing the specified content into it.
 
-        :param dir_path: path to the directory where the file will be
-            created
+        :param dir_path: path to the directory where the file will be created
         :param file_name: name of the file to create
         :param content: content to write into the file
         :return: full path to the created file
@@ -68,9 +67,9 @@ class Test_create_links(hunitest.TestCase):
         """
         Test replacing common files with absolute symbolic links.
 
-        Create identical files in two directories and replace the files
-        in the destination directory with absolute symbolic links
-        pointing to the source files.
+        Create identical files in two directories and replace the files in the
+        destination directory with absolute symbolic links pointing to the source
+        files.
         """
         base_dir: pathlib.Path = pathlib.Path(self.get_scratch_space())
         src_dir: pathlib.Path = base_dir / "test_src_dir"
@@ -91,9 +90,9 @@ class Test_create_links(hunitest.TestCase):
         """
         Test replacing common files with relative symbolic links.
 
-        Create identical files in two directories and replace the files
-        in the destination directory with relative symbolic links
-        pointing to the source files.
+        Create identical files in two directories and replace the files in the
+        destination directory with relative symbolic links pointing to the source
+        files.
         """
         base_dir: pathlib.Path = pathlib.Path(self.get_scratch_space())
         src_dir: pathlib.Path = base_dir / "test_src_dir"
@@ -117,9 +116,8 @@ class Test_create_links(hunitest.TestCase):
         """
         Test replacing symbolic links with writable file copies.
 
-        Create symbolic links in a directory and then stage them by
-        replacing each link with a copy of the original file it points
-        to.
+        Create symbolic links in a directory and then stage them by replacing
+        each link with a copy of the original file it points to.
         """
         base_dir: pathlib.Path = pathlib.Path(self.get_scratch_space())
         src_dir: pathlib.Path = base_dir / "test_src_dir"
@@ -198,15 +196,14 @@ class Test_create_links_py(hunitest.TestCase):
         """
         Freeze the state of `dir_path` into a deterministic string.
 
-        For each file report whether it is a symlink (its link type and
-        whether it resolves) or a regular file, together with its content.
-        Reporting the link type/resolution instead of the raw `os.readlink()`
-        target keeps the frozen state stable across machines and scratch-dir
-        locations.
+        For each file report whether it is a symlink (its link type and whether
+        it resolves) or a regular file, together with its content. Reporting the
+        link type/resolution instead of the raw `os.readlink()` target keeps the
+        frozen state stable across machines and scratch-dir locations.
 
         :param dir_path: directory to inspect
-        :return: one line per file, sorted by relative path, e.g.
-            `file1.txt: symlink (relative, resolves) content='content1'`
+        :return: one line per file, sorted by relative path, e.g. `file1.txt:
+            symlink (relative, resolves) content='content1'`
         """
         rows: List[Tuple[str, str]] = []
         for root, _, files in os.walk(dir_path):
@@ -233,7 +230,9 @@ class Test_create_links_py(hunitest.TestCase):
                 else:
                     kind = "file"
                     content = hio.from_file(file_path)
-                rows.append((rel_path, f"{rel_path}: {kind} content='{content}'"))
+                rows.append(
+                    (rel_path, f"{rel_path}: {kind} content='{content}'")
+                )
         rows.sort(key=lambda row: row[0])
         return "\n".join(line for _, line in rows)
 
@@ -249,10 +248,9 @@ class Test_create_links_py(hunitest.TestCase):
             dshstcrli._main(parser)
 
     def test1(self) -> None:
-        """
-        Test `--replace_links --link_type relative` turns the files common
-        to `src_dir`/`dst_dir` into relative symlinks resolving to
-        `src_dir`'s content.
+        """Test `--replace_links --link_type relative` turns the files common to
+        `src_dir`/`dst_dir` into relative symlinks resolving to `src_dir`'s
+        content.
         """
         # Prepare inputs.
         base_dir = self.get_scratch_space()
@@ -279,10 +277,9 @@ class Test_create_links_py(hunitest.TestCase):
         self.assert_equal(actual, expected, dedent=True)
 
     def test2(self) -> None:
-        """
-        Test `--replace_links --link_type absolute` turns the files common
-        to `src_dir`/`dst_dir` into absolute symlinks resolving to
-        `src_dir`'s content.
+        """Test `--replace_links --link_type absolute` turns the files common to
+        `src_dir`/`dst_dir` into absolute symlinks resolving to `src_dir`'s
+        content.
         """
         # Prepare inputs.
         base_dir = self.get_scratch_space()
@@ -309,8 +306,7 @@ class Test_create_links_py(hunitest.TestCase):
         self.assert_equal(actual, expected, dedent=True)
 
     def test3(self) -> None:
-        """
-        Test `--stage_links` replaces the relative symlinks created by
+        """Test `--stage_links` replaces the relative symlinks created by
         `--replace_links` with writable copies matching `src_dir`'s content.
         """
         # Prepare inputs.
@@ -341,13 +337,13 @@ class Test_create_links_py(hunitest.TestCase):
 
     def test4(self) -> None:
         """
-        Test `--stage_links` resolves relative symlinks relative to each
-        link's own directory, not the process's current working directory.
+        Test `--stage_links` resolves relative symlinks relative to each link's
+        own directory, not the process's current working directory.
 
         Regression test for a bug where `_stage_links()` checked
         `os.path.exists()` on the raw `os.readlink()` target, which is only
-        correct when the process's current directory equals the symlink's
-        own directory.
+        correct when the process's current directory equals the symlink's own
+        directory.
         """
         # Prepare inputs.
         base_dir = self.get_scratch_space()
