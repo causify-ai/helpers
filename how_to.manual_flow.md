@@ -452,7 +452,7 @@
 - Analyze current branch and generate a PR split plan (`github_pr_plan.md`)
 
   ```bash
-  /github.split_branch_in_PRs
+  claude> /github.split_branch_in_PRs
   ```
 
 #### `github.create_child_pr`
@@ -461,7 +461,7 @@
 - Create the next child PR from a split plan
 
   ```bash
-  /github.create_child_pr PR2
+  claude> /github.create_child_pr PR2
   ```
 
 #### `github.find_name_for_pr`
@@ -470,7 +470,7 @@
 - Generate title and description for the current PR
 
   ```bash
-  /github.find_name_for_pr
+  claude> /github.find_name_for_pr
   ```
 
 ### Preparing PRs for Merge
@@ -481,7 +481,7 @@
 - Fix formatting, lint, and other issues blocking a commit
 
   ```bash
-  /github.get_pr_to_commit_state
+  claude> /github.get_pr_to_commit_state
   ```
 
 #### `github.get_pr_to_pass_local_tests`
@@ -490,7 +490,7 @@
 - Fix failing local tests on the current PR
 
   ```bash
-  /github.get_pr_to_pass_local_tests
+  claude> /github.get_pr_to_pass_local_tests
   ```
 
 #### `github.get_pr_to_pass_ci`
@@ -499,7 +499,7 @@
 - Fix CI failures on the current PR
 
   ```bash
-  /github.get_pr_to_pass_ci
+  claude> /github.get_pr_to_pass_ci
   ```
 
 # Workflows
@@ -510,35 +510,80 @@
   it into stacked PRs for easier review and faster merging
 - This workflow uses Claude Code skills to automate the process as in the following
 
-1. **Start with your large branch** containing multiple independent changes
-2. **Run the split skill** to analyze and plan PR divisions:
-   ```bash
-   /github.split_branch_in_PRs
-   ```
-   - This generates a `github_pr_plan.md` file with:
-     - Proposed PR divisions (files grouped by feature/concern)
-     - Stack order (dependencies and merge order)
-     - Description for each PR
-3. **Review and edit the plan** in `github_pr_plan.md`:
-   - Adjust which files go into each PR
-   - Reorder PRs if needed
-   - Update titles and descriptions
-   - Mark dependencies if PR2 depends on PR1, etc
-4. **Create child PRs** for each planned branch:
+- **Start with your large branch** containing multiple independent changes
+- **Run the split skill** to analyze and plan PR divisions:
+  ```bash
+  claude> /github.split_branch_in_PRs
+  ```
+  - This generates a `github_pr_plan.md` file with:
+    - Proposed PR divisions (files grouped by feature/concern)
+    - Stack order (dependencies and merge order)
+    - Description for each PR
+- **Review and edit the plan** in `github_pr_plan.md`:
+  - Adjust which files go into each PR
+  - Reorder PRs if needed
+  - Update titles and descriptions
+  - Mark dependencies if PR2 depends on PR1, etc
+- **Create child PRs** for each planned branch:
 
-   ```bash
-   /github.create_child_pr PR2
-   /github.create_child_pr PR3
-   ```
+  ```bash
+  claude> /github.create_child_pr PR2
+  cluade> /github.create_child_pr PR3
+  ```
 
-   For each PR number in the plan, this:
-   - Creates a new branch with selected files
-   - Opens a draft PR with the planned description
-   - Maintains dependency links via PR body references
-5. **Review and merge sequentially**:
-   - Merge PR1 first (base PR, usually depends on nothing)
-   - Then merge PR2, PR3, etc. in order
-   - Later PRs automatically include commits from earlier ones
+  For each PR number in the plan, this:
+  - Creates a new branch with selected files
+  - Opens a draft PR with the planned description
+  - Maintains dependency links via PR body references
+- **Review and merge sequentially**:
+  - Merge PR1 first (base PR, usually depends on nothing)
+  - Then merge PR2, PR3, etc. in order
+  - Later PRs automatically include commits from earlier ones
+
+### How to Peel Off a PR from a Personal Branch
+
+- Use this flow when work has accumulated on a personal or scratch branch
+  (e.g., `gp`) and needs to become a proper, named PR ready for review and
+  merge
+
+- **Generate a PR title and description** for the current branch
+  ```bash
+  claude> /github.find_name_for_pr
+  ```
+  - Review the generated message
+    ```bash
+    > more pr_commit_msg.txt
+    ```
+- **Copy the branch to a task-named branch**, following the branch naming
+  convention
+  ```bash
+  > invoke git_branch_copy --new-branch-name "UmdTask1346_Infrastructure_and_Developer_Experience_Improvements"
+  ```
+- **Clean up leftover tmp files** before staging
+  ```bash
+  > rm -rf tmp.precommit_output.txt
+  ```
+- **Stage all untracked files**
+  ```bash
+  > invoke git_add_all_untracked
+  ```
+- **Get the PR ready to merge**:
+  - Fix CI failures
+    ```bash
+    /github.get_pr_to_pass_ci
+    ```
+  - Fix failing local tests
+    ```bash
+    claude> /github.get_pr_to_pass_local_tests
+    ```
+  - Fix formatting, lint, and other commit-blocking issues
+    ```bash
+    claude> /github.get_pr_to_commit_state
+    ```
+- **Merge and delete the branch**
+  ```bash
+  > gh pr merge -s --admin --delete-branch
+  ```
 
 # References
 
