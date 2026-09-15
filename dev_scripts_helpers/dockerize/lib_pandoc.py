@@ -164,7 +164,8 @@ def _get_pandoc_latex_container_image_name() -> str:
     """
     Get the name of the pandoc_latex container image.
 
-    E.g., `tmp.pandoc_latex.amd64.12345678` or `tmp.pandoc_latex.arm64.12345678`
+    E.g., `tmp.pandoc_latex.amd64.12345678` or
+    `tmp.pandoc_latex.arm64.12345678`
     """
     container_image, _ = hdocker.get_container_image_name(
         _PANDOC_LATEX_CONTAINER_PREFIX, _PANDOC_LATEX_DOCKERFILE
@@ -229,7 +230,8 @@ def _get_pandoc_texlive_container_image_name() -> str:
     """
     Get the name of the pandoc_texlive container image.
 
-    E.g., `tmp.pandoc_texlive.amd64.12345678` or `tmp.pandoc_texlive.arm64.12345678`
+    E.g., `tmp.pandoc_texlive.amd64.12345678` or
+    `tmp.pandoc_texlive.arm64.12345678`
     """
     container_image, _ = hdocker.get_container_image_name(
         _PANDOC_TEXLIVE_CONTAINER_PREFIX, _PANDOC_TEXLIVE_DOCKERFILE
@@ -282,9 +284,8 @@ def _convert_pandoc_cmd_to_arguments(cmd: str) -> Dict[str, Any]:
     """
     Parse the arguments from a pandoc command.
 
-    We need to parse all the arguments that correspond to files, so that
-    we can convert them to paths that are valid inside the Docker
-    container.
+    We need to parse all the arguments that correspond to files, so that we can
+    convert them to paths that are valid inside the Docker container.
 
     :param cmd: A list of command-line arguments for pandoc.
     :return: A dictionary with the parsed arguments.
@@ -339,9 +340,8 @@ def _convert_pandoc_arguments_to_cmd(
     """
     Convert parsed pandoc arguments back to a command string.
 
-    This function takes the parsed pandoc arguments and converts them
-    back into a command string that can be executed directly or in a
-    Dockerized container.
+    This function takes the parsed pandoc arguments and converts them back into a
+    command string that can be executed directly or in a Dockerized container.
 
     :return: The constructed pandoc command string.
     """

@@ -6,8 +6,7 @@ import helpers.hdocker as hdocker
 import helpers.hserver as hserver
 import helpers.hsystem as hsystem
 import helpers.hunit_test as hunitest
-import helpers.hunit_test_purification as huntepur
-import dev_scripts_helpers.dockerize.dockerized_utils as dshddout
+import dev_scripts_helpers.dockerize.dockerized_utils as dshddou
 import dev_scripts_helpers.dockerize.lib_graphviz as dshdligr
 
 
@@ -23,6 +22,7 @@ class Test_build_graphviz_container1(hunitest.TestCase):
     Test building the `graphviz` container.
     """
 
+    @pytest.mark.order(1)
     def test1(self) -> None:
         """
         Test that the Graphviz Docker container is built correctly.
@@ -33,6 +33,7 @@ class Test_build_graphviz_container1(hunitest.TestCase):
             force_rebuild=force_rebuild, use_sudo=use_sudo
         )
 
+    @pytest.mark.order(2)
     def test2(self) -> None:
         """
         Test that the Graphviz version matches expected output.
@@ -76,7 +77,7 @@ class Test_run_dockerized_graphviz1(hunitest.TestCase):
             e -> b[label="0.7",weight="0.7"];
         }
         """
-        in_file_path = dshddout.create_test_file(self, txt, extension="dot")
+        in_file_path = dshddou.create_test_file(self, txt, extension="dot")
         out_file_path = os.path.join(self.get_scratch_space(), "output.png")
         cmd_opts = []
         force_rebuild = False

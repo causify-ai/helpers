@@ -65,7 +65,7 @@ with active review tracking and executable documentation validation.
   documentation is poorly done or not organized
 
 - Look for files that contain words related to what you are looking for
-  - E.g., `ffind.py XYZ`
+  - E.g., `ffind XYZ`
 - Grep in the documentation looking for words related to what you are looking
   for
   - E.g., `jackmd trading`

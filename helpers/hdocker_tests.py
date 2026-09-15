@@ -125,8 +125,8 @@ class DockerTestCase(hunitest.TestCase):
     """
     Base test class for Docker tests.
 
-    Subclasses must set `_test_file = __file__` and may add notebook test
-    methods that call `self.helper(notebook_name)`.
+    Subclasses must set `_test_file = __file__` and may add notebook test methods
+    that call `self.helper(notebook_name)`.
     """
 
     # Assigned by subclasses.
@@ -195,11 +195,16 @@ class DockerTestCase(hunitest.TestCase):
         cmd = f"echo '{shell_cmd}' | bash {docker_bash_script}"
         hsystem.system(cmd)
 
-    def helper(self, notebook_name: str) -> None:
+    def helper(self, notebook_name: str, *, generate_html: bool = False) -> None:
         """
         Run a single notebook inside Docker.
 
         :param notebook_name: notebook filename relative to the project dir
+        :param generate_html: if True, render with the `html_anchorfix`
+            template (same one `run_nbconvert.sh` uses) so the exported HTML
+            has working per-cell anchors and any `ipywidgets` keep their last
+            rendered look; if False, just check that the notebook executes
+            without error
         """
         # Prepare inputs.
         docker_script_dir = self._get_docker_docker_script_dir()
@@ -214,11 +219,24 @@ class DockerTestCase(hunitest.TestCase):
         rel_path = os.path.relpath(docker_script_dir, git_root)
         container_notebook_path = f"/git_root/{rel_path}/{notebook_name}"
         _LOG.debug(hprint.to_str("container_notebook_path"))
+        # Build the nbconvert command.
+        nbconvert_cmd = (
+            "jupyter nbconvert --execute --to html "
+            "--ExecutePreprocessor.timeout=-1"
+        )
+        if generate_html:
+            # Match `run_nbconvert.sh`'s template so the HTML has working
+            # per-cell anchors.
+            nbconvert_cmd += (
+                " --template html_anchorfix "
+                "--TemplateExporter.extra_template_basedirs="
+                "/git_root/helpers_root/dev_scripts_helpers/notebooks/"
+                "nbconvert_templates"
+            )
+        nbconvert_cmd += f" {container_notebook_path}"
         # Run command.
         cmd = (
             f"cd {docker_script_dir} && "
-            f"bash {docker_cmd_script} "
-            f"'jupyter nbconvert --execute --to html "
-            f"--ExecutePreprocessor.timeout=-1 {container_notebook_path}'"
+            f"bash {docker_cmd_script} '{nbconvert_cmd}'"
         )
         hsystem.system(cmd)

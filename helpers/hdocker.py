@@ -559,6 +559,12 @@ def get_container_image_name(
     """
     Get the name of the container image.
 
+    The tag encodes the CPU architecture and a hash of the Dockerfile
+    content, e.g. `tmp.pandoc_texlive.arm64.4867bd42`, so that the tag is
+    fully deterministic: the same Dockerfile content on the same
+    architecture always yields the same tag, and `docker build` reuses the
+    existing image instead of rebuilding it.
+
     :param image_name: Name of the Docker container to build.
     :param dockerfile: Content of the Dockerfile for building the container.
     :return: Name of the container image.
@@ -587,7 +593,6 @@ def get_container_image_name(
     current_arch = get_current_arch()
     sha256_hash = hashlib.sha256(dockerfile.encode()).hexdigest()
     short_hash = sha256_hash[:8]
-    # Build the name of the container image.
     image_name_out = f"{image_name}.{current_arch}.{short_hash}"
     return image_name_out, dockerfile
 

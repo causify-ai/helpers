@@ -6,7 +6,7 @@ import helpers.hdocker as hdocker
 import helpers.hserver as hserver
 import helpers.hsystem as hsystem
 import helpers.hunit_test as hunitest
-import dev_scripts_helpers.dockerize.dockerized_utils as dshddout
+import dev_scripts_helpers.dockerize.dockerized_utils as dshddou
 import dev_scripts_helpers.dockerize.lib_plantum as dshdlipl
 
 
@@ -22,6 +22,7 @@ class Test_build_plantum_container1(hunitest.TestCase):
     Test building the `plantum` container.
     """
 
+    @pytest.mark.order(1)
     def test1(self) -> None:
         """
         Test that the PlantUML Docker container is built correctly.
@@ -32,6 +33,7 @@ class Test_build_plantum_container1(hunitest.TestCase):
             force_rebuild=force_rebuild, use_sudo=use_sudo
         )
 
+    @pytest.mark.order(2)
     def test2(self) -> None:
         """
         Test that the PlantUML version matches expected output.
@@ -73,7 +75,7 @@ class Test_run_dockerized_plantuml1(hunitest.TestCase):
         :param output_name: Output file name (e.g., "output.svg")
         """
         # Prepare inputs.
-        in_file_path = dshddout.create_test_file(self, txt, extension="puml")
+        in_file_path = dshddou.create_test_file(self, txt, extension="puml")
         out_file_path = os.path.join(self.get_scratch_space(), output_name)
         cmd_opts = [dst_ext]
         force_rebuild = False

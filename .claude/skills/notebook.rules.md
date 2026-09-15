@@ -43,7 +43,7 @@
 - Each notebook is paired with Jupytext to a Python file
 - Each notebook has a corresponding `*_utils.py` file containing the code
   corresponding to that notebook
-- **Modern naming convention** (for new lesson notebooks):
+- **Naming convention**:
   - Use underscores throughout all filenames
   - Organize in a lesson-specific directory
   - Format: `<COURSE_CODE>_<LESSON_NUM>_<TOPIC_NAME>` for all three files
@@ -54,12 +54,15 @@
       `msml610/tutorials/L03_knowledge_representation/L03_02_wumpus_world.py`
     - Paired utility file:
       `msml610/tutorials/L03_knowledge_representation/L03_02_wumpus_world_utils.py`
-- **Legacy naming convention** (kept for reference):
-  - Use hyphens in notebook filenames and underscores in Python filenames
-  - Example (Lesson 94):
-    - Notebook: `msml610/tutorials/Lesson94-Information_Theory.ipynb`
-    - Paired Python file: `msml610/tutorials/Lesson94-Information_Theory.py`
-    - Paired utility file: `msml610/tutorials/Lesson94_Information_Theory_utils.py`
+- **Shared-utils exception**: when 2 or more notebooks are genuinely 2 views of the
+  same underlying simulation or model (e.g., an API-focused notebook and a narrative
+  notebook built on the same engine), a single shared pair of files (e.g.,
+  `L09_03_multi_armed_bandits_sim.py` / `L09_03_multi_armed_bandits_utils.py`) is
+  acceptable instead of forcing a fork per notebook
+  - Name the shared files after the shared topic, not after either individual
+    notebook, so the sharing is obvious from the filename
+  - Do not rename these to a `<notebook_name>_utils.py` pattern: that would imply the
+    file belongs to one notebook and hide that the other notebook depends on it too
 
 ### Responsibility Division
 
@@ -113,22 +116,24 @@
   - Move the full, complex computation into a function in `*_utils.py`
     - This function handles the expensive computation out of view
     - The notebook calls this function to display precomputed results
-- **Example pattern**:
-  - **Bad** (visualization code embedded in notebook):
 
-    ```python
-    # Notebook cell with complex visualization mixed with API calls.
+### Example
+
+- **Bad** (visualization code embedded in notebook):
+
+  ```python
+  # Notebook cell with complex visualization mixed with API calls.
     results = library.process_data(data)
     fig, axes = plt.subplots(2, 2, figsize=(12, 10))
     axes[0, 0].scatter(results['x'], results['y'])
     axes[0, 1].plot(results['trend'])
     # ... more plotting code ...
-    ```
+  ```
 
-  - **Good** (library calls in notebook, visualization in utils):
+- **Good** (library calls in notebook, visualization in utils):
 
-    ```python
-    # In notebook: show library calls clearly.
+  ```python
+  # In notebook: show library calls clearly.
     results = library.process_data(data)
     utils.visualize_analysis_results(results)
 
@@ -137,7 +142,7 @@
         fig, axes = plt.subplots(2, 2, figsize=(12, 10))
         axes[0, 0].scatter(results['x'], results['y'])
         # ... full visualization code ...
-    ```
+  ```
 
 ## Sync Function Names with Cell Numbers
 
@@ -1334,11 +1339,39 @@ def complex_entropy_interactive():
   !jupyter labextension enable
   ```
 
-## Remove Package Installation Cells
+## Install Extra Packages Per Notebook, Not in Requirements.txt
 
-- Do not install packages in notebooks; use `requirements.txt` and Docker instead:
-  - **Remove**: `!pip install --quiet PyGithub`
-  - **Instead**: Add `PyGithub` to `requirements.txt` and rebuild Docker image
+- Every notebook in a lesson directory (e.g., `L03_knowledge_representation/`) shares
+  one Dockerfile/`requirements.txt`, copied from `class_project/project_template` and
+  holding only the deps common to every notebook in that lesson (`ipywidgets`,
+  `matplotlib`, `numpy`, `pandas`, `seaborn`, `tqdm`, etc.)
+- A notebook that needs a package beyond that shared base (e.g., `sympy`, `networkx`,
+  `z3-solver`) installs it itself, pinned, in its own cell right after the
+  autoreload/logging cell and before importing the package:
+
+  ```python
+  # %%
+  # !pip install -q sympy==1.14.0
+
+  import sympy
+  print("sympy version: ", sympy.__version__)
+  ```
+
+  - The `# !pip install ...` line is jupytext's magic-escaping convention: it stays a
+    comment in the paired `.py` file (so the script still runs standalone), but is a
+    live `!pip install` cell once synced to the `.ipynb`
+  - Print the installed version right after import, as a quick sanity check
+- **Do not** move this package into `requirements.txt`/Dockerfile and remove the
+  cell: that would bloat the shared image with every notebook's own deps, and would
+  break the notebook on Binder or Google Colab, which run off the single `.ipynb`
+  file and cannot rebuild a custom Docker image, only `pip install` at run time
+- **Do still remove**: a duplicate install of a package already in
+  `requirements.txt`, or a leftover install cell for a package the notebook no longer
+  uses
+- This is a different rule from `## Remove Development Environment Cells` above: a
+  JupyterLab extension or environment-setup cell (`labextension`, `jupyterlab-vim`)
+  is dev tooling and always gets removed; a pinned `!pip install` for a package the
+  notebook actually imports is a per-notebook dependency and stays
 
 ## Remove Secret and Token Assignments
 
@@ -1360,3 +1393,18 @@ def complex_entropy_interactive():
   ```
 
   to run a notebook top to bottom and make sure it works
+- A `# !pip install ...` cell (see
+  `## Install Extra Packages Per Notebook, Not in Requirements.txt` above) is only a
+  comment in the paired `.py` file, so running the script this way does not install
+  it, and the run fails with `ModuleNotFoundError` on a fresh image
+  - Chain a transient `pip install` for exactly the packages/versions the notebook's
+    own cell lists, in the same `docker_cmd.sh` call, instead of adding them to
+    `requirements.txt` or rebuilding the image:
+
+    ```
+    > docker_cmd.sh "pip install -q sympy==1.14.0 && \
+        python /git_root/tutorials/<PACKAGE>/<paired python file>.py"
+    ```
+
+  - This only affects the throwaway container for this test run; nothing persists, so
+    `requirements.txt` and the Docker image stay untouched

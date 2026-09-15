@@ -249,8 +249,6 @@ integration.
   - C file parsing and transformation utilities
 - `repo_config_utils.py`
   - Repository configuration utilities loaded from YAML
-- `stage_linked_file.py`
-  - Symbolic link staging utility for git operations
 
 ## Task System (`lib_tasks_*.py`)
 
