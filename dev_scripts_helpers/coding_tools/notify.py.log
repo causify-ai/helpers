@@ -1,0 +1,2 @@
+15:53:45 - [36mINFO [0m hdbg.py init_logger:1167                               15:53:45 - [36mINFO [0m hdbg.py init_logger:1167                               Saving log to file '/Users/saggese/src/notes1/helpers_root/dev_scripts_helpers/coding_tools/notify.py.log'
+15:53:45 - [36mINFO [0m hdbg.py init_logger:1177                               15:53:45 - [36mINFO [0m hdbg.py init_logger:1177                               [94m> /Users/saggese/src/notes1/helpers_root/dev_scripts_helpers/coding_tools/notify.py --timeout 0 --title CC idle --background[0m
