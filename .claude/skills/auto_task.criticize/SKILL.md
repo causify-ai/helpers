@@ -21,15 +21,9 @@ model: haiku
 
 - When analyzing the problem, make sure to understand which repos are affected by the
   change, since this influences creating a PR for multiple repos
-  - Update the section in `.claude/templates/auto_task.template.md`
-
-    ```
-    * Repo: <Which repos are affected>
-    - [ ] helpers (https://github.com/causify-ai/helpers)
-    - [ ] umd_classes (https://github.com/gpsaggese/gpsaggese.github.io)
-    - ...
-    ```
-
+  - Update the `* Repo:` checklist in `.claude/templates/auto_task.template.md`,
+    following `.claude/skills/auto_task.rules.md` section "Multi-Repo Issues,
+    Branches, and PRs"
   - When more than one repo is checked, confirm each `PR<NUM>` block in
     "Solution" states which repo it targets: an unlabeled `PR<NUM>` for a
     multi-repo task is an unclear plan (see "Ask for Clarification Before
@@ -38,9 +32,8 @@ model: haiku
     generates it automatically once PRs exist, per
     `.claude/skills/auto_task.rules.md` "Multi-Repo Issues, Branches, and PRs"
 
-- If the task is not perfectly clear:
-  - Ask for clarifications
-  - Propose changes to the file to clarify
+- If the task is not perfectly clear, follow `.claude/skills/auto_task.rules.md`
+  section "Ask for Clarification Before Executing an Unclear Plan"
 
 ## Output Results
 

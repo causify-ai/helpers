@@ -42,7 +42,8 @@ model: haiku
 
 ## Create the Issue and the First Branch (`_1`)
 
-- One GH issue covers the whole stack, not one issue per branch
+- Follow `.claude/skills/auto_task.rules.md` section "One GitHub Issue Is the Unit
+  of Work": one GH issue covers the whole stack, not one issue per branch
 - Create the issue and the first branch / PR `<BASE>_1`
 
   ```bash
@@ -73,8 +74,7 @@ model: haiku
     - Pass both `--no-only-branch-from-master` and `--no-abort-if-not-master`: with
       `only_branch_from_master` left at its default (`True`), the task switches to
       `master` before branching regardless of `abort_if_not_master`
-  - Implement task `<ID>`, following `.claude/skills/coding.rules.md`
-  - Run the tests it touches, following `.claude/skills/testing.rules.md`
+  - Implement task `<ID>` and run the tests it touches
   - Commit and push
   - Open the PR against the previous branch in the stack, not against `master`:
 
@@ -117,13 +117,10 @@ model: haiku
 
 # Conventions
 
-- Follow `.claude/skills/auto_task.rules.md` for queue, spec, and naming conventions
-- Follow `.claude/skills/coding.rules.md` when implementing each task
-- Follow `.claude/skills/testing.rules.md` for the tests each task adds or runs
+- Follow `.claude/skills/auto_task.rules.md` for queue, spec, naming, and
+  coding/testing conventions
 - Follow the template `.claude/templates/auto_task.template.md` if a task in the
   stack turns out to need splitting mid-run
-- Unlike a single-PR task in `.claude/skills/auto_task.rules.md`, a stack shares one
-  issue across every branch
 - If the issue also spans a submodule (see `.claude/skills/auto_task.rules.md`
   "Multi-Repo Issues, Branches, and PRs"), only the outer repo's branches stack
   (`_1` .. `_N`): a submodule gets one companion branch/PR, not a stack, since
@@ -140,7 +137,8 @@ model: haiku
 
 # Constraints
 
-- Do not merge any PR in the stack: merging is the user's decision
+- Follow `.claude/skills/auto_task.rules.md` sections "The User Owns Commit and
+  Merge Decisions" and "One GitHub Issue Is the Unit of Work"
 - Do not move to the next task before the tests touched by the current one pass: an
   untested task compounds into everything stacked on top of it
 - Do not squash or reorder commits across tasks without being asked

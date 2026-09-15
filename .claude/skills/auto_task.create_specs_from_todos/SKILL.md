@@ -28,27 +28,21 @@ model: sonnet
 ## Write the Fix Plan
 - Create a plan `tasks.md` for fixing the tests using the template below
   `.claude/templates/auto_task.template.md`
-- Determine which repos the TODOs touch: a `<FILE>` path under `helpers_root/`
-  is the `helpers` repo, everything else is `umd_classes`
-  - Fill in the template's `* Repo:` checklist accordingly
-  - Follow `.claude/skills/auto_task.rules.md` section "Multi-Repo Issues,
-    Branches, and PRs" when TODOs span more than one repo: this stays one
-    issue with one `PR<NUM>` block per affected repo, not a separate issue
-    per repo
+- Fill in the template's `* Repo:` checklist per
+  `.claude/skills/auto_task.rules.md` section "Multi-Repo Issues, Branches,
+  and PRs" (how to tell which repo a `<FILE>` belongs to, and how to handle
+  TODOs spanning more than one repo)
 - Write the comments as bullet points according to `.claude/skills/markdown.rules.md`
   and `.claude/skills/text.rules.md` with minimal text
 - Do not make any change to the code, but only propose the fixes
 
 ### Follow the Conventions
-- When writing code, follow instructions in `.claude/skills/coding.rules.md`
-  - Refer to skills in `.claude/skills/coding.*/SKILL.md` to follow the repo best
-    practices
-- For bugs:
-  - Add unit tests to check that the problem was present and then it's fixed
-    (red/green approach)
-  - Follow instructions in `.claude/skills/testing.rules.md`
-  - Refer to skills in `.claude/skills/testing.*/SKILL.md` to follow the repo
-    best practices
+- Follow `.claude/skills/auto_task.rules.md` section "Follow the Coding and
+  Testing Rules"
+  - Refer to skills in `.claude/skills/coding.*/SKILL.md` and
+    `.claude/skills/testing.*/SKILL.md` to follow the repo's best practices
+- For bugs, add unit tests to check that the problem was present and then it's
+  fixed (red/green approach)
 - For renaming, make sure the entire code base is checked to make sure everything
   is updated
   - Follow `.claude/skills/coding.rename/SKILL.md`

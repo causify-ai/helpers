@@ -34,10 +34,9 @@ model: haiku
 
 # Conventions
 
-- Follow `.claude/skills/auto_task.rules.md` for queue, spec, and naming conventions
-- Follow `.claude/skills/coding.rules.md` and `.claude/skills/testing.rules.md`: they
-  apply to whatever code Claude on GitHub writes, even though it runs remotely and
-  not in this session
+- Follow `.claude/skills/auto_task.rules.md` for queue, spec, naming, and
+  coding/testing conventions: they apply to whatever code Claude on GitHub
+  writes, even though it runs remotely and not in this session
 - Claude on GitHub only starts on an explicit `@claude` mention in an issue's title
   or body, or in a comment on an issue or PR, per
   `helpers_root/.github/workflows/claude.yml`

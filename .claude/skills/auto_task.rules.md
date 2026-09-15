@@ -46,6 +46,16 @@
   - `[-]` in progress (e.g., dispatched, or a run in progress)
   - `[x]` done
 
+## The User Owns Commit and Merge Decisions
+
+- An agent never commits a code change without the user reviewing and confirming it
+  first
+- An agent never merges a PR: merging (and force-pushing over unresolved review
+  comments) is always the user's call
+- This applies regardless of execution mode (interactive, stacked, or remote): an
+  agent may push commits to a task's own branch, but the decision to land them
+  belongs to the user
+
 # The Unit of Work
 
 ## One GitHub Issue Is the Unit of Work
@@ -77,6 +87,9 @@
   * Repo: <Which repos are affected>
   ```
 
+  - Determine which repo a changed file belongs to before filling this in: a
+    `<FILE>` path under `helpers_root/` is the `helpers` repo, everything
+    else is `umd_classes`
 - The branch and the PR opened in every affected repo share one name, derived once
   from that single issue (see "Name Branches and PRs After the Issue" above), not a
   separate name per repo
