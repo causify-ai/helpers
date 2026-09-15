@@ -21,7 +21,6 @@ import dev_scripts_helpers.git.git_hooks.pre-commit as dsgghpr
 import argparse
 import logging
 import os
-import pathlib
 import sys
 from typing import Callable, Dict, List
 
@@ -61,8 +60,8 @@ def _write_output_to_file(lines: List[str]) -> None:
 
     :param lines: pre-commit output lines
     """
-    out_path = pathlib.Path("tmp.precommit_output.txt")
-    with out_path.open("w") as f:
+    out_path = "tmp.precommit_output.txt"
+    with open(out_path, "w") as f:
         for line in lines:
             f.write(line + "\n")
 

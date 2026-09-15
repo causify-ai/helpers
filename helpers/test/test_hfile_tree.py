@@ -1,5 +1,5 @@
 import logging
-import pathlib
+import os
 
 import helpers.hfile_tree as hfiltree
 import helpers.hunit_test as hunitest
@@ -217,13 +217,13 @@ class Test_generate_tree(hunitest.TestCase):
         Test writing tree to file.
         """
         # Prepare inputs.
-        scratch = pathlib.Path(self.get_scratch_space())
+        scratch = self.get_scratch_space()
         path = self.devops_dir
         depth = 0
         include_tests = False
         include_python = False
         only_dirs = False
-        output = scratch / "TREE.md"
+        output = os.path.join(scratch, "TREE.md")
         # Call tested function.
         _ = hfiltree.generate_tree(
             path=path,
@@ -233,7 +233,8 @@ class Test_generate_tree(hunitest.TestCase):
             only_dirs=only_dirs,
             output=output,
         )
-        actual = output.read_text(encoding="utf-8")
+        with open(output, encoding="utf-8") as f:
+            actual = f.read()
         # Check output.
         expected = (
             "\n".join(
@@ -257,13 +258,13 @@ class Test_generate_tree(hunitest.TestCase):
         Test updating tree on existing file, preserving comments.
         """
         # Prepare inputs.
-        scratch = pathlib.Path(self.get_scratch_space())
+        scratch = self.get_scratch_space()
         path = self.devops_dir
         depth = 0
         include_tests = False
         include_python = False
         only_dirs = False
-        output = scratch / "TREE.md"
+        output = os.path.join(scratch, "TREE.md")
         # Create existing file.
         content = (
             "\n".join(
@@ -278,7 +279,8 @@ class Test_generate_tree(hunitest.TestCase):
             )
             + "\n"
         )
-        output.write_text(content, encoding="utf-8")
+        with open(output, "w", encoding="utf-8") as f:
+            f.write(content)
         # Call tested function.
         _ = hfiltree.generate_tree(
             path=path,
@@ -288,7 +290,8 @@ class Test_generate_tree(hunitest.TestCase):
             only_dirs=only_dirs,
             output=output,
         )
-        actual = output.read_text(encoding="utf-8")
+        with open(output, encoding="utf-8") as f:
+            actual = f.read()
         # Check output.
         expected = (
             "\n".join(
@@ -329,8 +332,8 @@ class Test_generate_tree(hunitest.TestCase):
         """
         super().setUp()
         scratch = self.get_scratch_space()
-        self.devops_dir = pathlib.Path(scratch) / "devops"
-        self.devops_dir.mkdir()
+        self.devops_dir = os.path.join(scratch, "devops")
+        os.mkdir(self.devops_dir)
         structure = {
             "": ["__init__.py", "user_credentials.py"],
             "compose": [],
@@ -340,8 +343,12 @@ class Test_generate_tree(hunitest.TestCase):
         }
         # Create empty dirs and files.
         for subdir, files in structure.items():
-            folder = self.devops_dir / subdir if subdir else self.devops_dir
+            folder = (
+                os.path.join(self.devops_dir, subdir)
+                if subdir
+                else self.devops_dir
+            )
             if subdir:
-                folder.mkdir()
+                os.mkdir(folder)
             for name in files:
-                (folder / name).touch()
+                open(os.path.join(folder, name), "w").close()

@@ -7,7 +7,6 @@ import helpers.hcoverage as hcovera
 import glob
 import logging
 import os
-import pathlib
 import site
 import subprocess
 import sysconfig
@@ -19,9 +18,9 @@ import helpers.hsystem as hsystem
 _LOG = logging.getLogger(__name__)
 
 
-def _detect_site_packages() -> pathlib.Path:
+def _detect_site_packages() -> str:
     """
-    Return the Path to the site-packages directory for the active interpreter.
+    Return the path to the site-packages directory for the active interpreter.
 
     - Try sysconfig first
     - Fall back to site.getsitepackages() or user-site.
@@ -29,7 +28,7 @@ def _detect_site_packages() -> pathlib.Path:
     try:
         purelib = sysconfig.get_path("purelib")
         if purelib:
-            return pathlib.Path(purelib)
+            return purelib
     except (KeyError, IOError):
         _LOG.debug(
             "sysconfig.get_path('purelib') failed, falling back to site packages"
@@ -40,19 +39,19 @@ def _detect_site_packages() -> pathlib.Path:
         sp_dirs = []
     for d in sp_dirs:
         if "site-packages" in d:
-            return pathlib.Path(d)
-    return pathlib.Path(site.getusersitepackages())
+            return d
+    return site.getusersitepackages()
 
 
 def inject(coveragerc: str = ".coveragerc") -> None:
     """
     Install the coverage startup hook into this env site-packages.
     """
-    rc = pathlib.Path(coveragerc).resolve()
-    os.environ["COVERAGE_PROCESS_START"] = str(rc)
+    rc = os.path.realpath(coveragerc)
+    os.environ["COVERAGE_PROCESS_START"] = rc
     _LOG.debug("Set COVERAGE_PROCESS_START to %s", rc)
     sp = _detect_site_packages()
-    target = sp / "coverage.pth"
+    target = os.path.join(sp, "coverage.pth")
     hook_line = "import coverage; coverage.process_startup()"
     cmd = f'echo "{hook_line}" | sudo tee "{target}" > /dev/null'
     try:
@@ -67,8 +66,8 @@ def remove() -> None:
     Remove the coverage startup hook from this env site-packages.
     """
     sp = _detect_site_packages()
-    target = sp / "coverage.pth"
-    if target.is_file():
+    target = os.path.join(sp, "coverage.pth")
+    if os.path.isfile(target):
         cmd = f'sudo rm -f "{target}"'
         try:
             hsystem.system(cmd)

@@ -21,7 +21,9 @@ class Test_create_links(hunitest.TestCase):
     Unit tests for the `create_links.py` script.
     """
 
-    def create_file(self, dir_path: str, file_name: str, content: str) -> str:
+    def create_file(
+        self, dir_path: str, file_name: str, content: str
+    ) -> str:
         """
         Create a file with the given content in the specified directory.
 
@@ -47,8 +49,8 @@ class Test_create_links(hunitest.TestCase):
         base_dir: str = self.get_scratch_space()
         src_dir: str = os.path.join(base_dir, "test_src_dir")
         dst_dir: str = os.path.join(base_dir, "test_dst_dir")
-        hio.create_dir(src_dir, incremental=True)
-        hio.create_dir(dst_dir, incremental=True)
+        os.makedirs(src_dir, exist_ok=True)
+        os.makedirs(dst_dir, exist_ok=True)
         file1_src: str = self.create_file(
             src_dir, "file1.txt", "Hello, World!"
         )
@@ -70,7 +72,9 @@ class Test_create_links(hunitest.TestCase):
         base_dir: str = self.get_scratch_space()
         src_dir: str = os.path.join(base_dir, "test_src_dir")
         dst_dir: str = os.path.join(base_dir, "test_dst_dir")
-        file1: str = self.create_file(src_dir, "file1.txt", "Hello, World!")
+        file1: str = self.create_file(
+            src_dir, "file1.txt", "Hello, World!"
+        )
         shutil.copy(file1, dst_dir)
         common_files: List[Tuple[str, str]] = dshstcrli._find_common_files(
             src_dir, dst_dir
@@ -91,7 +95,9 @@ class Test_create_links(hunitest.TestCase):
         base_dir: str = self.get_scratch_space()
         src_dir: str = os.path.join(base_dir, "test_src_dir")
         dst_dir: str = os.path.join(base_dir, "test_dst_dir")
-        file1: str = self.create_file(src_dir, "file1.txt", "Hello, World!")
+        file1: str = self.create_file(
+            src_dir, "file1.txt", "Hello, World!"
+        )
         shutil.copy(file1, dst_dir)
         common_files: List[Tuple[str, str]] = dshstcrli._find_common_files(
             src_dir, dst_dir
@@ -114,9 +120,11 @@ class Test_create_links(hunitest.TestCase):
         base_dir: str = self.get_scratch_space()
         src_dir: str = os.path.join(base_dir, "test_src_dir")
         dst_dir: str = os.path.join(base_dir, "test_dst_dir")
-        hio.create_dir(src_dir, incremental=True)
-        hio.create_dir(dst_dir, incremental=True)
-        file1: str = self.create_file(src_dir, "file1.txt", "Hello, World!")
+        os.makedirs(src_dir, exist_ok=True)
+        os.makedirs(dst_dir, exist_ok=True)
+        file1: str = self.create_file(
+            src_dir, "file1.txt", "Hello, World!"
+        )
         link1: str = os.path.join(dst_dir, "file1.txt")
         os.symlink(file1, link1)
         symlinks: List[str] = dshstcrli._find_symlinks(dst_dir)

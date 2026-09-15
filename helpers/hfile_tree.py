@@ -6,7 +6,6 @@ import helpers.hfile_tree as hfiltree
 
 import logging
 import os
-import pathlib
 import re
 from typing import Dict, List
 
@@ -15,7 +14,7 @@ _LOG = logging.getLogger(__name__)
 
 def _build_tree_lines(
     dir_name: str,
-    nodes: List[pathlib.Path],
+    nodes: List[str],
     comments: Dict[str, str],
 ) -> str:
     """
@@ -65,10 +64,11 @@ def _build_tree_lines(
     """
     lines = [dir_name]
     for rel in nodes:
-        indent = "  " * (len(rel.parts) - 1)
-        key = "/".join(rel.parts)
+        parts = rel.split(os.sep)
+        indent = "  " * (len(parts) - 1)
+        key = "/".join(parts)
         suffix = comments.get(key, "")
-        lines.append(f"{indent}- {rel.name}{suffix}".rstrip())
+        lines.append(f"{indent}- {os.path.basename(rel)}{suffix}".rstrip())
     return "\n".join(lines)
 
 
@@ -96,12 +96,12 @@ def _parse_comments(old_tree: List[str]) -> Dict[str, str]:
 
 
 def _get_tree_nodes(
-    dir_path: pathlib.Path,
+    dir_path: str,
     depth: int,
     include_tests: bool,
     include_python: bool,
     only_dirs: bool,
-) -> List[pathlib.Path]:
+) -> List[str]:
     """
     Get relative paths under the given directory based on filters.
 
@@ -116,10 +116,10 @@ def _get_tree_nodes(
     :param only_dirs: only show directories
     :return: all relative paths that match the specified flags
     """
-    nodes: List[pathlib.Path] = []
+    nodes: List[str] = []
     for dirpath, dirnames, filenames in os.walk(dir_path):
-        rel_dir = pathlib.Path(dirpath).relative_to(dir_path)
-        level = len(rel_dir.parts)
+        rel_dir = os.path.relpath(dirpath, dir_path)
+        level = 0 if rel_dir == "." else len(rel_dir.split(os.sep))
         if 0 < depth <= level:
             # Stop pruning on given depth.
             dirnames[:] = []
@@ -137,16 +137,16 @@ def _get_tree_nodes(
             dirnames[:] = filtered
         candidates = dirnames + filenames
         for name in candidates:
-            full_path = pathlib.Path(dirpath) / name
-            rel_path = full_path.relative_to(dir_path)
+            full_path = os.path.join(dirpath, name)
+            rel_path = os.path.relpath(full_path, dir_path)
             name_lower = name.lower()
-            is_dir = full_path.is_dir()
+            is_dir = os.path.isdir(full_path)
             is_test_name = name_lower.startswith("test_") or name_lower in {
                 "test",
                 "tests",
             }
             is_test = is_test_name or name_lower.endswith("_test.py")
-            is_python = full_path.suffix in {".py", ".ipynb"}
+            is_python = os.path.splitext(full_path)[1] in {".py", ".ipynb"}
             if is_dir:
                 # Always include directories.
                 nodes.append(rel_path)
@@ -166,7 +166,9 @@ def _get_tree_nodes(
                 )
             if include_file:
                 nodes.append(rel_path)
-    nodes.sort()
+    # Sort by path components (not the raw string) to match the ordering of
+    # sorting `pathlib.Path` objects, e.g., "docker.txt" vs "docker/sub.txt".
+    nodes.sort(key=lambda rel: rel.split(os.sep))
     return nodes
 
 
@@ -188,21 +190,23 @@ def generate_tree(
     :param only_dirs: only show directories
     :param output: path of the markdown file to create or update
     """
-    dir_path = pathlib.Path(path).resolve()
+    dir_path = os.path.realpath(path)
     nodes = _get_tree_nodes(
         dir_path, depth, include_tests, include_python, only_dirs
     )
     _LOG.debug("Collected %d nodes under '%s'", len(nodes), dir_path)
+    dir_name = os.path.basename(dir_path)
     if output:
-        output_path = pathlib.Path(output)
-        start_marker = f"<!-- tree:start:{dir_path.name} -->"
+        output_path = output
+        start_marker = f"<!-- tree:start:{dir_name} -->"
         end_marker = "<!-- tree:end -->"
         prefix = []
         suffix = []
         comments = {}
-        if output_path.exists():
+        if os.path.exists(output_path):
             # Parse inline comments.
-            file = output_path.read_text(encoding="utf-8")
+            with open(output_path, encoding="utf-8") as f:
+                file = f.read()
             lines = file.splitlines()
             _LOG.debug("Reading existing file '%s' for markers", output_path)
             try:
@@ -219,14 +223,15 @@ def generate_tree(
             suffix = lines[idx_end + 1 :]
             comments = _parse_comments(old_tree)
         # Build the directory tree.
-        tree_block = _build_tree_lines(dir_path.name, nodes, comments)
+        tree_block = _build_tree_lines(dir_name, nodes, comments)
         # Build the content of the file.
         content = (
             "\n".join(prefix + [start_marker, tree_block, end_marker] + suffix)
             + "\n"
         )
-        output_path.write_text(content, encoding="utf-8")
+        with open(output_path, "w", encoding="utf-8") as f:
+            f.write(content)
         _LOG.debug("Writing updated tree to '%s'", output_path)
     # Return tree without markers.
-    tree_block = _build_tree_lines(dir_path.name, nodes, {})
+    tree_block = _build_tree_lines(dir_name, nodes, {})
     return tree_block
