@@ -3,6 +3,7 @@ coverage
 invoke
 junitparser
 pytest
+pytest-order
 # For helpers that read repo_config.yaml
 pyyaml
 s3fs
