@@ -1,4 +1,9 @@
 {
+  "permissions": {
+    "allow": [
+      "Bash(python3 *)"
+    ]
+  },
   "hooks": {
     "PreToolUse": [
       {
