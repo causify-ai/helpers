@@ -560,11 +560,11 @@ def _find_image_by_hash(
 ) -> Optional[str]:
     """
     Find an already-built image for `image_name`/`current_arch` tagged with
-    `short_hash`, no matter which date it was built on.
+    `short_hash`, no matter when it was built.
 
-    This allows reusing an image built on a previous day when the Dockerfile
-    content hasn't changed, instead of triggering a rebuild just because the
-    date-stamped tag differs.
+    This allows reusing an image built earlier when the Dockerfile content
+    hasn't changed, instead of triggering a rebuild just because the
+    timestamp-stamped tag differs.
 
     :param image_name: name of the Docker container (e.g., `tmp.pandoc_texlive`)
     :param current_arch: canonical CPU architecture (e.g., `arm64`)
@@ -576,8 +576,11 @@ def _find_image_by_hash(
     cmd = f"{executable} images --format '{{{{.Repository}}}}'"
     _, output = hsystem.system_to_string(cmd, abort_on_error=False)
     prefix = f"{image_name}.{current_arch}."
-    # Match both the new `<date>_<hash>` tag and the legacy `<hash>`-only tag.
-    pattern = re.compile(rf"^{re.escape(prefix)}(?:\d{{8}}_)?{short_hash}$")
+    # Match the `<date>.<time>_<hash>` tag, the older `<date>_<hash>` tag, and
+    # the legacy `<hash>`-only tag.
+    pattern = re.compile(
+        rf"^{re.escape(prefix)}(?:\d{{8}}(?:\.\d{{6}})?_)?{short_hash}$"
+    )
     found_image_name = None
     for line in output.splitlines():
         line = line.strip()
@@ -593,12 +596,13 @@ def get_container_image_name(
     """
     Get the name of the container image.
 
-    The tag encodes the CPU architecture, the build date, and a hash of the
-    Dockerfile content, e.g. `tmp.pandoc_texlive.arm64.20260914_4867bd42`, so
-    that `docker images` makes it obvious which image is the most recent one.
-    If an image already exists for the same Dockerfile content (built on a
-    previous day), its existing tag is reused instead of minting a new one,
-    so an unchanged Dockerfile doesn't trigger a rebuild.
+    The tag encodes the CPU architecture, the build timestamp, and a hash of
+    the Dockerfile content, e.g.
+    `tmp.pandoc_texlive.arm64.20260914.144612_4867bd42`, so that `docker
+    images` makes it obvious which image is the most recent one. If an image
+    already exists for the same Dockerfile content (built at an earlier
+    time), its existing tag is reused instead of minting a new one, so an
+    unchanged Dockerfile doesn't trigger a rebuild.
 
     :param image_name: Name of the Docker container to build.
     :param dockerfile: Content of the Dockerfile for building the container.
@@ -631,17 +635,20 @@ def get_container_image_name(
     sha256_hash = hashlib.sha256(dockerfile.encode()).hexdigest()
     short_hash = sha256_hash[:8]
     # Reuse an already-built image for the same Dockerfile content, no
-    # matter which date it was built on.
+    # matter when it was built.
     cached_image_name = _find_image_by_hash(
         image_name, current_arch, short_hash, use_sudo
     )
     if cached_image_name is not None:
         image_name_out = cached_image_name
     else:
-        # No matching image exists yet: mint a new tag stamped with today's
-        # date, so `docker images` makes it obvious which image is newest.
-        today = datetime.date.today().strftime("%Y%m%d")
-        image_name_out = f"{image_name}.{current_arch}.{today}_{short_hash}"
+        # No matching image exists yet: mint a new tag stamped with the
+        # current timestamp, so `docker images` makes it obvious which image
+        # is newest.
+        timestamp = datetime.datetime.now().strftime("%Y%m%d.%H%M%S")
+        image_name_out = (
+            f"{image_name}.{current_arch}.{timestamp}_{short_hash}"
+        )
     return image_name_out, dockerfile
 
 

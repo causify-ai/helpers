@@ -347,11 +347,12 @@ def _report_all_images(engine: str, *, images_order: str) -> None:
     images_sorted = sorted(
         images, key=lambda image: image[sort_field], reverse=True
     )
+    title = (
+        f"All images ({len(images)}), sorted by {sort_label} (descending), "
+        f"engine='{engine}'"
+    )
     _LOG.info(
-        "## All images (%d), sorted by %s (descending)\n%s",
-        len(images),
-        sort_label,
-        _format_images_table(images_sorted),
+        "%s\n%s", hprint.frame(title), _format_images_table(images_sorted)
     )
 
 
@@ -602,13 +603,14 @@ def _cleanup_dangling_images(engine: str, *, dry_run: bool) -> None:
         raise ValueError(f"Invalid engine='{engine}'")
 
 
-# Matches the `<image_name>.<arch>.<date>_<hash>` (or legacy
-# `<image_name>.<arch>.<hash>`) image-tagging convention minted by
-# `hdocker.get_container_image_name()`, e.g.
-# `tmp.pandoc_texlive.arm64.20260914_4867bd42` or, for the legacy tag,
+# Matches the `<image_name>.<arch>.<date>.<time>_<hash>` (or older
+# `<date>_<hash>`, or legacy `<hash>`-only) image-tagging convention minted
+# by `hdocker.get_container_image_name()`, e.g.
+# `tmp.pandoc_texlive.arm64.20260914.144612_4867bd42`,
+# `tmp.pandoc_texlive.arm64.20260914_4867bd42`, or, for the legacy tag,
 # `tmp.pandoc_texlive.arm64.4867bd42`.
 _IMAGE_HASH_TAG_RE = re.compile(
-    r"^(?P<base>.+)\.(?:\d{8}_)?(?P<hash>[0-9a-f]{8})$"
+    r"^(?P<base>.+)\.(?:\d{8}(?:\.\d{6})?_)?(?P<hash>[0-9a-f]{8})$"
 )
 
 
@@ -717,10 +719,7 @@ def _cleanup_engine(engine: str, *, dry_run: bool, images_order: str) -> None:
         images report by
     """
     hdocker.set_docker_engine(engine)
-    # TODO(ai_gp): Use hprint.frame
-    _LOG.info("%s", "#" * 80)
-    _LOG.info("Engine: '%s'", engine)
-    _LOG.info("%s", "#" * 80)
+    _LOG.info("\n%s", hprint.frame(f"Engine: '{engine}'"))
     # Disk usage before any operation.
     before_output = _report_system_df(engine, label="before")
     system_df = (
@@ -729,18 +728,26 @@ def _cleanup_engine(engine: str, *, dry_run: bool, images_order: str) -> None:
     # Containers not touched by pruning (informational only).
     _report_active_containers(engine)
     # Remove stopped containers.
+    _LOG.info("\n%s", hprint.frame("Stopped containers", char1="/"))
     _cleanup_stopped_containers(engine, dry_run=dry_run)
     # Remove unused networks.
+    _LOG.info("\n%s", hprint.frame("Unused networks", char1="/"))
     _cleanup_unused_networks(engine, dry_run=dry_run)
     # Remove dangling volumes.
+    _LOG.info("\n%s", hprint.frame("Dangling volumes", char1="/"))
     _cleanup_dangling_volumes(engine, dry_run=dry_run)
     # Remove build cache.
+    _LOG.info("\n%s", hprint.frame("Build cache", char1="/"))
     _cleanup_build_cache(engine, dry_run=dry_run, system_df=system_df)
     # Remove hash-tagged images superseded by a more recent rebuild (run
     # before the dangling-image cleanup, so any layers it frees up are swept
     # up right after).
+    _LOG.info(
+        "\n%s", hprint.frame("Duplicate hash-tagged images", char1="/")
+    )
     _cleanup_duplicate_hash_images(engine, dry_run=dry_run)
     # Remove dangling images.
+    _LOG.info("\n%s", hprint.frame("Dangling images", char1="/"))
     _cleanup_dangling_images(engine, dry_run=dry_run)
     # Report all images, sorted by `images_order`.
     _report_all_images(engine, images_order=images_order)

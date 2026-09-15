@@ -13,7 +13,7 @@ A detailed description is:
 
 - Step 2: Stage linked files for modification (e.g., make a copy of all the
   links so that they can be modified in place):
-> create_links.py --src_dir $SRC_DIR --dst_dir $DST_DIR --stage_links
+> create_links.py --src_dir $SRC_DIR --stage_links
 
 - Step 3: After modification, restore the symbolic links:
 > create_links.py --src_dir $SRC_DIR --dst_dir $DST_DIR --replace_links
@@ -62,7 +62,9 @@ def _classify_files(src_dir: str, dst_dir: str) -> List[Tuple[str, str, str]]:
     :param dst_dir: destination directory
     :return: list of `(src_file, dst_file, current_state)`, where
         `current_state` is one of:
-        - "copy": the file is identical in both directories
+        - "link": `dst_file` is already a symlink pointing to `src_file`
+        - "copy": the file is identical in both directories, but `dst_file`
+          is a regular file (not yet a symlink to `src_file`)
         - "diff": the file exists in both directories with different content
         - "missing": the file exists only in `src_dir`
         - "extra": the file exists only in `dst_dir`
@@ -85,7 +87,13 @@ def _classify_files(src_dir: str, dst_dir: str) -> List[Tuple[str, str, str]]:
         src_file = os.path.join(src_dir, rel_path)
         dst_file = os.path.join(dst_dir, rel_path)
         if rel_path in src_rel_paths and rel_path in dst_rel_paths:
-            if filecmp.cmp(src_file, dst_file, shallow=False):
+            if os.path.islink(dst_file) and os.path.realpath(
+                dst_file
+            ) == os.path.realpath(src_file):
+                # `dst_file` is already a symlink to `src_file`: nothing to
+                # do.
+                current_state = "link"
+            elif filecmp.cmp(src_file, dst_file, shallow=False):
                 current_state = "copy"
             else:
                 current_state = "diff"
@@ -260,15 +268,15 @@ def _replace_with_links(
             continue
 
 
-def _find_symlinks(dst_dir: str) -> List[str]:
+def _find_symlinks(dir_name: str) -> List[str]:
     """
-    Find all symbolic links in the destination directory.
+    Find all symbolic links under the given directory.
 
-    :param dst_dir: Directory to search for symbolic links
+    :param dir_name: directory to search for symbolic links
     :return: List of paths to symbolic links
     """
     symlinks = []
-    for root, _, files in os.walk(dst_dir):
+    for root, _, files in os.walk(dir_name):
         for file in files:
             file_path = os.path.join(root, file)
             if os.path.islink(file_path):
@@ -291,6 +299,8 @@ def _build_stage_status_table(symlinks: List[str]) -> htable.Table:
     rows = []
     for link in symlinks:
         target_file = os.readlink(link)
+        if not os.path.isabs(target_file):
+            target_file = os.path.join(os.path.dirname(link), target_file)
         if os.path.exists(target_file):
             current_state = "link"
             target_state = "copy"
@@ -319,6 +329,8 @@ def _stage_links(symlinks: List[str], *, dry_run: bool = False) -> None:
     for link in symlinks:
         # Resolve the original file the symlink points to.
         target_file = os.readlink(link)
+        if not os.path.isabs(target_file):
+            target_file = os.path.join(os.path.dirname(link), target_file)
         if not os.path.exists(target_file):
             _LOG.warning(
                 "'%s' is missing (target of link '%s')", target_file, link
@@ -355,8 +367,8 @@ def _main(parser: argparse.ArgumentParser) -> None:
     Depending on the command-line arguments, this script either:
 
     - Replaces matching files in `dst_dir` with symbolic links to `src_dir`.
-    - Stages all symbolic links in `dst_dir` for modification by replacing them
-      with writable file copies.
+    - Stages all symbolic links under `src_dir` for modification by replacing
+      them with writable file copies.
 
     Usage:
     - `--replace_links`: Replace files with symbolic links
@@ -367,6 +379,11 @@ def _main(parser: argparse.ArgumentParser) -> None:
     args = parser.parse_args()
     hdbg.init_logger(verbosity=args.log_level, use_exec_path=True)
     if args.replace_links:
+        # `--replace_links` turns files common to `src_dir` and `dst_dir`
+        # into symlinks, so both directories are needed.
+        hdbg.dassert_ne(
+            args.dst_dir, "", "Must specify --dst_dir for --replace_links"
+        )
         common_files = _find_common_files(
             args.src_dir, args.dst_dir, dry_run=args.dry_run
         )
@@ -385,12 +402,14 @@ def _main(parser: argparse.ArgumentParser) -> None:
             "%s %d files with symbolic links", action_verb, len(common_files)
         )
     elif args.stage_links:
-        symlinks = _find_symlinks(args.dst_dir)
+        # `--stage_links` only stages the symlinks under `src_dir` (no
+        # `dst_dir` involved), replacing them with writable copies.
+        symlinks = _find_symlinks(args.src_dir)
         if not symlinks:
             _LOG.info("No symbolic links found to stage")
         else:
             table = _build_stage_status_table(symlinks)
-            _LOG.info("\ndst_dir=%s\n\n%s", args.dst_dir, str(table))
+            _LOG.info("\nsrc_dir=%s\n\n%s", args.src_dir, str(table))
         _stage_links(symlinks, dry_run=args.dry_run)
         action_verb = "DRY_RUN: Would stage" if args.dry_run else "Staged"
         _LOG.info(
@@ -412,7 +431,9 @@ def _parse() -> argparse.ArgumentParser:
     )
     parser.add_argument("--src_dir", required=True, help="Source directory.")
     parser.add_argument(
-        "--dst_dir", required=True, help="Destination directory."
+        "--dst_dir",
+        default="",
+        help="Destination directory (required for --replace_links).",
     )
     parser.add_argument(
         "--replace_links",

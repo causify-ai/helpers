@@ -7,4 +7,4 @@ gs | \grep -v ?
 
 echo
 echo "========== Potentially useful ==========="
-gs | \grep ? | \grep -v " tmp" | \grep -v "/outcomes/" | \grep -E "\.(py|md|txt)$"
+gs | \grep ? | \grep -vE "(^| |/)tmp\." | \grep -v "/outcomes/" | \grep -E "\.(py|md|txt)$"
