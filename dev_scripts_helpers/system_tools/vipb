@@ -2,6 +2,6 @@
 # """
 # Open with vi the files in the clipboard.
 # """
-FILE=$(pbpaste)
+FILE=$(pbpaste | sed 's/\x1b\[[0-9;]*m//g')
 echo $FILE
 vim $FILE
