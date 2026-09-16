@@ -1,3 +1,4 @@
+import logging
 import unittest.mock as umock
 from typing import List
 
@@ -11,12 +12,19 @@ import helpers.lib_tasks.test.test_lib_tasks as httestlib
 
 # pylint: disable=protected-access
 
+_LOG = logging.getLogger(__name__)
+
 
 # #############################################################################
 # Test__get_branch_name_for_issue
 # #############################################################################
 
 
+# TODO(ai_gp): Move this test class after public function tests to
+# prioritize testing public-facing behavior first (testing.rules.md:##
+# Test From the Outside-In)
+# TODO(ai_gp): Add edge case tests for boundary conditions such as issue_id=0
+# and empty repo_short_name (testing.rules.md:## Test Coverage)
 class Test__get_branch_name_for_issue(hunitest.TestCase):
     """
     Test `_get_branch_name_for_issue()`.
@@ -30,7 +38,12 @@ class Test__get_branch_name_for_issue(hunitest.TestCase):
         issue_id = 123
         repo_short_name = "current"
         suffix = ""
+        # Prepare outputs.
+        expected = "HelpersTask123_Fix_bug_3"
         # Run test.
+        # TODO(ai_gp): Mock external dependencies (git, GitHub API) instead
+        # of internal helper wrappers (hgit, lib_tasks_gh) (testing.rules.md:##
+        # Mock Only External Dependencies)
         with (
             umock.patch.object(
                 hltltagh,
@@ -47,7 +60,6 @@ class Test__get_branch_name_for_issue(hunitest.TestCase):
                 issue_id, repo_short_name, suffix
             )
         # Check outputs.
-        expected = "HelpersTask123_Fix_bug_3"
         self.assert_equal(actual, expected)
         mock_get_title.assert_called_once_with(issue_id, repo_short_name)
         mock_get_next_name.assert_called_once_with(
@@ -62,6 +74,8 @@ class Test__get_branch_name_for_issue(hunitest.TestCase):
         issue_id = 123
         repo_short_name = "current"
         suffix = "02"
+        # Prepare outputs.
+        expected = "HelpersTask123_Fix_bug_02"
         # Run test.
         with (
             umock.patch.object(
@@ -77,7 +91,6 @@ class Test__get_branch_name_for_issue(hunitest.TestCase):
                 issue_id, repo_short_name, suffix
             )
         # Check outputs.
-        expected = "HelpersTask123_Fix_bug_02"
         self.assert_equal(actual, expected)
         mock_get_next_name.assert_not_called()
 
@@ -87,6 +100,11 @@ class Test__get_branch_name_for_issue(hunitest.TestCase):
 # #############################################################################
 
 
+# TODO(ai_gp): Move this test class after public function tests to
+# prioritize testing public-facing behavior first (testing.rules.md:##
+# Test From the Outside-In)
+# TODO(ai_gp): Add edge case tests for boundary conditions such as empty
+# branch_name and very long branch names (testing.rules.md:## Test Coverage)
 class Test__dassert_branch_available(hunitest.TestCase):
     """
     Test `_dassert_branch_available()`.
@@ -99,6 +117,9 @@ class Test__dassert_branch_available(hunitest.TestCase):
         # Prepare inputs.
         branch_name = "HelpersTask123_Fix_bug_02"
         # Run test.
+        # TODO(ai_gp): Mock external dependency (git) instead of internal
+        # helper wrapper (hgit) (testing.rules.md:## Mock Only External
+        # Dependencies)
         with umock.patch.object(
             hgit, "does_branch_exist", return_value=False
         ) as mock_does_branch_exist:
@@ -119,6 +140,9 @@ class Test__dassert_branch_available(hunitest.TestCase):
             with self.assertRaises(AssertionError) as cm:
                 hltltagi._dassert_branch_available(branch_name)
         actual = str(cm.exception)
+        # TODO(ai_gp): Use assert_equal() to compare whole output instead of
+        # multiple assertIn() calls for individual pieces (testing.rules.md:##
+        # Compare Whole Output with `assert_equal`, Not Piecewise)
         self.assertIn("already exists", actual)
         self.assertIn(branch_name, actual)
 
@@ -133,6 +157,11 @@ class Test__dassert_branch_available(hunitest.TestCase):
     not hgit.is_in_amp_as_supermodule(),
     reason="Run only in amp as super-module",
 )
+# TODO(ai_gp): Add edge case tests for boundary conditions such as multiple
+# files and very long file paths (testing.rules.md:## Test Coverage)
+# TODO(ai_gp): Rename class to Test_git_patch_create to follow the naming
+# convention for functions (testing.rules.md:## Naming Conventions for a
+# Function)
 class TestLibTasksGitCreatePatch1(hunitest.TestCase):
     """
     Test `git_patch_create()`.
@@ -164,7 +193,10 @@ class TestLibTasksGitCreatePatch1(hunitest.TestCase):
         branch = False
         last_commit = False
         files = ""
-        # Run test.
+        # Run test and check outputs.
+        # TODO(ai_gp): Split the helper to test tar and diff modes
+        # separately; each test should test one case (testing.rules.md:## Test
+        # One Thing)
         self.helper(modified, branch, last_commit, files)
 
     def test2(self) -> None:
@@ -176,7 +208,10 @@ class TestLibTasksGitCreatePatch1(hunitest.TestCase):
         branch = True
         last_commit = False
         files = ""
-        # Run test.
+        # Run test and check outputs.
+        # TODO(ai_gp): Split the helper to test tar and diff modes
+        # separately; each test should test one case (testing.rules.md:## Test
+        # One Thing)
         self.helper(modified, branch, last_commit, files)
 
     def test3(self) -> None:
@@ -189,7 +224,10 @@ class TestLibTasksGitCreatePatch1(hunitest.TestCase):
         branch = False
         last_commit = True
         files = ""
-        # Run test.
+        # Run test and check outputs.
+        # TODO(ai_gp): Split the helper to test tar and diff modes
+        # separately; each test should test one case (testing.rules.md:## Test
+        # One Thing)
         self.helper(modified, branch, last_commit, files)
 
     def test4(self) -> None:
@@ -202,7 +240,10 @@ class TestLibTasksGitCreatePatch1(hunitest.TestCase):
         branch = False
         last_commit = False
         files = __file__
-        # Run test.
+        # Run test and check outputs.
+        # TODO(ai_gp): Split the helper to test tar and diff modes
+        # separately; each test should test one case (testing.rules.md:## Test
+        # One Thing)
         self.helper(modified, branch, last_commit, files)
 
     def test5(self) -> None:
@@ -217,12 +258,7 @@ class TestLibTasksGitCreatePatch1(hunitest.TestCase):
         branch = False
         last_commit = False
         files = __file__
-        # Run test and check output.
-        with self.assertRaises(AssertionError) as cm:
-            hltltagi.git_patch_create(
-                ctx, mode, modified, branch, last_commit, files
-            )
-        actual = str(cm.exception)
+        # Prepare outputs.
         expected = """
         * Failed assertion *
         '0'
@@ -230,4 +266,10 @@ class TestLibTasksGitCreatePatch1(hunitest.TestCase):
         '1'
         Specify only one among --modified, --branch, --last-commit
         """
+        # Run test and check output.
+        with self.assertRaises(AssertionError) as cm:
+            hltltagi.git_patch_create(
+                ctx, mode, modified, branch, last_commit, files
+            )
+        actual = str(cm.exception)
         self.assert_equal(actual, expected, fuzzy_match=True, dedent=True)
