@@ -1,4 +1,5 @@
 import os
+import tempfile
 import unittest.mock as umock
 from typing import Callable, Dict, List, Optional, Tuple
 
@@ -764,6 +765,138 @@ class Test_lint_markdown_files(hunitest.TestCase):
 
 
 # #############################################################################
+# Test_docformatter_config
+# #############################################################################
+
+
+class Test_docformatter_config(hunitest.TestCase):
+    """
+    End-to-end tests for the `[tool.docformatter]` config in `pyproject.toml`.
+
+    These run only the `docformatter` pre-commit hook (not the full `lint.py`
+    pipeline) and confirm it formats docstrings using the repo's three-line
+    style: opening `\"\"\"` alone, the summary/description as unwrapped lines,
+    closing `\"\"\"` alone.
+    """
+
+    def _run_docformatter(self, input_content: str) -> Tuple[int, str]:
+        """
+        Run only the `docformatter` pre-commit hook on a scratch file.
+
+        :param input_content: Python source to write to the scratch file
+            before linting
+        :return: (return code, file content after linting)
+        """
+        scratch_dir = self.get_scratch_space()
+        file_path = os.path.join(scratch_dir, "sample_module.py")
+        hio.to_file(file_path, input_content)
+        cmd = f"pre-commit run docformatter --files {file_path} --color never"
+        rc, _ = hsystem.system_to_string(cmd, abort_on_error=False)
+        actual = hio.from_file(file_path)
+        return rc, actual
+
+    @pytest.mark.slow("~0.5s to run the docformatter pre-commit hook.")
+    def test1(self) -> None:
+        """
+        Over-length one-line docstring: the summary stays on a single
+        unwrapped line (`wrap-summaries = 0`) instead of being wrapped.
+        """
+        # Prepare inputs.
+        input_content = '''def foo() -> None:
+    """Test that a dry run on the docker engine only issues read-only commands."""
+    pass
+'''
+        # Prepare outputs.
+        expected = '''def foo() -> None:
+    """
+    Test that a dry run on the docker engine only issues read-only commands.
+    """
+    pass
+'''
+        # Run test.
+        rc, actual = self._run_docformatter(input_content)
+        # Check outputs.
+        self.assertEqual(rc, 1)
+        self.assertEqual(actual, expected)
+
+    @pytest.mark.slow("~0.5s to run the docformatter pre-commit hook.")
+    def test2(self) -> None:
+        """
+        Short one-line docstring: still expanded to the three-line style
+        (`make-summary-multi-line = true`), matching `coding.rules.md`'s
+        "Use Docstrings on Three Lines" rule.
+        """
+        # Prepare inputs.
+        input_content = '''def reset() -> None:
+    """Reset any internal state of the strategy."""
+    pass
+'''
+        # Prepare outputs.
+        expected = '''def reset() -> None:
+    """
+    Reset any internal state of the strategy.
+    """
+    pass
+'''
+        # Run test.
+        rc, actual = self._run_docformatter(input_content)
+        # Check outputs.
+        self.assertEqual(rc, 1)
+        self.assertEqual(actual, expected)
+
+    @pytest.mark.slow("~0.5s to run the docformatter pre-commit hook.")
+    def test3(self) -> None:
+        """
+        Docstring with a summary, a description, and `:param:` lines: the
+        blank line before the summary is added (`pre-summary-newline =
+        true`) and the `:param:` block is left untouched.
+        """
+        # Prepare inputs.
+        input_content = '''def helper(size_str: str, expected: float) -> None:
+    """Test helper for `_parse_docker_size_to_bytes()`.
+
+    :param size_str: Docker human-readable size to parse
+    :param expected: expected size in bytes
+    """
+    pass
+'''
+        # Prepare outputs.
+        expected = '''def helper(size_str: str, expected: float) -> None:
+    """
+    Test helper for `_parse_docker_size_to_bytes()`.
+
+    :param size_str: Docker human-readable size to parse
+    :param expected: expected size in bytes
+    """
+    pass
+'''
+        # Run test.
+        rc, actual = self._run_docformatter(input_content)
+        # Check outputs.
+        self.assertEqual(rc, 1)
+        self.assertEqual(actual, expected)
+
+    @pytest.mark.slow("~0.5s to run the docformatter pre-commit hook.")
+    def test4(self) -> None:
+        """
+        Docstring already in the repo's three-line style: formatting is
+        idempotent, the file is left unchanged.
+        """
+        # Prepare inputs.
+        input_content = '''def foo() -> None:
+    """
+    Test that a dry run on the docker engine only issues read-only commands.
+    """
+    pass
+'''
+        # Run test.
+        rc, actual = self._run_docformatter(input_content)
+        # Check outputs.
+        self.assertEqual(rc, 0)
+        self.assertEqual(actual, input_content)
+
+
+# #############################################################################
 # Test_lint_py
 # #############################################################################
 
@@ -774,40 +907,60 @@ class Test_lint_py(hunitest.TestCase):
     """
 
     @pytest.mark.slow("~2s to run the full pre-commit hook stack.")
-    def test_docformatter_docstring_format(self) -> None:
-        r'''
-        Run the `pre-commit` action on a file with an over-length one-line
-        docstring and check that `docformatter` reformats it into the
-        repo's three-line docstring style (see `[tool.docformatter]` in
-        `pyproject.toml`): opening `"""` alone, the summary as a single
-        unwrapped line, closing `"""` alone.
-        '''
+    def test1(self) -> None:
+        """
+        Run the default `pre-commit` action of `lint.py` on messy Python
+        code and check that it is cleaned up:
+        - unused imports removed (`ruff check`)
+        - statements reordered by dependency (`ssort`)
+        - spacing normalized (`ruff format`)
+        - trailing whitespace stripped (`pre-commit-hooks`)
+        - docstring reformatted to the repo's three-line style
+          (`docformatter`)
+
+        Uses a scratch dir next to this test file instead of
+        `self.get_scratch_space()`: `pyproject.toml`'s `[tool.ruff]`
+        `exclude = ["**/outcomes/**", ...]` makes the `ruff-pre-commit`
+        hooks (which run with `--force-exclude`) silently skip any file
+        under `test/outcomes/`, which is where `get_scratch_space()` puts
+        files.
+        """
         # Prepare inputs.
-        scratch_dir = self.get_scratch_space()
-        file_path = os.path.join(scratch_dir, "sample_module.py")
-        input_content = '''
-            def foo() -> None:
-            """Test that a dry run on the docker engine only issues read-only commands."""
-            pass
-        '''
-        input_content = hprint.dedent(input_content)
-        hio.to_file(file_path, input_content)
-        exec_path = hgit.find_file_in_git_tree("lint.py")
-        cmd = (
-            f"{exec_path} --files {file_path} --file_types py "
-            "--clear_actions --action pre-commit"
+        input_content = (
+            "import sys\n"
+            "import os\n"
+            "\n\n"
+            "def use_helper():\n"
+            "    return helper_function( 1,2 )\n"
+            "\n\n"
+            "def helper_function(a,b) -> int:\n"
+            '    """Add two numbers together and return the sum."""\n'
+            "    x=a+b   \n"
+            "    return x\n"
         )
-        # Run test.
-        rc, _ = hsystem.system_to_string(cmd)
+        test_dir = os.path.dirname(os.path.abspath(__file__))
+        with tempfile.TemporaryDirectory(dir=test_dir) as scratch_dir:
+            file_path = os.path.join(scratch_dir, "messy_module.py")
+            hio.to_file(file_path, input_content)
+            exec_path = hgit.find_file_in_git_tree("lint.py")
+            cmd = (
+                f"{exec_path} --files {file_path} --file_types py "
+                "--clear_actions --action pre-commit"
+            )
+            # Run test.
+            rc, _ = hsystem.system_to_string(cmd)
+            actual = hio.from_file(file_path)
         # Check outputs.
         self.assertEqual(rc, 0)
-        actual = hio.from_file(file_path)
-        expected = '''
-        def foo() -> None:
-            """
-            Test that a dry run on the docker engine only issues read-only commands.
-            """
-            pass
-        '''
-        expected = hprint.dedent(expected)
+        expected = (
+            "def helper_function(a, b) -> int:\n"
+            '    """\n'
+            "    Add two numbers together and return the sum.\n"
+            '    """\n'
+            "    x = a + b\n"
+            "    return x\n"
+            "\n\n"
+            "def use_helper():\n"
+            "    return helper_function(1, 2)\n"
+        )
         self.assertEqual(actual, expected)
