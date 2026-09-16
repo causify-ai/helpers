@@ -293,7 +293,7 @@ class Test_filter_files_by_type(hunitest.TestCase):
 class Test_run_common_linting_actions(hunitest.TestCase):
     def test1(self) -> None:
         """
-        actions=["pre-commit"]: exactly 1 call.
+        `actions=["pre-commit"]`: exactly 1 call.
         """
         # Prepare inputs.
         file_paths = ["file1.py", "file2.py"]
@@ -634,7 +634,7 @@ class Test_lint_jupyter_files(hunitest.TestCase):
 
     def test3(self) -> None:
         """
-        actions=["sync_jupytext"]: 2 jupytext calls.
+        `actions=["sync_jupytext"]`: 2 jupytext calls.
         """
         # Prepare inputs.
         file_paths = ["foo.ipynb", "bar.ipynb"]
@@ -667,7 +667,7 @@ class Test_lint_jupyter_files(hunitest.TestCase):
 
     def test4(self) -> None:
         """
-        actions=["pre-commit"]: 1 shared call.
+        `actions=["pre-commit"]`: 1 shared call.
         """
         # Prepare inputs.
         file_paths = ["foo.ipynb", "bar.ipynb"]
@@ -803,7 +803,9 @@ class Test_docformatter_config(hunitest.TestCase):
         """
         # Prepare inputs.
         input_content = '''def foo() -> None:
-    """Test that a dry run on the docker engine only issues read-only commands."""
+    """
+    Test that a dry run on the docker engine only issues read-only commands.
+    """
     pass
 '''
         # Prepare outputs.
@@ -828,7 +830,9 @@ class Test_docformatter_config(hunitest.TestCase):
         """
         # Prepare inputs.
         input_content = '''def reset() -> None:
-    """Reset any internal state of the strategy."""
+    """
+    Reset any internal state of the strategy.
+    """
     pass
 '''
         # Prepare outputs.
@@ -909,7 +913,8 @@ class Test_lint_py(hunitest.TestCase):
     @pytest.mark.slow("~2s to run the full pre-commit hook stack.")
     def test1(self) -> None:
         """
-        Run the default `pre-commit` action of `lint.py` on messy Python
+        Run the default `pre-commit` action of `lint.py` on messy Python.
+
         code and check that it is cleaned up:
         - unused imports removed (`ruff check`)
         - statements reordered by dependency (`ssort`)
