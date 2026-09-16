@@ -35,12 +35,14 @@ path = "."
 #show_source = true
 
 [tool.docformatter]
-# Wrap summary line (first line) at 81 chars.
-wrap-summaries = 81
-# Wrap description (body) lines at 81 chars.
-wrap-descriptions = 81
+# Disable summary/description wrapping: keep each on a single line.
+wrap-summaries = 0
+wrap-descriptions = 0
 # Put closing """ of multi-line docstring on own line after summary.
 pre-summary-newline = true
+# Same as pre-summary-newline, but also covers docstrings that are just a
+# single summary sentence (no separate description paragraph).
+make-summary-multi-line = true
 # Move closing quotes to own line when doc wraps to multiple lines.
 close-quotes-on-newline = true
 
