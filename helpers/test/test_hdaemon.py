@@ -34,9 +34,6 @@ class _StopDaemonLoop(Exception):
 # #############################################################################
 
 
-# TODO(ai_gp): Test public-facing behavior instead of private `_file_hash()`
-# implementation; interface-level tests survive refactors
-# (testing.rules.md:## Test From the Outside-In)
 class Test__file_hash(hunitest.TestCase):
     """
     Test `_file_hash()` function that computes MD5 hashes of files.
@@ -129,9 +126,6 @@ class Test__file_hash(hunitest.TestCase):
 # #############################################################################
 
 
-# TODO(ai_gp): Test public-facing behavior instead of private `_fmt_mtime()`
-# implementation; interface-level tests survive refactors
-# (testing.rules.md:## Test From the Outside-In)
 class Test__fmt_mtime(hunitest.TestCase):
     """
     Test `_fmt_mtime()` function that formats a file mtime for debug logs.
@@ -181,9 +175,6 @@ class Test__fmt_mtime(hunitest.TestCase):
 # #############################################################################
 
 
-# TODO(ai_gp): Test public-facing behavior instead of private `_daemon_watch()`
-# implementation; interface-level tests survive refactors
-# (testing.rules.md:## Test From the Outside-In)
 class Test__daemon_watch(hunitest.TestCase):
     """
     Test `_daemon_watch()` function: poll, debounce, regenerate, and

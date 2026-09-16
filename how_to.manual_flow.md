@@ -585,6 +585,50 @@
   > gh pr merge -s --admin --delete-branch
   ```
 
+### How to Create a Stacked Sub-Branch for an Existing Issue
+
+- Use this flow when an issue already has a base branch/PR, and a new,
+  independent chunk of work needs its own stacked sub-branch/sub-PR under the
+  same issue
+
+- **Create the base branch and PR** for a new issue
+  ```bash
+  > git_create_issue_and_branch.py --issue-id 1328
+  ```
+
+- **Force-create the next stacked sub-branch** for the issue
+  ```bash
+  > invoke git_branch_create --issue-id 1331 --suffix 1
+  ```
+  - Known limitation: this checks out the new branch immediately, with no
+    option to create it without switching
+
+- **Known limitation**: re-running the command for a suffix that already
+  exists fails instead of finding the next free one
+  ```text
+  Branch 'HelpersTask1331_Implement_TODOs_1' already exists
+  ```
+
+- **Open question**: no command yet auto-detects and creates the next
+  available suffix for an issue in one step
+
+- **Known bug**: `invoke git_branch_next_name` does not return the expected
+  name for an issue-based branch
+  - Without `--branch-name`, it computes the next name from the current
+    branch instead of the target task
+    ```bash
+    > invoke git_branch_next_name
+    ...
+    branch_next_name='gp_scratch_37_1'
+    ```
+  - With `--branch-name HelpersTask1331_Implement_TODOs`, it works via the
+    GitHub API and finds the correct next free suffix
+    ```bash
+    > invoke git_branch_next_name --branch-name HelpersTask1331_Implement_TODOs
+    ...
+    branch_next_name='HelpersTask1331_Implement_TODOs_2'
+    ```
+
 # References
 
 - `helpers_root/docs/work_organization/all.use_github.how_to_guide.md`
