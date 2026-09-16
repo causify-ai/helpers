@@ -414,26 +414,25 @@ class Test_run_python_linting_actions(hunitest.TestCase):
             expected,
         )
 
-    # TODO(ai_gp): Use hunteuti.capture_sys_calls() instead of mocking
-    #  `helpers.hsystem.system` directly.
-    @umock.patch("helpers.hsystem.system")
-    def test3(self, mock_system: umock.MagicMock) -> None:
+    def test3(self) -> None:
         """
-        mock_system returns non-zero: return code is OR-combined.
+        Non-zero return codes are OR-combined.
         """
         # Prepare inputs.
-        mock_system.side_effect = [0, 1, 0, 0]
         file_paths = ["file1.py"]
         actions = lilint._DEFAULT_ACTIONS
         abort_on_error = True
         # Prepare outputs.
         expected_return_code = 1
         # Run test.
-        ret = lilint._run_python_linting_actions(
-            file_paths,
-            actions,
-            abort_on_error=abort_on_error,
-        )
+        with umock.patch(
+            "helpers.hsystem.system", side_effect=[0, 1, 0, 0]
+        ):
+            ret = lilint._run_python_linting_actions(
+                file_paths,
+                actions,
+                abort_on_error=abort_on_error,
+            )
         # Check outputs.
         self.assertEqual(ret, expected_return_code)
 
@@ -704,17 +703,12 @@ class Test_lint_markdown_files(hunitest.TestCase):
     Test _lint_markdown_files Markdown file linting.
     """
 
-    @umock.patch("helpers.hsystem.find_file_in_repo")
-    def test1(
-        self,
-        mock_find_file: umock.MagicMock,
-    ) -> None:
+    def test1(self) -> None:
         """
         Empty file list: returns 0 immediately, no calls.
         """
         # Prepare inputs.
         lint_script_path = "/fake/lint_text.py"
-        mock_find_file.return_value = lint_script_path
         file_paths = []
         abort_on_error = True
         # Prepare outputs.
@@ -722,7 +716,13 @@ class Test_lint_markdown_files(hunitest.TestCase):
         expected = r"""[
         ]"""
         # Run test.
-        with hunteuti.capture_sys_calls() as sys_calls:
+        with (
+            umock.patch(
+                "helpers.hsystem.find_file_in_repo",
+                return_value=lint_script_path,
+            ),
+            hunteuti.capture_sys_calls() as sys_calls,
+        ):
             ret = lilint._lint_markdown_files(
                 file_paths,
                 abort_on_error=abort_on_error,
@@ -731,17 +731,12 @@ class Test_lint_markdown_files(hunitest.TestCase):
         self.assertEqual(ret, expected_return_code)
         hunteuti.assert_sys_calls(self, sys_calls, expected)
 
-    @umock.patch("helpers.hsystem.find_file_in_repo")
-    def test2(
-        self,
-        mock_find_file: umock.MagicMock,
-    ) -> None:
+    def test2(self) -> None:
         """
         Two .md files: 1 call to lint_text.py with filenames.
         """
         # Prepare inputs.
         lint_script_path = "/fake/lint_text.py"
-        mock_find_file.return_value = lint_script_path
         file_paths = ["doc.md", "readme.md"]
         abort_on_error = True
         # Prepare outputs.
@@ -754,7 +749,13 @@ class Test_lint_markdown_files(hunitest.TestCase):
         },
         ]"""
         # Run test.
-        with hunteuti.capture_sys_calls() as sys_calls:
+        with (
+            umock.patch(
+                "helpers.hsystem.find_file_in_repo",
+                return_value=lint_script_path,
+            ),
+            hunteuti.capture_sys_calls() as sys_calls,
+        ):
             ret = lilint._lint_markdown_files(
                 file_paths,
                 abort_on_error=abort_on_error,
@@ -776,13 +777,9 @@ class Test_lint_py(hunitest.TestCase):
 
     @pytest.mark.slow("~2s to run the full pre-commit hook stack.")
     def test_docformatter_docstring_format(self) -> None:
-        r'''
-        Run the `pre-commit` action on a file with an over-length one-line
-        docstring and check that `docformatter` reformats it into the
-        repo's three-line docstring style (see `[tool.docformatter]` in
-        `pyproject.toml`): opening `"""` alone, the summary as a single
-        unwrapped line, closing `"""` alone.
-        '''
+        """
+        Docformatter reformats over-length docstring to three-line style.
+        """
         # Prepare inputs.
         scratch_dir = self.get_scratch_space()
         file_path = os.path.join(scratch_dir, "sample_module.py")
