@@ -22,52 +22,60 @@ class Test__get_branch_name_for_issue(hunitest.TestCase):
     Test `_get_branch_name_for_issue()`.
     """
 
-    @umock.patch.object(hgit, "get_branch_next_name")
-    @umock.patch.object(hltltagh, "_get_gh_issue_title")
-    def test1(
-        self,
-        mock_get_title: umock.Mock,
-        mock_get_next_name: umock.Mock,
-    ) -> None:
+    def test1(self) -> None:
         """
         Test that an omitted suffix auto-picks the next free one.
         """
         # Prepare inputs.
-        mock_get_title.return_value = ("HelpersTask123_Fix_bug", "url")
-        mock_get_next_name.return_value = "HelpersTask123_Fix_bug_3"
         issue_id = 123
         repo_short_name = "current"
         suffix = ""
         # Run test.
-        actual = hltltagi._get_branch_name_for_issue(
-            issue_id, repo_short_name, suffix
-        )
+        with (
+            umock.patch.object(
+                hltltagh,
+                "_get_gh_issue_title",
+                return_value=("HelpersTask123_Fix_bug", "url"),
+            ) as mock_get_title,
+            umock.patch.object(
+                hgit,
+                "get_branch_next_name",
+                return_value="HelpersTask123_Fix_bug_3",
+            ) as mock_get_next_name,
+        ):
+            actual = hltltagi._get_branch_name_for_issue(
+                issue_id, repo_short_name, suffix
+            )
         # Check outputs.
         expected = "HelpersTask123_Fix_bug_3"
         self.assert_equal(actual, expected)
+        mock_get_title.assert_called_once_with(issue_id, repo_short_name)
         mock_get_next_name.assert_called_once_with(
             curr_branch_name="HelpersTask123_Fix_bug"
         )
 
-    @umock.patch.object(hgit, "get_branch_next_name")
-    @umock.patch.object(hltltagh, "_get_gh_issue_title")
-    def test2(
-        self,
-        mock_get_title: umock.Mock,
-        mock_get_next_name: umock.Mock,
-    ) -> None:
+    def test2(self) -> None:
         """
         Test that an explicit suffix is appended without auto-picking one.
         """
         # Prepare inputs.
-        mock_get_title.return_value = ("HelpersTask123_Fix_bug", "url")
         issue_id = 123
         repo_short_name = "current"
         suffix = "02"
         # Run test.
-        actual = hltltagi._get_branch_name_for_issue(
-            issue_id, repo_short_name, suffix
-        )
+        with (
+            umock.patch.object(
+                hltltagh,
+                "_get_gh_issue_title",
+                return_value=("HelpersTask123_Fix_bug", "url"),
+            ),
+            umock.patch.object(
+                hgit, "get_branch_next_name"
+            ) as mock_get_next_name,
+        ):
+            actual = hltltagi._get_branch_name_for_issue(
+                issue_id, repo_short_name, suffix
+            )
         # Check outputs.
         expected = "HelpersTask123_Fix_bug_02"
         self.assert_equal(actual, expected)
@@ -84,32 +92,32 @@ class Test__dassert_branch_available(hunitest.TestCase):
     Test `_dassert_branch_available()`.
     """
 
-    @umock.patch.object(hgit, "does_branch_exist")
-    def test1(self, mock_does_branch_exist: umock.Mock) -> None:
+    def test1(self) -> None:
         """
         Test that an available branch name does not raise.
         """
         # Prepare inputs.
-        mock_does_branch_exist.return_value = False
         branch_name = "HelpersTask123_Fix_bug_02"
         # Run test.
-        hltltagi._dassert_branch_available(branch_name)
+        with umock.patch.object(
+            hgit, "does_branch_exist", return_value=False
+        ) as mock_does_branch_exist:
+            hltltagi._dassert_branch_available(branch_name)
         # Check outputs.
         mock_does_branch_exist.assert_called_once_with(
             branch_name, mode="all"
         )
 
-    @umock.patch.object(hgit, "does_branch_exist")
-    def test2(self, mock_does_branch_exist: umock.Mock) -> None:
+    def test2(self) -> None:
         """
         Test that an already-existing branch name raises with its name in the message.
         """
         # Prepare inputs.
-        mock_does_branch_exist.return_value = True
         branch_name = "HelpersTask123_Fix_bug_02"
         # Run test and check output.
-        with self.assertRaises(AssertionError) as cm:
-            hltltagi._dassert_branch_available(branch_name)
+        with umock.patch.object(hgit, "does_branch_exist", return_value=True):
+            with self.assertRaises(AssertionError) as cm:
+                hltltagi._dassert_branch_available(branch_name)
         actual = str(cm.exception)
         self.assertIn("already exists", actual)
         self.assertIn(branch_name, actual)
