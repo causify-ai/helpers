@@ -920,13 +920,16 @@ class Test_docformatter_config(hunitest.TestCase):
         """
         # Prepare inputs.
         input_content = '''def foo() -> None:
+    """Test that a dry run on the docker engine only issues read-only commands."""
+    pass
+'''
+        # Prepare outputs.
+        expected = '''def foo() -> None:
     """
     Test that a dry run on the docker engine only issues read-only commands.
     """
     pass
 '''
-        # Prepare outputs.
-        expected = input_content
         # Run test.
         rc, actual = self._run_docformatter(input_content)
         # Check outputs.
@@ -942,13 +945,16 @@ class Test_docformatter_config(hunitest.TestCase):
         """
         # Prepare inputs.
         input_content = '''def reset() -> None:
+    """Reset any internal state of the strategy."""
+    pass
+'''
+        # Prepare outputs.
+        expected = '''def reset() -> None:
     """
     Reset any internal state of the strategy.
     """
     pass
 '''
-        # Prepare outputs.
-        expected = input_content
         # Run test.
         rc, actual = self._run_docformatter(input_content)
         # Check outputs.
