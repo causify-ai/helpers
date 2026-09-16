@@ -6,6 +6,7 @@ import pytest
 
 import helpers.hgit as hgit
 import helpers.hio as hio
+import helpers.hprint as hprint
 import helpers.hsystem as hsystem
 import helpers.hunit_test as hunitest
 import helpers.hunit_test_utils as hunteuti
@@ -787,8 +788,8 @@ class Test_lint_py(hunitest.TestCase):
         file_path = os.path.join(scratch_dir, "sample_module.py")
         input_content = '''
             def foo() -> None:
-            """Test that a dry run on the docker engine only issues read-only commands."""
-            pass
+                """Test that a dry run on the docker engine only issues read-only commands."""
+                pass
         '''
         input_content = hprint.dedent(input_content)
         hio.to_file(file_path, input_content)
@@ -809,5 +810,5 @@ class Test_lint_py(hunitest.TestCase):
             """
             pass
         '''
-        expected = hprint.dedent(expected)
+        expected = hprint.dedent(expected) + '\n'
         self.assertEqual(actual, expected)
