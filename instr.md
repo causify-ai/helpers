@@ -26,7 +26,7 @@
 
 * Solution
 
-- [-] Let `git_branch_create` auto-pick the next free suffix
+- [x] Let `git_branch_create` auto-pick the next free suffix
   - When `--issue-id` is given and `--suffix` is omitted, call
     `hgit.get_branch_next_name(curr_branch_name=<issue title>)` (same helper
     `git_branch_next_name` already uses) instead of requiring `--suffix`
