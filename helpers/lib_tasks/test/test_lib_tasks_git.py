@@ -3,9 +3,8 @@ import io
 import logging
 import os
 import unittest.mock as umock
-from typing import Any, Dict
+from typing import Any
 
-import pytest
 
 import helpers.hgit as hgit
 import helpers.hio as hio
@@ -277,117 +276,6 @@ class Test_git_add_all_untracked(hunitest.TestCase):
 
 
 # #############################################################################
-# Test__get_branch_name_for_issue
-# #############################################################################
-
-
-class Test__get_branch_name_for_issue(hunitest.TestCase):
-    """
-    Test `_get_branch_name_for_issue()`.
-    """
-
-    def test1(self) -> None:
-        """
-        Test that an omitted suffix auto-picks the next free one.
-        """
-        # Prepare inputs.
-        issue_id = 123
-        repo_short_name = "current"
-        suffix = ""
-        # Run test.
-        with (
-            umock.patch.object(
-                hltltagh,
-                "_get_gh_issue_title",
-                return_value=("HelpersTask123_Fix_bug", "url"),
-            ) as mock_get_title,
-            umock.patch.object(
-                hgit,
-                "get_branch_next_name",
-                return_value="HelpersTask123_Fix_bug_3",
-            ) as mock_get_next_name,
-        ):
-            actual = hltltagi._get_branch_name_for_issue(
-                issue_id, repo_short_name, suffix
-            )
-        # Check outputs.
-        expected = "HelpersTask123_Fix_bug_3"
-        self.assert_equal(actual, expected)
-        mock_get_title.assert_called_once_with(issue_id, repo_short_name)
-        mock_get_next_name.assert_called_once_with(
-            curr_branch_name="HelpersTask123_Fix_bug"
-        )
-
-    def test2(self) -> None:
-        """
-        Test that an explicit suffix is appended without auto-picking one.
-        """
-        # Prepare inputs.
-        issue_id = 123
-        repo_short_name = "current"
-        suffix = "02"
-        # Run test.
-        with (
-            umock.patch.object(
-                hltltagh,
-                "_get_gh_issue_title",
-                return_value=("HelpersTask123_Fix_bug", "url"),
-            ),
-            umock.patch.object(
-                hgit, "get_branch_next_name"
-            ) as mock_get_next_name,
-        ):
-            actual = hltltagi._get_branch_name_for_issue(
-                issue_id, repo_short_name, suffix
-            )
-        # Check outputs.
-        expected = "HelpersTask123_Fix_bug_02"
-        self.assert_equal(actual, expected)
-        mock_get_next_name.assert_not_called()
-
-
-# #############################################################################
-# Test__dassert_branch_available
-# #############################################################################
-
-
-class Test__dassert_branch_available(hunitest.TestCase):
-    """
-    Test `_dassert_branch_available()`.
-    """
-
-    def test1(self) -> None:
-        """
-        Test that an available branch name does not raise.
-        """
-        # Prepare inputs.
-        branch_name = "HelpersTask123_Fix_bug_02"
-        # Run test.
-        with umock.patch.object(
-            hgit, "does_branch_exist", return_value=False
-        ) as mock_does_branch_exist:
-            hltltagi._dassert_branch_available(branch_name)
-        # Check outputs.
-        mock_does_branch_exist.assert_called_once_with(
-            branch_name, mode="all"
-        )
-
-    def test2(self) -> None:
-        """
-        Test that an already-existing branch name raises with its name in the message.
-        """
-        # Prepare inputs.
-        branch_name = "HelpersTask123_Fix_bug_02"
-        # Run test and check output.
-        with umock.patch.object(hgit, "does_branch_exist", return_value=True):
-            with self.assertRaises(AssertionError) as cm:
-                hltltagi._dassert_branch_available(branch_name)
-        actual = str(cm.exception)
-        self.assertIn("already exists", actual)
-        self.assertIn(branch_name, actual)
-
-
-# #############################################################################
 # Test_git_branch_create
 # #############################################################################
 
@@ -395,159 +283,66 @@ class Test__dassert_branch_available(hunitest.TestCase):
 class Test_git_branch_create(hunitest.TestCase):
     """
     Test `git_branch_create()`.
+
+    The actual logic moved to `dev_scripts_helpers/git/git_branch_create.py`
+    (see `dev_scripts_helpers/git/test/test_git_branch_create.py`); this only
+    checks the CLI invocation the thin `@task` wrapper builds.
     """
+
+    def helper(self, kwargs: Any, expected: str) -> None:
+        """
+        Run `git_branch_create()` and check the constructed command.
+
+        :param kwargs: keyword arguments forwarded to `git_branch_create()`
+        :param expected: expected single `ctx.run()` call
+        """
+        # Prepare inputs.
+        ctx = httestlib._build_mock_context_returning_ok()
+        script_path = "/repo/git_branch_create.py"
+        # Run test.
+        with umock.patch.object(
+            hsystem, "find_file_in_repo", return_value=script_path
+        ):
+            hltltagi.git_branch_create(ctx, **kwargs)
+        # Check outputs.
+        actual = _get_ctx_run_calls(ctx)
+        self.assert_equal(actual, expected, fuzzy_match=True, dedent=True)
 
     def test1(self) -> None:
         """
-        Test the happy path when already on `master` and `create_pr=False`.
+        Test the default flags build a bare script invocation.
         """
         # Prepare inputs.
-        ctx = httestlib._build_mock_context_returning_ok()
-        branch_name = "HelpersTask999_Foo"
+        kwargs: Any = {}
         # Prepare outputs.
-        expected = f"""
-        call('git pull --autostash --rebase', echo=False)
-        call('git checkout -b {branch_name}', echo=False)
-        call('git push --set-upstream origin {branch_name}', echo=False)
+        expected = """
+        call('/repo/git_branch_create.py', echo=False)
         """
         # Run test.
-        with (
-            umock.patch.object(hgit, "is_client_clean"),
-            umock.patch.object(
-                hgit, "does_branch_exist", return_value=False
-            ),
-            umock.patch.object(hgit, "get_branch_name", return_value="master"),
-        ):
-            hltltagi.git_branch_create(
-                ctx, branch_name=branch_name, create_pr=False
-            )
-        # Check outputs.
-        actual = _get_ctx_run_calls(ctx)
-        self.assert_equal(actual, expected, fuzzy_match=True, dedent=True)
+        self.helper(kwargs, expected)
 
     def test2(self) -> None:
         """
-        Test that not being on `master` triggers a checkout when allowed.
+        Test that every non-default flag appends its own CLI option.
         """
         # Prepare inputs.
-        ctx = httestlib._build_mock_context_returning_ok()
-        branch_name = "HelpersTask999_Foo"
-        # Prepare outputs.
-        expected = f"""
-        call('git checkout master', echo=False)
-        call('git pull --autostash --rebase', echo=False)
-        call('git checkout -b {branch_name}', echo=False)
-        call('git push --set-upstream origin {branch_name}', echo=False)
-        """
-        # Run test.
-        with (
-            umock.patch.object(hgit, "is_client_clean"),
-            umock.patch.object(
-                hgit, "does_branch_exist", return_value=False
-            ),
-            umock.patch.object(
-                hgit, "get_branch_name", return_value="other_branch"
-            ),
-        ):
-            hltltagi.git_branch_create(
-                ctx,
-                branch_name=branch_name,
-                create_pr=False,
-                abort_if_not_master=False,
-            )
-        # Check outputs.
-        actual = _get_ctx_run_calls(ctx)
-        self.assert_equal(actual, expected, fuzzy_match=True, dedent=True)
-
-    def test3(self) -> None:
-        """
-        Test that not being on `master` aborts when required.
-        """
-        # Prepare inputs.
-        ctx = httestlib._build_mock_context_returning_ok()
-        branch_name = "HelpersTask999_Foo"
-        # Run test and check output.
-        with (
-            umock.patch.object(hgit, "is_client_clean"),
-            umock.patch.object(
-                hgit, "does_branch_exist", return_value=False
-            ),
-            umock.patch.object(
-                hgit, "get_branch_name", return_value="other_branch"
-            ),
-        ):
-            with self.assertRaises(AssertionError) as cm:
-                hltltagi.git_branch_create(
-                    ctx, branch_name=branch_name, create_pr=False
-                )
-        actual = str(cm.exception)
-        self.assertIn("Must be on 'master' branch", actual)
-
-    def test4(self) -> None:
-        """
-        Test that specifying both `branch_name` and `issue_id` raises.
-        """
-        # Prepare inputs.
-        ctx = httestlib._build_mock_context_returning_ok()
-        # Run test and check output.
-        with (
-            umock.patch.object(hgit, "is_client_clean"),
-            self.assertRaises(AssertionError) as cm,
-        ):
-            hltltagi.git_branch_create(
-                ctx, branch_name="HelpersTask999_Foo", issue_id=999
-            )
-        actual = str(cm.exception)
-        self.assertIn(
-            "Cannot specify both --issue and --branch-name", actual
+        kwargs = dict(
+            branch_name="HelpersTask999_Foo",
+            issue_id=999,
+            repo_short_name="amp",
+            suffix="02",
+            only_branch_from_master=False,
+            check_branch_name=False,
+            create_pr=False,
+            abort_if_not_clean=False,
+            abort_if_not_master=False,
         )
-
-    def test5(self) -> None:
-        """
-        Test that a numeric-only branch name is rejected.
-        """
-        # Prepare inputs.
-        ctx = httestlib._build_mock_context_returning_ok()
-        # Run test and check output.
-        with (
-            umock.patch.object(hgit, "is_client_clean"),
-            self.assertRaises(AssertionError) as cm,
-        ):
-            hltltagi.git_branch_create(ctx, branch_name="12345")
-        actual = str(cm.exception)
-        self.assertIn("only numbers are invalid", actual)
-
-    def test6(self) -> None:
-        """
-        Test that `create_pr=True` also commits, pushes, and opens a PR.
-        """
-        # Prepare inputs.
-        ctx = httestlib._build_mock_context_returning_ok()
-        branch_name = "HelpersTask999_Foo"
         # Prepare outputs.
-        expected = f"""
-        call('git pull --autostash --rebase', echo=False)
-        call('git checkout -b {branch_name}', echo=False)
-        call('git push --set-upstream origin {branch_name}', echo=False)
-        call('git commit --allow-empty -m "Draft PR"', echo=False)
-        call('git push', echo=False)
+        expected = """
+        call('/repo/git_branch_create.py --branch_name HelpersTask999_Foo --issue_id 999 --repo_short_name amp --suffix 02 --no_only_branch_from_master --no_check_branch_name --no_create_pr --no_abort_if_not_clean --no_abort_if_not_master', echo=False)
         """
         # Run test.
-        with (
-            umock.patch.object(hgit, "is_client_clean"),
-            umock.patch.object(
-                hgit, "does_branch_exist", return_value=False
-            ),
-            umock.patch.object(hgit, "get_branch_name", return_value="master"),
-            umock.patch.object(hltltagh, "gh_create_pr") as mock_create_pr,
-        ):
-            hltltagi.git_branch_create(
-                ctx, branch_name=branch_name, create_pr=True
-            )
-        # Check outputs.
-        actual = _get_ctx_run_calls(ctx)
-        self.assert_equal(actual, expected, fuzzy_match=True, dedent=True)
-        mock_create_pr.assert_called_once_with(ctx, draft=True)
+        self.helper(kwargs, expected)
 
 
 # #############################################################################
@@ -555,109 +350,66 @@ class Test_git_branch_create(hunitest.TestCase):
 # #############################################################################
 
 
-@pytest.mark.slow(reason="Around 7s")
-@pytest.mark.skipif(
-    not hgit.is_in_amp_as_supermodule(),
-    reason="Run only in amp as super-module",
-)
-class TestLibTasksGitCreatePatch1(hunitest.TestCase):
+class Test_git_patch_create(hunitest.TestCase):
     """
     Test `git_patch_create()`.
+
+    The actual logic moved to `dev_scripts_helpers/git/git_patch_create.py`
+    (see `dev_scripts_helpers/git/test/test_git_patch_create.py`); this only
+    checks the CLI invocation the thin `@task` wrapper builds.
     """
 
-    @staticmethod
-    def helper(
-        modified: bool, branch: bool, last_commit: bool, files: str
-    ) -> None:
+    def helper(self, kwargs: Any, expected: str) -> None:
+        """
+        Run `git_patch_create()` and check the constructed command.
+
+        :param kwargs: keyword arguments forwarded to `git_patch_create()`
+        :param expected: expected single `ctx.run()` call
+        """
+        # Prepare inputs.
         ctx = httestlib._build_mock_context_returning_ok()
-        #
-        mode = "tar"
-        hltltagi.git_patch_create(
-            ctx, mode, modified, branch, last_commit, files
-        )
-        #
-        mode = "diff"
-        hltltagi.git_patch_create(
-            ctx, mode, modified, branch, last_commit, files
-        )
+        script_path = "/repo/git_patch_create.py"
+        # Run test.
+        with umock.patch.object(
+            hsystem, "find_file_in_repo", return_value=script_path
+        ):
+            hltltagi.git_patch_create(ctx, **kwargs)
+        # Check outputs.
+        actual = _get_ctx_run_calls(ctx)
+        self.assert_equal(actual, expected, fuzzy_match=True, dedent=True)
 
     def test1(self) -> None:
         """
-        Test modified files mode.
+        Test the default flags build a bare script invocation.
         """
-        hgit.fetch_origin_master_if_needed()
         # Prepare inputs.
-        modified = True
-        branch = False
-        last_commit = False
-        files = ""
+        kwargs: Any = {}
+        # Prepare outputs.
+        expected = """
+        call('/repo/git_patch_create.py', echo=False)
+        """
         # Run test.
-        self.helper(modified, branch, last_commit, files)
+        self.helper(kwargs, expected)
 
     def test2(self) -> None:
         """
-        Test branch mode.
+        Test that every non-default flag appends its own CLI option.
         """
         # Prepare inputs.
-        modified = False
-        branch = True
-        last_commit = False
-        files = ""
-        # Run test.
-        self.helper(modified, branch, last_commit, files)
-
-    def test3(self) -> None:
-        """
-        Test last commit mode.
-        """
-        hgit.fetch_origin_master_if_needed()
-        # Prepare inputs.
-        modified = False
-        branch = False
-        last_commit = True
-        files = ""
-        # Run test.
-        self.helper(modified, branch, last_commit, files)
-
-    def test4(self) -> None:
-        """
-        Test with specific files.
-        """
-        hgit.fetch_origin_master_if_needed()
-        # Prepare inputs.
-        modified = True
-        branch = False
-        last_commit = False
-        files = __file__
-        # Run test.
-        self.helper(modified, branch, last_commit, files)
-
-    def test5(self) -> None:
-        """
-        Test with all flags False raises AssertionError.
-        """
-        hgit.fetch_origin_master_if_needed()
-        # Prepare inputs.
-        ctx = httestlib._build_mock_context_returning_ok()
-        mode = "diff"
-        modified = False
-        branch = False
-        last_commit = False
-        files = __file__
-        # Run test and check output.
-        with self.assertRaises(AssertionError) as cm:
-            hltltagi.git_patch_create(
-                ctx, mode, modified, branch, last_commit, files
-            )
-        actual = str(cm.exception)
+        kwargs = dict(
+            mode="tar",
+            files="a.py b.py",
+            from_file="files.txt",
+            modified=True,
+            branch=True,
+            last_commit=True,
+        )
+        # Prepare outputs.
         expected = """
-        * Failed assertion *
-        '0'
-        ==
-        '1'
-        Specify only one among --modified, --branch, --last-commit
+        call("/repo/git_patch_create.py --mode tar --files 'a.py b.py' --from_file files.txt --modified --branch --last_commit", echo=False)
         """
-        self.assert_equal(actual, expected, fuzzy_match=True, dedent=True)
+        # Run test.
+        self.helper(kwargs, expected)
 
 
 # #############################################################################
@@ -1321,357 +1073,63 @@ class Test_git_branch_copy(hunitest.TestCase):
 class Test_git_branch_subset_copy(hunitest.TestCase):
     """
     Test `git_branch_subset_copy()`.
+
+    The actual logic moved to
+    `dev_scripts_helpers/git/git_branch_subset_copy.py` (see
+    `dev_scripts_helpers/git/test/test_git_branch_subset_copy.py`); this
+    only checks the CLI invocation the thin `@task` wrapper builds.
     """
 
-    def helper(
-        self, orig_dir: str, *args: Any, **kwargs: Any
-    ) -> None:
+    def helper(self, kwargs: Any, expected: str) -> None:
         """
-        `cd` into `orig_dir` and run `git_branch_subset_copy()`.
+        Run `git_branch_subset_copy()` and check the constructed command.
 
-        The function under test captures `original_dir = os.getcwd()`
-        and `os.chdir()`s into `dst_dir`, restoring `original_dir` in a
-        `finally`; this real (not mocked) `chdir` dance is replicated
-        here so `original_dir`, and any relative path resolved against
-        it, matches `orig_dir`. The real process cwd (captured before
-        `chdir`) is always restored, even on failure, so the test
-        process does not leak a `cwd` change into later tests.
-
-        :param orig_dir: directory to `chdir()` into before the call,
-            standing in for the caller's real working directory
-        """
-        real_cwd = os.getcwd()
-        try:
-            os.chdir(orig_dir)
-            hltltagi.git_branch_subset_copy(*args, **kwargs)
-        finally:
-            os.chdir(real_cwd)
-
-    def test1(self) -> None:
-        """
-        Test that missing both `from_file` and `--pr` raises.
+        :param kwargs: keyword arguments forwarded to
+            `git_branch_subset_copy()`
+        :param expected: expected single `ctx.run()` call
         """
         # Prepare inputs.
         ctx = httestlib._build_mock_context_returning_ok()
-        # Run test and check output.
-        with self.assertRaises(AssertionError) as cm:
-            hltltagi.git_branch_subset_copy(ctx, dst_dir=self.get_scratch_space())
-        actual = str(cm.exception)
-        self.assertIn("from_file or --pr must be provided", actual)
-
-    def test2(self) -> None:
-        """
-        Test that a missing `dst_dir` raises.
-        """
-        # Prepare inputs.
-        ctx = httestlib._build_mock_context_returning_ok()
-        from_file = os.path.join(self.get_scratch_space(), "files.txt")
-        hio.to_file(from_file, "a.py\n")
-        # Run test and check output.
-        with self.assertRaises(AssertionError) as cm:
-            hltltagi.git_branch_subset_copy(ctx, from_file=from_file)
-        actual = str(cm.exception)
-        self.assertIn("dst_dir must be provided", actual)
-
-    def test3(self) -> None:
-        """
-        Test the happy path: checkout, branch creation, and file copy.
-        """
-        # Prepare inputs.
-        ctx = httestlib._build_mock_context_returning_ok()
-        scratch_dir = self.get_scratch_space()
-        dst_dir = os.path.join(scratch_dir, "dst")
-        hio.create_dir(dst_dir, incremental=True)
-        orig_dir = os.path.join(scratch_dir, "orig")
-        hio.create_dir(orig_dir, incremental=True)
-        from_file = os.path.join(orig_dir, "files.txt")
-        hio.to_file(from_file, "a.py\nb.py\n")
-        branch_name = "HelpersTask1_Foo_2"
-        # Prepare outputs.
-        expected_calls = f"""
-        call('git checkout master', echo=False)
-        call("invoke git_branch_create --branch-name '{branch_name}'", echo=False)
-        """
-        expected_sys_call = (
-            f"copy_across_clients.py --dir1 {orig_dir} --dir2 {dst_dir} "
-            f"--from_file {from_file}"
-        )
-        # Run test.
-        with (
-            umock.patch.object(
-                hgit, "get_branch_next_name", return_value=branch_name
-            ),
-            hunteuti.capture_sys_calls() as sys_calls,
-        ):
-            self.helper(
-                orig_dir, ctx, from_file=from_file, dst_dir=dst_dir
-            )
-        # Check outputs.
-        actual_calls = _get_ctx_run_calls(ctx)
-        self.assert_equal(
-            actual_calls, expected_calls, fuzzy_match=True, dedent=True
-        )
-        self.assertEqual(len(sys_calls), 1)
-        self.assertEqual(sys_calls[0]["function"], "hsystem.system")
-        self.assertEqual(sys_calls[0]["args"], (expected_sys_call,))
-
-    def test4(self) -> None:
-        """
-        Test that `--pr` mode also copies the `pr<NUM>.pytest.sh` script.
-        """
-        # Prepare inputs.
-        ctx = httestlib._build_mock_context_returning_ok()
-        scratch_dir = self.get_scratch_space()
-        dst_dir = os.path.join(scratch_dir, "dst")
-        hio.create_dir(dst_dir, incremental=True)
-        orig_dir = os.path.join(scratch_dir, "orig")
-        hio.create_dir(orig_dir, incremental=True)
-        pr = 17
-        # `git_branch_subset_copy()` reads `from_file` (its basename, once
-        # overridden by `--pr`) both before `chdir(dst_dir)` (relative to
-        # `orig_dir`) and after (relative to `dst_dir`), so the fixture
-        # file must exist in both places.
-        from_file_name = f"pr{pr}.files.txt"
-        hio.to_file(os.path.join(orig_dir, from_file_name), "a.py\n")
-        hio.to_file(os.path.join(dst_dir, from_file_name), "a.py\n")
-        pytest_src = os.path.join(orig_dir, f"pr{pr}.pytest.sh")
-        hio.to_file(pytest_src, "pytest a.py\n")
-        branch_name = "gp_scratch_1"
-        # Run test.
-        with (
-            umock.patch.object(
-                hgit, "get_branch_next_name", return_value=branch_name
-            ),
-            hunteuti.capture_sys_calls() as sys_calls,
-        ):
-            self.helper(orig_dir, ctx, pr=pr, dst_dir=dst_dir)
-        # Check outputs.
-        actual_calls = _get_ctx_run_calls(ctx)
-        # `gp_scratch*` branches skip the naming-convention check.
-        self.assertIn("--no-check-branch-name", actual_calls)
-        sys_call_fns = [c["function"] for c in sys_calls]
-        self.assert_equal(str(sys_call_fns), str(["hsystem.system"] * 2))
-        pytest_dst = os.path.join(dst_dir, f"pr{pr}.pytest.sh")
-        self.assertEqual(
-            sys_calls[1]["args"], (f"cp {pytest_src} {pytest_dst}",)
-        )
-
-
-# #############################################################################
-# Test__git_diff_with_branch
-# #############################################################################
-
-
-class Test__git_diff_with_branch(hunitest.TestCase):
-    """
-    Test `_git_diff_with_branch()`.
-    """
-
-    def call(self, **overrides: Any) -> Any:
-        """
-        Call `_git_diff_with_branch()` with default args, overridable.
-
-        :param overrides: keyword args overriding the defaults
-        :return: the `ctx` used for the call
-        """
-        ctx = httestlib._build_mock_context_returning_ok()
-        kwargs: Dict[str, Any] = dict(
-            ctx=ctx,
-            hash_="base_hash",
-            tag="base",
-            dir_name=".",
-            subdir="",
-            diff_type="",
-            file_types="",
-            skip_file_types="",
-            files_filter="",
-            from_file_filter="",
-            only_print_files=False,
-            dry_run=False,
-        )
-        kwargs.update(overrides)
-        hltltagi._git_diff_with_branch(**kwargs)
-        return ctx
-
-    def test1(self) -> None:
-        """
-        Test that diffing while on `master` raises `AssertionError`.
-        """
-        # Prepare inputs & run test and check output.
-        with (
-            umock.patch.object(hgit, "get_branch_name", return_value="master"),
-            self.assertRaises(AssertionError),
-        ):
-            self.call()
-
-    def test2(self) -> None:
-        """
-        Test that no matching files short-circuits before creating anything.
-        """
-        # Run test.
-        with (
-            umock.patch.object(
-                hgit, "get_branch_name", return_value="HelpersTask1_Foo"
-            ),
-            umock.patch.object(
-                hsystem, "system_to_files", return_value=[]
-            ),
-            umock.patch.object(hio, "create_dir") as mock_create_dir,
-        ):
-            ctx = self.call()
-        # Check outputs.
-        mock_create_dir.assert_not_called()
-        self.assertEqual(_get_ctx_run_calls(ctx), "")
-
-    def test3(self) -> None:
-        """
-        Test that `only_print_files=True` exits before creating anything.
-        """
-        # Run test.
-        with (
-            umock.patch.object(
-                hgit, "get_branch_name", return_value="HelpersTask1_Foo"
-            ),
-            umock.patch.object(
-                hsystem, "system_to_files", return_value=["a.py"]
-            ),
-            umock.patch.object(hio, "create_dir") as mock_create_dir,
-        ):
-            ctx = self.call(only_print_files=True)
-        # Check outputs.
-        mock_create_dir.assert_not_called()
-        self.assertEqual(_get_ctx_run_calls(ctx), "")
-
-    def test4(self) -> None:
-        """
-        Test the happy path builds a vimdiff script for a matching file.
-        """
-        # Prepare inputs.
-        dst_dir = "/tmp/myorg/myrepo/tmp.base"
-        # Run test.
-        with (
-            umock.patch.object(
-                hgit, "get_branch_name", return_value="HelpersTask1_Foo"
-            ),
-            umock.patch.object(
-                hsystem, "system_to_files", return_value=["a.py"]
-            ),
-            umock.patch.object(
-                hgit,
-                "get_repo_full_name_from_client",
-                return_value="myorg/myrepo",
-            ),
-            umock.patch.object(hio, "create_dir") as mock_create_dir,
-            umock.patch.object(
-                hsystem, "system", return_value=0
-            ) as mock_system,
-            umock.patch.object(
-                hio, "create_executable_script"
-            ) as mock_create_script,
-        ):
-            ctx = self.call(dry_run=False)
-        # Check outputs.
-        mock_create_dir.assert_called_once_with(dst_dir, incremental=False)
-        mock_system.assert_called_once_with(
-            f"git show base_hash:a.py >{dst_dir}/a.py", abort_on_error=False
-        )
-        script_file_name, script_txt = mock_create_script.call_args[0]
-        self.assertEqual(script_file_name, "./tmp.vimdiff_branch_with_base.sh")
-        self.assertEqual(script_txt, f"vimdiff {dst_dir}/a.py /dev/null")
-        actual = _get_ctx_run_calls(ctx)
-        self.assertIn(
-            f"call('{script_file_name}', echo=False, pty=True)", actual
-        )
-        self.assertIn(f"call('rm -rf {dst_dir}', echo=False)", actual)
-
-
-# #############################################################################
-# Test__git_diff_with_branch_wrapper
-# #############################################################################
-
-
-class Test__git_diff_with_branch_wrapper(hunitest.TestCase):
-    """
-    Test `_git_diff_with_branch_wrapper()`.
-    """
-
-    def call(self, **overrides: Any) -> None:
-        """
-        Call `_git_diff_with_branch_wrapper()` with default args.
-
-        :param overrides: keyword args overriding the defaults
-        """
-        ctx = httestlib._build_mock_context_returning_ok()
-        kwargs: Dict[str, Any] = dict(
-            ctx=ctx,
-            hash_="h",
-            tag="base",
-            dir_name=".",
-            subdir="",
-            include_submodules=False,
-            diff_type="",
-            file_types="",
-            skip_file_types="",
-            files_filter="",
-            from_file_filter="",
-            only_print_files=False,
-            dry_run=False,
-        )
-        kwargs.update(overrides)
-        hltltagi._git_diff_with_branch_wrapper(**kwargs)
-
-    def test1(self) -> None:
-        """
-        Test that `dir_name != "."` raises `AssertionError`.
-        """
-        # Run test and check output.
-        with self.assertRaises(AssertionError):
-            self.call(dir_name="subdir")
-
-    def test2(self) -> None:
-        """
-        Test that `include_submodules=False` diffs only the main repo.
-        """
+        script_path = "/repo/git_branch_subset_copy.py"
         # Run test.
         with umock.patch.object(
-            hltltagi, "_git_diff_with_branch"
-        ) as mock_diff:
-            self.call(include_submodules=False)
+            hsystem, "find_file_in_repo", return_value=script_path
+        ):
+            hltltagi.git_branch_subset_copy(ctx, **kwargs)
         # Check outputs.
-        mock_diff.assert_called_once()
+        actual = _get_ctx_run_calls(ctx)
+        self.assert_equal(actual, expected, fuzzy_match=True, dedent=True)
 
-    def test3(self) -> None:
+    def test1(self) -> None:
         """
-        Test that `include_submodules=True` also diffs an existing `amp`.
+        Test the default flags build a bare script invocation.
+        """
+        # Prepare inputs.
+        kwargs: Any = {}
+        # Prepare outputs.
+        expected = """
+        call('/repo/git_branch_subset_copy.py', echo=False)
         """
         # Run test.
-        with (
-            umock.patch.object(
-                hltltagi, "_git_diff_with_branch"
-            ) as mock_diff,
-            umock.patch.object(hgit, "is_amp_present", return_value=True),
-            umock.patch.object(hsystem, "cd") as mock_cd,
-        ):
-            mock_cd.return_value.__enter__ = umock.Mock(return_value=None)
-            mock_cd.return_value.__exit__ = umock.Mock(return_value=False)
-            self.call(include_submodules=True)
-        # Check outputs.
-        self.assertEqual(mock_diff.call_count, 2)
+        self.helper(kwargs, expected)
 
-    def test4(self) -> None:
+    def test2(self) -> None:
         """
-        Test that `include_submodules=True` skips a missing `amp`.
+        Test that every non-default flag appends its own CLI option.
+        """
+        # Prepare inputs.
+        kwargs = dict(
+            from_file="files.txt",
+            pr=17,
+            method="linear_scan",
+            dst_dir="/tmp/dst",
+        )
+        # Prepare outputs.
+        expected = """
+        call('/repo/git_branch_subset_copy.py --from_file files.txt --pr 17 --method linear_scan --dst_dir /tmp/dst', echo=False)
         """
         # Run test.
-        with (
-            umock.patch.object(
-                hltltagi, "_git_diff_with_branch"
-            ) as mock_diff,
-            umock.patch.object(hgit, "is_amp_present", return_value=False),
-        ):
-            self.call(include_submodules=True)
-        # Check outputs.
-        mock_diff.assert_called_once()
+        self.helper(kwargs, expected)
 
 
 # #############################################################################
@@ -1682,108 +1140,69 @@ class Test__git_diff_with_branch_wrapper(hunitest.TestCase):
 class Test_git_branch_diff(hunitest.TestCase):
     """
     Test `git_branch_diff()`.
+
+    The actual logic moved to `dev_scripts_helpers/git/git_branch_diff.py`
+    (see `dev_scripts_helpers/git/test/test_git_branch_diff.py`); this only
+    checks the CLI invocation the thin `@task` wrapper builds.
     """
 
-    def helper(self, kwargs: Any, expected_hash: str, expected_tag: str) -> None:
+    def helper(self, kwargs: Any, expected: str) -> None:
         """
-        Run `git_branch_diff()` and check the resolved hash and tag.
+        Run `git_branch_diff()` and check the constructed command.
 
         :param kwargs: keyword arguments forwarded to `git_branch_diff()`
-        :param expected_hash: expected `hash_value` passed to the wrapper
-        :param expected_tag: expected `tag` passed to the wrapper
+        :param expected: expected single `ctx.run()` call
         """
         # Prepare inputs.
         ctx = httestlib._build_mock_context_returning_ok()
+        script_path = "/repo/git_branch_diff.py"
         # Run test.
-        with (
-            umock.patch.object(
-                hgit, "get_branch_hash", return_value="base_hash"
-            ),
-            umock.patch.object(
-                hltltagi, "_git_diff_with_branch_wrapper"
-            ) as mock_wrapper,
+        with umock.patch.object(
+            hsystem, "find_file_in_repo", return_value=script_path
         ):
             hltltagi.git_branch_diff(ctx, **kwargs)
         # Check outputs.
-        actual_hash = mock_wrapper.call_args[0][1]
-        actual_tag = mock_wrapper.call_args[0][2]
-        self.assertEqual(actual_hash, expected_hash)
-        self.assertEqual(actual_tag, expected_tag)
+        actual = _get_ctx_run_calls(ctx)
+        self.assert_equal(actual, expected, fuzzy_match=True, dedent=True)
 
     def test1(self) -> None:
         """
-        Test the default `target="base"` resolves to the branch point.
+        Test the default flags build a bare script invocation.
         """
         # Prepare inputs.
         kwargs: Any = {}
+        # Prepare outputs.
+        expected = """
+        call('/repo/git_branch_diff.py', echo=False, pty=True)
+        """
         # Run test.
-        self.helper(kwargs, "base_hash", "base")
+        self.helper(kwargs, expected)
 
     def test2(self) -> None:
         """
-        Test `target="master"` resolves to `origin/master`.
+        Test that every non-default flag appends its own CLI option.
         """
         # Prepare inputs.
-        kwargs = dict(target="master")
+        kwargs = dict(
+            target="hash",
+            hash_value="deadbeef",
+            files="a.py b.py",
+            from_file="files.txt",
+            last_commit=True,
+            subdir="helpers",
+            include_submodules=True,
+            diff_type="M",
+            file_types="py",
+            skip_file_types="txt",
+            only_print_files=True,
+            dry_run=True,
+        )
+        # Prepare outputs.
+        expected = """
+        call("/repo/git_branch_diff.py --target hash --hash_value deadbeef --files 'a.py b.py' --from_file files.txt --last_commit --subdir helpers --include_submodules --diff_type M --file_types py --skip_file_types txt --only_print_files --dry_run", echo=False, pty=True)
+        """
         # Run test.
-        self.helper(kwargs, "origin/master", "origin_master")
-
-    def test3(self) -> None:
-        """
-        Test `target="head"` resolves to an empty hash.
-        """
-        # Prepare inputs.
-        kwargs = dict(target="head")
-        # Run test.
-        self.helper(kwargs, "", "head")
-
-    def test4(self) -> None:
-        """
-        Test `last_commit=True` overrides the target to `HEAD^`.
-        """
-        # Prepare inputs.
-        kwargs = dict(last_commit=True)
-        # Run test.
-        self.helper(kwargs, "HEAD^", "last_commit")
-
-    def test5(self) -> None:
-        """
-        Test `target="hash"` uses the given `hash_value` verbatim.
-        """
-        # Prepare inputs.
-        kwargs = dict(target="hash", hash_value="deadbeef")
-        # Run test.
-        self.helper(kwargs, "deadbeef", "hash@deadbeef")
-
-    def test6(self) -> None:
-        """
-        Test that an invalid `target` raises `AssertionError`.
-        """
-        # Prepare inputs.
-        ctx = httestlib._build_mock_context_returning_ok()
-        # Run test and check output.
-        with self.assertRaises(AssertionError):
-            hltltagi.git_branch_diff(ctx, target="invalid")
-
-    def test7(self) -> None:
-        """
-        Test that `target="hash"` without `hash_value` raises.
-        """
-        # Prepare inputs.
-        ctx = httestlib._build_mock_context_returning_ok()
-        # Run test and check output.
-        with self.assertRaises(AssertionError):
-            hltltagi.git_branch_diff(ctx, target="hash")
-
-    def test8(self) -> None:
-        """
-        Test that `hash_value` with `target="base"` raises.
-        """
-        # Prepare inputs.
-        ctx = httestlib._build_mock_context_returning_ok()
-        # Run test and check output.
-        with self.assertRaises(AssertionError):
-            hltltagi.git_branch_diff(ctx, hash_value="deadbeef")
+        self.helper(kwargs, expected)
 
 
 # #############################################################################
@@ -2009,100 +1428,6 @@ class Test_git_branch_is_merged(hunitest.TestCase):
 
 
 # #############################################################################
-# Test__collect_backup_files
-# #############################################################################
-
-
-class Test__collect_backup_files(hunitest.TestCase):
-    """
-    Test `_collect_backup_files()`.
-    """
-
-    def test1(self) -> None:
-        """
-        Test that main-repo files are collected when there are no submodules.
-        """
-        # Prepare inputs.
-        file_mode = "all"
-        include_subrepos = True
-        # Prepare outputs.
-        expected = [(".", "a.py"), (".", "b.py")]
-        # Run test.
-        with (
-            umock.patch.object(
-                hgit,
-                "get_modified_and_untracked_files",
-                return_value=["a.py", "b.py"],
-            ),
-            umock.patch.object(
-                hltltagi, "_get_submodule_paths", return_value=[]
-            ),
-        ):
-            actual = hltltagi._collect_backup_files(
-                file_mode, include_subrepos
-            )
-        # Check outputs.
-        self.assert_equal(str(actual), str(expected))
-
-    def test2(self) -> None:
-        """
-        Test that `include_subrepos=False` skips submodule collection.
-        """
-        # Prepare inputs.
-        file_mode = "all"
-        include_subrepos = False
-        # Prepare outputs.
-        expected = [(".", "a.py")]
-        # Run test.
-        with (
-            umock.patch.object(
-                hgit,
-                "get_modified_and_untracked_files",
-                return_value=["a.py"],
-            ),
-            umock.patch.object(
-                hltltagi, "_get_submodule_paths"
-            ) as mock_get_submodule_paths,
-        ):
-            actual = hltltagi._collect_backup_files(
-                file_mode, include_subrepos
-            )
-        # Check outputs.
-        self.assert_equal(str(actual), str(expected))
-        mock_get_submodule_paths.assert_not_called()
-
-    def test3(self) -> None:
-        """
-        Test that submodule files are prefixed with their submodule path.
-        """
-        # Prepare inputs.
-        file_mode = "modified"
-        include_subrepos = True
-        submodule_path = self.get_scratch_space()
-        files_by_dir = {".": ["a.py"], submodule_path: ["c.py"]}
-        # Prepare outputs.
-        expected = [(".", "a.py"), (submodule_path, "c.py")]
-        # Run test.
-        with (
-            umock.patch.object(
-                hgit,
-                "get_modified_and_untracked_files",
-                side_effect=lambda dir_name, mode: files_by_dir[dir_name],
-            ),
-            umock.patch.object(
-                hltltagi,
-                "_get_submodule_paths",
-                return_value=[submodule_path],
-            ),
-        ):
-            actual = hltltagi._collect_backup_files(
-                file_mode, include_subrepos
-            )
-        # Check outputs.
-        self.assert_equal(str(actual), str(expected))
-
-
-# #############################################################################
 # Test_git_backup
 # #############################################################################
 
@@ -2110,95 +1435,61 @@ class Test__collect_backup_files(hunitest.TestCase):
 class Test_git_backup(hunitest.TestCase):
     """
     Test `git_backup()`.
+
+    The actual logic moved to `dev_scripts_helpers/git/git_backup.py` (see
+    `dev_scripts_helpers/git/test/test_git_backup.py`); this only checks
+    the CLI invocation the thin `@task` wrapper builds.
     """
+
+    def helper(self, kwargs: Any, expected: str) -> None:
+        """
+        Run `git_backup()` and check the constructed command.
+
+        :param kwargs: keyword arguments forwarded to `git_backup()`
+        :param expected: expected single `ctx.run()` call
+        """
+        # Prepare inputs.
+        ctx = httestlib._build_mock_context_returning_ok()
+        script_path = "/repo/git_backup.py"
+        # Run test.
+        with umock.patch.object(
+            hsystem, "find_file_in_repo", return_value=script_path
+        ):
+            hltltagi.git_backup(ctx, **kwargs)
+        # Check outputs.
+        actual = _get_ctx_run_calls(ctx)
+        self.assert_equal(actual, expected, fuzzy_match=True, dedent=True)
 
     def test1(self) -> None:
         """
-        Test that an invalid `file_mode` raises `AssertionError`.
+        Test the default flags build a bare script invocation.
         """
         # Prepare inputs.
-        ctx = httestlib._build_mock_context_returning_ok()
-        # Run test and check output.
-        with self.assertRaises(AssertionError):
-            hltltagi.git_backup(ctx, file_mode="invalid")
+        kwargs: Any = {}
+        # Prepare outputs.
+        expected = """
+        call('/repo/git_backup.py', echo=False)
+        """
+        # Run test.
+        self.helper(kwargs, expected)
 
     def test2(self) -> None:
         """
-        Test that no collected files skips creating a zip file entirely.
+        Test that every non-default flag appends its own CLI option.
         """
         # Prepare inputs.
-        ctx = httestlib._build_mock_context_returning_ok()
-        backup_dir = self.get_scratch_space()
-        # Run test.
-        with (
-            umock.patch.object(
-                hgit, "get_client_root", return_value="/repo"
-            ),
-            umock.patch.object(
-                hltltagi, "_collect_backup_files", return_value=[]
-            ),
-            umock.patch("zipfile.ZipFile") as mock_zip,
-        ):
-            hltltagi.git_backup(ctx, backup_dir=backup_dir)
-        # Check outputs.
-        mock_zip.assert_not_called()
-
-    def test3(self) -> None:
-        """
-        Test that `dry_run=True` skips creating a zip file.
-        """
-        # Prepare inputs.
-        ctx = httestlib._build_mock_context_returning_ok()
-        backup_dir = self.get_scratch_space()
-        # Run test.
-        with (
-            umock.patch.object(
-                hgit, "get_client_root", return_value="/repo"
-            ),
-            umock.patch.object(
-                hltltagi,
-                "_collect_backup_files",
-                return_value=[(".", "a.py")],
-            ),
-            umock.patch("zipfile.ZipFile") as mock_zip,
-        ):
-            hltltagi.git_backup(ctx, backup_dir=backup_dir, dry_run=True)
-        # Check outputs.
-        mock_zip.assert_not_called()
-
-    def test4(self) -> None:
-        """
-        Test the happy path zips every collected file under its arcname.
-        """
-        # Prepare inputs.
-        ctx = httestlib._build_mock_context_returning_ok()
-        backup_dir = self.get_scratch_space()
-        all_files = [(".", "a.py"), ("helpers_root", "b.py")]
-        # Run test.
-        with (
-            umock.patch.object(
-                hgit, "get_client_root", return_value="/repo"
-            ),
-            umock.patch.object(
-                hltltagi, "_collect_backup_files", return_value=all_files
-            ),
-            umock.patch("zipfile.ZipFile") as mock_zip,
-        ):
-            mock_zipf = mock_zip.return_value.__enter__.return_value
-            hltltagi.git_backup(ctx, backup_dir=backup_dir)
-        # Check outputs.
-        mock_zip.assert_called_once()
-        actual = str(list(mock_zipf.write.call_args_list))
-        expected = str(
-            [
-                umock.call(os.path.join(".", "a.py"), arcname="a.py"),
-                umock.call(
-                    os.path.join("helpers_root", "b.py"),
-                    arcname=os.path.join("helpers_root", "b.py"),
-                ),
-            ]
+        kwargs = dict(
+            file_mode="modified",
+            backup_dir="/tmp/backups",
+            include_subrepos=False,
+            dry_run=True,
         )
-        self.assert_equal(actual, expected)
+        # Prepare outputs.
+        expected = """
+        call('/repo/git_backup.py --file_mode modified --backup_dir /tmp/backups --no_include_subrepos --dry_run', echo=False)
+        """
+        # Run test.
+        self.helper(kwargs, expected)
 
 
 # #############################################################################
