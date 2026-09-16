@@ -332,6 +332,33 @@ class Test__create_branch(hunitest.TestCase):
         actual = _get_system_calls(mock_system)
         self.assert_equal(actual, expected, fuzzy_match=True, dedent=True)
 
+    def test6(self) -> None:
+        """
+        Test that `dry_run=True` skips branch creation, push, and PR
+        creation, without calling `hsystem.system()`.
+        """
+        # Prepare inputs.
+        branch_name = "HelpersTask999_Foo"
+        # Run test.
+        with (
+            umock.patch.object(hgit, "is_client_clean"),
+            umock.patch.object(
+                hgit, "does_branch_exist", return_value=False
+            ),
+            umock.patch.object(hgit, "get_branch_name", return_value="master"),
+            umock.patch.object(hsystem, "system") as mock_system,
+        ):
+            dsggibrc._create_branch(
+                branch_name,
+                0,
+                "current",
+                "",
+                create_pr=True,
+                dry_run=True,
+            )
+        # Check outputs.
+        mock_system.assert_not_called()
+
 
 # #############################################################################
 # Test_git_branch_create_py

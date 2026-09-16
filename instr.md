@@ -62,7 +62,7 @@
     `dev_scripts_helpers/git/git_create_issue_and_branch.py`), leaving the
     `@task` function as a thin pass-through that builds the CLI invocation
 
-- [ ] Unify parameter conventions across `git_*`/`gh_*` tasks
+- [x] Unify parameter conventions across `git_*`/`gh_*` tasks
   - Add `--repo-short-name` to tasks that operate against a specific GitHub
     repo but currently lack it (e.g. `gh_workflow_list`, `gh_workflow_run`,
     `gh_publish_buildmeister_dashboard_to_s3`, `gh_delete_workflow_runs`)

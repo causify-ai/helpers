@@ -148,6 +148,36 @@ class Test__copy_branch_subset(hunitest.TestCase):
             sys_calls[3]["args"], (f"cp {pytest_src} {pytest_dst}",)
         )
 
+    def test5(self) -> None:
+        """
+        Test that `dry_run=True` skips checkout, branch creation, and
+        file copy.
+        """
+        # Prepare inputs.
+        scratch_dir = self.get_scratch_space()
+        dst_dir = os.path.join(scratch_dir, "dst")
+        hio.create_dir(dst_dir, incremental=True)
+        orig_dir = os.path.join(scratch_dir, "orig")
+        hio.create_dir(orig_dir, incremental=True)
+        from_file = os.path.join(orig_dir, "files.txt")
+        hio.to_file(from_file, "a.py\n")
+        branch_name = "HelpersTask1_Foo_2"
+        # Run test.
+        with (
+            umock.patch.object(
+                hgit, "get_branch_next_name", return_value=branch_name
+            ),
+            hunteuti.capture_sys_calls() as sys_calls,
+        ):
+            self.helper(
+                orig_dir,
+                from_file=from_file,
+                dst_dir=dst_dir,
+                dry_run=True,
+            )
+        # Check outputs.
+        self.assertEqual(sys_calls, [])
+
 
 # #############################################################################
 # Test_git_branch_subset_copy_py

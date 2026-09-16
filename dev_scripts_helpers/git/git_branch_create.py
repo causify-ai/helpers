@@ -126,6 +126,7 @@ def _create_branch(
     create_pr: bool = True,
     abort_if_not_clean: bool = True,
     abort_if_not_master: bool = True,
+    dry_run: bool = False,
 ) -> None:
     """
     Create and push upstream branch `branch_name` or the one corresponding
@@ -171,7 +172,17 @@ def _create_branch(
                 "Switching from '%s' to 'master' to create branch",
                 curr_branch,
             )
-            hsystem.system("git checkout master", suppress_output=False)
+            if dry_run:
+                _LOG.warning("Skipping 'git checkout master' (dry run)")
+            else:
+                hsystem.system("git checkout master", suppress_output=False)
+    if dry_run:
+        _LOG.warning(
+            "Skipping branch creation/push for '%s' (dry run)", branch_name
+        )
+        if create_pr:
+            _LOG.warning("Skipping draft PR creation (dry run)")
+        return
     # Fetch latest master to ensure we have the most recent changes.
     hsystem.system("git pull --autostash --rebase", suppress_output=False)
     # git checkout -b LmTask169_Get_GH_actions_working_on_lm
@@ -255,6 +266,11 @@ def _parse() -> argparse.ArgumentParser:
         help="Do not abort if not on master branch; switch to master "
         "instead",
     )
+    parser.add_argument(
+        "--dry_run",
+        action="store_true",
+        help="Log the actions without creating or pushing the branch",
+    )
     hparser.add_verbosity_arg(parser)
     return parser
 
@@ -272,6 +288,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
         create_pr=not args.no_create_pr,
         abort_if_not_clean=not args.no_abort_if_not_clean,
         abort_if_not_master=not args.no_abort_if_not_master,
+        dry_run=args.dry_run,
     )
 
 

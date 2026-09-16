@@ -36,6 +36,7 @@ def _copy_branch_subset(
     pr: int = 0,
     method: str = "auto",
     dst_dir: str = "",
+    dry_run: bool = False,
 ) -> None:
     """
     Create a new branch in a different directory with a subset of files.
@@ -73,6 +74,14 @@ def _copy_branch_subset(
     original_dir = os.getcwd()
     try:
         os.chdir(dst_dir)
+        if dry_run:
+            _LOG.warning(
+                "Skipping branch '%s' creation and file copy into '%s' "
+                "(dry run)",
+                branch_name,
+                dst_dir,
+            )
+            return
         hsystem.system("git checkout master", suppress_output=False)
         #
         cmd = f"invoke git_branch_create --branch-name '{branch_name}'"
@@ -135,6 +144,11 @@ def _parse() -> argparse.ArgumentParser:
         default="",
         help="Destination directory where new branch will be created",
     )
+    parser.add_argument(
+        "--dry_run",
+        action="store_true",
+        help="Log the actions without creating the branch or copying files",
+    )
     hparser.add_verbosity_arg(parser)
     return parser
 
@@ -147,6 +161,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
         args.pr,
         args.method,
         args.dst_dir,
+        dry_run=args.dry_run,
     )
 
 
