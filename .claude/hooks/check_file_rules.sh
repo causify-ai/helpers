@@ -37,8 +37,9 @@ for row in "${RULES[@]}"; do
     regex="${row%%|||*}"
     context="${row#*|||}"
     if printf '%s' "$file_path" | grep -qE "$regex"; then
-        jq -n --arg context "$context" '{
-            systemMessage: "check_file_rules.sh: file-type rules reminder injected",
+        rules_files="$(printf '%s' "$context" | grep -oE '\.claude/(skills|templates)/[A-Za-z_./]+' | paste -sd, - | sed 's/,/, /g')"
+        jq -n --arg context "$context" --arg rules_files "$rules_files" '{
+            systemMessage: "check_file_rules.sh: file-type rules reminder injected (\($rules_files))",
             hookSpecificOutput: {
                 hookEventName: "PreToolUse",
                 additionalContext: $context
