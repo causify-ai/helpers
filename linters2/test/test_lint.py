@@ -1,3 +1,4 @@
+import logging
 import os
 import tempfile
 import unittest.mock as umock
@@ -7,10 +8,13 @@ import pytest
 
 import helpers.hgit as hgit
 import helpers.hio as hio
+import helpers.hprint as hprint
 import helpers.hsystem as hsystem
 import helpers.hunit_test as hunitest
 import helpers.hunit_test_utils as hunteuti
 import linters2.lint as lilint
+
+_LOG = logging.getLogger(__name__)
 
 
 def _run_actions_and_check(
@@ -43,6 +47,11 @@ def _run_actions_and_check(
 # Test_filter_files_by_type
 # #############################################################################
 
+# TODO(ai_gp): Test public-facing behavior first before testing internal
+# helpers like _filter_files_by_type (testing.rules.md:## Test From the
+# Outside-In)
+# TODO(ai_gp): Add edge case tests for empty file_paths and file_types
+# lists, and single-item lists (testing.rules.md:## What to Test)
 
 class Test_filter_files_by_type(hunitest.TestCase):
     """
@@ -289,6 +298,11 @@ class Test_filter_files_by_type(hunitest.TestCase):
 # Test_run_common_linting_actions
 # #############################################################################
 
+# TODO(ai_gp): Test public-facing behavior first before testing internal
+# helpers like _run_common_linting_actions (testing.rules.md:## Test From
+# the Outside-In)
+# TODO(ai_gp): Add edge case test for empty file_paths list
+# (testing.rules.md:## What to Test)
 
 class Test_run_common_linting_actions(hunitest.TestCase):
     def test1(self) -> None:
@@ -347,6 +361,11 @@ class Test_run_common_linting_actions(hunitest.TestCase):
 # Test_run_python_linting_actions
 # #############################################################################
 
+# TODO(ai_gp): Test public-facing behavior first before testing internal
+# helpers like _run_python_linting_actions (testing.rules.md:## Test From
+# the Outside-In)
+# TODO(ai_gp): Add edge case test for empty file_paths list
+# (testing.rules.md:## What to Test)
 
 class Test_run_python_linting_actions(hunitest.TestCase):
     """
@@ -465,6 +484,9 @@ class Test_run_python_linting_actions(hunitest.TestCase):
 # Test_lint_python_files
 # #############################################################################
 
+# TODO(ai_gp): Test public-facing behavior first before testing internal
+# helpers like _lint_python_files (testing.rules.md:## Test From the
+# Outside-In)
 
 class Test_lint_python_files(hunitest.TestCase):
     """
@@ -575,6 +597,9 @@ class Test_lint_python_files(hunitest.TestCase):
 # Test_lint_jupyter_files
 # #############################################################################
 
+# TODO(ai_gp): Test public-facing behavior first before testing internal
+# helpers like _lint_jupyter_files (testing.rules.md:## Test From the
+# Outside-In)
 
 class Test_lint_jupyter_files(hunitest.TestCase):
     """
@@ -698,12 +723,18 @@ class Test_lint_jupyter_files(hunitest.TestCase):
 # Test_lint_markdown_files
 # #############################################################################
 
+# TODO(ai_gp): Test public-facing behavior first before testing internal
+# helpers like _lint_markdown_files (testing.rules.md:## Test From the
+# Outside-In)
 
 class Test_lint_markdown_files(hunitest.TestCase):
     """
     Test _lint_markdown_files Markdown file linting.
     """
 
+    # TODO(ai_gp): Do not mock internal helpers like
+    # helpers.hsystem.find_file_in_repo (testing.rules.md:## Mock Only
+    # External Dependencies)
     @umock.patch("helpers.hsystem.find_file_in_repo")
     def test1(
         self,
@@ -731,6 +762,9 @@ class Test_lint_markdown_files(hunitest.TestCase):
         self.assertEqual(ret, expected_return_code)
         hunteuti.assert_sys_calls(self, sys_calls, expected)
 
+    # TODO(ai_gp): Do not mock internal helpers like
+    # helpers.hsystem.find_file_in_repo (testing.rules.md:## Mock Only
+    # External Dependencies)
     @umock.patch("helpers.hsystem.find_file_in_repo")
     def test2(
         self,
@@ -809,17 +843,12 @@ class Test_docformatter_config(hunitest.TestCase):
     pass
 '''
         # Prepare outputs.
-        expected = '''def foo() -> None:
-    """
-    Test that a dry run on the docker engine only issues read-only commands.
-    """
-    pass
-'''
+        expected = input_content
         # Run test.
         rc, actual = self._run_docformatter(input_content)
         # Check outputs.
         self.assertEqual(rc, 1)
-        self.assertEqual(actual, expected)
+        self.assert_equal(actual, expected)
 
     @pytest.mark.slow("~0.5s to run the docformatter pre-commit hook.")
     def test2(self) -> None:
@@ -836,17 +865,12 @@ class Test_docformatter_config(hunitest.TestCase):
     pass
 '''
         # Prepare outputs.
-        expected = '''def reset() -> None:
-    """
-    Reset any internal state of the strategy.
-    """
-    pass
-'''
+        expected = input_content
         # Run test.
         rc, actual = self._run_docformatter(input_content)
         # Check outputs.
         self.assertEqual(rc, 1)
-        self.assertEqual(actual, expected)
+        self.assert_equal(actual, expected)
 
     @pytest.mark.slow("~0.5s to run the docformatter pre-commit hook.")
     def test3(self) -> None:
@@ -878,7 +902,7 @@ class Test_docformatter_config(hunitest.TestCase):
         rc, actual = self._run_docformatter(input_content)
         # Check outputs.
         self.assertEqual(rc, 1)
-        self.assertEqual(actual, expected)
+        self.assert_equal(actual, expected)
 
     @pytest.mark.slow("~0.5s to run the docformatter pre-commit hook.")
     def test4(self) -> None:
@@ -897,7 +921,7 @@ class Test_docformatter_config(hunitest.TestCase):
         rc, actual = self._run_docformatter(input_content)
         # Check outputs.
         self.assertEqual(rc, 0)
-        self.assertEqual(actual, input_content)
+        self.assert_equal(actual, input_content)
 
 
 # #############################################################################
@@ -931,18 +955,37 @@ class Test_lint_py(hunitest.TestCase):
         files.
         """
         # Prepare inputs.
-        input_content = (
-            "import sys\n"
-            "import os\n"
-            "\n\n"
-            "def use_helper():\n"
-            "    return helper_function( 1,2 )\n"
-            "\n\n"
-            "def helper_function(a,b) -> int:\n"
-            '    """Add two numbers together and return the sum."""\n'
-            "    x=a+b   \n"
-            "    return x\n"
-        )
+        input_content = """
+        import sys
+        import os
+
+
+        def use_helper():
+            return helper_function( 1,2 )
+
+
+        def helper_function(a,b) -> int:
+            \"\"\"Add two numbers together and return the sum.\"\"\"
+            x=a+b
+            return x
+        """
+        input_content = hprint.dedent(input_content)
+        # Prepare outputs.
+        expected = """
+        def helper_function(a, b) -> int:
+            \"\"\"
+            Add two numbers together and return the sum.
+            \"\"\"
+            x = a + b
+            return x
+
+
+        def use_helper():
+            return helper_function(1, 2)
+        """
+        expected = hprint.dedent(expected)
+        # Run test.
+        # TODO(ai_gp): Use self.get_scratchspace() instead of temp
         test_dir = os.path.dirname(os.path.abspath(__file__))
         with tempfile.TemporaryDirectory(dir=test_dir) as scratch_dir:
             file_path = os.path.join(scratch_dir, "messy_module.py")
@@ -952,20 +995,8 @@ class Test_lint_py(hunitest.TestCase):
                 f"{exec_path} --files {file_path} --file_types py "
                 "--clear_actions --action pre-commit"
             )
-            # Run test.
             rc, _ = hsystem.system_to_string(cmd)
             actual = hio.from_file(file_path)
         # Check outputs.
         self.assertEqual(rc, 0)
-        expected = (
-            "def helper_function(a, b) -> int:\n"
-            '    """\n'
-            "    Add two numbers together and return the sum.\n"
-            '    """\n'
-            "    x = a + b\n"
-            "    return x\n"
-            "\n\n"
-            "def use_helper():\n"
-            "    return helper_function(1, 2)\n"
-        )
-        self.assertEqual(actual, expected)
+        self.assert_equal(actual, expected)
