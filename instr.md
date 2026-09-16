@@ -34,7 +34,7 @@
     `Branch '<name>' already exists` if that exact suffix is taken (verify
     this with a test, don't just assert it works)
 
-- [ ] Add unit tests for `git_*`/`gh_*` invoke tasks
+- [x] Add unit tests for `git_*`/`gh_*` invoke tasks
   - Cover the untested tasks in `lib_tasks_git.py` (`git_pull`,
     `git_fetch_master`, `git_merge_master`, `git_clean`,
     `git_add_all_untracked`, `git_files`, `git_branch_files`,

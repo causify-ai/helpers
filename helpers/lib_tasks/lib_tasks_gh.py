@@ -121,7 +121,7 @@ def _get_org_name(org_name: str) -> str:
     return org_name
 
 
-def _get_workflow_table() -> htable.TableType:
+def _get_workflow_table() -> htable.Table:
     """
     Get a table with the status of the GH workflow for the current repo.
     """
@@ -165,7 +165,7 @@ def _get_workflow_table() -> htable.TableType:
     return table
 
 
-def _print_table(table: htable.TableType) -> None:
+def _print_table(table: htable.Table) -> None:
     table_str = str(table)
     # Colorize the table.
     color_map = {"success": "green", "failure": "red", "in progress": "yellow"}
