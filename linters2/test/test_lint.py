@@ -9,6 +9,7 @@ import pytest
 import helpers.hgit as hgit
 import helpers.hio as hio
 import helpers.hprint as hprint
+import helpers.hserver as hserver
 import helpers.hsystem as hsystem
 import helpers.hunit_test as hunitest
 import helpers.hunit_test_utils as hunteuti
@@ -886,6 +887,11 @@ class Test_lint_markdown_files(hunitest.TestCase):
 # #############################################################################
 
 
+@pytest.mark.skipif(
+    not (not hserver.is_inside_docker() and hserver.is_host_gp_mac()),
+    reason="pre-commit / docformatter are only installed outside "
+    "the dev container on GP's Mac",
+)
 class Test_docformatter_config(hunitest.TestCase):
     """
     End-to-end tests for the `[tool.docformatter]` config in `pyproject.toml`.
@@ -1018,6 +1024,11 @@ class Test_docformatter_config(hunitest.TestCase):
 # #############################################################################
 
 
+@pytest.mark.skipif(
+    not (not hserver.is_inside_docker() and hserver.is_host_gp_mac()),
+    reason="pre-commit / docformatter are only installed outside "
+    "the dev container on GP's Mac",
+)
 class Test_lint_py(hunitest.TestCase):
     """
     End-to-end tests for the `lint.py` executable.
