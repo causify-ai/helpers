@@ -2,7 +2,11 @@ import os
 import unittest.mock as umock
 from typing import Callable, Dict, List, Optional, Tuple
 
+import pytest
+
+import helpers.hgit as hgit
 import helpers.hio as hio
+import helpers.hsystem as hsystem
 import helpers.hunit_test as hunitest
 import helpers.hunit_test_utils as hunteuti
 import linters2.lint as lilint
@@ -757,3 +761,53 @@ class Test_lint_markdown_files(hunitest.TestCase):
         # Check outputs.
         self.assertEqual(ret, expected_return_code)
         hunteuti.assert_sys_calls(self, sys_calls, expected)
+
+
+# #############################################################################
+# Test_lint_py
+# #############################################################################
+
+
+class Test_lint_py(hunitest.TestCase):
+    """
+    End-to-end tests for the `lint.py` executable.
+    """
+
+    @pytest.mark.slow("~2s to run the full pre-commit hook stack.")
+    def test_docformatter_docstring_format(self) -> None:
+        r'''
+        Run the `pre-commit` action on a file with an over-length one-line
+        docstring and check that `docformatter` reformats it into the
+        repo's three-line docstring style (see `[tool.docformatter]` in
+        `pyproject.toml`): opening `"""` alone, the summary as a single
+        unwrapped line, closing `"""` alone.
+        '''
+        # Prepare inputs.
+        scratch_dir = self.get_scratch_space()
+        file_path = os.path.join(scratch_dir, "sample_module.py")
+        input_content = '''
+            def foo() -> None:
+            """Test that a dry run on the docker engine only issues read-only commands."""
+            pass
+        '''
+        input_content = hprint.dedent(input_content)
+        hio.to_file(file_path, input_content)
+        exec_path = hgit.find_file_in_git_tree("lint.py")
+        cmd = (
+            f"{exec_path} --files {file_path} --file_types py "
+            "--clear_actions --action pre-commit"
+        )
+        # Run test.
+        rc, _ = hsystem.system_to_string(cmd)
+        # Check outputs.
+        self.assertEqual(rc, 0)
+        actual = hio.from_file(file_path)
+        expected = '''
+        def foo() -> None:
+            """
+            Test that a dry run on the docker engine only issues read-only commands.
+            """
+            pass
+        '''
+        expected = hprint.dedent(expected)
+        self.assertEqual(actual, expected)
