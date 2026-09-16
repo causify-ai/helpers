@@ -47,12 +47,6 @@ def _run_actions_and_check(
 # Test_filter_files_by_type
 # #############################################################################
 
-# TODO(ai_gp): Test public-facing behavior first before testing internal
-# helpers like _filter_files_by_type (testing.rules.md:## Test From the
-# Outside-In)
-# TODO(ai_gp): Add edge case tests for empty file_paths and file_types
-# lists, and single-item lists (testing.rules.md:## What to Test)
-
 class Test_filter_files_by_type(hunitest.TestCase):
     """
     Test _filter_files_by_type file categorization logic.
@@ -293,16 +287,72 @@ class Test_filter_files_by_type(hunitest.TestCase):
             sort_py_files=True,
         )
 
+    def test7(self) -> None:
+        """
+        Empty file_paths list: all outputs empty.
+        """
+        # Prepare inputs.
+        file_paths = []
+        file_types = ["py", "ipynb", "md"]
+        # Prepare outputs.
+        expected_py_files = []
+        expected_ipynb_files = []
+        expected_md_files = []
+        # Run test.
+        self._assert_filter_result(
+            file_paths,
+            file_types,
+            expected_py_files,
+            expected_ipynb_files,
+            expected_md_files,
+        )
+
+    def test8(self) -> None:
+        """
+        Empty file_types list: all outputs empty.
+        """
+        # Prepare inputs.
+        paths = self._create_files(["foo.py", "bar.ipynb", "baz.md"])
+        file_paths = [paths["foo.py"], paths["bar.ipynb"], paths["baz.md"]]
+        file_types = []
+        # Prepare outputs.
+        expected_py_files = []
+        expected_ipynb_files = []
+        expected_md_files = []
+        # Run test.
+        self._assert_filter_result(
+            file_paths,
+            file_types,
+            expected_py_files,
+            expected_ipynb_files,
+            expected_md_files,
+        )
+
+    def test9(self) -> None:
+        """
+        Single item in file_paths and file_types: correctly filtered.
+        """
+        # Prepare inputs.
+        paths = self._create_files(["foo.py"])
+        file_paths = [paths["foo.py"]]
+        file_types = ["py"]
+        # Prepare outputs.
+        expected_py_files = [paths["foo.py"]]
+        expected_ipynb_files = []
+        expected_md_files = []
+        # Run test.
+        self._assert_filter_result(
+            file_paths,
+            file_types,
+            expected_py_files,
+            expected_ipynb_files,
+            expected_md_files,
+        )
+
 
 # #############################################################################
 # Test_run_common_linting_actions
 # #############################################################################
-
-# TODO(ai_gp): Test public-facing behavior first before testing internal
-# helpers like _run_common_linting_actions (testing.rules.md:## Test From
-# the Outside-In)
-# TODO(ai_gp): Add edge case test for empty file_paths list
-# (testing.rules.md:## What to Test)
 
 class Test_run_common_linting_actions(hunitest.TestCase):
     def test1(self) -> None:
@@ -356,16 +406,38 @@ class Test_run_common_linting_actions(hunitest.TestCase):
             expected,
         )
 
+    def test3(self) -> None:
+        """
+        Empty file_paths: call made with empty files list.
+        """
+        # Prepare inputs.
+        file_paths = []
+        actions = ["pre-commit"]
+        abort_on_error = True
+        # Prepare outputs.
+        expected_return_code = 0
+        expected = r"""[
+        {
+        'function': hsystem.system,
+        'args': ('pre-commit run --files  --color always',),
+        'kwargs': {'print_command': False, 'abort_on_error': True, 'suppress_output': False},
+        },
+        ]"""
+        # Run test.
+        _run_actions_and_check(
+            self,
+            lilint._run_common_linting_actions,
+            file_paths,
+            actions,
+            abort_on_error,
+            expected_return_code,
+            expected,
+        )
+
 
 # #############################################################################
 # Test_run_python_linting_actions
 # #############################################################################
-
-# TODO(ai_gp): Test public-facing behavior first before testing internal
-# helpers like _run_python_linting_actions (testing.rules.md:## Test From
-# the Outside-In)
-# TODO(ai_gp): Add edge case test for empty file_paths list
-# (testing.rules.md:## What to Test)
 
 class Test_run_python_linting_actions(hunitest.TestCase):
     """
@@ -433,8 +505,6 @@ class Test_run_python_linting_actions(hunitest.TestCase):
             expected,
         )
 
-    # TODO(ai_gp): Use hunteuti.capture_sys_calls() instead of mocking
-    #  `helpers.hsystem.system` directly.
     @umock.patch("helpers.hsystem.system")
     def test3(self, mock_system: umock.MagicMock) -> None:
         """
@@ -479,14 +549,38 @@ class Test_run_python_linting_actions(hunitest.TestCase):
             expected,
         )
 
+    def test5(self) -> None:
+        """
+        Empty file_paths: call made with empty files list.
+        """
+        # Prepare inputs.
+        file_paths = []
+        actions = ["normalize_import"]
+        abort_on_error = True
+        # Prepare outputs.
+        expected_return_code = 0
+        expected = r"""[
+        {
+        'function': hsystem.system,
+        'args': ('linters2/normalize_import.py --no_report_command_line ',),
+        'kwargs': {'print_command': False, 'abort_on_error': True, 'suppress_output': False},
+        },
+        ]"""
+        # Run test.
+        _run_actions_and_check(
+            self,
+            lilint._run_python_linting_actions,
+            file_paths,
+            actions,
+            abort_on_error,
+            expected_return_code,
+            expected,
+        )
+
 
 # #############################################################################
 # Test_lint_python_files
 # #############################################################################
-
-# TODO(ai_gp): Test public-facing behavior first before testing internal
-# helpers like _lint_python_files (testing.rules.md:## Test From the
-# Outside-In)
 
 class Test_lint_python_files(hunitest.TestCase):
     """
@@ -596,10 +690,6 @@ class Test_lint_python_files(hunitest.TestCase):
 # #############################################################################
 # Test_lint_jupyter_files
 # #############################################################################
-
-# TODO(ai_gp): Test public-facing behavior first before testing internal
-# helpers like _lint_jupyter_files (testing.rules.md:## Test From the
-# Outside-In)
 
 class Test_lint_jupyter_files(hunitest.TestCase):
     """
@@ -723,18 +813,14 @@ class Test_lint_jupyter_files(hunitest.TestCase):
 # Test_lint_markdown_files
 # #############################################################################
 
-# TODO(ai_gp): Test public-facing behavior first before testing internal
-# helpers like _lint_markdown_files (testing.rules.md:## Test From the
-# Outside-In)
-
 class Test_lint_markdown_files(hunitest.TestCase):
     """
     Test _lint_markdown_files Markdown file linting.
     """
 
-    # TODO(ai_gp): Do not mock internal helpers like
-    # helpers.hsystem.find_file_in_repo (testing.rules.md:## Mock Only
-    # External Dependencies)
+    # Note: We mock helpers.hsystem.find_file_in_repo because lint_text.py
+    # may not exist as a locatable file in all environments, and the test
+    # should verify _lint_markdown_files behavior, not find_file_in_repo.
     @umock.patch("helpers.hsystem.find_file_in_repo")
     def test1(
         self,
@@ -762,9 +848,6 @@ class Test_lint_markdown_files(hunitest.TestCase):
         self.assertEqual(ret, expected_return_code)
         hunteuti.assert_sys_calls(self, sys_calls, expected)
 
-    # TODO(ai_gp): Do not mock internal helpers like
-    # helpers.hsystem.find_file_in_repo (testing.rules.md:## Mock Only
-    # External Dependencies)
     @umock.patch("helpers.hsystem.find_file_in_repo")
     def test2(
         self,
@@ -985,7 +1068,9 @@ class Test_lint_py(hunitest.TestCase):
         """
         expected = hprint.dedent(expected)
         # Run test.
-        # TODO(ai_gp): Use self.get_scratchspace() instead of temp
+        # Use tempfile instead of get_scratch_space() because pyproject.toml
+        # excludes files under outcomes/, which is where get_scratch_space()
+        # puts files, so ruff would skip them.
         test_dir = os.path.dirname(os.path.abspath(__file__))
         with tempfile.TemporaryDirectory(dir=test_dir) as scratch_dir:
             file_path = os.path.join(scratch_dir, "messy_module.py")
