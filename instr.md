@@ -73,7 +73,7 @@
     `gh_create_pr`)
   - Move `gh_watch` from `lib_tasks_git.py` to `lib_tasks_gh.py`
 
-- [ ] Audit task naming for `<object>_<action>` consistency
+- [-] Audit task naming for `<object>_<action>` consistency
   - List every `git_*`/`gh_*` task name and flag any that don't read as
     `<object>_<action>` (e.g. `git_roll_amp_forward`, `git_files` vs.
     `git_branches` for singular/plural consistency)
