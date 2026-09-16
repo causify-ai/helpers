@@ -129,7 +129,7 @@ The toolchain supports multiple documentation workflows:
     - `preprocess_notes.py`: Converts Causify notes to Pandoc Markdown
     - `render_images.py`: Auto-renders diagrams (PlantUML, Mermaid, TikZ,
       Graphviz)
-    - `transform_notes.py`: Applies transformations (TOC, headers, lists)
+    - `transform_text.py`: Applies transformations (TOC, headers, lists)
     - `update_md.py`: Multi-action LLM tool for markdown files (summarize,
       update content, apply style)
   - Extraction and Conversion Tools
@@ -694,7 +694,7 @@ The `--md_end "END"` special value is useful for reading from a starting section
 - **Tip:** pass `-v CRITICAL` to silence helper logging when piping into
   editors
 
-## `transform_notes.py`
+## `transform_text.py`
 
 ### What It Does
 - Accepts a **text/Markdown** stream (file or `-`)
@@ -705,33 +705,33 @@ The `--md_end "END"` special value is useful for reading from a starting section
 - Run `-a list` to print a list of the valid
   - `toc`
     - Generate a bullet TOC (top-level by default)
-    - Typical Vim one-liner: `:!transform_notes.py -a toc -i % -l 1`
+    - Typical Vim one-liner: `:!transform_text.py -a toc -i % -l 1`
   - `format_headers`
     - Re-flow / indent headers (up to `--max_lev`)
-    - Typical Vim one-liner: `:%!transform_notes.py -a format -i - --max_lev 3`
+    - Typical Vim one-liner: `:%!transform_text.py -a format -i - --max_lev 3`
   - `increase_headers_level`
     - Bump all headers down one level
-    - Typical Vim one-liner: `:%!transform_notes.py -a increase -i -`
+    - Typical Vim one-liner: `:%!transform_text.py -a increase -i -`
   - `md_list_to_latex`
     - Convert a Markdown list to LaTeX `\begin{itemize}`
-    - Typical Vim one-liner: `:%!transform_notes.py -a md_list_to_latex -i -`
+    - Typical Vim one-liner: `:%!transform_text.py -a md_list_to_latex -i -`
   - `md_*` family
     - Formatting clean-ups (bold bullets, colorize bold text, etc.)
     - Additional Information: See `-a list` for more details
 
 - Re‑flow & clean a file in place
   ```bash
-  > transform_notes.py -a md_format -i notes/lecture.txt
+  > transform_text.py -a md_format -i notes/lecture.txt
   ```
 
 - Generate a 2‑level TOC to STDOUT
   ```bash
-  > transform_notes.py -a toc -i notes/lecture.md -o - -l 2
+  > transform_text.py -a toc -i notes/lecture.md -o - -l 2
   ```
 
 - Tidy ChatGPT‑generated Markdown (visual mode in Vim)
   ```vim
-  :'<,'>!transform_notes.py -i - -o - -a md_fix_chatgpt_output
+  :'<,'>!transform_text.py -i - -o - -a md_fix_chatgpt_output
   ```
 
 ## `update_md.py`
