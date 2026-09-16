@@ -14,6 +14,38 @@
   branches, PRs, or repos
   - See `.claude/skills/auto_task.rules.md` section "The Unit of Work"
 
+## Prerequisite: Authorize Git Commits and Pushes
+
+- In the interactive flows, we don't allow agents to commit or push since we want humans
+  to review the code
+- In the automated flows, we want agents to be independent
+
+- A global Claude Code hook (`~/.claude/hooks/check_git_auth.sh`, wired in
+  `~/.claude/settings.json`) blocks any `git commit` / `git push` Bash call from
+  Claude until a flag file exists at `.claude/git_authorized` in the current project
+  - Claude cannot create or remove this file itself: `~/.claude/settings.json`
+    explicitly denies Claude any Bash command or Edit touching `git_authorized`, by
+    design, so the user stays the one who decides when Claude is allowed to
+    commit/push
+  - Before starting an `auto_task`, authorize the session from a normal terminal (not
+    through Claude):
+    ```bash
+    > touch .claude/git_authorized
+    ```
+  - When the work is done, revoke authorization the same way:
+    ```bash
+    > rm .claude/git_authorized
+    ```
+
+- `/auto_task.execute_interactively` commits at the end of each
+  execute-review-commit iteration so it doesn't need permission to commit since
+  user commits
+
+- Every execution mode eventually runs `git commit` and `git push`:
+  - `git_create_issue_and_branch.py` commits and pushes the new issue branch as
+    its very first step, before any task work starts
+  - `/auto_task.execute_with_stacked_prs` pushes each branch in the stack
+
 ## Commands at a Glance
 
 | Stage   | Command                                      | Purpose                                          |
