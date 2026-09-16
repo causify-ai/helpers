@@ -82,7 +82,7 @@
   - ❓ Needs explicit sign-off before renaming anything, since renames break
     muscle memory / scripts that call these tasks by name
 
-- [ ] Update documentation
+- [x] Update documentation
   - docs/tools/all.invoke_workflows.how_to_guide.md
   - docs/tools/git/all.git.how_to_guide.md
   - docs/work_organization/all.use_github.how_to_guide.md

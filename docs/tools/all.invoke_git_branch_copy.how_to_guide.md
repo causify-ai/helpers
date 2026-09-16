@@ -68,6 +68,9 @@
 
   # Create a new branch without checking for naming conventions.
   > i git_branch_copy --new-branch-name="wrongname_123" --no-check-branch-name
+
+  # Preview what the workflow would do without making any changes.
+  > i git_branch_copy --dry-run
   ```
 
 ### Example
@@ -108,16 +111,20 @@
 
   ```bash
   INFO: > cmd='/data/sameepp/src/venv/amp.client_venv/bin/invoke git_branch_diff -t base --only-print-files'
-  04:58:35 - INFO  lib_tasks_git.py _git_diff_with_branch:726
+  04:58:35 - INFO  git_branch_diff.py _git_diff_with_branch:188
   ###############################################################################
   # files=3
   ###############################################################################
-  04:58:35 - INFO  lib_tasks_git.py _git_diff_with_branch:727
+  04:58:35 - INFO  git_branch_diff.py _git_diff_with_branch:189
   ./figs/development/Fig1.png
   ./figs/development/Fig2.png
   docs/work_tools/all.development.how_to_guide.md
-  04:58:35 - WARN  lib_tasks_git.py _git_diff_with_branch:732             Exiting as per user request with --only-print-files
+  04:58:35 - WARN  git_branch_diff.py _git_diff_with_branch:194             Exiting as per user request with --only-print-files
   ```
+
+  - Note: `git_branch_diff`'s logic lives in the standalone script
+    `dev_scripts_helpers/git/git_branch_diff.py`, so log lines show that
+    script's filename rather than `lib_tasks_git.py`
 
 - As shown above, three files have been modified
 
@@ -150,7 +157,7 @@
   Your branch is up to date with 'origin/master'.
   INFO: > cmd='/data/sameepp/src/venv/amp.client_venv/bin/invoke git_branch_create -b CmTask5874_Document_PR_flow_2'
   ## git_branch_create:
-  07:05:00 - INFO  lib_tasks_git.py git_branch_create:413                 branch_name='CmTask5874_Document_PR_flow_2'
+  07:05:00 - INFO  git_branch_create.py _create_branch:155             branch_name='CmTask5874_Document_PR_flow_2'
   git pull --autostash --rebase
   Current branch master is up to date.
   Switched to a new branch 'CmTask5874_Document_PR_flow_2'
