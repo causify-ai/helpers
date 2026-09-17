@@ -54,7 +54,7 @@
     `_delete_branches`, `_get_gh_issue_title`, `_check_if_pr_exists`) and
     test the helper directly instead of the `@task`-decorated wrapper
 
-- [ ] Factor invoke bodies with heavy logic into standalone scripts
+- [x] Factor invoke bodies with heavy logic into standalone scripts
   - Scope: only tasks with non-trivial logic beyond a couple of subprocess
     calls — `git_branch_create`, `git_patch_create`, `git_branch_diff`,
     `git_branch_subset_copy`, `git_backup` — not every task in the file

@@ -7,10 +7,10 @@ import helpers.lib_tasks.lib_tasks_git as hltltagi
 import json
 import logging
 import os
-import re
+import shlex
 import stat
 import subprocess
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional
 
 import tqdm
 from invoke.tasks import task
@@ -22,7 +22,6 @@ import helpers.hsystem as hsystem
 # We want to minimize the dependencies from non-standard Python packages since
 # this code needs to run with minimal dependencies and without Docker.
 import helpers.hgit as hgit
-import helpers.hio as hio
 import helpers.hselect_input_output as hseinout
 import helpers.hprint as hprint
 import helpers.hunit_test_utils as hunteuti
@@ -329,110 +328,21 @@ def git_patch_create(  # type: ignore
     hltltaut.report_task(
         txt=hprint.to_str("mode files from_file modified branch last_commit")
     )
-    _ = ctx
-    # TODO(gp): Check that the current branch is up to date with master to avoid
-    #  failures when we try to merge the patch.
-    hdbg.dassert_in(
-        mode,
-        ("tar", "diff"),
-        "Patch mode must be either 'tar' for archives or 'diff' for patches",
-    )
-    # Currently only handles the current submodule (not parent repos).
-    # TODO(gp): Extend this to handle also nested repos.
-    super_module = False
-    git_client_root = hgit.get_client_root(super_module)
-    hash_ = hgit.get_head_hash(git_client_root, short_hash=True)
-    # Use timestamp and hash to ensure unique patch filenames across time.
-    timestamp = hltltaut.get_ET_timestamp()
-    tag = os.path.basename(git_client_root)
-    dst_file = f"patch.{tag}.{hash_}.{timestamp}"
-    if mode == "tar":
-        dst_file += ".tgz"
-    elif mode == "diff":
-        dst_file += ".patch"
-    else:
-        hdbg.dfatal("Invalid code path")
-    _LOG.debug("dst_file=%s", dst_file)
-    # Show what changes will be included in the patch.
-    _LOG.info(
-        "Difference between HEAD and master:\n%s",
-        hgit.get_summary_files_in_branch("master", dir_name="."),
-    )
-    # Determine which files to include in the patch.
-    all_ = False
-    # Allow optional user-specified file subset (can be combined with other selectors).
-    mutually_exclusive = False
-    # Filter out directories; patches only work with files.
-    remove_dirs = True
-    files_as_list = hgit.get_files_to_process(
-        files,
-        from_file,
-        modified,
-        branch,
-        last_commit,
-        all_,
-        mutually_exclusive=mutually_exclusive,
-        remove_dirs=remove_dirs,
-    )
-    _LOG.info("Files to save:\n%s", hprint.indent("\n".join(files_as_list)))
-    if not files_as_list:
-        _LOG.warning("Nothing to patch: exiting")
-        return
-    files_as_str = " ".join(files_as_list)
-    # Choose command based on patch format: archive vs diff.
-    cmd = ""
-    if mode == "tar":
-        # Create compressed tar archive of the selected files.
-        cmd = f"tar czvf {dst_file} {files_as_str}"
-        cmd_inv = "tar xvzf"
-    elif mode == "diff":
-        # Generate diff against various targets for different merge strategies.
-        opts: str
-        if modified:
-            # Only uncommitted changes in working tree.
-            opts = "HEAD"
-        elif branch:
-            # All changes since branch point (includes commits on current branch).
-            opts = "master..."
-        elif last_commit:
-            # Only changes in the most recent commit.
-            opts = "HEAD^"
-        else:
-            raise ValueError(
-                "You need to specify one among -modified, --branch, "
-                "--last-commit"
-            )
-        cmd = f"git diff {opts} --binary {files_as_str} >{dst_file}"
-        cmd_inv = "git apply"
-    else:
-        raise ValueError(f"Invalid cmd='{cmd}'")
-    # Execute the patch creation command.
-    _LOG.info("Creating the patch into %s", dst_file)
-    hdbg.dassert_ne(
-        cmd,
-        "",
-        "Patch creation command must not be empty",
-    )
-    _LOG.debug("cmd=%s", cmd)
-    rc = hsystem.system(cmd, abort_on_error=False)
-    if not rc:
-        _LOG.warning("Command failed with rc=%d", rc)
-    # Provide instructions for applying the patch on different environments.
-    remote_file = os.path.basename(dst_file)
-    abs_path_dst_file = os.path.abspath(dst_file)
-    msg = f"""
-    # To apply the patch and execute:
-    > git checkout {hash_}
-    > {cmd_inv} {abs_path_dst_file}
-
-    # To apply the patch to a remote client:
-    > export SERVER="server"
-    > export CLIENT_PATH="~/src"
-    > scp {dst_file} $SERVER:
-    > ssh $SERVER 'cd $CLIENT_PATH && {cmd_inv} ~/{remote_file}'"
-    """
-    msg = hprint.dedent(msg)
-    print(msg)
+    script_path = hsystem.find_file_in_repo("git_patch_create.py")
+    cmd = str(script_path)
+    if mode != "diff":
+        cmd += f" --mode {mode}"
+    if files:
+        cmd += f" --files {shlex.quote(files)}"
+    if from_file:
+        cmd += f" --from_file {shlex.quote(from_file)}"
+    if modified:
+        cmd += " --modified"
+    if branch:
+        cmd += " --branch"
+    if last_commit:
+        cmd += " --last_commit"
+    hltltaut.run(ctx, cmd)
 
 
 @task
@@ -605,51 +515,6 @@ def git_branch_files(ctx):  # type: ignore
     )
 
 
-def _get_branch_name_for_issue(
-    issue_id: int, repo_short_name: str, suffix: str
-) -> str:
-    """
-    Compute the branch name corresponding to `issue_id`.
-
-    When `suffix` is empty, auto-pick the next free suffix via
-    `hgit.get_branch_next_name()` instead of requiring the caller to guess
-    one.
-
-    :param issue_id: GitHub issue ID to derive the branch name from
-    :param repo_short_name: repo the issue belongs to
-    :param suffix: explicit suffix to append (e.g., "02"); if empty, the next
-        free suffix is auto-picked
-    :return: branch name (e.g., `HelpersTask123_Fix_bug` or
-        `HelpersTask123_Fix_bug_3`)
-    """
-    title, _ = hltltagh._get_gh_issue_title(issue_id, repo_short_name)
-    branch_name = title
-    _LOG.info(
-        "Issue %d in %s repo_short_name corresponds to '%s'",
-        issue_id,
-        repo_short_name,
-        branch_name,
-    )
-    if suffix != "":
-        branch_name += "_" + suffix
-    else:
-        branch_name = hgit.get_branch_next_name(curr_branch_name=branch_name)
-    return branch_name
-
-
-def _dassert_branch_available(branch_name: str) -> None:
-    """
-    Assert that `branch_name` does not already exist locally or remotely.
-
-    :param branch_name: branch name to check
-    """
-    hdbg.dassert(
-        not hgit.does_branch_exist(branch_name, mode="all"),
-        "Branch '%s' already exists",
-        branch_name,
-    )
-
-
 @task
 def git_branch_create(  # type: ignore
     ctx,
@@ -695,87 +560,28 @@ def git_branch_create(  # type: ignore
     :param abort_if_not_master: abort if not on master branch
         (default: True, only used if only_branch_from_master is True)
     """
-    hdbg.dassert(
-        not any(suffix.startswith(char) for char in "_-."),
-        "suffix='%s' should not start with _, -, or . since it's added as '_{suffix}'",
-        suffix,
-    )
     hltltaut.report_task()
-    # Verify working directory is clean if requested.
-    hgit.is_client_clean(dir_name=".", abort_if_not_clean=abort_if_not_clean)
-    if issue_id > 0:
-        # Convert GitHub issue ID to branch name.
-        hdbg.dassert_eq(
-            branch_name,
-            "",
-            "Cannot specify both --issue and --branch-name; choose one",
-        )
-        branch_name = _get_branch_name_for_issue(
-            issue_id, repo_short_name, suffix
-        )
-    _LOG.info("branch_name='%s'", branch_name)
-    hdbg.dassert_ne(
-        branch_name,
-        "",
-        "Branch name cannot be empty",
-    )
-    if check_branch_name:
-        # Reject numeric-only branch names to avoid confusion with commit SHAs.
-        m = re.match(r"^\d+$", branch_name)
-        hdbg.dassert(
-            not m,
-            "Branch names with only numbers are invalid",
-        )
-        # Enforce naming convention `{RepoPrefix}TaskXYZ_Description` for consistency.
-        # The valid format of a branch name is `AmpTask1903_Implemented_system_...`.
-        # Allow personal/scratch branches like `gp`, `gp_2`, `gp_scratch_3`,
-        # which are used for throwaway work not tied to a GitHub issue.
-        task_pattern = r"^\S+Task\d+_\S+$"
-        personal_pattern = r"^gp(_(scratch\w*|\d+))?$"
-        m = re.match(task_pattern, branch_name) or re.match(
-            personal_pattern, branch_name
-        )
-        hdbg.dassert(
-            m,
-            "Branch name must follow convention: '{RepoPrefix,Amp,...}TaskXYZ_...'",
-        )
-    # Prevent accidental duplicate branches.
-    _dassert_branch_available(branch_name)
-    # Ensure we are branching from master if required.
-    if only_branch_from_master:
-        curr_branch = hgit.get_branch_name()
-        if curr_branch != "master":
-            hdbg.dassert(
-                not abort_if_not_master,
-                "Must be on 'master' branch to create new branch; "
-                "currently on '%s'",
-                curr_branch,
-            )
-            _LOG.info(
-                f"Switching from '{curr_branch}' to 'master' to create branch"
-            )
-            cmd = "git checkout master"
-            hltltaut.run(ctx, cmd)
-    # Fetch latest master to ensure we have the most recent changes.
-    cmd = "git pull --autostash --rebase"
+    script_path = hsystem.find_file_in_repo("git_branch_create.py")
+    cmd = str(script_path)
+    if branch_name:
+        cmd += f" --branch_name {shlex.quote(branch_name)}"
+    if issue_id:
+        cmd += f" --issue_id {issue_id}"
+    if repo_short_name != "current":
+        cmd += f" --repo_short_name {shlex.quote(repo_short_name)}"
+    if suffix:
+        cmd += f" --suffix {shlex.quote(suffix)}"
+    if not only_branch_from_master:
+        cmd += " --no_only_branch_from_master"
+    if not check_branch_name:
+        cmd += " --no_check_branch_name"
+    if not create_pr:
+        cmd += " --no_create_pr"
+    if not abort_if_not_clean:
+        cmd += " --no_abort_if_not_clean"
+    if not abort_if_not_master:
+        cmd += " --no_abort_if_not_master"
     hltltaut.run(ctx, cmd)
-    # git checkout -b LmTask169_Get_GH_actions_working_on_lm
-    cmd = f"git checkout -b {branch_name}"
-    hltltaut.run(ctx, cmd)
-    cmd = f"git push --set-upstream origin {branch_name}"
-    hltltaut.run(ctx, cmd)
-    # Create a draft PR if requested.
-    if create_pr:
-        _LOG.info("Creating draft PR for branch '%s'", branch_name)
-        # Create empty commit to ensure there's at least one commit for the PR.
-        cmd = 'git commit --allow-empty -m "Draft PR"'
-        hltltaut.run(ctx, cmd)
-        cmd = "git push"
-        hltltaut.run(ctx, cmd)
-        try:
-            hltltagh.gh_create_pr(ctx, draft=True)
-        except Exception as e:
-            _LOG.warning("Failed to create PR: %s", e)
 
 
 def _delete_branches(tag: str, confirm_delete: bool) -> None:
@@ -1085,316 +891,21 @@ def git_branch_subset_copy(  # type: ignore
         - 'linear_scan': use only linear scan method (always works)
     :param dst_dir: destination directory where new branch will be created
     """
-    # Validate inputs.
-    if pr > 0:
-        hdbg.dassert_eq(from_file, "")
-        # Use PR-based file list.
-        from_file = f"pr{pr}.files.txt"
-    hdbg.dassert_ne(
-        from_file,
-        "",
-        "from_file or --pr must be provided",
-    )
-    hdbg.dassert_ne(
-        dst_dir,
-        "",
-        "dst_dir must be provided",
-    )
-    hdbg.dassert_file_exists(from_file)
-    hdbg.dassert_dir_exists(dst_dir)
-    # Get next branch name.
-    branch_name = hgit.get_branch_next_name(method=method)
-    _LOG.info("branch_name='%s'", branch_name)
-    hdbg.dassert_ne(
-        branch_name,
-        None,
-        "Branch name must not be None after generation",
-    )
-    # Allow scratch branches to bypass naming convention.
-    check_branch_name = not branch_name.startswith("gp_scratch")
-    # Navigate to destination directory and create branch.
-    original_dir = os.getcwd()
-    try:
-        os.chdir(dst_dir)
-        cmd = "git checkout master"
-        hltltaut.run(ctx, cmd)
-        #
-        cmd = f"invoke git_branch_create --branch-name '{branch_name}'"
-        if not check_branch_name:
-            cmd += " --no-check-branch-name"
-        hltltaut.run(ctx, cmd)
-        # Copy files from current directory to destination directory.
-        with open(from_file) as f:
-            files_to_copy = [line.strip() for line in f if line.strip()]
-        _LOG.info("Copying %d files to destination", len(files_to_copy))
-        cmd = f"copy_across_clients.py --dir1 {original_dir} --dir2 {dst_dir} --from_file {from_file}"
-        hsystem.system(cmd)
-        # Copy pytest script if using PR mode.
-        if pr > 0:
-            pytest_src = os.path.join(original_dir, f"pr{pr}.pytest.sh")
-            hdbg.dassert_file_exists(pytest_src)
-            pytest_dst = os.path.join(dst_dir, f"pr{pr}.pytest.sh")
-            _LOG.info("Copying %s to %s", pytest_src, pytest_dst)
-            hsystem.system(f"cp {pytest_src} {pytest_dst}")
-    finally:
-        os.chdir(original_dir)
+    hltltaut.report_task()
+    script_path = hsystem.find_file_in_repo("git_branch_subset_copy.py")
+    cmd = str(script_path)
+    if from_file:
+        cmd += f" --from_file {shlex.quote(from_file)}"
+    if pr:
+        cmd += f" --pr {pr}"
+    if method != "auto":
+        cmd += f" --method {method}"
+    if dst_dir:
+        cmd += f" --dst_dir {shlex.quote(dst_dir)}"
+    hltltaut.run(ctx, cmd)
 
 
 # ///////////////////////////////////////////////////////////////////////////////
-
-
-def _git_diff_with_branch(
-    ctx: Any,
-    hash_: str,
-    tag: str,
-    #
-    dir_name: str,
-    subdir: str,
-    #
-    diff_type: str,
-    file_types: str,
-    skip_file_types: str,
-    files_filter: str,
-    from_file_filter: str,
-    #
-    only_print_files: bool,
-    dry_run: bool,
-) -> None:
-    """
-    Diff files from this client against files in a branch using vimdiff.
-
-    Same parameters as `git_branch_diff`.
-    """
-    _LOG.debug(
-        hprint.to_str(
-            "hash_ tag dir_name diff_type subdir file_types skip_file_types"
-            " files_filter from_file_filter only_print_files dry_run"
-        )
-    )
-    # Diff only works on non-master branches to avoid comparing with itself.
-    curr_branch_name = hgit.get_branch_name()
-    hdbg.dassert_ne(
-        curr_branch_name,
-        "master",
-        "Cannot diff master branch against itself",
-    )
-    # Retrieve the list of changed files between current state and the given hash.
-    cmd = []
-    cmd.append("git diff")
-    if diff_type:
-        cmd.append(f"--diff-filter={diff_type}")
-    cmd.append(f"--name-only HEAD {hash_}")
-    cmd = " ".join(cmd)
-    files = hsystem.system_to_files(
-        cmd, dir_name, remove_files_non_present=False
-    )
-    files = sorted(files)
-    _LOG.debug("%s", "\n".join(files))
-    # Filter by specific files if requested.
-    if files_filter:
-        _LOG.debug("Filter by files_filter")
-        _LOG.info("Before filtering files=%s", len(files))
-        filter_files = files_filter.split()
-        files_tmp = []
-        for f in files:
-            if f in filter_files:
-                files_tmp.append(f)
-        hdbg.dassert_lt(
-            0,
-            len(files_tmp),
-            "No files matching files_filter='%s' in\n%s",
-            files_filter,
-            "\n".join(files),
-        )
-        files = files_tmp
-        _LOG.info("After filtering by files_filter: files=%s", len(files))
-        _LOG.debug("%s", "\n".join(files))
-    # Filter by file list if requested.
-    if from_file_filter:
-        _LOG.debug("Filter by from_file_filter")
-        _LOG.info("Before filtering files=%s", len(files))
-        with open(from_file_filter) as f:
-            filter_files = [line.strip() for line in f if line.strip()]
-        files_tmp = []
-        for f in files:
-            if f in filter_files:
-                files_tmp.append(f)
-        hdbg.dassert_lt(
-            0,
-            len(files_tmp),
-            "No files matching from_file_filter='%s' in\n%s",
-            from_file_filter,
-            "\n".join(files),
-        )
-        files = files_tmp
-        _LOG.info("After filtering by from_file_filter: files=%s", len(files))
-        _LOG.debug("%s", "\n".join(files))
-    # Keep only files with specified extensions (useful for focusing on code vs docs).
-    if file_types:
-        _LOG.debug("# Filter by file_types")
-        _LOG.debug("Before filtering files=%s", len(files))
-        extensions_lst = file_types.split(",")
-        _LOG.warning(
-            "Keeping files with %d extensions: %s",
-            len(extensions_lst),
-            extensions_lst,
-        )
-        files_tmp = []
-        for f in files:
-            if any(f.endswith(ext) for ext in extensions_lst):
-                files_tmp.append(f)
-        files = files_tmp
-        _LOG.info("After filtering by file_types: files=%s", len(files))
-        _LOG.debug("%s", "\n".join(files))
-    # Exclude files with specified extensions (useful for skipping config or build files).
-    if skip_file_types:
-        _LOG.debug("# Filter by skip_file_types")
-        _LOG.debug("Before filtering files=%s", len(files))
-        extensions_lst = skip_file_types.split(",")
-        _LOG.warning(
-            "Skipping files with %d extensions: %s",
-            len(extensions_lst),
-            extensions_lst,
-        )
-        files_tmp = []
-        for f in files:
-            if not any(f.endswith(ext) for ext in extensions_lst):
-                files_tmp.append(f)
-        files = files_tmp
-        _LOG.info("After filtering by skip_file_types: files=%s", len(files))
-        _LOG.debug("%s", "\n".join(files))
-    # Limit diff to files within a specific subdirectory.
-    if subdir != "":
-        _LOG.debug("# Filter by subdir")
-        _LOG.debug("Before filtering files=%s", len(files))
-        files_tmp = []
-        for f in files:
-            if f.startswith(subdir):
-                files_tmp.append(f)
-        files = files_tmp
-        _LOG.info("After filtering by subdir: files=%s", len(files))
-        _LOG.debug("%s", "\n".join(files))
-    # Summary of what will be diffed.
-    _LOG.info("\n" + hprint.frame(f"# files={len(files)}"))
-    _LOG.info("\n" + "\n".join(files))
-    if len(files) == 0:
-        _LOG.warning("No files match the filter criteria: exiting")
-        return
-    if only_print_files:
-        _LOG.warning("Exiting as per user request with --only-print-files")
-        return
-    # Create temporary directory to store base versions for comparison.
-    root_dir = hgit.get_repo_full_name_from_client(super_module=True)
-    # TODO(gp): We should get a temp dir.
-    dst_dir = f"/tmp/{root_dir}/tmp.{tag}"
-    hio.create_dir(dst_dir, incremental=False)
-    # Build vimdiff commands for each file, retrieving base version from source hash.
-    script_txt = []
-    for branch_file in files:
-        _LOG.debug("\n%s", hprint.frame(f"branch_file={branch_file}"))
-        # Use current file as right side (what the branch currently has).
-        if os.path.exists(branch_file):
-            right_file = branch_file
-        else:
-            # For deleted files, use /dev/null as the right side.
-            right_file = "/dev/null"
-        # Flatten directory structure to avoid naming conflicts in temp directory.
-        tmp_file = branch_file
-        tmp_file = tmp_file.replace("/", "_")
-        tmp_file = os.path.join(dst_dir, tmp_file)
-        _LOG.debug(
-            "Extracting base version of %s to %s",
-            branch_file,
-            tmp_file,
-        )
-        # Extract the base version from the specified hash/branch.
-        cmd = f"git show {hash_}:{branch_file} >{tmp_file}"
-        rc = hsystem.system(cmd, abort_on_error=False)
-        if rc != 0:
-            # File is new in the branch (didn't exist in base hash).
-            _LOG.debug("File '%s' is new (doesn't exist in base)", branch_file)
-            left_file = "/dev/null"
-        else:
-            left_file = tmp_file
-        # Generate vimdiff command to compare base and current versions.
-        cmd = f"vimdiff {left_file} {right_file}"
-        _LOG.debug("-> %s", cmd)
-        script_txt.append(cmd)
-    script_txt = "\n".join(script_txt)
-    # Display the diff commands that will be executed.
-    _LOG.info("\n%s" % hprint.frame("Diffing script"))
-    _LOG.info(script_txt)
-    # Create executable script for easy manual re-running.
-    script_file_name = f"./tmp.vimdiff_branch_with_{tag}.sh"
-    msg = f"To diff against {tag} run"
-    hio.create_executable_script(script_file_name, script_txt, msg=msg)
-    hltltaut.run(ctx, script_file_name, dry_run=dry_run, pty=True)
-    # Clean up temporary files.
-    cmd = f"rm -rf {dst_dir}"
-    hltltaut.run(ctx, cmd, dry_run=dry_run)
-
-
-def _git_diff_with_branch_wrapper(
-    ctx: Any,
-    hash_: str,
-    tag: str,
-    #
-    dir_name: str,
-    subdir: str,
-    include_submodules: bool,
-    #
-    diff_type: str,
-    file_types: str,
-    skip_file_types: str,
-    files_filter: str,
-    from_file_filter: str,
-    #
-    only_print_files: bool,
-    dry_run: bool,
-) -> None:
-    """
-    Wrapper for `_git_diff_with_branch()` that handles submodules.
-
-    Delegates to `_git_diff_with_branch()`. If include_submodules is True, also
-    runs the diff for the amp submodule if present.
-
-    Parameters are the same as _git_diff_with_branch with the addition of:
-    :param include_submodules: if True, also diff the amp submodule
-    """
-    hdbg.dassert_eq(dir_name, ".")
-    # Diff files in the main repository.
-    _git_diff_with_branch(
-        ctx,
-        hash_,
-        tag,
-        dir_name,
-        subdir,
-        diff_type,
-        file_types,
-        skip_file_types,
-        files_filter,
-        from_file_filter,
-        only_print_files,
-        dry_run,
-    )
-    # Also diff the amp submodule if it exists and was requested.
-    if include_submodules:
-        if hgit.is_amp_present():
-            with hsystem.cd("amp"):
-                _git_diff_with_branch(
-                    ctx,
-                    hash_,
-                    tag,
-                    dir_name,
-                    subdir,
-                    diff_type,
-                    file_types,
-                    skip_file_types,
-                    files_filter,
-                    from_file_filter,
-                    only_print_files,
-                    dry_run,
-                )
 
 
 @task
@@ -1447,81 +958,35 @@ def git_branch_diff(  # type: ignore
     :param only_print_files: print files to diff and exit
     :param dry_run: execute diffing script or not
     """
-    # Determine the comparison target based on user preference.
-    dir_name = "."
-    # Let last_commit trigger implicit target selection.
+    hltltaut.report_task()
+    script_path = hsystem.find_file_in_repo("git_branch_diff.py")
+    cmd = str(script_path)
+    if target != "base":
+        cmd += f" --target {target}"
+    if hash_value:
+        cmd += f" --hash_value {shlex.quote(hash_value)}"
+    if files:
+        cmd += f" --files {shlex.quote(files)}"
+    if from_file:
+        cmd += f" --from_file {shlex.quote(from_file)}"
     if last_commit:
-        target = "last_commit"
-    hdbg.dassert_in(
-        target,
-        ("base", "master", "head", "hash", "last_commit"),
-        "Invalid target",
-    )
-    # Resolve target to a specific git hash for consistent diffing.
-    if target == "base":
-        # Compare against the point where this branch diverged from master.
-        hdbg.dassert_eq(
-            hash_value,
-            "",
-            "Cannot specify hash_value when target is 'base'",
-        )
-        hash_value = hgit.get_branch_hash(dir_name=dir_name)
-        tag = "base"
-    elif target == "master":
-        # Compare against the current state of the remote master branch.
-        hdbg.dassert_eq(
-            hash_value,
-            "",
-            "Cannot specify hash_value when target is 'master'",
-        )
-        hash_value = "origin/master"
-        tag = "origin_master"
-    elif target == "head":
-        # Compare working directory against HEAD (uncommitted changes).
-        hdbg.dassert_eq(
-            hash_value,
-            "",
-            "Cannot specify hash_value when target is 'head'",
-        )
-        hash_value = ""
-        tag = "head"
-    elif target == "last_commit":
-        # Compare against the previous commit.
-        hdbg.dassert_eq(
-            hash_value,
-            "",
-            "Cannot specify hash_value when target is 'last_commit'",
-        )
-        hash_value = "HEAD^"
-        tag = "last_commit"
-    elif target == "hash":
-        # Compare against a user-specified commit hash.
-        hdbg.dassert_ne(
-            hash_value,
-            "",
-            "Must provide hash_value when target is 'hash'",
-        )
-        tag = f"hash@{hash_value}"
-    else:
-        raise ValueError(f"Invalid target='{target}")
-    _git_diff_with_branch_wrapper(
-        ctx,
-        hash_value,
-        tag,
-        #
-        dir_name,
-        subdir,
-        include_submodules,
-        #
-        diff_type,
-        file_types,
-        skip_file_types,
-        files,
-        from_file,
-        #
-        only_print_files,
-        dry_run,
-    )
+        cmd += " --last_commit"
+    if subdir:
+        cmd += f" --subdir {shlex.quote(subdir)}"
+    if include_submodules:
+        cmd += " --include_submodules"
+    if diff_type:
+        cmd += f" --diff_type {shlex.quote(diff_type)}"
+    if file_types:
+        cmd += f" --file_types {shlex.quote(file_types)}"
+    if skip_file_types:
+        cmd += f" --skip_file_types {shlex.quote(skip_file_types)}"
+    if only_print_files:
+        cmd += " --only_print_files"
+    if dry_run:
+        cmd += " --dry_run"
+    # Allocate a pseudo-terminal since the script may launch `vimdiff`.
+    hltltaut.run(ctx, cmd, pty=True)
 
 
 @task
@@ -1640,56 +1105,6 @@ def git_branch_is_merged(ctx):  # type: ignore
     ctx.run(cmd, pty=True)
 
 
-def _collect_backup_files(
-    file_mode: str, include_subrepos: bool
-) -> List[Tuple[str, str]]:
-    """
-    Collect `(repo_path, file_path)` pairs to include in the backup zip.
-
-    :param file_mode: which files to include: "all", "modified", or
-        "untracked"
-    :param include_subrepos: whether to also collect submodule files
-    :return: list of `(repo_path, file_path)` pairs, `repo_path` being
-        `"."` for the main repository
-    """
-    # Collect files from the main repository.
-    _LOG.info("Collecting %s files from main repository...", file_mode)
-    main_repo_files = hgit.get_modified_and_untracked_files(".", mode=file_mode)
-    _LOG.info("Found %d files in main repository", len(main_repo_files))
-    all_files = []
-    for file_path in main_repo_files:
-        all_files.append((".", file_path))
-    # Also include submodule files if requested to ensure complete backup.
-    if include_subrepos:
-        submodule_paths = _get_submodule_paths()
-        if submodule_paths:
-            _LOG.info(
-                "Found %d submodule(s), collecting files...",
-                len(submodule_paths),
-            )
-            for submodule_path in submodule_paths:
-                hdbg.dassert_dir_exists(
-                    submodule_path,
-                    msg=f"Submodule path does not exist: {submodule_path}",
-                )
-                _LOG.info("Checking submodule: %s", submodule_path)
-                submodule_files = hgit.get_modified_and_untracked_files(
-                    submodule_path, mode=file_mode
-                )
-                _LOG.info(
-                    "Found %d files in submodule %s",
-                    len(submodule_files),
-                    submodule_path,
-                )
-                for file_path in submodule_files:
-                    all_files.append((submodule_path, file_path))
-        else:
-            _LOG.info("No submodules found")
-    else:
-        _LOG.info("Skipping submodules (include_subrepos=False)")
-    return all_files
-
-
 @task
 def git_backup(
     ctx,
@@ -1717,77 +1132,17 @@ def git_backup(
     hltltaut.report_task(
         txt=hprint.to_str("file_mode, backup_dir, include_subrepos, dry_run")
     )
-    _ = ctx
-    # Validate backup scope to ensure user intent is clear.
-    valid_modes = ["all", "modified", "untracked"]
-    hdbg.dassert_in(
-        file_mode,
-        valid_modes,
-        "Invalid file_mode '%s'; must be one of: %s",
-        file_mode,
-        ", ".join(valid_modes),
-    )
-    # Use default backup location if not specified.
-    if backup_dir is None:
-        backup_dir = os.path.join(os.path.expanduser("~"), "src", "backups")
-    hio.create_dir(backup_dir, incremental=True)
-    # Determine repository name for readable backup file naming.
-    super_module = False
-    git_client_root = hgit.get_client_root(super_module)
-    # Include timestamp to avoid overwriting previous backups.
-    timestamp = hltltaut.get_ET_timestamp()
-    repo_name = os.path.basename(git_client_root)
-    zip_file_name = f"modified_files.{repo_name}.{timestamp}.zip"
-    # Collect files from the main repository and, optionally, submodules.
-    all_files = _collect_backup_files(file_mode, include_subrepos)
-    # Verify there's content to backup before proceeding.
-    if not all_files:
-        _LOG.warning("No %s files found. Nothing to zip.", file_mode)
-        return
-    # Display summary of what will be backed up.
-    _LOG.info(
-        "\n%s\nFound %d total files to include:\n%s",
-        hprint.frame("Files to include in zip"),
-        len(all_files),
-        hprint.indent(
-            "\n".join(
-                [
-                    (
-                        os.path.join(repo_path, file_path)
-                        if repo_path != "."
-                        else file_path
-                    )
-                    for repo_path, file_path in all_files
-                ]
-            )
-        ),
-    )
+    script_path = hsystem.find_file_in_repo("git_backup.py")
+    cmd = str(script_path)
+    if file_mode != "all":
+        cmd += f" --file_mode {file_mode}"
+    if backup_dir is not None:
+        cmd += f" --backup_dir {shlex.quote(backup_dir)}"
+    if not include_subrepos:
+        cmd += " --no_include_subrepos"
     if dry_run:
-        _LOG.warning("Dry-run mode: not creating zip file")
-        return
-    # Create zip file with all collected files.
-    zip_file_path = os.path.join(backup_dir, zip_file_name)
-    _LOG.info("Creating zip file: %s", zip_file_path)
-    import zipfile
-
-    with zipfile.ZipFile(zip_file_path, "w", zipfile.ZIP_DEFLATED) as zipf:
-        for repo_path, file_path in all_files:
-            full_path = os.path.join(repo_path, file_path)
-            # Maintain directory hierarchy in archive for easy restoration.
-            arcname = (
-                os.path.join(repo_path, file_path)
-                if repo_path != "."
-                else file_path
-            )
-            try:
-                zipf.write(full_path, arcname=arcname)
-                _LOG.debug("Added to zip: %s", arcname)
-            except Exception as e:
-                _LOG.warning("Failed to add %s to zip: %s", full_path, e)
-    _LOG.info("Successfully created zip file: %s", zip_file_path)
-    # Display location for easy access.
-    abs_zip_path = os.path.abspath(zip_file_path)
-    print(f"\nZip file created at: {abs_zip_path}")
+        cmd += " --dry_run"
+    hltltaut.run(ctx, cmd)
 
 
 # TODO(ai_gp): Merge this inside the other flow `invoke gh_workflow_list --daemon`
