@@ -9,11 +9,13 @@ import logging
 import os
 import shlex
 import stat
+import subprocess
 from typing import Any, Dict, List, Optional
 
 import tqdm
 from invoke.tasks import task
 
+import helpers.hdaemon as hdaemon
 import helpers.hdbg as hdbg
 import helpers.hsystem as hsystem
 
@@ -1186,6 +1188,29 @@ def git_backup(
     if dry_run:
         cmd += " --dry_run"
     hltltaut.run(ctx, cmd)
+
+
+# TODO(ai_gp): Merge this inside the other flow `invoke gh_workflow_list --daemon`
+@task
+def gh_watch(ctx, *, interval=60):  # type: ignore
+    """
+    Watch GitHub workflow status with periodic updates.
+
+    Runs `invoke gh_workflow_list` every N seconds. If running in tmux,
+    temporarily renames the window to "*GH_WATCH*" for visibility and restores it
+    on exit.
+
+    :param interval: Update interval in seconds
+    """
+    hltltaut.report_task()
+
+    def _run() -> None:
+        # Clear screen before displaying updated workflow status.
+        subprocess.run("clear; invoke gh_workflow_list", shell=True)
+
+    hdaemon.run_periodic_daemon_mode(
+        _run, interval, window_name_str="*GH_WATCH*"
+    )
 
 
 # #############################################################################
