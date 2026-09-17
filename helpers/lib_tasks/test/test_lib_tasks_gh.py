@@ -745,7 +745,8 @@ class Test_gh_create_pr(hunitest.TestCase):
         actual = [call.args[0] for call in ctx.run.mock_calls]
         expected = [
             "gh pr create --repo github.com/causify-ai/helpers --draft "
-            '--title "HelpersTask123_Fix_bug" --body "Desc\n\n#123"'
+            "--title HelpersTask123_Fix_bug "
+            "--body-file tmp.gh_create_pr.body.txt"
         ]
         self.assert_equal(str(actual), str(expected))
 

@@ -139,9 +139,12 @@
 ## Workflows
 
 ### Find and Apply a Specific Rule to a File
-1. Locate the rule with `rigrule "<keyword>"` or by browsing
-   `.claude/skills/<TOPIC>.rules.md`
-2. Apply it with `cc_lint.py --rule "<keyword or path:line>" --files "<file>" --mode one_shot_with_cc`
+- Locate the rule with `rigrule "<keyword>"` or by browsing
+  `.claude/skills/<TOPIC>.rules.md`
+- Apply it with
+  ```bash
+  > cc_lint.py --rule "<keyword or path:line>" --files "<file>" --mode one_shot_with_cc`
+  ```
 
 ### Lint Files by Topic Instead of a Single Rule
 - Use `cc_lint.py --files "<files>" --topic <topic> --mode one_shot_with_cc`
@@ -150,31 +153,35 @@
   state rather than by name
 
 ### Run a Skill on a File
-- Use `cc_lint.py --files "<file>" --skill <topic>.<action> --mode one_shot_with_cc`
-  to execute one skill (as opposed to a whole rules file) on a file
+- Execute one skill (as opposed to a whole rules file) on a file:
+  ```
+  > cc_lint.py --files "<file>" --skill <topic>.<action> --mode one_shot_with_cc
+  ```
 
 ### Create or Browse a Skill
-1. `mdm skill list` (or `mdm skill list <pattern>`) to see what already exists
-2. `mdm skill edit <topic>.<action>` to open the skill, or scaffold a new one if
-   it doesn't exist yet
-3. Follow `.claude/skills/skill.rules.md` for frontmatter, structure, and
-   naming; add or update the topic's `.claude/skills/<topic>.rules.md` if the
-   skill introduces a new convention
+- `mdm skill list` (or `mdm skill list <pattern>`) to see what already exists
+- `mdm skill edit <topic>.<action>` to open the skill, or scaffold a new one if
+  it doesn't exist yet
+- Follow `.claude/skills/skill.rules.md` for frontmatter, structure, and naming; add
+  or update the topic's `.claude/skills/<topic>.rules.md` if the skill introduces a
+  new convention
 
 ### Add or Update a Rule
-1. Decide rule vs. skill per `.claude/skills/skill.rules.md` ("Rules vs
-   Skills"): rules capture conventions and decision criteria that apply across
-   tasks; skills capture a single step-by-step task
-2. Edit `.claude/skills/<TOPIC>.rules.md`, keeping related rules grouped under
-   `#` sections with `##` sub-rules
-3. Verify the rule is discoverable: `rigrule "<keyword>"` should resolve to it
-   uniquely
+- Decide rule vs. skill per `.claude/skills/skill.rules.md` ("Rules vs Skills"):
+  rules capture conventions and decision criteria that apply across tasks; skills
+  capture a single step-by-step task
+- Edit `.claude/skills/<TOPIC>.rules.md`, keeping related rules grouped under `#`
+  sections with `##` sub-rules
+- Verify the rule is discoverable: `rigrule "<keyword>"` should resolve to it
+  uniquely
 
 ### Start a New File From a Template
-1. Look up the file type in `.claude/rules.md` to find its template (e.g.,
-   `.py` -> `.claude/templates/coding.template.py`)
-2. Copy the template to the new file's path and fill in the `<VAR>`
-   placeholders
-3. Apply the corresponding rules with `cc_lint.py --files "<file>" --topic
-   <topic> --mode one_shot_with_cc` to check the new file follows conventions
-   the template doesn't already encode (e.g., naming, docstring content)
+- Look up the file type in `.claude/rules.md` to find its template (e.g., `.py` ->
+  `.claude/templates/coding.template.py`)
+- Copy the template to the new file's path and fill in the `<VAR>` placeholders
+- Apply the corresponding rules with
+  ```
+  > cc_lint.py --files "<file>" --topic <topic> --mode one_shot_with_cc
+  ```
+  to check the new file follows conventions the template doesn't already encode
+  (e.g., naming, docstring content)

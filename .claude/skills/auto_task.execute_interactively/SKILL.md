@@ -20,9 +20,8 @@ model: haiku
 
 # Conventions
 
-- Follow `.claude/skills/auto_task.rules.md` for queue, spec, and naming conventions
-- Follow `.claude/skills/coding.rules.md` when implementing each task
-- Follow `.claude/skills/testing.rules.md` for the tests each task adds or runs
+- Follow `.claude/skills/auto_task.rules.md` for queue, spec, naming, and
+  coding/testing conventions
 
 # Constraints
 
@@ -39,14 +38,13 @@ model: haiku
   Task List Before Executing" for the task list format and the problem/solution check
 - Make sure each task is clear and create a plan in 5 markdown bullets in `<FILE>`
   under each task
-- If the order or a dependency is unclear, ask before starting: fixing a wrong
-  dependency after the stack is built means rebasing everything above it
+- If the order or a dependency is unclear, follow `.claude/skills/auto_task.rules.md`
+  section "Ask for Clarification Before Executing an Unclear Plan" before starting
 
 ## Create the Issue and the Branch
 
-- One GH issue covers the whole task list in `<FILE>`; do not open a separate issue
-  per task (see `.claude/skills/auto_task.rules.md`, "One GitHub Issue Is the Unit of
-  Work")
+- Follow `.claude/skills/auto_task.rules.md` section "One GitHub Issue Is the Unit
+  of Work": one GH issue covers the whole task list in `<FILE>`
 - Create the issue and the branch named after it
   (`<RepoPrefix>Task<IssueNum>_<Description>`) in one shot with
   `git_create_issue_and_branch.py`: it is more general than the raw
@@ -89,6 +87,15 @@ model: haiku
   changes and then commit
 - Push the commit; if the branch has no PR yet (first task), open the draft PR now
   that there is a commit to diff against `master`
+  - If the task spans more than one repo (see `.claude/skills/auto_task.rules.md`
+    "Multi-Repo Issues, Branches, and PRs"), open the draft PR in every affected
+    repo, then refresh the issue's companion PR links:
+
+    ```bash
+    > git_create_issue_and_branch.py --gh_issue_id <NUM> --submodules \
+        --update_pr_links
+    ```
+
 - Once the user confirms that the N-th task is complete, move to the N+1 following
   the same procedure as per `Loop over the Tasks`
 

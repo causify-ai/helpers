@@ -46,7 +46,7 @@ else
     AUTH_FILE="$DEFAULT_AUTH_FILE"
 fi
 
-# Read the hook input JSON (only used to make the denial message concrete).
+# Read the hook input JSON.
 input_json="$(cat)"
 command_text="$(printf '%s' "$input_json" | jq -r '.tool_input.command // "unknown command"' 2>/dev/null || echo "unknown command")"
 
@@ -58,6 +58,25 @@ emit() {
         --arg reason "$reason" \
         '{hookSpecificOutput: {hookEventName: "PreToolUse", permissionDecision: $decision, permissionDecisionReason: $reason}}'
 }
+
+# This hook's `matcher` is unconditional ("Bash"), because the harness's own
+# `if` scoping (e.g. `"if": "Bash(git commit:*)"`) fails closed on compound
+# commands it can't cleanly parse into a single simple command - a bare
+# `for`/`while` loop with no "git" in it at all was observed to still trigger
+# the hook. So the actual git-commit/push detection happens here instead,
+# against the real command text, which is the only reliable source of truth.
+# Collapse newlines so a multi-line script's separators (; & | &&) are all
+# visible to one regex pass.
+compact_cmd="$(printf '%s' "$command_text" | tr '\n' ';')"
+is_git_commit_or_push=false
+if [[ "$compact_cmd" =~ (^|[;&|])[[:space:]]*(rtk[[:space:]]+)?git[[:space:]]+(commit|push)([[:space:]]|$|;) ]]; then
+    is_git_commit_or_push=true
+fi
+
+if [[ "$is_git_commit_or_push" != true ]]; then
+    emit "allow" "not a git commit/push command; gate not applicable."
+    exit 0
+fi
 
 if [[ ! -e "$AUTH_FILE" ]]; then
     emit "deny" "git commit/push not authorized this session. Run 'touch $AUTH_FILE' in a normal terminal (not through Claude) to allow, then 'rm $AUTH_FILE' to revoke. Blocked command: $command_text"

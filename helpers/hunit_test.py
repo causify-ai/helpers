@@ -924,7 +924,14 @@ class TestCase(unittest.TestCase):
         if _HAS_MATPLOTLIB:
             plt.show = lambda: 0  # type: ignore[possibly-unbound]
         # Name of the dir with artifacts for this test.
-        self._scratch_dir: str = ""
+        # `setUp()` can run twice per test: once called explicitly from a
+        # `set_up_test()` fixture helper (to make `get_scratch_space()` usable
+        # before the test body runs), and once automatically by unittest right
+        # before the test body. Don't reset `_scratch_dir` on the second call,
+        # otherwise the path `get_scratch_space()` set up during the first call
+        # is lost and `tearDown()` silently skips deleting the scratch dir.
+        if not getattr(self, "_scratch_dir", ""):
+            self._scratch_dir: str = ""
         # The base directory is the one including the class under test.
         self._base_dir_name = os.path.dirname(inspect.getfile(self.__class__))
         _LOG.debug("base_dir_name=%s", self._base_dir_name)

@@ -203,7 +203,7 @@ def format_markdown(txt: str) -> str:
     :return: formatted text
     """
     file_type = "md"
-    txt = dshdlipr.prettier_on_str(txt, file_type)
+    txt = dshdlipr.prettier_on_str(txt, file_type, use_hash=True)
     lines = txt.split("\n")
     clean_lines = remove_empty_lines_from_markdown(lines)
     txt = "\n".join(clean_lines)
