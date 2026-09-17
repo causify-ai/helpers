@@ -429,7 +429,7 @@ class Test__create_branch(hunitest.TestCase):
         call('git push --set-upstream origin {branch_name}', suppress_output=False)
         call('git commit --allow-empty -m "Draft PR"', suppress_output=False)
         call('git push', suppress_output=False)
-        call('invoke gh_create_pr --draft', abort_on_error=False)
+        call('invoke gh_pr_create --draft', abort_on_error=False)
         """
         # Run test.
         with (

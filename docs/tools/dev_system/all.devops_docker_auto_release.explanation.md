@@ -54,7 +54,7 @@
 - **GitHub CLI Helpers**: New team management functions
   - `gh_get_org_team_names()`: Fetch organization teams
   - `gh_get_team_member_names()`: Fetch team members
-  - Enhanced `gh_create_pr()`: Support for reviewer parameter
+  - Enhanced `gh_pr_create()`: Support for reviewer parameter
 
 - **Version Management** (`bump_version()` in
   [`/helpers/hversion.py)`](/helpers/hversion.py)): New semantic versioning
@@ -126,7 +126,7 @@ verification before production release.
    Orchestrates the complete build, test, and release pipeline
 3. **GitHub CLI Helpers** (`helpers/lib_tasks_gh.py`) - New team management
    functions (`gh_get_org_team_names()`, `gh_get_team_member_names()`) and
-   enhanced `gh_create_pr()` with reviewer support
+   enhanced `gh_pr_create()` with reviewer support
 4. **Version Management** (`bump_version()` in
    [`/helpers/hversion.py)`](/helpers/hversion.py)) - Semantic version bumping
    (minor by default: 2.2.0 → 2.3.0)

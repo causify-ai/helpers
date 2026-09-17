@@ -258,7 +258,7 @@ with mock_seq.patch("helpers.lib_tasks.lib_tasks_gh._gh_run_and_get_json"):
 - Scenario: Drive a `hunit_test.TestCase` from a committed fixture so
   schema drift in the upstream tool is caught by CI.
 
-- Prerequisite: the fixture file is generated once with `gh_create_mock_fixture`
+- Prerequisite: the fixture file is generated once with `gh_mock_fixture_create`
   (or an equivalent recorder task) and **committed to the repo**.
 
 ```python
@@ -293,7 +293,7 @@ class TestListOpenPrs(hunitest.TestCase):
 ```
 
 - When `gh`'s output schema changes:
-  1. Re-run the recorder (e.g., `i gh_create_mock_fixture`) with real GitHub
+  1. Re-run the recorder (e.g., `i gh_mock_fixture_create`) with real GitHub
      access.
   2. The git diff on the committed fixture file is the documented schema
      change.

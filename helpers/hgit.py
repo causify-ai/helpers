@@ -60,7 +60,7 @@ def extract_gh_issue_number_from_branch(branch_name: str) -> Optional[int]:
     HelpersTask23_Add_more_tabs_to_orange_tmux -> 23.
 
     Works only if `invoke gh_branch_create` was used to create the branch.
-    or the name was retrieved using `invoke gh_issue_title`.
+    or the name was retrieved using `invoke gh_issue_get_title`.
 
     :param branch_name: the name of the branch
     :return: the issue number or None if it can't be extracted

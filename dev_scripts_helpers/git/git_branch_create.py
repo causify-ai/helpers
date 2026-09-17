@@ -198,7 +198,7 @@ def _create_branch(
         cmd = 'git commit --allow-empty -m "Draft PR"'
         hsystem.system(cmd, suppress_output=False)
         hsystem.system("git push", suppress_output=False)
-        rc = hsystem.system("invoke gh_create_pr --draft", abort_on_error=False)
+        rc = hsystem.system("invoke gh_pr_create --draft", abort_on_error=False)
         if rc != 0:
             _LOG.warning("Failed to create PR (rc=%s)", rc)
 

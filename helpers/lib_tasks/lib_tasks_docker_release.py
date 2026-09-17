@@ -1788,7 +1788,7 @@ def docker_build_test_dev_image(  # type: ignore
     _LOG.info("Step 10: Creating pull request")
     pr_body = f"- Periodic release of {image_name} dev image version {version}"
     label = _AUTO_RELEASE_LABEL
-    hltltagh.gh_create_pr(
+    hltltagh.gh_pr_create(
         ctx,
         body=pr_body,
         draft=False,

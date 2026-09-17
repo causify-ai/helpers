@@ -72,7 +72,7 @@
   - E.g., issue 123 "Do this and that" becomes `HelpersTask123_Do_this_and_that`
 - Decorate with a numeric suffix when an issue has more than one branch/PR:
   `<RepoPrefix>Task<IssueNum>_<Description>_<Id>`
-  - Get the next free suffix with `invoke git_branch_next_name`
+  - Get the next free suffix with `invoke git_branch_get_next_name`
 - `invoke git_branch_create` enforces this pattern (`{RepoPrefix}Task\d+_\S+`)
 
 ## Multi-Repo Issues, Branches, and PRs

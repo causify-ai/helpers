@@ -98,12 +98,12 @@
 
 - Name a branch after its corresponding issue
   - The canonical name for a new feature branch is obtained by running
-    `i gh_issue_title`:
+    `i gh_issue_get_title`:
     ```
-    > i gh_issue_title -i 274
-    INFO: > cmd='/Users/saggese/src/venv/amp.client_venv/bin/invoke gh_issue_title -i 274'
+    > i gh_issue_get_title -i 274
+    INFO: > cmd='/Users/saggese/src/venv/amp.client_venv/bin/invoke gh_issue_get_title -i 274'
     report_memory_usage=False report_cpu_usage=False
-    ## gh_issue_title: issue_id='274', repo_short_name='current'
+    ## gh_issue_get_title: issue_id='274', repo_short_name='current'
     ## gh_login:
     07:35:54 - INFO  lib_tasks_gh.py gh_login:48                            account='sorrentum'
     export GIT_SSH_COMMAND='ssh -i /Users/saggese/.ssh/id_rsa.sorrentum.github'

@@ -1451,10 +1451,10 @@ class Test_docker_build_test_dev_image1(_DockerFlowTestHelper):
             self.gh_get_team_member_names_patcher.start()
         )
         self.mock_gh_get_team_member_names.return_value = ["user1", "user2"]
-        self.gh_create_pr_patcher = umock.patch(
-            "helpers.lib_tasks.lib_tasks_gh.gh_create_pr"
+        self.gh_pr_create_patcher = umock.patch(
+            "helpers.lib_tasks.lib_tasks_gh.gh_pr_create"
         )
-        self.mock_gh_create_pr = self.gh_create_pr_patcher.start()
+        self.mock_gh_pr_create = self.gh_pr_create_patcher.start()
         # Mock file operations.
         self.get_client_root_patcher = umock.patch(
             "helpers.hversion._get_client_root"
@@ -1527,7 +1527,7 @@ class Test_docker_build_test_dev_image1(_DockerFlowTestHelper):
                 "get_issue_prefix": self.get_issue_prefix_patcher,
                 "container_registry_url": self.get_container_registry_url_patcher,
                 "gh_get_team_member_names": self.gh_get_team_member_names_patcher,
-                "gh_create_pr": self.gh_create_pr_patcher,
+                "gh_pr_create": self.gh_pr_create_patcher,
                 "get_client_root": self.get_client_root_patcher,
                 "from_file": self.from_file_patcher,
                 "to_file": self.to_file_patcher,
@@ -1560,8 +1560,8 @@ class Test_docker_build_test_dev_image1(_DockerFlowTestHelper):
         # Verify issue prefix was fetched for branch creation.
         self.mock_get_issue_prefix.assert_called()
         # Verify PR was created with team members as reviewers.
-        self.mock_gh_create_pr.assert_called_once()
-        pr_call_args = self.mock_gh_create_pr.call_args
+        self.mock_gh_pr_create.assert_called_once()
+        pr_call_args = self.mock_gh_pr_create.call_args
         self.assertIn("reviewer", pr_call_args.kwargs)
         self.assertEqual(pr_call_args.kwargs["reviewer"], "user1,user2")
         # Verify expected Docker and Git commands were executed.
@@ -1602,8 +1602,8 @@ class Test_docker_build_test_dev_image1(_DockerFlowTestHelper):
             container_dir_name=".",
         )
         # Verify PR was created with the provided reviewer.
-        self.mock_gh_create_pr.assert_called_once()
-        pr_call_args = self.mock_gh_create_pr.call_args
+        self.mock_gh_pr_create.assert_called_once()
+        pr_call_args = self.mock_gh_pr_create.call_args
         self.assertIn("reviewer", pr_call_args.kwargs)
         self.assertEqual(pr_call_args.kwargs["reviewer"], "specific_user")
         # Verify team lookup was NOT performed since reviewers was provided.

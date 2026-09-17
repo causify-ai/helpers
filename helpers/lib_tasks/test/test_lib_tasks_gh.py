@@ -157,7 +157,7 @@ class TestGhHelpersWithMockDict1(hunitest.TestCase):
     and asserts properties of the helper's post-processing of the real
     `gh` output. Refresh the fixture with:
 
-        i gh_create_mock_fixture
+        i gh_mock_fixture_create
 
     Property-based assertions (not exact-value comparisons) so cosmetic
     drift in `gh` (e.g., a new workflow added) does not break tests, but
@@ -702,13 +702,13 @@ class Test__check_if_pr_exists(hunitest.TestCase):
 
 
 # #############################################################################
-# Test_gh_create_pr
+# Test_gh_pr_create
 # #############################################################################
 
 
-class Test_gh_create_pr(hunitest.TestCase):
+class Test_gh_pr_create(hunitest.TestCase):
     """
-    Test `gh_create_pr()`.
+    Test `gh_pr_create()`.
     """
 
     def test1(self) -> None:
@@ -740,7 +740,7 @@ class Test_gh_create_pr(hunitest.TestCase):
                 return_value=123,
             ),
         ):
-            hltltagh.gh_create_pr(ctx, body="Desc", draft=True)
+            hltltagh.gh_pr_create(ctx, body="Desc", draft=True)
         # Check outputs.
         actual = [call.args[0] for call in ctx.run.mock_calls]
         expected = [
@@ -770,7 +770,7 @@ class Test_gh_create_pr(hunitest.TestCase):
                 hltltagh, "_check_if_pr_exists", return_value=True
             ),
         ):
-            hltltagh.gh_create_pr(ctx)
+            hltltagh.gh_pr_create(ctx)
         # Check outputs.
         self.assertEqual(list(ctx.run.mock_calls), [])
 
@@ -793,7 +793,7 @@ class Test_gh_create_pr(hunitest.TestCase):
             ),
         ):
             with self.assertRaises(AssertionError):
-                hltltagh.gh_create_pr(ctx, draft=True, auto_merge=True)
+                hltltagh.gh_pr_create(ctx, draft=True, auto_merge=True)
 
     def test4(self) -> None:
         """
@@ -824,7 +824,7 @@ class Test_gh_create_pr(hunitest.TestCase):
                 return_value=None,
             ),
         ):
-            hltltagh.gh_create_pr(ctx, dry_run=True)
+            hltltagh.gh_pr_create(ctx, dry_run=True)
         # Check outputs.
         self.assertEqual(list(ctx.run.mock_calls), [])
 
@@ -921,13 +921,13 @@ class Test_gh_publish_buildmeister_dashboard_to_s3(hunitest.TestCase):
 
 
 # #############################################################################
-# Test_gh_delete_workflow_runs
+# Test_gh_workflow_delete_runs
 # #############################################################################
 
 
-class Test_gh_delete_workflow_runs(hunitest.TestCase):
+class Test_gh_workflow_delete_runs(hunitest.TestCase):
     """
-    Test `gh_delete_workflow_runs()`.
+    Test `gh_workflow_delete_runs()`.
     """
 
     def helper(
@@ -969,7 +969,7 @@ class Test_gh_delete_workflow_runs(hunitest.TestCase):
             ),
             umock.patch("builtins.input", return_value=user_input),
         ):
-            hltltagh.gh_delete_workflow_runs(
+            hltltagh.gh_workflow_delete_runs(
                 ctx,
                 "Fast tests",
                 dry_run=dry_run,
@@ -998,7 +998,7 @@ class Test_gh_delete_workflow_runs(hunitest.TestCase):
             ),
         ):
             with self.assertRaises(ValueError) as cm:
-                hltltagh.gh_delete_workflow_runs(ctx, "Unknown workflow")
+                hltltagh.gh_workflow_delete_runs(ctx, "Unknown workflow")
         self.assertIn("Unknown workflow", str(cm.exception))
 
     def test2(self) -> None:
@@ -1076,7 +1076,7 @@ class Test_gh_delete_workflow_runs(hunitest.TestCase):
                 hltltagh, "get_workflow_run_ids", return_value=["1"]
             ),
         ):
-            hltltagh.gh_delete_workflow_runs(
+            hltltagh.gh_workflow_delete_runs(
                 ctx,
                 "Fast tests",
                 confirmation=False,
@@ -1092,13 +1092,13 @@ class Test_gh_delete_workflow_runs(hunitest.TestCase):
 
 
 # #############################################################################
-# Test_gh_create_mock_fixture
+# Test_gh_mock_fixture_create
 # #############################################################################
 
 
-class Test_gh_create_mock_fixture(hunitest.TestCase):
+class Test_gh_mock_fixture_create(hunitest.TestCase):
     """
-    Test `gh_create_mock_fixture()`.
+    Test `gh_mock_fixture_create()`.
     """
 
     def helper(self, workflows: List[Dict[str, str]]) -> Any:
@@ -1133,7 +1133,7 @@ class Test_gh_create_mock_fixture(hunitest.TestCase):
                 hltltagh, "gh_get_workflow_details"
             ) as mock_details,
         ):
-            hltltagh.gh_create_mock_fixture(ctx)
+            hltltagh.gh_mock_fixture_create(ctx)
         return mock_open_prs, mock_type_names, mock_details
 
     def test1(self) -> None:

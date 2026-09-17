@@ -875,7 +875,7 @@ class Test_git_branch_rename(hunitest.TestCase):
             umock.patch.object(
                 hltltagi, "_get_open_pr_info", return_value=None
             ),
-            umock.patch.object(hltltagh, "gh_create_pr") as mock_create_pr,
+            umock.patch.object(hltltagh, "gh_pr_create") as mock_create_pr,
         ):
             hltltagi.git_branch_rename(ctx, new_name)
         # Check outputs.
@@ -909,7 +909,7 @@ class Test_git_branch_rename(hunitest.TestCase):
             umock.patch.object(
                 hltltagi, "_get_open_pr_info", return_value=pr_info
             ),
-            umock.patch.object(hltltagh, "gh_create_pr") as mock_create_pr,
+            umock.patch.object(hltltagh, "gh_pr_create") as mock_create_pr,
         ):
             hltltagi.git_branch_rename(ctx, new_name)
         # Check outputs.
@@ -951,7 +951,7 @@ class Test_git_branch_rename(hunitest.TestCase):
             umock.patch.object(
                 hltltagi, "_get_open_pr_info", return_value=pr_info
             ),
-            umock.patch.object(hltltagh, "gh_create_pr") as mock_create_pr,
+            umock.patch.object(hltltagh, "gh_pr_create") as mock_create_pr,
         ):
             hltltagi.git_branch_rename(ctx, new_name)
         # Check outputs.
@@ -986,7 +986,7 @@ class Test_git_branch_rename(hunitest.TestCase):
             umock.patch.object(
                 hltltagi, "_get_open_pr_info", return_value=pr_info
             ),
-            umock.patch.object(hltltagh, "gh_create_pr") as mock_create_pr,
+            umock.patch.object(hltltagh, "gh_pr_create") as mock_create_pr,
         ):
             hltltagi.git_branch_rename(ctx, new_name, dry_run=True)
         # Check outputs.
@@ -997,13 +997,13 @@ class Test_git_branch_rename(hunitest.TestCase):
 
 
 # #############################################################################
-# Test_git_branch_next_name
+# Test_git_branch_get_next_name
 # #############################################################################
 
 
-class Test_git_branch_next_name(hunitest.TestCase):
+class Test_git_branch_get_next_name(hunitest.TestCase):
     """
-    Test `git_branch_next_name()`.
+    Test `git_branch_get_next_name()`.
     """
 
     def test1(self) -> None:
@@ -1020,7 +1020,7 @@ class Test_git_branch_next_name(hunitest.TestCase):
             "get_branch_next_name",
             return_value="HelpersTask1_Foo_2",
         ) as mock_get_next_name:
-            hltltagi.git_branch_next_name(
+            hltltagi.git_branch_get_next_name(
                 ctx, branch_name=branch_name, method=method
             )
         # Check outputs.
@@ -1051,7 +1051,7 @@ class Test_git_branch_next_name(hunitest.TestCase):
                 return_value="HelpersTask123_Fix_bug_2",
             ) as mock_get_next_name,
         ):
-            hltltagi.git_branch_next_name(
+            hltltagi.git_branch_get_next_name(
                 ctx, issue_id=issue_id, repo_short_name=repo_short_name
             )
         # Check outputs.
@@ -1070,7 +1070,7 @@ class Test_git_branch_next_name(hunitest.TestCase):
         ctx = httestlib._build_mock_context_returning_ok()
         # Run test and check output.
         with self.assertRaises(AssertionError):
-            hltltagi.git_branch_next_name(
+            hltltagi.git_branch_get_next_name(
                 ctx, branch_name="HelpersTask1_Foo", issue_id=123
             )
 
@@ -1754,13 +1754,13 @@ class Test__fix_file_perms(hunitest.TestCase):
 
 
 # #############################################################################
-# Test_git_fix_perms
+# Test_git_perms_fix
 # #############################################################################
 
 
-class Test_git_fix_perms(hunitest.TestCase):
+class Test_git_perms_fix(hunitest.TestCase):
     """
-    Test `git_fix_perms()`.
+    Test `git_perms_fix()`.
     """
 
     def helper(self) -> Any:
@@ -1789,7 +1789,7 @@ class Test_git_fix_perms(hunitest.TestCase):
         # Run test.
         printed = io.StringIO()
         with contextlib.redirect_stdout(printed):
-            hltltagi.git_fix_perms(
+            hltltagi.git_perms_fix(
                 ctx, check=True, fix=False, dir_name=dir_name
             )
         # Check outputs.
@@ -1808,7 +1808,7 @@ class Test_git_fix_perms(hunitest.TestCase):
         # Run test.
         printed = io.StringIO()
         with contextlib.redirect_stdout(printed):
-            hltltagi.git_fix_perms(
+            hltltagi.git_perms_fix(
                 ctx, check=False, fix=True, dir_name=dir_name
             )
         # Check outputs.
@@ -1828,7 +1828,7 @@ class Test_git_fix_perms(hunitest.TestCase):
         # Run test.
         printed = io.StringIO()
         with contextlib.redirect_stdout(printed):
-            hltltagi.git_fix_perms(ctx, dir_name=dir_name)
+            hltltagi.git_perms_fix(ctx, dir_name=dir_name)
         # Check outputs.
         actual = printed.getvalue()
         self.assertIn(

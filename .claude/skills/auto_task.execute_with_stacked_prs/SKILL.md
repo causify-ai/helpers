@@ -66,7 +66,7 @@ model: haiku
         --no-only-branch-from-master --no-abort-if-not-master --no-create-pr
     ```
 
-    - Do not use `invoke git_branch_next_name` for this: it appends its own `_1`,
+    - Do not use `invoke git_branch_get_next_name` for this: it appends its own `_1`,
       `_2`, ... onto whatever branch is currently checked out, so run from
       `<BASE>_<ID-1>` it produces `<BASE>_<ID-1>_1`, not `<BASE>_<ID>`; only
       `--issue-id --suffix <ID>` derives `<BASE>_<ID>` correctly

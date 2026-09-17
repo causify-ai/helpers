@@ -320,7 +320,7 @@ class TestDryRunTasks2(_LibTasksTestCase, _CheckDryRunTestCase):
         not hgit.is_in_amp_as_supermodule(),
         reason="Only run in amp as supermodule",
     )
-    def test_gh_create_pr1(self) -> None:
+    def test_gh_pr_create1(self) -> None:
         with (
             umock.patch.object(
                 hgit, "get_branch_name", return_value="AmpTask1_test_branch"
@@ -331,7 +331,7 @@ class TestDryRunTasks2(_LibTasksTestCase, _CheckDryRunTestCase):
                 return_value=("github.com/alphamatic/amp", "amp"),
             ),
         ):
-            target = "gh_create_pr(ctx, title='test')"
+            target = "gh_pr_create(ctx, title='test')"
             self._check_output(target)
 
     # TODO(ShaopengZ): Outside CK infra, the test hangs, so we skip it.
@@ -340,7 +340,7 @@ class TestDryRunTasks2(_LibTasksTestCase, _CheckDryRunTestCase):
         not hgit.is_in_amp_as_supermodule(),
         reason="Only run in amp as supermodule",
     )
-    def test_gh_create_pr2(self) -> None:
+    def test_gh_pr_create2(self) -> None:
         with (
             umock.patch.object(
                 hgit, "get_branch_name", return_value="AmpTask1_test_branch"
@@ -351,7 +351,7 @@ class TestDryRunTasks2(_LibTasksTestCase, _CheckDryRunTestCase):
                 return_value=("github.com/alphamatic/amp", "amp"),
             ),
         ):
-            target = "gh_create_pr(ctx, body='hello_world', title='test')"
+            target = "gh_pr_create(ctx, body='hello_world', title='test')"
             self._check_output(target)
 
     # TODO(ShaopengZ): Outside CK infra, the test hangs, so we skip it.
@@ -360,7 +360,7 @@ class TestDryRunTasks2(_LibTasksTestCase, _CheckDryRunTestCase):
         not hgit.is_in_amp_as_supermodule(),
         reason="Only run in amp as supermodule",
     )
-    def test_gh_create_pr3(self) -> None:
+    def test_gh_pr_create3(self) -> None:
         with (
             umock.patch.object(
                 hgit, "get_branch_name", return_value="AmpTask1_test_branch"
@@ -371,7 +371,7 @@ class TestDryRunTasks2(_LibTasksTestCase, _CheckDryRunTestCase):
                 return_value=("github.com/alphamatic/amp", "amp"),
             ),
         ):
-            target = "gh_create_pr(ctx, draft=False, title='test')"
+            target = "gh_pr_create(ctx, draft=False, title='test')"
             self._check_output(target)
 
     # TODO(*): Remove skip after migration to `csfy`.`
@@ -379,8 +379,8 @@ class TestDryRunTasks2(_LibTasksTestCase, _CheckDryRunTestCase):
         reason="migration to new repo "
         "ref: https://github.com/causify-ai/cmamp/issues/13063"
     )
-    def test_gh_issue_title(self) -> None:
-        target = "gh_issue_title(ctx, 1)"
+    def test_gh_issue_get_title(self) -> None:
+        target = "gh_issue_get_title(ctx, 1)"
         self._check_output(target)
 
     # TODO(Shaopengz): Outside CK infra, the test hangs, so skip.
