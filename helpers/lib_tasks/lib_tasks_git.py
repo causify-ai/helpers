@@ -605,6 +605,51 @@ def git_branch_files(ctx):  # type: ignore
     )
 
 
+def _get_branch_name_for_issue(
+    issue_id: int, repo_short_name: str, suffix: str
+) -> str:
+    """
+    Compute the branch name corresponding to `issue_id`.
+
+    When `suffix` is empty, auto-pick the next free suffix via
+    `hgit.get_branch_next_name()` instead of requiring the caller to guess
+    one.
+
+    :param issue_id: GitHub issue ID to derive the branch name from
+    :param repo_short_name: repo the issue belongs to
+    :param suffix: explicit suffix to append (e.g., "02"); if empty, the next
+        free suffix is auto-picked
+    :return: branch name (e.g., `HelpersTask123_Fix_bug` or
+        `HelpersTask123_Fix_bug_3`)
+    """
+    title, _ = hltltagh._get_gh_issue_title(issue_id, repo_short_name)
+    branch_name = title
+    _LOG.info(
+        "Issue %d in %s repo_short_name corresponds to '%s'",
+        issue_id,
+        repo_short_name,
+        branch_name,
+    )
+    if suffix != "":
+        branch_name += "_" + suffix
+    else:
+        branch_name = hgit.get_branch_next_name(curr_branch_name=branch_name)
+    return branch_name
+
+
+def _dassert_branch_available(branch_name: str) -> None:
+    """
+    Assert that `branch_name` does not already exist locally or remotely.
+
+    :param branch_name: branch name to check
+    """
+    hdbg.dassert(
+        not hgit.does_branch_exist(branch_name, mode="all"),
+        "Branch '%s' already exists",
+        branch_name,
+    )
+
+
 @task
 def git_branch_create(  # type: ignore
     ctx,
@@ -665,16 +710,9 @@ def git_branch_create(  # type: ignore
             "",
             "Cannot specify both --issue and --branch-name; choose one",
         )
-        title, _ = hltltagh._get_gh_issue_title(issue_id, repo_short_name)
-        branch_name = title
-        _LOG.info(
-            "Issue %d in %s repo_short_name corresponds to '%s'",
-            issue_id,
-            repo_short_name,
-            branch_name,
+        branch_name = _get_branch_name_for_issue(
+            issue_id, repo_short_name, suffix
         )
-        if suffix != "":
-            branch_name += "_" + suffix
     _LOG.info("branch_name='%s'", branch_name)
     hdbg.dassert_ne(
         branch_name,
@@ -702,11 +740,7 @@ def git_branch_create(  # type: ignore
             "Branch name must follow convention: '{RepoPrefix,Amp,...}TaskXYZ_...'",
         )
     # Prevent accidental duplicate branches.
-    hdbg.dassert(
-        not hgit.does_branch_exist(branch_name, mode="all"),
-        "Branch '%s' already exists",
-        branch_name,
-    )
+    _dassert_branch_available(branch_name)
     # Ensure we are branching from master if required.
     if only_branch_from_master:
         curr_branch = hgit.get_branch_name()

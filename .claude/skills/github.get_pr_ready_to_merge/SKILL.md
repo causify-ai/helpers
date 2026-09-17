@@ -1,16 +1,18 @@
 ---
-description: Make the CI pass for the current PR
-model: haiku
+description: Get the current PR to a state where it can be reviewed and merged
+model: sonnet
 ---
 
 # Goal
-- Run, monitor, and fix GitHub CI checks for the current PR
+- Run the AI lint, the standard linter, the local tests, and GitHub CI for the
+  current PR, fixing anything that comes up, so the PR is ready to be reviewed
+  and merged
 
 # Workflow
 
 ## Create and Update a Plan
-- Create a file `plan-github.get_pr_to_pass_ci.md` with a plan in the form of a bullet
-  list of actions and maintain it updated, by marking each action
+- Create a file `plan-github.get_pr_ready_to_merge.md` with a plan in the form of a
+  bullet list of actions and maintain it updated, by marking each action
   - [.] when something is in progress
   - [x] when something is done
   - [F] when something failed
@@ -43,6 +45,33 @@ model: haiku
   ```bash
   > gh pr ready
   ```
+
+## Run the AI Lint and Add TODOs
+- Run the AI-based linter on the branch, asking it to leave `TODO`s instead of
+  silently rewriting the code
+  ```bash
+  > linters2/cc_lint.py --branch --add_todos
+  ```
+- Commit the added `TODO`s together with any other pending changes, following
+  "Never Commit Junk Files" below
+
+## Resolve the Added TODOs
+- For each file that `cc_lint.py` annotated, use `/coding.todoai_gp` to
+  implement the `TODO(ai_gp)` items it added
+- Commit the fixes, following "Never Commit Junk Files" below
+
+## Run the Standard Linter
+- Run the repo's standard linter on the branch
+  ```bash
+  > linters2/lint.py --branch
+  ```
+- If it reports issues it cannot auto-fix, use `/github.get_pr_to_commit_state`
+  to fix them (it already covers `pyright` and `linters2/lint.py`)
+- Commit any resulting changes, following "Never Commit Junk Files" below
+
+## Make Sure Local Tests Pass
+- Use `/github.get_pr_to_pass_local_tests` to run and fix the local unit tests
+  for the branch
 
 ## Run and Monitor GitHub CI
 - Start monitoring GitHub CI checks:
@@ -92,7 +121,9 @@ model: haiku
   (`git push --force-with-lease`), rather than leaving the junk in history
 
 ## Loop
-- Keep repeating until the PR is passing all the CI tests
+- Keep repeating until the branch has no outstanding `cc_lint.py` `TODO`s, the
+  standard linter is clean, and the local tests and the GitHub CI checks are
+  all passing
 
 # Constraints
 - This skill runs both when executed locally on a dev computer and remotely on cloud
@@ -100,6 +131,10 @@ model: haiku
 
 # Verification
 
+- [ ] `linters2/cc_lint.py --branch --add_todos` adds no new `TODO`s
+- [ ] No unresolved `TODO(ai_gp)` items remain in the branch's modified files
+- [ ] `linters2/lint.py --branch` reports no issues
+- [ ] Local unit tests pass (per `/github.get_pr_to_pass_local_tests`)
 - [ ] `gh pr checks --watch $GH_PR_NUM` reports all checks successful
 - [ ] A PR comment reports the final CI status
 - [ ] `git status --short` shows only the intended files staged before commit
