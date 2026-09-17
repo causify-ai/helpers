@@ -82,20 +82,20 @@
 
 - Separate `<TYPE>` from `<TOPIC>.<ACTION>` with `-`, never `.` or `_`
   - `.` already separates `<TOPIC>` from `<ACTION>`, and `_` already appears
-    inside multi-word actions (e.g., `get_pr_to_pass_ci`), so reusing either
+    inside multi-word actions (e.g., `get_pr_to_pass_ci_tests`), so reusing either
     character as the outer separator makes the file name ambiguous to parse
   - `-` never appears inside a topic or action name, so it stays unambiguous
-  - **Bad** (`_` collides with the underscores inside `get_pr_to_pass_ci`)
+  - **Bad** (`_` collides with the underscores inside `get_pr_to_pass_ci_tests`)
     ```
-    plan_github.get_pr_to_pass_ci.md
+    plan_github.get_pr_to_pass_ci_tests.md
     ```
   - **Bad** (`.` collides with the dot between topic and action)
     ```
-    plan.github.get_pr_to_pass_ci.md
+    plan.github.get_pr_to_pass_ci_tests.md
     ```
   - **Good**
     ```
-    plan-github.get_pr_to_pass_ci.md
+    plan-github.get_pr_to_pass_ci_tests.md
     ```
 
 - This naming makes the file's purpose (`<TYPE>`) and its owning skill

@@ -46,9 +46,9 @@
 | GitHub Skills          | `/github.split_branch_in_PRs`        | Skill  | Split current changes into small, cohesive PRs            |
 |                         | `/github.create_child_pr`            | Skill  | Build a child PR from the current branch                  |
 |                         | `/github.find_name_for_pr`           | Skill  | Find a title and description for the current PR           |
-|                         | `/github.get_pr_to_commit_state`     | Skill  | Get the current PR into a committable state               |
+|                         | `/github.get_pr_ready_to_merge`      | Skill  | Get the current PR ready to be reviewed and merged        |
 |                         | `/github.get_pr_to_pass_local_tests` | Skill  | Make local unit tests pass for the current PR             |
-|                         | `/github.get_pr_to_pass_ci`          | Skill  | Make the CI pass for the current PR                       |
+|                         | `/github.get_pr_to_pass_ci_tests`    | Skill  | Make the CI pass for the current PR                       |
 
 ## Git Branch Management
 
@@ -475,13 +475,13 @@
 
 ### Preparing PRs for Merge
 
-#### `github.get_pr_to_commit_state`
+#### `github.get_pr_ready_to_merge`
 
-- Get a PR in a committable state
-- Fix formatting, lint, and other issues blocking a commit
+- Get the current PR ready to be reviewed and merged
+- Fix formatting, lint, pyright, local tests, and CI issues blocking a merge
 
   ```bash
-  claude> /github.get_pr_to_commit_state
+  claude> /github.get_pr_ready_to_merge
   ```
 
 #### `github.get_pr_to_pass_local_tests`
@@ -493,13 +493,13 @@
   claude> /github.get_pr_to_pass_local_tests
   ```
 
-#### `github.get_pr_to_pass_ci`
+#### `github.get_pr_to_pass_ci_tests`
 
 - Make the CI pass for the current PR
 - Fix CI failures on the current PR
 
   ```bash
-  claude> /github.get_pr_to_pass_ci
+  claude> /github.get_pr_to_pass_ci_tests
   ```
 
 # Workflows
@@ -570,7 +570,7 @@
 - **Get the PR ready to merge**:
   - Fix CI failures
     ```bash
-    /github.get_pr_to_pass_ci
+    /github.get_pr_to_pass_ci_tests
     ```
   - Fix failing local tests
     ```bash
@@ -578,7 +578,7 @@
     ```
   - Fix formatting, lint, and other commit-blocking issues
     ```bash
-    claude> /github.get_pr_to_commit_state
+    claude> /github.get_pr_ready_to_merge
     ```
 - **Merge and delete the branch**
   ```bash

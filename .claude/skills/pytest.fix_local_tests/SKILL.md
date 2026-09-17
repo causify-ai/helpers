@@ -5,7 +5,7 @@ model: haiku
 
 # Goal
 - Given information about failed tests `<FAILURE_INFO>` run the tests, understand what
-  is the root cause, and create a plan to fix the tests
+  is the root cause, and fix them
 
 # Workflow
 
@@ -60,21 +60,19 @@ model: haiku
 ## Prepare A Plan to Fix Failures
 - Prepare a plan following `# Format for Unit Test Fixing Plan` from
   `.claude/skills/pytest.rules.md`
-- Save it in the file `plan-pytest.triage_local_unit_tests.md` in the current dir
+- Save it in the file `plan-pytest.fix_local_tests.md` in the current dir
 - Do not print anything on screen
 
-## Wait for User Feedback
-- Do not make any change to the code, but only propose the fixes
-- Ask the user to continue or not with the fixes
-
 ## Implement and Verify the Fix
-- If the user says to continue, implement the fixes
-- Verify that they work correctly as per `# Verification of the Fix` from
+- If the root cause and the fix are clear, implement the fixes directly
+- If the root cause or the correct fix is unclear, stop and ask the user before
+  implementing anything
+- Verify that the fixes work correctly as per `# Verification of the Fix` from
   `.claude/skills/pytest.rules.md`
 
 # Verification
 
-- [ ] `plan-pytest.triage_local_unit_tests.md` lists a fix for every failing test
+- [ ] `plan-pytest.fix_local_tests.md` lists a fix for every failing test
 - [ ] Every fix follows `# Verification of the Fix` in
       `.claude/skills/pytest.rules.md`
 - [ ] The failing tests pass locally after the fix

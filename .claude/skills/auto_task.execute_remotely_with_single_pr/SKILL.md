@@ -149,7 +149,7 @@ model: haiku
   - If a follow-up `@claude` comment ever produces a second PR for the same task,
     close the extra PR and keep the original: one PR per task, no exceptions
 - Get the PR's CI to pass following
-  `.claude/skills/github.get_pr_to_pass_ci/SKILL.md`
+  `.claude/skills/github.get_pr_to_pass_ci_tests/SKILL.md`
 - Mark the task `[x]` in `<FILE>` only once its PR is ready for human review
 
 ## Report the Queue

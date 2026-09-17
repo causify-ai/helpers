@@ -520,9 +520,8 @@ def check_ruff_format(
     Run `ruff check --fix` and `ruff format` on the touched Python files.
 
     Ruff can rewrite a file in place to fix lint issues or reformat it. When
-    that happens the commit is aborted so the user can review the changes,
-    `git add` them, and commit again, instead of a differently-formatted
-    version silently landing in the commit.
+    that happens the commit is not aborted: the reformatted file is just
+    reported so the user can `git add` it later, and the commit proceeds.
 
     :param file_list: files to process
         - Default: the staged/modified files from `_get_files()`
@@ -556,18 +555,17 @@ def check_ruff_format(
     if rc != 0:
         error = True
     # Detect files that `ruff` rewrote so the user can review and restage
-    # them.
+    # them later. This is informational only and does not abort the commit.
     modified_files = [
         f for f in file_list if hio.from_file(f) != original_contents[f]
     ]
     if modified_files:
-        _LOG.error(
-            "'ruff' reformatted %d file(s):\n%s\nReview the changes, `git "
-            "add` them, and commit again",
+        _LOG.warning(
+            "'ruff' reformatted %d file(s):\n%s\n`git add` them when "
+            "convenient",
             len(modified_files),
             "\n".join(modified_files),
         )
-        error = True
     # Handle error.
     _handle_error(func_name, error, abort_on_error)
 

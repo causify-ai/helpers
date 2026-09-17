@@ -13,9 +13,11 @@ This file clarifies how to execute a task in the current repo
 
 ## Create a Plan
 - Create a plan with a TODO list in the file with the instructions
-  - Add the plan to the instruction files, close to the actual instructions
+  - Add the plan to the instruction files, right after the actual instructions
   - If there is no clear instruction files, create a file `plan.md` in the current
     directory
+
+- Always write wrapping text in 85 columns
 
 - Use nested bullet points explaining what needs to be executed, example
   ```
@@ -24,8 +26,6 @@ This file clarifies how to execute a task in the current repo
   - [ ] Do that
   ...
   ```
-
-- When writing text follow the conventions in `.claude/skills/markdown.rules.md`
 
 ## Ask Questions if the Task is Unclear 
 - If the task is not perfectly clear:
@@ -44,9 +44,13 @@ This file clarifies how to execute a task in the current repo
 - Example
   ```
   ## Result
+
+  ### Done
   - Done this and that
     - This
     - That
+
+  ### Not done
   - Not done XYZ
     - ...
   ```
@@ -54,8 +58,6 @@ This file clarifies how to execute a task in the current repo
 ## Add Files to the Repo
 - When creating new files that belong to the repo (e.g., Python files, scripts) 
   as part of the task, run `git add` but do not commit them
-- You must not add temporary files (e.g., , logs to the repo
-    - E.g.,
-      `dev_scripts_helpers/coding_tools/notify.py.log`
-      `tmp.precommit_output.txt`
+- You must not add temporary files (e.g., logs to the repo, temporary files, e.g.,
+  `dev_scripts_helpers/coding_tools/notify.py.log`, `tmp.precommit_output.txt`)
 - If you are not sure, ask the user at the very end of the task
