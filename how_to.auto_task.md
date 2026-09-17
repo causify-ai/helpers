@@ -48,13 +48,14 @@
 
 ## Commands at a Glance
 
-| Stage   | Command                                      | Purpose                                          |
-| :------ | :------------------------------------------- | :----------------------------------------------- |
-| Create  | `/auto_task.create_specs_from_todos`         | Turn a cfile of TODOs into a `tasks.md` plan     |
-| Review  | `/auto_task.criticize`                       | Review a plan or GitHub issue before execution   |
-| Execute | `/auto_task.execute_interactively`           | Run tasks in a local execute-review-commit loop  |
-| Execute | `/auto_task.execute_with_stacked_prs`        | Run tasks as one stack of dependent branches/PRs |
-| Execute | `/auto_task.execute_remotely_with_single_pr` | Dispatch tasks to Claude on GitHub               |
+| Stage    | Command                                      | Purpose                                               |
+| :------- | :-------------------------------------------- | :----------------------------------------------------- |
+| Create   | `/auto_task.create_specs_from_todos`         | Turn a cfile of TODOs into a `tasks.md` plan          |
+| Review   | `/auto_task.criticize`                       | Review a plan or GitHub issue before execution        |
+| Execute  | `/auto_task.execute_interactively`           | Run tasks in a local execute-review-commit loop       |
+| Execute  | `/auto_task.execute_with_stacked_prs`        | Run tasks as one stack of dependent branches/PRs      |
+| Execute  | `/auto_task.execute_remotely_with_single_pr` | Dispatch tasks to Claude on GitHub                    |
+| Maintain | `/auto_task.restack`                         | Propagate reviewed changes down an existing PR stack  |
 
 ## Step 1: Create a Task List
 
@@ -98,6 +99,26 @@
     hands-on debugging
   - See `.claude/skills/auto_task.execute_remotely_with_single_pr/SKILL.md`
 
+## Step 4: Propagate Changes Down a Stack (When Needed)
+
+- After a PR in the middle (or bottom) of an existing stack gets reviewed and
+  changed, the branches stacked on top of it still need those changes
+- `/auto_task.restack` propagates them down:
+
+  ```text
+  claude> /auto_task.restack
+  ```
+
+- It discovers the full stack from `master` up through the top PR, prints it,
+  and writes a `plan-auto_task.restack.md` propagation plan for the user to
+  confirm before touching any branch
+- It propagates strictly bottom-up by merging forward and committing, never by
+  rebasing or force-pushing, so review history stays intact
+- It never merges any PR itself: that decision stays with the user
+- Do not use it to build a new stack from scratch; use
+  `/auto_task.execute_with_stacked_prs` for that instead
+- See `.claude/skills/auto_task.restack/SKILL.md`
+
 ## Creating the Issue and Branch Manually
 
 - Every execution mode creates the GitHub issue, branch, and (draft) PR through
@@ -119,5 +140,7 @@
 
 - `.claude/skills/auto_task.rules.md`: naming, multi-repo handling, task list format,
   and clarification conventions
+- `.claude/skills/auto_task.restack/SKILL.md`: propagating reviewed changes down an
+  existing PR stack
 - `.claude/templates/auto_task.template.md`: template for a GitHub issue's
   problem/solution plan

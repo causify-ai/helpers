@@ -50,77 +50,172 @@ class Test_transform_text_py(hunitest.TestCase):
             dshdotrte._main(parser)
         return hio.from_file(out_file)
 
-    def test_md_remove_bullets1(self) -> None:
+    def test1(self) -> None:
         """
         Test the `md_remove_bullets` action removes leading dashes.
         """
         # Prepare inputs.
-        text = "- item one\n- item two"
+        text = hprint.dedent(
+            """\
+            - item one
+            - item two"""
+        )
         # Prepare outputs.
-        expected = "item one\nitem two"
+        expected = hprint.dedent(
+            """\
+            item one
+            item two"""
+        )
         # Run test.
         actual = self._run_main(text, "md_remove_bullets")
         # Check outputs.
         self.assert_equal(actual, expected)
 
-    def test_md_add_checkbox1(self) -> None:
+    def test2(self) -> None:
+        """
+        Test the `md_remove_bullets` action with a single item (edge case).
+        """
+        # Prepare inputs.
+        text = "- single item"
+        # Prepare outputs.
+        expected = "single item"
+        # Run test.
+        actual = self._run_main(text, "md_remove_bullets")
+        # Check outputs.
+        self.assert_equal(actual, expected)
+
+    def test3(self) -> None:
+        """
+        Test the `md_remove_bullets` action with empty input (edge case).
+        """
+        # Prepare inputs.
+        text = ""
+        # Prepare outputs.
+        expected = ""
+        # Run test.
+        actual = self._run_main(text, "md_remove_bullets")
+        # Check outputs.
+        self.assert_equal(actual, expected)
+
+    def test4(self) -> None:
         """
         Test the `md_add_checkbox` action prefixes non-empty lines.
         """
         # Prepare inputs.
-        text = "item one\nitem two"
+        text = hprint.dedent(
+            """\
+            item one
+            item two"""
+        )
         # Prepare outputs.
-        expected = "- [ ] item one\n- [ ] item two"
+        expected = hprint.dedent(
+            """\
+            - [ ] item one
+            - [ ] item two"""
+        )
         # Run test.
         actual = self._run_main(text, "md_add_checkbox")
         # Check outputs.
         self.assert_equal(actual, expected)
 
-    def test_slide_format_figures1(self) -> None:
+    def test5(self) -> None:
+        """
+        Test the `md_add_checkbox` action with a single item (edge case).
+        """
+        # Prepare inputs.
+        text = "single item"
+        # Prepare outputs.
+        expected = "- [ ] single item"
+        # Run test.
+        actual = self._run_main(text, "md_add_checkbox")
+        # Check outputs.
+        self.assert_equal(actual, expected)
+
+    def test6(self) -> None:
+        """
+        Test the `md_add_checkbox` action with empty input (edge case).
+        """
+        # Prepare inputs.
+        text = ""
+        # Prepare outputs.
+        expected = ""
+        # Run test.
+        actual = self._run_main(text, "md_add_checkbox")
+        # Check outputs.
+        self.assert_equal(actual, expected)
+
+    def test7(self) -> None:
         """
         Test the `slide_format_figures` action runs without errors.
         """
         # Prepare inputs.
-        text = "Some text\n![alt](image.png)\nMore text"
+        text = hprint.dedent(
+            """\
+            Some text
+            ![alt](image.png)
+            More text"""
+        )
+        # Prepare outputs.
+        # Expected: output formatted for slides containing the image reference
+        expected = hprint.dedent(
+            """\
+            .*image\.png.*"""
+        )
         # Run test.
         actual = self._run_main(text, "slide_format_figures")
         # Check outputs.
-        self.assertIn("image.png", actual)
+        self.assert_equal(actual, expected, fuzzy_match=True)
 
-    def test_slide_add_figure1(self) -> None:
+    def test8(self) -> None:
         """
         Test the `slide_add_figure` action wraps content in a column block.
         """
         # Prepare inputs.
         text = "![alt](image.png)"
+        # Prepare outputs.
+        # Expected: output wrapped in column block with image reference
+        expected = hprint.dedent(
+            """\
+            .*::: columns.*
+            .*image\.png.*"""
+        )
         # Run test.
         actual = self._run_main(text, "slide_add_figure")
         # Check outputs.
-        self.assertIn("::: columns", actual)
-        self.assertIn("image.png", actual)
+        self.assert_equal(actual, expected, fuzzy_match=True)
 
-    def test_list1(self) -> None:
+    def test9(self) -> None:
         """
         Test the `list` action prints every available transform.
         """
+        # Prepare inputs.
+        # (No explicit input needed; testing available transforms list)
+        # Prepare outputs.
+        expected = str([
+            "md_add_checkbox",
+            "md_remove_bullets",
+            "slide_format_figures",
+            "slide_add_figure",
+        ])
         # Run test.
         transforms = dshdotrte._get_available_transforms()
         # Check outputs.
         names = [name for name, _ in transforms]
-        self.assertIn("md_add_checkbox", names)
-        self.assertIn("md_remove_bullets", names)
-        self.assertIn("slide_format_figures", names)
-        self.assertIn("slide_add_figure", names)
+        self.assert_equal(str(names), expected)
 
 
 # #############################################################################
-# Test_markdown_to_latex1
+# Test_markdown_list_to_latex
 # #############################################################################
 
 
 @pytest.mark.superslow
 @pytest.mark.skipif(not hserver.is_host_mac(), reason="See CsfyTask8868")
-class Test_markdown_to_latex1(hunitest.TestCase):
+class Test_markdown_list_to_latex(hunitest.TestCase):
+    """
+    Test `hlatex.markdown_list_to_latex()` function.
+    """
+
     def _check(self, markdown: str, expected: str) -> None:
         """
         Check the markdown to latex transformation.
@@ -217,6 +312,9 @@ class Test_markdown_to_latex1(hunitest.TestCase):
         self._check(markdown, expected)
 
     def test4(self) -> None:
+        """
+        Test a complex nested list with frame title and multiple levels.
+        """
         markdown = """
         * Title of Frame
         - Item 1
@@ -250,6 +348,39 @@ class Test_markdown_to_latex1(hunitest.TestCase):
           \item
             Ordered Subitem 2.2
           \end{itemize}
+        \end{itemize}
+        \end{frame}"""
+        # Run the test.
+        self._check(markdown, expected)
+
+    def test5(self) -> None:
+        """
+        Test a single item list (edge case).
+        """
+        markdown = """
+        - Single Item
+        """
+        expected = r"""
+        \begin{itemize}
+        \item
+          Single Item
+        \end{itemize}"""
+        # Run the test.
+        self._check(markdown, expected)
+
+    def test6(self) -> None:
+        """
+        Test a single item list with frame title (edge case).
+        """
+        markdown = """
+        * Frame Title
+        - Single Item
+        """
+        expected = r"""
+        \begin{frame}{Frame Title}
+        \begin{itemize}
+        \item
+          Single Item
         \end{itemize}
         \end{frame}"""
         # Run the test.
