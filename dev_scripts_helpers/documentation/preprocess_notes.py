@@ -101,7 +101,8 @@ def _colorize_backticks(
             # For Typst, use #text with the content directly (no inner backticks).
             # The content is rendered as monospace colored text via #text(fill:
             # color)[content].
-            # TODO(ai_gp): Convert this into a loop and shorter comments.
+            # TODO(ai_gp): Convert this with (in, out) into a loop and shorter
+            # comments.
             # Wrap in backticks with {=typst} so pandoc treats it as raw typst code.
             # Escape tildes (~) since they have special meaning in typst.
             escaped_text = matched_text.replace("~", r"\~")
