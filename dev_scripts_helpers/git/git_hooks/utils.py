@@ -561,8 +561,7 @@ def check_ruff_format(
     ]
     if modified_files:
         _LOG.warning(
-            "'ruff' reformatted %d file(s):\n%s\n`git add` them when "
-            "convenient",
+            "'ruff' reformatted %d file(s):\n%s\n`git add` them when convenient",
             len(modified_files),
             "\n".join(modified_files),
         )
