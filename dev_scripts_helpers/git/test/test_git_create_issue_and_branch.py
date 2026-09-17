@@ -469,6 +469,13 @@ class Test_git_create_issue_and_branch_py(hunitest.TestCase):
                 return_value=("", "Created issue #1290"),
             ),
             mock.patch(
+                "helpers.lib_tasks.lib_tasks_gh._get_repo_full_name_from_cmd",
+                return_value=("github.com/causify-ai/helpers", "helpers"),
+            ),
+            mock.patch(
+                "helpers.lib_tasks.lib_tasks_gh._dassert_no_duplicate_open_issue"
+            ),
+            mock.patch(
                 "helpers.hgit.get_branch_name",
                 return_value="HelpersTask1290_Test",
             ),
@@ -605,8 +612,10 @@ class Test_git_create_issue_and_branch_py(hunitest.TestCase):
         """
         Test symmetric branch and worktree creation with one submodule
         present and `--submodules` passed: the branch is created in both
-        the outer repo and the submodule, and the submodule's worktree is
-        checked out on that branch.
+        the outer repo and the submodule, the submodule's worktree is
+        checked out on that branch, and the issue is updated with the
+        companion PR links (since `--create_pr` defaults to True and there
+        is more than one repo target).
         """
         # Prepare inputs.
         argv = [
@@ -648,6 +657,7 @@ class Test_git_create_issue_and_branch_py(hunitest.TestCase):
             ),
             mock.patch("shutil.copy"),
             mock.patch("builtins.print"),
+            mock.patch("tempfile.gettempdir", return_value="/tmp"),
         ):
             self._run_main(argv)
         # Check outputs.
@@ -680,6 +690,26 @@ class Test_git_create_issue_and_branch_py(hunitest.TestCase):
         {
         'function': hsystem.system,
         'args': ('git -C /home/user/helpers1_worktree_1290/helpers_root checkout HelpersTask1290_Test',),
+        'kwargs': {'log_level': 20},
+        },
+        {
+        'function': hsystem.system_to_string,
+        'args': ('gh issue view 1290 --json body -q .body',),
+        'kwargs': {'abort_on_error': False},
+        },
+        {
+        'function': hsystem.system_to_string,
+        'args': ('gh pr view --json url -q .url',),
+        'kwargs': {'abort_on_error': False},
+        },
+        {
+        'function': hsystem.system_to_string,
+        'args': ('cd helpers_root && gh pr view --json url -q .url',),
+        'kwargs': {'abort_on_error': False},
+        },
+        {
+        'function': hsystem.system,
+        'args': ('gh issue edit 1290 --body-file /tmp/tmp.git_create_issue_and_branch.issue_1290_body.md',),
         'kwargs': {'log_level': 20},
         },
         {

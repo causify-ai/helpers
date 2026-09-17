@@ -146,7 +146,8 @@ class Test_transform_text_py(hunitest.TestCase):
 
     def test7(self) -> None:
         """
-        Test the `slide_format_figures` action runs without errors.
+        Test the `slide_format_figures` action splits text and figure into a
+        two-column layout.
         """
         # Prepare inputs.
         text = hprint.dedent(
@@ -156,15 +157,24 @@ class Test_transform_text_py(hunitest.TestCase):
             More text"""
         )
         # Prepare outputs.
-        # Expected: output formatted for slides containing the image reference
         expected = hprint.dedent(
-            """\
-            .*image\.png.*"""
+            """
+            ::: columns
+            :::: {.column width=65%}
+            Some text
+            ::::
+            :::: {.column width=40%}
+
+            ![alt](image.png)
+            More text
+            ::::
+            :::
+            """
         )
         # Run test.
         actual = self._run_main(text, "slide_format_figures")
         # Check outputs.
-        self.assert_equal(actual, expected, fuzzy_match=True)
+        self.assert_equal(actual, expected)
 
     def test8(self) -> None:
         """
@@ -173,16 +183,21 @@ class Test_transform_text_py(hunitest.TestCase):
         # Prepare inputs.
         text = "![alt](image.png)"
         # Prepare outputs.
-        # Expected: output wrapped in column block with image reference
         expected = hprint.dedent(
-            """\
-            .*::: columns.*
-            .*image\.png.*"""
+            """
+            ::: columns
+            :::: {.column width=50%}
+            ![alt](image.png)
+            ::::
+            :::: {.column width=45%}
+            ::::
+            :::
+            """
         )
         # Run test.
         actual = self._run_main(text, "slide_add_figure")
         # Check outputs.
-        self.assert_equal(actual, expected, fuzzy_match=True)
+        self.assert_equal(actual, expected)
 
     def test9(self) -> None:
         """
@@ -192,8 +207,20 @@ class Test_transform_text_py(hunitest.TestCase):
         # (No explicit input needed; testing available transforms list)
         # Prepare outputs.
         expected = str([
-            "md_add_checkbox",
+            "test",
+            "format_headers",
+            "increase_headers_level",
+            "toc",
+            "md_list_to_latex",
+            "md_to_latex",
+            "md_remove_formatting",
             "md_remove_bullets",
+            "md_clean_up",
+            "md_only_format",
+            "md_bold_bullets",
+            "md_add_checkbox",
+            "md_colorize_bold_text",
+            "md_format",
             "slide_format_figures",
             "slide_add_figure",
         ])
