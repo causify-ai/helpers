@@ -23,9 +23,16 @@
 
 - The `pre-commit.py` script enforces a set of invariants before allowing a
   `git commit` to succeed
-- It ensures that essential checks are passed, such as verifying the branch,
-  leftover merge/rebase conflict markers, author information, file size
-  limits, forbidden words, Python file compilations, secret leaks...etc.
+- It ensures that essential checks are passed, such as:
+  - Verifying the branch
+  - Leftover merge/rebase conflict markers
+  - Author information
+  - File size limits
+  - Forbidden words
+  - Blocking `*.log`/`tmp.*` scratch files
+  - Running `ruff` on touched Python files
+  - Python file compilations
+  - Secret leaks
 - Since every `git commit` invocation triggers this hook (including the
   commits created by `git rebase --continue`, `git merge`, and
   `git cherry-pick --continue`), the leftover-conflict-marker check runs

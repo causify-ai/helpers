@@ -47,6 +47,7 @@ _CHECKS: Dict[str, Callable[[], None]] = {
     "author": dshgghout.check_author,
     "file_size": dshgghout.check_file_size,
     "tmp_log_files": dshgghout.check_tmp_log_files,
+    "ruff_format": dshgghout.check_ruff_format,
     # TODO(gp): Disabled for now since it's too strict.
     # "words": dshgghout.check_words,
     "python_compile": dshgghout.check_python_compile,

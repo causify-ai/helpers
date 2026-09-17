@@ -1,10 +1,13 @@
 import logging
+import os
 
 import pytest
 
 import dev_scripts_helpers.git.git_hooks.utils as dsgghout  # pylint: disable=no-name-in-module
+import helpers.hio as hio
 import helpers.hprint as hprint
 import helpers.hserver as hserver
+import helpers.hsystem as hsystem
 import helpers.hunit_test as hunitest
 
 _LOG = logging.getLogger(__name__)
@@ -34,15 +37,22 @@ class Test_git_hooks_utils1(hunitest.TestCase):
         """
         Test `_is_tmp_log_file()` on matching and non-matching file names.
         """
-        tmp_log_files = ["tmp.pytest.log", "tmp.log", "dir/tmp.build.log"]
+        # Prepare inputs and run test and check outputs.
+        tmp_log_files = [
+            "tmp.pytest.log",
+            "tmp.log",
+            "dir/tmp.build.log",
+            # A plain `*.log` file (not prefixed with `tmp.`) also matches.
+            "foo.log",
+            "debug.log",
+            # A `tmp.*` file without a `.log` extension also matches.
+            "tmp.precommit_output.txt",
+            "tmp.pytest.txt",
+            "dir/tmp.cache.json",
+        ]
         for file_name in tmp_log_files:
             self.assertTrue(dsgghout._is_tmp_log_file(file_name))
-        other_files = [
-            "tmp.precommit_output.txt",
-            "foo.log",
-            "log.tmp",
-            "tmp.pytest.txt",
-        ]
+        other_files = ["log.tmp", "foo.py", "dir/data.csv"]
         for file_name in other_files:
             self.assertFalse(dsgghout._is_tmp_log_file(file_name))
 
@@ -79,6 +89,66 @@ class Test_git_hooks_utils1(hunitest.TestCase):
         # Run test and check output.
         with self.assertRaises(SystemExit):
             dsgghout.check_tmp_log_files(abort_on_error, file_statuses)
+
+    def test_check_tmp_log_files4(self) -> None:
+        """
+        Test `check_tmp_log_files()` aborts when a plain `.log` file (not
+        prefixed with `tmp.`) is added.
+        """
+        # Prepare inputs.
+        abort_on_error = True
+        file_statuses = [("A", "debug.log")]
+        # Run test and check output.
+        with self.assertRaises(SystemExit):
+            dsgghout.check_tmp_log_files(abort_on_error, file_statuses)
+
+    def test_check_tmp_log_files5(self) -> None:
+        """
+        Test `check_tmp_log_files()` aborts when a `tmp.*` file without a
+        `.log` extension is added.
+        """
+        # Prepare inputs.
+        abort_on_error = True
+        file_statuses = [("A", "tmp.cache.json")]
+        # Run test and check output.
+        with self.assertRaises(SystemExit):
+            dsgghout.check_tmp_log_files(abort_on_error, file_statuses)
+
+    @pytest.mark.skipif(
+        not hsystem.check_exec("ruff"), reason="`ruff` is not installed"
+    )
+    def test_check_ruff_format1(self) -> None:
+        """
+        Test `check_ruff_format()` aborts and reformats a badly formatted
+        file.
+        """
+        # Prepare inputs.
+        scratch_dir = self.get_scratch_space()
+        file_name = os.path.join(scratch_dir, "bad_format.py")
+        hio.to_file(file_name, "x=1\n")
+        abort_on_error = True
+        # Run test.
+        with self.assertRaises(SystemExit):
+            dsgghout.check_ruff_format(abort_on_error, [file_name])
+        # Check outputs.
+        actual = hio.from_file(file_name)
+        self.assertIn("x = 1", actual)
+
+    @pytest.mark.skipif(
+        not hsystem.check_exec("ruff"), reason="`ruff` is not installed"
+    )
+    def test_check_ruff_format2(self) -> None:
+        """
+        Test `check_ruff_format()` passes for an already well-formatted
+        file.
+        """
+        # Prepare inputs.
+        scratch_dir = self.get_scratch_space()
+        file_name = os.path.join(scratch_dir, "good_format.py")
+        hio.to_file(file_name, "x = 1\n")
+        abort_on_error = True
+        # Run test and check output.
+        dsgghout.check_ruff_format(abort_on_error, [file_name])
 
     def test_caesar1(self) -> None:
         txt = """
