@@ -69,34 +69,14 @@ so far.
 Highest confidence first:
 
 1. `gh_create_pr` → `gh_pr_create` (direct sibling mismatch with `gh_issue_create`)
-2. `gh_delete_workflow_runs` → `gh_workflow_runs_delete` (or `gh_workflow_delete_runs`)
+2. `gh_delete_workflow_runs` → `gh_workflow_delete_runs`
 3. `gh_create_mock_fixture` → `gh_mock_fixture_create`
-4. `git_branches` → `git_branch_list` (aligns with singular `branch_` family; would leave `git_files` as the only bare-plural, no-action task, or `git_files` could be renamed too — see below)
-5. `git_branch_files` → `git_branch_list_files` or `git_branch_files_list`
 6. `git_branch_next_name` → `git_branch_get_next_name`
 7. `gh_issue_title` → `gh_issue_get_title`
 8. `git_file_version` → `git_file_get_version`
-
-Lower confidence / judgment calls (renaming these has a worse cost/benefit
-since they're either very commonly typed, or a clean rename is awkward):
-
-- `git_fetch_master`, `git_merge_master` — verb-first but read naturally as
-  git-subcommand mirrors (`git fetch`, `git merge`); renaming to
-  `git_master_fetch`/`git_master_merge` reads worse to a git user
-- `git_set_symlink_perms`, `git_reset_symlink_perms`, `git_fix_perms` — a
-  self-consistent verb-first trio; renaming only these three to match the
-  rest of the file is possible (`git_symlink_perms_set`, etc.) but they read
-  fine as-is and are less confusing internally than externally
-- `git_roll_amp_forward` — opaque/legacy name; a rename needs someone who
-  knows the original intent to propose a clearer name, not just a mechanical
-  reorder
-- `git_add_all_untracked` — reads fine as `git add` mirror, no sibling
-  conflict
-- `git_files` — bare plural like `git_branches`; only worth renaming if
-  `git_branches` is also renamed, to keep the two consistent with each other
-- `gh_publish_buildmeister_dashboard_to_s3` — long, specific, low call
-  frequency; a clean object-first rename is clunky
-  (`gh_buildmeister_dashboard_publish_to_s3`)
+- `git_set_symlink_perms`, `git_reset_symlink_perms`, `git_fix_perms`
+  -> `git_symlink_perms_{set,get,fix}`
+- `git_roll_amp_forward` -> `git_submodules_roll_forward`
 
 ## Next step
 
