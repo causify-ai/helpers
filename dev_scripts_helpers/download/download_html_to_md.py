@@ -43,6 +43,7 @@ import argparse
 import logging
 import os
 import re
+import sys
 
 import helpers.hdbg as hdbg
 import helpers.hgit as hgit
@@ -55,11 +56,13 @@ import dev_scripts_helpers.download.download_utils as dshddut
 
 _LOG = logging.getLogger(__name__)
 
+
 # #############################################################################
 # Download action
 # #############################################################################
 
 
+# TODO(ai_gp): Call the executable, which has playright in its uv deps.
 def _download_html_with_browser(input_url: str) -> str:
     """
     Download HTML from URL using a headless browser.
@@ -75,9 +78,30 @@ def _download_html_with_browser(input_url: str) -> str:
     # needed.
     from playwright.sync_api import sync_playwright
 
+    # Store the browser binary inside this script's own uv-managed venv
+    # (keyed off `sys.executable`) instead of the shared
+    # `~/Library/Caches/ms-playwright` cache, so nothing is installed
+    # globally on the machine.
+    os.environ.setdefault("PLAYWRIGHT_BROWSERS_PATH", "0")
     _LOG.info("Downloading HTML from '%s' using headless browser...", input_url)
     with sync_playwright() as p:
-        browser = p.chromium.launch()
+        try:
+            browser = p.chromium.launch()
+        except Exception as e:
+            if "Executable doesn't exist" not in str(e):
+                raise
+            # Install the browser using this same script's interpreter, so
+            # `uv` resolves it against the exact `playwright` dependency
+            # version already declared for this script.
+            _LOG.warning(
+                "Playwright browser not found, installing it "
+                "(scoped to this script's venv)..."
+            )
+            hsystem.system(
+                f"{sys.executable} -m playwright install chromium",
+                print_command=True,
+            )
+            browser = p.chromium.launch()
         try:
             page = browser.new_page(
                 user_agent=(

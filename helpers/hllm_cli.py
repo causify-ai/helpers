@@ -64,6 +64,53 @@ _LOG.trace = _LOG.debug
 
 
 # #############################################################################
+# Model resolution
+# #############################################################################
+
+
+def _refresh_openrouter_models_cache() -> bool:
+    """
+    Delete the cached OpenRouter model list so the next lookup re-fetches it.
+
+    The `llm-openrouter` plugin caches the model list on disk for 1 hour
+    (see `fetch_cached_json()` in `llm_openrouter.py`) and, if the refetch
+    fails, silently falls back to whatever is on disk regardless of its
+    age. Deleting the cache file forces a fresh download on the next call,
+    which is the only way to recover from a stale or corrupted cache.
+
+    :return: True if a cache file was found and removed, False otherwise
+    """
+    cache_file = llm.user_dir() / "openrouter_models.json"
+    if cache_file.is_file():
+        _LOG.warning("Removing stale OpenRouter model cache '%s'", cache_file)
+        cache_file.unlink()
+        return True
+    return False
+
+
+def _get_llm_model(model: str):  # type: ignore[no-untyped-def]
+    """
+    Resolve a model name to an `llm` model object, retrying once with a
+    refreshed OpenRouter model cache if the model is not found.
+
+    :param model: model name to use (empty string for the library default)
+    :return: resolved `llm` model object
+    """
+    try:
+        llm_model = llm.get_model(model) if model else llm.get_model()
+    except llm.UnknownModelError:
+        # `get_model()` re-runs the `register_models` hooks (unlike
+        # `load_plugins()`, which is a one-shot no-op after the first
+        # call), so simply retrying it after clearing the cache file is
+        # enough to force `llm-openrouter` to re-fetch the model list.
+        if model.startswith("openrouter/") and _refresh_openrouter_models_cache():
+            llm_model = llm.get_model(model)
+        else:
+            raise
+    return llm_model
+
+
+# #############################################################################
 # Lazy imports
 # #############################################################################
 
@@ -655,11 +702,9 @@ def _apply_llm_via_library(
     :return: tuple of (LLM response as string, TokenStats instance)
     """
     start_time = time.time()
-    # Get the model.
-    if model:
-        llm_model = llm.get_model(model)
-    else:
-        llm_model = llm.get_model()
+    # Get the model, refreshing the OpenRouter model cache and retrying once
+    # if the model is not found.
+    llm_model = _get_llm_model(model)
     _LOG.debug("Using model: %s", llm_model.model_id)
     # Execute with or without progress bar.
     if expected_num_chars > 0:

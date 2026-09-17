@@ -14,15 +14,15 @@
 | `download_academic_paper_to_md.py`     | Download an academic paper (arXiv/DOI/PDF), convert to Markdown, summarize   | Content Downloaders |
 | `download_hn_article_to_md.py`         | Download a Hacker News submission (comments and article), convert, summarize | Content Downloaders |
 | `download_html_to_md.py`               | Download a generic web page and convert it to Markdown, summarize            | Content Downloaders |
-| `download_link_articles.py`            | Download/summarize article content and HN comments for rows in a Gsheet      | Gsheet Pipelines    |
+| `download_link_articles.py`            | Download/summarize article content and HN comments for rows from a Gsheet or a local CSV | Gsheet Pipelines    |
 | `download_to_md.py`                    | Detect input type and dispatch to the matching `download_*_to_md.py` script  | Content Downloaders |
 | `download_utils.py`                    | Shared helpers for fetching article titles and summarizing text via an LLM   | Shared Utilities    |
 | `podcast_dl.py`                        | Download and format a podcast transcript from various sources                | Podcast Tools       |
 | `podcast_dl_example.sh`                | Example invocations of `podcast_dl.py` for each supported source type        | Podcast Tools       |
-| `process_bookmarks.py`                 | Download, summarize, and archive to Google Drive HN bookmarks from a CSV     | Bookmark Pipeline   |
-| `process_gsheet_links.py`              | Pipeline to extract HN article URLs and classify articles by topic/cluster   | Gsheet Pipelines    |
+| `pre_process_bookmarks.py`             | Pipeline to extract HN article URLs and classify articles by topic/cluster, for a Gsheet or a local CSV | Gsheet Pipelines    |
+| `process_bookmarks.py`                 | Download, summarize, and archive HN bookmarks from a CSV to a destination    | Bookmark Pipeline   |
 | `process_one_off_gsheet_links.py`      | One-off pipeline to rename topic tags in the Gsheet (data migration)         | Gsheet Pipelines    |
-| `update_gsheet_links_from_raindrop.py` | Sync new bookmarks from `Raindrop.io` into the Gsheet                        | Gsheet Pipelines    |
+| `update_bookmarks_from_raindrop.py`    | Sync new bookmarks from `Raindrop.io` into the Gsheet or a local CSV         | Gsheet Pipelines    |
 
 ## Link Gsheet Schema
 - E.g.,
@@ -229,31 +229,41 @@
   > ./podcast_dl_example.sh
   ```
 
-### `update_gsheet_links_from_raindrop.py`
+### `update_bookmarks_from_raindrop.py`
 
 #### What It Does
-- Synchronizes bookmarks from `Raindrop.io` with a Google Sheets document
-- Implements a four-action pipeline:
+- Synchronizes new bookmarks from `Raindrop.io` into either a live Google
+  Sheet or a local CSV file, selected via the required `--target
+  {gsheet,local_csv}` (no default)
+- Requires the `RAINDROP_API_TOKEN` environment variable
+- **`--target gsheet`**: a four-action pipeline
   - **download_gsheet_links**: Downloads current data from Google Sheets to CSV
   - **download_raindrop_data**: Fetches new bookmarks from the `Raindrop.io` API
     (only items created after the latest timestamp in the gsheet)
   - **combine_data**: Transforms and combines `Raindrop.io` data into the gsheet
-    schema
+    schema, writing a new combined tmp CSV
   - **upload_gsheet_links**: Uploads combined data back to Google Sheets in a new
     timestamped tab
-- Requires the `RAINDROP_API_TOKEN` environment variable
+- **`--target local_csv`** (requires `--local_csv <path>`): only
+  `download_raindrop_data` and `combine_data` apply (no gsheet
+  download/upload: `download_gsheet_links`/`upload_gsheet_links`); the
+  latest-`Timestamp` cutoff is read directly from `--local_csv`, and `combine_data`
+  prepends newly-fetched rows into that same file in place, leaving every existing
+  row (`Done` included) untouched
 
 #### Examples
 - Sync all new bookmarks from `Raindrop.io` to Google Sheets:
   ```bash
-  > update_gsheet_links_from_raindrop.py \
+  > update_bookmarks_from_raindrop.py \
+      --target gsheet \
       --url "$LINKS_GSHEET" \
       --all_actions
   ```
 
 - Just download from Google Sheets:
   ```bash
-  > update_gsheet_links_from_raindrop.py \
+  > update_bookmarks_from_raindrop.py \
+      --target gsheet \
       --url "$LINKS_GSHEET" \
       --clear_actions \
       --action download_gsheet_links
@@ -261,7 +271,8 @@
 
 - Just fetch from `Raindrop.io` (requires `RAINDROP_API_TOKEN`):
   ```bash
-  > update_gsheet_links_from_raindrop.py \
+  > update_bookmarks_from_raindrop.py \
+      --target gsheet \
       --url "$LINKS_GSHEET" \
       --clear_actions \
       --action download_raindrop_data
@@ -269,7 +280,8 @@
 
 - Combine data without uploading:
   ```bash
-  > update_gsheet_links_from_raindrop.py \
+  > update_bookmarks_from_raindrop.py \
+      --target gsheet \
       --url "$LINKS_GSHEET" \
       --clear_actions \
       --action download_gsheet_links \
@@ -277,73 +289,110 @@
       --action combine_data
   ```
 
-### `process_gsheet_links.py`
+- Sync new bookmarks directly into a local CSV instead of a Google Sheet:
+  ```bash
+  > update_bookmarks_from_raindrop.py \
+      --target local_csv \
+      --local_csv /Users/saggese/src/notes1/bookmarks/update_gsheet_links_from_raindrop.combined_data.csv \
+      --action download_raindrop_data --action combine_data
+  ```
+
+### `pre_process_bookmarks.py`
 
 #### What It Does
-- Pipeline for enriching Hacker News articles from a Google Sheets document:
+- Pipeline for enriching Hacker News articles, applied the same way to a
+  Google Sheets document or a local CSV, selected via the required `--target
+  {gsheet,local_csv}` (no default)
+- **`--target gsheet`**: a five-action pipeline
   - **download_link_gsheet**: Downloads data from Google Sheets to CSV
   - **update_article_url**: Extracts article URLs from HN links via the HN API
   - **update_article_tag**: Classifies articles by topic using an LLM
   - **update_article_cluster**: Maps topics to higher-level cluster categories
   - **upload_link_gsheet**: Uploads the processed CSV back to Google Sheets
+- **`--target local_csv`** (requires `--local_csv <path>`): only
+  `update_article_url`, `update_article_tag`, and `update_article_cluster`
+  apply (no gsheet download/upload); rows are read directly from
+  `--local_csv`, and the final clustered result is written back into that
+  same file in place
 - Only processes rows with empty target columns (incremental, resumable)
 
 #### Examples
 - Run the complete pipeline on a Google Sheets document:
   ```bash
-  > process_gsheet_links.py --url "$LINKS_GSHEET" --all_actions
+  > pre_process_bookmarks.py --target gsheet --url "$LINKS_GSHEET" --all_actions
   ```
 
 - Just download data from Google Sheets:
   ```bash
-  > process_gsheet_links.py --url "$LINKS_GSHEET" --action download_link_gsheet
+  > pre_process_bookmarks.py \
+      --target gsheet --url "$LINKS_GSHEET" \
+      --action download_link_gsheet
   ```
 
 - Extract article URLs only:
   ```bash
-  > process_gsheet_links.py --url "$LINKS_GSHEET" --action update_article_url
+  > pre_process_bookmarks.py \
+      --target gsheet --url "$LINKS_GSHEET" \
+      --action update_article_url
   ```
 
 - Tag articles using a specific LLM model:
   ```bash
-  > process_gsheet_links.py \
-      --url "$LINKS_GSHEET" \
+  > pre_process_bookmarks.py \
+      --target gsheet --url "$LINKS_GSHEET" \
       --action update_article_tag \
       --model gpt-4o-mini
+  ```
+
+- Run the same enrichment pipeline directly against a local CSV instead of a
+  Google Sheet, updating it in place:
+  ```bash
+  > pre_process_bookmarks.py \
+      --target local_csv --local_csv bookmarks.csv \
+      --all_actions
   ```
 
 ### `download_link_articles.py`
 
 #### What It Does
-- Downloads article content and HN comments from links stored in Google Sheets (or a
-  single URL via `--input`, bypassing Google Sheets)
+- Downloads article content and HN comments; `--input` is the primary,
+  gsheet-free way to run it, accepting either a single HN submission/article
+  URL (bypassing Google Sheets, type auto-detected) or a path to a local
+  bookmarks CSV (batch mode, all its rows); `--url` remains available for a
+  live Google Sheets document
 - Saves downloaded content to text files with bash-safe filenames derived from the
   `Title` column
 - Actions: **download_hn_url**, **download_article_url**, **summarize_hn_url**,
   **summarize_article_url**
 
 #### Examples
-- Download all (HN comments and article) for the first row of the Gsheet:
-  ```bash
-  > download_link_articles.py --url "$LINKS_GSHEET" --row_idx 1 --all_actions
-  ```
-
-- Download HN comments for rows 0-10 where `Url` is not empty:
-  ```bash
-  > download_link_articles.py \
-      --url "$LINKS_GSHEET" \
-      --row_idx "0:10" \
-      --action download_hn_url
-  ```
-
-- Download a single article URL directly, bypassing Google Sheets:
+- Download a single HN submission directly, bypassing Google Sheets:
   ```bash
   > download_link_articles.py \
       --input "https://news.ycombinator.com/item?id=40212490" \
       --all_actions
   ```
 
-- Summarize articles for all rows:
+- Download and summarize all rows from a local bookmarks CSV:
+  ```bash
+  > download_link_articles.py --input bookmarks.csv --all_actions
+  ```
+
+- Download HN comments for rows 0-10 of a local bookmarks CSV where `Hn_url`
+  is not empty:
+  ```bash
+  > download_link_articles.py \
+      --input bookmarks.csv \
+      --row_idx "0:10" \
+      --action download_hn_url
+  ```
+
+- Download all (HN comments and article) for the first row of a Gsheet:
+  ```bash
+  > download_link_articles.py --url "$LINKS_GSHEET" --row_idx 1 --all_actions
+  ```
+
+- Summarize articles for all rows of a Gsheet:
   ```bash
   > download_link_articles.py --url "$LINKS_GSHEET" --action summarize_article_url
   ```
@@ -359,22 +408,38 @@
      (article + HN comments) under `--output_dir`
   2. Merges the article summary and HN comments summary into a single
      `<date>.hn_<item_id>.<title>.summary.md` file, with an `# Info` section
-     (`Title`, `Article`, `HN`, `Timestamp`, `Article_tag`, `Article_cluster`)
-     followed by `# Article Summary` and `# HN Comments Summary` sections
-  3. Copies the merged file to `--gdrive_dir` (skip with `--no_save_to_google_drive`)
-  4. Sets `Done` on the row and saves the CSV in place, so an interrupted run can
-     resume
-- Unlike `process_gsheet_links.py`/`download_link_articles.py`, this reads and writes
-  a local CSV directly instead of a live Google Sheet
+     (`Title`, `Article`, `HN`, `Timestamp`, `Article_tag`, `Article_cluster`, an
+     empty manual `Score: ` placeholder) followed by `# Article Summary` (12-15
+     bullet points) and `# HN Comments Summary` (10-15 comments) sections
+  3. Sets `Done=yes` on the row and saves the CSV in place, so an interrupted run
+     can resume
+  - A row whose `Hn_url` isn't a real HN item URL (e.g., a plain article link
+    `Raindrop.io` put in that column) is set to `Done=skipped` immediately
+    instead, with no download, so it stops occupying `--limit` slots on every
+    future run
+- Always reads and writes a local CSV directly, unlike `pre_process_bookmarks.py`
+  and `download_link_articles.py`, for which a local CSV is one of two supported
+  data sources (selected via `--target`/`--input`, alongside a live Google Sheet)
+- **Destination reconciliation**: separately from row processing, every invocation
+  copies the cached merged summary for every `Done=yes` row that's missing from the
+  selected destination (`--dest_type {gdrive,obsidian,none}`, default `gdrive`;
+  `--dest_dir <path>` overrides the built-in path) -- no re-download, no
+  re-summarize. This runs over *all* `Done=yes` rows, not bounded by `--limit`
+  (`--limit 0` runs reconciliation only), and is what makes destinations
+  independent: switching `--dest_type` later backfills the new one for free
+  - Every invocation also always backs up merged summaries into a fixed,
+    git-tracked dir, independent of `--dest_type` (a version-controlled copy,
+    separate from the user-selectable viewing destination)
+- `--dry_run` reports, without downloading, writing, or mutating the CSV: rows to be
+  newly processed, rows to be marked `skipped`, and rows to be copied/repaired into
+  the selected destination
 
 #### Examples
-- Process up to 3 unprocessed rows from a CSV, keeping raw per-item files under
-  `bookmarks/` (merged summaries still go to `--gdrive_dir`):
+- Process up to 10 unprocessed rows (default), copying to Google Drive:
   ```bash
   > process_bookmarks.py \
       -i /Users/saggese/src/notes1/bookmarks/update_gsheet_links_from_raindrop.combined_data.csv \
-      -o bookmarks \
-      --limit 3
+      --limit 10
   ```
 
 - Preview what would be done without downloading or writing anything:
@@ -388,12 +453,23 @@
   > process_bookmarks.py --input bookmarks.csv --no_incremental
   ```
 
-- Keep the merged summaries local instead of copying them to Google Drive:
+- Copy merged summaries to the Obsidian vault instead of Google Drive:
+  ```bash
+  > process_bookmarks.py --input bookmarks.csv --dest_type obsidian
+  ```
+
+- Keep the merged summaries local (under `--output_dir`) only:
   ```bash
   > process_bookmarks.py \
       --input bookmarks.csv \
       -o ./tmp.hn_downloads \
-      --no_save_to_google_drive
+      --dest_type none
+  ```
+
+- Backfill a destination for rows already processed, without downloading anything
+  new:
+  ```bash
+  > process_bookmarks.py --input bookmarks.csv --dest_type obsidian --limit 0
   ```
 
 ### `process_one_off_gsheet_links.py`
@@ -419,11 +495,11 @@
 - **Steps**:
   1. Download links from `Raindrop.io` and merge with the existing gsheet:
      ```bash
-     > update_gsheet_links_from_raindrop.py --url "$LINKS_GSHEET" --all_actions
+     > update_bookmarks_from_raindrop.py --target gsheet --url "$LINKS_GSHEET" --all_actions
      ```
   2. Extract article URLs and classify by topic/cluster:
      ```bash
-     > process_gsheet_links.py --url "$LINKS_GSHEET" --all_actions
+     > pre_process_bookmarks.py --target gsheet --url "$LINKS_GSHEET" --all_actions
      ```
   3. Download HN comments and article content:
      ```bash
@@ -438,59 +514,143 @@
      downloaded files (articles, comments, summaries) in the local directory
 
 ### CSV-Based Bookmark Processing Workflow
-// TODO(ai_gp): Too detailed. It should go in the README of the file or as a //
-comment in the file
 
-- **Purpose**: process bookmarks tracked in a local CSV (e.g., the
-  `combined_data.csv` produced by `update_gsheet_links_from_raindrop.py`'s
-  `combine_data` action) instead of a live Google Sheet, and archive the results to
-  Google Drive
-
-- **Command**:
-  ```bash
-  > process_bookmarks.py \
-      -i /Users/saggese/src/notes1/bookmarks/update_gsheet_links_from_raindrop.combined_data.csv \
-      -o bookmarks \
-      --limit 3
-  ```
-
-- **What it does, step by step**:
-  1. Reads the CSV at `-i` and asserts it has `Hn_url` and `Done` columns
-  2. Selects the first 3 rows (`--limit 3`) whose `Done` cell is empty
-  3. For each selected row (`item_id` extracted from `Hn_url`):
-     - Runs
-       ```bash
-       > download_hn_article_to_md.py --input "<Hn_url>" --output_dir "bookmarks"
-       ```
-       which writes 4 raw files into `bookmarks/`:
-       - `<base>.1.article_url.md`
-       - `<base>.2.article_url.summary.md`
-       - `<base>.3.hn_url.txt`
-       - `<base>.4.hn_url.summary.md`
-       where `<base>` is `<date>.hn_<item_id>.<title>`
-     - Globs `bookmarks/` for the `*.2.article_url.summary.md` and
-       `*.4.hn_url.summary.md` files just produced (matched by `item_id`)
-     - Merges them into `bookmarks/<base>.summary.md`: an `# Info` section
-       (`Title`/`Article`/`HN`/`Timestamp`/`Article_tag`/`Article_cluster` from the
-       CSV row), then `# Article Summary`, then `# HN Comments Summary`
-     - Copies `<base>.summary.md` to the default `--gdrive_dir`
-       (`.../GoogleDrive-saggese@gmail.com/My Drive/HN`); pass
-       `--no_save_to_google_drive` to keep it in `bookmarks/` only
-     - Sets `Done=yes` on the row and rewrites the CSV at `-i` in place, so a later
-       run (or a rerun after an interruption) skips it
-  4. Logs how many of the 3 selected rows were successfully processed
-
-- **Output for each processed row** (under `bookmarks/`):
-  - `<base>.1.article_url.md`: raw article content
-  - `<base>.2.article_url.summary.md`: LLM article summary
-  - `<base>.3.hn_url.txt`: raw HN comment tree
-  - `<base>.4.hn_url.summary.md`: LLM HN comments summary
-  - `<base>.summary.md`: merged summary (also copied to Google Drive)
-
+- **Purpose**: run the same enrichment, download, and summarization stages as
+  the Gsheet-based workflow above, but tracked in a local CSV (e.g., the
+  `combined_data.csv` produced by `update_bookmarks_from_raindrop.py`'s
+  `combine_data` action) instead of a live Google Sheet
+- **Steps**:
+  1. Extract article URLs and classify by topic/cluster, updating the CSV in
+     place:
+     ```bash
+     > pre_process_bookmarks.py \
+         --target local_csv --local_csv bookmarks.csv \
+         --all_actions
+     ```
+  2. Download HN comments and article content, and summarize them using an
+     LLM:
+     ```bash
+     > download_link_articles.py --input bookmarks.csv --all_actions
+     ```
+  3. Merge the downloaded summaries into per-item files and mark rows `Done`:
+     ```bash
+     > process_bookmarks.py -i bookmarks.csv --limit 3
+     ```
+- See `process_bookmarks.py`'s own module docstring for the full row-processing,
+  skip, and destination-reconciliation flow, and `download_hn_article_to_md.py`'s
+  docstring for the per-item output filename convention (`<base>.1.article_url.md`,
+  `<base>.2.article_url.summary.md`, etc.)
 - **Notes**:
-  - Rerunning the same command later only processes the next unprocessed rows (`Done`
-    still unset), since the CSV is updated in place after each row
+  - Rerunning `process_bookmarks.py` later only processes the next unprocessed rows
+    (`Done` still unset), since the CSV is updated in place after each row
   - Use `--dry_run` first to see which rows would be picked up without downloading or
     writing anything
   - Use `--no_incremental` to force re-download and re-summarize rows already marked
     `Done`
+
+### Modular Raindrop Sync and Multi-Destination Bookmark Workflow
+- 3 scripts (`update_bookmarks_from_raindrop.py`, `pre_process_bookmarks.py`,
+  `process_bookmarks.py`) each have a second, independently-selectable mode,
+  instead of separate scripts:
+  - `update_bookmarks_from_raindrop.py`: a `--target` selects whether new
+    `Raindrop.io` bookmarks are synced into a live **Google Sheet** or
+    directly into a **local CSV** file
+  - `pre_process_bookmarks.py`: a `--target` selects whether URL extraction,
+    tagging, and clustering apply to a live **Google Sheet** or a **local
+    CSV** file, updated in place
+  - `process_bookmarks.py`: a `--dest_type` selects whether merged summaries
+    are copied to **Google Drive**, the **Obsidian** vault, or kept local
+    only; any of the 3 scripts can be run at any time, independently of the
+    others, and a fixed git-tracked dir is always backed up into as well (see
+    `process_bookmarks.py`'s docstring)
+  - All 3 scripts share their core logic (Raindrop fetching/field-mapping;
+    URL extraction/tagging/clustering; download+summarize+merge) across
+    modes/destinations; only the small input/output-path logic differs per
+    mode
+
+- **`update_bookmarks_from_raindrop.py --target {gsheet,local_csv}`**
+  (required, no default):
+  - `--target gsheet`: 4 actions (`download_gsheet_links`,
+    `download_raindrop_data`, `combine_data`, `upload_gsheet_links`);
+    latest-timestamp cutoff comes from a Google Sheet download,
+    `combine_data` writes a new tmp combined CSV for the upload step
+    ```bash
+    > update_bookmarks_from_raindrop.py \
+        --target gsheet --url "$LINKS_GSHEET" --all_actions
+    ```
+  - `--target local_csv`: only `download_raindrop_data` and `combine_data`
+    apply (no gsheet download/upload); requires `--local_csv <path>`;
+    latest-timestamp cutoff is read directly from that file, and
+    `combine_data` prepends newly-fetched Raindrop rows into that same file
+    in place, leaving every existing row (`Done` included) untouched
+    ```bash
+    > update_bookmarks_from_raindrop.py \
+        --target local_csv \
+        --local_csv /Users/saggese/src/notes1/bookmarks/update_gsheet_links_from_raindrop.combined_data.csv \
+        --action download_raindrop_data --action combine_data
+    ```
+
+- **`pre_process_bookmarks.py --target {gsheet,local_csv}`**
+  (required, no default):
+  - `--target gsheet`: 5 actions (`download_link_gsheet`, `update_article_url`,
+    `update_article_tag`, `update_article_cluster`, `upload_link_gsheet`)
+    ```bash
+    > pre_process_bookmarks.py --target gsheet --url "$LINKS_GSHEET" --all_actions
+    ```
+  - `--target local_csv`: only `update_article_url`, `update_article_tag`, and
+    `update_article_cluster` apply (no gsheet download/upload); requires
+    `--local_csv <path>`; rows are read directly from that file, and the
+    final clustered result is written back into it in place
+    ```bash
+    > pre_process_bookmarks.py \
+        --target local_csv --local_csv bookmarks.csv \
+        --all_actions
+    ```
+
+- **`process_bookmarks.py --dest_type {gdrive,obsidian,none}`**
+  (default: `gdrive`) with optional `--dest_dir <path>` to override the
+  built-in path for the selected type:
+  - Row processing (`--limit`-bounded): a row with `Done` empty is
+    downloaded, summarized, merged into `<base>.summary.md` under
+    `--output_dir`, and marked `Done=yes` -- this step is destination-agnostic
+  - A row whose `Hn_url` isn't a real HN item URL (e.g., a plain article link
+    `Raindrop.io` put in that column) is marked `Done=skipped` immediately, no
+    download, so it stops occupying `--limit` slots on every future run
+    (handling plain-article bookmarks is out of scope)
+  - Destination reconciliation (runs every invocation over **all**
+    `Done=yes` rows, not `--limit`-bounded): for the selected `--dest_type`/
+    `--dest_dir`, any `Done=yes` row whose `<base>.summary.md` is missing from
+    that destination gets copied there from the local `--output_dir` cache --
+    no re-download, no re-summarize, no LLM cost. This is what makes
+    destinations independent: running once with `--dest_type gdrive` and
+    later with `--dest_type obsidian` backfills Obsidian for free from files
+    already processed. A fixed git-tracked dir is always reconciled into as
+    well, regardless of `--dest_type`
+    ```bash
+    # Process the next 10 unprocessed rows and copy them to Google Drive
+    > process_bookmarks.py -i CSV --dest_type gdrive --limit 10
+
+    # Process the next 10 unprocessed rows and copy them to Obsidian instead
+    > process_bookmarks.py -i CSV --dest_type obsidian --limit 10
+
+    # Keep merged summaries local only (still backed up to the git dir)
+    > process_bookmarks.py -i CSV --dest_type none --limit 10
+
+    # Reconcile Obsidian only (no new downloads) for rows already Done
+    > process_bookmarks.py -i CSV --dest_type obsidian --limit 0
+    ```
+  - `--dry_run` reports, without downloading, writing, or mutating the CSV:
+    rows to be newly processed this run, rows to be marked `skipped`, and rows
+    to be copied/repaired into the selected destination
+  - Each new `<base>.summary.md`'s `# Info` section includes an empty `Score: `
+    line, for you to fill in by hand while reading (matches the manual rating
+    convention already used in the Obsidian vault, e.g. `Score: 2/5`); it is
+    never LLM-computed
+  - Article summaries: 12-15 bullet points; HN comments summaries: 10-15
+    comments
+
+- **Notes**:
+  - Same incremental/resume behavior as the CSV-Based Bookmark Processing
+    Workflow above: rerun any time, only the outstanding batch is processed
+  - `--dest_type gdrive` and `--dest_type obsidian` can both be run against the
+    same CSV over time; neither is a replacement for the other

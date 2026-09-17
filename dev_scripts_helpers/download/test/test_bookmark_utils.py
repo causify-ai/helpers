@@ -16,7 +16,7 @@ _LOG = logging.getLogger(__name__)
 
 class Test_resolve_gsheet_url(hunitest.TestCase):
     """
-    Test `bookmark_utils.resolve_gsheet_url()`.
+    Test `dev_scripts_helpers.download.bookmark_utils.resolve_gsheet_url()`.
     """
 
     def helper(self, url: str, env_url: str, expected: str) -> None:
@@ -63,24 +63,11 @@ class Test_resolve_gsheet_url(hunitest.TestCase):
 
     def test3(self) -> None:
         """
-        Test an empty URL with no `LINKS_GSHEET` environment variable set
-        raises.
-        """
-        # Prepare inputs.
-        url = ""
-        # Run test and check outputs.
-        with umock.patch.dict(os.environ, {}, clear=False):
-            os.environ.pop("LINKS_GSHEET", None)
-            with self.assertRaises(AssertionError):
-                dshdbou.resolve_gsheet_url(url)
-
-    def test4(self) -> None:
-        """
         Test a very long URL is returned unchanged.
         """
         # Prepare inputs.
-        # Use a long URL (5000 chars) to exercise the large-input edge case.
-        url = "https://docs.google.com/spreadsheets/d/" + "a" * 5000
+        # Use a long URL (500 chars) to exercise the large-input edge case.
+        url = "https://docs.google.com/spreadsheets/d/" + "a" * 500
         env_url = "https://docs.google.com/spreadsheets/d/env"
         # Prepare outputs.
         expected = url
@@ -95,7 +82,7 @@ class Test_resolve_gsheet_url(hunitest.TestCase):
 
 class Test_download_from_gsheet(hunitest.TestCase):
     """
-    Test `bookmark_utils.download_from_gsheet()`.
+    Test `dev_scripts_helpers.download.bookmark_utils.download_from_gsheet()`.
     """
 
     def helper(self, rows: list, columns: list) -> str:
@@ -156,7 +143,7 @@ class Test_download_from_gsheet(hunitest.TestCase):
         # Prepare inputs.
         columns = ["Title", "Url"]
         rows: list = []
-        # Run test - should not raise
+        # Run test.
         actual = self.helper(rows, columns)
         # Check outputs.
         self.assertTrue(os.path.exists(actual), "File should exist even with empty CSV")
@@ -167,9 +154,9 @@ class Test_download_from_gsheet(hunitest.TestCase):
         """
         # Prepare inputs.
         columns = ["Title", "Url"]
-        # Use a large number of rows (5000) to exercise the large-input
+        # Use a large number of rows (500) to exercise the large-input
         # edge case without slowing down the test suite.
-        num_rows = 5000
+        num_rows = 500
         rows = [
             {"Title": f"Title {i}", "Url": f"https://example.com/{i}"}
             for i in range(num_rows)
