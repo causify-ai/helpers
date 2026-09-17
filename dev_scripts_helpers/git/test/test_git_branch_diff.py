@@ -118,6 +118,7 @@ class Test__git_diff_with_branch(hunitest.TestCase):
             umock.patch.object(
                 hsystem, "system", return_value=0
             ) as mock_system,
+            umock.patch.object(dsggibrd.os, "system") as mock_os_system,
             umock.patch.object(
                 hio, "create_executable_script"
             ) as mock_create_script,
@@ -128,13 +129,15 @@ class Test__git_diff_with_branch(hunitest.TestCase):
         script_file_name, script_txt = mock_create_script.call_args[0]
         self.assertEqual(script_file_name, "./tmp.vimdiff_branch_with_base.sh")
         self.assertEqual(script_txt, f"vimdiff {dst_dir}/a.py /dev/null")
+        # `hsystem.system()` is not used to run the vimdiff script, since it
+        # pipes stdout and would break vimdiff's connection to the terminal.
         actual = "\n".join(map(str, mock_system.mock_calls))
         expected = f"""
         call('git show base_hash:a.py >{dst_dir}/a.py', abort_on_error=False)
-        call('{script_file_name}')
         call('rm -rf {dst_dir}')
         """
         self.assert_equal(actual, expected, fuzzy_match=True, dedent=True)
+        mock_os_system.assert_called_once_with(script_file_name)
 
 
 # #############################################################################

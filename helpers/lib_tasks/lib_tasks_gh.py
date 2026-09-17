@@ -122,12 +122,17 @@ def _get_org_name(org_name: str) -> str:
     return org_name
 
 
-def _get_workflow_table() -> htable.Table:
+def _get_workflow_table(repo_full_name_with_host: str = "") -> htable.Table:
     """
     Get a table with the status of the GH workflow for the current repo.
+
+    :param repo_full_name_with_host: e.g., `github.com/causify-ai/helpers`;
+        if empty, default to whatever repo the CWD is in (`gh`'s default)
     """
     # Get the workflow status from GH.
     cmd = "export NO_COLOR=1; gh run list"
+    if repo_full_name_with_host:
+        cmd += f" --repo {repo_full_name_with_host}"
     _, txt = hsystem.system_to_string(cmd)
     _LOG.debug(hprint.to_str("txt"))
     # pylint: disable=line-too-long
@@ -190,6 +195,7 @@ def gh_workflow_list(  # type: ignore
     print_table=True,
     daemon=False,
     interval=60,
+    repo_short_name="current",
 ):
     """
     Report the status of the GH workflows.
@@ -208,6 +214,8 @@ def gh_workflow_list(  # type: ignore
         same report every `interval` seconds instead of running once (this
         merges the old standalone `gh_watch` flow)
     :param interval: seconds between periodic runs in daemon mode
+    :param repo_short_name: `current` refer to the repo where we are in,
+        otherwise a `repo_short_name` (e.g., "amp")
     """
     if daemon:
         # Periodically re-run this same report (with `daemon=False`),
@@ -221,6 +229,7 @@ def gh_workflow_list(  # type: ignore
                 report_only_status=report_only_status,
                 show_stack_trace=show_stack_trace,
                 print_table=print_table,
+                repo_short_name=repo_short_name,
             )
 
         hdaemon.run_periodic_daemon_mode(
@@ -232,8 +241,11 @@ def gh_workflow_list(  # type: ignore
     )
     # Login.
     gh_login(ctx)
+    repo_full_name_with_host, _ = _get_repo_full_name_from_cmd(
+        repo_short_name
+    )
     # Get the table.
-    table = _get_workflow_table()
+    table = _get_workflow_table(repo_full_name_with_host)
     # Filter table based on the branch.
     if filter_by_branch != "all":
         field = "branch"
@@ -339,10 +351,38 @@ def gh_workflow_list(  # type: ignore
                 raise ValueError(f"Invalid status='{status}'")
 
 
+# TODO(ai_gp): Merge this inside the other flow `invoke gh_workflow_list --daemon`
 @task
-def gh_workflow_run(ctx, branch="current_branch", workflows="all"):  # type: ignore
+def gh_watch(ctx, *, interval=60):  # type: ignore
+    """
+    Watch GitHub workflow status with periodic updates.
+
+    Runs `invoke gh_workflow_list` every N seconds. If running in tmux,
+    temporarily renames the window to "*GH_WATCH*" for visibility and restores it
+    on exit.
+
+    :param interval: Update interval in seconds
+    """
+    hltltaut.report_task()
+
+    def _run() -> None:
+        # Clear screen before displaying updated workflow status.
+        subprocess.run("clear; invoke gh_workflow_list", shell=True)
+
+    hdaemon.run_periodic_daemon_mode(
+        _run, interval, window_name_str="*GH_WATCH*"
+    )
+
+
+@task
+def gh_workflow_run(  # type: ignore
+    ctx, branch="current_branch", workflows="all", repo_short_name="current"
+):
     """
     Run GH workflows in a branch.
+
+    :param repo_short_name: `current` refer to the repo where we are in,
+        otherwise a `repo_short_name` (e.g., "amp")
     """
     hltltaut.report_task(txt=hprint.to_str("branch workflows"))
     # Login.
@@ -361,11 +401,17 @@ def gh_workflow_run(ctx, branch="current_branch", workflows="all"):  # type: ign
     else:
         gh_tests = [workflows]
     _LOG.debug(hprint.to_str("workflows"))
+    repo_full_name_with_host, _ = _get_repo_full_name_from_cmd(
+        repo_short_name
+    )
     # Run.
     for gh_test in gh_tests:
         gh_test += ".yml"
         # gh workflow run fast_tests.yml --ref AmpTask1251_Update_GH_actions_for_amp
-        cmd = f"gh workflow run {gh_test} --ref {branch_name}"
+        cmd = (
+            f"gh workflow run {gh_test} --ref {branch_name}"
+            f" --repo {repo_full_name_with_host}"
+        )
         hltltaut.run(ctx, cmd)
 
 
@@ -646,6 +692,7 @@ def gh_create_pr(  # type: ignore
     reviewer="",
     labels="",
     assignee="",
+    dry_run=False,
 ):
     """
     Create a draft PR for the current branch in the corresponding
@@ -668,6 +715,8 @@ def gh_create_pr(  # type: ignore
     :param reviewer: GitHub username to request review from
     :param labels: comma-separated list of labels to apply
     :param assignee: GitHub username to assign the PR to
+    :param dry_run: if True, log the `gh pr create`/`gh pr ready`/
+        `gh pr merge` commands without running them
     """
     hltltaut.report_task()
     # Login.
@@ -727,14 +776,14 @@ def gh_create_pr(  # type: ignore
                 cmd.append(f"--assignee {assignee}")
             cmd = " ".join(part for part in cmd if part)
             # TODO(gp): Use _to_single_line_cmd
-            hltltaut.run(ctx, cmd)
+            hltltaut.run(ctx, cmd, dry_run=dry_run)
         finally:
             os.remove(body_file_name)
     if auto_merge:
         cmd = f"gh pr ready {title}"
-        hltltaut.run(ctx, cmd)
+        hltltaut.run(ctx, cmd, dry_run=dry_run)
         cmd = f"gh pr merge {title} --auto --delete-branch --squash"
-        hltltaut.run(ctx, cmd)
+        hltltaut.run(ctx, cmd, dry_run=dry_run)
 
 
 # TODO(Grisha): probably the section deserves a separate lib.
@@ -745,14 +794,22 @@ def gh_create_pr(  # type: ignore
 
 # TODO(Grisha): consider moving to cmamp as we run the workflow from cmamp.
 @task
-def gh_publish_buildmeister_dashboard_to_s3(ctx, mark_as_latest=True):  # type: ignore
+def gh_publish_buildmeister_dashboard_to_s3(  # type: ignore
+    ctx, mark_as_latest=True, repo_short_name="current"
+):
     """
     Run the buildmeister dashboard notebook and publish it to S3.
 
     :param mark_as_latest: if True, mark the dashboard as `latest`, otherwise
         just publish a timestamped copy
+    :param repo_short_name: `current` refer to the repo where we are in,
+        otherwise a `repo_short_name` (e.g., "amp")
     """
     hltltaut.report_task()
+    # Resolve the repo (used only for consistency/validation: this task has
+    # no other repo-scoped `gh` command to thread it into beyond the login
+    # step below).
+    _get_repo_full_name_from_cmd(repo_short_name)
     # Login to GH CLI.
     if hserver.is_inside_ci():
         _LOG.info("Skipping login since running inside CI")
@@ -1277,7 +1334,12 @@ def get_workflow_run_ids(
 
 @task
 def gh_delete_workflow_runs(  # type: ignore
-    ctx, workflow_name, older_than_days=None, dry_run=False, confirmation=True
+    ctx,
+    workflow_name,
+    older_than_days=None,
+    dry_run=False,
+    confirmation=True,
+    repo_short_name="current",
 ):
     """
     Delete all workflow runs for a given workflow.
@@ -1290,6 +1352,8 @@ def gh_delete_workflow_runs(  # type: ignore
         deleting
     :param confirmation: if True, prompt user for confirmation before
         deletion (default: True)
+    :param repo_short_name: `current` refer to the repo where we are in,
+        otherwise a `repo_short_name` (e.g., "amp")
     """
     hltltaut.report_task(
         txt=hprint.to_str("workflow_name older_than_days dry_run confirmation")
@@ -1301,7 +1365,9 @@ def gh_delete_workflow_runs(  # type: ignore
     # Login.
     gh_login(ctx)
     #
-    repo_full_name_with_host, _ = _get_repo_full_name_from_cmd("current")
+    repo_full_name_with_host, _ = _get_repo_full_name_from_cmd(
+        repo_short_name
+    )
     # Get workflow ID by name.
     repo_path = repo_full_name_with_host.replace("github.com/", "")
     workflows = gh_get_workflows(repo_path)

@@ -240,7 +240,12 @@ def _git_diff_with_branch(
     script_file_name = f"./tmp.vimdiff_branch_with_{tag}.sh"
     msg = f"To diff against {tag} run"
     hio.create_executable_script(script_file_name, script_txt, msg=msg)
-    _run_or_skip(script_file_name, dry_run)
+    if dry_run:
+        _LOG.warning("Skipping execution of '%s'", script_file_name)
+    else:
+        # Use `os.system()`, not `hsystem.system()`, since the latter pipes
+        # stdout and breaks `vimdiff`'s connection to the terminal.
+        os.system(script_file_name)
     # Clean up temporary files.
     cmd = f"rm -rf {dst_dir}"
     _run_or_skip(cmd, dry_run)

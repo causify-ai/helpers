@@ -507,6 +507,47 @@ class Test_gh_workflow_list(hunitest.TestCase):
         mock_subprocess.assert_called_once_with("clear", shell=True)
         mock_recurse.assert_called_once()
 
+    def test3(self) -> None:
+        """
+        Test that a non-default `repo_short_name` is resolved and passed
+        to `_get_workflow_table()`.
+        """
+        # Prepare inputs.
+        ctx = httestlib._build_mock_context_returning_ok()
+        table = htable.Table.from_text(
+            [
+                "completed",
+                "status",
+                "workflow",
+                "branch",
+                "event",
+                "id",
+                "elapsed",
+                "age",
+            ],
+            "completed\tsuccess\tFast tests\tmaster\tpush\t1\t1m\t2m",
+            delimiter="\t",
+        )
+        # Run test.
+        with (
+            umock.patch.object(hltltagh, "gh_login"),
+            umock.patch.object(
+                hltltagh,
+                "_get_repo_full_name_from_cmd",
+                return_value=("github.com/causify-ai/amp", "amp"),
+            ) as mock_get_repo,
+            umock.patch.object(
+                hltltagh, "_get_workflow_table", return_value=table
+            ) as mock_get_table,
+            umock.patch.object(hltltagh, "_print_table"),
+        ):
+            hltltagh.gh_workflow_list(
+                ctx, filter_by_branch="all", repo_short_name="amp"
+            )
+        # Check outputs.
+        mock_get_repo.assert_called_once_with("amp")
+        mock_get_table.assert_called_once_with("github.com/causify-ai/amp")
+
 
 # #############################################################################
 # Test_gh_workflow_run
@@ -525,13 +566,22 @@ class Test_gh_workflow_run(hunitest.TestCase):
         # Prepare inputs.
         ctx = httestlib._build_mock_context_returning_ok()
         # Run test.
-        with umock.patch.object(hltltagh, "gh_login"):
+        with (
+            umock.patch.object(hltltagh, "gh_login"),
+            umock.patch.object(
+                hltltagh,
+                "_get_repo_full_name_from_cmd",
+                return_value=("github.com/causify-ai/helpers", "helpers"),
+            ),
+        ):
             hltltagh.gh_workflow_run(ctx, branch="master", workflows="all")
         # Check outputs.
         actual = [call.args[0] for call in ctx.run.mock_calls]
         expected = [
-            "gh workflow run fast_tests.yml --ref master",
-            "gh workflow run slow_tests.yml --ref master",
+            "gh workflow run fast_tests.yml --ref master"
+            " --repo github.com/causify-ai/helpers",
+            "gh workflow run slow_tests.yml --ref master"
+            " --repo github.com/causify-ai/helpers",
         ]
         self.assert_equal(str(actual), str(expected))
 
@@ -547,13 +597,52 @@ class Test_gh_workflow_run(hunitest.TestCase):
             umock.patch.object(
                 hgit, "get_branch_name", return_value="feature_x"
             ),
+            umock.patch.object(
+                hltltagh,
+                "_get_repo_full_name_from_cmd",
+                return_value=("github.com/causify-ai/helpers", "helpers"),
+            ),
         ):
             hltltagh.gh_workflow_run(
                 ctx, branch="current_branch", workflows="custom_workflow"
             )
         # Check outputs.
         actual = [call.args[0] for call in ctx.run.mock_calls]
-        expected = ["gh workflow run custom_workflow.yml --ref feature_x"]
+        expected = [
+            "gh workflow run custom_workflow.yml --ref feature_x"
+            " --repo github.com/causify-ai/helpers"
+        ]
+        self.assert_equal(str(actual), str(expected))
+
+    def test3(self) -> None:
+        """
+        Test that a non-default `repo_short_name` changes the `--repo`
+        value in the constructed command.
+        """
+        # Prepare inputs.
+        ctx = httestlib._build_mock_context_returning_ok()
+        # Run test.
+        with (
+            umock.patch.object(hltltagh, "gh_login"),
+            umock.patch.object(
+                hltltagh,
+                "_get_repo_full_name_from_cmd",
+                return_value=("github.com/causify-ai/amp", "amp"),
+            ) as mock_get_repo,
+        ):
+            hltltagh.gh_workflow_run(
+                ctx,
+                branch="master",
+                workflows="fast_tests",
+                repo_short_name="amp",
+            )
+        # Check outputs.
+        mock_get_repo.assert_called_once_with("amp")
+        actual = [call.args[0] for call in ctx.run.mock_calls]
+        expected = [
+            "gh workflow run fast_tests.yml --ref master"
+            " --repo github.com/causify-ai/amp"
+        ]
         self.assert_equal(str(actual), str(expected))
 
 
@@ -656,7 +745,8 @@ class Test_gh_create_pr(hunitest.TestCase):
         actual = [call.args[0] for call in ctx.run.mock_calls]
         expected = [
             "gh pr create --repo github.com/causify-ai/helpers --draft "
-            '--title "HelpersTask123_Fix_bug" --body "Desc\n\n#123"'
+            "--title HelpersTask123_Fix_bug "
+            "--body-file tmp.gh_create_pr.body.txt"
         ]
         self.assert_equal(str(actual), str(expected))
 
@@ -705,6 +795,39 @@ class Test_gh_create_pr(hunitest.TestCase):
         ):
             with self.assertRaises(AssertionError):
                 hltltagh.gh_create_pr(ctx, draft=True, auto_merge=True)
+
+    def test4(self) -> None:
+        """
+        Test that `dry_run=True` never issues the underlying `ctx.run`
+        call.
+        """
+        # Prepare inputs.
+        ctx = httestlib._build_mock_context_returning_ok()
+        # Run test.
+        with (
+            umock.patch.object(hltltagh, "gh_login"),
+            umock.patch.object(
+                hgit,
+                "get_branch_name",
+                return_value="HelpersTask123_Fix_bug",
+            ),
+            umock.patch.object(
+                hltltagh,
+                "_get_repo_full_name_from_cmd",
+                return_value=("github.com/causify-ai/helpers", "helpers"),
+            ),
+            umock.patch.object(
+                hltltagh, "_check_if_pr_exists", return_value=False
+            ),
+            umock.patch.object(
+                hgit,
+                "extract_gh_issue_number_from_branch",
+                return_value=None,
+            ),
+        ):
+            hltltagh.gh_create_pr(ctx, dry_run=True)
+        # Check outputs.
+        self.assertEqual(list(ctx.run.mock_calls), [])
 
 
 # #############################################################################
@@ -766,6 +889,36 @@ class Test_gh_publish_buildmeister_dashboard_to_s3(hunitest.TestCase):
         expected_calls = 1
         # Run test.
         self.helper(mark_as_latest, expected_calls)
+
+    def test3(self) -> None:
+        """
+        Test that a non-default `repo_short_name` is resolved via
+        `_get_repo_full_name_from_cmd()`.
+        """
+        # Prepare inputs.
+        ctx = httestlib._build_mock_context_returning_ok()
+        html_file = "/repo/tmp.notebooks/Master_buildmeister_dashboard.01.html"
+        # Run test.
+        with (
+            umock.patch.object(hserver, "is_inside_ci", return_value=True),
+            umock.patch.object(
+                hgit, "find_file_in_git_tree", return_value="run_notebook.py"
+            ),
+            umock.patch.object(hgit, "get_amp_abs_path", return_value="/repo"),
+            umock.patch.object(hsystem, "system"),
+            umock.patch.object(hio, "listdir", return_value=[html_file]),
+            umock.patch("helpers.hs3.copy_file_to_s3"),
+            umock.patch.object(
+                hltltagh,
+                "_get_repo_full_name_from_cmd",
+                return_value=("github.com/causify-ai/amp", "amp"),
+            ) as mock_get_repo,
+        ):
+            hltltagh.gh_publish_buildmeister_dashboard_to_s3(
+                ctx, repo_short_name="amp"
+            )
+        # Check outputs.
+        mock_get_repo.assert_called_once_with("amp")
 
 
 # #############################################################################
@@ -899,6 +1052,44 @@ class Test_gh_delete_workflow_runs(hunitest.TestCase):
         ctx = self.helper(run_ids, dry_run=True, confirmation=False)
         # Check outputs.
         self.assertEqual(list(ctx.run.mock_calls), [])
+
+    def test6(self) -> None:
+        """
+        Test that a non-default `repo_short_name` is resolved and used to
+        build the `gh api` run path.
+        """
+        # Prepare inputs.
+        ctx = httestlib._build_mock_context_returning_ok()
+        # Run test.
+        with (
+            umock.patch.object(hltltagh, "gh_login"),
+            umock.patch.object(
+                hltltagh,
+                "_get_repo_full_name_from_cmd",
+                return_value=("github.com/causify-ai/amp", "amp"),
+            ) as mock_get_repo,
+            umock.patch.object(
+                hltltagh,
+                "gh_get_workflows",
+                return_value=[{"id": "42", "name": "Fast tests"}],
+            ),
+            umock.patch.object(
+                hltltagh, "get_workflow_run_ids", return_value=["1"]
+            ),
+        ):
+            hltltagh.gh_delete_workflow_runs(
+                ctx,
+                "Fast tests",
+                confirmation=False,
+                repo_short_name="amp",
+            )
+        # Check outputs.
+        mock_get_repo.assert_called_once_with("amp")
+        actual = [call.args[0] for call in ctx.run.mock_calls]
+        expected = [
+            "gh api -X DELETE /repos/causify-ai/amp/actions/runs/1",
+        ]
+        self.assert_equal(str(actual), str(expected))
 
 
 # #############################################################################
