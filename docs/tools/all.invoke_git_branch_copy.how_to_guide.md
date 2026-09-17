@@ -11,7 +11,7 @@
     + [Step 3: Confirm the new branch is created](#step-3-confirm-the-new-branch-is-created)
 - [Execution flow diagram](#execution-flow-diagram)
 - [Alternative Manual Workflow](#alternative-manual-workflow)
-  * [Using invoke `git_create_patch`](#using-invoke-git_create_patch)
+  * [Using invoke `git_patch_create`](#using-invoke-git_patch_create)
 - [Known Limitations](#known-limitations)
 - [Future Improvements](#future-improvements)
 
@@ -250,7 +250,7 @@ gitGraph
 - You can also manually extract part of a PR using patch-based workflows or
   squash merging.
 
-### Using invoke `git_create_patch`
+### Using invoke `git_patch_create`
 
 - If you're working with multiple Git clients or prefer working outside your
   development tree:
