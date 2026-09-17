@@ -1,15 +1,21 @@
+import contextlib
 import logging
 import unittest.mock as umock
-from typing import Any, List
+from typing import Any, Dict, List
 
 import pandas as pd
 import pytest
 
+import helpers.hdaemon as hdaemon
 import helpers.hgit as hgit
+import helpers.hio as hio
 import helpers.hplayback as hplayba
+import helpers.hserver as hserver
 import helpers.hsystem as hsystem
+import helpers.htable as htable
 import helpers.hunit_test as hunitest
 import helpers.lib_tasks.lib_tasks_gh as hltltagh
+import helpers.lib_tasks.test.test_lib_tasks as httestlib
 
 _LOG = logging.getLogger(__name__)
 
@@ -320,3 +326,649 @@ class Test_gh_get_overall_build_status_for_repo1(hunitest.TestCase):
         expected = "Failed"
         # Run test.
         self.helper(conclusions, expected)
+
+
+# #############################################################################
+# Test_gh_login
+# #############################################################################
+
+
+class Test_gh_login(hunitest.TestCase):
+    """
+    Test `gh_login()`.
+    """
+
+    def test1(self) -> None:
+        """
+        Test that an existing PAT file triggers a token-login command.
+        """
+        # Prepare inputs.
+        ctx = httestlib._build_mock_context_returning_ok()
+        account = "test-org"
+
+        def _exists(path: str) -> bool:
+            return path.endswith("github_pat.test-org.txt")
+
+        # Run test.
+        with (
+            umock.patch(
+                "helpers.lib_tasks.lib_tasks_utils.report_task"
+            ),
+            umock.patch("os.path.expanduser", side_effect=lambda p: p),
+            umock.patch("os.path.exists", side_effect=_exists),
+        ):
+            hltltagh.gh_login(ctx, account=account, print_status=False)
+        # Check outputs.
+        actual = [call.args[0] for call in ctx.run.mock_calls]
+        expected = [
+            "gh auth login --with-token <~/.ssh/github_pat.test-org.txt"
+        ]
+        self.assert_equal(str(actual), str(expected))
+
+    def test2(self) -> None:
+        """
+        Test that a missing PAT file skips login but `print_status` still
+        reports auth status before and after the (skipped) login attempt.
+        """
+        # Prepare inputs.
+        ctx = httestlib._build_mock_context_returning_ok()
+        account = "test-org"
+        # Run test.
+        with (
+            umock.patch(
+                "helpers.lib_tasks.lib_tasks_utils.report_task"
+            ),
+            umock.patch("os.path.expanduser", side_effect=lambda p: p),
+            umock.patch("os.path.exists", return_value=False),
+        ):
+            hltltagh.gh_login(ctx, account=account, print_status=True)
+        # Check outputs.
+        actual = [call.args[0] for call in ctx.run.mock_calls]
+        expected = ["gh auth status", "gh auth status"]
+        self.assert_equal(str(actual), str(expected))
+
+
+# #############################################################################
+# Test__get_workflow_table
+# #############################################################################
+
+
+class Test__get_workflow_table(hunitest.TestCase):
+    """
+    Test `_get_workflow_table()`.
+    """
+
+    def test1(self) -> None:
+        """
+        Test that `gh run list` tab-separated output is parsed and the
+        redundant `name` column is dropped.
+        """
+        # Prepare inputs.
+        txt = "\n".join(
+            [
+                "completed\tsuccess\tTitle1\tFast tests\tmaster\tpush\t1\t1m\t2m",
+                "in_progress\t\tTitle2\tSlow tests\tmaster\tpush\t2\t2m\t3m",
+            ]
+        )
+        # Run test.
+        with umock.patch.object(
+            hsystem, "system_to_string", return_value=(0, txt)
+        ):
+            table = hltltagh._get_workflow_table()
+        # Check outputs.
+        actual = {
+            "completed": table.get_column("completed"),
+            "status": table.get_column("status"),
+            "workflow": table.get_column("workflow"),
+            "id": table.get_column("id"),
+        }
+        expected = {
+            "completed": ["completed", "in_progress"],
+            "status": ["success", ""],
+            "workflow": ["Fast tests", "Slow tests"],
+            "id": ["1", "2"],
+        }
+        self.assert_equal(str(actual), str(expected))
+        # The `name` column was dropped.
+        with self.assertRaises(AssertionError):
+            table.get_column("name")
+
+
+# #############################################################################
+# Test_gh_workflow_list
+# #############################################################################
+
+
+class Test_gh_workflow_list(hunitest.TestCase):
+    """
+    Test `gh_workflow_list()`.
+    """
+
+    def test1(self) -> None:
+        """
+        Test that `filter_by_branch="all"` prints the table and returns
+        before the per-workflow status loop.
+        """
+        # Prepare inputs.
+        ctx = httestlib._build_mock_context_returning_ok()
+        table = htable.Table.from_text(
+            [
+                "completed",
+                "status",
+                "workflow",
+                "branch",
+                "event",
+                "id",
+                "elapsed",
+                "age",
+            ],
+            "completed\tsuccess\tFast tests\tmaster\tpush\t1\t1m\t2m",
+            delimiter="\t",
+        )
+        # Run test.
+        with (
+            umock.patch.object(hltltagh, "gh_login"),
+            umock.patch.object(
+                hltltagh, "_get_workflow_table", return_value=table
+            ),
+            umock.patch.object(hltltagh, "_print_table") as mock_print,
+        ):
+            hltltagh.gh_workflow_list(ctx, filter_by_branch="all")
+        # Check outputs.
+        mock_print.assert_called_once_with(table)
+
+    def test2(self) -> None:
+        """
+        Test that `daemon=True` schedules the periodic report instead of
+        running it once, and the scheduled callback clears the screen and
+        re-invokes the report with `daemon=False`.
+        """
+        # Prepare inputs.
+        ctx = httestlib._build_mock_context_returning_ok()
+        interval = 30
+        # Run test.
+        with umock.patch.object(
+            hdaemon, "run_periodic_daemon_mode"
+        ) as mock_daemon:
+            hltltagh.gh_workflow_list(ctx, daemon=True, interval=interval)
+        # Check outputs.
+        mock_daemon.assert_called_once()
+        run_fn, actual_interval = mock_daemon.call_args.args
+        self.assertEqual(actual_interval, interval)
+        self.assertEqual(
+            mock_daemon.call_args.kwargs["window_name_str"], "*GH_WATCH*"
+        )
+        # Exercise the scheduled callback.
+        with (
+            umock.patch("subprocess.run") as mock_subprocess,
+            umock.patch.object(hltltagh, "gh_workflow_list") as mock_recurse,
+        ):
+            run_fn()
+        mock_subprocess.assert_called_once_with("clear", shell=True)
+        mock_recurse.assert_called_once()
+
+
+# #############################################################################
+# Test_gh_workflow_run
+# #############################################################################
+
+
+class Test_gh_workflow_run(hunitest.TestCase):
+    """
+    Test `gh_workflow_run()`.
+    """
+
+    def test1(self) -> None:
+        """
+        Test that `workflows="all"` runs both fast and slow test workflows.
+        """
+        # Prepare inputs.
+        ctx = httestlib._build_mock_context_returning_ok()
+        # Run test.
+        with umock.patch.object(hltltagh, "gh_login"):
+            hltltagh.gh_workflow_run(ctx, branch="master", workflows="all")
+        # Check outputs.
+        actual = [call.args[0] for call in ctx.run.mock_calls]
+        expected = [
+            "gh workflow run fast_tests.yml --ref master",
+            "gh workflow run slow_tests.yml --ref master",
+        ]
+        self.assert_equal(str(actual), str(expected))
+
+    def test2(self) -> None:
+        """
+        Test that a specific workflow uses the current branch name.
+        """
+        # Prepare inputs.
+        ctx = httestlib._build_mock_context_returning_ok()
+        # Run test.
+        with (
+            umock.patch.object(hltltagh, "gh_login"),
+            umock.patch.object(
+                hgit, "get_branch_name", return_value="feature_x"
+            ),
+        ):
+            hltltagh.gh_workflow_run(
+                ctx, branch="current_branch", workflows="custom_workflow"
+            )
+        # Check outputs.
+        actual = [call.args[0] for call in ctx.run.mock_calls]
+        expected = ["gh workflow run custom_workflow.yml --ref feature_x"]
+        self.assert_equal(str(actual), str(expected))
+
+
+# #############################################################################
+# Test__check_if_pr_exists
+# #############################################################################
+
+
+class Test__check_if_pr_exists(hunitest.TestCase):
+    """
+    Test `_check_if_pr_exists()`.
+    """
+
+    def helper(self, return_code: int, expected: bool) -> None:
+        """
+        Check that `_check_if_pr_exists()` maps a `gh pr diff` return code
+        to a boolean.
+
+        :param return_code: return code `hsystem.system()` is mocked to
+            return
+        :param expected: expected boolean result
+        """
+        # Prepare inputs.
+        title = "HelpersTask123_Fix_bug"
+        # Run test.
+        with umock.patch.object(
+            hsystem, "system", return_value=return_code
+        ) as mock_system:
+            actual = hltltagh._check_if_pr_exists(title)
+        # Check outputs.
+        self.assertEqual(actual, expected)
+        mock_system.assert_called_once_with(
+            f"gh pr diff {title}", abort_on_error=False
+        )
+
+    def test1(self) -> None:
+        """
+        Test that return code 0 means the PR exists.
+        """
+        # Prepare inputs.
+        return_code = 0
+        # Prepare outputs.
+        expected = True
+        # Run test.
+        self.helper(return_code, expected)
+
+    def test2(self) -> None:
+        """
+        Test that a nonzero return code means the PR does not exist.
+        """
+        # Prepare inputs.
+        return_code = 1
+        # Prepare outputs.
+        expected = False
+        # Run test.
+        self.helper(return_code, expected)
+
+
+# #############################################################################
+# Test_gh_create_pr
+# #############################################################################
+
+
+class Test_gh_create_pr(hunitest.TestCase):
+    """
+    Test `gh_create_pr()`.
+    """
+
+    def test1(self) -> None:
+        """
+        Test that a nonexistent PR is created with the branch's issue
+        number appended to the body.
+        """
+        # Prepare inputs.
+        ctx = httestlib._build_mock_context_returning_ok()
+        # Run test.
+        with (
+            umock.patch.object(hltltagh, "gh_login"),
+            umock.patch.object(
+                hgit,
+                "get_branch_name",
+                return_value="HelpersTask123_Fix_bug",
+            ),
+            umock.patch.object(
+                hltltagh,
+                "_get_repo_full_name_from_cmd",
+                return_value=("github.com/causify-ai/helpers", "helpers"),
+            ),
+            umock.patch.object(
+                hltltagh, "_check_if_pr_exists", return_value=False
+            ),
+            umock.patch.object(
+                hgit,
+                "extract_gh_issue_number_from_branch",
+                return_value=123,
+            ),
+        ):
+            hltltagh.gh_create_pr(ctx, body="Desc", draft=True)
+        # Check outputs.
+        actual = [call.args[0] for call in ctx.run.mock_calls]
+        expected = [
+            "gh pr create --repo github.com/causify-ai/helpers --draft "
+            '--title "HelpersTask123_Fix_bug" --body "Desc\n\n#123"'
+        ]
+        self.assert_equal(str(actual), str(expected))
+
+    def test2(self) -> None:
+        """
+        Test that an already-existing PR is not recreated.
+        """
+        # Prepare inputs.
+        ctx = httestlib._build_mock_context_returning_ok()
+        # Run test.
+        with (
+            umock.patch.object(hltltagh, "gh_login"),
+            umock.patch.object(
+                hgit, "get_branch_name", return_value="ExistingPR"
+            ),
+            umock.patch.object(
+                hltltagh,
+                "_get_repo_full_name_from_cmd",
+                return_value=("github.com/causify-ai/helpers", "helpers"),
+            ),
+            umock.patch.object(
+                hltltagh, "_check_if_pr_exists", return_value=True
+            ),
+        ):
+            hltltagh.gh_create_pr(ctx)
+        # Check outputs.
+        self.assertEqual(list(ctx.run.mock_calls), [])
+
+    def test3(self) -> None:
+        """
+        Test that `auto_merge=True` with `draft=True` raises.
+        """
+        # Prepare inputs.
+        ctx = httestlib._build_mock_context_returning_ok()
+        # Run test and check output.
+        with (
+            umock.patch.object(hltltagh, "gh_login"),
+            umock.patch.object(
+                hgit, "get_branch_name", return_value="SomeBranch"
+            ),
+            umock.patch.object(
+                hltltagh,
+                "_get_repo_full_name_from_cmd",
+                return_value=("github.com/causify-ai/helpers", "helpers"),
+            ),
+        ):
+            with self.assertRaises(AssertionError):
+                hltltagh.gh_create_pr(ctx, draft=True, auto_merge=True)
+
+
+# #############################################################################
+# Test_gh_publish_buildmeister_dashboard_to_s3
+# #############################################################################
+
+
+class Test_gh_publish_buildmeister_dashboard_to_s3(hunitest.TestCase):
+    """
+    Test `gh_publish_buildmeister_dashboard_to_s3()`.
+    """
+
+    def helper(self, mark_as_latest: bool, expected_calls: int) -> None:
+        """
+        Run the task and check how many files got copied to S3.
+
+        :param mark_as_latest: value passed to the task
+        :param expected_calls: expected number of `copy_file_to_s3` calls
+        """
+        # Prepare inputs.
+        ctx = httestlib._build_mock_context_returning_ok()
+        html_file = "/repo/tmp.notebooks/Master_buildmeister_dashboard.01.html"
+        # Run test.
+        with (
+            umock.patch.object(hserver, "is_inside_ci", return_value=True),
+            umock.patch.object(
+                hgit, "find_file_in_git_tree", return_value="run_notebook.py"
+            ),
+            umock.patch.object(hgit, "get_amp_abs_path", return_value="/repo"),
+            umock.patch.object(hsystem, "system"),
+            umock.patch.object(hio, "listdir", return_value=[html_file]),
+            umock.patch("helpers.hs3.copy_file_to_s3") as mock_copy,
+        ):
+            hltltagh.gh_publish_buildmeister_dashboard_to_s3(
+                ctx, mark_as_latest=mark_as_latest
+            )
+        # Check outputs.
+        self.assertEqual(mock_copy.call_count, expected_calls)
+
+    def test1(self) -> None:
+        """
+        Test that `mark_as_latest=True` copies both the latest and the
+        timestamped file.
+        """
+        # Prepare inputs.
+        mark_as_latest = True
+        # Prepare outputs.
+        expected_calls = 2
+        # Run test.
+        self.helper(mark_as_latest, expected_calls)
+
+    def test2(self) -> None:
+        """
+        Test that `mark_as_latest=False` only copies the timestamped file.
+        """
+        # Prepare inputs.
+        mark_as_latest = False
+        # Prepare outputs.
+        expected_calls = 1
+        # Run test.
+        self.helper(mark_as_latest, expected_calls)
+
+
+# #############################################################################
+# Test_gh_delete_workflow_runs
+# #############################################################################
+
+
+class Test_gh_delete_workflow_runs(hunitest.TestCase):
+    """
+    Test `gh_delete_workflow_runs()`.
+    """
+
+    def helper(
+        self,
+        run_ids: List[str],
+        *,
+        dry_run: bool = False,
+        confirmation: bool = True,
+        user_input: str = "yes",
+    ) -> Any:
+        """
+        Run the task with the given run ids and confirmation setup.
+
+        :param run_ids: run ids `get_workflow_run_ids()` is mocked to
+            return
+        :param dry_run: value passed to the task
+        :param confirmation: value passed to the task
+        :param user_input: value the confirmation prompt is mocked to
+            receive
+        :return: the mock `ctx` the task was run with
+        """
+        # Prepare inputs.
+        ctx = httestlib._build_mock_context_returning_ok()
+        # Run test.
+        with (
+            umock.patch.object(hltltagh, "gh_login"),
+            umock.patch.object(
+                hltltagh,
+                "_get_repo_full_name_from_cmd",
+                return_value=("github.com/causify-ai/helpers", "helpers"),
+            ),
+            umock.patch.object(
+                hltltagh,
+                "gh_get_workflows",
+                return_value=[{"id": "42", "name": "Fast tests"}],
+            ),
+            umock.patch.object(
+                hltltagh, "get_workflow_run_ids", return_value=run_ids
+            ),
+            umock.patch("builtins.input", return_value=user_input),
+        ):
+            hltltagh.gh_delete_workflow_runs(
+                ctx,
+                "Fast tests",
+                dry_run=dry_run,
+                confirmation=confirmation,
+            )
+        return ctx
+
+    def test1(self) -> None:
+        """
+        Test that an unknown workflow name raises `ValueError`.
+        """
+        # Prepare inputs.
+        ctx = httestlib._build_mock_context_returning_ok()
+        # Run test and check output.
+        with (
+            umock.patch.object(hltltagh, "gh_login"),
+            umock.patch.object(
+                hltltagh,
+                "_get_repo_full_name_from_cmd",
+                return_value=("github.com/causify-ai/helpers", "helpers"),
+            ),
+            umock.patch.object(
+                hltltagh,
+                "gh_get_workflows",
+                return_value=[{"id": "42", "name": "Fast tests"}],
+            ),
+        ):
+            with self.assertRaises(ValueError) as cm:
+                hltltagh.gh_delete_workflow_runs(ctx, "Unknown workflow")
+        self.assertIn("Unknown workflow", str(cm.exception))
+
+    def test2(self) -> None:
+        """
+        Test that no matching runs skips deletion entirely.
+        """
+        # Prepare inputs.
+        run_ids: List[str] = []
+        # Run test.
+        ctx = self.helper(run_ids)
+        # Check outputs.
+        self.assertEqual(list(ctx.run.mock_calls), [])
+
+    def test3(self) -> None:
+        """
+        Test that declining the confirmation prompt skips deletion.
+        """
+        # Prepare inputs.
+        run_ids = ["1", "2"]
+        # Run test.
+        ctx = self.helper(run_ids, user_input="no")
+        # Check outputs.
+        self.assertEqual(list(ctx.run.mock_calls), [])
+
+    def test4(self) -> None:
+        """
+        Test that confirmed deletion issues one `gh api -X DELETE` call per
+        run id.
+        """
+        # Prepare inputs.
+        run_ids = ["1", "2"]
+        # Run test.
+        ctx = self.helper(run_ids, confirmation=False)
+        # Check outputs.
+        actual = [call.args[0] for call in ctx.run.mock_calls]
+        expected = [
+            "gh api -X DELETE /repos/causify-ai/helpers/actions/runs/1",
+            "gh api -X DELETE /repos/causify-ai/helpers/actions/runs/2",
+        ]
+        self.assert_equal(str(actual), str(expected))
+
+    def test5(self) -> None:
+        """
+        Test that `dry_run=True` never issues the underlying `ctx.run`
+        call.
+        """
+        # Prepare inputs.
+        run_ids = ["1"]
+        # Run test.
+        ctx = self.helper(run_ids, dry_run=True, confirmation=False)
+        # Check outputs.
+        self.assertEqual(list(ctx.run.mock_calls), [])
+
+
+# #############################################################################
+# Test_gh_create_mock_fixture
+# #############################################################################
+
+
+class Test_gh_create_mock_fixture(hunitest.TestCase):
+    """
+    Test `gh_create_mock_fixture()`.
+    """
+
+    def helper(self, workflows: List[Dict[str, str]]) -> Any:
+        """
+        Run the task and return the `gh_get_*` mocks used to record the
+        fixture.
+
+        :param workflows: value `gh_get_workflows()` is mocked to return
+        :return: `(mock_open_prs, mock_type_names, mock_details)`
+        """
+        # Prepare inputs.
+        ctx = httestlib._build_mock_context_returning_ok()
+        # Run test.
+        with (
+            umock.patch.object(hltltagh, "gh_login"),
+            umock.patch.object(
+                hgit,
+                "get_repo_full_name_from_dirname",
+                return_value="causify-ai/helpers",
+            ),
+            umock.patch.object(
+                hplayba, "recording", return_value=contextlib.nullcontext()
+            ),
+            umock.patch.object(hltltagh, "gh_get_open_prs") as mock_open_prs,
+            umock.patch.object(
+                hltltagh, "gh_get_workflow_type_names"
+            ) as mock_type_names,
+            umock.patch.object(
+                hltltagh, "gh_get_workflows", return_value=workflows
+            ),
+            umock.patch.object(
+                hltltagh, "gh_get_workflow_details"
+            ) as mock_details,
+        ):
+            hltltagh.gh_create_mock_fixture(ctx)
+        return mock_open_prs, mock_type_names, mock_details
+
+    def test1(self) -> None:
+        """
+        Test that a non-empty workflow list also records workflow details.
+        """
+        # Prepare inputs.
+        workflows = [{"id": "42", "name": "Fast tests"}]
+        # Run test.
+        _, _, mock_details = self.helper(workflows)
+        # Check outputs.
+        mock_details.assert_called_once_with(
+            "causify-ai/helpers",
+            "42",
+            ["conclusion", "status", "url", "workflowName"],
+            1,
+        )
+
+    def test2(self) -> None:
+        """
+        Test that an empty workflow list skips recording workflow details.
+        """
+        # Prepare inputs.
+        workflows: List[Dict[str, str]] = []
+        # Run test.
+        _, _, mock_details = self.helper(workflows)
+        # Check outputs.
+        mock_details.assert_not_called()

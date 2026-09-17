@@ -10,7 +10,7 @@ import os
 import re
 import stat
 import subprocess
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Tuple
 
 import tqdm
 from invoke.tasks import task
@@ -785,7 +785,7 @@ def _delete_branches(tag: str, confirm_delete: bool) -> None:
     :param tag: Either "local" for local branches or "remote" for remote branches
     :param confirm_delete: If True, ask user for confirmation before deleting
     """
-    branches = hgit.find_merged_branches(tag)
+    branches = hgit.get_merged_branches(tag)
     # Print info.
     _LOG.info(
         "There are %d %s branches to delete:\n%s",
@@ -1640,6 +1640,56 @@ def git_branch_is_merged(ctx):  # type: ignore
     ctx.run(cmd, pty=True)
 
 
+def _collect_backup_files(
+    file_mode: str, include_subrepos: bool
+) -> List[Tuple[str, str]]:
+    """
+    Collect `(repo_path, file_path)` pairs to include in the backup zip.
+
+    :param file_mode: which files to include: "all", "modified", or
+        "untracked"
+    :param include_subrepos: whether to also collect submodule files
+    :return: list of `(repo_path, file_path)` pairs, `repo_path` being
+        `"."` for the main repository
+    """
+    # Collect files from the main repository.
+    _LOG.info("Collecting %s files from main repository...", file_mode)
+    main_repo_files = hgit.get_modified_and_untracked_files(".", mode=file_mode)
+    _LOG.info("Found %d files in main repository", len(main_repo_files))
+    all_files = []
+    for file_path in main_repo_files:
+        all_files.append((".", file_path))
+    # Also include submodule files if requested to ensure complete backup.
+    if include_subrepos:
+        submodule_paths = _get_submodule_paths()
+        if submodule_paths:
+            _LOG.info(
+                "Found %d submodule(s), collecting files...",
+                len(submodule_paths),
+            )
+            for submodule_path in submodule_paths:
+                hdbg.dassert_dir_exists(
+                    submodule_path,
+                    msg=f"Submodule path does not exist: {submodule_path}",
+                )
+                _LOG.info("Checking submodule: %s", submodule_path)
+                submodule_files = hgit.get_modified_and_untracked_files(
+                    submodule_path, mode=file_mode
+                )
+                _LOG.info(
+                    "Found %d files in submodule %s",
+                    len(submodule_files),
+                    submodule_path,
+                )
+                for file_path in submodule_files:
+                    all_files.append((submodule_path, file_path))
+        else:
+            _LOG.info("No submodules found")
+    else:
+        _LOG.info("Skipping submodules (include_subrepos=False)")
+    return all_files
+
+
 @task
 def git_backup(
     ctx,
@@ -1688,41 +1738,8 @@ def git_backup(
     timestamp = hltltaut.get_ET_timestamp()
     repo_name = os.path.basename(git_client_root)
     zip_file_name = f"modified_files.{repo_name}.{timestamp}.zip"
-    # Collect files from the main repository.
-    _LOG.info("Collecting %s files from main repository...", file_mode)
-    main_repo_files = hgit.get_modified_and_untracked_files(".", mode=file_mode)
-    _LOG.info("Found %d files in main repository", len(main_repo_files))
-    all_files = []
-    for file_path in main_repo_files:
-        all_files.append((".", file_path))
-    # Also include submodule files if requested to ensure complete backup.
-    if include_subrepos:
-        submodule_paths = _get_submodule_paths()
-        if submodule_paths:
-            _LOG.info(
-                "Found %d submodule(s), collecting files...",
-                len(submodule_paths),
-            )
-            for submodule_path in submodule_paths:
-                hdbg.dassert_dir_exists(
-                    submodule_path,
-                    msg=f"Submodule path does not exist: {submodule_path}",
-                )
-                _LOG.info("Checking submodule: %s", submodule_path)
-                submodule_files = hgit.get_modified_and_untracked_files(
-                    submodule_path, mode=file_mode
-                )
-                _LOG.info(
-                    "Found %d files in submodule %s",
-                    len(submodule_files),
-                    submodule_path,
-                )
-                for file_path in submodule_files:
-                    all_files.append((submodule_path, file_path))
-        else:
-            _LOG.info("No submodules found")
-    else:
-        _LOG.info("Skipping submodules (include_subrepos=False)")
+    # Collect files from the main repository and, optionally, submodules.
+    all_files = _collect_backup_files(file_mode, include_subrepos)
     # Verify there's content to backup before proceeding.
     if not all_files:
         _LOG.warning("No %s files found. Nothing to zip.", file_mode)
