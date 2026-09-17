@@ -62,6 +62,22 @@ class Test_git_pull(hunitest.TestCase):
         actual = _get_ctx_run_calls(ctx)
         self.assert_equal(actual, expected, fuzzy_match=True, dedent=True)
 
+    def test2(self) -> None:
+        """
+        Test that `dry_run=True` skips the `git pull` call.
+        """
+        # Prepare inputs.
+        ctx = httestlib._build_mock_context_returning_ok()
+        scratch_dir = self.get_scratch_space()
+        # Run test.
+        with umock.patch.object(
+            hgit, "get_client_root", return_value=scratch_dir
+        ):
+            hltltagi.git_pull(ctx, dry_run=True)
+        # Check outputs.
+        actual = _get_ctx_run_calls(ctx)
+        self.assertEqual(actual, "")
+
 
 # #############################################################################
 # Test_git_fetch_master
@@ -107,6 +123,18 @@ class Test_git_fetch_master(hunitest.TestCase):
         # Check outputs.
         actual = _get_ctx_run_calls(ctx)
         self.assert_equal(actual, expected, fuzzy_match=True, dedent=True)
+
+    def test3(self) -> None:
+        """
+        Test that `dry_run=True` skips the `git fetch` call.
+        """
+        # Prepare inputs.
+        ctx = httestlib._build_mock_context_returning_ok()
+        # Run test.
+        hltltagi.git_fetch_master(ctx, dry_run=True)
+        # Check outputs.
+        actual = _get_ctx_run_calls(ctx)
+        self.assertEqual(actual, "")
 
 
 # #############################################################################
@@ -274,6 +302,18 @@ class Test_git_add_all_untracked(hunitest.TestCase):
         # Run test.
         self.helper(exclude_tmp, expected)
 
+    def test3(self) -> None:
+        """
+        Test that `dry_run=True` skips the `git add` call.
+        """
+        # Prepare inputs.
+        ctx = httestlib._build_mock_context_returning_ok()
+        # Run test.
+        hltltagi.git_add_all_untracked(ctx, dry_run=True)
+        # Check outputs.
+        actual = _get_ctx_run_calls(ctx)
+        self.assertEqual(actual, "")
+
 
 # #############################################################################
 # Test_git_branch_create
@@ -336,10 +376,11 @@ class Test_git_branch_create(hunitest.TestCase):
             create_pr=False,
             abort_if_not_clean=False,
             abort_if_not_master=False,
+            dry_run=True,
         )
         # Prepare outputs.
         expected = """
-        call('/repo/git_branch_create.py --branch_name HelpersTask999_Foo --issue_id 999 --repo_short_name amp --suffix 02 --no_only_branch_from_master --no_check_branch_name --no_create_pr --no_abort_if_not_clean --no_abort_if_not_master', echo=False)
+        call('/repo/git_branch_create.py --branch_name HelpersTask999_Foo --issue_id 999 --repo_short_name amp --suffix 02 --no_only_branch_from_master --no_check_branch_name --no_create_pr --no_abort_if_not_clean --no_abort_if_not_master --dry_run', echo=False)
         """
         # Run test.
         self.helper(kwargs, expected)
@@ -623,6 +664,25 @@ class Test__delete_branches(hunitest.TestCase):
             ".", tag, expected_branches, confirm_delete
         )
 
+    def test4(self) -> None:
+        """
+        Test that `dry_run=True` skips deletion despite merged branches.
+        """
+        # Prepare inputs.
+        tag = "local"
+        confirm_delete = True
+        branches = ["HelpersTask1_Foo"]
+        # Run test.
+        with (
+            umock.patch.object(
+                hgit, "get_merged_branches", return_value=branches
+            ),
+            umock.patch.object(hgit, "delete_branches") as mock_delete,
+        ):
+            hltltagi._delete_branches(tag, confirm_delete, dry_run=True)
+        # Check outputs.
+        mock_delete.assert_not_called()
+
 
 # #############################################################################
 # Test_git_branch_delete_merged
@@ -659,8 +719,12 @@ class Test_git_branch_delete_merged(hunitest.TestCase):
         # Check outputs.
         actual = _get_ctx_run_calls(ctx)
         self.assert_equal(actual, expected, fuzzy_match=True, dedent=True)
-        mock_delete_branches.assert_any_call("local", confirm_delete)
-        mock_delete_branches.assert_any_call("remote", confirm_delete)
+        mock_delete_branches.assert_any_call(
+            "local", confirm_delete, dry_run=False
+        )
+        mock_delete_branches.assert_any_call(
+            "remote", confirm_delete, dry_run=False
+        )
 
     def test2(self) -> None:
         """
@@ -674,6 +738,36 @@ class Test_git_branch_delete_merged(hunitest.TestCase):
         ):
             with self.assertRaises(AssertionError):
                 hltltagi.git_branch_delete_merged(ctx)
+
+    def test3(self) -> None:
+        """
+        Test that `dry_run=True` skips the `git fetch` calls and forwards
+        `dry_run` to `_delete_branches()`.
+        """
+        # Prepare inputs.
+        ctx = httestlib._build_mock_context_returning_ok()
+        confirm_delete = True
+        # Run test.
+        with (
+            umock.patch.object(
+                hgit, "get_branch_name", return_value="master"
+            ),
+            umock.patch.object(
+                hltltagi, "_delete_branches"
+            ) as mock_delete_branches,
+        ):
+            hltltagi.git_branch_delete_merged(
+                ctx, confirm_delete, dry_run=True
+            )
+        # Check outputs.
+        actual = _get_ctx_run_calls(ctx)
+        self.assertEqual(actual, "")
+        mock_delete_branches.assert_any_call(
+            "local", confirm_delete, dry_run=True
+        )
+        mock_delete_branches.assert_any_call(
+            "remote", confirm_delete, dry_run=True
+        )
 
 
 # #############################################################################
@@ -864,6 +958,42 @@ class Test_git_branch_rename(hunitest.TestCase):
         mock_create_pr.assert_not_called()
         actual = _get_ctx_run_calls(ctx)
         self.assertNotIn("gh pr comment", actual)
+
+    def test5(self) -> None:
+        """
+        Test that `dry_run=True` skips the prompt, the git commands, and
+        PR recreation.
+        """
+        # Prepare inputs.
+        ctx = httestlib._build_mock_context_returning_ok()
+        old_name = "HelpersTask1_Foo"
+        new_name = "HelpersTask1_Bar"
+        pr_info = {
+            "number": 17,
+            "title": old_name,
+            "body": "body text",
+            "isDraft": True,
+            "labels": [],
+            "reviewRequests": [],
+            "assignees": [],
+        }
+        # Run test.
+        with (
+            umock.patch.object(
+                hgit, "get_branch_name", return_value=old_name
+            ),
+            umock.patch.object(hsystem, "query_yes_no") as mock_query,
+            umock.patch.object(
+                hltltagi, "_get_open_pr_info", return_value=pr_info
+            ),
+            umock.patch.object(hltltagh, "gh_create_pr") as mock_create_pr,
+        ):
+            hltltagi.git_branch_rename(ctx, new_name, dry_run=True)
+        # Check outputs.
+        mock_query.assert_not_called()
+        mock_create_pr.assert_not_called()
+        actual = _get_ctx_run_calls(ctx)
+        self.assertEqual(actual, "")
 
 
 # #############################################################################
@@ -1064,6 +1194,33 @@ class Test_git_branch_copy(hunitest.TestCase):
         with self.assertRaises(AssertionError):
             hltltagi.git_branch_copy(ctx, use_patch=True)
 
+    def test6(self) -> None:
+        """
+        Test that `dry_run=True` skips every `ctx.run()` call.
+        """
+        # Prepare inputs.
+        ctx = httestlib._build_mock_context_returning_ok()
+        curr_branch_name = "HelpersTask1_Foo"
+        new_branch_name = "HelpersTask1_Foo_2"
+        # Run test.
+        with (
+            umock.patch.object(
+                hgit, "get_branch_name", return_value=curr_branch_name
+            ),
+            umock.patch.object(
+                hgit,
+                "get_branch_next_name",
+                return_value=new_branch_name,
+            ),
+            umock.patch.object(
+                hgit, "does_branch_exist", return_value=False
+            ),
+        ):
+            hltltagi.git_branch_copy(ctx, dry_run=True)
+        # Check outputs.
+        actual = _get_ctx_run_calls(ctx)
+        self.assertEqual(actual, "")
+
 
 # #############################################################################
 # Test_git_branch_subset_copy
@@ -1123,10 +1280,11 @@ class Test_git_branch_subset_copy(hunitest.TestCase):
             pr=17,
             method="linear_scan",
             dst_dir="/tmp/dst",
+            dry_run=True,
         )
         # Prepare outputs.
         expected = """
-        call('/repo/git_branch_subset_copy.py --from_file files.txt --pr 17 --method linear_scan --dst_dir /tmp/dst', echo=False)
+        call('/repo/git_branch_subset_copy.py --from_file files.txt --pr 17 --method linear_scan --dst_dir /tmp/dst --dry_run', echo=False)
         """
         # Run test.
         self.helper(kwargs, expected)
@@ -1253,6 +1411,36 @@ class Test_git_repo_copy(hunitest.TestCase):
         mock_system_to_string.assert_called_once_with(
             f"cp {file_name} {dst_file_path}"
         )
+
+    def test2(self) -> None:
+        """
+        Test that `dry_run=True` skips the copy.
+        """
+        # Prepare inputs.
+        ctx = httestlib._build_mock_context_returning_ok()
+        file_name = "helpers/hgit.py"
+        src_git_dir = "/src/helpers1"
+        dst_git_dir = "/src/helpers2"
+        dst_file_path = "/src/helpers2/helpers/hgit.py"
+        # Run test.
+        with (
+            umock.patch.object(
+                hgit, "resolve_git_client_dir", side_effect=lambda d: d
+            ),
+            umock.patch.object(
+                hgit,
+                "project_file_name_in_git_client",
+                return_value=dst_file_path,
+            ),
+            umock.patch.object(
+                hsystem, "system_to_string"
+            ) as mock_system_to_string,
+        ):
+            hltltagi.git_repo_copy(
+                ctx, file_name, src_git_dir, dst_git_dir, dry_run=True
+            )
+        # Check outputs.
+        mock_system_to_string.assert_not_called()
 
 
 # #############################################################################
