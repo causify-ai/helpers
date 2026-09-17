@@ -490,7 +490,7 @@ def _get_gh_issue_title(issue_id: int, repo_short_name: str) -> Tuple[str, str]:
 
 
 @task
-def gh_issue_title(ctx, issue_id, repo_short_name="current", pbcopy=True):  # type: ignore
+def gh_issue_get_title(ctx, issue_id, repo_short_name="current", pbcopy=True):  # type: ignore
     """
     Print the title that corresponds to the given issue and repo_short_name.
     E.g., AmpTask1251_Update_GH_actions_for_amp.
@@ -631,7 +631,7 @@ def _check_if_pr_exists(title: str) -> bool:
 
 # TODO(ai_gp2): Factor out this in a script.
 @task
-def gh_create_pr(  # type: ignore
+def gh_pr_create(  # type: ignore
     ctx,
     body="",
     draft=True,
@@ -1270,7 +1270,7 @@ def get_workflow_run_ids(
 
 
 @task
-def gh_delete_workflow_runs(  # type: ignore
+def gh_workflow_delete_runs(  # type: ignore
     ctx,
     workflow_name,
     older_than_days=None,
@@ -1373,7 +1373,7 @@ def gh_delete_workflow_runs(  # type: ignore
 
 
 @task
-def gh_create_mock_fixture(ctx):  # type: ignore
+def gh_mock_fixture_create(ctx):  # type: ignore
     """
     Record live calls to `_gh_run_and_get_json()` into the test fixture.
 

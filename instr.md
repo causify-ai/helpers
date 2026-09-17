@@ -73,7 +73,7 @@
     `gh_create_pr`)
   - Move `gh_watch` from `lib_tasks_git.py` to `lib_tasks_gh.py`
 
-- [-] Audit task naming for `<object>_<action>` consistency
+- [x] Audit task naming for `<object>_<action>` consistency
   - List every `git_*`/`gh_*` task name and flag any that don't read as
     `<object>_<action>` (e.g. `git_roll_amp_forward`, `git_files` vs.
     `git_branches` for singular/plural consistency)
@@ -81,6 +81,15 @@
     sites and docs
   - ❓ Needs explicit sign-off before renaming anything, since renames break
     muscle memory / scripts that call these tasks by name
+  - Sign-off given: applied all proposed renames (`gh_create_pr` ->
+    `gh_pr_create`, `gh_delete_workflow_runs` -> `gh_workflow_delete_runs`,
+    `gh_create_mock_fixture` -> `gh_mock_fixture_create`, `gh_issue_title` ->
+    `gh_issue_get_title`, `git_branch_next_name` -> `git_branch_get_next_name`,
+    `git_file_version` -> `git_file_get_version`, `git_set_symlink_perms` ->
+    `git_symlink_perms_set`, `git_reset_symlink_perms` ->
+    `git_symlink_perms_reset`, `git_fix_perms` -> `git_perms_fix`,
+    `git_roll_amp_forward` -> `git_submodules_roll_forward`), updated all call
+    sites, tests, and docs
 
 - [x] Update documentation
   - docs/tools/all.invoke_workflows.how_to_guide.md

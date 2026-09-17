@@ -77,7 +77,7 @@
   - One should still run the regressions out of paranoia since some golden
     outcomes can be changed
     ```
-    > i gh_create_pr --no-draft
+    > i gh_pr_create --no-draft
     > i gh_workflow_list
     ```
 
@@ -206,7 +206,7 @@
 - Check that the regressions are passing on GH
 
   ```bash
-  > i gh_create_pr --no-draft
+  > i gh_pr_create --no-draft
   ```
 
 - Check the files that were changed in both branches (i.e., the "problematic
@@ -241,7 +241,7 @@
 - Check `amp` / `cmamp` using GH actions:
 
   ```bash
-  > i gh_create_pr --no-draft
+  > i gh_pr_create --no-draft
   > i pytest_collect_only
   > i gh_workflow_list
   ```

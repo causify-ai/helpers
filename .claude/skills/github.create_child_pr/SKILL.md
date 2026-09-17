@@ -13,7 +13,7 @@ model: haiku
 ## Find the Next Branch Name
 - Find which branch name is next available:
   ```bash
-  > i git_branch_next_name
+  > i git_branch_get_next_name
   12:01:47 - INFO  hgit.py _get_branch_next_name_via_github_api:124       Found highest number '3' in all branches, next is '4'
   branch_next_name='HelpersTask1273_Get_Mac_tests_to_pass_4'
   ```
@@ -93,7 +93,7 @@ model: haiku
 
   > export CSFY_DOCKER_ENGINE="apple"; ./pr_pytest.sh 2>&1 | tee build3.txt
 
-  > i gh_create_pr --no-draft
+  > i gh_pr_create --no-draft
 
   > i gh_watch
 

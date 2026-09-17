@@ -276,7 +276,7 @@ gitGraph
   > git push
 
   # Create a PR to trigger GitHub tests
-  > i gh_create_pr --no-draft
+  > i gh_pr_create --no-draft
 
   # Run regression tests
   > i run_fast_tests

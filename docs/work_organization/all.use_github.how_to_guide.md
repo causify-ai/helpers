@@ -319,7 +319,7 @@ stateDiagram
   ```bash
   > i git_branch_create -i 828
   > i git_branch_create -b Cmamp723_hello_world
-  > i gh_create_pr
+  > i gh_pr_create
   ```
 - If you want to make sure you are going in a right direction or just to confirm
   the interfaces you can also file a PR to discuss

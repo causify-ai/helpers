@@ -262,7 +262,7 @@ Invariants and conventions
     - E.g., `AmpTask2163_Implement_tiled_backtesting`
     - `i git_issue_number`, `i git_create_branch -i XYZ`
   - When you create a (draft) branch always create an associated PR
-    - E.g., `i gh_create_pr`
+    - E.g., `i gh_pr_create`
   - We like draft PRs to discuss architecture before unit testing
 
 #### Good Practices

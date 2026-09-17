@@ -56,8 +56,8 @@
 
   ```bash
   > invoke --help command
-  > i -h gh_issue_title
-  Usage: inv[oke] [--core-opts] gh_issue_title [--options] [other tasks here ...]
+  > i -h gh_issue_get_title
+  Usage: inv[oke] [--core-opts] gh_issue_get_title [--options] [other tasks here ...]
 
   Docstring:
   Print the title that corresponds to the given issue and repo_short_name.
@@ -78,7 +78,7 @@
 
   ```bash
   > i gh_<TAB>
-  gh_create_pr      gh_issue_title    gh_login          gh_workflow_list  gh_workflow_run
+  gh_issue_create   gh_issue_get_title  gh_login        gh_pr_create      gh_workflow_list
   ```
   - Tabbing after typing a dash (-) or double dash (--) will display valid
     options/flags for the current context.
@@ -239,8 +239,8 @@ The invoke tasks are organized into the following categories:
 - Get the official branch name corresponding to an Issue
 
   ```bash
-  > i gh_issue_title -i 256
-  ## gh_issue_title: issue_id='256', repo_short_name='current'
+  > i gh_issue_get_title -i 256
+  ## gh_issue_get_title: issue_id='256', repo_short_name='current'
 
   # Copied to system clipboard:
   AmpTask256_Part_task2236_jenkins_cleanup_split_scripts:
