@@ -38,22 +38,32 @@ model: sonnet
   whose `baseRefName` equals the previous PR's `headRefName`
   (`gh pr list --base <branch> --state open`), to find the top of the stack
 - Order the discovered PRs bottom (based on `master`) to top
+- Check whether the bottom PR itself is behind the default branch:
+  ```bash
+  > gh pr view <bottom PR> --json mergeable,mergeStateStatus
+  ```
+  If `mergeable` is `CONFLICTING` (or the branch is simply behind), treat the default
+  branch as an implicit `PR_0` at the bottom of the stack: it needs the same
+  merge-forward treatment as every other pair before the rest of the stack can end up
+  mergeable
 
 ## Print the Stack
 
 - Print one table with columns `#`, `Branch`, `PR` (`#<NUM> — <title>`), `Base`, e.g.:
   ```
-  │  #  │       Branch       │                            PR                            │  Base  │
-  ├─────┼────────────────────┼──────────────────────────────────────────────────────────┼────────┤
-  │ 1   │ ..._invoke_tasks   │ #1423 — auto-pick suffix in git_branch_create            │ master │
-  ├─────┼────────────────────┼──────────────────────────────────────────────────────────┼────────┤
-  │ 2   │ ..._invoke_tasks_2 │ #1424 — unit tests for git_*/gh_* tasks                  │ #1423  │
+  +---+--------------------+-----------------------------------------------+--------+
+  | # | Branch             | PR                                             | Base   |
+  +---+--------------------+-----------------------------------------------+--------+
+  | 1 | ..._invoke_tasks   | #1423 -- auto-pick suffix in git_branch_create | master |
+  | 2 | ..._invoke_tasks_2 | #1424 -- unit tests for git_*/gh_* tasks       | #1423  |
+  +---+--------------------+-----------------------------------------------+--------+
   ```
 
 ## Create and Confirm the Propagation Plan
 
 - Create `plan-auto_task.restack.md` listing, for every consecutive pair
-  `(PR_i, PR_i+1)` in the stack:
+  `(PR_i, PR_i+1)` in the stack, including the `(master, PR_1)` pair when the bottom
+  PR is behind the default branch (see "Discover the Full Stack" above):
   - What `PR_i` changed, from its GH description and
     `git diff <base_i>...<head_i>`
   - What needs to merge into `PR_i+1`, and which files are likely to conflict
@@ -66,20 +76,27 @@ model: sonnet
 ## Propagate Changes Down the Stack
 
 - Process pairs bottom-up, one at a time, so each merge already includes everything
-  propagated so far
-- For each pair `(PR_i, PR_i+1)`:
+  propagated so far, starting with `(master, PR_1)` when that pair is in the plan
+- For each pair `(PR_i, PR_i+1)` or `(master, PR_1)`:
   - Read `PR_i`'s description (`gh pr view <PR_i> --json body,title`) so conflicts
     get resolved in line with its intent, not blindly
-  - ```bash
+  - Immediately before merging, `git fetch` and confirm the local branch tip matches
+    `origin/<branch_i+1>`: another process or session can push to a branch mid-stack
+    while this skill is running, and merging on top of a stale local copy silently
+    drops those commits
+    ```bash
+    > git fetch origin <branch_i> <branch_i+1>
     > git checkout <branch_i+1>
-    > git pull
-    > git merge <branch_i>
+    > git reset --hard origin/<branch_i+1>
+    > git merge origin/<branch_i>
     ```
   - Resolve any conflicts by hand, favoring the intent of `PR_i`'s change; do not use
     `git rebase` and do not force-push, so history stays intact
   - Follow `.claude/skills/coding.rules.md` and `.claude/skills/testing.rules.md`
     while resolving conflicts in code and tests
-  - Commit the merge and push: `git push`
+  - Commit the merge and push: `git push`. If the push is rejected because
+    `origin/<branch_i+1>` moved again, re-fetch and redo the merge rather than
+    force-pushing over it
 - Repeat up through the top of the stack
 
 ## Make Every PR Mergeable
@@ -119,11 +136,15 @@ model: sonnet
   bottom-up
 - Never guess the intent of an unclear PR when resolving a conflict: stop and ask
   instead
+- Never merge/build on a local branch copy without re-fetching first: a concurrent
+  session or an auto-commit/auto-push process on the same machine can move a branch
+  in the stack while this skill is running
 
 # Verification
 
 - [ ] The full stack was discovered from `master` up through the top PR, matching
-      GitHub's actual base chain
+      GitHub's actual base chain, and the bottom PR's mergeability against `master`
+      was checked
 - [ ] `plan-auto_task.restack.md` lists every consecutive pair and was confirmed by
       the user before any branch was touched
 - [ ] Every merge between stacked branches is a merge commit, not a rebase; no branch
