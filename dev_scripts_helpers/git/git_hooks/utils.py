@@ -529,9 +529,7 @@ def check_ruff_format(
     """
     func_name = _report()
     if not hsystem.check_exec("ruff"):
-        _LOG.warning(
-            "'ruff' is not available: skipping check"
-        )
+        _LOG.warning("'ruff' is not available: skipping check")
         _handle_error(func_name, False, abort_on_error)
         return
     if file_list is None:
