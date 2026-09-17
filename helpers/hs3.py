@@ -11,7 +11,6 @@ import functools
 import gzip
 import logging
 import os
-import pathlib
 import re
 from typing import Any, Dict, List, Optional, Tuple, Union
 
@@ -319,7 +318,7 @@ def listdir(
         paths = list(path_objects.keys())
         if exclude_git_dirs:
             paths = [
-                path for path in paths if ".git" not in pathlib.Path(path).parts
+                path for path in paths if ".git" not in path.split("/")
             ]
         bucket, absolute_path = split_path(dir_name)
         # Basically the goal is to remove `s3://` from the full S3 path.

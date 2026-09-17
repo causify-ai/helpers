@@ -131,6 +131,26 @@ def remove_bullets(markdown_text: str) -> str:
     return "\n".join(result)
 
 
+def add_checkbox(markdown_text: str) -> str:
+    """
+    Add a TODO checkbox in front of each non-empty line.
+
+    Each non-empty line is prefixed with `- [ ] `. Empty lines are
+    preserved as-is.
+
+    :param markdown_text: input text
+    :return: text with a checkbox prefix added to each non-empty line
+    """
+    lines = markdown_text.split("\n")
+    result = []
+    for line in lines:
+        if line.strip():
+            result.append(f"- [ ] {line}")
+        else:
+            result.append("")
+    return "\n".join(result)
+
+
 def format_first_level_bullets(markdown_text: str) -> str:
     """
     Add empty lines only before first level bullets and remove all empty lines

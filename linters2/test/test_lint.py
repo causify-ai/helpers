@@ -1,11 +1,21 @@
+import logging
 import os
+import tempfile
 import unittest.mock as umock
 from typing import Callable, Dict, List, Optional, Tuple
 
+import pytest
+
+import helpers.hgit as hgit
 import helpers.hio as hio
+import helpers.hprint as hprint
+import helpers.hserver as hserver
+import helpers.hsystem as hsystem
 import helpers.hunit_test as hunitest
 import helpers.hunit_test_utils as hunteuti
 import linters2.lint as lilint
+
+_LOG = logging.getLogger(__name__)
 
 
 def _run_actions_and_check(
@@ -37,7 +47,6 @@ def _run_actions_and_check(
 # #############################################################################
 # Test_filter_files_by_type
 # #############################################################################
-
 
 class Test_filter_files_by_type(hunitest.TestCase):
     """
@@ -279,16 +288,77 @@ class Test_filter_files_by_type(hunitest.TestCase):
             sort_py_files=True,
         )
 
+    def test7(self) -> None:
+        """
+        Empty file_paths list: all outputs empty.
+        """
+        # Prepare inputs.
+        file_paths = []
+        file_types = ["py", "ipynb", "md"]
+        # Prepare outputs.
+        expected_py_files = []
+        expected_ipynb_files = []
+        expected_md_files = []
+        # Run test.
+        self._assert_filter_result(
+            file_paths,
+            file_types,
+            expected_py_files,
+            expected_ipynb_files,
+            expected_md_files,
+        )
+
+    def test8(self) -> None:
+        """
+        Empty file_types list: all outputs empty.
+        """
+        # Prepare inputs.
+        paths = self._create_files(["foo.py", "bar.ipynb", "baz.md"])
+        file_paths = [paths["foo.py"], paths["bar.ipynb"], paths["baz.md"]]
+        file_types = []
+        # Prepare outputs.
+        expected_py_files = []
+        expected_ipynb_files = []
+        expected_md_files = []
+        # Run test.
+        self._assert_filter_result(
+            file_paths,
+            file_types,
+            expected_py_files,
+            expected_ipynb_files,
+            expected_md_files,
+        )
+
+    def test9(self) -> None:
+        """
+        Single item in file_paths and file_types: correctly filtered.
+        """
+        # Prepare inputs.
+        paths = self._create_files(["foo.py"])
+        file_paths = [paths["foo.py"]]
+        file_types = ["py"]
+        # Prepare outputs.
+        expected_py_files = [paths["foo.py"]]
+        expected_ipynb_files = []
+        expected_md_files = []
+        # Run test.
+        self._assert_filter_result(
+            file_paths,
+            file_types,
+            expected_py_files,
+            expected_ipynb_files,
+            expected_md_files,
+        )
+
 
 # #############################################################################
 # Test_run_common_linting_actions
 # #############################################################################
 
-
 class Test_run_common_linting_actions(hunitest.TestCase):
     def test1(self) -> None:
         """
-        actions=["pre-commit"]: exactly 1 call.
+        `actions=["pre-commit"]`: exactly 1 call.
         """
         # Prepare inputs.
         file_paths = ["file1.py", "file2.py"]
@@ -337,11 +407,38 @@ class Test_run_common_linting_actions(hunitest.TestCase):
             expected,
         )
 
+    def test3(self) -> None:
+        """
+        Empty file_paths: call made with empty files list.
+        """
+        # Prepare inputs.
+        file_paths = []
+        actions = ["pre-commit"]
+        abort_on_error = True
+        # Prepare outputs.
+        expected_return_code = 0
+        expected = r"""[
+        {
+        'function': hsystem.system,
+        'args': ('pre-commit run --files  --color always',),
+        'kwargs': {'print_command': False, 'abort_on_error': True, 'suppress_output': False},
+        },
+        ]"""
+        # Run test.
+        _run_actions_and_check(
+            self,
+            lilint._run_common_linting_actions,
+            file_paths,
+            actions,
+            abort_on_error,
+            expected_return_code,
+            expected,
+        )
+
 
 # #############################################################################
 # Test_run_python_linting_actions
 # #############################################################################
-
 
 class Test_run_python_linting_actions(hunitest.TestCase):
     """
@@ -409,26 +506,25 @@ class Test_run_python_linting_actions(hunitest.TestCase):
             expected,
         )
 
-    # TODO(ai_gp): Use hunteuti.capture_sys_calls() instead of mocking
-    #  `helpers.hsystem.system` directly.
-    @umock.patch("helpers.hsystem.system")
-    def test3(self, mock_system: umock.MagicMock) -> None:
+    def test3(self) -> None:
         """
-        mock_system returns non-zero: return code is OR-combined.
+        Non-zero return codes are OR-combined.
         """
         # Prepare inputs.
-        mock_system.side_effect = [0, 1, 0, 0]
         file_paths = ["file1.py"]
         actions = lilint._DEFAULT_ACTIONS
         abort_on_error = True
         # Prepare outputs.
         expected_return_code = 1
         # Run test.
-        ret = lilint._run_python_linting_actions(
-            file_paths,
-            actions,
-            abort_on_error=abort_on_error,
-        )
+        with umock.patch(
+            "helpers.hsystem.system", side_effect=[0, 1, 0, 0]
+        ):
+            ret = lilint._run_python_linting_actions(
+                file_paths,
+                actions,
+                abort_on_error=abort_on_error,
+            )
         # Check outputs.
         self.assertEqual(ret, expected_return_code)
 
@@ -455,11 +551,38 @@ class Test_run_python_linting_actions(hunitest.TestCase):
             expected,
         )
 
+    def test5(self) -> None:
+        """
+        Empty file_paths: call made with empty files list.
+        """
+        # Prepare inputs.
+        file_paths = []
+        actions = ["normalize_import"]
+        abort_on_error = True
+        # Prepare outputs.
+        expected_return_code = 0
+        expected = r"""[
+        {
+        'function': hsystem.system,
+        'args': ('linters2/normalize_import.py --no_report_command_line ',),
+        'kwargs': {'print_command': False, 'abort_on_error': True, 'suppress_output': False},
+        },
+        ]"""
+        # Run test.
+        _run_actions_and_check(
+            self,
+            lilint._run_python_linting_actions,
+            file_paths,
+            actions,
+            abort_on_error,
+            expected_return_code,
+            expected,
+        )
+
 
 # #############################################################################
 # Test_lint_python_files
 # #############################################################################
-
 
 class Test_lint_python_files(hunitest.TestCase):
     """
@@ -570,7 +693,6 @@ class Test_lint_python_files(hunitest.TestCase):
 # Test_lint_jupyter_files
 # #############################################################################
 
-
 class Test_lint_jupyter_files(hunitest.TestCase):
     """
     Test _lint_jupyter_files Jupyter notebook linting.
@@ -629,7 +751,7 @@ class Test_lint_jupyter_files(hunitest.TestCase):
 
     def test3(self) -> None:
         """
-        actions=["sync_jupytext"]: 2 jupytext calls.
+        `actions=["sync_jupytext"]`: 2 jupytext calls.
         """
         # Prepare inputs.
         file_paths = ["foo.ipynb", "bar.ipynb"]
@@ -662,7 +784,7 @@ class Test_lint_jupyter_files(hunitest.TestCase):
 
     def test4(self) -> None:
         """
-        actions=["pre-commit"]: 1 shared call.
+        `actions=["pre-commit"]`: 1 shared call.
         """
         # Prepare inputs.
         file_paths = ["foo.ipynb", "bar.ipynb"]
@@ -693,23 +815,17 @@ class Test_lint_jupyter_files(hunitest.TestCase):
 # Test_lint_markdown_files
 # #############################################################################
 
-
 class Test_lint_markdown_files(hunitest.TestCase):
     """
     Test _lint_markdown_files Markdown file linting.
     """
 
-    @umock.patch("helpers.hsystem.find_file_in_repo")
-    def test1(
-        self,
-        mock_find_file: umock.MagicMock,
-    ) -> None:
+    def test1(self) -> None:
         """
         Empty file list: returns 0 immediately, no calls.
         """
         # Prepare inputs.
         lint_script_path = "/fake/lint_text.py"
-        mock_find_file.return_value = lint_script_path
         file_paths = []
         abort_on_error = True
         # Prepare outputs.
@@ -717,7 +833,13 @@ class Test_lint_markdown_files(hunitest.TestCase):
         expected = r"""[
         ]"""
         # Run test.
-        with hunteuti.capture_sys_calls() as sys_calls:
+        with (
+            umock.patch(
+                "helpers.hsystem.find_file_in_repo",
+                return_value=lint_script_path,
+            ),
+            hunteuti.capture_sys_calls() as sys_calls,
+        ):
             ret = lilint._lint_markdown_files(
                 file_paths,
                 abort_on_error=abort_on_error,
@@ -726,17 +848,12 @@ class Test_lint_markdown_files(hunitest.TestCase):
         self.assertEqual(ret, expected_return_code)
         hunteuti.assert_sys_calls(self, sys_calls, expected)
 
-    @umock.patch("helpers.hsystem.find_file_in_repo")
-    def test2(
-        self,
-        mock_find_file: umock.MagicMock,
-    ) -> None:
+    def test2(self) -> None:
         """
         Two .md files: 1 call to lint_text.py with filenames.
         """
         # Prepare inputs.
         lint_script_path = "/fake/lint_text.py"
-        mock_find_file.return_value = lint_script_path
         file_paths = ["doc.md", "readme.md"]
         abort_on_error = True
         # Prepare outputs.
@@ -749,7 +866,13 @@ class Test_lint_markdown_files(hunitest.TestCase):
         },
         ]"""
         # Run test.
-        with hunteuti.capture_sys_calls() as sys_calls:
+        with (
+            umock.patch(
+                "helpers.hsystem.find_file_in_repo",
+                return_value=lint_script_path,
+            ),
+            hunteuti.capture_sys_calls() as sys_calls,
+        ):
             ret = lilint._lint_markdown_files(
                 file_paths,
                 abort_on_error=abort_on_error,
@@ -757,3 +880,224 @@ class Test_lint_markdown_files(hunitest.TestCase):
         # Check outputs.
         self.assertEqual(ret, expected_return_code)
         hunteuti.assert_sys_calls(self, sys_calls, expected)
+
+
+# #############################################################################
+# Test_docformatter_config
+# #############################################################################
+
+
+@pytest.mark.skipif(
+    not (not hserver.is_inside_docker() and hserver.is_host_gp_mac()),
+    reason="pre-commit / docformatter are only installed outside "
+    "the dev container on GP's Mac",
+)
+class Test_docformatter_config(hunitest.TestCase):
+    """
+    End-to-end tests for the `[tool.docformatter]` config in `pyproject.toml`.
+
+    These run only the `docformatter` pre-commit hook (not the full `lint.py`
+    pipeline) and confirm it formats docstrings using the repo's three-line
+    style: opening `\"\"\"` alone, the summary/description as unwrapped lines,
+    closing `\"\"\"` alone.
+    """
+
+    def _run_docformatter(self, input_content: str) -> Tuple[int, str]:
+        """
+        Run only the `docformatter` pre-commit hook on a scratch file.
+
+        :param input_content: Python source to write to the scratch file
+            before linting
+        :return: (return code, file content after linting)
+        """
+        scratch_dir = self.get_scratch_space()
+        file_path = os.path.join(scratch_dir, "sample_module.py")
+        hio.to_file(file_path, input_content)
+        cmd = f"pre-commit run docformatter --files {file_path} --color never"
+        rc, _ = hsystem.system_to_string(cmd, abort_on_error=False)
+        actual = hio.from_file(file_path)
+        return rc, actual
+
+    @pytest.mark.slow("~0.5s to run the docformatter pre-commit hook.")
+    def test1(self) -> None:
+        """
+        Over-length one-line docstring: the summary stays on a single
+        unwrapped line (`wrap-summaries = 0`) instead of being wrapped.
+        """
+        # Prepare inputs.
+        input_content = '''def foo() -> None:
+    """Test that a dry run on the docker engine only issues read-only commands."""
+    pass
+'''
+        # Prepare outputs.
+        expected = '''def foo() -> None:
+    """
+    Test that a dry run on the docker engine only issues read-only commands.
+    """
+    pass
+'''
+        # Run test.
+        rc, actual = self._run_docformatter(input_content)
+        # Check outputs.
+        self.assertEqual(rc, 1)
+        self.assert_equal(actual, expected)
+
+    @pytest.mark.slow("~0.5s to run the docformatter pre-commit hook.")
+    def test2(self) -> None:
+        """
+        Short one-line docstring: still expanded to the three-line style
+        (`make-summary-multi-line = true`), matching `coding.rules.md`'s
+        "Use Docstrings on Three Lines" rule.
+        """
+        # Prepare inputs.
+        input_content = '''def reset() -> None:
+    """Reset any internal state of the strategy."""
+    pass
+'''
+        # Prepare outputs.
+        expected = '''def reset() -> None:
+    """
+    Reset any internal state of the strategy.
+    """
+    pass
+'''
+        # Run test.
+        rc, actual = self._run_docformatter(input_content)
+        # Check outputs.
+        self.assertEqual(rc, 1)
+        self.assert_equal(actual, expected)
+
+    @pytest.mark.slow("~0.5s to run the docformatter pre-commit hook.")
+    def test3(self) -> None:
+        """
+        Docstring with a summary, a description, and `:param:` lines: the
+        blank line before the summary is added (`pre-summary-newline =
+        true`) and the `:param:` block is left untouched.
+        """
+        # Prepare inputs.
+        input_content = '''def helper(size_str: str, expected: float) -> None:
+    """Test helper for `_parse_docker_size_to_bytes()`.
+
+    :param size_str: Docker human-readable size to parse
+    :param expected: expected size in bytes
+    """
+    pass
+'''
+        # Prepare outputs.
+        expected = '''def helper(size_str: str, expected: float) -> None:
+    """
+    Test helper for `_parse_docker_size_to_bytes()`.
+
+    :param size_str: Docker human-readable size to parse
+    :param expected: expected size in bytes
+    """
+    pass
+'''
+        # Run test.
+        rc, actual = self._run_docformatter(input_content)
+        # Check outputs.
+        self.assertEqual(rc, 1)
+        self.assert_equal(actual, expected)
+
+    @pytest.mark.slow("~0.5s to run the docformatter pre-commit hook.")
+    def test4(self) -> None:
+        """
+        Docstring already in the repo's three-line style: formatting is
+        idempotent, the file is left unchanged.
+        """
+        # Prepare inputs.
+        input_content = '''def foo() -> None:
+    """
+    Test that a dry run on the docker engine only issues read-only commands.
+    """
+    pass
+'''
+        # Run test.
+        rc, actual = self._run_docformatter(input_content)
+        # Check outputs.
+        self.assertEqual(rc, 0)
+        self.assert_equal(actual, input_content)
+
+
+# #############################################################################
+# Test_lint_py
+# #############################################################################
+
+
+@pytest.mark.skipif(
+    not (not hserver.is_inside_docker() and hserver.is_host_gp_mac()),
+    reason="pre-commit / docformatter are only installed outside "
+    "the dev container on GP's Mac",
+)
+class Test_lint_py(hunitest.TestCase):
+    """
+    End-to-end tests for the `lint.py` executable.
+    """
+
+    @pytest.mark.slow("~2s to run the full pre-commit hook stack.")
+    def test1(self) -> None:
+        """
+        Run the default `pre-commit` action of `lint.py` on messy Python.
+        code and check that it is cleaned up:
+        - unused imports removed (`ruff check`)
+        - statements reordered by dependency (`ssort`)
+        - spacing normalized (`ruff format`)
+        - trailing whitespace stripped (`pre-commit-hooks`)
+        - docstring reformatted to the repo's three-line style
+          (`docformatter`)
+
+        Uses a scratch dir next to this test file instead of
+        `self.get_scratch_space()`: `pyproject.toml`'s `[tool.ruff]`
+        `exclude = ["**/outcomes/**", ...]` makes the `ruff-pre-commit`
+        hooks (which run with `--force-exclude`) silently skip any file
+        under `test/outcomes/`, which is where `get_scratch_space()` puts
+        files.
+        """
+        # Prepare inputs.
+        input_content = """
+        import sys
+        import os
+
+
+        def use_helper():
+            return helper_function( 1,2 )
+
+
+        def helper_function(a,b) -> int:
+            \"\"\"Add two numbers together and return the sum.\"\"\"
+            x=a+b
+            return x
+        """
+        input_content = hprint.dedent(input_content)
+        # Prepare outputs.
+        expected = """
+        def helper_function(a, b) -> int:
+            \"\"\"
+            Add two numbers together and return the sum.
+            \"\"\"
+            x = a + b
+            return x
+
+
+        def use_helper():
+            return helper_function(1, 2)
+        """
+        expected = hprint.dedent(expected)
+        # Run test.
+        # Use tempfile instead of get_scratch_space() because pyproject.toml
+        # excludes files under outcomes/, which is where get_scratch_space()
+        # puts files, so ruff would skip them.
+        test_dir = os.path.dirname(os.path.abspath(__file__))
+        with tempfile.TemporaryDirectory(dir=test_dir) as scratch_dir:
+            file_path = os.path.join(scratch_dir, "messy_module.py")
+            hio.to_file(file_path, input_content)
+            exec_path = hgit.find_file_in_git_tree("lint.py")
+            cmd = (
+                f"{exec_path} --files {file_path} --file_types py "
+                "--clear_actions --action pre-commit"
+            )
+            rc, _ = hsystem.system_to_string(cmd)
+            actual = hio.from_file(file_path)
+        # Check outputs.
+        self.assertEqual(rc, 0)
+        self.assert_equal(actual, expected)

@@ -1,4 +1,4 @@
-### [ ] Reorganize and test git/gh invoke tasks
+### [-] Reorganize and test git/gh invoke tasks
 
 * Repo: helpers only
 - [x] helpers (https://github.com/causify-ai/helpers)
@@ -26,7 +26,7 @@
 
 * Solution
 
-- [ ] PR1: Let `git_branch_create` auto-pick the next free suffix
+- [x] Let `git_branch_create` auto-pick the next free suffix
   - When `--issue-id` is given and `--suffix` is omitted, call
     `hgit.get_branch_next_name(curr_branch_name=<issue title>)` (same helper
     `git_branch_next_name` already uses) instead of requiring `--suffix`
@@ -34,7 +34,7 @@
     `Branch '<name>' already exists` if that exact suffix is taken (verify
     this with a test, don't just assert it works)
 
-- [ ] PR2: Add unit tests for `git_*`/`gh_*` invoke tasks
+- [x] Add unit tests for `git_*`/`gh_*` invoke tasks
   - Cover the untested tasks in `lib_tasks_git.py` (`git_pull`,
     `git_fetch_master`, `git_merge_master`, `git_clean`,
     `git_add_all_untracked`, `git_files`, `git_branch_files`,
@@ -54,7 +54,7 @@
     `_delete_branches`, `_get_gh_issue_title`, `_check_if_pr_exists`) and
     test the helper directly instead of the `@task`-decorated wrapper
 
-- [ ] PR3: Factor invoke bodies with heavy logic into standalone scripts
+- [x] Factor invoke bodies with heavy logic into standalone scripts
   - Scope: only tasks with non-trivial logic beyond a couple of subprocess
     calls — `git_branch_create`, `git_patch_create`, `git_branch_diff`,
     `git_branch_subset_copy`, `git_backup` — not every task in the file
@@ -62,7 +62,7 @@
     `dev_scripts_helpers/git/git_create_issue_and_branch.py`), leaving the
     `@task` function as a thin pass-through that builds the CLI invocation
 
-- [ ] PR4: Unify parameter conventions across `git_*`/`gh_*` tasks
+- [x] Unify parameter conventions across `git_*`/`gh_*` tasks
   - Add `--repo-short-name` to tasks that operate against a specific GitHub
     repo but currently lack it (e.g. `gh_workflow_list`, `gh_workflow_run`,
     `gh_publish_buildmeister_dashboard_to_s3`, `gh_delete_workflow_runs`)
@@ -73,7 +73,7 @@
     `gh_create_pr`)
   - Move `gh_watch` from `lib_tasks_git.py` to `lib_tasks_gh.py`
 
-- [ ] PR5: Audit task naming for `<object>_<action>` consistency
+- [ ] Audit task naming for `<object>_<action>` consistency
   - List every `git_*`/`gh_*` task name and flag any that don't read as
     `<object>_<action>` (e.g. `git_roll_amp_forward`, `git_files` vs.
     `git_branches` for singular/plural consistency)
@@ -82,7 +82,7 @@
   - ❓ Needs explicit sign-off before renaming anything, since renames break
     muscle memory / scripts that call these tasks by name
 
-- [ ] PR6: Update documentation
+- [ ] Update documentation
   - docs/tools/all.invoke_workflows.how_to_guide.md
   - docs/tools/git/all.git.how_to_guide.md
   - docs/work_organization/all.use_github.how_to_guide.md

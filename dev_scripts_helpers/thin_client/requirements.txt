@@ -10,6 +10,7 @@ invoke >= 1.5.0
 junitparser
 poetry
 pytest >= 6.0.0
+ruff  # Needed by the pre-commit git hook to format/lint touched Python files.
 s3fs  # For tools like `publish_notebook.py`.
 tqdm
 # On Mac and locally on Linux there is an issue related to this package

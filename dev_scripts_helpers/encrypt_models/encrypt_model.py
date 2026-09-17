@@ -26,7 +26,6 @@ docs/dataflow/ck.release_encrypted_models.how_to_guide.md for details.
 import argparse
 import logging
 import os
-import pathlib
 import re
 
 import helpers.hdbg as hdbg
@@ -177,8 +176,8 @@ def _tweak_init(encrypted_dir: str) -> None:
     _, init_files = hsystem.system_to_string(cmd)
     files = init_files.split("\n")
     for f in files:
-        file_path = pathlib.Path(f)
-        if file_path.parent.name != "pyarmor_runtime_000000":
+        parent_dir_name = os.path.basename(os.path.dirname(f))
+        if parent_dir_name != "pyarmor_runtime_000000":
             data = hio.from_file(f)
             lines = "\n".join([pytransform_import, data])
             hio.to_file(f, lines)
@@ -198,12 +197,7 @@ def _test_model(model_dag_builder: str, model_dag_builder_file: str) -> None:
     #   import dataflow_lemonade.pipelines.C5.C5a_pipeline as f;
     #   a = f.C5a_DagBuilder(); print(a)
     #   ```
-    import_path = (
-        pathlib.Path(model_dag_builder_file)
-        .with_suffix("")
-        .as_posix()
-        .replace("/", ".")
-    )
+    import_path = os.path.splitext(model_dag_builder_file)[0].replace("/", ".")
     script = f'python -c "import {import_path} as f; a = f.{model_dag_builder}(); print(a)"'
     # Write testing script to temporary file.
     temp_file_path = "./tmp.encrypt_model.test_model.sh"

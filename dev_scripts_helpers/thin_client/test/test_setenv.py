@@ -1,6 +1,5 @@
 import logging
 import os
-import pathlib
 from typing import Tuple
 
 import pytest
@@ -45,7 +44,7 @@ class _SetenvTestCase(hunitest.TestCase):
             dir_depth=1,
             mode="assert_unless_one_result",
         )
-        self.setenv_path = pathlib.Path(setenv_files[0])
+        self.setenv_path = setenv_files[0]
         _LOG.debug("setenv_path=%s", self.setenv_path)
         # Get the path to the `thin_client_utils.sh` and `repo_config.yaml`
         # files that are used by `setenv.sh`.
@@ -55,10 +54,10 @@ class _SetenvTestCase(hunitest.TestCase):
             dir_depth=1,
             mode="assert_unless_one_result",
         )
-        self.thin_client_utils_path = pathlib.Path(utils_files[0])
+        self.thin_client_utils_path = utils_files[0]
         _LOG.debug("thin_client_utils_path=%s", self.thin_client_utils_path)
-        self.repo_config_path = pathlib.Path(
-            hsystem.find_file_in_repo("repo_config.yaml", root_dir=helpers_root)
+        self.repo_config_path = hsystem.find_file_in_repo(
+            "repo_config.yaml", root_dir=helpers_root
         )
         _LOG.debug("repo_config_path=%s", self.repo_config_path)
         # Exit if files do not exist.
@@ -117,7 +116,7 @@ class _SetenvTestCase(hunitest.TestCase):
             export HOME="$TEMP_DIR"
 
             # Change to the directory containing `setenv.sh`.
-            cd "{self.setenv_path.parent}"
+            cd "{os.path.dirname(self.setenv_path)}"
 
             # Create the dev_scripts_helpers directory expected by setenv.sh.
             # The script constructs: DEV_SCRIPT_DIR=${{CURR_DIR}}/dev_scripts_${{REPO_CONF_runnable_dir_info_dir_suffix}}

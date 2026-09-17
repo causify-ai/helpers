@@ -1,11 +1,10 @@
 name: Fast tests
 on:
-  # Run on every PR to master that is ready to review (i.e., not draft).
+  # Run on every PR that is ready to review (i.e., not draft), regardless of
+  # base branch, so stacked PRs (base != master) are tested too.
   pull_request:
     # https://github.community/t/dont-run-actions-on-draft-pull-requests/16817/19
     types: [opened, synchronize, reopened, ready_for_review]
-    branches:
-      - master
   # Run for every change in master.
   push:
     branches:
