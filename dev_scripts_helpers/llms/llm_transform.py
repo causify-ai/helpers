@@ -28,12 +28,17 @@ There are different modes to run this script:
 
 - Propose a refactoring and produce a cfile:
 > llm_transform.py -i render_images.py -o cfile -p code_propose_refactoring
+
+Transforms that don't need an LLM (e.g., `md_to_latex`, `md_clean_up`,
+`md_bold_bullets`, `md_remove_bullets`, `slide_format_figures`,
+`slide_add_figure`) live in
+`dev_scripts_helpers/documentation/transform_text.py` instead.
 """
 
 import argparse
 import logging
 import os
-from typing import List, Optional, Tuple, cast
+from typing import List, Optional, cast
 
 import dev_scripts_helpers.llms.llm_prompts as dshlllpr
 import dev_scripts_helpers.llms.llm_utils as dshlllut
@@ -41,9 +46,7 @@ import helpers.hdbg as hdbg
 import helpers.hdocker as hdocker
 import helpers.hgit as hgit
 import helpers.hio as hio
-import helpers.hlatex as hlatex
 import helpers.hllm_cli as hllmcli
-import helpers.hmarkdown as hmarkdo
 import helpers.hselect_input_output as hseinout
 import helpers.hparser as hparser
 import helpers.hprint as hprint
@@ -205,92 +208,6 @@ def _run_dockerized_llm_transform(
     return ret
 
 
-def _get_input_transforms() -> List[Tuple[str, str]]:
-    input_transforms = [
-        ("md_to_latex", "Convert Markdown to LaTeX using pandoc and format"),
-        ("md_clean_up", "Clean up and format Markdown source text"),
-        (
-            "md_bold_bullets",
-            "Bold the first level bullets in Markdown and format",
-        ),
-        ("md_remove_bullets", "Remove bullets from Markdown"),
-        ("slide_format_figures", "Format Markdown figure blocks for slides"),
-        (
-            "slide_add_figure",
-            "Add column structure for figures in slide Markdown",
-        ),
-    ]
-    return input_transforms
-
-
-def process_transform(
-    prompt: str, in_file_name: str, out_file_name: str
-) -> bool:
-    """
-    Process a transform that doesn't require LLMs.
-
-    :param prompt: Prompt used to generate the transformed text
-    :param in_file_name: Original input file name
-    :param out_file_name: Temporary output file name
-    :return: True if the transform was processed, False otherwise
-    """
-    _LOG.debug(hprint.func_signature_to_str())
-    #
-    input_transforms_names = [
-        transform[0] for transform in _get_input_transforms()
-    ]
-    if prompt in input_transforms_names:
-        # Read the input.
-        _LOG.debug("Reading input file: %s", in_file_name)
-        txt = hseinout.from_file(in_file_name)
-        txt = "\n".join(txt)
-        if prompt == "md_to_latex":
-            txt = hlatex.convert_pandoc_md_to_latex(txt)
-            txt = hlatex.format_latex(txt)
-        elif prompt == "md_clean_up":
-            txt = hmarkdo.md_clean_up(txt)
-            txt = hmarkdo.format_markdown(txt)
-        elif prompt == "md_bold_bullets":
-            lines = txt.split("\n")
-            lines = hmarkdo.bold_first_level_bullets(lines)
-            txt = "\n".join(lines)
-            txt = hmarkdo.format_markdown(txt)
-        elif prompt == "md_remove_bullets":
-            txt = hmarkdo.remove_bullets(txt)
-        elif prompt == "slide_format_figures":
-            lines = txt.split("\n")
-            lines = hmarkdo.format_figures(lines)
-            txt = "\n".join(lines)
-            # txt = hmarkdo.format_markdown(txt)
-        elif prompt == "slide_add_figure":
-            lines = txt.split("\n")
-            lines_out = []
-            lines_out.append(
-                hprint.dedent("""
-            ::: columns
-            :::: {.column width=50%}
-            """)
-            )
-            lines_out.extend(lines)
-            lines_out.append(
-                hprint.dedent("""
-            ::::
-            :::: {.column width=45%}
-            ::::
-            :::
-            """)
-            )
-            txt = "\n".join(lines_out)
-            txt = hmarkdo.format_markdown(txt)
-        else:
-            raise ValueError(f"Invalid prompt='{prompt}'")
-        #
-        _LOG.debug("Writing output file: %s", out_file_name)
-        hseinout.to_file(txt, out_file_name)
-        return True
-    return False
-
-
 def _main(parser: argparse.ArgumentParser) -> None:
     args = parser.parse_args()
     hseinout.init_logger_for_input_output_transform(args, verbose=False)
@@ -310,12 +227,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
         print("# Available prompt tags:")
         prompt_tags = []
         prompt_tags.extend(dshlllpr.get_prompt_tags())
-        prompt_tags.extend(_get_input_transforms())
         print(dshlllpr.prompt_tags_to_str(prompt_tags))
-        return
-    # Process targets that don't require LLMs.
-    done = process_transform(args.prompt, args.input, args.output)
-    if done:
         return
     # Parse files.
     in_file_name, out_file_name = hseinout.parse_input_output_args(args)

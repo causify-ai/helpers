@@ -23,6 +23,11 @@ model: sonnet
   - level 1 `# ...`
   - level 2 headers `## ...`
   - slides `* ...`
+- Keep the standalone `* Roadmap` slide first and the standalone `* Summary`
+  slide last (right before `* References`, if present): never propose moving
+  either one, per `.claude/skills/slides.rules.md` `## Roadmap Slide` /
+  `## Summary Slide`. Do update `* Roadmap`'s bullets if the reorganization
+  changes the order of the `#` topics it previews
 
 - E.g.,
   ```markdown

@@ -16,6 +16,10 @@ model: haiku
 - Follow `.claude/skills/auto_task.rules.md` for how tasks are queued, specified, and
   named before they reach this skill
 
+## Inputs
+- `<FILE>` or a GitHub issue already filed (e.g., #580 or
+  https://github.com/gpsaggese/gpsaggese.github.io/issues/580)
+
 # When to Use This Skill
 
 - Use it when tasks are specified clearly enough to hand to an unattended agent and
@@ -30,10 +34,9 @@ model: haiku
 
 # Conventions
 
-- Follow `.claude/skills/auto_task.rules.md` for queue, spec, and naming conventions
-- Follow `.claude/skills/coding.rules.md` and `.claude/skills/testing.rules.md`: they
-  apply to whatever code Claude on GitHub writes, even though it runs remotely and
-  not in this session
+- Follow `.claude/skills/auto_task.rules.md` for queue, spec, naming, and
+  coding/testing conventions: they apply to whatever code Claude on GitHub
+  writes, even though it runs remotely and not in this session
 - Claude on GitHub only starts on an explicit `@claude` mention in an issue's title
   or body, or in a comment on an issue or PR, per
   `helpers_root/.github/workflows/claude.yml`
@@ -45,16 +48,17 @@ model: haiku
   monitor and report on the resulting run and PR
 - Do not commit, push, or amend the branch created for a task: that branch is Claude
   on GitHub's to push to, and merging it is the user's decision
-- Do not dispatch the next task's issue while still checked out on the previous
-  task's branch: return to `master` first, since `git_create_issue_and_branch.py`
-  requires branching from `master`
 - Keep one PR per task: multiple commits on that PR's branch are fine when the spec
   has several parts, but never open a second issue/branch/PR for a task already
   dispatched
 
 # Workflow
 
-## Confirm the Task List
+## Create Issue, if Needed
+
+- If the GitHub issue has not been filed, then create it
+
+### Confirm the Task List
 
 - Read `<FILE>`, wrapped around the task list like
 
@@ -82,7 +86,6 @@ model: haiku
   dispatched with the remote run not finished, `[x]` means the PR is ready for human
   review
 
-## Dispatch Each Task
 
 ### Create the Issue, Branch, and Draft PR
 
@@ -97,6 +100,10 @@ model: haiku
 
   - By default this only opens a branch/PR in the outer repo; pass `--submodules`
     when the task also touches a submodule, per `.claude/skills/auto_task.rules.md`
+  - With `--submodules`, once a PR exists in more than one repo this call also
+    refreshes the issue's `## Companion PRs` section automatically: no separate
+    `--update_pr_links` step is needed here since the PR is created immediately,
+    not deferred
 - Return to `master` once the branch and draft PR exist: the implementation happens
   on GitHub, not in this checkout
 
@@ -104,7 +111,7 @@ model: haiku
   > git checkout master
   ```
 
-### Trigger Claude on GitHub
+## Trigger Claude on GitHub
 
 - Post the task's spec as a PR comment with an explicit `@claude` mention, so
   `helpers_root/.github/workflows/claude.yml` picks it up

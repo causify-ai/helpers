@@ -4,7 +4,7 @@
 - [Use templates](#use-templates)
 - [Tools](#tools)
   * [`llm_transform.py`](#llm_transformpy)
-  * [`transform_notes.py`](#transform_notespy)
+  * [`transform_text.py`](#transform_textpy)
   * [`ai_review.py`](#ai_reviewpy)
   * [`inject_todos.py`](#inject_todospy)
   * [`apply_todos.py`](#apply_todospy)
@@ -87,23 +87,30 @@
   ...
   ```
 
-## `transform_notes.py`
+## `transform_text.py`
 
 - Some transformations don't need LLMs and are implemented as code
 
 - You can see the available transforms with:
 
   ```bash
-  > transform_notes.py -a list
-  test: compute the hash of a string to test the flow
-  format_headers: format the headers
-  increase_headers_level: increase the level of the headers
-  md_list_to_latex: convert a markdown list to a latex list
-  md_remove_formatting: remove the formatting
-  md_clean_up: clean up removing all weird characters
-  md_only_format: reflow the markdown
-  md_colorize_bold_text: colorize the bold text
-  md_format: reflow the markdown and colorize the bold text
+  > transform_text.py -a list
+  test ...................... Compute the hash of a string to test the flow
+  format_headers ............ Format the headers
+  increase_headers_level .... Increase the level of the headers
+  toc ....................... Create a table of contents from the headers
+  md_list_to_latex .......... Convert a markdown list to a latex list
+  md_to_latex ............... Convert markdown to latex using pandoc and format
+  md_remove_formatting ...... Remove the formatting
+  md_remove_bullets ......... Remove bullets from markdown
+  md_clean_up ............... Clean up removing all weird characters
+  md_only_format ............ Reflow the markdown
+  md_bold_bullets ........... Bold the first level bullets in markdown
+  md_add_checkbox ........... Add a TODO checkbox in front of each line
+  md_colorize_bold_text ..... Colorize the bold text
+  md_format ................. Reflow the markdown and colorize the bold text
+  slide_format_figures ...... Format markdown figure blocks for slides
+  slide_add_figure .......... Add column structure for figures in slide markdown
   ```
 
 ## `ai_review.py`

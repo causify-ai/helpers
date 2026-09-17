@@ -6,22 +6,25 @@ Perform one of several transformations on a txt file.
 # Usage Example
 
 - Create a table of contents from the current file, with 1 level:
-> transform_notes.py -a toc -i % -l 1
+> transform_text.py -a toc -i % -l 1
 
 - Format the current file with 3 levels:
-> transform_notes.py -a format -i notes/ABC.txt --max_lev 3
+> transform_text.py -a format -i notes/ABC.txt --max_lev 3
 
   In vim:
-  :!transform_notes.py -a format -i % --max_lev 3
-  :%!transform_notes.py -a format -i - --max_lev 3
+  :!transform_text.py -a format -i % --max_lev 3
+  :%!transform_text.py -a format -i - --max_lev 3
 
 - Increase the indentation level, in vim:
-  :!transform_notes.py -a increase -i %
-  :%!transform_notes.py -a increase -i -
+  :!transform_text.py -a increase -i %
+  :%!transform_text.py -a increase -i -
 
 - Convert a markdown list to a latex list, in vim:
-  :!transform_notes.py -a md_list_to_latex -i %
-  :%!transform_notes.py -a md_list_to_latex -i -
+  :!transform_text.py -a md_list_to_latex -i %
+  :%!transform_text.py -a md_list_to_latex -i -
+
+- List all the available transformations:
+> transform_text.py -a list
 
 - The input or output can be filename or stdin (represented by '-')
 - If output file is not specified then we assume that the output file is the
@@ -31,6 +34,7 @@ Perform one of several transformations on a txt file.
 import argparse
 import hashlib
 import logging
+from typing import List, Tuple
 
 import helpers.hlatex as hlatex
 import helpers.hmarkdown as hmarkdo
@@ -39,6 +43,37 @@ import helpers.hparser as hparser
 import helpers.hprint as hprint
 
 _LOG = logging.getLogger(__name__)
+
+
+def _get_available_transforms() -> List[Tuple[str, str]]:
+    """
+    Return the list of (action, description) available in this script.
+    """
+    transforms = [
+        ("test", "Compute the hash of a string to test the flow"),
+        ("format_headers", "Format the headers"),
+        ("increase_headers_level", "Increase the level of the headers"),
+        ("toc", "Create a table of contents from the headers"),
+        ("md_list_to_latex", "Convert a markdown list to a latex list"),
+        ("md_to_latex", "Convert markdown to latex using pandoc and format"),
+        ("md_remove_formatting", "Remove the formatting"),
+        ("md_remove_bullets", "Remove bullets from markdown"),
+        ("md_clean_up", "Clean up removing all weird characters"),
+        ("md_only_format", "Reflow the markdown"),
+        ("md_bold_bullets", "Bold the first level bullets in markdown"),
+        ("md_add_checkbox", "Add a TODO checkbox in front of each line"),
+        ("md_colorize_bold_text", "Colorize the bold text"),
+        ("md_format", "Reflow the markdown and colorize the bold text"),
+        (
+            "slide_format_figures",
+            "Format markdown figure blocks for slides",
+        ),
+        (
+            "slide_add_figure",
+            "Add column structure for figures in slide markdown",
+        ),
+    ]
+    return transforms
 
 
 def _parse() -> argparse.ArgumentParser:
@@ -65,19 +100,12 @@ def _main(parser: argparse.ArgumentParser) -> None:
     #
     cmd = args.action
     if cmd == "list":
-        txt = r"""
-        test: compute the hash of a string to test the flow
-        format_headers: format the headers
-        increase_headers_level: increase the level of the headers
-        md_list_to_latex: convert a markdown list to a latex list
-        md_remove_formatting: remove the formatting
-        md_clean_up: clean up removing all weird characters
-        md_only_format: reflow the markdown
-        md_colorize_bold_text: colorize the bold text
-        md_format: reflow the markdown and colorize the bold text
-        """
-        txt = hprint.dedent(txt)
-        print(txt)
+        transforms = _get_available_transforms()
+        max_name_len = max(len(name) for name, _ in transforms)
+        min_dots = 4
+        for name, desc in transforms:
+            dots = "." * (max_name_len - len(name) + min_dots)
+            print(f"{name} {dots} {desc}")
         return
     max_lev = int(args.max_lev)
     #
@@ -114,9 +142,14 @@ def _main(parser: argparse.ArgumentParser) -> None:
         elif cmd == "md_list_to_latex":
             txt = hlatex.markdown_list_to_latex(txt)
             txt = hmarkdo.format_markdown(txt)
+        elif cmd == "md_to_latex":
+            txt = hlatex.convert_pandoc_md_to_latex(txt)
+            txt = hlatex.format_latex(txt)
         elif cmd == "md_remove_formatting":
             txt = hmarkdo.remove_formatting(txt)
             txt = hmarkdo.format_markdown(txt)
+        elif cmd == "md_remove_bullets":
+            txt = hmarkdo.remove_bullets(txt)
         elif cmd == "md_clean_up":
             txt = hmarkdo.md_clean_up(txt)
             txt = hmarkdo.format_markdown(txt)
@@ -127,6 +160,8 @@ def _main(parser: argparse.ArgumentParser) -> None:
             lines = hmarkdo.bold_first_level_bullets(lines)
             txt = "\n".join(lines)
             txt = hmarkdo.format_markdown(txt)
+        elif cmd == "md_add_checkbox":
+            txt = hmarkdo.add_checkbox(txt)
         elif cmd == "md_colorize_bold_text":
             color_sequence = "fixed"
             txt = hmarkdo.colorize_bold_text(txt, color_sequence)
@@ -134,6 +169,30 @@ def _main(parser: argparse.ArgumentParser) -> None:
         elif cmd == "md_format":
             txt = hmarkdo.md_clean_up(txt)
             txt = hmarkdo.colorize_bold_text(txt)
+            txt = hmarkdo.format_markdown(txt)
+        elif cmd == "slide_format_figures":
+            lines = txt.split("\n")
+            lines = hmarkdo.format_figures(lines)
+            txt = "\n".join(lines)
+        elif cmd == "slide_add_figure":
+            lines = txt.split("\n")
+            lines_out = []
+            lines_out.append(
+                hprint.dedent("""
+            ::: columns
+            :::: {.column width=50%}
+            """)
+            )
+            lines_out.extend(lines)
+            lines_out.append(
+                hprint.dedent("""
+            ::::
+            :::: {.column width=45%}
+            ::::
+            :::
+            """)
+            )
+            txt = "\n".join(lines_out)
             txt = hmarkdo.format_markdown(txt)
         else:
             raise ValueError(f"Invalid cmd='{cmd}'")
