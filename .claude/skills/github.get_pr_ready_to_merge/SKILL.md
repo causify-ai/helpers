@@ -19,6 +19,21 @@ model: sonnet
   - [x] when something is done
   - [F] when something failed
 
+- E.g.,
+  ```
+  # Plan: get PR #... ready to merge
+
+  - [ ] Get PR number and branch name
+  - [ ] Make sure PR is ready (not draft)
+  - [ ] Run AI lint with --add_todos, commit TODOs
+  - [ ] Resolve added TODO(ai_gp) items
+  - [ ] Run standard linter, fix issues
+  - [ ] Make local tests pass
+  - [ ] Run and monitor GitHub CI
+  - [ ] Report status on PR
+  - [ ] Fix any CI failures
+  ```
+
 ## Get the PR Number and Branch Name
 
 - Get the PR number
