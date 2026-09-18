@@ -1,7 +1,7 @@
 import logging
 import os
 import shutil
-from typing import Callable, List
+from typing import Callable, List, Optional
 
 import pytest
 
@@ -76,12 +76,31 @@ def _get_text1() -> str:
     return txt
 
 
+def _get_text_problematic_for_prettier1() -> str:
+    """
+    Get sample text where prettier replaces `-` with `*` bullets.
+    """
+    txt = r"""
+    * Python formatting
+    - Python has several built-in ways of formatting strings
+      1) `%` format operator
+      2) `format` and `str.format`
+
+
+    * `%` format operator
+    - Text template as a format string
+      - Values to insert are provided as a value or a `tuple`
+    """
+    txt = hprint.dedent(txt, remove_lead_trail_empty_lines_=True)
+    return txt
+
+
 # #############################################################################
-# Test_lint_text1
+# Test__preprocess_txt
 # #############################################################################
 
 
-class Test_lint_text1(hunitest.TestCase):
+class Test__preprocess_txt(hunitest.TestCase):
     """
     Test the text preprocessing functionality.
     """
@@ -101,28 +120,36 @@ class Test_lint_text1(hunitest.TestCase):
         _helper_process_lines(self, txt, expected, preprocess_wrapper)
 
     def test1(self) -> None:
+        # Prepare inputs.
         txt = r"""$$E_{in} = \frac{1}{N} \sum_i e(h(\vx_i), y_i)$$"""
+        # Prepare outputs.
         expected = r"""
         $$
         E_{in} = \frac{1}{N} \sum_i e(h(\vx_i), y_i)
         $$"""
+        # Run test.
         self.helper(txt, expected)
 
     def test2(self) -> None:
+        # Prepare inputs.
         txt = r"""
         $$E_{in}(\vw) = \frac{1}{N} \sum_i \big(
         -y_i \log(\Pr(h(\vx) = 1|\vx)) - (1 - y_i) \log(1 - \Pr(h(\vx)=1|\vx))
         \big)$$"""
+        # Prepare outputs.
         expected = r"""
         $$
         E_{in}(\vw) = \frac{1}{N} \sum_i \big(
         -y_i \log(\Pr(h(\vx) = 1|\vx)) - (1 - y_i) \log(1 - \Pr(h(\vx)=1|\vx))
         \big)
         $$"""
+        # Run test.
         self.helper(txt, expected)
 
     def test3(self) -> None:
+        # Prepare inputs.
         txt = _get_text1()
+        # Prepare outputs.
         expected = r"""
         - STARGradient descent for logistic regression
         - The typical implementations of gradient descent (basic or advanced) need
@@ -148,22 +175,29 @@ class Test_lint_text1(hunitest.TestCase):
         - It can be proven that the function $E_{in}(\vw)$ to minimize is convex in
           $\vw$ (sum of exponentials and flipped exponentials is convex and log is
           monotone)"""
+        # Run test.
         self.helper(txt, expected)
 
     def test4(self) -> None:
+        # Prepare inputs.
         txt = r"""
         # #########################
         # test
         # #############################################################################"""
+        # Prepare outputs.
         expected = r"""# test"""
+        # Run test.
         self.helper(txt, expected)
 
     def test5(self) -> None:
+        # Prepare inputs.
         txt = r"""
         ## ////////////////
         # test
         # ////////////////"""
+        # Prepare outputs.
         expected = r"""# test"""
+        # Run test.
         self.helper(txt, expected)
 
 
@@ -1413,7 +1447,8 @@ class Test_remove_trailing_periods(hunitest.TestCase):
         self.helper(txt, expected)
 
     def test16(self) -> None:
-        """Test removing periods from regular text lines (user's example
+        """
+        Test removing periods from regular text lines (user's example
         case).
         """
         # Prepare inputs.
@@ -1924,11 +1959,7 @@ class Test__remove_code_block_extra_indentation(hunitest.TestCase):
 
 class Test_capitalize_header(hunitest.TestCase):
     """
-    Test the capitalize_header function handling of apostrophes.
-
-    The capitalize_header function should properly handle words with apostrophes,
-    like "won't" -> "Won't" (not "Won'T"). This tests the fix for the bug where
-    Python's str.title() capitalizes letters after apostrophes.
+    Test `hmarhead.capitalize_header()` function.
     """
 
     def helper(self, input_lines: str, expected: str) -> None:
@@ -2039,21 +2070,9 @@ class Test_capitalize_header(hunitest.TestCase):
 
 
 class Test_lint_text2(hunitest.TestCase):
-    @staticmethod
-    def get_text_problematic_for_prettier1() -> str:
-        txt = r"""
-        * Python formatting
-        - Python has several built-in ways of formatting strings
-          1) `%` format operator
-          2) `format` and `str.format`
-
-
-        * `%` format operator
-        - Text template as a format string
-          - Values to insert are provided as a value or a `tuple`
-        """
-        txt = hprint.dedent(txt, remove_lead_trail_empty_lines_=True)
-        return txt
+    """
+    Test `dshdllite._perform_actions()` function.
+    """
 
     def helper(self, txt: str, expected: str, file_name: str) -> str:
         """
@@ -2083,11 +2102,10 @@ class Test_lint_text2(hunitest.TestCase):
 
     @pytest.mark.slow
     def test1(self) -> None:
+        # Prepare inputs.
         txt = _get_text1()
-        expected = ""
         file_name = "test.txt"
-        actual = self.helper(txt, expected, file_name)
-        # Check.
+        # Prepare outputs.
         expected = r"""
         - Gradient descent for logistic regression
         - The typical implementations of gradient descent (basic or advanced) need two
@@ -2119,8 +2137,9 @@ class Test_lint_text2(hunitest.TestCase):
           $\vw$ (sum of exponentials and flipped exponentials is convex and log is
           monotone)
         """
-        expected = hprint.dedent(expected, remove_lead_trail_empty_lines_=True)
-        self.assert_equal(actual, expected)
+        # Run test.
+        # `helper()` dedents `expected` and asserts equality internally.
+        self.helper(txt, expected, file_name)
 
     @pytest.mark.slow
     def test2(self) -> None:
@@ -2215,35 +2234,13 @@ class Test_lint_text2(hunitest.TestCase):
         file_name = "test.md"
         self.helper(txt, expected, file_name)
 
-    @pytest.mark.slow
-    def test5(self) -> None:
-        """
-        For some reason prettier replaces - with * when there are 2 empty lines.
-        """
-        txt = self.get_text_problematic_for_prettier1()
-        actual = dshdlipr.prettier_on_str(txt, file_type="txt")
-        expected = r"""
-        - Python formatting
-
-        * Python has several built-in ways of formatting strings
-          1. `%` format operator
-          2. `format` and `str.format`
-
-        - `%` format operator
-
-        * Text template as a format string
-          - Values to insert are provided as a value or a `tuple`
-        """
-        expected = hprint.dedent(expected, remove_lead_trail_empty_lines_=True)
-        self.assert_equal(actual, expected)
-
     @pytest.mark.skipif(hserver.is_host_mac(), reason="CsfyIssue8889")
     @pytest.mark.superslow
-    def test6(self) -> None:
+    def test5(self) -> None:
         """
         Run the text linter on a txt file.
         """
-        txt = self.get_text_problematic_for_prettier1()
+        txt = _get_text_problematic_for_prettier1()
         expected = r"""
         * Python Formatting
         - Python has several built-in ways of formatting strings
@@ -2258,7 +2255,7 @@ class Test_lint_text2(hunitest.TestCase):
         self.helper(txt, expected, file_name)
 
     @pytest.mark.slow
-    def test7(self) -> None:
+    def test6(self) -> None:
         """
         Run the text linter on a txt file.
         """
@@ -2283,7 +2280,7 @@ class Test_lint_text2(hunitest.TestCase):
 
     @pytest.mark.skipif(hserver.is_host_mac(), reason="CsfyIssue8889")
     @pytest.mark.superslow
-    def test8(self) -> None:
+    def test7(self) -> None:
         """
         Test that YAML front matter is preserved in markdown files.
         """
@@ -2321,7 +2318,7 @@ class Test_lint_text2(hunitest.TestCase):
 
     @pytest.mark.skipif(hserver.is_host_mac(), reason="CsfyIssue8889")
     @pytest.mark.superslow
-    def test9(self) -> None:
+    def test8(self) -> None:
         """
         Test that page separators are removed but YAML front matter is
         preserved.
@@ -2363,7 +2360,7 @@ class Test_lint_text2(hunitest.TestCase):
         self.helper(txt, expected, file_name)
 
     @pytest.mark.superslow
-    def test10(self) -> None:
+    def test9(self) -> None:
         """
         Verifies that consecutive tex comment lines stay separate after
         prettier formatting.
@@ -2378,7 +2375,7 @@ class Test_lint_text2(hunitest.TestCase):
         self.helper(txt, expected, file_name)
 
     @pytest.mark.superslow
-    def test11(self) -> None:
+    def test10(self) -> None:
         """
         Verifies that a comment line followed by LaTeX content does not get
         merged.
@@ -2393,6 +2390,43 @@ class Test_lint_text2(hunitest.TestCase):
 
 
 # #############################################################################
+# Test_prettier_on_str
+# #############################################################################
+
+
+class Test_prettier_on_str(hunitest.TestCase):
+    """
+    Test `dshdlipr.prettier_on_str()` function.
+    """
+
+    @pytest.mark.slow
+    def test1(self) -> None:
+        """
+        For some reason prettier replaces - with * when there are 2 empty lines.
+        """
+        # Prepare inputs.
+        txt = _get_text_problematic_for_prettier1()
+        # Prepare outputs.
+        expected = r"""
+        - Python formatting
+
+        * Python has several built-in ways of formatting strings
+          1. `%` format operator
+          2. `format` and `str.format`
+
+        - `%` format operator
+
+        * Text template as a format string
+          - Values to insert are provided as a value or a `tuple`
+        """
+        expected = hprint.dedent(expected, remove_lead_trail_empty_lines_=True)
+        # Run test.
+        actual = dshdlipr.prettier_on_str(txt, file_type="txt")
+        # Check outputs.
+        self.assert_equal(actual, expected)
+
+
+# #############################################################################
 # Test_lint_text_py1
 # #############################################################################
 
@@ -2402,7 +2436,7 @@ class Test_lint_text_py1(hunitest.TestCase):
     Test the lint_text.py command-line script with different file types.
     """
 
-    def run_lint_text(
+    def helper(
         self,
         in_file: str,
         type_: str,
@@ -2494,7 +2528,7 @@ class Test_lint_text_py1(hunitest.TestCase):
         use_script = False
         cmd_opts = ""
         # Run the script.
-        output_txt = self.run_lint_text(in_file, type_, use_script, cmd_opts)
+        output_txt = self.helper(in_file, type_, use_script, cmd_opts)
         # Check.
         expected = self.get_expected_md_output1()
         self.assert_equal(output_txt, expected)
@@ -2518,7 +2552,7 @@ class Test_lint_text_py1(hunitest.TestCase):
         use_script = True
         cmd_opts = ""
         # Run the script.
-        output_txt = self.run_lint_text(in_file, type_, use_script, cmd_opts)
+        output_txt = self.helper(in_file, type_, use_script, cmd_opts)
         # Check using the same golden outcome as test1.
         expected = self.get_expected_md_output1()
         self.assert_equal(output_txt, expected)
@@ -2534,7 +2568,7 @@ class Test_lint_text_py1(hunitest.TestCase):
         use_script = False
         cmd_opts = ""
         # Run the script.
-        output_txt = self.run_lint_text(in_file, type_, use_script, cmd_opts)
+        output_txt = self.helper(in_file, type_, use_script, cmd_opts)
         # Check.
         expected = r"""
         \documentclass{article}
@@ -2582,7 +2616,7 @@ class Test_lint_text_py1(hunitest.TestCase):
         use_script = True
         cmd_opts = "--width 80"
         # Run the script.
-        output_txt = self.run_lint_text(in_file, type_, use_script, cmd_opts)
+        output_txt = self.helper(in_file, type_, use_script, cmd_opts)
         # Check using the same golden outcome as test3.
         expected = r"""
         \documentclass{article}
@@ -2877,7 +2911,8 @@ class Test_replace_em_dash_with_colon(hunitest.TestCase):
 
 
 class Test_smd_format(hunitest.TestCase):
-    """Test the _smd_format function used for the smd (slide markdown) file
+    """
+    Test the _smd_format function used for the smd (slide markdown) file
     type.
     """
 
@@ -2946,7 +2981,8 @@ class Test_smd_format(hunitest.TestCase):
         self.helper(txt, expected)
 
     def test4(self) -> None:
-        """Test that the `:` is kept (and the following text capitalized) when
+        """
+        Test that the `:` is kept (and the following text capitalized) when
         the tag line has content after it.
         """
         # Prepare inputs.
@@ -3514,6 +3550,38 @@ class Test_md_format(hunitest.TestCase):
         # Run test.
         self.helper(txt, expected)
 
+    def test3(self) -> None:
+        """
+        Test that empty input produces empty output.
+        """
+        # Prepare inputs.
+        txt = ""
+        # Prepare outputs.
+        expected = ""
+        # Run test.
+        self.helper(txt, expected)
+
+    def test4(self) -> None:
+        """
+        Test that a blank line is inserted after a header even when the
+        text has no comment-placeholder blocks.
+        """
+        # Prepare inputs.
+        txt = """
+        # Header
+        Some text
+        More text
+        """
+        # Prepare outputs.
+        expected = """
+        # Header
+
+        Some text
+        More text
+        """
+        # Run test.
+        self.helper(txt, expected)
+
 
 # #############################################################################
 # Test_perform_actions_smd_type
@@ -3563,11 +3631,39 @@ class Test_perform_actions_smd_type(hunitest.TestCase):
 # #############################################################################
 
 
-# TODO(ai_gp): Use a helpers
 class Test_perform_actions_typ_type(hunitest.TestCase):
     """
     Test that `_perform_actions` recognizes the `typ` file type.
     """
+
+    def helper(
+        self,
+        lines: List[str],
+        file_name: str,
+        expected: List[str],
+        *,
+        file_type_override: str = "",
+        actions: Optional[List[str]] = None,
+    ) -> None:
+        """
+        Call `_perform_actions()` and compare the result to `expected`.
+
+        :param lines: input lines to process
+        :param file_name: name of the file to infer the file type from
+        :param expected: expected output lines
+        :param file_type_override: explicit file type, overriding inference
+            from `file_name`
+        :param actions: actions to run, or `None` to run the default actions
+        """
+        # Run test.
+        actual = dshdllite._perform_actions(
+            lines,
+            file_name,
+            file_type_override=file_type_override,
+            actions=actions,
+        )
+        # Check outputs.
+        self.assertEqual(actual, expected)
 
     def test1(self) -> None:
         """
@@ -3580,10 +3676,11 @@ class Test_perform_actions_typ_type(hunitest.TestCase):
         # Prepare inputs.
         lines = ["* not", "a bullet in Typst"]
         file_name = "chapter.typ"
+        actions = []
+        # Prepare outputs: unchanged, since no action ran.
+        expected = lines
         # Run test.
-        actual = dshdllite._perform_actions(lines, file_name, actions=[])
-        # Check outputs: unchanged, since no action ran.
-        self.assertEqual(actual, lines)
+        self.helper(lines, file_name, expected, actions=actions)
 
     def test2(self) -> None:
         """
@@ -3593,12 +3690,18 @@ class Test_perform_actions_typ_type(hunitest.TestCase):
         # Prepare inputs.
         lines = ["#let x = 1"]
         file_name = "lesson.txt"
+        file_type_override = "typ"
+        actions = []
+        # Prepare outputs: unchanged, since no action ran.
+        expected = lines
         # Run test.
-        actual = dshdllite._perform_actions(
-            lines, file_name, file_type_override="typ", actions=[]
+        self.helper(
+            lines,
+            file_name,
+            expected,
+            file_type_override=file_type_override,
+            actions=actions,
         )
-        # Check outputs: unchanged, since no action ran.
-        self.assertEqual(actual, lines)
 
     @pytest.mark.skipif(
         shutil.which("typstyle") is None, reason="typstyle is not installed"
@@ -3610,12 +3713,11 @@ class Test_perform_actions_typ_type(hunitest.TestCase):
         # Prepare inputs.
         lines = ["#let   x = 1", "= Heading", "This   is some text."]
         file_name = "chapter.typ"
-        # Run test.
-        actual = dshdllite._perform_actions(lines, file_name)
-        # Check outputs: `typstyle` writes a trailing newline, so `lines`
+        # Prepare outputs: `typstyle` writes a trailing newline, so `lines`
         # ends with an extra empty string after splitting on `\n`.
         expected = ["#let x = 1", "= Heading", "This is some text.", ""]
-        self.assertEqual(actual, expected)
+        # Run test.
+        self.helper(lines, file_name, expected)
 
 
 # #############################################################################
@@ -3641,4 +3743,34 @@ class Test__typstyle_format(hunitest.TestCase):
         actual = dshdllite._typstyle_format(txt, width=80)
         # Check outputs.
         expected = "#let x = 1\n= Heading\nThis is some text.\n"
+        self.assertEqual(actual, expected)
+
+    @pytest.mark.skipif(
+        shutil.which("typstyle") is None, reason="typstyle is not installed"
+    )
+    def test2(self) -> None:
+        """
+        Test that empty input produces `typstyle`'s empty-file output.
+        """
+        # Prepare inputs.
+        txt = ""
+        # Run test.
+        actual = dshdllite._typstyle_format(txt, width=80)
+        # Check outputs.
+        expected = "\n"
+        self.assertEqual(actual, expected)
+
+    @pytest.mark.skipif(
+        shutil.which("typstyle") is None, reason="typstyle is not installed"
+    )
+    def test3(self) -> None:
+        """
+        Test that minimal, already-formatted input is left unchanged.
+        """
+        # Prepare inputs.
+        txt = "= Heading"
+        # Run test.
+        actual = dshdllite._typstyle_format(txt, width=80)
+        # Check outputs.
+        expected = "= Heading\n"
         self.assertEqual(actual, expected)

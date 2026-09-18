@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 """
-Convert a "notes" text file into markdown suitable for `notes_to_pdf.py`.
+Convert a "notes" text file into markdown suitable for 'notes_to_pdf.py'.
 
 The full list of transformations is:
 - Handle banners around chapters
@@ -25,6 +25,8 @@ import os
 import re
 from typing import Dict, List, Match, Optional, Tuple, cast
 
+from tqdm import tqdm
+
 import helpers.hdbg as hdbg
 import helpers.hio as hio
 import helpers.hmarkdown as hmarkdo
@@ -38,11 +40,6 @@ _LOG = logging.getLogger(__name__)
 # #############################################################################
 # Constants
 # #############################################################################
-
-
-_NUM_SPACES = 2
-
-_TRACE = False
 
 
 _DEFAULT_ACTIONS: List[str] = ["process_links", "colorize_bullets"]
@@ -83,9 +80,19 @@ def _colorize_backticks(
     # Pattern to match single backticks (not triple backticks).
     # This matches backtick-wrapped text that doesn't contain triple backticks
     # and is not followed by curly braces (e.g., excludes `hello`{...}).
-    # Prevents: opening backtick not followed by backtick or brace,
-    # and closing backtick not followed by backtick or brace.
-    pattern = r"(?<!})`(?!`|\{)([^`]+?)(?<!`)`(?!`)(?!\{)"
+    pattern = re.compile(
+        r"""
+        (?<!})      # opening backtick: not preceded by `}` (excludes `hello`{...})
+        `           # opening backtick
+        (?!`|\{)    # opening backtick: not followed by another backtick or `{`
+        ([^`]+?)    # capture: content between backticks, non-greedy, no backticks
+        (?<!`)      # closing backtick: not preceded by another backtick
+        `           # closing backtick
+        (?!`)       # closing backtick: not followed by another backtick
+        (?!\{)      # closing backtick: not followed by `{`
+        """,
+        re.VERBOSE,
+    )
 
     def replace_func(m: Match) -> str:
         """
@@ -101,47 +108,44 @@ def _colorize_backticks(
             # For Typst, use #text with the content directly (no inner backticks).
             # The content is rendered as monospace colored text via #text(fill:
             # color)[content].
-            # TODO(ai_gp): Convert this into a loop and shorter comments.
             # Wrap in backticks with {=typst} so pandoc treats it as raw typst code.
-            # Escape tildes (~) since they have special meaning in typst.
-            escaped_text = matched_text.replace("~", r"\~")
-            # Escape `_` unconditionally since Typst treats it as underscore
-            # emphasis markup depending on the surrounding characters (its
-            # exact flanking rule is a CommonMark-style delimiter-run check,
-            # too brittle to replicate with a partial escape). E.g. a
-            # trailing `_` before `]` or a leading `_` before a letter both
-            # leave an "unclosed delimiter" (`lint_*`, `dev_scripts_<repo>`,
-            # `_execute()`), while a mid-word `_` (`weeks_to_xmas`) happens
-            # to be safe unescaped, but escaping it too still renders the
-            # same literal underscore, so there is no downside.
-            escaped_text = escaped_text.replace("_", r"\_")
-            # Escape `<` since Typst parses `<name>` as a label reference
-            # (e.g., `<prompt>`), which silently drops the text instead of
-            # rendering it literally.
-            escaped_text = escaped_text.replace("<", r"\<")
-            # Escape `*` since Typst parses it as strong-emphasis markup
-            # (e.g., `lint_*` left an unclosed `*` delimiter and broke
-            # compilation).
-            escaped_text = escaped_text.replace("*", r"\*")
-            # Escape `//` since Typst treats it as a line comment, which
-            # swallows the rest of the line, including the closing `]`
-            # (e.g., `//helpers`).
-            escaped_text = escaped_text.replace("//", r"\//")
-            # Escape `#` since Typst parses it as the start of code mode
-            # (e.g., `# nosemgrep` fails with "expected expression" since
-            # `#` followed by a space is not a valid expression).
-            escaped_text = escaped_text.replace("#", r"\#")
-            # Escape `$` since Typst parses it as math-mode delimiters
-            # (e.g., `$FILE` is parsed as math content and fails with
-            # "unknown variable: FILE").
-            escaped_text = escaped_text.replace("$", r"\$")
-            # Escape `@` since Typst parses `@name` as a citation/reference
-            # (e.g., `@task` fails with "label `<task>` does not exist").
-            escaped_text = escaped_text.replace("@", r"\@")
+            # Escape each Typst special character, in this exact order (order
+            # matters: an earlier substitution's output must not be re-matched
+            # by a later rule).
+            _TYPST_ESCAPE_CHARS = [
+                # `~`: has special meaning in Typst.
+                ("~", r"\~"),
+                # `_`: triggers underscore-emphasis markup and can leave an
+                # "unclosed delimiter" (e.g., `lint_*`, `dev_scripts_<repo>`),
+                # so it is escaped unconditionally even where it is safe
+                # unescaped (e.g., `weeks_to_xmas`).
+                ("_", r"\_"),
+                # `<`: parsed as a label reference `<name>` (e.g., `<prompt>`),
+                # silently dropping the text.
+                ("<", r"\<"),
+                # `*`: parsed as strong-emphasis markup (e.g., `lint_*` left an
+                # unclosed `*` delimiter and broke compilation).
+                ("*", r"\*"),
+                # `//`: treated as a line comment, swallowing the rest of the
+                # line including the closing `]` (e.g., `//helpers`).
+                ("//", r"\//"),
+                # `#`: starts code mode (e.g., `# nosemgrep` fails with
+                # "expected expression").
+                ("#", r"\#"),
+                # `$`: starts math-mode delimiters (e.g., `$FILE` fails with
+                # "unknown variable: FILE").
+                ("$", r"\$"),
+                # `@`: parsed as a citation/reference (e.g., `@task` fails with
+                # "label `<task>` does not exist").
+                ("@", r"\@"),
+            ]
+            escaped_text = matched_text
+            for char, escaped in _TYPST_ESCAPE_CHARS:
+                escaped_text = escaped_text.replace(char, escaped)
             txt = f"`#text(fill: {color})[{escaped_text}]`{{=typst}}"
         return txt
 
-    line = re.sub(pattern, replace_func, line)
+    line = pattern.sub(replace_func, line)
     if line != in_line:
         _LOG.debug("    -> line=%s", line)
     return line
@@ -293,6 +297,12 @@ def _extract_section(lines: List[str], title: str) -> Optional[List[str]]:
 # #############################################################################
 
 
+# TODO(ai_gp): Rename to _extract_slide_metadata() since it's only used
+# internally (coding.rules.md:## Mark Private Functions)
+# Not renamed: this function is not module-internal. It is imported and
+# called as `dshdprno.extract_slide_metadata()` from
+# `dev_scripts_helpers/documentation/lib_notes_to_pdf.py::resolve_slides_engine()`,
+# so it is part of this module's public interface.
 def extract_slide_metadata(
     lines: List[str],
 ) -> Tuple[Dict[str, str], List[str]]:
@@ -384,8 +394,19 @@ def _generate_title_slide_typst(metadata: Dict[str, str]) -> List[str]:
     logo_path = "msml610/lectures_source/figures/UMD_Logo.png"
     if "data605" in course_title.lower() or "DATA605" in course_title:
         logo_path = "data605/lectures_source/images/UMD_Logo.png"
-    # TODO(ai_gp): Use r""" and dedent
-    version_line = f"\n          #v(0.3cm)\n          #text(size: 14pt, fill: rgb(\"#666666\"))[Version: {version}]" if version else ""
+    if version:
+        # Note: the leading blank line and the 10-space indentation below are
+        # important: `version_line` is spliced into `txt`'s last `{}` below,
+        # and the single `hprint.dedent(txt)` call at the end of this function
+        # relies on this indentation matching the sibling Typst lines (e.g.
+        # `#v(1.5cm)`) to compute the common indentation to strip. Dedenting
+        # `version_line` on its own here would zero out its indentation and
+        # corrupt that later computation.
+        version_line = rf"""
+          #v(0.3cm)
+          #text(size: 14pt, fill: rgb("#666666"))[Version: {version}]"""
+    else:
+        version_line = ""
     txt = r"""
         ====
 
@@ -438,6 +459,8 @@ def _generate_title_slide(
 
 
 # #############################################################################
+# Process and transform lines.
+# #############################################################################
 
 
 def _expand_includes(lines: List[str]) -> List[str]:
@@ -467,7 +490,7 @@ def _expand_includes(lines: List[str]) -> List[str]:
             file_path = m.group(1)
             title = m.group(2)
             _LOG.debug(
-                "Found include directive: file=%s title=%s",
+                "Found include directive: file='%s' title='%s'",
                 file_path,
                 title,
             )
@@ -517,8 +540,9 @@ def _validate_slide_names(lines: List[str]) -> None:
     """
     header_list, _ = hmarkdo.extract_slides_from_markdown(lines)
     for header_info in header_list:
-        hdbg.dassert(
+        hdbg.dassert_ne(
             header_info.description.strip(),
+            "",
             "Slide at line %d has no title (only whitespace)",
             header_info.line_number,
         )
@@ -610,7 +634,7 @@ def _transform_lines(
     is_qa: bool,
     output_format: str,
     *,
-    actions: Optional[List[str]] = None,
+    actions: List[str] = _VALID_ACTIONS,
 ) -> List[str]:
     """
     Process the notes to convert them into a format suitable for pandoc.
@@ -618,13 +642,21 @@ def _transform_lines(
     :param lines: list of lines of the notes
     :param type_: type of output to generate (e.g., `pdf`, `html`, `slides`)
     :param is_qa: True if the input is a QA file
-    :param actions: optional list of actions to perform
+    :param actions: list of actions to perform (default: all valid actions)
     :param output_format: output format for color commands (latex or typst)
     :return: list of processed lines
     """
+    # Number of spaces used to indent QA answer lines.
+    _NUM_SPACES = 2
+    # Enable verbose per-step tracing of the line transformation pipeline.
+    _TRACE = False
     _LOG.debug("\n%s", hprint.frame("transform_lines"))
     hdbg.dassert_isinstance(lines, list)
     lines = [line.rstrip("\n") for line in lines]
+    # `hselacti.mark_action()` returns `Optional[List[str]]`, so track the
+    # remaining actions in a separately typed variable instead of narrowing
+    # the `actions` parameter's non-`Optional` type.
+    remaining_actions: Optional[List[str]] = actions
     out: List[str] = []
     # a) Prepend some directive for pandoc, if they are missing.
     if output_format == "latex":
@@ -650,7 +682,7 @@ def _transform_lines(
     in_math_block = False
     # True inside an inline math context ($...$).
     in_inline_math = False
-    for i, line in enumerate(lines):
+    for i, line in enumerate(tqdm(lines, desc="Transforming lines")):
         _LOG.debug("%s:line=%s", i, line)
         # 1) Remove comment block.
         if _TRACE:
@@ -763,7 +795,7 @@ def _transform_lines(
                     lines[i + 1].startswith("#") or lines[i + 1].startswith("* ")
                 )
                 _LOG.debug(
-                    "  is_empty=%s prev_line_is_verbatim=%s next_line_is_chapter=%s",
+                    "  is_empty='%s' prev_line_is_verbatim='%s' next_line_is_chapter='%s'",
                     is_empty,
                     prev_line_is_verbatim,
                     next_line_is_chapter,
@@ -774,10 +806,12 @@ def _transform_lines(
                     or next_line_is_verbatim
                 ):
                     out.append(" " * _NUM_SPACES + line)
-    #
+    # Post-process slides: colorize links and bullet points.
     if type_ == "slides":
         # Colorize links.
-        to_execute, actions = hselacti.mark_action("process_links", actions)
+        to_execute, remaining_actions = hselacti.mark_action(
+            "process_links", remaining_actions
+        )
         # to_execute = False
         if to_execute:
             out = hmarkdo.format_md_links_to_latex_format(
@@ -816,7 +850,9 @@ def _transform_lines(
             return text_out
 
         out_str = "\n".join(out)
-        to_execute, actions = hselacti.mark_action("colorize_bullets", actions)
+        to_execute, remaining_actions = hselacti.mark_action(
+            "colorize_bullets", remaining_actions
+        )
         if to_execute:
             out_str = hmarkdo.process_slides(out_str, _colorize_bullets)
         out = out_str.split("\n")
@@ -884,7 +920,7 @@ def _preprocess_lines(
     is_qa: bool,
     output_format: str,
     *,
-    actions: Optional[List[str]] = None,
+    actions: List[str] = _VALID_ACTIONS,
 ) -> List[str]:
     """
     Preprocess the lines of the notes.
@@ -894,12 +930,16 @@ def _preprocess_lines(
     :param toc_type: type of table of contents to add
     :param is_qa: True if the input is a QA file
     :param output_format: "latex" (default) or "typst"
-    :param actions: optional list of actions to perform
+    :param actions: list of actions to perform (default: all valid actions)
     :param output_format: output format for color commands (latex or typst)
     :return: list of preprocessed lines
     """
     hdbg.dassert_isinstance(lines, list)
     hdbg.dassert_in(output_format, ("latex", "typst"))
+    # `hselacti.mark_action()` returns `Optional[List[str]]`, so track the
+    # remaining actions in a separately typed variable instead of narrowing
+    # the `actions` parameter's non-`Optional` type.
+    remaining_actions: Optional[List[str]] = actions
     # Apply transformations.
     out = _transform_lines(lines, type_, is_qa, output_format, actions=actions)
     # Add TOC, if needed.
@@ -929,17 +969,21 @@ def _preprocess_lines(
         # Remove headers smaller than level 4 so that we leave only the `*`.
         out = _remove_headers(out, max_level=4)
     # Validate slide names.
-    to_execute, actions = hselacti.mark_action("validate_slide_names", actions)
+    to_execute, remaining_actions = hselacti.mark_action(
+        "validate_slide_names", remaining_actions
+    )
     if to_execute:
         _validate_slide_names(out)
     # Add duplicate slide counters.
-    to_execute, actions = hselacti.mark_action("add_duplicate_counters", actions)
+    to_execute, remaining_actions = hselacti.mark_action(
+        "add_duplicate_counters", remaining_actions
+    )
     if to_execute:
         _assert_no_existing_counters(out)
         out = _add_duplicate_slide_counters(out)
     # Validate unique slide names.
-    to_execute, actions = hselacti.mark_action(
-        "validate_unique_slide_names", actions
+    to_execute, remaining_actions = hselacti.mark_action(
+        "validate_unique_slide_names", remaining_actions
     )
     if to_execute:
         _validate_unique_slide_names(out)
@@ -947,6 +991,8 @@ def _preprocess_lines(
     return out
 
 
+# #############################################################################
+# CLI / entry points.
 # #############################################################################
 
 
@@ -1018,7 +1064,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
     )
     # Get the selected actions.
     actions = hselacti.select_actions(args, _VALID_ACTIONS, _DEFAULT_ACTIONS)
-    _LOG.info("Selected actions: %s", actions)
+    _LOG.info("Selected actions: '%s'", actions)
     # Read file.
     txt = hio.from_file(args.input)
     # Process.

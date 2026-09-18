@@ -1,4 +1,5 @@
 import argparse
+import logging
 import os
 import pprint
 import unittest.mock as umock
@@ -9,6 +10,7 @@ import helpers.hmarkdown_headers as hmarhead
 import helpers.hparser as hparser
 import helpers.hprint as hprint
 import helpers.hunit_test as hunitest
+import helpers.hunit_test_utils as hunteuti
 
 import pytest
 
@@ -18,6 +20,8 @@ import claude_agent_sdk
 
 import dev_scripts_helpers.ai.cc_lib as dshaccli
 import linters2.cc_lint as lcclint
+
+_LOG = logging.getLogger(__name__)
 
 
 # #############################################################################
@@ -421,33 +425,65 @@ class Test_merge_small_chunks(hunitest.TestCase):
     Tests for `cc_lint._merge_small_chunks()` function.
     """
 
+    def helper(
+        self,
+        chunks: List[lcclint.RuleChunk],
+        max_tokens: int,
+        expected: List[lcclint.RuleChunk],
+    ) -> None:
+        """
+        Merge `chunks` and check the result against `expected`.
+
+        :param chunks: input chunks to merge
+        :param max_tokens: token budget passed to `_merge_small_chunks()`
+        :param expected: expected merged chunk list
+        """
+        # Run test.
+        actual = lcclint._merge_small_chunks(chunks, max_tokens=max_tokens)
+        # Check outputs.
+        self.assert_equal(str(actual), str(expected))
+
     def test1(self) -> None:
         """
         Test that two small chunks under the same parent H1 are packed
         into one, with the repeated H1 header line stripped.
         """
         # Prepare inputs.
+        content_a = """
+        # Chapter
+
+        ## A
+        short
+        """
+        content_a = hprint.dedent(content_a)
+        content_b = """
+        # Chapter
+
+        ## B
+        short
+        """
+        content_b = hprint.dedent(content_b)
         chunks = [
-            lcclint.RuleChunk(
-                title="A", content="# Chapter\n\n## A\nshort", order=0
-            ),
-            lcclint.RuleChunk(
-                title="B", content="# Chapter\n\n## B\nshort", order=1
-            ),
+            lcclint.RuleChunk(title="A", content=content_a, order=0),
+            lcclint.RuleChunk(title="B", content=content_b, order=1),
         ]
         max_tokens = 1500
         # Prepare outputs.
+        merged_content = """
+        # Chapter
+
+        ## A
+        short
+
+        ## B
+        short
+        """
+        merged_content = hprint.dedent(merged_content)
         expected = [
-            lcclint.RuleChunk(
-                title="A / B",
-                content="# Chapter\n\n## A\nshort\n\n## B\nshort",
-                order=0,
-            )
+            lcclint.RuleChunk(title="A / B", content=merged_content, order=0)
         ]
         # Run test.
-        actual = lcclint._merge_small_chunks(chunks, max_tokens=max_tokens)
-        # Check outputs.
-        self.assert_equal(str(actual), str(expected))
+        self.helper(chunks, max_tokens, expected)
 
     def test2(self) -> None:
         """
@@ -455,21 +491,29 @@ class Test_merge_small_chunks(hunitest.TestCase):
         exceed the token budget.
         """
         # Prepare inputs.
+        content_a = """
+        # Chapter
+
+        ## A
+        short
+        """
+        content_a = hprint.dedent(content_a)
+        content_b = """
+        # Chapter
+
+        ## B
+        short
+        """
+        content_b = hprint.dedent(content_b)
         chunks = [
-            lcclint.RuleChunk(
-                title="A", content="# Chapter\n\n## A\nshort", order=0
-            ),
-            lcclint.RuleChunk(
-                title="B", content="# Chapter\n\n## B\nshort", order=1
-            ),
+            lcclint.RuleChunk(title="A", content=content_a, order=0),
+            lcclint.RuleChunk(title="B", content=content_b, order=1),
         ]
         max_tokens = 1
         # Prepare outputs.
         expected = chunks
         # Run test.
-        actual = lcclint._merge_small_chunks(chunks, max_tokens=max_tokens)
-        # Check outputs.
-        self.assert_equal(str(actual), str(expected))
+        self.helper(chunks, max_tokens, expected)
 
     def test3(self) -> None:
         """
@@ -477,21 +521,29 @@ class Test_merge_small_chunks(hunitest.TestCase):
         when both fit within the token budget.
         """
         # Prepare inputs.
+        content_a = """
+        # Chapter One
+
+        ## A
+        short
+        """
+        content_a = hprint.dedent(content_a)
+        content_b = """
+        # Chapter Two
+
+        ## B
+        short
+        """
+        content_b = hprint.dedent(content_b)
         chunks = [
-            lcclint.RuleChunk(
-                title="A", content="# Chapter One\n\n## A\nshort", order=0
-            ),
-            lcclint.RuleChunk(
-                title="B", content="# Chapter Two\n\n## B\nshort", order=1
-            ),
+            lcclint.RuleChunk(title="A", content=content_a, order=0),
+            lcclint.RuleChunk(title="B", content=content_b, order=1),
         ]
         max_tokens = 1500
         # Prepare outputs.
         expected = chunks
         # Run test.
-        actual = lcclint._merge_small_chunks(chunks, max_tokens=max_tokens)
-        # Check outputs.
-        self.assert_equal(str(actual), str(expected))
+        self.helper(chunks, max_tokens, expected)
 
     def test4(self) -> None:
         """
@@ -503,9 +555,7 @@ class Test_merge_small_chunks(hunitest.TestCase):
         # Prepare outputs.
         expected: List[lcclint.RuleChunk] = []
         # Run test.
-        actual = lcclint._merge_small_chunks(chunks, max_tokens=max_tokens)
-        # Check outputs.
-        self.assert_equal(str(actual), str(expected))
+        self.helper(chunks, max_tokens, expected)
 
     def test5(self) -> None:
         """
@@ -513,16 +563,30 @@ class Test_merge_small_chunks(hunitest.TestCase):
         files are never merged, even when both fit within the token budget.
         """
         # Prepare inputs.
+        content_a = """
+        # Chapter
+
+        ## A
+        short
+        """
+        content_a = hprint.dedent(content_a)
+        content_b = """
+        # Chapter
+
+        ## B
+        short
+        """
+        content_b = hprint.dedent(content_b)
         chunks = [
             lcclint.RuleChunk(
                 title="A",
-                content="# Chapter\n\n## A\nshort",
+                content=content_a,
                 order=0,
                 rule_file="one.rules.md",
             ),
             lcclint.RuleChunk(
                 title="B",
-                content="# Chapter\n\n## B\nshort",
+                content=content_b,
                 order=1,
                 rule_file="two.rules.md",
             ),
@@ -531,9 +595,7 @@ class Test_merge_small_chunks(hunitest.TestCase):
         # Prepare outputs.
         expected = chunks
         # Run test.
-        actual = lcclint._merge_small_chunks(chunks, max_tokens=max_tokens)
-        # Check outputs.
-        self.assert_equal(str(actual), str(expected))
+        self.helper(chunks, max_tokens, expected)
 
 
 # #############################################################################
@@ -770,7 +832,12 @@ class Test_filter_relevant_chunks(hunitest.TestCase):
         still parsed correctly.
         """
         # Prepare inputs.
-        llm_reply = '```json\n["AWS Mocking", "Syscall Mocking"]\n```'
+        llm_reply = """
+        ```json
+        ["AWS Mocking", "Syscall Mocking"]
+        ```
+        """
+        llm_reply = hprint.dedent(llm_reply)
         # Prepare outputs.
         expected_titles = ["AWS Mocking", "Syscall Mocking"]
         # Run test.
@@ -892,40 +959,42 @@ class Test_order_chunks_by_dependency(hunitest.TestCase):
 
 
 # #############################################################################
-# Test_journal
+# Test_load_journal
 # #############################################################################
 
 
-class Test_journal(hunitest.TestCase):
+class Test_load_journal(hunitest.TestCase):
     """
-    Tests for `cc_lint`'s chunk journal helpers.
+    Tests for `cc_lint._load_journal()` function.
     """
-
-    def helper(self) -> str:
-        """
-        Build the journal-file path in the test's scratch space.
-
-        :return: path to `journal.json` in the scratch space
-        """
-        journal_file = os.path.join(self.get_scratch_space(), "journal.json")
-        return journal_file
 
     def test1(self) -> None:
         """
         Test that loading a journal that does not exist yet returns `[]`.
         """
         # Prepare inputs.
-        journal_file = self.helper()
+        journal_file = os.path.join(self.get_scratch_space(), "journal.json")
         # Run test and check outputs.
         self.assertEqual(lcclint._load_journal(journal_file), [])
 
-    def test2(self) -> None:
+
+# #############################################################################
+# Test_append_journal_entries
+# #############################################################################
+
+
+class Test_append_journal_entries(hunitest.TestCase):
+    """
+    Tests for `cc_lint._append_journal_entries()` function.
+    """
+
+    def test1(self) -> None:
         """
         Test that entries appended across two calls round-trip through
         `_load_journal()` in append order.
         """
         # Prepare inputs.
-        journal_file = self.helper()
+        journal_file = os.path.join(self.get_scratch_space(), "journal.json")
         entry1 = {
             "file_path": "a.py",
             "chunk_title": "Rule One",
@@ -946,18 +1015,29 @@ class Test_journal(hunitest.TestCase):
         # Check outputs.
         self.assertEqual(lcclint._load_journal(journal_file), [entry1, entry2])
 
-    def test3(self) -> None:
+    def test2(self) -> None:
         """
         Test that appending an empty entry list does not create a file.
         """
         # Prepare inputs.
-        journal_file = self.helper()
+        journal_file = os.path.join(self.get_scratch_space(), "journal.json")
         # Run test.
         lcclint._append_journal_entries(journal_file, [])
         # Check outputs.
         self.assertFalse(os.path.exists(journal_file))
 
-    def test4(self) -> None:
+
+# #############################################################################
+# Test_latest_journal_status
+# #############################################################################
+
+
+class Test_latest_journal_status(hunitest.TestCase):
+    """
+    Tests for `cc_lint._latest_journal_status()` function.
+    """
+
+    def test1(self) -> None:
         """
         Test that `_latest_journal_status()` returns the last entry when the
         same `(file_path, chunk_title)` appears more than once.
@@ -985,7 +1065,7 @@ class Test_journal(hunitest.TestCase):
             "done",
         )
 
-    def test5(self) -> None:
+    def test2(self) -> None:
         """
         Test that `_latest_journal_status()` returns `""` for a pair with no
         entry.
@@ -995,7 +1075,18 @@ class Test_journal(hunitest.TestCase):
             lcclint._latest_journal_status([], "a.py", "Rule One"), ""
         )
 
-    def test6(self) -> None:
+
+# #############################################################################
+# Test_status_from_chunk_stats
+# #############################################################################
+
+
+class Test_status_from_chunk_stats(hunitest.TestCase):
+    """
+    Tests for `cc_lint._status_from_chunk_stats()` function.
+    """
+
+    def test1(self) -> None:
         """
         Test that `_status_from_chunk_stats()` covers all four outcomes.
         """
@@ -1013,14 +1104,25 @@ class Test_journal(hunitest.TestCase):
             actual_status = lcclint._status_from_chunk_stats(stats)
             self.assertEqual(actual_status, expected_status)
 
-    def test7(self) -> None:
+
+# #############################################################################
+# Test_filter_resumable
+# #############################################################################
+
+
+class Test_filter_resumable(hunitest.TestCase):
+    """
+    Tests for `cc_lint._filter_resumable()` function.
+    """
+
+    def test1(self) -> None:
         """
         Test that `_filter_resumable()` drops `done`/`no_op` chunks, keeps
         `failed`/unseen chunks, and journals a `"skipped"` entry for each
         dropped chunk.
         """
         # Prepare inputs.
-        journal_file = self.helper()
+        journal_file = os.path.join(self.get_scratch_space(), "journal.json")
         journal = [
             {
                 "file_path": "a.py",
@@ -1268,7 +1370,15 @@ def _expected_message(
     header = hprint.dedent(header)
     msg.append(header)
     #
-    fence_block = f"```\n{section_content}\n```"
+    # Use a triple-quote f-string with real newlines instead of `\n`
+    # escapes. `hprint.dedent()` is intentionally not used here: it would
+    # compute the minimum indentation across `section_content`'s own lines
+    # too, corrupting the fence when `section_content` is multi-line (this
+    # mirrors the same non-dedented pattern in
+    # `cc_lint._build_rule_message()`, which builds the identical fence).
+    fence_block = f"""```
+{section_content}
+```"""
     msg.append(hprint.indent(fence_block, num_spaces=2))
     #
     if add_todos:
@@ -1429,6 +1539,64 @@ class Test_build_incremental_messages(hunitest.TestCase):
         role_content = hio.from_file(topic_info["role"])
         for _, msg in titled_messages:
             self.assertNotIn(role_content, msg)
+
+    def test2(self) -> None:
+        """
+        Test that a rules file with a single H1 section builds exactly one
+        message.
+        """
+        # Prepare inputs.
+        scratch_dir = self.get_scratch_space()
+        rules_content = """
+            # Only Rule
+            Only content
+            """
+        rules_content = hprint.dedent(rules_content)
+        rule_file = os.path.join(scratch_dir, "test.rules.md")
+        hio.to_file(rule_file, rules_content)
+        file_path = os.path.join(scratch_dir, "example.py")
+        hio.to_file(file_path, "x = 1\n")
+        topic_info = {
+            "role": ".claude/skills/role.coding.md",
+            "rules": [rule_file],
+            "templates": [],
+        }
+        # Prepare outputs.
+        expected = [
+            (
+                "Only Rule",
+                _expected_message(file_path, "# Only Rule\nOnly content"),
+            ),
+        ]
+        # Run test.
+        titled_messages = lcclint._build_incremental_messages(
+            file_path, topic_info
+        )
+        # Check outputs.
+        self.assert_equal(str(titled_messages), str(expected))
+
+    def test3(self) -> None:
+        """
+        Test that a topic with zero rule files builds an empty message
+        list.
+        """
+        # Prepare inputs.
+        scratch_dir = self.get_scratch_space()
+        file_path = os.path.join(scratch_dir, "example.py")
+        hio.to_file(file_path, "x = 1\n")
+        topic_info = {
+            "role": ".claude/skills/role.coding.md",
+            "rules": [],
+            "templates": [],
+        }
+        # Prepare outputs.
+        expected: List[Tuple[str, str]] = []
+        # Run test.
+        titled_messages = lcclint._build_incremental_messages(
+            file_path, topic_info
+        )
+        # Check outputs.
+        self.assert_equal(str(titled_messages), str(expected))
 
 
 # #############################################################################
@@ -1631,21 +1799,41 @@ class Test_process_file_one_shot_with_cc(hunitest.TestCase):
             add_todos=add_todos,
         )
         # Run test.
-        # TODO(ai_gp): Use hunteuti.capture_sys_calls() instead of mocking
-        #  `lcclint.hsystem.system` directly.
+        # `find_skill()`'s only external dependency is the `mdm` CLI call
+        # inside `subprocess.run()`, so mock that call site instead of the
+        # internal `find_skill()` wrapper, to exercise its own logic (ANSI
+        # stripping, match-count assertion, `dassert_file_exists()`) for
+        # real (testing.rules.md:## Mock Only External Dependencies).
+        mock_mdm_result = umock.MagicMock(
+            stdout=".claude/skills/coding.fix_inline/SKILL.md\n"
+        )
         with (
-            umock.patch.object(lcclint.hsystem, "system") as mock_system,
+            hunteuti.capture_sys_calls() as sys_calls,
             umock.patch.object(
-                lcclint.hmarsele,
-                "find_skill",
-                return_value=".claude/skills/coding.fix_inline.md",
+                lcclint.hmarsele.subprocess,
+                "run",
+                return_value=mock_mdm_result,
             ),
         ):
             rc, topic_info = lcclint._process_file(file_path, args)
         # Check outputs.
         self.assertEqual(rc, 0)
-        mock_system.assert_called_once()
+        dispatch_calls = [
+            c for c in sys_calls if c["function"] == "hsystem.system"
+        ]
+        self.assertEqual(len(dispatch_calls), 1)
         prompt_content = hio.from_file("tmp.cc_lint.prompt.txt")
+        # TODO(ai_gp): Use assert_equal() to check the whole output instead
+        # of multiple assertIn() calls (testing.rules.md:## Compare Whole Output
+        # with `assert_equal`, Not Piecewise)
+        # Not implemented: a full `assert_equal()` on `prompt_content` would
+        # require hardcoding the real, dynamic content of the project's
+        # rule files (e.g., `.claude/skills/coding.rules.md`), unrelated to
+        # what this test checks (dispatch branch selection), and would make
+        # the test brittle to unrelated rule-file edits. There is no
+        # dedicated test class for `_build_one_shot_prompt()` itself, so
+        # these targeted `assertIn()` checks are this function's only
+        # coverage.
         self.assertIn(expected_prompt_substring, prompt_content)
         self.assertIn(file_path, prompt_content)
         self.assertTrue(topic_info)
@@ -1697,7 +1885,7 @@ class Test_process_file_one_shot_with_cc(hunitest.TestCase):
         skill = "coding.fix_inline"
         rule = ""
         # Prepare outputs.
-        expected_prompt_substring = "/.claude/skills/coding.fix_inline.md"
+        expected_prompt_substring = "/.claude/skills/coding.fix_inline/SKILL.md"
         # Run test.
         self.helper(
             topic=topic,
@@ -1739,9 +1927,7 @@ class Test_process_file_one_shot_with_cc(hunitest.TestCase):
         skill = ""
         rule = ""
         # Prepare outputs.
-        expected_prompt_substring = (
-            "# TODO(ai_gp): <what to do and why> (<rule_file>:<rule header line>)"
-        )
+        expected_prompt_substring = "# TODO(ai_gp): <what to do and why> (<rule_file>:<rule header line>)"
         # Run test.
         self.helper(
             topic=topic,
@@ -1804,12 +1990,20 @@ class Test_process_file_one_shot_via_sequencer(hunitest.TestCase):
         )
         fake_client = dshaccli.FakeClaudeSDKClient(responses_by_call=[[msg]])
         # Run test.
+        # `find_skill()`'s only external dependency is the `mdm` CLI call
+        # inside `subprocess.run()`, so mock that call site instead of the
+        # internal `find_skill()` wrapper, to exercise its own logic (ANSI
+        # stripping, match-count assertion, `dassert_file_exists()`) for
+        # real (testing.rules.md:## Mock Only External Dependencies).
+        mock_mdm_result = umock.MagicMock(
+            stdout=".claude/skills/coding.fix_inline/SKILL.md\n"
+        )
         with (
             umock.patch("claude_agent_sdk.ClaudeSDKClient") as mock_client_cls,
             umock.patch.object(
-                lcclint.hmarsele,
-                "find_skill",
-                return_value=".claude/skills/coding.fix_inline.md",
+                lcclint.hmarsele.subprocess,
+                "run",
+                return_value=mock_mdm_result,
             ),
         ):
             mock_client_cls.return_value = fake_client
@@ -1818,6 +2012,16 @@ class Test_process_file_one_shot_via_sequencer(hunitest.TestCase):
         self.assertEqual(rc, 0)
         self.assertEqual(len(fake_client.queried_prompts), 1)
         prompt = fake_client.queried_prompts[0]
+        # TODO(ai_gp): Use assert_equal() to check the whole output instead
+        # of multiple assertIn() calls (testing.rules.md:## Compare Whole Output
+        # with `assert_equal`, Not Piecewise)
+        # Not implemented: a full `assert_equal()` on `prompt` would require
+        # hardcoding the real, dynamic content of the project's rule files
+        # (e.g., `.claude/skills/coding.rules.md`), unrelated to what this
+        # test checks (dispatch branch selection), and would make the test
+        # brittle to unrelated rule-file edits. There is no dedicated test
+        # class for `_build_one_shot_prompt()` itself, so these targeted
+        # `assertIn()` checks are this function's only coverage.
         self.assertIn(expected_prompt_substring, prompt)
         self.assertIn(file_path, prompt)
         self.assertTrue(topic_info)
@@ -1868,7 +2072,7 @@ class Test_process_file_one_shot_via_sequencer(hunitest.TestCase):
         skill = "coding.fix_inline"
         rule = ""
         # Prepare outputs.
-        expected_prompt_substring = "/.claude/skills/coding.fix_inline.md"
+        expected_prompt_substring = "/.claude/skills/coding.fix_inline/SKILL.md"
         # Run test.
         self.helper(
             topic=topic,
@@ -1969,12 +2173,20 @@ class Test_process_file_incremental(hunitest.TestCase):
             responses_by_call=[[msg]] * expected_num_messages
         )
         # Run test.
+        # `find_skill()`'s only external dependency is the `mdm` CLI call
+        # inside `subprocess.run()`, so mock that call site instead of the
+        # internal `find_skill()` wrapper, to exercise its own logic (ANSI
+        # stripping, match-count assertion, `dassert_file_exists()`) for
+        # real (testing.rules.md:## Mock Only External Dependencies).
+        mock_mdm_result = umock.MagicMock(
+            stdout=".claude/skills/coding.fix_inline/SKILL.md\n"
+        )
         with (
             umock.patch("claude_agent_sdk.ClaudeSDKClient") as mock_client_cls,
             umock.patch.object(
-                lcclint.hmarsele,
-                "find_skill",
-                return_value=".claude/skills/coding.fix_inline.md",
+                lcclint.hmarsele.subprocess,
+                "run",
+                return_value=mock_mdm_result,
             ),
         ):
             mock_client_cls.return_value = fake_client
@@ -2063,7 +2275,7 @@ class Test_process_file_incremental(hunitest.TestCase):
         )
         # Check outputs.
         self.assertTrue(
-            prompts[0].startswith("/.claude/skills/coding.fix_inline.md ")
+            prompts[0].startswith("/.claude/skills/coding.fix_inline/SKILL.md ")
         )
 
     def test4(self) -> None:
@@ -2176,7 +2388,7 @@ class Test_process_file_incremental(hunitest.TestCase):
         )
         # Check outputs.
         self.assertTrue(
-            prompts[0].startswith("/.claude/skills/coding.fix_inline.md ")
+            prompts[0].startswith("/.claude/skills/coding.fix_inline/SKILL.md ")
         )
 
     def test8(self) -> None:
@@ -2333,12 +2545,20 @@ class Test_process_file_incremental(hunitest.TestCase):
         )
         fake_client = dshaccli.FakeClaudeSDKClient(responses_by_call=[[msg]])
         # Run test.
+        # `find_skill()`'s only external dependency is the `mdm` CLI call
+        # inside `subprocess.run()`, so mock that call site instead of the
+        # internal `find_skill()` wrapper, to exercise its own logic (ANSI
+        # stripping, match-count assertion, `dassert_file_exists()`) for
+        # real (testing.rules.md:## Mock Only External Dependencies).
+        mock_mdm_result = umock.MagicMock(
+            stdout=".claude/skills/coding.fix_inline/SKILL.md\n"
+        )
         with (
             umock.patch("claude_agent_sdk.ClaudeSDKClient") as mock_client_cls,
             umock.patch.object(
-                lcclint.hmarsele,
-                "find_skill",
-                return_value=".claude/skills/coding.fix_inline.md",
+                lcclint.hmarsele.subprocess,
+                "run",
+                return_value=mock_mdm_result,
             ),
         ):
             mock_client_cls.return_value = fake_client
@@ -2356,7 +2576,21 @@ class Test_process_file_incremental(hunitest.TestCase):
         mode = "stateless"
         scratch_dir = self.get_scratch_space()
         rule_file = os.path.join(scratch_dir, "test.rules.md")
-        hio.to_file(rule_file, "# My Rule\nDo the thing.\n")
+        rule_content = "# My Rule\nDo the thing.\n"
+        hio.to_file(rule_file, rule_content)
+        file_path = os.path.join(scratch_dir, "example.py")
+        # Prepare outputs.
+        # A whole-file `--rule` spec is read verbatim by
+        # `hmarsele.extract_rule_from_file()` (i.e., `rule_content` as
+        # written, trailing newline included).
+        expected = [
+            _expected_message(
+                file_path,
+                rule_content,
+                rule_file=rule_file,
+                add_todos=True,
+            )
+        ]
         # Run test.
         prompts = self.helper(
             mode=mode,
@@ -2369,8 +2603,7 @@ class Test_process_file_incremental(hunitest.TestCase):
             add_todos=True,
         )
         # Check outputs.
-        self.assertIn("add a TODO(...) comment", prompts[0])
-        self.assertIn(f"from `{rule_file}`", prompts[0])
+        self.assert_equal(str(prompts), str(expected))
 
 
 # #############################################################################
@@ -2532,7 +2765,11 @@ class Test_process_file_dry_run_output(hunitest.TestCase):
         """
         Test `--mode stateless` with `--add_todos False`.
         """
-        self.helper("stateless", False)
+        # Prepare inputs.
+        mode = "stateless"
+        add_todos = False
+        # Run test.
+        self.helper(mode, add_todos)
 
     def test2(self) -> None:
         """

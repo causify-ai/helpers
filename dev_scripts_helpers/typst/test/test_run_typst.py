@@ -1,11 +1,15 @@
+import logging
 import os
 from typing import List
 from unittest import mock
 
 import helpers.hio as hio
+import helpers.hprint as hprint
 import helpers.hunit_test as hunitest
 import dev_scripts_helpers.dockerize.lib_typst as dshdlity
 import dev_scripts_helpers.typst.run_typst as dshtruty
+
+_LOG = logging.getLogger(__name__)
 
 
 # #############################################################################
@@ -57,9 +61,30 @@ class Test__report_compile_warnings(hunitest.TestCase):
         Test that output with no warnings returns an empty list.
         """
         # Prepare inputs.
-        output = "compiling test.typ\nwritten test.pdf"
+        output = """
+        compiling test.typ
+        written test.pdf
+        """
+        output = hprint.dedent(output)
         # Prepare outputs.
         expected: List[str] = []
+        # Run test.
+        self.helper(output, expected)
+
+    def test3(self) -> None:
+        """
+        Test that a single `warning:` diagnostic line is extracted.
+        """
+        # Prepare inputs.
+        output = "\n".join(
+            [
+                "compiling test.typ",
+                "warning: unused import",
+                "written test.pdf",
+            ]
+        )
+        # Prepare outputs.
+        expected = ["warning: unused import"]
         # Run test.
         self.helper(output, expected)
 
@@ -72,10 +97,6 @@ class Test__report_compile_warnings(hunitest.TestCase):
 class Test__compile_typst(hunitest.TestCase):
     """
     Test the `_compile_typst()` function.
-
-    `dshdlity.run_dockerized_typst()` and `hsystem.system_to_string()` are mocked
-    since they require a real Docker/Typst toolchain; this class only verifies
-    the warning-detection orchestration logic.
     """
 
     def helper(self, output: str, *, abort_on_warnings: bool) -> None:
@@ -83,12 +104,22 @@ class Test__compile_typst(hunitest.TestCase):
         Test helper for `_compile_typst()`.
 
         :param output: fake `typst compile` output returned by the mocked
-            `hsystem.system_to_string()`
+            `subprocess.Popen`
         :param abort_on_warnings: value passed through to `_compile_typst()`
         """
         # Prepare inputs.
         in_file_path = os.path.join(self.get_scratch_space(), "book.typ")
         out_file_path = os.path.join(self.get_scratch_space(), "book.pdf")
+        # `hsystem.system_to_string()` is an internal wrapper around
+        # `subprocess.Popen()`, so mock `subprocess.Popen` itself (the true
+        # external dependency) rather than the wrapper.
+        mock_process = mock.MagicMock()
+        mock_process.__enter__.return_value = mock_process
+        mock_process.__exit__.return_value = False
+        mock_process.stdout.readline.side_effect = [
+            f"{line}\n".encode() for line in output.splitlines()
+        ] + [b""]
+        mock_process.wait.return_value = 0
         # Run test.
         with (
             mock.patch.object(
@@ -96,9 +127,7 @@ class Test__compile_typst(hunitest.TestCase):
                 "run_dockerized_typst",
                 return_value="typst compile book.typ book.pdf",
             ),
-            mock.patch.object(
-                dshtruty.hsystem, "system_to_string", return_value=(0, output)
-            ),
+            mock.patch("subprocess.Popen", return_value=mock_process),
         ):
             dshtruty._compile_typst(
                 in_file_path,
@@ -113,7 +142,7 @@ class Test__compile_typst(hunitest.TestCase):
         """
         # Prepare inputs.
         output = "warning: unused import"
-        # Run test.
+        # Run test and check output.
         with self.assertRaises(AssertionError):
             self.helper(output, abort_on_warnings=True)
 
@@ -123,7 +152,8 @@ class Test__compile_typst(hunitest.TestCase):
         """
         # Prepare inputs.
         output = "warning: unused import"
-        # Run test (should not raise).
+        # Run test and check outputs.
+        # `helper()` should not raise since `abort_on_warnings=False`.
         self.helper(output, abort_on_warnings=False)
 
     def test3(self) -> None:
@@ -132,7 +162,8 @@ class Test__compile_typst(hunitest.TestCase):
         """
         # Prepare inputs.
         output = "written book.pdf"
-        # Run test (should not raise).
+        # Run test and check outputs.
+        # `helper()` should not raise since there are no warnings.
         self.helper(output, abort_on_warnings=True)
 
 
@@ -141,12 +172,30 @@ class Test__compile_typst(hunitest.TestCase):
 # #############################################################################
 
 
+# TODO(ai_gp): Test should verify externally observable behavior (generated
+# files, exit codes, stdout/stderr) rather than mocking internal functions
+# (_compile_typst, _render_images). Do not mock orchestration logic per rule
+# (testing.rules.md:## Test Behavior, Not Implementation)
+# TODO(ai_gp): Do not mock internal helpers (_compile_typst, _render_images)
+# or internal wrappers (hsystem.system_to_string, hopen.open_file). Only mock
+# external dependencies (3rd-party providers, cloud infra, databases, external
+# APIs) (testing.rules.md:## Mock Only External Dependencies)
+# Not resolved: `_compile_typst()` calls `dshdlity.run_dockerized_typst()`,
+# which builds and inspects a real Docker image (`build_typst_container_image()`,
+# `hdocker.image_exists()`), and `_render_images()` shells out to
+# `render_images.py`. Neither has a fakeable external boundary short of a
+# working Docker daemon (see `Test__compile_typst` above, which already mocks
+# `dshdlity.run_dockerized_typst` for the same reason). `_compile_typst()`'s
+# own logic is unit-tested directly there at the `subprocess.Popen` boundary,
+# so this class only checks CLI-to-function argument wiring via the
+# constructed call arguments, one of the externally observable behaviors the
+# rule allows ("constructed commands").
 class Test_run_typst_py(hunitest.TestCase):
     """
     End-to-end tests for the `run_typst.py` executable.
     """
 
-    def _run_main(self, argv: List[str]) -> None:
+    def helper(self, argv: List[str]) -> None:
         """
         Run `dshtruty._main()` with a mocked `sys.argv`.
 
@@ -157,15 +206,23 @@ class Test_run_typst_py(hunitest.TestCase):
         with mock.patch("sys.argv", argv):
             dshtruty._main(parser)
 
-    # TODO(ai_gp): Factor out more code.
+    def helper1(self) -> str:
+        """
+        Create `book.typ` in the scratch space.
+
+        :return: path to the created input file
+        """
+        in_file_path = os.path.join(self.get_scratch_space(), "book.typ")
+        hio.to_file(in_file_path, "= Test")
+        return in_file_path
+
     def test1(self) -> None:
         """
         Test that the default output path swaps the `.typ` extension for
-        `.pdf`, and that `render_images` runs by default.
+        `.pdf`.
         """
         # Prepare inputs.
-        in_file_path = os.path.join(self.get_scratch_space(), "book.typ")
-        hio.to_file(in_file_path, "= Test")
+        in_file_path = self.helper1()
         argv = [
             "run_typst.py",
             "--input",
@@ -180,55 +237,58 @@ class Test_run_typst_py(hunitest.TestCase):
         # Run test.
         with (
             mock.patch.object(dshtruty, "_compile_typst") as mock_compile,
-            mock.patch.object(dshtruty, "_render_images") as mock_render,
+            mock.patch.object(dshtruty, "_render_images"),
         ):
-            self._run_main(argv)
+            self.helper(argv)
         # Check outputs.
         actual_out_file_path = mock_compile.call_args.args[1]
-        self.assertEqual(actual_out_file_path, expected_out_file_path)
-        self.assertEqual(mock_render.call_count, 1)
+        self.assert_equal(actual_out_file_path, expected_out_file_path)
 
     def test2(self) -> None:
         """
         Test that an explicit `--output` path is respected.
         """
         # Prepare inputs.
-        in_file_path = os.path.join(self.get_scratch_space(), "book.typ")
-        hio.to_file(in_file_path, "= Test")
-        out_file_path = os.path.join(self.get_scratch_space(), "custom.pdf")
+        in_file_path = self.helper1()
+        # Prepare outputs.
+        expected_out_file_path = os.path.join(
+            self.get_scratch_space(), "custom.pdf"
+        )
         argv = [
             "run_typst.py",
             "--input",
             in_file_path,
             "--output",
-            out_file_path,
+            expected_out_file_path,
             "--skip_action",
             "open_pdf",
         ]
         # Run test.
         with mock.patch.object(dshtruty, "_compile_typst") as mock_compile:
-            self._run_main(argv)
+            self.helper(argv)
         # Check outputs.
         actual_out_file_path = mock_compile.call_args.args[1]
-        self.assertEqual(actual_out_file_path, out_file_path)
+        self.assert_equal(actual_out_file_path, expected_out_file_path)
 
     def test3(self) -> None:
         """
         Test that the "open_pdf" action opens the compiled PDF.
         """
         # Prepare inputs.
-        in_file_path = os.path.join(self.get_scratch_space(), "book.typ")
-        hio.to_file(in_file_path, "= Test")
-        out_file_path = os.path.join(self.get_scratch_space(), "book.pdf")
+        in_file_path = self.helper1()
         argv = ["run_typst.py", "--input", in_file_path]
+        # Prepare outputs.
+        expected_out_file_path = os.path.join(
+            self.get_scratch_space(), "book.pdf"
+        )
         # Run test.
         with (
             mock.patch.object(dshtruty, "_compile_typst"),
             mock.patch.object(dshtruty.hopen, "open_file") as mock_open,
         ):
-            self._run_main(argv)
+            self.helper(argv)
         # Check outputs.
-        mock_open.assert_called_once_with(out_file_path)
+        mock_open.assert_called_once_with(expected_out_file_path)
 
     def test4(self) -> None:
         """
@@ -236,8 +296,7 @@ class Test_run_typst_py(hunitest.TestCase):
         step.
         """
         # Prepare inputs.
-        in_file_path = os.path.join(self.get_scratch_space(), "book.typ")
-        hio.to_file(in_file_path, "= Test")
+        in_file_path = self.helper1()
         argv = [
             "run_typst.py",
             "--input",
@@ -252,7 +311,7 @@ class Test_run_typst_py(hunitest.TestCase):
             mock.patch.object(dshtruty, "_compile_typst"),
             mock.patch.object(dshtruty, "_render_images") as mock_render,
         ):
-            self._run_main(argv)
+            self.helper(argv)
         # Check outputs.
         self.assertEqual(mock_render.call_count, 1)
 
@@ -261,23 +320,24 @@ class Test_run_typst_py(hunitest.TestCase):
         Test that `--root` overrides the default Git-root-based value.
         """
         # Prepare inputs.
-        in_file_path = os.path.join(self.get_scratch_space(), "book.typ")
-        hio.to_file(in_file_path, "= Test")
+        in_file_path = self.helper1()
+        # Prepare outputs.
+        expected_root = "/custom/root"
         argv = [
             "run_typst.py",
             "--input",
             in_file_path,
             "--root",
-            "/custom/root",
+            expected_root,
             "--skip_action",
             "open_pdf",
         ]
         # Run test.
         with mock.patch.object(dshtruty, "_compile_typst") as mock_compile:
-            self._run_main(argv)
+            self.helper(argv)
         # Check outputs.
         actual_root = mock_compile.call_args.args[2]
-        self.assertEqual(actual_root, "/custom/root")
+        self.assert_equal(actual_root, expected_root)
 
     def test6(self) -> None:
         """
@@ -285,8 +345,7 @@ class Test_run_typst_py(hunitest.TestCase):
         `_compile_typst()`.
         """
         # Prepare inputs.
-        in_file_path = os.path.join(self.get_scratch_space(), "book.typ")
-        hio.to_file(in_file_path, "= Test")
+        in_file_path = self.helper1()
         argv = [
             "run_typst.py",
             "--input",
@@ -297,8 +356,30 @@ class Test_run_typst_py(hunitest.TestCase):
         ]
         # Run test.
         with mock.patch.object(dshtruty, "_compile_typst") as mock_compile:
-            self._run_main(argv)
+            self.helper(argv)
         # Check outputs.
         self.assertEqual(
             mock_compile.call_args.kwargs["abort_on_warnings"], False
         )
+
+    def test7(self) -> None:
+        """
+        Test that `render_images` runs by default.
+        """
+        # Prepare inputs.
+        in_file_path = self.helper1()
+        argv = [
+            "run_typst.py",
+            "--input",
+            in_file_path,
+            "--skip_action",
+            "open_pdf",
+        ]
+        # Run test.
+        with (
+            mock.patch.object(dshtruty, "_compile_typst"),
+            mock.patch.object(dshtruty, "_render_images") as mock_render,
+        ):
+            self.helper(argv)
+        # Check outputs.
+        self.assertEqual(mock_render.call_count, 1)
