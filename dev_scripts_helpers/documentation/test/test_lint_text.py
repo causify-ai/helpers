@@ -80,7 +80,9 @@ def _get_text1() -> str:
 # Test_lint_text1
 # #############################################################################
 
-
+# TODO(ai_gp): Rename class to Test__preprocess_txt to match the function
+# it tests (_preprocess_txt) per naming convention
+# (testing.rules.md:## Naming Conventions for a Function)
 class Test_lint_text1(hunitest.TestCase):
     """
     Test the text preprocessing functionality.
@@ -101,6 +103,9 @@ class Test_lint_text1(hunitest.TestCase):
         _helper_process_lines(self, txt, expected, preprocess_wrapper)
 
     def test1(self) -> None:
+        # TODO(ai_gp): Add section comments (# Prepare inputs., # Prepare
+        # outputs., # Run test.) to organize test logic
+        # (testing.rules.md:## Use Three Sections in Testing Methods)
         txt = r"""$$E_{in} = \frac{1}{N} \sum_i e(h(\vx_i), y_i)$$"""
         expected = r"""
         $$
@@ -109,6 +114,9 @@ class Test_lint_text1(hunitest.TestCase):
         self.helper(txt, expected)
 
     def test2(self) -> None:
+        # TODO(ai_gp): Add section comments (# Prepare inputs., # Prepare
+        # outputs., # Run test.) to organize test logic
+        # (testing.rules.md:## Use Three Sections in Testing Methods)
         txt = r"""
         $$E_{in}(\vw) = \frac{1}{N} \sum_i \big(
         -y_i \log(\Pr(h(\vx) = 1|\vx)) - (1 - y_i) \log(1 - \Pr(h(\vx)=1|\vx))
@@ -122,6 +130,9 @@ class Test_lint_text1(hunitest.TestCase):
         self.helper(txt, expected)
 
     def test3(self) -> None:
+        # TODO(ai_gp): Add section comments (# Prepare inputs., # Prepare
+        # outputs., # Run test.) to organize test logic
+        # (testing.rules.md:## Use Three Sections in Testing Methods)
         txt = _get_text1()
         expected = r"""
         - STARGradient descent for logistic regression
@@ -151,6 +162,9 @@ class Test_lint_text1(hunitest.TestCase):
         self.helper(txt, expected)
 
     def test4(self) -> None:
+        # TODO(ai_gp): Add section comments (# Prepare inputs., # Prepare
+        # outputs., # Run test.) to organize test logic
+        # (testing.rules.md:## Use Three Sections in Testing Methods)
         txt = r"""
         # #########################
         # test
@@ -159,6 +173,9 @@ class Test_lint_text1(hunitest.TestCase):
         self.helper(txt, expected)
 
     def test5(self) -> None:
+        # TODO(ai_gp): Add section comments (# Prepare inputs., # Prepare
+        # outputs., # Run test.) to organize test logic
+        # (testing.rules.md:## Use Three Sections in Testing Methods)
         txt = r"""
         ## ////////////////
         # test
@@ -1923,6 +1940,11 @@ class Test__remove_code_block_extra_indentation(hunitest.TestCase):
 
 
 class Test_capitalize_header(hunitest.TestCase):
+    # TODO(ai_gp): Update class docstring to describe only what is being
+    # tested, not how/why the tests work. Remove explanation of the bug fix
+    # and apostrophe handling details. Should be like "Test
+    # `hmarhead.capitalize_header()` function."
+    # (testing.rules.md:## Test Class Documentation)
     """
     Test the capitalize_header function handling of apostrophes.
 
@@ -2039,6 +2061,9 @@ class Test_capitalize_header(hunitest.TestCase):
 
 
 class Test_lint_text2(hunitest.TestCase):
+    # TODO(ai_gp): Add class docstring describing what is being tested, e.g.,
+    # "Test `dshdllite._perform_actions()` function" (not how/why the tests
+    # work) (testing.rules.md:## Test Class Documentation)
     @staticmethod
     def get_text_problematic_for_prettier1() -> str:
         txt = r"""
@@ -2119,6 +2144,9 @@ class Test_lint_text2(hunitest.TestCase):
           $\vw$ (sum of exponentials and flipped exponentials is convex and log is
           monotone)
         """
+        # TODO(ai_gp): Move hprint.dedent() and self.assert_equal() calls to
+        # the helper method instead of calling them in the test method
+        # (testing.rules.md:## Move Dedent and Checking into the Helper Method)
         expected = hprint.dedent(expected, remove_lead_trail_empty_lines_=True)
         self.assert_equal(actual, expected)
 
@@ -2215,6 +2243,9 @@ class Test_lint_text2(hunitest.TestCase):
         file_name = "test.md"
         self.helper(txt, expected, file_name)
 
+    # TODO(ai_gp): Move this test to a separate test class since it tests
+    # dshdlipr.prettier_on_str() instead of dshdllite._perform_actions()
+    # (testing.rules.md:## Test One Thing)
     @pytest.mark.slow
     def test5(self) -> None:
         """
@@ -2402,6 +2433,10 @@ class Test_lint_text_py1(hunitest.TestCase):
     Test the lint_text.py command-line script with different file types.
     """
 
+    # TODO(ai_gp): Rename helper method to follow naming convention: use
+    # `helper` instead of `run_lint_text` (or `helper1`, `helper2` if
+    # multiple helpers exist) (testing.rules.md:## Order Helper Methods First
+    # in Test Classes)
     def run_lint_text(
         self,
         in_file: str,
@@ -3461,6 +3496,9 @@ class Test_md_format(hunitest.TestCase):
     Test the _md_format function used for the md file type.
     """
 
+    # TODO(ai_gp): Add tests for edge cases (empty input, text without
+    # comments, etc.) to complement the existing happy path tests
+    # (testing.rules.md:## Test Coverage)
     def helper(self, txt: str, expected: str) -> None:
         """
         Test helper for _md_format.
@@ -3662,6 +3700,8 @@ class Test__typstyle_format(hunitest.TestCase):
     Test the `_typstyle_format` function.
     """
 
+    # TODO(ai_gp): Add tests for edge cases (empty input, minimal input, etc.)
+    # in addition to the happy path test (testing.rules.md:## Test Coverage)
     @pytest.mark.skipif(
         shutil.which("typstyle") is None, reason="typstyle is not installed"
     )

@@ -48,6 +48,9 @@ def fetch_article_title(url: str) -> Optional[str]:
         ),
         "Accept-Language": "en-US,en;q=0.9",
     }
+    # TODO(ai_gp): Remove try-except and let the exception propagate, or
+    # restructure to avoid recovering from errors (coding.rules.md:## Do Not
+    # Use `try-except`)
     try:
         response = requests.get(url, timeout=30, headers=headers)
         response.raise_for_status()
@@ -58,6 +61,9 @@ def fetch_article_title(url: str) -> Optional[str]:
     if not soup.title or not soup.title.string:
         _LOG.warning("No <title> tag found in '%s'", url)
         return None
+    # TODO(ai_gp): Use backticks around `BeautifulSoup` when referring to the
+    # Python class in comments (coding.rules.md:## Use Verbatim to Refer to
+    # Python Objects)
     # BeautifulSoup already unescapes HTML entities; just collapse internal
     # whitespace/newlines.
     title = soup.title.string.strip()
@@ -87,6 +93,9 @@ def sanitize_title_for_filename(title: str) -> str:
     return sanitized
 
 
+# TODO(ai_gp): Inline this trivial constant since it is used only once
+# in the function signature (coding.rules.md:## Inline Trivial Constants
+# Used Once)
 # Default model for LLM-based summarization. This is a direct model name
 # passed to `llm` (not routed through OpenRouter, which uses an
 # "openrouter/<provider>/<model>" prefix, e.g.
@@ -125,6 +134,9 @@ def get_stat_file_path(summary_file: str) -> str:
     return summary_file[: -len(".md")] + ".stat.json"
 
 
+# TODO(ai_gp): Use backticks around `llm_cli.py` when referring to the
+# script in the docstring (coding.rules.md:## Use Backticks for Scripts,
+# Linux Commands, and Executables)
 def summarize_text_with_llm(
     input_file: str,
     output_file: str,
@@ -156,9 +168,15 @@ def summarize_text_with_llm(
         )
         return
     # Save prompt to a temporary file.
+    # TODO(ai_gp): Include script name in temporary file: should be
+    # `tmp.download_utils.summarize_text_with_llm.prompt.txt`
+    # (coding.rules.md:## Temporary Files)
     prompt_file = "tmp.summarize_text_with_llm.prompt.txt"
     hio.to_file(prompt_file, prompt)
     _LOG.debug("Saved prompt to: '%s'", prompt_file)
+    # TODO(ai_gp): Use backticks around `llm_cli.py` when referring to the
+    # script in comments (coding.rules.md:## Use Backticks for Scripts,
+    # Linux Commands, and Executables)
     # Build command to call llm_cli.py with the given prompt file.
     llm_cli_path = hsystem.find_file_in_repo("llm_cli.py")
     stat_file = get_stat_file_path(output_file)
@@ -172,6 +190,8 @@ def summarize_text_with_llm(
         "--lint",
     ]
     cmd = " ".join(cmd_parts)
+    # TODO(ai_gp): Enclose variable in single quotes in log message
+    # (coding.rules.md:## Enclose Variables in Single Quotes in Log Messages)
     _LOG.debug("Running command: %s", cmd)
     hsystem.system(cmd, print_command=True)
     _LOG.info("Summary saved to: '%s'", output_file)
@@ -183,6 +203,9 @@ def summarize_text_with_llm(
 # #############################################################################
 
 
+# TODO(ai_gp): Rename to `_is_arxiv_url()` since it is only used
+# internally by `is_academic_paper_url()` (coding.rules.md:## Mark
+# Private Functions)
 def is_arxiv_url(url: str) -> bool:
     """
     Check if a URL points to an arXiv paper.
@@ -196,6 +219,9 @@ def is_arxiv_url(url: str) -> bool:
     return result
 
 
+# TODO(ai_gp): Rename to `_detect_doi()` since it is only used
+# internally by `is_academic_paper_url()` (coding.rules.md:## Mark
+# Private Functions)
 def detect_doi(url: str) -> Optional[str]:
     """
     Detect DOI from URL or bare DOI string.
@@ -223,6 +249,9 @@ def detect_doi(url: str) -> Optional[str]:
     return None
 
 
+# TODO(ai_gp): Rename to `_is_pdf_url()` since it is only used
+# internally by `is_academic_paper_url()` (coding.rules.md:## Mark
+# Private Functions)
 def is_pdf_url(url: str) -> bool:
     """
     Check if a URL points directly to a PDF file.
@@ -235,6 +264,8 @@ def is_pdf_url(url: str) -> bool:
     # Strip query string and fragment before checking the file extension.
     path = url.split("?")[0].split("#")[0]
     result = path.lower().endswith(".pdf")
+    # TODO(ai_gp): Enclose variable in single quotes in log message
+    # (coding.rules.md:## Enclose Variables in Single Quotes in Log Messages)
     _LOG.debug("return=%s", result)
     return result
 
@@ -268,6 +299,9 @@ def download_website_article(url: str, output_file: str) -> None:
     """
     _LOG.debug(hprint.to_str("url output_file"))
     script = hgit.find_file_in_git_tree("download_html_to_md.py")
+    # TODO(ai_gp): Build command using array with one option per line and
+    # f-strings, then join with spaces (coding.rules.md:## How to Build
+    # Command Lines)
     cmd = f'{script} --input "{url}" --output "{output_file}"'
     hsystem.system(cmd, print_command=True)
     hdbg.dassert_file_exists(output_file)
@@ -301,6 +335,9 @@ def download_arxiv_article(url: str, output_file: str) -> None:
     # Only download + convert here: skip the script's own summarize action
     # since callers summarize the resulting article text themselves. Skip
     # figures too, since only the text is consumed downstream.
+    # TODO(ai_gp): Build command using array with one option per line and
+    # f-strings, then join with spaces (coding.rules.md:## How to Build
+    # Command Lines)
     cmd = (
         f'{script} --input "{url}" --output "{base_path}" '
         f"--no_incremental --skip_action summarize --skip_figures"

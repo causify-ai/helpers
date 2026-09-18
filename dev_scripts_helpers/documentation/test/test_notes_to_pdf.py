@@ -83,8 +83,13 @@ def _read_output_file(file_name: str) -> str:
 # Test_notes_to_pdf1
 # #############################################################################
 
+# TODO(ai_gp): Rename to Test_notes_to_pdf_py per executable test naming
+# convention (testing.rules.md:## End-to-end Unit Tests for Executables)
 
 class Test_notes_to_pdf1(hunitest.TestCase):
+    # TODO(ai_gp): Add class docstring documenting what is being tested
+    # (testing.rules.md:## Test Class Documentation)
+
     def create_input_file_from_txt(self, txt: str) -> str:
         """
         Create a temporary markdown input file from raw text.
@@ -130,6 +135,9 @@ class Test_notes_to_pdf1(hunitest.TestCase):
         return result
 
     # TODO(gp): Factor this out since all the tests are using the same logic.
+    # TODO(ai_gp): Rename helper method from `run_notes_to_pdf` to `helper`
+    # to follow naming convention (testing.rules.md:## Order Helper Methods First
+    # in Test Classes)
     def run_notes_to_pdf(
         self,
         in_file: str,
@@ -232,12 +240,18 @@ class Test_notes_to_pdf1(hunitest.TestCase):
         type_ = "pdf"
         cmd_opts = ""
         expected = ""
+        # TODO(ai_gp): Use standard section names: "# Run test." instead of
+        # "# Run the script." and "# Check outputs." instead of "# Check."
+        # (testing.rules.md:## Use Three Sections in Testing Methods)
         # Run the script.
         script_txt, output_txt = self.run_notes_to_pdf(
             in_file, type_, cmd_opts, expected
         )
         # Check.
         actual = _to_output_str(script_txt, output_txt)
+        # TODO(ai_gp): Use self.assert_equal() instead of
+        # self.check_string() (testing.rules.md:## Never Use
+        # `self.check_string()`)
         self.check_string(actual, purify_text=True, fuzzy_match=True)
 
     @pytest.mark.superslow
@@ -360,6 +374,8 @@ class Test_notes_to_pdf_filters(hunitest.TestCase):
         return in_file
 
     def helper(self, in_file: str, type_: str, cmd_opts: str) -> Tuple[str, str]:
+        # TODO(ai_gp): Move assertions from test methods into helper
+        # (testing.rules.md:## Move Dedent and Checking into the Helper Method)
         """
         Helper to run filter test and return script and output.
 
@@ -407,6 +423,9 @@ class Test_notes_to_pdf_filters(hunitest.TestCase):
         script_txt, output_txt = self.helper(in_file, type_, cmd_opts)
         # Check outputs.
         actual = _to_output_str(script_txt, output_txt)
+        # TODO(ai_gp): Use self.assert_equal() instead of
+        # self.check_string() (testing.rules.md:## Never Use
+        # `self.check_string()`)
         self.check_string(
             actual, tag="filter_by_lines", fuzzy_match=True, purify_text=True
         )
@@ -1601,6 +1620,9 @@ class Test_notes_to_pdf_pandoc_ast(hunitest.TestCase):
         script_txt, output_txt = self.helper(type_)
         # Check outputs.
         actual = _to_output_str(script_txt, output_txt)
+        # TODO(ai_gp): Replace multiple assertIn() calls with single
+        # assert_equal() comparing whole output (testing.rules.md:##
+        # Compare Whole Output with `assert_equal`, Not Piecewise)
         # Check script content for key indicators
         self.assertIn("--type html", actual)
         self.assertIn("-f json -t html --fail-if-warnings", actual)

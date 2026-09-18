@@ -1,3 +1,6 @@
+# TODO(ai_gp): Add logging setup to match template - missing import logging and
+# _LOG = logging.getLogger(__name__) (testing.rules.md:## Unit Test Code
+# Structure)
 import os
 from typing import List
 from unittest import mock
@@ -57,11 +60,17 @@ class Test__report_compile_warnings(hunitest.TestCase):
         Test that output with no warnings returns an empty list.
         """
         # Prepare inputs.
+        # TODO(ai_gp): Use """ and hprint.dedent() instead of escaped \n in
+        # string literals (testing.rules.md:## Use Triple-Quote Assignment with
+        # `hprint.dedent` for Multi-line Strings)
         output = "compiling test.typ\nwritten test.pdf"
         # Prepare outputs.
         expected: List[str] = []
         # Run test.
         self.helper(output, expected)
+
+    # TODO(ai_gp): Add test for single warning case - boundary condition example
+    # from rule (testing.rules.md:## What to Test)
 
 
 # #############################################################################
@@ -69,6 +78,9 @@ class Test__report_compile_warnings(hunitest.TestCase):
 # #############################################################################
 
 
+# TODO(ai_gp): Remove implementation details from docstring - should only
+# document WHAT is being tested, not HOW or why (e.g., mocking details)
+# (testing.rules.md:## Test Class Documentation)
 class Test__compile_typst(hunitest.TestCase):
     """
     Test the `_compile_typst()` function.
@@ -96,6 +108,9 @@ class Test__compile_typst(hunitest.TestCase):
                 "run_dockerized_typst",
                 return_value="typst compile book.typ book.pdf",
             ),
+            # TODO(ai_gp): Do not mock internal wrapper dshtruty.hsystem.
+            # Mock the external library instead (testing.rules.md:## Mock Only
+            # External Dependencies)
             mock.patch.object(
                 dshtruty.hsystem, "system_to_string", return_value=(0, output)
             ),
@@ -113,6 +128,9 @@ class Test__compile_typst(hunitest.TestCase):
         """
         # Prepare inputs.
         output = "warning: unused import"
+        # TODO(ai_gp): Change section comment to "# Run test and check output."
+        # when using assertRaises for exception testing
+        # (testing.rules.md:## Testing Exceptions)
         # Run test.
         with self.assertRaises(AssertionError):
             self.helper(output, abort_on_warnings=True)
@@ -124,6 +142,9 @@ class Test__compile_typst(hunitest.TestCase):
         # Prepare inputs.
         output = "warning: unused import"
         # Run test (should not raise).
+        # TODO(ai_gp): Add explicit "# Check outputs." or "# Run test and check
+        # outputs." section (testing.rules.md:## Use Three Sections in Testing
+        # Methods)
         self.helper(output, abort_on_warnings=False)
 
     def test3(self) -> None:
@@ -133,6 +154,9 @@ class Test__compile_typst(hunitest.TestCase):
         # Prepare inputs.
         output = "written book.pdf"
         # Run test (should not raise).
+        # TODO(ai_gp): Add explicit "# Check outputs." or "# Run test and check
+        # outputs." section (testing.rules.md:## Use Three Sections in Testing
+        # Methods)
         self.helper(output, abort_on_warnings=True)
 
 
@@ -141,11 +165,22 @@ class Test__compile_typst(hunitest.TestCase):
 # #############################################################################
 
 
+# TODO(ai_gp): Test should verify externally observable behavior (generated
+# files, exit codes, stdout/stderr) rather than mocking internal functions
+# (_compile_typst, _render_images). Do not mock orchestration logic per rule
+# (testing.rules.md:## Test Behavior, Not Implementation)
+# TODO(ai_gp): Do not mock internal helpers (_compile_typst, _render_images)
+# or internal wrappers (hsystem.system_to_string, hopen.open_file). Only mock
+# external dependencies (3rd-party providers, cloud infra, databases, external
+# APIs) (testing.rules.md:## Mock Only External Dependencies)
 class Test_run_typst_py(hunitest.TestCase):
     """
     End-to-end tests for the `run_typst.py` executable.
     """
 
+    # TODO(ai_gp): Rename helper method from _run_main to helper or helper1 to
+    # follow naming convention (testing.rules.md:## Order Helper Methods First in
+    # Test Classes)
     def _run_main(self, argv: List[str]) -> None:
         """
         Run `dshtruty._main()` with a mocked `sys.argv`.
@@ -157,6 +192,9 @@ class Test_run_typst_py(hunitest.TestCase):
         with mock.patch("sys.argv", argv):
             dshtruty._main(parser)
 
+    # TODO(ai_gp): Rename helper method from _write_input_file to helper1 or
+    # helper2 to follow naming convention (testing.rules.md:## Order Helper
+    # Methods First in Test Classes)
     def _write_input_file(self) -> str:
         """
         Create `book.typ` in the scratch space.
@@ -167,6 +205,9 @@ class Test_run_typst_py(hunitest.TestCase):
         hio.to_file(in_file_path, "= Test")
         return in_file_path
 
+    # TODO(ai_gp): Split test into separate test methods - this test verifies
+    # both default output path and render_images behavior, should test only one
+    # case per method (testing.rules.md:## Test One Thing)
     def test1(self) -> None:
         """
         Test that the default output path swaps the `.typ` extension for
@@ -193,6 +234,8 @@ class Test_run_typst_py(hunitest.TestCase):
             self._run_main(argv)
         # Check outputs.
         actual_out_file_path = mock_compile.call_args.args[1]
+        # TODO(ai_gp): Use self.assert_equal() instead of self.assertEqual()
+        # for string comparison (testing.rules.md:## Assertion Patterns)
         self.assertEqual(actual_out_file_path, expected_out_file_path)
         self.assertEqual(mock_render.call_count, 1)
 
@@ -202,6 +245,9 @@ class Test_run_typst_py(hunitest.TestCase):
         """
         # Prepare inputs.
         in_file_path = self._write_input_file()
+        # TODO(ai_gp): Separate expected output (out_file_path) into "# Prepare
+        # outputs." section instead of mixing with inputs
+        # (testing.rules.md:## Consolidate Inputs and Outputs)
         out_file_path = os.path.join(self.get_scratch_space(), "custom.pdf")
         argv = [
             "run_typst.py",
@@ -217,6 +263,8 @@ class Test_run_typst_py(hunitest.TestCase):
             self._run_main(argv)
         # Check outputs.
         actual_out_file_path = mock_compile.call_args.args[1]
+        # TODO(ai_gp): Use self.assert_equal() instead of self.assertEqual()
+        # for string comparison (testing.rules.md:## Assertion Patterns)
         self.assertEqual(actual_out_file_path, out_file_path)
 
     def test3(self) -> None:
@@ -225,6 +273,9 @@ class Test_run_typst_py(hunitest.TestCase):
         """
         # Prepare inputs.
         in_file_path = self._write_input_file()
+        # TODO(ai_gp): Separate expected output (out_file_path) into "# Prepare
+        # outputs." section instead of mixing with inputs
+        # (testing.rules.md:## Consolidate Inputs and Outputs)
         out_file_path = os.path.join(self.get_scratch_space(), "book.pdf")
         argv = ["run_typst.py", "--input", in_file_path]
         # Run test.
@@ -281,6 +332,8 @@ class Test_run_typst_py(hunitest.TestCase):
             self._run_main(argv)
         # Check outputs.
         actual_root = mock_compile.call_args.args[2]
+        # TODO(ai_gp): Use self.assert_equal() instead of self.assertEqual()
+        # for string comparison (testing.rules.md:## Assertion Patterns)
         self.assertEqual(actual_root, "/custom/root")
 
     def test6(self) -> None:

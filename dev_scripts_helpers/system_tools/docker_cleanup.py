@@ -81,6 +81,9 @@ def _run(cmd: str) -> str:
     return output
 
 
+# TODO(ai_gp): Move constant to local scope in
+# `_parse_docker_size_to_bytes()` where it is used (coding.rules.md:## Place
+# Constants Close to Usage)
 # Multiplier for each unit reported by `docker images` / `docker system df`
 # (decimal, matching Docker's own SI-style formatting).
 _DOCKER_SIZE_UNIT_MULTIPLIERS = {
@@ -133,6 +136,9 @@ def _format_bytes(num_bytes: float) -> str:
     return formatted
 
 
+# TODO(ai_gp): Move constant to local scope in
+# `_parse_docker_system_df()` where it is used (coding.rules.md:## Place
+# Constants Close to Usage)
 # Compiled regex matches one row of `docker system df` output, e.g.:
 #   Images          26        1         25.21GB   13.03GB (51%)
 _SYSTEM_DF_ROW_RE = re.compile(
@@ -199,6 +205,8 @@ def _report_system_df(engine: str, *, label: str) -> str:
     """
     Print `system df` (or `container system df`) for `engine`.
 
+    # TODO(ai_gp): Fix REST style formatting - add space after colon before
+    # backtick (coding.rules.md:## Use REST Style for Docstrings)
     :param engine:`"docker"` or `"apple"`
     :param label: short label identifying when this snapshot was taken (e.g.,
         `"before"`, `"after"`)
@@ -219,6 +227,8 @@ def _report_active_containers(engine: str) -> None:
     Only stopped containers are removed by `container prune`, so this is
     informational context showing what is being preserved.
 
+    # TODO(ai_gp): Fix REST style formatting - add space after colon before
+    # backtick (coding.rules.md:## Use REST Style for Docstrings)
     :param engine:`"docker"` or `"apple"`
     """
     hdocker.set_docker_engine(engine)
@@ -248,6 +258,8 @@ def _list_images_docker() -> List[Dict[str, Any]]:
     """
     hdocker.set_docker_engine("docker")
     cmd_name = hdocker.get_docker_command()
+    # TODO(ai_gp): Build command using array with one option per line, then
+    # join with spaces (coding.rules.md:## How to Build Command Lines)
     list_cmd = (
         f"{cmd_name} images --format "
         '"{{.ID}} {{.Repository}}:{{.Tag}} {{.Size}}"'
@@ -334,6 +346,8 @@ def _format_images_table(images: List[Dict[str, Any]]) -> str:
     return table
 
 
+# TODO(ai_gp): Move constant to local scope in `_report_all_images()` where
+# it is used (coding.rules.md:## Place Constants Close to Usage)
 # Field each `--images_order` choice sorts images by, and the label used when
 # logging the resulting table.
 _IMAGES_ORDER_KEYS = {
@@ -346,10 +360,14 @@ def _report_all_images(engine: str, *, images_order: str) -> None:
     """
     Print all images once, sorted by size or by creation date (descending).
 
+    # TODO(ai_gp): Fix REST style formatting - add space after colon before
+    # backtick (coding.rules.md:## Use REST Style for Docstrings)
     :param engine:`"docker"` or `"apple"`
     :param images_order:`"size"` or `"date"`, the field to sort images by
     """
     images = _list_images(engine)
+    # TODO(ai_gp): Add error message to dassert call (coding.rules.md:## Add
+    # Message to `dassert`)
     hdbg.dassert_in(images_order, _IMAGES_ORDER_KEYS)
     sort_field, sort_label = _IMAGES_ORDER_KEYS[images_order]
     images_sorted = sorted(
@@ -371,12 +389,16 @@ def _cleanup_stopped_containers(engine: str, *, dry_run: bool) -> None:
     """
     Remove stopped containers.
 
+    # TODO(ai_gp): Fix REST style formatting - add space after colon before
+    # backtick (coding.rules.md:## Use REST Style for Docstrings)
     :param engine:`"docker"` or `"apple"`
     :param dry_run: if True, only report what would be removed
     """
     hdocker.set_docker_engine(engine)
     cmd_name = hdocker.get_docker_command()
     if engine == "docker":
+        # TODO(ai_gp): Build command using array with one option per line, then
+        # join with spaces (coding.rules.md:## How to Build Command Lines)
         list_cmd = (
             f'{cmd_name} ps -a --filter "status=exited" '
             '--filter "status=created" --filter "status=dead" '
@@ -420,6 +442,8 @@ def _cleanup_unused_networks(engine: str, *, dry_run: bool) -> None:
     hdocker.set_docker_engine(engine)
     cmd_name = hdocker.get_docker_command()
     if engine == "docker":
+        # TODO(ai_gp): Build command using array with one option per line, then
+        # join with spaces (coding.rules.md:## How to Build Command Lines)
         list_cmd = (
             f'{cmd_name} network ls --filter "dangling=true" '
             '--format "{{.ID}}: {{.Name}}"'
@@ -447,6 +471,8 @@ def _cleanup_dangling_volumes(engine: str, *, dry_run: bool) -> None:
     """
     Remove dangling volumes.
 
+    # TODO(ai_gp): Fix REST style formatting - add space after colon before
+    # backtick (coding.rules.md:## Use REST Style for Docstrings)
     :param engine:`"docker"` or `"apple"`
     :param dry_run: if True, only report what would be removed
     """
@@ -567,6 +593,8 @@ def _cleanup_dangling_images(engine: str, *, dry_run: bool) -> None:
     """
     Remove dangling images.
 
+    # TODO(ai_gp): Fix REST style formatting - add space after colon before
+    # backtick (coding.rules.md:## Use REST Style for Docstrings)
     :param engine:`"docker"` or `"apple"`
     :param dry_run: if True, only report what would be removed
     """
@@ -609,6 +637,9 @@ def _cleanup_dangling_images(engine: str, *, dry_run: bool) -> None:
         raise ValueError(f"Invalid engine='{engine}'")
 
 
+# TODO(ai_gp): Move constant to local scope in
+# `_get_image_dedup_key()` where it is used (coding.rules.md:## Place
+# Constants Close to Usage)
 # Matches the `<image_name>.<arch>.<hash>` image-tagging convention minted
 # by `hdocker.get_container_image_name()`, e.g.
 # `tmp.pandoc_texlive.arm64.4867bd42`, or, for images built before the tag

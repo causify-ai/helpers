@@ -1,4 +1,5 @@
 import argparse
+import logging
 import os
 import pprint
 import unittest.mock as umock
@@ -19,6 +20,8 @@ import claude_agent_sdk
 
 import dev_scripts_helpers.ai.cc_lib as dshaccli
 import linters2.cc_lint as lcclint
+
+_LOG = logging.getLogger(__name__)
 
 
 # #############################################################################
@@ -417,6 +420,8 @@ class Test_get_rules_for_topic(hunitest.TestCase):
 # #############################################################################
 
 
+# TODO(ai_gp): Create a helper method to reduce code duplication across test1-test5
+# (testing.rules.md:## Use Helper Methods When You Have Repetitive Tests)
 class Test_merge_small_chunks(hunitest.TestCase):
     """
     Tests for `cc_lint._merge_small_chunks()` function.
@@ -427,6 +432,9 @@ class Test_merge_small_chunks(hunitest.TestCase):
         Test that two small chunks under the same parent H1 are packed
         into one, with the repeated H1 header line stripped.
         """
+        # TODO(ai_gp): Use triple quotes and hprint.dedent() instead of
+        # escaped newlines (testing.rules.md:### Use Triple-Quote Assignment
+        # with `hprint.dedent` for Multi-line Strings)
         # Prepare inputs.
         chunks = [
             lcclint.RuleChunk(
@@ -771,6 +779,9 @@ class Test_filter_relevant_chunks(hunitest.TestCase):
         still parsed correctly.
         """
         # Prepare inputs.
+        # TODO(ai_gp): Use triple quotes and hprint.dedent() instead of
+        # escaped newlines (testing.rules.md:### Use Triple-Quote Assignment
+        # with `hprint.dedent` for Multi-line Strings)
         llm_reply = '```json\n["AWS Mocking", "Syscall Mocking"]\n```'
         # Prepare outputs.
         expected_titles = ["AWS Mocking", "Syscall Mocking"]
@@ -897,6 +908,8 @@ class Test_order_chunks_by_dependency(hunitest.TestCase):
 # #############################################################################
 
 
+# TODO(ai_gp): Split into multiple test classes, one per function
+# (testing.rules.md:## Test One Thing)
 class Test_journal(hunitest.TestCase):
     """
     Tests for `cc_lint`'s chunk journal helpers.
@@ -1269,6 +1282,9 @@ def _expected_message(
     header = hprint.dedent(header)
     msg.append(header)
     #
+    # TODO(ai_gp): Use triple quotes and hprint.dedent() instead of escaped
+    # newlines (testing.rules.md:### Use Triple-Quote Assignment with
+    # `hprint.dedent` for Multi-line Strings)
     fence_block = f"```\n{section_content}\n```"
     msg.append(hprint.indent(fence_block, num_spaces=2))
     #
@@ -1381,6 +1397,8 @@ class Test_build_rule_message(hunitest.TestCase):
 # #############################################################################
 
 
+# TODO(ai_gp): Add edge case tests (single rule, empty rules, etc.)
+# (testing.rules.md:## What to Test)
 class Test_build_incremental_messages(hunitest.TestCase):
     """
     Tests for `cc_lint._build_incremental_messages()` function.
@@ -1632,6 +1650,9 @@ class Test_process_file_one_shot_with_cc(hunitest.TestCase):
             add_todos=add_todos,
         )
         # Run test.
+        # TODO(ai_gp): Do not mock internal helpers; remove this patch and
+        # exercise the actual code (testing.rules.md:## Mock Only External
+        # Dependencies)
         with (
             hunteuti.capture_sys_calls() as sys_calls,
             umock.patch.object(
@@ -1648,6 +1669,9 @@ class Test_process_file_one_shot_with_cc(hunitest.TestCase):
         ]
         self.assertEqual(len(dispatch_calls), 1)
         prompt_content = hio.from_file("tmp.cc_lint.prompt.txt")
+        # TODO(ai_gp): Use assert_equal() to check the whole output instead
+        # of multiple assertIn() calls (testing.rules.md:## Compare Whole Output
+        # with `assert_equal`, Not Piecewise)
         self.assertIn(expected_prompt_substring, prompt_content)
         self.assertIn(file_path, prompt_content)
         self.assertTrue(topic_info)
@@ -1806,6 +1830,9 @@ class Test_process_file_one_shot_via_sequencer(hunitest.TestCase):
         )
         fake_client = dshaccli.FakeClaudeSDKClient(responses_by_call=[[msg]])
         # Run test.
+        # TODO(ai_gp): Do not mock internal helpers; remove this patch and
+        # exercise the actual code (testing.rules.md:## Mock Only External
+        # Dependencies)
         with (
             umock.patch("claude_agent_sdk.ClaudeSDKClient") as mock_client_cls,
             umock.patch.object(
@@ -1820,6 +1847,9 @@ class Test_process_file_one_shot_via_sequencer(hunitest.TestCase):
         self.assertEqual(rc, 0)
         self.assertEqual(len(fake_client.queried_prompts), 1)
         prompt = fake_client.queried_prompts[0]
+        # TODO(ai_gp): Use assert_equal() to check the whole output instead
+        # of multiple assertIn() calls (testing.rules.md:## Compare Whole Output
+        # with `assert_equal`, Not Piecewise)
         self.assertIn(expected_prompt_substring, prompt)
         self.assertIn(file_path, prompt)
         self.assertTrue(topic_info)
@@ -1971,6 +2001,9 @@ class Test_process_file_incremental(hunitest.TestCase):
             responses_by_call=[[msg]] * expected_num_messages
         )
         # Run test.
+        # TODO(ai_gp): Do not mock internal helpers; remove this patch and
+        # exercise the actual code (testing.rules.md:## Mock Only External
+        # Dependencies)
         with (
             umock.patch("claude_agent_sdk.ClaudeSDKClient") as mock_client_cls,
             umock.patch.object(
@@ -2335,6 +2368,9 @@ class Test_process_file_incremental(hunitest.TestCase):
         )
         fake_client = dshaccli.FakeClaudeSDKClient(responses_by_call=[[msg]])
         # Run test.
+        # TODO(ai_gp): Do not mock internal helpers; remove this patch and
+        # exercise the actual code (testing.rules.md:## Mock Only External
+        # Dependencies)
         with (
             umock.patch("claude_agent_sdk.ClaudeSDKClient") as mock_client_cls,
             umock.patch.object(
@@ -2371,6 +2407,9 @@ class Test_process_file_incremental(hunitest.TestCase):
             add_todos=True,
         )
         # Check outputs.
+        # TODO(ai_gp): Use assert_equal() to check the whole output instead
+        # of multiple assertIn() calls (testing.rules.md:## Compare Whole Output
+        # with `assert_equal`, Not Piecewise)
         self.assertIn("add a TODO(...) comment", prompts[0])
         self.assertIn(f"from `{rule_file}`", prompts[0])
 
@@ -2534,6 +2573,8 @@ class Test_process_file_dry_run_output(hunitest.TestCase):
         """
         Test `--mode stateless` with `--add_todos False`.
         """
+        # TODO(ai_gp): Assign parameters to variables before passing to helper
+        # (testing.rules.md:## Assign Variables and Then Call Functions)
         self.helper("stateless", False)
 
     def test2(self) -> None:

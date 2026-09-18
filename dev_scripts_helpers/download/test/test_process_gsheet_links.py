@@ -21,6 +21,9 @@ _LOG = logging.getLogger(__name__)
 # Test__update_article_urls
 # #############################################################################
 
+# TODO(ai_gp): Rename class to Test_update_article_urls (omit leading
+# underscore from function name in test class name per convention
+# (testing.rules.md:## Naming Conventions for a Function)
 
 class Test__update_article_urls(hunitest.TestCase):
     """
@@ -101,6 +104,9 @@ class Test__update_article_urls(hunitest.TestCase):
         expected = "https://example.com/a"
         # Run test.
         actual_rows = self.helper(rows)
+        # TODO(ai_gp): Move assertion into helper method; helper should accept
+        # optional expected parameter and perform checking
+        # (testing.rules.md:## Move Dedent and Checking into the Helper Method)
         # Check outputs.
         self.assert_equal(actual_rows[0]["Article_url"], expected)
 
@@ -137,9 +143,15 @@ class Test__update_article_urls(hunitest.TestCase):
         expected = "https://example.com/existing"
         # Run test.
         actual_rows = self.helper(rows)
+        # TODO(ai_gp): Move assertion into helper method; helper should accept
+        # optional expected parameter and perform checking
+        # (testing.rules.md:## Move Dedent and Checking into the Helper Method)
         # Check outputs.
         self.assert_equal(actual_rows[0]["Article_url"], expected)
 
+    # TODO(ai_gp): Remove test that asserts an exception is raised; the rule
+    # advises not to test error conditions (testing.rules.md:## What not to
+    # Test)
     def test4(self) -> None:
         """
         Test an empty rows list raises since the CSV has no data to
@@ -158,6 +170,9 @@ class Test__update_article_urls(hunitest.TestCase):
             with self.assertRaises(AssertionError):
                 dsgl._update_article_urls()
 
+    # TODO(ai_gp): Split into separate test methods for each case: non-HN URL
+    # copied as-is, HN URL resolved through API, and already-filled URL left
+    # untouched (testing.rules.md:## Test One Thing)
     def test5(self) -> None:
         """
         Test multiple rows are each updated independently: a non-HN URL is
@@ -200,6 +215,9 @@ class Test__update_article_urls(hunitest.TestCase):
 # Test__update_article_clusters
 # #############################################################################
 
+# TODO(ai_gp): Rename class to Test_update_article_clusters (omit leading
+# underscore from function name in test class name per convention
+# (testing.rules.md:## Naming Conventions for a Function)
 
 class Test__update_article_clusters(hunitest.TestCase):
     """
@@ -302,6 +320,9 @@ class Test__update_article_clusters(hunitest.TestCase):
         # Run test and check outputs.
         self.helper(rows, expected)
 
+    # TODO(ai_gp): Remove test that asserts an exception is raised; the rule
+    # advises not to test error conditions (testing.rules.md:## What not to
+    # Test)
     def test4(self) -> None:
         """
         Test an empty rows list raises since the CSV has no data to
@@ -320,6 +341,10 @@ class Test__update_article_clusters(hunitest.TestCase):
             with self.assertRaises(AssertionError):
                 dsgl._update_article_clusters()
 
+    # TODO(ai_gp): Split into separate test methods for each case: wrapped tag
+    # normalized and clustered, already-filled cluster left untouched, and
+    # unrecognized tag left with empty cluster (testing.rules.md:## Test One
+    # Thing)
     def test5(self) -> None:
         """
         Test multiple rows are each clustered independently: a wrapped tag
@@ -362,6 +387,9 @@ class Test__update_article_clusters(hunitest.TestCase):
 # Test__normalize_tag
 # #############################################################################
 
+# TODO(ai_gp): Rename class to Test_normalize_tag (omit leading underscore
+# from function name in test class name per convention
+# (testing.rules.md:## Naming Conventions for a Function)
 
 class Test__normalize_tag(hunitest.TestCase):
     """

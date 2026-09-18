@@ -49,6 +49,11 @@ def _extract_commands_from_call(calls: List[umock._Call]) -> List[str]:
 # #############################################################################
 
 
+# TODO(ai_gp): Base test class `_DockerFlowTestHelper` violates the rule to
+# avoid base test classes for shared code. Instead, create helper methods
+# within each test class to encapsulate shared utilities and have each test
+# method call these helpers directly (.claude/skills/testing.rules.md:##
+# Avoid Base Test Classes for Shared Code)
 @pytest.mark.need_dev_container
 @pytest.mark.skipif(
     not hserver.is_inside_docker(),
@@ -72,6 +77,11 @@ class _DockerFlowTestHelper(hunitest.TestCase):
         self.sys_calls = self.sys_calls_stack.enter_context(
             hunteuti.capture_sys_calls()
         )
+        # TODO(ai_gp): Should mock external dependencies (subprocess), not
+        # internal helpers. Replace mocks of
+        # `helpers.lib_tasks.lib_tasks_utils.run` and similar internal
+        # wrappers with mocks of external subprocess/shell execution
+        # (.claude/skills/testing.rules.md:## Mock Only External Dependencies)
         # Mock run.
         self.run_patcher = umock.patch("helpers.lib_tasks.lib_tasks_utils.run")
         self.mock_run = self.run_patcher.start()
@@ -156,6 +166,9 @@ class _DockerFlowTestHelper(hunitest.TestCase):
 # Test_docker_build_local_image1
 # #############################################################################
 
+# TODO(ai_gp): Test class name should follow convention `Test_<FunctionName>`
+# without numeric suffix. Rename to `Test_docker_build_local_image`
+# (.claude/skills/testing.rules.md:## Naming Conventions for a Function)
 
 @pytest.mark.skipif(
     not hserver.is_inside_docker(),
@@ -166,6 +179,13 @@ class Test_docker_build_local_image1(_DockerFlowTestHelper):
     Test building a local Docker image.
     """
 
+    # TODO(ai_gp): Test method name should be numbered only (e.g., `test1`)
+    # without descriptive prefix. Rename to `test1` and keep docstring
+    # explanation (.claude/skills/testing.rules.md:## Test Method Names)
+    # TODO(ai_gp): Use standard section comments for test structure:
+    # `# Prepare inputs.`, `# Prepare outputs.`, `# Run test and check
+    # outputs.` since helper handles checking (.claude/skills/testing.rules.md:##
+    # Use Three Sections in Testing Methods)
     def test_single_arch1(self) -> None:
         """
         Test building with single architecture.
@@ -176,6 +196,11 @@ class Test_docker_build_local_image1(_DockerFlowTestHelper):
         - Custom build arguments
         - Local user-specific tagging
         """
+        # TODO(ai_gp): Hardcoded parameters should be assigned to variables
+        # first before calling the function. Assign cache, base_image, and
+        # poetry_mode to variables, then pass them to the function
+        # (.claude/skills/testing.rules.md:## Assign Variables and Then Call
+        # Functions)
         # Call tested function.
         hltadore.docker_build_local_image(
             self.mock_ctx,
@@ -1259,6 +1284,11 @@ class Test_docker_update_prod_task_definition1(_DockerFlowTestHelper):
                 airflow_dags_s3_path="s3://test-bucket/dags/",
                 task_definition="test_task",
             )
+        # TODO(ai_gp): Should not use `self.assertIn()` for checking output.
+        # Instead, prepare the expected error message and use
+        # `self.assert_equal(actual, expected, fuzzy_match=True)`
+        # (.claude/skills/testing.rules.md:## Compare Whole Output with
+        # assert_equal, Not Piecewise)
         # Check the error message.
         self.assertIn("S3 upload failed", str(cm.exception))
         # Check whether rollback commands were executed.

@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 
 """
+# TODO(ai_gp): Use single quotes for file paths: 'notes_to_pdf.py' instead
+# of backticks (coding.rules.md:## Enclose File Paths in Single Quotes)
 Convert a "notes" text file into markdown suitable for `notes_to_pdf.py`.
 
 The full list of transformations is:
@@ -40,8 +42,12 @@ _LOG = logging.getLogger(__name__)
 # #############################################################################
 
 
+# TODO(ai_gp): Move _NUM_SPACES to _transform_lines() function scope
+# (coding.rules.md:## Place Constants Close to Usage)
 _NUM_SPACES = 2
 
+# TODO(ai_gp): Move _TRACE to _transform_lines() function scope
+# (coding.rules.md:## Place Constants Close to Usage)
 _TRACE = False
 
 
@@ -85,6 +91,8 @@ def _colorize_backticks(
     # and is not followed by curly braces (e.g., excludes `hello`{...}).
     # Prevents: opening backtick not followed by backtick or brace,
     # and closing backtick not followed by backtick or brace.
+    # TODO(ai_gp): Use re.VERBOSE for complex regex with lookahead/lookbehind
+    # (coding.rules.md:## Explain Complex Regex)
     pattern = r"(?<!})`(?!`|\{)([^`]+?)(?<!`)`(?!`)(?!\{)"
 
     def replace_func(m: Match) -> str:
@@ -290,6 +298,8 @@ def _extract_section(lines: List[str], title: str) -> Optional[List[str]]:
 # #############################################################################
 
 
+# TODO(ai_gp): Rename to _extract_slide_metadata() since it's only used
+# internally (coding.rules.md:## Mark Private Functions)
 def extract_slide_metadata(
     lines: List[str],
 ) -> Tuple[Dict[str, str], List[str]]:
@@ -445,6 +455,11 @@ def _generate_title_slide(
     return txt
 
 
+# TODO(ai_gp): Add layer description to section header in format
+# # #############################################################################
+# # <Layer Description>
+# # #############################################################################
+# (coding.rules.md:## Organize Functions Into Logical Layers)
 # #############################################################################
 
 
@@ -474,6 +489,9 @@ def _expand_includes(lines: List[str]) -> List[str]:
         if m:
             file_path = m.group(1)
             title = m.group(2)
+            # TODO(ai_gp): Enclose variables in single quotes:
+            # "Found include directive: file='%s' title='%s'"
+            # (coding.rules.md:## Enclose Variables in Single Quotes in Log Messages)
             _LOG.debug(
                 "Found include directive: file=%s title=%s",
                 file_path,
@@ -525,6 +543,8 @@ def _validate_slide_names(lines: List[str]) -> None:
     """
     header_list, _ = hmarkdo.extract_slides_from_markdown(lines)
     for header_info in header_list:
+        # TODO(ai_gp): Use hdbg.dassert_ne() instead of generic dassert()
+        # (coding.rules.md:## Use Specialized `dassert_*`)
         hdbg.dassert(
             header_info.description.strip(),
             "Slide at line %d has no title (only whitespace)",
@@ -612,6 +632,8 @@ def _validate_unique_slide_names(lines: List[str]) -> None:
 
 # TODO(gp): Use hmarkdown.process_lines().
 # TODO(gp): Add a way to control the list of transformations.
+# TODO(ai_gp): Replace Optional[List[str]] = None with List[str] = []
+# (coding.rules.md:## Minimize Default Values of None in Function Interfaces)
 def _transform_lines(
     lines: List[str],
     type_: str,
@@ -658,6 +680,8 @@ def _transform_lines(
     in_math_block = False
     # True inside an inline math context ($...$).
     in_inline_math = False
+    # TODO(ai_gp): Add progress bar using tqdm for expensive line processing loop
+    # (coding.rules.md:## Use Progress Bar)
     for i, line in enumerate(lines):
         _LOG.debug("%s:line=%s", i, line)
         # 1) Remove comment block.
@@ -770,6 +794,9 @@ def _transform_lines(
                 next_line_is_chapter = ((i + 1) < len(lines)) and (
                     lines[i + 1].startswith("#") or lines[i + 1].startswith("* ")
                 )
+                # TODO(ai_gp): Enclose variables in single quotes:
+                # "is_empty='%s' prev_line_is_verbatim='%s' next_line_is_chapter='%s'"
+                # (coding.rules.md:## Enclose Variables in Single Quotes in Log Messages)
                 _LOG.debug(
                     "  is_empty=%s prev_line_is_verbatim=%s next_line_is_chapter=%s",
                     is_empty,
@@ -782,6 +809,8 @@ def _transform_lines(
                     or next_line_is_verbatim
                 ):
                     out.append(" " * _NUM_SPACES + line)
+    # TODO(ai_gp): Replace empty comment with descriptive comment
+    # (coding.rules.md:## Replace Empty Lines with Comments)
     #
     if type_ == "slides":
         # Colorize links.
@@ -885,6 +914,8 @@ def _remove_headers(lines: List[str], max_level: int) -> List[str]:
     return out
 
 
+# TODO(ai_gp): Replace Optional[List[str]] = None with List[str] = []
+# (coding.rules.md:## Minimize Default Values of None in Function Interfaces)
 def _preprocess_lines(
     lines: List[str],
     type_: str,
@@ -955,6 +986,11 @@ def _preprocess_lines(
     return out
 
 
+# TODO(ai_gp): Add layer description to section header in format
+# # #############################################################################
+# # <Layer Description>
+# # #############################################################################
+# (coding.rules.md:## Organize Functions Into Logical Layers)
 # #############################################################################
 
 
@@ -1026,6 +1062,8 @@ def _main(parser: argparse.ArgumentParser) -> None:
     )
     # Get the selected actions.
     actions = hselacti.select_actions(args, _VALID_ACTIONS, _DEFAULT_ACTIONS)
+    # TODO(ai_gp): Enclose variable in single quotes: "Selected actions: '%s'"
+    # (coding.rules.md:## Enclose Variables in Single Quotes in Log Messages)
     _LOG.info("Selected actions: %s", actions)
     # Read file.
     txt = hio.from_file(args.input)

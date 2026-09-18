@@ -14,6 +14,11 @@ _LOG = logging.getLogger(__name__)
 # Test__cleanup_engine
 # #############################################################################
 
+# TODO(ai_gp): Test the public-facing command-line interface via _main()
+# or similar public functions before testing internal helper functions
+# (testing.rules.md:## Test From the Outside-In)
+# TODO(ai_gp): Add edge case tests for empty/malformed command outputs
+# (testing.rules.md:## What to Test)
 
 class Test__cleanup_engine(hunitest.TestCase):
     """
@@ -25,6 +30,10 @@ class Test__cleanup_engine(hunitest.TestCase):
         Test that a dry run on the docker engine only issues read-only
         commands.
         """
+        # Prepare inputs.
+        engine = "docker"
+        dry_run = True
+        images_order = "size"
         # Prepare outputs.
         expected = r"""[
         {
@@ -77,7 +86,7 @@ class Test__cleanup_engine(hunitest.TestCase):
         # Run test.
         with hunteuti.capture_sys_calls() as invocations:
             dshstdocl._cleanup_engine(
-                "docker", dry_run=True, images_order="size"
+                engine, dry_run=dry_run, images_order=images_order
             )
         # Check outputs.
         hunteuti.assert_sys_calls(self, invocations, expected)
@@ -87,6 +96,10 @@ class Test__cleanup_engine(hunitest.TestCase):
         Test that a real run on the docker engine issues the destructive
         prune commands.
         """
+        # Prepare inputs.
+        engine = "docker"
+        dry_run = False
+        images_order = "size"
         # Prepare outputs.
         expected = r"""[
         {
@@ -154,7 +167,7 @@ class Test__cleanup_engine(hunitest.TestCase):
         # Run test.
         with hunteuti.capture_sys_calls() as invocations:
             dshstdocl._cleanup_engine(
-                "docker", dry_run=False, images_order="size"
+                engine, dry_run=dry_run, images_order=images_order
             )
         # Check outputs.
         hunteuti.assert_sys_calls(self, invocations, expected)
@@ -166,6 +179,10 @@ class Test__cleanup_engine(hunitest.TestCase):
         status is still checked, since that check is not gated on
         `dry_run`).
         """
+        # Prepare inputs.
+        engine = "apple"
+        dry_run = True
+        images_order = "size"
         # Prepare outputs.
         expected = r"""[
         {
@@ -202,7 +219,7 @@ class Test__cleanup_engine(hunitest.TestCase):
         expected = hprint.dedent(expected)
         # Run test.
         with hunteuti.capture_sys_calls() as invocations:
-            dshstdocl._cleanup_engine("apple", dry_run=True, images_order="size")
+            dshstdocl._cleanup_engine(engine, dry_run=dry_run, images_order=images_order)
         # Check outputs.
         hunteuti.assert_sys_calls(self, invocations, expected)
 
@@ -211,6 +228,9 @@ class Test__cleanup_engine(hunitest.TestCase):
 # Test__parse_docker_size_to_bytes
 # #############################################################################
 
+# TODO(ai_gp): Test the public-facing command-line interface via _main()
+# or similar public functions before testing internal helper functions
+# (testing.rules.md:## Test From the Outside-In)
 
 class Test__parse_docker_size_to_bytes(hunitest.TestCase):
     """
@@ -267,6 +287,9 @@ class Test__parse_docker_size_to_bytes(hunitest.TestCase):
 # Test__format_bytes
 # #############################################################################
 
+# TODO(ai_gp): Test the public-facing command-line interface via _main()
+# or similar public functions before testing internal helper functions
+# (testing.rules.md:## Test From the Outside-In)
 
 class Test__format_bytes(hunitest.TestCase):
     """
@@ -283,6 +306,8 @@ class Test__format_bytes(hunitest.TestCase):
         # Run test.
         actual = dshstdocl._format_bytes(num_bytes)
         # Check outputs.
+        # TODO(ai_gp): Use assert_equal() for string comparison instead of
+        # assertEqual() (testing.rules.md:## Assertion Patterns)
         self.assertEqual(actual, expected)
 
     def test1(self) -> None:
@@ -323,6 +348,9 @@ class Test__format_bytes(hunitest.TestCase):
 # Test__parse_docker_system_df
 # #############################################################################
 
+# TODO(ai_gp): Test the public-facing command-line interface via _main()
+# or similar public functions before testing internal helper functions
+# (testing.rules.md:## Test From the Outside-In)
 
 class Test__parse_docker_system_df(hunitest.TestCase):
     """
@@ -363,6 +391,8 @@ class Test__parse_docker_system_df(hunitest.TestCase):
         # Run test.
         actual = dshstdocl._parse_docker_system_df(output)
         # Check outputs.
+        # TODO(ai_gp): Use assert_equal() for dict comparison instead of
+        # assertEqual() (testing.rules.md:## Assertion Patterns)
         self.assertEqual(actual, expected)
 
 
@@ -370,6 +400,9 @@ class Test__parse_docker_system_df(hunitest.TestCase):
 # Test__format_images_table
 # #############################################################################
 
+# TODO(ai_gp): Test the public-facing command-line interface via _main()
+# or similar public functions before testing internal helper functions
+# (testing.rules.md:## Test From the Outside-In)
 
 class Test__format_images_table(hunitest.TestCase):
     """
@@ -444,6 +477,9 @@ class Test__format_images_table(hunitest.TestCase):
 # Test__get_engines
 # #############################################################################
 
+# TODO(ai_gp): Test the public-facing command-line interface via _main()
+# or similar public functions before testing internal helper functions
+# (testing.rules.md:## Test From the Outside-In)
 
 class Test__get_engines(hunitest.TestCase):
     """
@@ -460,6 +496,8 @@ class Test__get_engines(hunitest.TestCase):
         # Run test.
         actual = dshstdocl._get_engines(docker_engine)
         # Check outputs.
+        # TODO(ai_gp): Use assert_equal() for list comparison instead of
+        # assertEqual() (testing.rules.md:## Assertion Patterns)
         self.assertEqual(actual, expected)
 
     def test1(self) -> None:
@@ -500,6 +538,9 @@ class Test__get_engines(hunitest.TestCase):
 # Test__is_engine_available
 # #############################################################################
 
+# TODO(ai_gp): Test the public-facing command-line interface via _main()
+# or similar public functions before testing internal helper functions
+# (testing.rules.md:## Test From the Outside-In)
 
 class Test__is_engine_available(hunitest.TestCase):
     """
@@ -521,7 +562,12 @@ class Test__is_engine_available(hunitest.TestCase):
             `hdocker.is_docker_running()`
         :param expected: expected result of `_is_engine_available()`
         """
+        # Prepare inputs.
+        engine = "docker"
         # Run test.
+        # TODO(ai_gp): Mock external dependencies (subprocess, etc.) instead of
+        # internal helpers hsystem.check_exec and hdocker.is_docker_running
+        # (testing.rules.md:## Mock Only External Dependencies)
         with (
             mock.patch(
                 "helpers.hsystem.check_exec",
@@ -532,7 +578,7 @@ class Test__is_engine_available(hunitest.TestCase):
                 return_value=docker_running,
             ),
         ):
-            actual = dshstdocl._is_engine_available("docker")
+            actual = dshstdocl._is_engine_available(engine)
         # Check outputs.
         self.assertEqual(actual, expected)
 
@@ -577,6 +623,9 @@ class Test__is_engine_available(hunitest.TestCase):
 # Test__cleanup_dangling_volumes
 # #############################################################################
 
+# TODO(ai_gp): Test the public-facing command-line interface via _main()
+# or similar public functions before testing internal helper functions
+# (testing.rules.md:## Test From the Outside-In)
 
 class Test__cleanup_dangling_volumes(hunitest.TestCase):
     """
@@ -595,7 +644,13 @@ class Test__cleanup_dangling_volumes(hunitest.TestCase):
         :param expected_cmds: expected `system()` commands, empty if no
             removal is expected
         """
+        # Prepare inputs.
+        list_output = hprint.dedent(list_output).strip()
+        engine = "docker"
         # Run test.
+        # TODO(ai_gp): Mock external dependencies (subprocess, etc.) instead of
+        # internal helper hsystem.system_to_string
+        # (testing.rules.md:## Mock Only External Dependencies)
         with (
             hunteuti.capture_sys_calls() as sys_calls,
             mock.patch(
@@ -603,13 +658,15 @@ class Test__cleanup_dangling_volumes(hunitest.TestCase):
                 return_value=(0, list_output),
             ),
         ):
-            dshstdocl._cleanup_dangling_volumes("docker", dry_run=dry_run)
+            dshstdocl._cleanup_dangling_volumes(engine, dry_run=dry_run)
         # Check outputs.
         actual_cmds = [
             call["args"][0]
             for call in sys_calls
             if call["function"] == "hsystem.system"
         ]
+        # TODO(ai_gp): Use assert_equal() for list comparison instead of
+        # assertEqual() (testing.rules.md:## Assertion Patterns)
         self.assertEqual(actual_cmds, expected_cmds)
 
     def test1(self) -> None:
@@ -621,7 +678,6 @@ class Test__cleanup_dangling_volumes(hunitest.TestCase):
         vol1
         vol2
         """
-        list_output = hprint.dedent(list_output).strip()
         dry_run = True
         # Prepare outputs.
         expected_cmds: List[str] = []
@@ -638,7 +694,6 @@ class Test__cleanup_dangling_volumes(hunitest.TestCase):
         vol1
         vol2
         """
-        list_output = hprint.dedent(list_output).strip()
         dry_run = False
         # Prepare outputs.
         expected_cmds = ["docker volume rm vol1 vol2"]
@@ -662,6 +717,9 @@ class Test__cleanup_dangling_volumes(hunitest.TestCase):
 # Test__cleanup_dangling_images
 # #############################################################################
 
+# TODO(ai_gp): Test the public-facing command-line interface via _main()
+# or similar public functions before testing internal helper functions
+# (testing.rules.md:## Test From the Outside-In)
 
 class Test__cleanup_dangling_images(hunitest.TestCase):
     """
@@ -680,7 +738,13 @@ class Test__cleanup_dangling_images(hunitest.TestCase):
         :param expected_cmds: expected `system()` commands, empty if no
             removal is expected
         """
+        # Prepare inputs.
+        list_output = hprint.dedent(list_output).strip()
+        engine = "docker"
         # Run test.
+        # TODO(ai_gp): Mock external dependencies (subprocess, etc.) instead of
+        # internal helper hsystem.system_to_string
+        # (testing.rules.md:## Mock Only External Dependencies)
         with (
             hunteuti.capture_sys_calls() as sys_calls,
             mock.patch(
@@ -688,13 +752,15 @@ class Test__cleanup_dangling_images(hunitest.TestCase):
                 return_value=(0, list_output),
             ),
         ):
-            dshstdocl._cleanup_dangling_images("docker", dry_run=dry_run)
+            dshstdocl._cleanup_dangling_images(engine, dry_run=dry_run)
         # Check outputs.
         actual_cmds = [
             call["args"][0]
             for call in sys_calls
             if call["function"] == "hsystem.system"
         ]
+        # TODO(ai_gp): Use assert_equal() for list comparison instead of
+        # assertEqual() (testing.rules.md:## Assertion Patterns)
         self.assertEqual(actual_cmds, expected_cmds)
 
     def test1(self) -> None:
@@ -706,7 +772,6 @@ class Test__cleanup_dangling_images(hunitest.TestCase):
         img1
         img2
         """
-        list_output = hprint.dedent(list_output).strip()
         dry_run = True
         # Prepare outputs.
         expected_cmds: List[str] = []
@@ -723,7 +788,6 @@ class Test__cleanup_dangling_images(hunitest.TestCase):
         img1
         img2
         """
-        list_output = hprint.dedent(list_output).strip()
         dry_run = False
         # Prepare outputs.
         expected_cmds = ["docker rmi -f img1 img2"]
@@ -747,6 +811,11 @@ class Test__cleanup_dangling_images(hunitest.TestCase):
 # Test__cleanup_unused_networks
 # #############################################################################
 
+# TODO(ai_gp): Test the public-facing command-line interface via _main()
+# or similar public functions before testing internal helper functions
+# (testing.rules.md:## Test From the Outside-In)
+# TODO(ai_gp): Add edge case tests for empty network list output
+# (testing.rules.md:## What to Test)
 
 class Test__cleanup_unused_networks(hunitest.TestCase):
     """
@@ -777,15 +846,25 @@ class Test__cleanup_unused_networks(hunitest.TestCase):
             for call in sys_calls
             if call["function"] == "hsystem.system_to_string"
         ]
+        # TODO(ai_gp): Replace piecewise checking with whole output comparison
+        # using assert_equal() instead of multiple assertEqual() calls
+        # (testing.rules.md:## Compare Whole Output with `assert_equal`, Not
+        # Piecewise)
         if expected_last_cmd is None:
+            # TODO(ai_gp): Use assert_equal() for list comparison instead of
+            # assertEqual() (testing.rules.md:## Assertion Patterns)
             self.assertEqual(system_to_string_calls, [])
         else:
+            # TODO(ai_gp): Use assert_equal() for tuple/dict comparison instead
+            # of assertEqual() (testing.rules.md:## Assertion Patterns)
             self.assertEqual(
                 system_to_string_calls[-1]["args"], (expected_last_cmd,)
             )
         system_calls = [
             call for call in sys_calls if call["function"] == "hsystem.system"
         ]
+        # TODO(ai_gp): Use assert_equal() for list comparison instead of
+        # assertEqual() (testing.rules.md:## Assertion Patterns)
         self.assertEqual(system_calls, [])
 
     def test1(self) -> None:
@@ -818,6 +897,9 @@ class Test__cleanup_unused_networks(hunitest.TestCase):
 # Test__cleanup_build_cache
 # #############################################################################
 
+# TODO(ai_gp): Test the public-facing command-line interface via _main()
+# or similar public functions before testing internal helper functions
+# (testing.rules.md:## Test From the Outside-In)
 
 class Test__cleanup_build_cache(hunitest.TestCase):
     """
