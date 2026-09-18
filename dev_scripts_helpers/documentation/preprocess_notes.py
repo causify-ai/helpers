@@ -101,44 +101,40 @@ def _colorize_backticks(
             # For Typst, use #text with the content directly (no inner backticks).
             # The content is rendered as monospace colored text via #text(fill:
             # color)[content].
-            # TODO(ai_gp): Convert this with (in, out) into a loop and shorter
-            # comments.
             # Wrap in backticks with {=typst} so pandoc treats it as raw typst code.
-            # Escape tildes (~) since they have special meaning in typst.
-            escaped_text = matched_text.replace("~", r"\~")
-            # Escape `_` unconditionally since Typst treats it as underscore
-            # emphasis markup depending on the surrounding characters (its
-            # exact flanking rule is a CommonMark-style delimiter-run check,
-            # too brittle to replicate with a partial escape). E.g. a
-            # trailing `_` before `]` or a leading `_` before a letter both
-            # leave an "unclosed delimiter" (`lint_*`, `dev_scripts_<repo>`,
-            # `_execute()`), while a mid-word `_` (`weeks_to_xmas`) happens
-            # to be safe unescaped, but escaping it too still renders the
-            # same literal underscore, so there is no downside.
-            escaped_text = escaped_text.replace("_", r"\_")
-            # Escape `<` since Typst parses `<name>` as a label reference
-            # (e.g., `<prompt>`), which silently drops the text instead of
-            # rendering it literally.
-            escaped_text = escaped_text.replace("<", r"\<")
-            # Escape `*` since Typst parses it as strong-emphasis markup
-            # (e.g., `lint_*` left an unclosed `*` delimiter and broke
-            # compilation).
-            escaped_text = escaped_text.replace("*", r"\*")
-            # Escape `//` since Typst treats it as a line comment, which
-            # swallows the rest of the line, including the closing `]`
-            # (e.g., `//helpers`).
-            escaped_text = escaped_text.replace("//", r"\//")
-            # Escape `#` since Typst parses it as the start of code mode
-            # (e.g., `# nosemgrep` fails with "expected expression" since
-            # `#` followed by a space is not a valid expression).
-            escaped_text = escaped_text.replace("#", r"\#")
-            # Escape `$` since Typst parses it as math-mode delimiters
-            # (e.g., `$FILE` is parsed as math content and fails with
-            # "unknown variable: FILE").
-            escaped_text = escaped_text.replace("$", r"\$")
-            # Escape `@` since Typst parses `@name` as a citation/reference
-            # (e.g., `@task` fails with "label `<task>` does not exist").
-            escaped_text = escaped_text.replace("@", r"\@")
+            # Escape each Typst special character, in this exact order (order
+            # matters: an earlier substitution's output must not be re-matched
+            # by a later rule).
+            _TYPST_ESCAPE_CHARS = [
+                # `~`: has special meaning in Typst.
+                ("~", r"\~"),
+                # `_`: triggers underscore-emphasis markup and can leave an
+                # "unclosed delimiter" (e.g., `lint_*`, `dev_scripts_<repo>`),
+                # so it is escaped unconditionally even where it is safe
+                # unescaped (e.g., `weeks_to_xmas`).
+                ("_", r"\_"),
+                # `<`: parsed as a label reference `<name>` (e.g., `<prompt>`),
+                # silently dropping the text.
+                ("<", r"\<"),
+                # `*`: parsed as strong-emphasis markup (e.g., `lint_*` left an
+                # unclosed `*` delimiter and broke compilation).
+                ("*", r"\*"),
+                # `//`: treated as a line comment, swallowing the rest of the
+                # line including the closing `]` (e.g., `//helpers`).
+                ("//", r"\//"),
+                # `#`: starts code mode (e.g., `# nosemgrep` fails with
+                # "expected expression").
+                ("#", r"\#"),
+                # `$`: starts math-mode delimiters (e.g., `$FILE` fails with
+                # "unknown variable: FILE").
+                ("$", r"\$"),
+                # `@`: parsed as a citation/reference (e.g., `@task` fails with
+                # "label `<task>` does not exist").
+                ("@", r"\@"),
+            ]
+            escaped_text = matched_text
+            for char, escaped in _TYPST_ESCAPE_CHARS:
+                escaped_text = escaped_text.replace(char, escaped)
             txt = f"`#text(fill: {color})[{escaped_text}]`{{=typst}}"
         return txt
 
@@ -385,8 +381,19 @@ def _generate_title_slide_typst(metadata: Dict[str, str]) -> List[str]:
     logo_path = "msml610/lectures_source/figures/UMD_Logo.png"
     if "data605" in course_title.lower() or "DATA605" in course_title:
         logo_path = "data605/lectures_source/images/UMD_Logo.png"
-    # TODO(ai_gp): Use r""" and dedent
-    version_line = f"\n          #v(0.3cm)\n          #text(size: 14pt, fill: rgb(\"#666666\"))[Version: {version}]" if version else ""
+    if version:
+        # Note: the leading blank line and the 10-space indentation below are
+        # important: `version_line` is spliced into `txt`'s last `{}` below,
+        # and the single `hprint.dedent(txt)` call at the end of this function
+        # relies on this indentation matching the sibling Typst lines (e.g.
+        # `#v(1.5cm)`) to compute the common indentation to strip. Dedenting
+        # `version_line` on its own here would zero out its indentation and
+        # corrupt that later computation.
+        version_line = rf"""
+          #v(0.3cm)
+          #text(size: 14pt, fill: rgb("#666666"))[Version: {version}]"""
+    else:
+        version_line = ""
     txt = r"""
         ====
 

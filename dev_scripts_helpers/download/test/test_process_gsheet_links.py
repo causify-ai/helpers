@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 import logging
+from typing import Optional
 import unittest.mock as umock
 
 import pytest
@@ -50,7 +51,12 @@ class Test__update_article_urls(hunitest.TestCase):
             actual_rows = dshdbou.read_csv(urls_csv)
         return actual_rows
 
-    def helper_mock_hn_api(self, rows: list, extracted_url: str) -> list:
+    def helper_mock_hn_api(
+        self,
+        rows: list,
+        extracted_url: str,
+        expected: Optional[str],
+    ) -> list:
         """
         Same as `helper()`, but also mocks `requests.get()` (the real
         external dependency behind `_extract_article_url()`) to return
@@ -60,6 +66,9 @@ class Test__update_article_urls(hunitest.TestCase):
 
         :param rows: rows to write to the HN CSV
         :param extracted_url: article URL the mocked HN API responds with
+        :param expected: expected `Article_url` of the first row, or
+            `None` to skip that check (e.g., when the caller checks
+            multiple rows itself)
         :return: rows read back from the URLs CSV
         """
         fake_response = umock.Mock()
@@ -72,6 +81,8 @@ class Test__update_article_urls(hunitest.TestCase):
                 actual_rows = self.helper(rows)
         finally:
             hcacsimp.enable_caching(True)
+        if expected is not None:
+            self.assert_equal(actual_rows[0]["Article_url"], expected)
         return actual_rows
 
     def test1(self) -> None:
@@ -107,11 +118,8 @@ class Test__update_article_urls(hunitest.TestCase):
         ]
         # Prepare outputs.
         expected = "https://example.com/extracted"
-        # Run test.
-        actual_rows = self.helper_mock_hn_api(rows, expected)
-        # Check outputs.
-        # TODO(ai_gp): Move the assert_equal in the helper
-        self.assert_equal(actual_rows[0]["Article_url"], expected)
+        # Run test and check outputs.
+        self.helper_mock_hn_api(rows, expected, expected)
 
     def test3(self) -> None:
         """
@@ -182,7 +190,7 @@ class Test__update_article_urls(hunitest.TestCase):
             "https://example.com/existing",
         ]
         # Run test.
-        actual_rows = self.helper_mock_hn_api(rows, extracted_url)
+        actual_rows = self.helper_mock_hn_api(rows, extracted_url, None)
         actual = [row["Article_url"] for row in actual_rows]
         # Check outputs.
         self.assert_equal(str(actual), str(expected))
@@ -198,7 +206,7 @@ class Test__update_article_clusters(hunitest.TestCase):
     Test `process_gsheet_links._update_article_clusters()`.
     """
 
-    def helper(self, rows: list) -> list:
+    def helper(self, rows: list, expected: Optional[dict]) -> list:
         """
         Write `rows` as the tags CSV, run `_update_article_clusters()`, and
         return the resulting clustered rows.
@@ -209,6 +217,9 @@ class Test__update_article_clusters(hunitest.TestCase):
 
         :param rows: rows to write to the tags CSV (must all share the same
             columns)
+        :param expected: expected first row of the clusters CSV, or `None`
+            to skip that check (e.g., when the caller checks multiple rows
+            itself)
         :return: rows read back from the clusters CSV
         """
         scratch_dir = self.get_scratch_space()
@@ -220,6 +231,8 @@ class Test__update_article_clusters(hunitest.TestCase):
             dshdbou.write_csv(tags_csv, rows, fieldnames=columns)
             clusters_csv = dsgl._update_article_clusters()
             actual_rows = dshdbou.read_csv(clusters_csv)
+        if expected is not None:
+            self.assert_equal(str(actual_rows[0]), str(expected))
         return actual_rows
 
     def test1(self) -> None:
@@ -246,11 +259,8 @@ class Test__update_article_clusters(hunitest.TestCase):
             "Article_tag": rows[0]["Article_tag"],
             "Article_cluster": "AI",
         }
-        # Run test.
-        actual_rows = self.helper(rows)
-        # Check outputs.
-        # TODO(ai_gp): Move the assert_equal in the helper
-        self.assert_equal(str(actual_rows[0]), str(expected))
+        # Run test and check outputs.
+        self.helper(rows, expected)
 
     def test2(self) -> None:
         """
@@ -266,12 +276,11 @@ class Test__update_article_clusters(hunitest.TestCase):
                 "Article_cluster": "Dev tools",
             },
         ]
-        # Prepare outputs.
-        expected = "Dev tools"
-        # Run test.
-        actual_rows = self.helper(rows)
-        # Check outputs.
-        self.assert_equal(actual_rows[0]["Article_cluster"], expected)
+        # Prepare outputs. The row is already fully filled in, so it is
+        # left unchanged.
+        expected = rows[0]
+        # Run test and check outputs.
+        self.helper(rows, expected)
 
     def test3(self) -> None:
         """
@@ -287,12 +296,11 @@ class Test__update_article_clusters(hunitest.TestCase):
                 "Article_cluster": "",
             },
         ]
-        # Prepare outputs.
-        expected = ""
-        # Run test.
-        actual_rows = self.helper(rows)
-        # Check outputs.
-        self.assert_equal(actual_rows[0]["Article_cluster"], expected)
+        # Prepare outputs. The tag is unrecognized, so the row is left
+        # unchanged.
+        expected = rows[0]
+        # Run test and check outputs.
+        self.helper(rows, expected)
 
     def test4(self) -> None:
         """
@@ -344,7 +352,7 @@ class Test__update_article_clusters(hunitest.TestCase):
         # Prepare outputs.
         expected = ["AI", "Dev tools", ""]
         # Run test.
-        actual_rows = self.helper(rows)
+        actual_rows = self.helper(rows, None)
         actual = [row["Article_cluster"] for row in actual_rows]
         # Check outputs.
         self.assert_equal(str(actual), str(expected))

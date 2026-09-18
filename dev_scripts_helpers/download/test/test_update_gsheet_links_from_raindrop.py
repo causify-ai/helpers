@@ -23,11 +23,15 @@ class Test__combine_raindrop_with_gsheet_links(hunitest.TestCase):
     """
 
     def helper(
-        self, gsheet_columns: list, gsheet_rows: list, raindrop_rows: list
-    ) -> list:
+        self,
+        gsheet_columns: list,
+        gsheet_rows: list,
+        raindrop_rows: list,
+        expected: list,
+    ) -> None:
         """
         Write `gsheet_rows`/`raindrop_rows` as the two input CSVs, run
-        `_combine_raindrop_with_gsheet_links()`, and return the resulting
+        `_combine_raindrop_with_gsheet_links()`, and check the resulting
         rows.
 
         Changes the current directory to the test's scratch space so that
@@ -40,7 +44,7 @@ class Test__combine_raindrop_with_gsheet_links(hunitest.TestCase):
         :param gsheet_rows: pre-existing rows in the gsheet CSV
         :param raindrop_rows: rows to write to the Raindrop CSV (with `id`,
             `title`, `url`, `created` columns)
-        :return: rows read back from the combined CSV
+        :param expected: expected rows read back from the combined CSV
         """
         scratch_dir = self.get_scratch_space()
         cwd = os.getcwd()
@@ -64,7 +68,8 @@ class Test__combine_raindrop_with_gsheet_links(hunitest.TestCase):
             actual_rows = dshdbou.read_csv(combined_csv)
         finally:
             os.chdir(cwd)
-        return actual_rows
+        # Check outputs.
+        self.assert_equal(str(actual_rows), str(expected))
 
     def test1(self) -> None:
         """
@@ -103,9 +108,7 @@ class Test__combine_raindrop_with_gsheet_links(hunitest.TestCase):
             gsheet_rows[0],
         ]
         # Run test.
-        actual_rows = self.helper(gsheet_columns, gsheet_rows, raindrop_rows)
-        # Check outputs.
-        self.assert_equal(str(actual_rows), str(expected_rows))
+        self.helper(gsheet_columns, gsheet_rows, raindrop_rows, expected_rows)
 
     def test2(self) -> None:
         """
@@ -141,10 +144,7 @@ class Test__combine_raindrop_with_gsheet_links(hunitest.TestCase):
             gsheet_rows[0],
         ]
         # Run test.
-        actual_rows = self.helper(gsheet_columns, gsheet_rows, raindrop_rows)
-        # Check outputs.
-        # TODO(ai_gp): Move the assert_equal in the helper
-        self.assert_equal(str(actual_rows), str(expected_rows))
+        self.helper(gsheet_columns, gsheet_rows, raindrop_rows, expected_rows)
 
     def test3(self) -> None:
         """
@@ -164,9 +164,7 @@ class Test__combine_raindrop_with_gsheet_links(hunitest.TestCase):
         # Prepare outputs.
         expected_rows = gsheet_rows
         # Run test.
-        actual_rows = self.helper(gsheet_columns, gsheet_rows, raindrop_rows)
-        # Check outputs.
-        self.assert_equal(str(actual_rows), str(expected_rows))
+        self.helper(gsheet_columns, gsheet_rows, raindrop_rows, expected_rows)
 
     def test4(self) -> None:
         """
@@ -184,9 +182,13 @@ class Test__combine_raindrop_with_gsheet_links(hunitest.TestCase):
                 "created": "2024-06-01T12:30:00.000Z",
             },
         ]
+        # Prepare outputs. Never reached: the call raises before comparing.
+        expected_rows: list = []
         # Run test and check output.
         with self.assertRaises(ValueError):
-            self.helper(gsheet_columns, gsheet_rows, raindrop_rows)
+            self.helper(
+                gsheet_columns, gsheet_rows, raindrop_rows, expected_rows
+            )
 
 
 # #############################################################################
@@ -202,13 +204,14 @@ class Test__download_raindrop_data(hunitest.TestCase):
     def helper(
         self,
         gsheet_timestamp: str,
+        expected: list,
         *,
         get_return_value: Optional[umock.MagicMock] = None,
         get_side_effect: Optional[Callable] = None,
-    ) -> list:
+    ) -> None:
         """
         Run `_download_raindrop_data()` against a mocked `requests.get()`
-        and return the rows written to the Raindrop CSV.
+        and check the rows written to the Raindrop CSV.
 
         Changes the current directory to the test's scratch space so that
         the fixed relative `./tmp.update_gsheet_links_from_raindrop.*`
@@ -220,11 +223,11 @@ class Test__download_raindrop_data(hunitest.TestCase):
 
         :param gsheet_timestamp: `Timestamp` value written to the gsheet
             CSV, used as the cutoff for filtering Raindrop bookmarks
+        :param expected: expected rows read back from the Raindrop CSV
         :param get_return_value: fixed response for the mocked
             `requests.get()` (mutually exclusive with `get_side_effect`)
         :param get_side_effect: `side_effect` callable for the mocked
             `requests.get()` (mutually exclusive with `get_return_value`)
-        :return: rows read back from the Raindrop CSV
         """
         scratch_dir = self.get_scratch_space()
         cwd = os.getcwd()
@@ -253,7 +256,8 @@ class Test__download_raindrop_data(hunitest.TestCase):
             actual_rows = dshdbou.read_csv(raindrop_csv)
         finally:
             os.chdir(cwd)
-        return actual_rows
+        # Check outputs.
+        self.assert_equal(str(actual_rows), str(expected))
 
     @staticmethod
     def _build_response(items: list) -> umock.MagicMock:
@@ -293,9 +297,9 @@ class Test__download_raindrop_data(hunitest.TestCase):
             },
         ]
         # Run test.
-        actual_rows = self.helper(gsheet_timestamp, get_return_value=response)
-        # Check outputs.
-        self.assert_equal(str(actual_rows), str(expected_rows))
+        self.helper(
+            gsheet_timestamp, expected_rows, get_return_value=response
+        )
 
     def test2(self) -> None:
         """
@@ -315,10 +319,9 @@ class Test__download_raindrop_data(hunitest.TestCase):
         # Prepare outputs.
         expected_rows: list = []
         # Run test.
-        actual_rows = self.helper(gsheet_timestamp, get_return_value=response)
-        # Check outputs.
-        # TODO(ai_gp): Move the assert_equal in the helper
-        self.assert_equal(str(actual_rows), str(expected_rows))
+        self.helper(
+            gsheet_timestamp, expected_rows, get_return_value=response
+        )
 
     def test3(self) -> None:
         """
@@ -358,11 +361,9 @@ class Test__download_raindrop_data(hunitest.TestCase):
             for idx in range(51)
         ]
         # Run test.
-        actual_rows = self.helper(
-            gsheet_timestamp, get_side_effect=get_side_effect
+        self.helper(
+            gsheet_timestamp, expected_rows, get_side_effect=get_side_effect
         )
-        # Check outputs.
-        self.assert_equal(str(actual_rows), str(expected_rows))
 
 
 # #############################################################################

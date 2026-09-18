@@ -11,8 +11,6 @@ import helpers.hunit_test_utils as hunteuti
 _LOG = logging.getLogger(__name__)
 
 
-# TODO(ai_gp): Improve test to follow testing.rules.txt
-
 # #############################################################################
 # Test__find_gs_binary
 # #############################################################################
@@ -38,7 +36,7 @@ class Test__find_gs_binary(hunitest.TestCase):
         with mock.patch.object(dshdcpd, "_GS_CANDIDATE_PATHS", [gs_binary]):
             actual = dshdcpd._find_gs_binary()
         # Check outputs.
-        self.assertEqual(actual, expected)
+        self.assert_equal(actual, expected)
 
     def test2(self) -> None:
         """
@@ -55,7 +53,7 @@ class Test__find_gs_binary(hunitest.TestCase):
         ):
             actual = dshdcpd._find_gs_binary()
         # Check outputs.
-        self.assertEqual(actual, expected)
+        self.assert_equal(actual, expected)
 
 
 # #############################################################################
@@ -116,7 +114,7 @@ class Test__compress_pdf_ghostscript_global(hunitest.TestCase):
         # Check outputs.
         hunteuti.assert_sys_calls(self, sys_calls, expected_str)
         actual_content = hio.from_file(output_file)
-        self.assertEqual(actual_content, expected_content)
+        self.assert_equal(actual_content, expected_content)
         self.assertFalse(os.path.exists(tmp_output_file))
 
     def test1(self) -> None:
@@ -227,11 +225,11 @@ class Test__compress_pdf_ghostscript_dockerized(hunitest.TestCase):
         container_image = calls[0][3]
         tool_cmd = calls[0][5]
         mode = calls[0][6]
-        self.assertEqual(container_image, "minidocks/ghostscript")
-        self.assertEqual(mode, "system")
+        self.assert_equal(container_image, "minidocks/ghostscript")
+        self.assert_equal(mode, "system")
         self.assert_equal(tool_cmd, expected_cmd)
         actual_content = hio.from_file(output_file)
-        self.assertEqual(actual_content, expected_content)
+        self.assert_equal(actual_content, expected_content)
         self.assertFalse(os.path.exists(tmp_output_file))
 
     def test1(self) -> None:
@@ -276,6 +274,17 @@ class Test_compress_pdf_py(hunitest.TestCase):
         with mock.patch("sys.argv", argv):
             dshdcpd._main(parser)
 
+    def _check_output(self, output_file: str, expected_content: str) -> None:
+        """
+        Check that `output_file` contains `expected_content`.
+
+        :param output_file: path to the file to check
+        :param expected_content: expected file content
+        """
+        # Check outputs.
+        actual_content = hio.from_file(output_file)
+        self.assert_equal(actual_content, expected_content)
+
     def test1(self) -> None:
         """
         Test compressing a PDF in place through the CLI with the
@@ -308,8 +317,7 @@ class Test_compress_pdf_py(hunitest.TestCase):
         ):
             self._run_main(argv)
         # Check outputs.
-        actual_content = hio.from_file(input_file)
-        self.assertEqual(actual_content, expected_content)
+        self._check_output(input_file, expected_content)
 
     def test2(self) -> None:
         """
@@ -345,5 +353,4 @@ class Test_compress_pdf_py(hunitest.TestCase):
         ):
             self._run_main(argv)
         # Check outputs.
-        actual_content = hio.from_file(input_file)
-        self.assertEqual(actual_content, expected_content)
+        self._check_output(input_file, expected_content)

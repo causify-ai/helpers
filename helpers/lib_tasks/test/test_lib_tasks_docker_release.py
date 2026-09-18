@@ -1,3 +1,4 @@
+import contextlib
 import logging
 import os
 import unittest.mock as umock
@@ -9,6 +10,7 @@ import pytest
 
 import helpers.hgit as hgit
 import helpers.hunit_test as hunitest
+import helpers.hunit_test_utils as hunteuti
 import helpers.hserver as hserver
 import helpers.lib_tasks.lib_tasks_docker as hlitadoc
 import helpers.lib_tasks.lib_tasks_docker_release as hltadore
@@ -65,11 +67,11 @@ class _DockerFlowTestHelper(hunitest.TestCase):
         self.tear_down_test()
 
     def set_up_test(self) -> None:
-        # Mock system calls.
-        # TODO(ai_gp): Use hunteuti.capture_sys_calls() instead of mocking
-        #  `helpers.hsystem.system` directly.
-        self.system_patcher = umock.patch("helpers.hsystem.system")
-        self.mock_system = self.system_patcher.start()
+        # Capture system calls instead of executing them for real.
+        self.sys_calls_stack = contextlib.ExitStack()
+        self.sys_calls = self.sys_calls_stack.enter_context(
+            hunteuti.capture_sys_calls()
+        )
         # Mock run.
         self.run_patcher = umock.patch("helpers.lib_tasks.lib_tasks_utils.run")
         self.mock_run = self.run_patcher.start()
@@ -104,7 +106,6 @@ class _DockerFlowTestHelper(hunitest.TestCase):
         )
         #
         self.patchers = {
-            "system": self.system_patcher,
             "run": self.run_patcher,
             "version": self.version_patcher,
             "docker_login": self.docker_login_patcher,
@@ -125,6 +126,7 @@ class _DockerFlowTestHelper(hunitest.TestCase):
         """
         for patcher in self.patchers.values():
             patcher.stop()
+        self.sys_calls_stack.close()
 
     def _check_docker_command_output(
         self, expected: str, call_args_list: List[umock._Call]

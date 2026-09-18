@@ -64,6 +64,7 @@ class Test_CustomHelpFormatter_split_lines(hunitest.TestCase):
         :param expected: expected output lines, newline-separated
         """
         # Prepare inputs.
+        text = hprint.dedent(text)
         formatter = hparser.CustomHelpFormatter("prog")
         # Run test.
         actual = formatter._split_lines(text, width)
@@ -71,7 +72,6 @@ class Test_CustomHelpFormatter_split_lines(hunitest.TestCase):
         # Check outputs.
         self.assert_equal(actual, expected, dedent=True)
 
-    # TODO(ai_gp): Move all the dedent in the helper
     def test1(self) -> None:
         """
         Test that a bullet hand-wrapped across several physical lines is
@@ -85,7 +85,6 @@ class Test_CustomHelpFormatter_split_lines(hunitest.TestCase):
           invocation, shelling out to the `cc` wrapper
         - 'session' applies incrementally
         """
-        text = hprint.dedent(text)
         width = 40
         # Prepare outputs.
         expected = """
@@ -109,7 +108,6 @@ class Test_CustomHelpFormatter_split_lines(hunitest.TestCase):
           Available: py (Python)
           Default: 'py,ipynb,md'
         """
-        text = hprint.dedent(text)
         width = 66
         # Prepare outputs.
         expected = """
@@ -536,7 +534,21 @@ class Test_CustomHelpFormatter_format_help(hunitest.TestCase):
         )
         return parser
 
-    # TODO(ai_gp): Factor common code and assert_equal in an helper.
+    def helper(self, formatter_class: type, expected: str) -> None:
+        """
+        Check `parser.format_help()`'s output for `formatter_class`.
+
+        :param formatter_class: formatter class to pass to
+            `_build_parser()`
+        :param expected: expected rendered help text
+        """
+        # Prepare inputs.
+        parser = self._build_parser(formatter_class)
+        # Run test.
+        actual = parser.format_help()
+        # Check outputs.
+        self.assert_equal(actual, expected, dedent=True)
+
     def test1(self) -> None:
         """
         Test that `CustomHelpFormatter` wraps to 90 columns by default,
@@ -552,8 +564,6 @@ class Test_CustomHelpFormatter_format_help(hunitest.TestCase):
         Test that a required `--mode` doesn't render "(default: None)",
         while an optional with a real default still does.
         """
-        # Prepare inputs.
-        parser = self._build_parser(_ForceNoColorFormatter)
         # Prepare outputs.
         expected = """
         usage: myprog [-h] [--files FILES] [--max_chunk_tokens MAX_CHUNK_TOKENS] --mode {a,b,c}
@@ -568,17 +578,13 @@ class Test_CustomHelpFormatter_format_help(hunitest.TestCase):
                                 - 'b' does another
         """
         # Run test.
-        actual = parser.format_help()
-        # Check outputs.
-        self.assert_equal(actual, expected, dedent=True)
+        self.helper(_ForceNoColorFormatter, expected)
 
     def test3(self) -> None:
         """
         Test that a hand-wrapped bullet list is reflowed cleanly in the
         rendered help (no mid-word orphan lines).
         """
-        # Prepare inputs.
-        parser = self._build_parser(_ForceNoColorFormatter)
         # Prepare outputs.
         expected = """
         usage: myprog [-h] [--files FILES] [--max_chunk_tokens MAX_CHUNK_TOKENS] --mode {a,b,c}
@@ -593,9 +599,7 @@ class Test_CustomHelpFormatter_format_help(hunitest.TestCase):
                                 - 'b' does another
         """
         # Run test.
-        actual = parser.format_help()
-        # Check outputs.
-        self.assert_equal(actual, expected, dedent=True)
+        self.helper(_ForceNoColorFormatter, expected)
 
     def test4(self) -> None:
         """

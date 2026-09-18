@@ -1,7 +1,7 @@
 import logging
 import os
 import shutil
-from typing import Callable, List
+from typing import Callable, List, Optional
 
 import pytest
 
@@ -3563,11 +3563,39 @@ class Test_perform_actions_smd_type(hunitest.TestCase):
 # #############################################################################
 
 
-# TODO(ai_gp): Use a helpers
 class Test_perform_actions_typ_type(hunitest.TestCase):
     """
     Test that `_perform_actions` recognizes the `typ` file type.
     """
+
+    def helper(
+        self,
+        lines: List[str],
+        file_name: str,
+        expected: List[str],
+        *,
+        file_type_override: str = "",
+        actions: Optional[List[str]] = None,
+    ) -> None:
+        """
+        Call `_perform_actions()` and compare the result to `expected`.
+
+        :param lines: input lines to process
+        :param file_name: name of the file to infer the file type from
+        :param expected: expected output lines
+        :param file_type_override: explicit file type, overriding inference
+            from `file_name`
+        :param actions: actions to run, or `None` to run the default actions
+        """
+        # Run test.
+        actual = dshdllite._perform_actions(
+            lines,
+            file_name,
+            file_type_override=file_type_override,
+            actions=actions,
+        )
+        # Check outputs.
+        self.assertEqual(actual, expected)
 
     def test1(self) -> None:
         """
@@ -3580,10 +3608,11 @@ class Test_perform_actions_typ_type(hunitest.TestCase):
         # Prepare inputs.
         lines = ["* not", "a bullet in Typst"]
         file_name = "chapter.typ"
+        actions = []
+        # Prepare outputs: unchanged, since no action ran.
+        expected = lines
         # Run test.
-        actual = dshdllite._perform_actions(lines, file_name, actions=[])
-        # Check outputs: unchanged, since no action ran.
-        self.assertEqual(actual, lines)
+        self.helper(lines, file_name, expected, actions=actions)
 
     def test2(self) -> None:
         """
@@ -3593,12 +3622,18 @@ class Test_perform_actions_typ_type(hunitest.TestCase):
         # Prepare inputs.
         lines = ["#let x = 1"]
         file_name = "lesson.txt"
+        file_type_override = "typ"
+        actions = []
+        # Prepare outputs: unchanged, since no action ran.
+        expected = lines
         # Run test.
-        actual = dshdllite._perform_actions(
-            lines, file_name, file_type_override="typ", actions=[]
+        self.helper(
+            lines,
+            file_name,
+            expected,
+            file_type_override=file_type_override,
+            actions=actions,
         )
-        # Check outputs: unchanged, since no action ran.
-        self.assertEqual(actual, lines)
 
     @pytest.mark.skipif(
         shutil.which("typstyle") is None, reason="typstyle is not installed"
@@ -3610,12 +3645,11 @@ class Test_perform_actions_typ_type(hunitest.TestCase):
         # Prepare inputs.
         lines = ["#let   x = 1", "= Heading", "This   is some text."]
         file_name = "chapter.typ"
-        # Run test.
-        actual = dshdllite._perform_actions(lines, file_name)
-        # Check outputs: `typstyle` writes a trailing newline, so `lines`
+        # Prepare outputs: `typstyle` writes a trailing newline, so `lines`
         # ends with an extra empty string after splitting on `\n`.
         expected = ["#let x = 1", "= Heading", "This is some text.", ""]
-        self.assertEqual(actual, expected)
+        # Run test.
+        self.helper(lines, file_name, expected)
 
 
 # #############################################################################

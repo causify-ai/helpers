@@ -9,6 +9,7 @@ import helpers.hmarkdown_headers as hmarhead
 import helpers.hparser as hparser
 import helpers.hprint as hprint
 import helpers.hunit_test as hunitest
+import helpers.hunit_test_utils as hunteuti
 
 import pytest
 
@@ -1631,10 +1632,8 @@ class Test_process_file_one_shot_with_cc(hunitest.TestCase):
             add_todos=add_todos,
         )
         # Run test.
-        # TODO(ai_gp): Use hunteuti.capture_sys_calls() instead of mocking
-        #  `lcclint.hsystem.system` directly.
         with (
-            umock.patch.object(lcclint.hsystem, "system") as mock_system,
+            hunteuti.capture_sys_calls() as sys_calls,
             umock.patch.object(
                 lcclint.hmarsele,
                 "find_skill",
@@ -1644,7 +1643,10 @@ class Test_process_file_one_shot_with_cc(hunitest.TestCase):
             rc, topic_info = lcclint._process_file(file_path, args)
         # Check outputs.
         self.assertEqual(rc, 0)
-        mock_system.assert_called_once()
+        dispatch_calls = [
+            c for c in sys_calls if c["function"] == "hsystem.system"
+        ]
+        self.assertEqual(len(dispatch_calls), 1)
         prompt_content = hio.from_file("tmp.cc_lint.prompt.txt")
         self.assertIn(expected_prompt_substring, prompt_content)
         self.assertIn(file_path, prompt_content)

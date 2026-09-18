@@ -129,9 +129,8 @@ def summarize_text_with_llm(
     input_file: str,
     output_file: str,
     prompt: str,
-    # TODO(ai_gp): Move this to after *
-    model: str = _SUMMARY_MODEL,
     *,
+    model: str = _SUMMARY_MODEL,
     dry_run: bool = False,
 ) -> None:
     """

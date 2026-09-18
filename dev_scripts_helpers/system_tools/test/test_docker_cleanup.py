@@ -1,5 +1,5 @@
 import logging
-from typing import List
+from typing import Dict, List, Optional
 from unittest import mock
 
 import dev_scripts_helpers.system_tools.docker_cleanup as dshstdocl
@@ -506,45 +506,71 @@ class Test__is_engine_available(hunitest.TestCase):
     Test `docker_cleanup._is_engine_available()`.
     """
 
-    # TODO(ai_gp): Factor out common code.
+    def helper(
+        self,
+        check_exec_available: bool,
+        docker_running: bool,
+        expected: bool,
+    ) -> None:
+        """
+        Test helper for `_is_engine_available()`.
+
+        :param check_exec_available: mocked return value of
+            `hsystem.check_exec()`
+        :param docker_running: mocked return value of
+            `hdocker.is_docker_running()`
+        :param expected: expected result of `_is_engine_available()`
+        """
+        # Run test.
+        with (
+            mock.patch(
+                "helpers.hsystem.check_exec",
+                return_value=check_exec_available,
+            ),
+            mock.patch(
+                "helpers.hdocker.is_docker_running",
+                return_value=docker_running,
+            ),
+        ):
+            actual = dshstdocl._is_engine_available("docker")
+        # Check outputs.
+        self.assertEqual(actual, expected)
+
     def test1(self) -> None:
         """
         Test that a missing CLI is reported as unavailable.
         """
-        # Run test.
-        with (
-            mock.patch("helpers.hsystem.check_exec", return_value=False),
-            mock.patch("helpers.hdocker.is_docker_running", return_value=True),
-        ):
-            actual = dshstdocl._is_engine_available("docker")
-        # Check outputs.
-        self.assertFalse(actual)
+        # Prepare inputs.
+        check_exec_available = False
+        docker_running = True
+        # Prepare outputs.
+        expected = False
+        # Run test and check outputs.
+        self.helper(check_exec_available, docker_running, expected)
 
     def test2(self) -> None:
         """
         Test that a non-running engine is reported as unavailable.
         """
-        # Run test.
-        with (
-            mock.patch("helpers.hsystem.check_exec", return_value=True),
-            mock.patch("helpers.hdocker.is_docker_running", return_value=False),
-        ):
-            actual = dshstdocl._is_engine_available("docker")
-        # Check outputs.
-        self.assertFalse(actual)
+        # Prepare inputs.
+        check_exec_available = True
+        docker_running = False
+        # Prepare outputs.
+        expected = False
+        # Run test and check outputs.
+        self.helper(check_exec_available, docker_running, expected)
 
     def test3(self) -> None:
         """
         Test that an installed, running engine is reported as available.
         """
-        # Run test.
-        with (
-            mock.patch("helpers.hsystem.check_exec", return_value=True),
-            mock.patch("helpers.hdocker.is_docker_running", return_value=True),
-        ):
-            actual = dshstdocl._is_engine_available("docker")
-        # Check outputs.
-        self.assertTrue(actual)
+        # Prepare inputs.
+        check_exec_available = True
+        docker_running = True
+        # Prepare outputs.
+        expected = True
+        # Run test and check outputs.
+        self.helper(check_exec_available, docker_running, expected)
 
 
 # #############################################################################
@@ -557,7 +583,35 @@ class Test__cleanup_dangling_volumes(hunitest.TestCase):
     Test `docker_cleanup._cleanup_dangling_volumes()`.
     """
 
-    # TODO(ai_gp): Factor out common code and use mock_sys_call.
+    def helper(
+        self, list_output: str, dry_run: bool, expected_cmds: List[str]
+    ) -> None:
+        """
+        Test helper for `_cleanup_dangling_volumes()`.
+
+        :param list_output: mocked output of the dangling-volume list
+            command
+        :param dry_run: `dry_run` value to pass through
+        :param expected_cmds: expected `system()` commands, empty if no
+            removal is expected
+        """
+        # Run test.
+        with (
+            hunteuti.capture_sys_calls() as sys_calls,
+            mock.patch(
+                "helpers.hsystem.system_to_string",
+                return_value=(0, list_output),
+            ),
+        ):
+            dshstdocl._cleanup_dangling_volumes("docker", dry_run=dry_run)
+        # Check outputs.
+        actual_cmds = [
+            call["args"][0]
+            for call in sys_calls
+            if call["function"] == "hsystem.system"
+        ]
+        self.assertEqual(actual_cmds, expected_cmds)
+
     def test1(self) -> None:
         """
         Test that a dry run does not remove dangling volumes.
@@ -568,17 +622,11 @@ class Test__cleanup_dangling_volumes(hunitest.TestCase):
         vol2
         """
         list_output = hprint.dedent(list_output).strip()
-        # Run test.
-        with (
-            mock.patch(
-                "helpers.hsystem.system_to_string",
-                return_value=(0, list_output),
-            ),
-            mock.patch("helpers.hsystem.system") as system_mock,
-        ):
-            dshstdocl._cleanup_dangling_volumes("docker", dry_run=True)
-        # Check outputs.
-        system_mock.assert_not_called()
+        dry_run = True
+        # Prepare outputs.
+        expected_cmds: List[str] = []
+        # Run test and check outputs.
+        self.helper(list_output, dry_run, expected_cmds)
 
     def test2(self) -> None:
         """
@@ -591,19 +639,11 @@ class Test__cleanup_dangling_volumes(hunitest.TestCase):
         vol2
         """
         list_output = hprint.dedent(list_output).strip()
+        dry_run = False
         # Prepare outputs.
-        expected_cmd = "docker volume rm vol1 vol2"
-        # Run test.
-        with (
-            mock.patch(
-                "helpers.hsystem.system_to_string",
-                return_value=(0, list_output),
-            ),
-            mock.patch("helpers.hsystem.system") as system_mock,
-        ):
-            dshstdocl._cleanup_dangling_volumes("docker", dry_run=False)
-        # Check outputs.
-        system_mock.assert_called_once_with(expected_cmd)
+        expected_cmds = ["docker volume rm vol1 vol2"]
+        # Run test and check outputs.
+        self.helper(list_output, dry_run, expected_cmds)
 
     def test3(self) -> None:
         """
@@ -611,17 +651,11 @@ class Test__cleanup_dangling_volumes(hunitest.TestCase):
         """
         # Prepare inputs.
         list_output = ""
-        # Run test.
-        with (
-            mock.patch(
-                "helpers.hsystem.system_to_string",
-                return_value=(0, list_output),
-            ),
-            mock.patch("helpers.hsystem.system") as system_mock,
-        ):
-            dshstdocl._cleanup_dangling_volumes("docker", dry_run=False)
-        # Check outputs.
-        system_mock.assert_not_called()
+        dry_run = False
+        # Prepare outputs.
+        expected_cmds: List[str] = []
+        # Run test and check outputs.
+        self.helper(list_output, dry_run, expected_cmds)
 
 
 # #############################################################################
@@ -634,7 +668,35 @@ class Test__cleanup_dangling_images(hunitest.TestCase):
     Test `docker_cleanup._cleanup_dangling_images()`.
     """
 
-    # TODO(ai_gp): Factor out common code and use mock_sys_call.
+    def helper(
+        self, list_output: str, dry_run: bool, expected_cmds: List[str]
+    ) -> None:
+        """
+        Test helper for `_cleanup_dangling_images()`.
+
+        :param list_output: mocked output of the dangling-image list
+            command
+        :param dry_run: `dry_run` value to pass through
+        :param expected_cmds: expected `system()` commands, empty if no
+            removal is expected
+        """
+        # Run test.
+        with (
+            hunteuti.capture_sys_calls() as sys_calls,
+            mock.patch(
+                "helpers.hsystem.system_to_string",
+                return_value=(0, list_output),
+            ),
+        ):
+            dshstdocl._cleanup_dangling_images("docker", dry_run=dry_run)
+        # Check outputs.
+        actual_cmds = [
+            call["args"][0]
+            for call in sys_calls
+            if call["function"] == "hsystem.system"
+        ]
+        self.assertEqual(actual_cmds, expected_cmds)
+
     def test1(self) -> None:
         """
         Test that a dry run does not remove dangling images.
@@ -645,17 +707,11 @@ class Test__cleanup_dangling_images(hunitest.TestCase):
         img2
         """
         list_output = hprint.dedent(list_output).strip()
-        # Run test.
-        with (
-            mock.patch(
-                "helpers.hsystem.system_to_string",
-                return_value=(0, list_output),
-            ),
-            mock.patch("helpers.hsystem.system") as system_mock,
-        ):
-            dshstdocl._cleanup_dangling_images("docker", dry_run=True)
-        # Check outputs.
-        system_mock.assert_not_called()
+        dry_run = True
+        # Prepare outputs.
+        expected_cmds: List[str] = []
+        # Run test and check outputs.
+        self.helper(list_output, dry_run, expected_cmds)
 
     def test2(self) -> None:
         """
@@ -668,19 +724,11 @@ class Test__cleanup_dangling_images(hunitest.TestCase):
         img2
         """
         list_output = hprint.dedent(list_output).strip()
+        dry_run = False
         # Prepare outputs.
-        expected_cmd = "docker rmi -f img1 img2"
-        # Run test.
-        with (
-            mock.patch(
-                "helpers.hsystem.system_to_string",
-                return_value=(0, list_output),
-            ),
-            mock.patch("helpers.hsystem.system") as system_mock,
-        ):
-            dshstdocl._cleanup_dangling_images("docker", dry_run=False)
-        # Check outputs.
-        system_mock.assert_called_once_with(expected_cmd)
+        expected_cmds = ["docker rmi -f img1 img2"]
+        # Run test and check outputs.
+        self.helper(list_output, dry_run, expected_cmds)
 
     def test3(self) -> None:
         """
@@ -688,17 +736,11 @@ class Test__cleanup_dangling_images(hunitest.TestCase):
         """
         # Prepare inputs.
         list_output = ""
-        # Run test.
-        with (
-            mock.patch(
-                "helpers.hsystem.system_to_string",
-                return_value=(0, list_output),
-            ),
-            mock.patch("helpers.hsystem.system") as system_mock,
-        ):
-            dshstdocl._cleanup_dangling_images("docker", dry_run=False)
-        # Check outputs.
-        system_mock.assert_not_called()
+        dry_run = False
+        # Prepare outputs.
+        expected_cmds: List[str] = []
+        # Run test and check outputs.
+        self.helper(list_output, dry_run, expected_cmds)
 
 
 # #############################################################################
@@ -711,45 +753,65 @@ class Test__cleanup_unused_networks(hunitest.TestCase):
     Test `docker_cleanup._cleanup_unused_networks()`.
     """
 
-    # TODO(ai_gp): Factor out common code and use mock_sys_call.
+    def helper(
+        self, engine: str, dry_run: bool, expected_last_cmd: Optional[str]
+    ) -> None:
+        """
+        Test helper for `_cleanup_unused_networks()`.
+
+        :param engine: `"docker"` or `"apple"`
+        :param dry_run: `dry_run` value to pass through
+        :param expected_last_cmd: expected command of the most recent
+            `system_to_string()` call, or `None` if no call is expected
+            - `system_to_string()` is also called to list dangling
+              networks before the prune call, so this checks the most
+              recent (prune) call rather than requiring it to be the only
+              call
+        """
+        # Run test.
+        with hunteuti.capture_sys_calls() as sys_calls:
+            dshstdocl._cleanup_unused_networks(engine, dry_run=dry_run)
+        # Check outputs.
+        system_to_string_calls = [
+            call
+            for call in sys_calls
+            if call["function"] == "hsystem.system_to_string"
+        ]
+        if expected_last_cmd is None:
+            self.assertEqual(system_to_string_calls, [])
+        else:
+            self.assertEqual(
+                system_to_string_calls[-1]["args"], (expected_last_cmd,)
+            )
+        system_calls = [
+            call for call in sys_calls if call["function"] == "hsystem.system"
+        ]
+        self.assertEqual(system_calls, [])
+
     def test1(self) -> None:
         """
         Test that the docker engine issues network prune on non-dry run.
         """
+        # Prepare inputs.
+        engine = "docker"
+        dry_run = False
         # Prepare outputs.
-        expected_cmd = "docker network prune -f"
-        # Run test.
-        with (
-            mock.patch(
-                "helpers.hsystem.system_to_string",
-                return_value=(0, ""),
-            ) as system_to_string_mock,
-            mock.patch("helpers.hsystem.system") as system_mock,
-        ):
-            dshstdocl._cleanup_unused_networks("docker", dry_run=False)
-        # Check outputs.
-        # `system_to_string` is also called to list dangling networks before
-        # the prune call below, so check the most recent (prune) call rather
-        # than requiring it to be the only call.
-        system_to_string_mock.assert_called_with(expected_cmd)
-        system_mock.assert_not_called()
+        expected_last_cmd = "docker network prune -f"
+        # Run test and check outputs.
+        self.helper(engine, dry_run, expected_last_cmd)
 
     def test2(self) -> None:
         """
         Test that the apple engine skips network pruning without issuing
         any system call.
         """
-        # Run test.
-        with (
-            mock.patch(
-                "helpers.hsystem.system_to_string"
-            ) as system_to_string_mock,
-            mock.patch("helpers.hsystem.system") as system_mock,
-        ):
-            dshstdocl._cleanup_unused_networks("apple", dry_run=False)
-        # Check outputs.
-        system_to_string_mock.assert_not_called()
-        system_mock.assert_not_called()
+        # Prepare inputs.
+        engine = "apple"
+        dry_run = False
+        # Prepare outputs.
+        expected_last_cmd = None
+        # Run test and check outputs.
+        self.helper(engine, dry_run, expected_last_cmd)
 
 
 # #############################################################################
@@ -762,7 +824,31 @@ class Test__cleanup_build_cache(hunitest.TestCase):
     Test `docker_cleanup._cleanup_build_cache()`.
     """
 
-    # TODO(ai_gp): Factor out common code and use mock_sys_call.
+    def helper(
+        self,
+        engine: str,
+        dry_run: bool,
+        system_df: Dict[str, Dict[str, str]],
+        expected_calls: str,
+    ) -> None:
+        """
+        Test helper for `_cleanup_build_cache()`.
+
+        :param engine: `"docker"` or `"apple"`
+        :param dry_run: `dry_run` value to pass through
+        :param system_df: parsed `docker system df` snapshot to pass
+            through
+        :param expected_calls: expected captured system calls, formatted
+            as in `hunteuti.assert_sys_calls()`
+        """
+        # Run test.
+        with hunteuti.capture_sys_calls() as sys_calls:
+            dshstdocl._cleanup_build_cache(
+                engine, dry_run=dry_run, system_df=system_df
+            )
+        # Check outputs.
+        hunteuti.assert_sys_calls(self, sys_calls, expected_calls)
+
     def test1(self) -> None:
         """
         Test that the apple engine checks the builder status and, finding
@@ -770,22 +856,19 @@ class Test__cleanup_build_cache(hunitest.TestCase):
         system call.
         """
         # Prepare inputs.
-        # Header row only: no builder container exists.
-        status_output = "STATUS\n"
-        # Run test.
-        with (
-            mock.patch(
-                "helpers.hsystem.system_to_string",
-                return_value=(0, status_output),
-            ) as system_to_string_mock,
-            mock.patch("helpers.hsystem.system") as system_mock,
-        ):
-            dshstdocl._cleanup_build_cache("apple", dry_run=False, system_df={})
-        # Check outputs.
-        system_to_string_mock.assert_called_once_with(
-            "container builder status", abort_on_error=False
-        )
-        system_mock.assert_not_called()
+        engine = "apple"
+        dry_run = False
+        system_df: Dict[str, Dict[str, str]] = {}
+        # Prepare outputs.
+        expected_calls = r"""[
+        {
+        'function': hsystem.system_to_string,
+        'args': ('container builder status',),
+        'kwargs': {'abort_on_error': False},
+        },
+        ]"""
+        # Run test and check outputs.
+        self.helper(engine, dry_run, system_df, expected_calls)
 
     def test2(self) -> None:
         """
@@ -793,20 +876,13 @@ class Test__cleanup_build_cache(hunitest.TestCase):
         engine.
         """
         # Prepare inputs.
+        engine = "docker"
+        dry_run = True
         system_df = {"Build Cache": {"reclaimable": "2.541GB"}}
-        # Run test.
-        with (
-            mock.patch(
-                "helpers.hsystem.system_to_string"
-            ) as system_to_string_mock,
-            mock.patch("helpers.hsystem.system") as system_mock,
-        ):
-            dshstdocl._cleanup_build_cache(
-                "docker", dry_run=True, system_df=system_df
-            )
-        # Check outputs.
-        system_to_string_mock.assert_not_called()
-        system_mock.assert_not_called()
+        # Prepare outputs.
+        expected_calls = "[]"
+        # Run test and check outputs.
+        self.helper(engine, dry_run, system_df, expected_calls)
 
     def test3(self) -> None:
         """
@@ -814,20 +890,16 @@ class Test__cleanup_build_cache(hunitest.TestCase):
         engine.
         """
         # Prepare inputs.
+        engine = "docker"
+        dry_run = False
         system_df = {"Build Cache": {"reclaimable": "2.541GB"}}
         # Prepare outputs.
-        expected_cmd = "docker builder prune -a -f"
-        # Run test.
-        with (
-            mock.patch(
-                "helpers.hsystem.system_to_string",
-                return_value=(0, ""),
-            ) as system_to_string_mock,
-            mock.patch("helpers.hsystem.system") as system_mock,
-        ):
-            dshstdocl._cleanup_build_cache(
-                "docker", dry_run=False, system_df=system_df
-            )
-        # Check outputs.
-        system_to_string_mock.assert_called_once_with(expected_cmd)
-        system_mock.assert_not_called()
+        expected_calls = r"""[
+        {
+        'function': hsystem.system_to_string,
+        'args': ('docker builder prune -a -f',),
+        'kwargs': {},
+        },
+        ]"""
+        # Run test and check outputs.
+        self.helper(engine, dry_run, system_df, expected_calls)

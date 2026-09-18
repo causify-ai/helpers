@@ -157,15 +157,23 @@ class Test_run_typst_py(hunitest.TestCase):
         with mock.patch("sys.argv", argv):
             dshtruty._main(parser)
 
-    # TODO(ai_gp): Factor out more code.
+    def _write_input_file(self) -> str:
+        """
+        Create `book.typ` in the scratch space.
+
+        :return: path to the created input file
+        """
+        in_file_path = os.path.join(self.get_scratch_space(), "book.typ")
+        hio.to_file(in_file_path, "= Test")
+        return in_file_path
+
     def test1(self) -> None:
         """
         Test that the default output path swaps the `.typ` extension for
         `.pdf`, and that `render_images` runs by default.
         """
         # Prepare inputs.
-        in_file_path = os.path.join(self.get_scratch_space(), "book.typ")
-        hio.to_file(in_file_path, "= Test")
+        in_file_path = self._write_input_file()
         argv = [
             "run_typst.py",
             "--input",
@@ -193,8 +201,7 @@ class Test_run_typst_py(hunitest.TestCase):
         Test that an explicit `--output` path is respected.
         """
         # Prepare inputs.
-        in_file_path = os.path.join(self.get_scratch_space(), "book.typ")
-        hio.to_file(in_file_path, "= Test")
+        in_file_path = self._write_input_file()
         out_file_path = os.path.join(self.get_scratch_space(), "custom.pdf")
         argv = [
             "run_typst.py",
@@ -217,8 +224,7 @@ class Test_run_typst_py(hunitest.TestCase):
         Test that the "open_pdf" action opens the compiled PDF.
         """
         # Prepare inputs.
-        in_file_path = os.path.join(self.get_scratch_space(), "book.typ")
-        hio.to_file(in_file_path, "= Test")
+        in_file_path = self._write_input_file()
         out_file_path = os.path.join(self.get_scratch_space(), "book.pdf")
         argv = ["run_typst.py", "--input", in_file_path]
         # Run test.
@@ -236,8 +242,7 @@ class Test_run_typst_py(hunitest.TestCase):
         step.
         """
         # Prepare inputs.
-        in_file_path = os.path.join(self.get_scratch_space(), "book.typ")
-        hio.to_file(in_file_path, "= Test")
+        in_file_path = self._write_input_file()
         argv = [
             "run_typst.py",
             "--input",
@@ -261,8 +266,7 @@ class Test_run_typst_py(hunitest.TestCase):
         Test that `--root` overrides the default Git-root-based value.
         """
         # Prepare inputs.
-        in_file_path = os.path.join(self.get_scratch_space(), "book.typ")
-        hio.to_file(in_file_path, "= Test")
+        in_file_path = self._write_input_file()
         argv = [
             "run_typst.py",
             "--input",
@@ -285,8 +289,7 @@ class Test_run_typst_py(hunitest.TestCase):
         `_compile_typst()`.
         """
         # Prepare inputs.
-        in_file_path = os.path.join(self.get_scratch_space(), "book.typ")
-        hio.to_file(in_file_path, "= Test")
+        in_file_path = self._write_input_file()
         argv = [
             "run_typst.py",
             "--input",

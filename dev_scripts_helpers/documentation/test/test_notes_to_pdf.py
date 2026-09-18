@@ -2512,6 +2512,7 @@ class Test_notes_to_pdf_latex_cancel(hunitest.TestCase):
         output_txt = ""
         if os.path.exists(pandoc_file):
             output_txt = hio.from_file(pandoc_file)
+        self.check_string(output_txt, fuzzy_match=True)
         return output_txt
 
     def test1(self) -> None:
@@ -2533,8 +2534,6 @@ class Test_notes_to_pdf_latex_cancel(hunitest.TestCase):
         # Run test.
         output_txt = self.helper(markdown_content)
         # Check outputs.
-        # TODO(ai_gp): Move check_string in the helper
-        self.check_string(output_txt, fuzzy_match=True)
         self.assertIn(r"\cancel{", output_txt)
         self.assertIn("Y_1", output_txt)
         self.assertIn("Y_0", output_txt)
@@ -2559,7 +2558,6 @@ class Test_notes_to_pdf_latex_cancel(hunitest.TestCase):
         # Run test.
         output_txt = self.helper(markdown_content)
         # Check outputs.
-        self.check_string(output_txt, fuzzy_match=True)
         self.assertIn(r"\cancel{", output_txt)
         self.assertIn("E[Y", output_txt)
 
@@ -2588,7 +2586,6 @@ class Test_notes_to_pdf_latex_cancel(hunitest.TestCase):
         # Run test.
         output_txt = self.helper(markdown_content)
         # Check outputs.
-        self.check_string(output_txt, fuzzy_match=True)
         self.assertIn(r"\cancel{", output_txt)
         self.assertIn(r"\tau_i", output_txt)
 
@@ -2616,7 +2613,6 @@ class Test_notes_to_pdf_latex_cancel(hunitest.TestCase):
         # Run test.
         output_txt = self.helper(markdown_content)
         # Check outputs.
-        self.check_string(output_txt, fuzzy_match=True)
         self.assertIn(r"\cancel{", output_txt)
         self.assertIn(r"\underbrace{", output_txt)
 
