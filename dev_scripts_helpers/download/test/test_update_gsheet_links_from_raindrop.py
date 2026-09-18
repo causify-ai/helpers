@@ -6,8 +6,8 @@ import unittest.mock as umock
 from typing import Callable, Optional
 
 import helpers.hunit_test as hunitest
-import dev_scripts_helpers.download.bookmark_utils as dshdbou
-import dev_scripts_helpers.download.update_gsheet_links_from_raindrop as dsglfr
+import dev_scripts_helpers.download.bookmark_utils as dshdbout
+import dev_scripts_helpers.download.update_gsheet_links_from_raindrop as dshduglfr
 
 _LOG = logging.getLogger(__name__)
 
@@ -50,22 +50,22 @@ class Test__combine_raindrop_with_gsheet_links(hunitest.TestCase):
         cwd = os.getcwd()
         os.chdir(scratch_dir)
         try:
-            gsheet_csv = dshdbou.get_tmp_file_path(
-                dsglfr.GSHEET_CSV_FILE, "update_gsheet_links_from_raindrop"
+            gsheet_csv = dshdbout.get_tmp_file_path(
+                dshduglfr.GSHEET_CSV_FILE, "update_gsheet_links_from_raindrop"
             )
-            dshdbou.write_csv(
+            dshdbout.write_csv(
                 gsheet_csv, gsheet_rows, fieldnames=gsheet_columns
             )
-            raindrop_csv = dshdbou.get_tmp_file_path(
-                dsglfr.RAINDROP_CSV_FILE, "update_gsheet_links_from_raindrop"
+            raindrop_csv = dshdbout.get_tmp_file_path(
+                dshduglfr.RAINDROP_CSV_FILE, "update_gsheet_links_from_raindrop"
             )
-            dshdbou.write_csv(
+            dshdbout.write_csv(
                 raindrop_csv,
                 raindrop_rows,
                 fieldnames=["id", "title", "url", "created"],
             )
-            combined_csv = dsglfr._combine_raindrop_with_gsheet_links()
-            actual_rows = dshdbou.read_csv(combined_csv)
+            combined_csv = dshduglfr._combine_raindrop_with_gsheet_links()
+            actual_rows = dshdbout.read_csv(combined_csv)
         finally:
             os.chdir(cwd)
         # Check outputs.
@@ -294,10 +294,10 @@ class Test__download_raindrop_data(hunitest.TestCase):
         cwd = os.getcwd()
         os.chdir(scratch_dir)
         try:
-            gsheet_csv = dshdbou.get_tmp_file_path(
-                dsglfr.GSHEET_CSV_FILE, "update_gsheet_links_from_raindrop"
+            gsheet_csv = dshdbout.get_tmp_file_path(
+                dshduglfr.GSHEET_CSV_FILE, "update_gsheet_links_from_raindrop"
             )
-            dshdbou.write_csv(
+            dshdbout.write_csv(
                 gsheet_csv,
                 [{"Timestamp": gsheet_timestamp}],
                 fieldnames=["Timestamp"],
@@ -307,14 +307,14 @@ class Test__download_raindrop_data(hunitest.TestCase):
                     os.environ, {"RAINDROP_API_TOKEN": "fake_token"}
                 ),
                 umock.patch.object(
-                    dsglfr.requests,
+                    dshduglfr.requests,
                     "get",
                     return_value=get_return_value,
                     side_effect=get_side_effect,
                 ),
             ):
-                raindrop_csv = dsglfr._download_raindrop_data()
-            actual_rows = dshdbou.read_csv(raindrop_csv)
+                raindrop_csv = dshduglfr._download_raindrop_data()
+            actual_rows = dshdbout.read_csv(raindrop_csv)
         finally:
             os.chdir(cwd)
         # Check outputs.
@@ -358,9 +358,7 @@ class Test__download_raindrop_data(hunitest.TestCase):
             },
         ]
         # Run test.
-        self.helper(
-            gsheet_timestamp, expected_rows, get_return_value=response
-        )
+        self.helper(gsheet_timestamp, expected_rows, get_return_value=response)
 
     def test2(self) -> None:
         """
@@ -380,9 +378,7 @@ class Test__download_raindrop_data(hunitest.TestCase):
         # Prepare outputs.
         expected_rows: list = []
         # Run test.
-        self.helper(
-            gsheet_timestamp, expected_rows, get_return_value=response
-        )
+        self.helper(gsheet_timestamp, expected_rows, get_return_value=response)
 
     def test3(self) -> None:
         """
@@ -446,7 +442,7 @@ class Test__get_action_output_file(hunitest.TestCase):
             action has no local output file
         """
         # Run test.
-        actual = dsglfr._get_action_output_file(action)
+        actual = dshduglfr._get_action_output_file(action)
         # Check outputs.
         self.assert_equal(str(actual), expected)
 
@@ -457,8 +453,8 @@ class Test__get_action_output_file(hunitest.TestCase):
         # Prepare inputs.
         action = "download_gsheet_links"
         # Prepare outputs.
-        expected = dshdbou.get_tmp_file_path(
-            dsglfr.GSHEET_CSV_FILE, "update_gsheet_links_from_raindrop"
+        expected = dshdbout.get_tmp_file_path(
+            dshduglfr.GSHEET_CSV_FILE, "update_gsheet_links_from_raindrop"
         )
         # Run test.
         self.helper(action, expected)
@@ -470,8 +466,8 @@ class Test__get_action_output_file(hunitest.TestCase):
         # Prepare inputs.
         action = "combine_data"
         # Prepare outputs.
-        expected = dshdbou.get_tmp_file_path(
-            dsglfr.COMBINED_CSV_FILE, "update_gsheet_links_from_raindrop"
+        expected = dshdbout.get_tmp_file_path(
+            dshduglfr.COMBINED_CSV_FILE, "update_gsheet_links_from_raindrop"
         )
         # Run test.
         self.helper(action, expected)
@@ -522,9 +518,9 @@ class Test__get_latest_timestamp_from_file(hunitest.TestCase):
         """
         scratch_dir = self.get_scratch_space()
         gsheet_csv = os.path.join(scratch_dir, "gsheet.csv")
-        dshdbou.write_csv(gsheet_csv, rows, fieldnames=list(rows[0].keys()))
+        dshdbout.write_csv(gsheet_csv, rows, fieldnames=list(rows[0].keys()))
         # Run test.
-        actual = dsglfr._get_latest_timestamp_from_file(gsheet_csv)
+        actual = dshduglfr._get_latest_timestamp_from_file(gsheet_csv)
         # Check outputs.
         self.assert_equal(str(actual), expected)
 
@@ -603,7 +599,7 @@ class Test__parse_timestamp(hunitest.TestCase):
         :param expected: expected parsed value, as `"YYYY-MM-DD HH:MM:SS"`
         """
         # Run test.
-        actual = dsglfr._parse_timestamp(ts_str)
+        actual = dshduglfr._parse_timestamp(ts_str)
         # Check outputs.
         self.assert_equal(str(actual), expected)
 
@@ -650,4 +646,4 @@ class Test__parse_timestamp(hunitest.TestCase):
         ts_str = "not-a-timestamp"
         # Run test and check output.
         with self.assertRaises(ValueError):
-            dsglfr._parse_timestamp(ts_str)
+            dshduglfr._parse_timestamp(ts_str)

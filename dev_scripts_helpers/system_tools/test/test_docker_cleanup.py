@@ -329,7 +329,9 @@ class Test__cleanup_engine(hunitest.TestCase):
         expected = hprint.dedent(expected)
         # Run test.
         with hunteuti.capture_sys_calls() as invocations:
-            dshstdocl._cleanup_engine(engine, dry_run=dry_run, images_order=images_order)
+            dshstdocl._cleanup_engine(
+                engine, dry_run=dry_run, images_order=images_order
+            )
         # Check outputs.
         hunteuti.assert_sys_calls(self, invocations, expected)
 
@@ -343,9 +345,7 @@ class Test__cleanup_engine(hunitest.TestCase):
         dry_run = True
         images_order = "size"
 
-        def _mock_system_to_string(
-            cmd: str, **kwargs: Any
-        ) -> Tuple[int, str]:
+        def _mock_system_to_string(cmd: str, **kwargs: Any) -> Tuple[int, str]:
             if cmd == "docker system df":
                 # Malformed: does not match any `system df` table row
                 # pattern, so `_parse_docker_system_df()` returns `{}`.
@@ -711,9 +711,7 @@ class Test__is_engine_available(hunitest.TestCase):
         engine = "docker"
         # Run test.
         with (
-            mock.patch(
-                "helpers.hsystem.system", return_value=check_exec_rc
-            ),
+            mock.patch("helpers.hsystem.system", return_value=check_exec_rc),
             mock.patch(
                 "helpers.hsystem.system_to_string",
                 return_value=docker_running_output,

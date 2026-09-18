@@ -653,6 +653,10 @@ def _transform_lines(
     _LOG.debug("\n%s", hprint.frame("transform_lines"))
     hdbg.dassert_isinstance(lines, list)
     lines = [line.rstrip("\n") for line in lines]
+    # `hselacti.mark_action()` returns `Optional[List[str]]`, so track the
+    # remaining actions in a separately typed variable instead of narrowing
+    # the `actions` parameter's non-`Optional` type.
+    remaining_actions: Optional[List[str]] = actions
     out: List[str] = []
     # a) Prepend some directive for pandoc, if they are missing.
     if output_format == "latex":
@@ -805,7 +809,9 @@ def _transform_lines(
     # Post-process slides: colorize links and bullet points.
     if type_ == "slides":
         # Colorize links.
-        to_execute, actions = hselacti.mark_action("process_links", actions)
+        to_execute, remaining_actions = hselacti.mark_action(
+            "process_links", remaining_actions
+        )
         # to_execute = False
         if to_execute:
             out = hmarkdo.format_md_links_to_latex_format(
@@ -844,7 +850,9 @@ def _transform_lines(
             return text_out
 
         out_str = "\n".join(out)
-        to_execute, actions = hselacti.mark_action("colorize_bullets", actions)
+        to_execute, remaining_actions = hselacti.mark_action(
+            "colorize_bullets", remaining_actions
+        )
         if to_execute:
             out_str = hmarkdo.process_slides(out_str, _colorize_bullets)
         out = out_str.split("\n")
@@ -928,6 +936,10 @@ def _preprocess_lines(
     """
     hdbg.dassert_isinstance(lines, list)
     hdbg.dassert_in(output_format, ("latex", "typst"))
+    # `hselacti.mark_action()` returns `Optional[List[str]]`, so track the
+    # remaining actions in a separately typed variable instead of narrowing
+    # the `actions` parameter's non-`Optional` type.
+    remaining_actions: Optional[List[str]] = actions
     # Apply transformations.
     out = _transform_lines(lines, type_, is_qa, output_format, actions=actions)
     # Add TOC, if needed.
@@ -957,17 +969,21 @@ def _preprocess_lines(
         # Remove headers smaller than level 4 so that we leave only the `*`.
         out = _remove_headers(out, max_level=4)
     # Validate slide names.
-    to_execute, actions = hselacti.mark_action("validate_slide_names", actions)
+    to_execute, remaining_actions = hselacti.mark_action(
+        "validate_slide_names", remaining_actions
+    )
     if to_execute:
         _validate_slide_names(out)
     # Add duplicate slide counters.
-    to_execute, actions = hselacti.mark_action("add_duplicate_counters", actions)
+    to_execute, remaining_actions = hselacti.mark_action(
+        "add_duplicate_counters", remaining_actions
+    )
     if to_execute:
         _assert_no_existing_counters(out)
         out = _add_duplicate_slide_counters(out)
     # Validate unique slide names.
-    to_execute, actions = hselacti.mark_action(
-        "validate_unique_slide_names", actions
+    to_execute, remaining_actions = hselacti.mark_action(
+        "validate_unique_slide_names", remaining_actions
     )
     if to_execute:
         _validate_unique_slide_names(out)

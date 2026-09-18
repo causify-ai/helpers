@@ -1447,7 +1447,8 @@ class Test_remove_trailing_periods(hunitest.TestCase):
         self.helper(txt, expected)
 
     def test16(self) -> None:
-        """Test removing periods from regular text lines (user's example
+        """
+        Test removing periods from regular text lines (user's example
         case).
         """
         # Prepare inputs.
@@ -2910,7 +2911,8 @@ class Test_replace_em_dash_with_colon(hunitest.TestCase):
 
 
 class Test_smd_format(hunitest.TestCase):
-    """Test the _smd_format function used for the smd (slide markdown) file
+    """
+    Test the _smd_format function used for the smd (slide markdown) file
     type.
     """
 
@@ -2979,7 +2981,8 @@ class Test_smd_format(hunitest.TestCase):
         self.helper(txt, expected)
 
     def test4(self) -> None:
-        """Test that the `:` is kept (and the following text capitalized) when
+        """
+        Test that the `:` is kept (and the following text capitalized) when
         the tag line has content after it.
         """
         # Prepare inputs.

@@ -11,8 +11,8 @@ pytest.importorskip("pandas")
 import helpers.hcache_simple as hcacsimp
 import helpers.hsystem as hsystem
 import helpers.hunit_test as hunitest
-import dev_scripts_helpers.download.bookmark_utils as dshdbou
-import dev_scripts_helpers.download.process_gsheet_links as dsgl
+import dev_scripts_helpers.download.bookmark_utils as dshdbout
+import dev_scripts_helpers.download.process_gsheet_links as dshdpgsli
 
 _LOG = logging.getLogger(__name__)
 
@@ -46,12 +46,12 @@ class Test_update_article_urls(hunitest.TestCase):
         scratch_dir = self.get_scratch_space()
         columns = list(rows[0].keys())
         with hsystem.cd(scratch_dir):
-            hn_csv = dshdbou.get_tmp_file_path(
-                dsgl.HN_CSV_FILE, "process_gsheet_links"
+            hn_csv = dshdbout.get_tmp_file_path(
+                dshdpgsli.HN_CSV_FILE, "process_gsheet_links"
             )
-            dshdbou.write_csv(hn_csv, rows, fieldnames=columns)
-            urls_csv = dsgl._update_article_urls()
-            actual_rows = dshdbou.read_csv(urls_csv)
+            dshdbout.write_csv(hn_csv, rows, fieldnames=columns)
+            urls_csv = dshdpgsli._update_article_urls()
+            actual_rows = dshdbout.read_csv(urls_csv)
         if expected is not None:
             self.assert_equal(actual_rows[0]["Article_url"], expected)
         return actual_rows
@@ -81,7 +81,7 @@ class Test_update_article_urls(hunitest.TestCase):
         hcacsimp.enable_caching(False)
         try:
             with umock.patch.object(
-                dsgl.requests, "get", return_value=fake_response
+                dshdpgsli.requests, "get", return_value=fake_response
             ):
                 actual_rows = self.helper(rows)
         finally:
@@ -253,12 +253,12 @@ class Test_update_article_clusters(hunitest.TestCase):
         scratch_dir = self.get_scratch_space()
         columns = list(rows[0].keys())
         with hsystem.cd(scratch_dir):
-            tags_csv = dshdbou.get_tmp_file_path(
-                dsgl.TAGS_CSV_FILE, "process_gsheet_links"
+            tags_csv = dshdbout.get_tmp_file_path(
+                dshdpgsli.TAGS_CSV_FILE, "process_gsheet_links"
             )
-            dshdbou.write_csv(tags_csv, rows, fieldnames=columns)
-            clusters_csv = dsgl._update_article_clusters()
-            actual_rows = dshdbou.read_csv(clusters_csv)
+            dshdbout.write_csv(tags_csv, rows, fieldnames=columns)
+            clusters_csv = dshdpgsli._update_article_clusters()
+            actual_rows = dshdbout.read_csv(clusters_csv)
         if expected is not None:
             self.assert_equal(str(actual_rows[0]), str(expected))
         return actual_rows
@@ -437,7 +437,7 @@ class Test_normalize_tag(hunitest.TestCase):
         :param expected: expected normalized tag
         """
         # Run test.
-        actual = dsgl._normalize_tag(raw_tag)
+        actual = dshdpgsli._normalize_tag(raw_tag)
         # Check outputs.
         self.assert_equal(actual, expected)
 
@@ -494,9 +494,7 @@ class Test_normalize_tag(hunitest.TestCase):
         Test a tag wrapped in double quotes inside a sentence.
         """
         # Prepare inputs.
-        raw_tag = (
-            'The best tag to represent the article is "Developer Tools."'
-        )
+        raw_tag = 'The best tag to represent the article is "Developer Tools."'
         # Prepare outputs.
         expected = "Developer Tools"
         # Run test.
@@ -541,7 +539,7 @@ class Test_normalize_tag(hunitest.TestCase):
         expected = "AI Agents"
         # Run test. Pass a local `tag_map` through the public interface
         # instead of monkey-patching the internal `topic_to_cluster` dict.
-        actual = dsgl._normalize_tag(raw_tag, tag_map=fake_tag_map)
+        actual = dshdpgsli._normalize_tag(raw_tag, tag_map=fake_tag_map)
         # Check outputs.
         self.assert_equal(actual, expected)
 

@@ -2,7 +2,7 @@ import contextlib
 import logging
 import os
 import unittest.mock as umock
-from typing import Generator, List
+from typing import Any, Dict, Generator, List
 
 import boto3
 import moto
@@ -12,8 +12,8 @@ import helpers.hgit as hgit
 import helpers.hunit_test as hunitest
 import helpers.hunit_test_utils as hunteuti
 import helpers.hserver as hserver
-import helpers.lib_tasks.lib_tasks_docker as hlitadoc
-import helpers.lib_tasks.lib_tasks_docker_release as hltadore
+import helpers.lib_tasks.lib_tasks_docker as hltltado
+import helpers.lib_tasks.lib_tasks_docker_release as hltltdore
 import helpers.lib_tasks.test.test_lib_tasks as httestlib
 
 _LOG = logging.getLogger(__name__)
@@ -55,7 +55,41 @@ def _extract_commands_from_call(calls: List[umock._Call]) -> List[str]:
 # Avoid Base Test Classes for Shared Code).
 
 
-def _set_up_docker_flow_test(self: hunitest.TestCase) -> None:
+# #############################################################################
+# _DockerFlowTestAttrs
+# #############################################################################
+
+
+class _DockerFlowTestAttrs:
+    """
+    Type-only declarations for the attributes `_set_up_docker_flow_test()`
+    assigns onto `self`.
+
+    Carries no methods/logic, so it is not a shared base test class for
+    utilities (.claude/skills/testing.rules.md:## Avoid Base Test Classes for
+    Shared Code) — it only lets pyright know about attributes that are
+    assigned outside the enclosing test class.
+    """
+
+    sys_calls_stack: contextlib.ExitStack
+    sys_calls: List[Dict[str, Any]]
+    version_patcher: Any
+    mock_version: Any
+    docker_login_patcher: Any
+    mock_docker_login: Any
+    env_patcher: Any
+    get_default_param_patcher: Any
+    mock_get_default_param: Any
+    get_docker_base_image_name_patcher: Any
+    mock_get_docker_base_image_name: Any
+    patchers: Dict[str, Any]
+    mock_ctx: Any
+    test_version: str
+    test_base_image: str
+    test_multi_arch: str
+
+
+def _set_up_docker_flow_test(self: _DockerFlowTestAttrs) -> None:
     """
     Set up common mocks and test inputs shared by Docker flow tests.
 
@@ -118,7 +152,7 @@ def _set_up_docker_flow_test(self: hunitest.TestCase) -> None:
     self.mock_get_docker_base_image_name.return_value = "test-image"
 
 
-def _tear_down_docker_flow_test(self: hunitest.TestCase) -> None:
+def _tear_down_docker_flow_test(self: _DockerFlowTestAttrs) -> None:
     """
     Stop all mocks and clean up system call capture after each test case.
 
@@ -166,7 +200,7 @@ def _check_docker_command_output(
     not hserver.is_inside_docker(),
     reason="Skipping: tests require dev container",
 )
-class Test_docker_build_local_image(hunitest.TestCase):
+class Test_docker_build_local_image(hunitest.TestCase, _DockerFlowTestAttrs):
     """
     Test building a local Docker image.
     """
@@ -209,7 +243,7 @@ class Test_docker_build_local_image(hunitest.TestCase):
         docker image ls test-registry.com/test-image:local-$USER_NAME-1.0.0
         """
         # Run test and check outputs.
-        hltadore.docker_build_local_image(
+        hltltdore.docker_build_local_image(
             self.mock_ctx,
             self.test_version,
             cache=cache,
@@ -261,7 +295,7 @@ class Test_docker_build_local_image(hunitest.TestCase):
         docker image ls test-registry.com/test-image:local-$USER_NAME-1.0.0
         """
         # Run test and check outputs.
-        hltadore.docker_build_local_image(
+        hltltdore.docker_build_local_image(
             self.mock_ctx,
             self.test_version,
             cache=cache,
@@ -284,7 +318,7 @@ class Test_docker_build_local_image(hunitest.TestCase):
     not hserver.is_inside_docker(),
     reason="Skipping: tests require dev container",
 )
-class Test_docker_build_prod_image(hunitest.TestCase):
+class Test_docker_build_prod_image(hunitest.TestCase, _DockerFlowTestAttrs):
     """
     Test building a prod Docker image.
     """
@@ -311,7 +345,7 @@ class Test_docker_build_prod_image(hunitest.TestCase):
         - Default and versioned tagging
         """
         # Call tested function.
-        hltadore.docker_build_prod_image(
+        hltltdore.docker_build_prod_image(
             self.mock_ctx,
             self.test_version,
             base_image=self.test_base_image,
@@ -348,7 +382,7 @@ class Test_docker_build_prod_image(hunitest.TestCase):
         - Multi-arch specific options
         """
         # Call tested function.
-        hltadore.docker_build_multi_arch_prod_image(
+        hltltdore.docker_build_multi_arch_prod_image(
             self.mock_ctx,
             self.test_version,
             base_image=self.test_base_image,
@@ -397,7 +431,7 @@ class Test_docker_build_prod_image(hunitest.TestCase):
         """
         test_tag = "test_tag"
         # Call tested function.
-        hltadore.docker_build_prod_image(
+        hltltdore.docker_build_prod_image(
             self.mock_ctx,
             self.test_version,
             base_image=self.test_base_image,
@@ -440,7 +474,7 @@ class Test_docker_build_prod_image(hunitest.TestCase):
         test_user_tag = "test_user"
         test_tag = "test_tag"
         # Call tested function.
-        hltadore.docker_build_prod_image(
+        hltltdore.docker_build_prod_image(
             self.mock_ctx,
             self.test_version,
             base_image=self.test_base_image,
@@ -478,7 +512,9 @@ class Test_docker_build_prod_image(hunitest.TestCase):
     not hserver.is_inside_docker(),
     reason="Skipping: tests require dev container",
 )
-class Test_docker_tag_push_multi_arch_prod_image(hunitest.TestCase):
+class Test_docker_tag_push_multi_arch_prod_image(
+    hunitest.TestCase, _DockerFlowTestAttrs
+):
     """
     Test tagging and pushing a multi-architecture Docker image.
     """
@@ -500,7 +536,7 @@ class Test_docker_tag_push_multi_arch_prod_image(hunitest.TestCase):
         """
         # Call tested function.
         target_registry = "aws_ecr.ck"
-        hltadore.docker_tag_push_multi_arch_prod_image(
+        hltltdore.docker_tag_push_multi_arch_prod_image(
             self.mock_ctx,
             self.test_version,
             target_registry=target_registry,
@@ -524,7 +560,7 @@ class Test_docker_tag_push_multi_arch_prod_image(hunitest.TestCase):
         """
         # Call tested function.
         target_registry = "dockerhub.causify"
-        hltadore.docker_tag_push_multi_arch_prod_image(
+        hltltdore.docker_tag_push_multi_arch_prod_image(
             self.mock_ctx,
             self.test_version,
             target_registry=target_registry,
@@ -548,7 +584,9 @@ class Test_docker_tag_push_multi_arch_prod_image(hunitest.TestCase):
     not hserver.is_inside_docker(),
     reason="Skipping: tests require dev container",
 )
-class Test_docker_tag_push_multi_build_local_image_as_dev(hunitest.TestCase):
+class Test_docker_tag_push_multi_build_local_image_as_dev(
+    hunitest.TestCase, _DockerFlowTestAttrs
+):
     """
     Test tagging and pushing a multi-arch local Docker image as dev.
     """
@@ -571,7 +609,7 @@ class Test_docker_tag_push_multi_build_local_image_as_dev(hunitest.TestCase):
         """
         # Call tested function.
         target_registry = "aws_ecr.ck"
-        hltadore.docker_tag_push_multi_build_local_image_as_dev(
+        hltltdore.docker_tag_push_multi_build_local_image_as_dev(
             self.mock_ctx,
             self.test_version,
             target_registry=target_registry,
@@ -596,7 +634,7 @@ class Test_docker_tag_push_multi_build_local_image_as_dev(hunitest.TestCase):
         """
         # Call tested function.
         target_registry = "dockerhub.causify"
-        hltadore.docker_tag_push_multi_build_local_image_as_dev(
+        hltltdore.docker_tag_push_multi_build_local_image_as_dev(
             self.mock_ctx,
             self.test_version,
             target_registry=target_registry,
@@ -620,7 +658,7 @@ class Test_docker_tag_push_multi_build_local_image_as_dev(hunitest.TestCase):
     not hserver.is_inside_docker(),
     reason="Skipping: tests require dev container",
 )
-class Test_docker_release_dev_image(hunitest.TestCase):
+class Test_docker_release_dev_image(hunitest.TestCase, _DockerFlowTestAttrs):
     """
     Test releasing a dev Docker image.
     """
@@ -645,7 +683,7 @@ class Test_docker_release_dev_image(hunitest.TestCase):
           - Tagging and versioning
         """
         # Call tested function.
-        hltadore.docker_release_dev_image(
+        hltltdore.docker_release_dev_image(
             self.mock_ctx,
             self.test_version,
             cache=False,
@@ -690,7 +728,7 @@ class Test_docker_release_dev_image(hunitest.TestCase):
     not hserver.is_inside_docker(),
     reason="Skipping: tests require dev container",
 )
-class Test_docker_release_prod_image(hunitest.TestCase):
+class Test_docker_release_prod_image(hunitest.TestCase, _DockerFlowTestAttrs):
     """
     Test releasing a prod Docker image.
     """
@@ -719,7 +757,7 @@ class Test_docker_release_prod_image(hunitest.TestCase):
           - Tagging and versioning
         """
         # Call tested function.
-        hltadore.docker_release_prod_image(
+        hltltdore.docker_release_prod_image(
             self.mock_ctx,
             self.test_version,
             cache=False,
@@ -762,7 +800,9 @@ class Test_docker_release_prod_image(hunitest.TestCase):
     not hserver.is_inside_docker(),
     reason="Skipping: tests require dev container",
 )
-class Test_docker_release_multi_build_dev_image(hunitest.TestCase):
+class Test_docker_release_multi_build_dev_image(
+    hunitest.TestCase, _DockerFlowTestAttrs
+):
     """
     Test releasing a multi-arch dev Docker image.
     """
@@ -785,7 +825,7 @@ class Test_docker_release_multi_build_dev_image(hunitest.TestCase):
         - Single registry target
         """
         # Call tested function.
-        hltadore.docker_release_multi_build_dev_image(
+        hltltdore.docker_release_multi_build_dev_image(
             self.mock_ctx,
             self.test_version,
             cache=False,
@@ -837,7 +877,7 @@ class Test_docker_release_multi_build_dev_image(hunitest.TestCase):
         - Image retagging for different registries
         """
         # Call tested function.
-        hltadore.docker_release_multi_build_dev_image(
+        hltltdore.docker_release_multi_build_dev_image(
             self.mock_ctx,
             self.test_version,
             cache=False,
@@ -891,7 +931,7 @@ class Test_docker_release_multi_build_dev_image(hunitest.TestCase):
     not hserver.is_inside_docker(),
     reason="Skipping: tests require dev container",
 )
-class Test_docker_rollback_dev_image(hunitest.TestCase):
+class Test_docker_rollback_dev_image(hunitest.TestCase, _DockerFlowTestAttrs):
     """
     Test rolling back a dev Docker image.
     """
@@ -913,7 +953,7 @@ class Test_docker_rollback_dev_image(hunitest.TestCase):
         - Repository pushing
         """
         # Call tested function.
-        hltadore.docker_rollback_dev_image(
+        hltltdore.docker_rollback_dev_image(
             self.mock_ctx,
             self.test_version,
             push_to_repo=True,
@@ -939,7 +979,7 @@ class Test_docker_rollback_dev_image(hunitest.TestCase):
     not hserver.is_inside_docker(),
     reason="Skipping: tests require dev container",
 )
-class Test_docker_rollback_prod_image(hunitest.TestCase):
+class Test_docker_rollback_prod_image(hunitest.TestCase, _DockerFlowTestAttrs):
     """
     Test rolling back a prod Docker image.
     """
@@ -961,7 +1001,7 @@ class Test_docker_rollback_prod_image(hunitest.TestCase):
         - Repository pushing
         """
         # Call tested function.
-        hltadore.docker_rollback_prod_image(
+        hltltdore.docker_rollback_prod_image(
             self.mock_ctx,
             self.test_version,
             push_to_repo=True,
@@ -987,7 +1027,9 @@ class Test_docker_rollback_prod_image(hunitest.TestCase):
     not hserver.is_inside_docker(),
     reason="Skipping: tests require dev container",
 )
-class Test_docker_push_prod_candidate_image(hunitest.TestCase):
+class Test_docker_push_prod_candidate_image(
+    hunitest.TestCase, _DockerFlowTestAttrs
+):
     """
     Test pushing a prod candidate Docker image.
     """
@@ -1009,7 +1051,7 @@ class Test_docker_push_prod_candidate_image(hunitest.TestCase):
         """
         # Call tested function.
         candidate = "4759b3685f903e6c669096e960b248ec31c63b69"
-        hltadore.docker_push_prod_candidate_image(
+        hltltdore.docker_push_prod_candidate_image(
             self.mock_ctx,
             candidate=candidate,
         )
@@ -1031,7 +1073,9 @@ class Test_docker_push_prod_candidate_image(hunitest.TestCase):
     not hserver.is_inside_docker(),
     reason="Skipping: tests require dev container",
 )
-class Test_docker_release_multi_arch_prod_image(hunitest.TestCase):
+class Test_docker_release_multi_arch_prod_image(
+    hunitest.TestCase, _DockerFlowTestAttrs
+):
     """
     Test releasing a multi-arch prod Docker image.
     """
@@ -1053,7 +1097,7 @@ class Test_docker_release_multi_arch_prod_image(hunitest.TestCase):
         - Image tagging and pushing
         """
         # Call tested function.
-        hltadore.docker_release_multi_arch_prod_image(
+        hltltdore.docker_release_multi_arch_prod_image(
             self.mock_ctx,
             self.test_version,
             cache=False,
@@ -1103,7 +1147,9 @@ class Test_docker_release_multi_arch_prod_image(hunitest.TestCase):
     not hserver.is_inside_docker(),
     reason="Skipping: tests require dev container",
 )
-class Test_docker_create_candidate_image(hunitest.TestCase):
+class Test_docker_create_candidate_image(
+    hunitest.TestCase, _DockerFlowTestAttrs
+):
     """
     Test creating a candidate Docker image.
     """
@@ -1170,7 +1216,7 @@ class Test_docker_create_candidate_image(hunitest.TestCase):
         - Proper command construction for aws_update_task_definition.py
         """
         # Call tested function.
-        hltadore.docker_create_candidate_image(
+        hltltdore.docker_create_candidate_image(
             self.mock_ctx,
             user_tag="test_user",
         )
@@ -1178,7 +1224,7 @@ class Test_docker_create_candidate_image(hunitest.TestCase):
         self.mock_build_prod.assert_called_once_with(
             self.mock_ctx,
             container_dir_name=".",
-            version=hlitadoc._IMAGE_VERSION_FROM_CHANGELOG,
+            version=hltltado._IMAGE_VERSION_FROM_CHANGELOG,
             candidate=True,
             tag="test_user-4759b3685f903e6c669096e960b248ec31c63b69",
         )
@@ -1198,7 +1244,9 @@ class Test_docker_create_candidate_image(hunitest.TestCase):
     not hserver.is_inside_docker(),
     reason="Skipping: tests require dev container",
 )
-class Test_docker_update_prod_task_definition(hunitest.TestCase):
+class Test_docker_update_prod_task_definition(
+    hunitest.TestCase, _DockerFlowTestAttrs
+):
     """
     Test updating a prod task definition to the desired version.
     """
@@ -1315,7 +1363,7 @@ class Test_docker_update_prod_task_definition(hunitest.TestCase):
         self.mock_ecs_client = self.ecs_client_patcher.start()
         self.patchers["ecs_client_test1"] = self.ecs_client_patcher
         # Call tested function.
-        hltadore.docker_update_prod_task_definition(
+        hltltdore.docker_update_prod_task_definition(
             self.mock_ctx,
             version=self.test_version,
             preprod_tag="4759b3685f903e6c669096e960b248ec31c63b69",
@@ -1382,7 +1430,7 @@ class Test_docker_update_prod_task_definition(hunitest.TestCase):
         self.mock_s3.return_value.put.side_effect = Exception("S3 upload failed")
         # Call tested function and verify exception is raised.
         with self.assertRaises(Exception) as cm:
-            hltadore.docker_update_prod_task_definition(
+            hltltdore.docker_update_prod_task_definition(
                 self.mock_ctx,
                 version=self.test_version,
                 preprod_tag="4759b3685f903e6c669096e960b248ec31c63b69",
@@ -1416,7 +1464,7 @@ class Test_docker_update_prod_task_definition(hunitest.TestCase):
     not hserver.is_inside_docker(),
     reason="Skipping: tests require dev container",
 )
-class Test_docker_tag_push_dev_image(hunitest.TestCase):
+class Test_docker_tag_push_dev_image(hunitest.TestCase, _DockerFlowTestAttrs):
     """
     Test tagging and pushing dev image from a base registry to multiple registries.
     """
@@ -1478,7 +1526,7 @@ class Test_docker_tag_push_dev_image(hunitest.TestCase):
         - Versioned and latest image handling
         """
         # Call tested function.
-        hltadore.docker_tag_push_dev_image(
+        hltltdore.docker_tag_push_dev_image(
             self.mock_ctx,
             target_registries="ghcr,ecr",
             container_dir_name=".",
@@ -1511,7 +1559,7 @@ class Test_docker_tag_push_dev_image(hunitest.TestCase):
         - Mock calls should include dry_run parameter
         """
         # Call tested function with dry_run enabled.
-        hltadore.docker_tag_push_dev_image(
+        hltltdore.docker_tag_push_dev_image(
             self.mock_ctx,
             target_registries="ghcr,ecr",
             container_dir_name=".",
@@ -1537,7 +1585,7 @@ class Test_docker_tag_push_dev_image(hunitest.TestCase):
     not hserver.is_inside_docker(),
     reason="Skipping: tests require dev container",
 )
-class Test_docker_build_test_dev_image(hunitest.TestCase):
+class Test_docker_build_test_dev_image(hunitest.TestCase, _DockerFlowTestAttrs):
     """
     Test the complete periodic dev image release workflow.
     """
@@ -1688,7 +1736,7 @@ class Test_docker_build_test_dev_image(hunitest.TestCase):
         Test the complete periodic dev image release workflow.
         """
         # Call the tested function.
-        hltadore.docker_build_test_dev_image(
+        hltltdore.docker_build_test_dev_image(
             self.mock_ctx,
             reviewers="",  # Empty to trigger team lookup
             container_dir_name=".",
@@ -1741,7 +1789,7 @@ class Test_docker_build_test_dev_image(hunitest.TestCase):
         Test the workflow when reviewers is already provided.
         """
         # Call the tested function with a specific reviewer.
-        hltadore.docker_build_test_dev_image(
+        hltltdore.docker_build_test_dev_image(
             self.mock_ctx,
             reviewers="specific_user",
             container_dir_name=".",

@@ -219,9 +219,7 @@ class Test_notes_to_pdf_py(hunitest.TestCase):
         # Prepare outputs.
         expected = ""
         # Run test.
-        script_txt, output_txt = self.helper(
-            in_file, type_, cmd_opts, expected
-        )
+        script_txt, output_txt = self.helper(in_file, type_, cmd_opts, expected)
         # Check outputs.
         self.assert_equal(script_txt, expected)
         self.assert_equal(output_txt, expected)
@@ -237,9 +235,7 @@ class Test_notes_to_pdf_py(hunitest.TestCase):
         cmd_opts = ""
         expected = ""
         # Run test.
-        script_txt, output_txt = self.helper(
-            in_file, type_, cmd_opts, expected
-        )
+        script_txt, output_txt = self.helper(in_file, type_, cmd_opts, expected)
         # Check outputs.
         actual = _to_output_str(script_txt, output_txt)
         expected = r"""
@@ -286,9 +282,7 @@ class Test_notes_to_pdf_py(hunitest.TestCase):
         cmd_opts = "--filter_by_header Header2"
         expected = ""
         # Run test.
-        script_txt, output_txt = self.helper(
-            in_file, type_, cmd_opts, expected
-        )
+        script_txt, output_txt = self.helper(in_file, type_, cmd_opts, expected)
         # Check outputs.
         actual = _to_output_str(script_txt, output_txt)
         expected = r"""
@@ -356,9 +350,7 @@ class Test_notes_to_pdf_py(hunitest.TestCase):
         cmd_opts = ""
         expected = ""
         # Run test.
-        script_txt, output_txt = self.helper(
-            in_file, type_, cmd_opts, expected
-        )
+        script_txt, output_txt = self.helper(in_file, type_, cmd_opts, expected)
         # Check outputs.
         txt = f"script_txt:\n{script_txt}\n"
         txt += f"output_txt:\n{output_txt}\n"
@@ -3011,9 +3003,7 @@ class Test_notes_to_pdf_lectures_template(hunitest.TestCase):
         # Run test.
         hsystem.system(cmd)
         # Check outputs: the output file was generated.
-        hdbg.dassert_path_exists(
-            out_file, f"'.{out_ext}' file was not created"
-        )
+        hdbg.dassert_path_exists(out_file, f"'.{out_ext}' file was not created")
         self.assertGreater(
             os.path.getsize(out_file), 0, f"'.{out_ext}' file is empty"
         )

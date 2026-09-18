@@ -473,8 +473,9 @@ class TestCustomHelpFormatterColorizeDefaultAnnotation(hunitest.TestCase):
         formatter = _ForceColorFormatter("prog")
         line = "Token budget per merged rule chunk (default: 1500)"
         # Prepare outputs.
-        expected = "Token budget per merged rule chunk " + hprint.color_highlight(
-            "(default: 1500)", "gray"
+        expected = (
+            "Token budget per merged rule chunk "
+            + hprint.color_highlight("(default: 1500)", "gray")
         )
         # Run test.
         actual = formatter._colorize_default_annotation(line)

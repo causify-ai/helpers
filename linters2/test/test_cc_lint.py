@@ -1927,9 +1927,7 @@ class Test_process_file_one_shot_with_cc(hunitest.TestCase):
         skill = ""
         rule = ""
         # Prepare outputs.
-        expected_prompt_substring = (
-            "# TODO(ai_gp): <what to do and why> (<rule_file>:<rule header line>)"
-        )
+        expected_prompt_substring = "# TODO(ai_gp): <what to do and why> (<rule_file>:<rule header line>)"
         # Run test.
         self.helper(
             topic=topic,
