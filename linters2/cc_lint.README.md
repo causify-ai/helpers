@@ -16,7 +16,7 @@ Claude Code integration for topic-based formatting.
   > cc_lint.py --files "file1.py file2.py" ...
   ```
 
-- Apply a specific coding rule to a file, isntead of the default
+- Apply a specific coding rule set to a file, instead of the default
   ```bash
   > cc_lint.py --files "file.py" --topic coding ...
   ```
@@ -37,7 +37,7 @@ Claude Code integration for topic-based formatting.
   > cc_lint.py --files "src/*.py" --topic coding ...
   ```
 
-- Use a different model:
+- Use a different model (default: `claude-haiku-4-5-20251001`):
   ```bash
   > cc_lint.py \
     --files dev_scripts_helpers/download/download_link_articles.py \
@@ -46,7 +46,7 @@ Claude Code integration for topic-based formatting.
     --model deepseek/deepseek-v4-flash
   ```
 
-- Apply a rule to a file
+- Apply a single rule to a file
   ```bash
   > cc_lint.py --files "file.py" --rule <RULE> ...
   ```
@@ -72,15 +72,41 @@ Claude Code integration for topic-based formatting.
     --rule "dassert"
     ```
 
-- `--mode` controls how rules are applied and is required (no default, to
-  force an explicit choice)
-  - `one_shot_with_cc` applies all rules in a single Claude Code invocation
-  - `one_shot`: same prompt as `one_shot_with_cc` but using API instead
-    of executable
-  - `session`: one session shared across all chunks, for rules that depend on
-    each other
-  - `stateless`: a fresh session per chunk, giving each chunk uniform cost and
-    full attention
+- `--mode` controls how rules are applied to the file (default: `session`),
+  along two axes: how many turns are used, and how each turn is delivered
+  - `one_shot_with_cc`/`one_shot` send every selected rule to Claude Code in
+    a single turn; they differ only in delivery:
+    - `one_shot_with_cc` shells out to the `cc` CLI wrapper as a subprocess
+    - `one_shot` sends the identical prompt in-process via `PromptSequencer`
+      instead of shelling out
+      ```
+      one_shot_with_cc / one_shot:
+        Start session -> Apply rule 1 + rule 2 + rule 3 -> End session
+        (1 session, 1 turn carrying all 3 rules)
+      ```
+  - `session`/`stateless` instead split the rules into one chunk per section
+    (see `--rule_level`) and apply them incrementally, one chunk per turn,
+    each requiring an `LLM> NO-OP` / `LLM> CHANGED` reply before the next
+    chunk is sent; they differ only in session lifetime:
+    - `session`: one Claude Code session is shared across all chunks, so a
+      later chunk sees an earlier chunk's edits: needed when rules build on
+      or depend on each other
+      ```
+      session:
+        Start session -> Apply rule 1 -> Apply rule 2 -> Apply rule 3 -> End session
+        (1 session, 3 turns; rule 2 sees rule 1's edit, rule 3 sees both)
+      ```
+
+    - `stateless`: a fresh session per chunk, so no chunk's context leaks
+      into another's: trades that shared context for each chunk getting
+      full, uncluttered attention
+      ```
+      stateless:
+        Start session -> Apply rule 1 -> End session
+        Start session -> Apply rule 2 -> End session
+        Start session -> Apply rule 3 -> End session
+        (3 sessions, 1 turn each; no chunk sees another's edit)
+      ```
 
 - `--mode` is orthogonal to `--topic`/`--skill`/`--rule`: any of them can
   be combined with any `--mode`
@@ -89,6 +115,7 @@ Claude Code integration for topic-based formatting.
     - `--rule`: the rule text, split into one chunk per H1 section when it
       has more than one, else kept as a single chunk
     - `--skill`: a single, non-decomposed `/{skill} {file_path}` chunk
+
 - Preview incremental application without executing, saved to
   `tmp.cc_lint_dry_run.txt` instead of printed to screen:
   ```bash
@@ -99,6 +126,7 @@ Claude Code integration for topic-based formatting.
   structured `LLM> NO-OP` / `LLM> CHANGED: <summary>` reply so a compliant
   rule produces zero edits
   - Useful for complex files requiring step-by-step rule application
+
 - a `--skill` chunk does not, since it invokes Claude Code's own skill loader
   instead of declarative rule prose
 
@@ -111,10 +139,12 @@ Claude Code integration for topic-based formatting.
     > cc_lint.py --files "file.py" --mode stateless \
         --rule_level 1
     ```
-  - Greedily pack consecutive small same-H1 chunks up to a token budget:
+  - Greedily pack consecutive small same-H1 chunks up to a token budget;
+    on by default, so only the budget needs passing (`--no_merge_small_rules`
+    disables it):
     ```bash
     > cc_lint.py --files "file.py" --mode stateless \
-        --merge_small_rules --max_chunk_tokens 1500
+        --max_chunk_tokens 1500
     ```
   - Drop chunks an LLM pre-pass finds inapplicable to the file, logging what was
     discarded:
@@ -134,6 +164,28 @@ Claude Code integration for topic-based formatting.
     - merge (`--merge_small_rules`)
     - filter (`--filter_rules_by_relevance`)
     - order (`--order_rules_by_dependency`)
+
+## Resuming Interrupted Runs (`--mode session`/`stateless` only)
+
+- Every chunk's outcome is journaled to `--journal_file` (default:
+  `tmp.cc_lint_journal.json`) as it completes with the tags:
+  - `done` (an edit was made)
+  - `no_op` (already compliant)
+  - `failed` (error, or a reply that did not follow the `LLM> NO-OP`/`LLM> CHANGED`
+    contract)
+  - `skipped` (dropped by `--resume`)
+
+- `--resume` skips chunks already `done`/`no_op` for a file in the journal,
+  so a run killed partway through (rate limit, crash, Ctrl-C) continues
+  instead of re-applying already-settled rules; a `failed` chunk is retried,
+  since its effect on the file is untrusted:
+  ```bash
+  > cc_lint.py --files "file.py" --mode stateless --resume
+  ```
+- `--journal_file <path>` points at a different journal file, e.g., to keep
+  a separate history per branch or run
+- `--max_turns_per_chunk` (default: `15`) caps the per-chunk turn limit
+  passed to `PromptSequencer`; `0` means no limit
 
 ## `--add_todos` mode
 - With `--add_todos` instead of applying rules directly, annotate violations with
@@ -193,16 +245,24 @@ Claude Code integration for topic-based formatting.
             `LLM> NO-OP` / `LLM> CHANGED: <summary>` reply; with
             `--add_todos`, the message asks Claude Code to check (not
             apply) the rule and cite the chunk's `rule_file`
+        - When `--resume` is set, `_filter_resumable()` drops chunks already
+          `done`/`no_op` for the file in `--journal_file` (loaded via
+          `_load_journal()`), journaling a `skipped` entry for each one
+          dropped; if this empties the message list, the file is skipped
+          entirely (`PromptSequencer` requires at least one message)
         - Hands the system prompt and messages to `PromptSequencer.execute()`
-          from `dev_scripts_helpers/ai/cc_lib.py`, which
+          from `dev_scripts_helpers/ai/cc_lib.py`, with `on_chunk_done` set
+          to log each chunk's real `cost_usd`/`num_turns` and, when
+          `--journal_file` is set, append its outcome (via
+          `_status_from_chunk_stats()`/`_append_journal_entries()`), which
           - Runs under `--mode`'s `context_strategy`: `stateless` opens a
             fresh `ClaudeSDKClient` per message, `session` shares one client
             across all messages
           - Parses each reply's no-op contract via `_parse_rule_outcome()`,
             exposed as `get_outcomes()`
-      - `--mode one_shot_with_cc` / mode one_shot`:
+      - `--mode one_shot_with_cc` / `--mode one_shot`:
         - Both build the exact same prompt via the shared
-          `_build_one_shot_prompt()`, mirroring the `--topic`/`--skill`/ `--rule`
+          `_build_one_shot_prompt()`, mirroring the `--topic`/`--skill`/`--rule`
           dispatch above (with `_build_prompt()` used for the `--topic`,
           appending
           `_build_add_todos_instructions()` when `--add_todos` is set), and
@@ -253,6 +313,11 @@ Claude Code integration for topic-based formatting.
   is the single source of truth for the `# TODO(ai_gp): ...` comment format,
   shared by every prompt-building path (one-shot and incremental) instead of
   each path inventing its own wording
+- **Durable journal for resumability**: `_process_file_incrementally()`'s
+  `on_chunk_done` callback appends each chunk's outcome to `--journal_file`
+  as soon as it completes (a read-modify-write per chunk in
+  `_append_journal_entries()`), so a run killed partway through leaves every
+  finished chunk durably recorded on disk for a later `--resume`
 
 ### Invariants
 
@@ -282,3 +347,7 @@ Claude Code integration for topic-based formatting.
   rule to apply mid-sequence
 - Post-processing (`jupytext --sync`, `hlint.lint_file()`) runs whenever
   `topic_info` is populated
+- `--resume` only skips a chunk journaled `done`/`no_op`; one journaled
+  `failed` is retried on the next `--resume` run, since a reply that errored
+  or broke the no-op contract leaves the chunk's actual effect on the file
+  untrusted (see `_status_from_chunk_stats()`)
