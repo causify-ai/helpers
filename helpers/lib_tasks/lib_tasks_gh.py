@@ -171,11 +171,63 @@ def _get_workflow_table(repo_full_name_with_host: str = "") -> htable.Table:
     return table
 
 
+def _download_failed_run_log(
+    workload_id: str, workflow: str, branch_name: str, *, prefix: str = "failure"
+) -> str:
+    """
+    Download the log of a failed GH run to a local file.
+
+    Shared by `gh_workflow_list()` and `dev_scripts_helpers/github/ci_state.py`
+    so both save the log to a `tmp.<prefix>.<workflow>.<branch>.txt` file for
+    a given failed run.
+
+    :param workload_id: GH run id, e.g., `1477484584`
+    :param workflow: workflow name, e.g., `Fast tests`
+    :param branch_name: name of the branch the run belongs to
+    :param prefix: prefix identifying the caller in the log file name, e.g.,
+        `failure` (used by `gh_workflow_list()`) or `ci_state`
+    :return: name of the file the log was saved to
+    """
+    # > gh run view 1477484584 --log-failed
+    log_file_name = f"tmp.{prefix}.{workflow}.{branch_name}.txt"
+    log_file_name = log_file_name.replace(" ", "_").lower()
+    cmd = f"gh run view {workload_id} --log-failed >{log_file_name}"
+    hsystem.system(cmd)
+    # Remove non-printable chars.
+    # TODO(heanh): Consider adding all the helpers util scripts to the `PATH`
+    # (when inside the container) so we can just use them without specifying
+    # the full path.
+    helpers_root_dir = hgit.find_helpers_root()
+    file_path = f"{helpers_root_dir}/dev_scripts_helpers/system_tools"
+    cmd = f"{file_path}/remove_escape_chars.py -i {log_file_name}"
+    hsystem.system(cmd)
+    return log_file_name
+
+
+# Map a workflow status to the color used to highlight it. Shared by
+# `_print_table()` (used by `gh_workflow_list()`/`invoke gh_watch`) and
+# `dev_scripts_helpers/github/ci_state.py` so both color statuses the same
+# way.
+_STATUS_COLOR_MAP = {"success": "green", "failure": "red", "in progress": "yellow"}
+
+
+def _colorize_status(status: str) -> str:
+    """
+    Highlight `status` with its color from `_STATUS_COLOR_MAP`.
+
+    :param status: workflow status/conclusion, e.g., `success`, `failure`
+    :return: `status` wrapped in ANSI color codes, or unchanged if `status`
+        has no entry in `_STATUS_COLOR_MAP`
+    """
+    if status in _STATUS_COLOR_MAP:
+        status = hprint.color_highlight(status, _STATUS_COLOR_MAP[status])
+    return status
+
+
 def _print_table(table: htable.Table) -> None:
     table_str = str(table)
     # Colorize the table.
-    color_map = {"success": "green", "failure": "red", "in progress": "yellow"}
-    for status, color in color_map.items():
+    for status, color in _STATUS_COLOR_MAP.items():
         table_str = table_str.replace(
             status, hprint.color_highlight(status, color)
         )
@@ -291,22 +343,10 @@ def gh_workflow_list(  # type: ignore
                     "Workflow '%s' for '%s' is broken", workflow, branch_name
                 )
                 # Get the output of the broken run.
-                # > gh run view 1477484584 --log-failed
                 workload_id = table_tmp.get_column("id")[i]
-                log_file_name = f"tmp.failure.{workflow}.{branch_name}.txt"
-                log_file_name = log_file_name.replace(" ", "_").lower()
-                cmd = f"gh run view {workload_id} --log-failed >{log_file_name}"
-                hsystem.system(cmd)
-                # Remove non-printable chars.
-                # TODO(heanh): Consider adding all the helpers util scripts
-                # to the `PATH` (when inside the container) so we can just use
-                # them without specifying the full path.
-                helpers_root_dir = hgit.find_helpers_root()
-                file_path = (
-                    f"{helpers_root_dir}/dev_scripts_helpers/system_tools"
+                log_file_name = _download_failed_run_log(
+                    workload_id, workflow, branch_name
                 )
-                cmd = f"{file_path}/remove_escape_chars.py -i {log_file_name}"
-                hsystem.system(cmd)
                 print(f"# Log is in '{log_file_name}'")
                 # Run_fast_tests  Run fast tests  2021-12-19T00:19:38.3394316Z FAILED data
                 # cmd = rf"grep 'Z FAILED ' {log_file_name}"

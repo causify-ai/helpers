@@ -119,8 +119,8 @@ class Test_git_hooks_utils1(hunitest.TestCase):
     )
     def test_check_ruff_format1(self) -> None:
         """
-        Test `check_ruff_format()` aborts and reformats a badly formatted
-        file.
+        Test `check_ruff_format()` reformats a badly formatted file without
+        aborting.
         """
         # Prepare inputs.
         scratch_dir = self.get_scratch_space()
@@ -128,8 +128,7 @@ class Test_git_hooks_utils1(hunitest.TestCase):
         hio.to_file(file_name, "x=1\n")
         abort_on_error = True
         # Run test.
-        with self.assertRaises(SystemExit):
-            dsgghout.check_ruff_format(abort_on_error, [file_name])
+        dsgghout.check_ruff_format(abort_on_error, [file_name])
         # Check outputs.
         actual = hio.from_file(file_name)
         self.assertIn("x = 1", actual)

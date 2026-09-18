@@ -297,3 +297,95 @@ class Test_unique(hunitest.TestCase):
         actual = table.unique("workflow")
         # Check outputs.
         self.assert_equal(str(actual), str(expected))
+
+
+# #############################################################################
+# Test_compute_column_widths
+# #############################################################################
+
+
+class Test_compute_column_widths(hunitest.TestCase):
+    """
+    Test `htable.compute_column_widths()`.
+    """
+
+    def test1(self) -> None:
+        """
+        Test widths with no cap: each column fits its widest cell plus 2.
+        """
+        # Prepare inputs.
+        rows = [
+            ["Workflow", "Status"],
+            ["Fast tests", "success"],
+            ["Lint", "failure"],
+        ]
+        # Prepare outputs.
+        expected = [12, 9]
+        # Run test.
+        actual = htable.compute_column_widths(rows)
+        # Check outputs.
+        self.assert_equal(str(actual), str(expected))
+
+    def test2(self) -> None:
+        """
+        Test widths capped by `max_width`.
+        """
+        # Prepare inputs.
+        rows = [
+            ["Workflow", "Status"],
+            ["Fast tests", "success"],
+            ["Lint", "failure"],
+        ]
+        # Prepare outputs.
+        expected = [8, 8]
+        # Run test.
+        actual = htable.compute_column_widths(rows, max_width=8)
+        # Check outputs.
+        self.assert_equal(str(actual), str(expected))
+
+    def test3(self) -> None:
+        """
+        Test that ANSI color codes do not inflate the computed width.
+        """
+        # Prepare inputs.
+        rows = [
+            ["Status"],
+            [hprint.color_highlight("PASS", "green")],
+        ]
+        # Prepare outputs.
+        expected = [8]
+        # Run test.
+        actual = htable.compute_column_widths(rows)
+        # Check outputs.
+        self.assert_equal(str(actual), str(expected))
+
+    def test4(self) -> None:
+        """
+        Test that an empty list of rows returns an empty list of widths.
+        """
+        # Prepare inputs.
+        rows: List[List[str]] = []
+        # Prepare outputs.
+        expected: List[int] = []
+        # Run test.
+        actual = htable.compute_column_widths(rows)
+        # Check outputs.
+        self.assert_equal(str(actual), str(expected))
+
+    def test5(self) -> None:
+        """
+        Test that a non-positive `max_width` other than -1 raises.
+        """
+        # Prepare inputs.
+        rows = [["Workflow"], ["Lint"]]
+        # Run test.
+        with self.assertRaises(AssertionError) as cm:
+            htable.compute_column_widths(rows, max_width=0)
+        # Check outputs.
+        actual = str(cm.exception)
+        expected = """
+        * Failed assertion *
+        cond=False
+        Invalid max_width='0'
+        """
+        self.assert_equal(actual, expected, dedent=True, fuzzy_match=True)

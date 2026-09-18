@@ -25,30 +25,30 @@
 
 ## Summary
 
-| Category                | Task                                 | Type   | Description                                               |
-| ----------------------- | ------------------------------------ | ------ | --------------------------------------------------------- |
+| Category               | Task                                 | Type   | Description                                               |
+| ---------------------- | ------------------------------------ | ------ | --------------------------------------------------------- |
 | Git Branch Create      | `git_create_issue_and_branch`        | Script | Create GitHub issue and corresponding branch/worktree     |
-|                         | `git_branch_create`                  | Invoke | Create and push upstream branch with optional draft PR    |
+|                        | `git_branch_create`                  | Invoke | Create and push upstream branch with optional draft PR    |
 | Git Branch Copy/Rename | `git_branch_copy`                    | Invoke | Copy branch content to new auto-generated name            |
-|                         | `git_branch_rename`                  | Invoke | Rename branch locally and remotely, recreate PR if exists |
+|                        | `git_branch_rename`                  | Invoke | Rename branch locally and remotely, recreate PR if exists |
 | Git Branch Query       | `git_branch_next_name`               | Invoke | Generate unique branch name to avoid conflicts            |
-|                         | `git_branch_is_merged`               | Invoke | Check if branch was merged into master                    |
+|                        | `git_branch_is_merged`               | Invoke | Check if branch was merged into master                    |
 | Git Branch Cleanup     | `git_branch_delete_merged`           | Invoke | Delete local and remote merged branches                   |
 | Git Branch Review      | `git_branch_diff`                    | Invoke | Diff branch against base, master, HEAD, or hash           |
-|                         | `git_branch_files`                   | Invoke | Show detailed status of changed files                     |
+|                        | `git_branch_files`                   | Invoke | Show detailed status of changed files                     |
 | GitHub Auth            | `gh_login`                           | Invoke | Login to GitHub with SSH key and auth token               |
 | GitHub Issues          | `gh_issue_create`                    | Invoke | Create new GitHub issue with labels and assignees         |
-|                         | `gh_issue_title`                     | Invoke | Print branch-name-compatible issue title                  |
+|                        | `gh_issue_title`                     | Invoke | Print branch-name-compatible issue title                  |
 | GitHub PRs             | `gh_create_pr`                       | Invoke | Create draft PR for current branch                        |
 | GitHub Workflows       | `gh_workflow_list`                   | Invoke | Report GitHub workflow status with filtering              |
-|                         | `gh_workflow_run`                    | Invoke | Manually trigger workflows on specified branch            |
-|                         | `gh_delete_workflow_runs`            | Invoke | Delete workflow runs with optional age filtering          |
+|                        | `gh_workflow_run`                    | Invoke | Manually trigger workflows on specified branch            |
+|                        | `gh_delete_workflow_runs`            | Invoke | Delete workflow runs with optional age filtering          |
 | GitHub Skills          | `/github.split_branch_in_PRs`        | Skill  | Split current changes into small, cohesive PRs            |
-|                         | `/github.create_child_pr`            | Skill  | Build a child PR from the current branch                  |
-|                         | `/github.find_name_for_pr`           | Skill  | Find a title and description for the current PR           |
-|                         | `/github.get_pr_to_commit_state`     | Skill  | Get the current PR into a committable state               |
-|                         | `/github.get_pr_to_pass_local_tests` | Skill  | Make local unit tests pass for the current PR             |
-|                         | `/github.get_pr_to_pass_ci`          | Skill  | Make the CI pass for the current PR                       |
+|                        | `/github.create_child_pr`            | Skill  | Build a child PR from the current branch                  |
+|                        | `/github.find_name_for_pr`           | Skill  | Find a title and description for the current PR           |
+|                        | `/github.get_pr_ready_to_merge`      | Skill  | Get the current PR ready to be reviewed and merged        |
+|                        | `/github.get_pr_to_pass_local_tests` | Skill  | Make local unit tests pass for the current PR             |
+|                        | `/github.get_pr_to_pass_ci_tests`    | Skill  | Make the CI pass for the current PR                       |
 
 ## Git Branch Management
 
@@ -441,8 +441,8 @@
 
 ## GitHub Agent Skills
 
-- Higher-level automation skills that combine several invoke tasks and scripts
-  into one command, run via `/<skill_name>` from Claude Code
+- Higher-level automation skills that combine several invoke tasks and scripts into
+  one command, run via `/<skill_name>` from Claude Code
 
 ### Splitting and Naming PRs
 
@@ -475,13 +475,13 @@
 
 ### Preparing PRs for Merge
 
-#### `github.get_pr_to_commit_state`
+#### `github.get_pr_ready_to_merge`
 
-- Get a PR in a committable state
-- Fix formatting, lint, and other issues blocking a commit
+- Get the current PR ready to be reviewed and merged
+- Fix formatting, lint, pyright, local tests, and CI issues blocking a merge
 
   ```bash
-  claude> /github.get_pr_to_commit_state
+  claude> /github.get_pr_ready_to_merge
   ```
 
 #### `github.get_pr_to_pass_local_tests`
@@ -493,13 +493,13 @@
   claude> /github.get_pr_to_pass_local_tests
   ```
 
-#### `github.get_pr_to_pass_ci`
+#### `github.get_pr_to_pass_ci_tests`
 
 - Make the CI pass for the current PR
 - Fix CI failures on the current PR
 
   ```bash
-  claude> /github.get_pr_to_pass_ci
+  claude> /github.get_pr_to_pass_ci_tests
   ```
 
 # Workflows
@@ -509,12 +509,13 @@
 - When a single PR becomes too large or covers multiple independent features, split
   it into stacked PRs for easier review and faster merging
 - This workflow uses Claude Code skills to automate the process as in the following
-
 - **Start with your large branch** containing multiple independent changes
 - **Run the split skill** to analyze and plan PR divisions:
+
   ```bash
   claude> /github.split_branch_in_PRs
   ```
+
   - This generates a `github_pr_plan.md` file with:
     - Proposed PR divisions (files grouped by feature/concern)
     - Stack order (dependencies and merge order)
@@ -540,89 +541,106 @@
   - Then merge PR2, PR3, etc. in order
   - Later PRs automatically include commits from earlier ones
 
-### How to Peel Off a PR from a Personal Branch
+### How to Peel Off a PR From a Personal Branch
 
-- Use this flow when work has accumulated on a personal or scratch branch
-  (e.g., `gp`) and needs to become a proper, named PR ready for review and
-  merge
-
+- Use this flow when work has accumulated on a personal or scratch branch (e.g.,
+  `gp`) and needs to become a proper, named PR ready for review and merge
 - **Generate a PR title and description** for the current branch
+
   ```bash
   claude> /github.find_name_for_pr
   ```
+
   - Review the generated message
+
     ```bash
     > more pr_commit_msg.txt
     ```
-- **Copy the branch to a task-named branch**, following the branch naming
-  convention
+
+- **Copy the branch to a task-named branch**, following the branch naming convention
+
   ```bash
   > invoke git_branch_copy --new-branch-name "UmdTask1346_Infrastructure_and_Developer_Experience_Improvements"
   ```
+
 - **Clean up leftover tmp files** before staging
+
   ```bash
   > rm -rf tmp.precommit_output.txt
   ```
+
 - **Stage all untracked files**
+
   ```bash
   > invoke git_add_all_untracked
   ```
+
 - **Get the PR ready to merge**:
   - Fix CI failures
+
     ```bash
-    /github.get_pr_to_pass_ci
+    /github.get_pr_to_pass_ci_tests
     ```
+
   - Fix failing local tests
+
     ```bash
     claude> /github.get_pr_to_pass_local_tests
     ```
+
   - Fix formatting, lint, and other commit-blocking issues
+
     ```bash
-    claude> /github.get_pr_to_commit_state
+    claude> /github.get_pr_ready_to_merge
     ```
+
 - **Merge and delete the branch**
+
   ```bash
   > gh pr merge -s --admin --delete-branch
   ```
 
 ### How to Create a Stacked Sub-Branch for an Existing Issue
 
-- Use this flow when an issue already has a base branch/PR, and a new,
-  independent chunk of work needs its own stacked sub-branch/sub-PR under the
-  same issue
-
+- Use this flow when an issue already has a base branch/PR, and a new, independent
+  chunk of work needs its own stacked sub-branch/sub-PR under the same issue
 - **Create the base branch and PR** for a new issue
+
   ```bash
   > git_create_issue_and_branch.py --issue-id 1328
   ```
 
 - **Force-create the next stacked sub-branch** for the issue
+
   ```bash
   > invoke git_branch_create --issue-id 1331 --suffix 1
   ```
-  - Known limitation: this checks out the new branch immediately, with no
-    option to create it without switching
 
-- **Known limitation**: re-running the command for a suffix that already
-  exists fails instead of finding the next free one
+  - Known limitation: this checks out the new branch immediately, with no option to
+    create it without switching
+- **Known limitation**: re-running the command for a suffix that already exists fails
+  instead of finding the next free one
+
   ```text
   Branch 'HelpersTask1331_Implement_TODOs_1' already exists
   ```
 
-- **Open question**: no command yet auto-detects and creates the next
-  available suffix for an issue in one step
+- **Open question**: no command yet auto-detects and creates the next available
+  suffix for an issue in one step
+- **Known bug**: `invoke git_branch_next_name` does not return the expected name for
+  an issue-based branch
+  - Without `--branch-name`, it computes the next name from the current branch
+    instead of the target task
 
-- **Known bug**: `invoke git_branch_next_name` does not return the expected
-  name for an issue-based branch
-  - Without `--branch-name`, it computes the next name from the current
-    branch instead of the target task
     ```bash
     > invoke git_branch_next_name
     ...
     branch_next_name='gp_scratch_37_1'
     ```
-  - With `--branch-name HelpersTask1331_Implement_TODOs`, it works via the
-    GitHub API and finds the correct next free suffix
+
+  - With `--branch-name HelpersTask1331_Implement_TODOs`, it works via the GitHub API
+    and finds the correct next free suffix
+
     ```bash
     > invoke git_branch_next_name --branch-name HelpersTask1331_Implement_TODOs
     ...
