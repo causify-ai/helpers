@@ -160,19 +160,6 @@ class Table:
         table.insert(0, self._column_names)
         # Convert the cells to strings.
         table_as_str = [[str(cell) for cell in row] for row in table]
-
-        def _visible_len(cell: str) -> int:
-            """
-            Compute the visible length of a cell, i.e., ignoring ANSI color codes
-            (e.g., from `hprint.color_highlight()`).
-
-            Using the raw `len()` would inflate the width of columns with
-            colored cells (e.g., "Status") since escape codes count as
-            characters but are not displayed, which misaligns the table when
-            rendered.
-            """
-            return len(hprint.remove_non_printable_chars(cell))
-
         # Find the visible length of each column, looping over rows and
         # columns explicitly instead of transposing with `zip(*table_as_str)`.
         num_cols = len(self._column_names)
@@ -201,6 +188,68 @@ class Table:
         res = "\n".join(rows_as_str)
         # res += "\nsize=" + str(self.size())
         return res
+
+
+# #############################################################################
+# Column width utilities
+# #############################################################################
+
+
+def _visible_len(cell: str) -> int:
+    """
+    Compute the visible length of a cell, i.e., ignoring ANSI color codes
+    (e.g., from `hprint.color_highlight()`).
+
+    Using the raw `len()` would inflate the width of columns with colored
+    cells (e.g., "Status") since escape codes count as characters but are
+    not displayed, which misaligns the table when rendered.
+
+    :param cell: cell content, possibly containing ANSI escape codes
+    :return: number of visibly rendered characters
+    """
+    return len(hprint.remove_non_printable_chars(cell))
+
+
+def compute_column_widths(rows: TableType, *, max_width: int = -1) -> List[int]:
+    """
+    Compute the display width to use for each column of a table.
+
+    Each column is sized to fit its widest cell (including the header, if
+    passed as the first row of `rows`) plus 2 chars of padding, capped at
+    `max_width`.
+
+    :param rows: table rows (e.g., header followed by data rows) to size the
+        columns for
+    :param max_width: max number of chars for a column
+        - `-1`: no limit
+    :return: width to use for each column, one value per column; `[]` if
+        `rows` is empty
+    """
+    hdbg.dassert_isinstance(rows, list)
+    hdbg.dassert(
+        max_width == -1 or max_width > 0,
+        "Invalid max_width='%s'",
+        max_width,
+    )
+    if not rows:
+        return []
+    num_cols = len(rows[0])
+    widths = [0] * num_cols
+    for row in rows:
+        hdbg.dassert_eq(
+            len(row),
+            num_cols,
+            "Invalid row='%s' for num_cols='%s'",
+            row,
+            num_cols,
+        )
+        for col_idx, cell in enumerate(row):
+            widths[col_idx] = max(widths[col_idx], _visible_len(str(cell)))
+    # Add padding around the content.
+    widths = [width + 2 for width in widths]
+    if max_width != -1:
+        widths = [min(width, max_width) for width in widths]
+    return widths
 
 
 # #############################################################################

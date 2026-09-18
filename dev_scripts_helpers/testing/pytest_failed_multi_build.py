@@ -101,7 +101,7 @@ def _extract_build_stats(build_name: str) -> Dict[str, Any]:
 def _generate_build_files(
     build_names: List[str],
     *,
-    in_build_tag: str = "pytest_multi_build",
+    input_dir: str = "tmp.pytest_multi_build",
     quiet: bool = False,
 ) -> List[Dict[str, Any]]:
     """
@@ -109,14 +109,16 @@ def _generate_build_files(
 
     :param build_names: List of build names
         - E.g., ['docker', 'apple', 'dev_container']
-    :param in_build_tag: Tag for input files (default: 'pytest_multi_build')
-        - Input files will be named: tmp.<in_build_tag>.<build_name>.txt
+    :param input_dir: Directory storing the per-build log files (default:
+        'tmp.pytest_multi_build', matching `pytest_multi_build.py`'s
+        `--output_dir` default)
+        - Input files are expected at: <input_dir>/<build_name>.txt
     :param quiet: if True, pass `--quiet` to `pytest_failed.py` so it only
         reports the failed tests and outcome summary (used in `--daemon`
         mode)
     :return: List of build statistics dicts
     """
-    _LOG.debug(hprint.to_str("build_names quiet"))
+    _LOG.debug(hprint.to_str("build_names input_dir quiet"))
     # Locate `pytest_failed.py` script in the same directory.
     script_dir = os.path.dirname(os.path.abspath(__file__))
     pytest_failed_script = os.path.join(script_dir, "pytest_failed.py")
@@ -124,7 +126,7 @@ def _generate_build_files(
     # Execute pytest_failed.py for each build configuration.
     build_stats = []
     for build_name in build_names:
-        input_file = f"tmp.{in_build_tag}.{build_name}.txt"
+        input_file = os.path.join(input_dir, f"{build_name}.txt")
         # Check if input file exists; skip pytest_failed.py if missing.
         if not os.path.exists(input_file):
             _LOG.warning(
@@ -306,21 +308,21 @@ def _create_consolidated_repro(
 def _build_stats_to_str(
     build_stats: List[Dict[str, Any]],
     *,
-    in_build_tag: str = "pytest_multi_build",
+    input_dir: str = "tmp.pytest_multi_build",
 ) -> str:
     """
     Format build statistics as a table.
 
     :param build_stats: List of build statistics dicts
-    :param in_build_tag: Tag used to name the per-build input log file in
-        the `File` column, e.g., `tmp.<in_build_tag>.<build_name>.txt`
+    :param input_dir: Directory used to build the per-build input log file
+        path in the `File` column, e.g., `<input_dir>/<build_name>.txt`
     :return: Formatted table string, e.g.,
         ```
         Build          Completed     Status   Passed  Skipped  Failed  Total  Duration  pytest log file                      pytest log dir
         --------------------------------------------------------------------------------------------------------------------------------------------
-        docker         DONE          PASS     1234     0       10      1244   45.2s     tmp.pytest_multi_build.docker.txt        tmp.pytest_failed.docker/
-        apple          NOT STARTED   N/A         0     0        0        0     N/A      tmp.pytest_multi_build.apple.txt         tmp.pytest_failed.apple/
-        dev_container  IN PROGRESS   N/A      1232     1       11      1244   48.5s     tmp.pytest_multi_build.dev_container.txt tmp.pytest_failed.dev_container/
+        docker         DONE          PASS     1234     0       10      1244   45.2s     tmp.pytest_multi_build/docker.txt        tmp.pytest_failed.docker/
+        apple          NOT STARTED   N/A         0     0        0        0     N/A      tmp.pytest_multi_build/apple.txt         tmp.pytest_failed.apple/
+        dev_container  IN PROGRESS   N/A      1232     1       11      1244   48.5s     tmp.pytest_multi_build/dev_container.txt tmp.pytest_failed.dev_container/
         ```
     """
     _LOG.debug("build_stats=%s items", len(build_stats))
@@ -358,7 +360,7 @@ def _build_stats_to_str(
         else:
             failed = hprint.color_highlight(str(stats["failed"]), "red")
         build_name = stats["build"]
-        file_name = f"tmp.{in_build_tag}.{build_name}.txt"
+        file_name = os.path.join(input_dir, f"{build_name}.txt")
         dir_name = f"tmp.pytest_failed.{build_name}/"
         table_data.append(
             [
@@ -462,7 +464,7 @@ def _summary_to_str(
 
 def _run_once(
     build_names: List[str],
-    in_build_tag: str,
+    input_dir: str,
     out_build_tag: str,
     *,
     quiet: bool = False,
@@ -471,7 +473,7 @@ def _run_once(
     Run one pass of generating and consolidating failed tests across builds.
 
     :param build_names: list of build names
-    :param in_build_tag: tag for input files to read
+    :param input_dir: directory storing the per-build log files to read
     :param out_build_tag: tag for BUILD_TAG in generated repro script
     :param quiet: if True, only report the build statistics table, skipping
         the per-test failure summary across builds (used in `--daemon`
@@ -484,10 +486,10 @@ def _run_once(
     # `pytest_failed.py`.
     _LOG.info("Generating intermediate files by calling pytest_failed.py...")
     build_stats = _generate_build_files(
-        build_names, in_build_tag=in_build_tag, quiet=quiet
+        build_names, input_dir=input_dir, quiet=quiet
     )
     # Print build statistics summary.
-    stats_summary = _build_stats_to_str(build_stats, in_build_tag=in_build_tag)
+    stats_summary = _build_stats_to_str(build_stats, input_dir=input_dir)
     print(stats_summary)
     # Consolidate failed tests across all builds to identify common failures.
     test_to_builds = _consolidate_failed_tests(build_names)
@@ -529,11 +531,12 @@ def _parse() -> argparse.ArgumentParser:
         help="Build names to consolidate (default: docker apple dev_container)",
     )
     parser.add_argument(
-        "--in_build_tag",
-        type=str,
-        default="pytest_multi_build",
-        help="Tag for input files to read (default: pytest_multi_build). "
-        "Files will be named: tmp.<in_build_tag>.<build_name>.txt",
+        "--input_dir",
+        action="store",
+        default="tmp.pytest_multi_build",
+        help="Directory storing the per-build log files to read, matching "
+        "`pytest_multi_build.py`'s `--output_dir`. Files are expected at "
+        "<input_dir>/<build_name>.txt. Used by default in --daemon mode",
     )
     parser.add_argument(
         "--out_build_tag",
@@ -562,20 +565,20 @@ def _main(parser: argparse.ArgumentParser) -> None:
     args = parser.parse_args()
     hdbg.init_logger(verbosity=args.log_level, use_exec_path=True)
     build_names = args.build_names
-    in_build_tag = args.in_build_tag
+    input_dir = args.input_dir
     out_build_tag = args.out_build_tag
     if args.daemon:
         # Re-run the consolidation every `--interval` seconds, reporting
         # only the build statistics table.
         def _run() -> None:
             hprint.clear_screen()
-            _run_once(build_names, in_build_tag, out_build_tag, quiet=True)
+            _run_once(build_names, input_dir, out_build_tag, quiet=True)
 
         hdaemon.run_periodic_daemon_mode(
             _run, args.interval, window_name_str="pytest_failed_multi_build"
         )
         return
-    _run_once(build_names, in_build_tag, out_build_tag, quiet=args.quiet)
+    _run_once(build_names, input_dir, out_build_tag, quiet=args.quiet)
 
 
 if __name__ == "__main__":
