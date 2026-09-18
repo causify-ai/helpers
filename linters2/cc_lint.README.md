@@ -307,47 +307,12 @@ Claude Code integration for topic-based formatting
   - After `_process_file()` returns, `_main()` runs post-processing from `topic_info`
     (`jupytext --sync`, `hlint.lint_file()`) for every mode
 
-### Design Patterns
-
-- **In-process session vs. subprocess delegation**:
-  - `--mode one_shot_with_cc` writes a prompt file and shells out to the `cc`
-    wrapper, piping output through `extract_cc_log2.py`
-  - `--mode one_shot / session / stateless` use `PromptSequencer` API using different
-    number of messages
-- **Shared prompt, independent execution for the one-shot modes**:
-  - `_build_one_shot_prompt()` is the single source of truth for what
-    `one_shot_with_cc`/`one_shot` send Claude Code, so the two modes can only differ
-    in how the prompt is delivered, never in its content
-- **Permission callback for scoping**:
-  - File-modification safety is enforced by an SDK `can_use_tool` callback
-    (`_make_file_scope_guard()`), not by prompt wording
-- **No-op contract over free-form replies**:
-  - Each rule message demands a structured `LLM> NO-OP` / `LLM> CHANGED:
-    <summary>` reply instead of letting the model narrate freely
-- **Bias toward inclusion on pre-pass failure**: `_filter_relevant_chunks()` keeps
-  every chunk unfiltered when the LLM reply cannot be parsed as a JSON list or would
-  discard every chunk, since silently dropping an applicable rule is worse than one
-  extra no-op turn
-- **Merge never crosses a parent H1 or rule-file boundary**: `_merge_small_chunks()`
-  only packs consecutive chunks that share the same parent H1 title and source
-  `rule_file`, so packing never folds, e.g., the `# Verification` checklist into an
-  unrelated neighboring chunk, nor two same-titled sections from different rule files
-- **Check, don't fix, under `--add_todos`**: `_build_add_todos_instructions()` is the
-  single source of truth for the `# TODO(ai_gp): ...` comment format, shared by every
-  prompt-building path (one-shot and incremental) instead of each path inventing its
-  own wording
-- **Durable journal for resumability**: `_process_file_incrementally()`'s
-  `on_chunk_done` callback appends each chunk's outcome to `--journal_file` as soon
-  as it completes (a read-modify-write per chunk in `_append_journal_entries()`), so
-  a run killed partway through leaves every finished chunk durably recorded on disk
-  for a later `--resume`
-
 ### Invariants
 
-- `--mode` (`one_shot_with_cc`/`one_shot`/`session`/`stateless`) and the "what"
-  (`--topic`/`--skill`/`--rule`/default) are independent selections: exactly one
-  "what" is active per invocation (enforced by an argparse mutually exclusive group
-  plus `_main()`'s `num_exclusive` check), and it can be combined with any `--mode`
+- The "how" `--mode` and the "what" `--topic`/`--skill`/`--rule`/default are
+  independent selections
+  - Exactly one "what" is active per invocation and it can be combined with any
+    `--mode`
 - `--add_todos` cannot be combined with `--skill` (enforced by `_main()`), since a
   skill invocation is a command for Claude Code's own skill loader, not declarative
   rule prose to check

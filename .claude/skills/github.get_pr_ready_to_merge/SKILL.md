@@ -28,6 +28,7 @@ model: sonnet
   - [ ] Run AI lint with --add_todos, commit TODOs
   - [ ] Resolve added TODO(ai_gp) items
   - [ ] Run standard linter, fix issues
+  - [ ] Make Sure The Affected Local Tests Pass
   - [ ] Make local tests pass
   - [ ] Run and monitor GitHub CI
   - [ ] Report status on PR
@@ -83,13 +84,24 @@ model: sonnet
   ```
 - Commit any resulting changes, following "Never Commit Junk Files" below
 
+## Make Sure The Affected Local Tests Pass
+- Run the subset of tasks that are affected by the change, using
+  ```
+  > pytest <TEST_NAMES>
+  ```
+  to iterate on the tests and then `pytest_multi_build.py` to check all the different
+  builds
+  ```
+  > pytest_multi_build.py --target <TEST_NAMES>
+  ```
+
 ## Make Sure Local Tests Pass
 - Use `/github.get_pr_to_pass_local_tests` to run and fix the local unit tests for
-  the branch
+  the branch, even if it's a long task
 
 ## Make Sure GitHub CI Passes
-- Use `/github.get_pr_to_pass_ci_tests` to monitor GitHub CI, fix any failures, and
-  report status on the PR
+- Use `/github.get_pr_to_pass_ci_tests` to run and monitor GitHub CI, fix any
+  failures
 
 ## Never Commit Junk Files
 
