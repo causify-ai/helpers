@@ -12,9 +12,7 @@ import helpers.hparser as hparser
 import helpers.hprint as hprint
 import helpers.hunit_test as hunitest
 
-# TODO(ai_gp): Add _LOG = logging.getLogger(__name__) after imports to
-# follow the template structure (testing.rules.md:## Unit Test Code
-# Structure)
+_LOG = logging.getLogger(__name__)
 
 
 # #############################################################################
@@ -51,14 +49,11 @@ class _ForceNoColorFormatter(hparser.CustomHelpFormatter):
 
 
 # #############################################################################
-# Test_CustomHelpFormatter_split_lines
+# TestCustomHelpFormatterSplitLines
 # #############################################################################
 
 
-# TODO(ai_gp): Rename to TestCustomHelpFormatterSplitLines (no underscore
-# after Test for class testing) (testing.rules.md:## Naming Conventions
-# for a Class)
-class Test_CustomHelpFormatter_split_lines(hunitest.TestCase):
+class TestCustomHelpFormatterSplitLines(hunitest.TestCase):
     """
     Test `hparser.CustomHelpFormatter._split_lines()`.
     """
@@ -152,11 +147,11 @@ class Test_CustomHelpFormatter_split_lines(hunitest.TestCase):
         empty output line.
         """
         # Prepare inputs.
-        # TODO(ai_gp): Use triple-quote assignment with hprint.dedent
-        # instead of escaped newlines (testing.rules.md:## Use
-        # Triple-Quote Assignment with `hprint.dedent` for Multi-line
-        # Strings)
-        text = "Para one\n\nPara two"
+        text = """
+        Para one
+
+        Para two
+        """
         width = 40
         # Prepare outputs.
         expected = """
@@ -169,14 +164,11 @@ class Test_CustomHelpFormatter_split_lines(hunitest.TestCase):
 
 
 # #############################################################################
-# Test_CustomHelpFormatter_reflow_help_paragraphs
+# TestCustomHelpFormatterReflowHelpParagraphs
 # #############################################################################
 
 
-# TODO(ai_gp): Rename to TestCustomHelpFormatterReflowHelpParagraphs (no
-# underscore after Test for class testing) (testing.rules.md:## Naming
-# Conventions for a Class)
-class Test_CustomHelpFormatter_reflow_help_paragraphs(hunitest.TestCase):
+class TestCustomHelpFormatterReflowHelpParagraphs(hunitest.TestCase):
     """
     Test `hparser.CustomHelpFormatter._reflow_help_paragraphs()`.
     """
@@ -189,6 +181,8 @@ class Test_CustomHelpFormatter_reflow_help_paragraphs(hunitest.TestCase):
         :param expected: expected list of `(indent, paragraph_text)` or
             `None` for blank lines
         """
+        # Prepare inputs.
+        text = hprint.dedent(text)
         # Run test.
         actual = hparser.CustomHelpFormatter._reflow_help_paragraphs(text)
         # Check outputs.
@@ -206,10 +200,6 @@ class Test_CustomHelpFormatter_reflow_help_paragraphs(hunitest.TestCase):
           more continuation
         - 'b' bullet two
         """
-        # TODO(ai_gp): Move dedent to helper method, not test method
-        # (testing.rules.md:## Move Dedent and Checking into the Helper
-        # Method)
-        text = hprint.dedent(text)
         # Prepare outputs.
         expected = [
             (
@@ -228,11 +218,11 @@ class Test_CustomHelpFormatter_reflow_help_paragraphs(hunitest.TestCase):
         paragraph instead of being merged into one another.
         """
         # Prepare inputs.
-        # TODO(ai_gp): Use triple-quote assignment with hprint.dedent
-        # instead of escaped newlines (testing.rules.md:## Use
-        # Triple-Quote Assignment with `hprint.dedent` for Multi-line
-        # Strings)
-        text = "Comma-separated list\n  Available: py\n  Default: 'py'"
+        text = """
+        Comma-separated list
+          Available: py
+          Default: 'py'
+        """
         # Prepare outputs.
         expected = [
             ("", "Comma-separated list"),
@@ -248,11 +238,11 @@ class Test_CustomHelpFormatter_reflow_help_paragraphs(hunitest.TestCase):
         `None`) and that a bullet after it starts a fresh paragraph.
         """
         # Prepare inputs.
-        # TODO(ai_gp): Use triple-quote assignment with hprint.dedent
-        # instead of escaped newlines (testing.rules.md:## Use
-        # Triple-Quote Assignment with `hprint.dedent` for Multi-line
-        # Strings)
-        text = "- 'a' bullet\n\n- 'b' bullet"
+        text = """
+        - 'a' bullet
+
+        - 'b' bullet
+        """
         # Prepare outputs.
         expected = [
             ("", "- 'a' bullet"),
@@ -264,14 +254,11 @@ class Test_CustomHelpFormatter_reflow_help_paragraphs(hunitest.TestCase):
 
 
 # #############################################################################
-# Test_CustomHelpFormatter_get_help_string
+# TestCustomHelpFormatterGetHelpString
 # #############################################################################
 
 
-# TODO(ai_gp): Rename to TestCustomHelpFormatterGetHelpString (no
-# underscore after Test for class testing) (testing.rules.md:## Naming
-# Conventions for a Class)
-class Test_CustomHelpFormatter_get_help_string(hunitest.TestCase):
+class TestCustomHelpFormatterGetHelpString(hunitest.TestCase):
     """
     Test `hparser.CustomHelpFormatter._get_help_string()`.
     """
@@ -290,9 +277,7 @@ class Test_CustomHelpFormatter_get_help_string(hunitest.TestCase):
         # Run test.
         actual = formatter._get_help_string(action)
         # Check outputs.
-        # TODO(ai_gp): Use assert_equal() instead of assertEqual() for
-        # string comparison (testing.rules.md:## Assertion Patterns)
-        self.assertEqual(actual, expected)
+        self.assert_equal(actual, expected)
 
     def test1(self) -> None:
         """
@@ -410,19 +395,13 @@ class Test_CustomHelpFormatter_get_help_string(hunitest.TestCase):
 
 
 # #############################################################################
-# Test_CustomHelpFormatter_color
+# TestCustomHelpFormatterUseColor
 # #############################################################################
 
-# TODO(ai_gp): Rename to TestCustomHelpFormatterColor (no underscore after
-# Test for class testing) (testing.rules.md:## Naming Conventions for a
-# Class)
-# TODO(ai_gp): Split this test class into separate classes for each method
-# being tested (_use_color, _color(), _colorize_default_annotation())
-# (testing.rules.md:## Test One Thing)
-class Test_CustomHelpFormatter_color(hunitest.TestCase):
+
+class TestCustomHelpFormatterUseColor(hunitest.TestCase):
     """
-    Test `hparser.CustomHelpFormatter`'s color auto-detection and
-    `_color()`/`_colorize_default_annotation()` helpers.
+    Test `hparser.CustomHelpFormatter`'s `_use_color` auto-detection.
     """
 
     def test1(self) -> None:
@@ -435,45 +414,57 @@ class Test_CustomHelpFormatter_color(hunitest.TestCase):
         # Check outputs.
         self.assertFalse(formatter._use_color)
 
-    def test2(self) -> None:
+
+# #############################################################################
+# TestCustomHelpFormatterColor
+# #############################################################################
+
+
+class TestCustomHelpFormatterColor(hunitest.TestCase):
+    """
+    Test `hparser.CustomHelpFormatter._color()`.
+    """
+
+    def test1(self) -> None:
         """
         Test that `_color()` returns the text unchanged when
         colorization is off.
         """
         # Prepare inputs.
         formatter = _ForceNoColorFormatter("prog")
-        # TODO(ai_gp): Move expected value to "# Prepare outputs."
-        # section before "# Run test." (testing.rules.md:## Use Three
-        # Sections in Testing Methods)
         # Prepare outputs.
         expected = "--files"
         # Run test.
         actual = formatter._color("--files", "green")
         # Check outputs.
-        # TODO(ai_gp): Use assert_equal() instead of assertEqual() for
-        # string comparison (testing.rules.md:## Assertion Patterns)
-        self.assertEqual(actual, expected)
+        self.assert_equal(actual, expected)
 
-    def test3(self) -> None:
+    def test2(self) -> None:
         """
         Test that `_color()` matches `hprint.color_highlight()` when
         colorization is on.
         """
         # Prepare inputs.
         formatter = _ForceColorFormatter("prog")
-        # TODO(ai_gp): Move expected value to "# Prepare outputs."
-        # section before "# Run test." (testing.rules.md:## Use Three
-        # Sections in Testing Methods)
         # Prepare outputs.
         expected = hprint.color_highlight("--files", "green")
         # Run test.
         actual = formatter._color("--files", "green")
         # Check outputs.
-        # TODO(ai_gp): Use assert_equal() instead of assertEqual() for
-        # string comparison (testing.rules.md:## Assertion Patterns)
-        self.assertEqual(actual, expected)
+        self.assert_equal(actual, expected)
 
-    def test4(self) -> None:
+
+# #############################################################################
+# TestCustomHelpFormatterColorizeDefaultAnnotation
+# #############################################################################
+
+
+class TestCustomHelpFormatterColorizeDefaultAnnotation(hunitest.TestCase):
+    """
+    Test `hparser.CustomHelpFormatter._colorize_default_annotation()`.
+    """
+
+    def test1(self) -> None:
         """
         Test that only the "(default: ...)" substring of a help line is
         colorized, not the rest of the line.
@@ -481,23 +472,16 @@ class Test_CustomHelpFormatter_color(hunitest.TestCase):
         # Prepare inputs.
         formatter = _ForceColorFormatter("prog")
         line = "Token budget per merged rule chunk (default: 1500)"
-        # TODO(ai_gp): Move expected values to "# Prepare outputs."
-        # section before "# Run test." (testing.rules.md:## Use Three
-        # Sections in Testing Methods)
         # Prepare outputs.
-        expected_prefix = "Token budget per merged rule chunk "
-        expected_suffix = hprint.color_highlight("(default: 1500)", "gray")
+        expected = "Token budget per merged rule chunk " + hprint.color_highlight(
+            "(default: 1500)", "gray"
+        )
         # Run test.
         actual = formatter._colorize_default_annotation(line)
         # Check outputs.
-        # TODO(ai_gp): Use assert_equal() with fuzzy_match instead of
-        # multiple assertions checking parts of output
-        # (testing.rules.md:## Compare Whole Output with `assert_equal`,
-        # Not Piecewise)
-        self.assertTrue(actual.startswith(expected_prefix))
-        self.assertTrue(actual.endswith(expected_suffix))
+        self.assert_equal(actual, expected, fuzzy_match=True)
 
-    def test5(self) -> None:
+    def test2(self) -> None:
         """
         Test that a line with no "(default: ...)" annotation is
         unaffected by `_colorize_default_annotation()`.
@@ -505,28 +489,20 @@ class Test_CustomHelpFormatter_color(hunitest.TestCase):
         # Prepare inputs.
         formatter = _ForceColorFormatter("prog")
         line = "Select specific files"
-        # TODO(ai_gp): Move expected value to "# Prepare outputs."
-        # section before "# Run test." (testing.rules.md:## Use Three
-        # Sections in Testing Methods)
         # Prepare outputs.
         expected = "Select specific files"
         # Run test.
         actual = formatter._colorize_default_annotation(line)
         # Check outputs.
-        # TODO(ai_gp): Use assert_equal() instead of assertEqual() for
-        # string comparison (testing.rules.md:## Assertion Patterns)
-        self.assertEqual(actual, expected)
+        self.assert_equal(actual, expected)
 
 
 # #############################################################################
-# Test_CustomHelpFormatter_visible_len
+# TestCustomHelpFormatterVisibleLen
 # #############################################################################
 
 
-# TODO(ai_gp): Rename to TestCustomHelpFormatterVisibleLen (no underscore
-# after Test for class testing) (testing.rules.md:## Naming Conventions
-# for a Class)
-class Test_CustomHelpFormatter_visible_len(hunitest.TestCase):
+class TestCustomHelpFormatterVisibleLen(hunitest.TestCase):
     """
     Test `hparser.CustomHelpFormatter._visible_len()`.
     """
@@ -538,9 +514,6 @@ class Test_CustomHelpFormatter_visible_len(hunitest.TestCase):
         # Prepare inputs.
         plain = "--files FILES"
         colored = hprint.color_highlight(plain, "green")
-        # TODO(ai_gp): Add "# Prepare outputs." section with expected
-        # value (testing.rules.md:## Use Three Sections in Testing
-        # Methods)
         # Prepare outputs.
         expected = len(plain)
         # Run test.
@@ -555,9 +528,6 @@ class Test_CustomHelpFormatter_visible_len(hunitest.TestCase):
         """
         # Prepare inputs.
         text = "--files FILES"
-        # TODO(ai_gp): Add "# Prepare outputs." section with expected
-        # value (testing.rules.md:## Use Three Sections in Testing
-        # Methods)
         # Prepare outputs.
         expected = len(text)
         # Run test.
@@ -567,14 +537,11 @@ class Test_CustomHelpFormatter_visible_len(hunitest.TestCase):
 
 
 # #############################################################################
-# Test_CustomHelpFormatter_format_help
+# TestCustomHelpFormatterFormatHelp
 # #############################################################################
 
 
-# TODO(ai_gp): Rename to TestCustomHelpFormatterFormatHelp (no underscore
-# after Test for class testing) (testing.rules.md:## Naming Conventions
-# for a Class)
-class Test_CustomHelpFormatter_format_help(hunitest.TestCase):
+class TestCustomHelpFormatterFormatHelp(hunitest.TestCase):
     """
     Test `argparse.ArgumentParser.format_help()` end-to-end with
     `hparser.CustomHelpFormatter`.

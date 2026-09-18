@@ -5,16 +5,215 @@ from unittest import mock
 
 import dev_scripts_helpers.documentation.compress_pdf as dshdcpd
 import helpers.hio as hio
+import helpers.hprint as hprint
 import helpers.hunit_test as hunitest
 import helpers.hunit_test_utils as hunteuti
 
 _LOG = logging.getLogger(__name__)
 
 
-# TODO(ai_gp): Test public-facing behavior (compress_pdf.py executable) before
-# internal helpers (_find_gs_binary, _compress_pdf_ghostscript_global,
-# _compress_pdf_ghostscript_dockerized) (testing.rules.md:## Test From the
-# Outside-In)
+# #############################################################################
+# Test_compress_pdf_py
+# #############################################################################
+
+
+class Test_compress_pdf_py(hunitest.TestCase):
+    """
+    End-to-end tests for the `compress_pdf.py` executable.
+    """
+
+    def _run_main(self, argv: List[str]) -> None:
+        """
+        Run `dshdcpd._main()` with a mocked `sys.argv`.
+
+        :param argv: command-line argument list to inject via
+            `mock.patch("sys.argv", ...)`
+        """
+        parser = dshdcpd._parse()
+        with mock.patch("sys.argv", argv):
+            dshdcpd._main(parser)
+
+    def _check_output(self, output_file: str, expected_content: str) -> None:
+        """
+        Check that `output_file` contains `expected_content`.
+
+        :param output_file: path to the file to check
+        :param expected_content: expected file content
+        """
+        # Check outputs.
+        actual_content = hio.from_file(output_file)
+        self.assert_equal(actual_content, expected_content)
+
+    def test1(self) -> None:
+        """
+        Test compressing a PDF in place through the CLI with the
+        `ghostscript_global` backend (the default).
+        """
+        # Prepare inputs.
+        scratch_dir = self.get_scratch_space()
+        input_file = os.path.join(scratch_dir, "lecture.pdf")
+        hio.to_file(input_file, "original content")
+        gs_binary = "/usr/bin/gs"
+        # Prepare outputs.
+        expected_content = "compressed content"
+
+        def _fake_gs_system(cmd: str) -> int:
+            _ = cmd
+            # Simulate `gs` writing the compressed file to the temporary
+            # output path.
+            tmp_output_file = input_file + ".compressed.tmp"
+            hio.to_file(tmp_output_file, expected_content)
+            return 0
+
+        argv = ["compress_pdf.py", "--input", input_file]
+        # Run test.
+        with (
+            mock.patch.object(
+                dshdcpd, "_find_gs_binary", return_value=gs_binary
+            ),
+            mock.patch.object(
+                dshdcpd.hsystem, "system", side_effect=_fake_gs_system
+            ),
+        ):
+            self._run_main(argv)
+        # Check outputs.
+        self._check_output(input_file, expected_content)
+
+    def test2(self) -> None:
+        """
+        Test compressing a PDF in place through the CLI with the
+        `ghostscript_dockerized` backend.
+        """
+        # Prepare inputs.
+        scratch_dir = self.get_scratch_space()
+        input_file = os.path.join(scratch_dir, "lecture.pdf")
+        hio.to_file(input_file, "original content")
+        # Prepare outputs.
+        expected_content = "compressed content"
+
+        def _fake_build_and_run_docker_cmd(*args: Any, **kwargs: Any) -> str:
+            _ = args, kwargs
+            # Simulate `gs` writing the compressed file to the temporary
+            # output path.
+            tmp_output_file = input_file + ".compressed.tmp"
+            hio.to_file(tmp_output_file, expected_content)
+            return ""
+
+        argv = [
+            "compress_pdf.py",
+            "--input",
+            input_file,
+            "--backend",
+            "ghostscript_dockerized",
+        ]
+        # Run test.
+        with mock.patch.object(
+            dshdcpd.hdocker,
+            "build_and_run_docker_cmd",
+            side_effect=_fake_build_and_run_docker_cmd,
+        ):
+            self._run_main(argv)
+        # Check outputs.
+        self._check_output(input_file, expected_content)
+
+    def test3(self) -> None:
+        """
+        Test compressing a PDF in place through the CLI with a non-default
+        `--quality` value.
+        """
+        # Prepare inputs.
+        scratch_dir = self.get_scratch_space()
+        input_file = os.path.join(scratch_dir, "lecture.pdf")
+        hio.to_file(input_file, "original content")
+        gs_binary = "/usr/bin/gs"
+        quality = "/screen"
+        tmp_output_file = input_file + ".compressed.tmp"
+        # Prepare outputs.
+        expected_cmd = (
+            f"{gs_binary} -sDEVICE=pdfwrite -dPDFSETTINGS={quality} "
+            f"-dCompatibilityLevel=1.4 -dColorConversionStrategy=/sRGB "
+            f"-dProcessColorModel=/DeviceRGB -dNOPAUSE -dQUIET -dBATCH "
+            f"-sOutputFile={tmp_output_file} {input_file}"
+        )
+        expected_str = hprint.dedent(
+            f"""
+            [
+                {{
+                'function': hsystem.system,
+                'args': ('{expected_cmd}',),
+                'kwargs': {{}},
+                }},
+            ]
+            """
+        )
+        expected_content = "compressed content"
+        argv = [
+            "compress_pdf.py",
+            "--input",
+            input_file,
+            "--quality",
+            quality,
+        ]
+        # Run test.
+        with (
+            mock.patch.object(
+                dshdcpd, "_find_gs_binary", return_value=gs_binary
+            ),
+            hunteuti.capture_sys_calls() as sys_calls,
+        ):
+            # `gs` itself is mocked out, so create the compressed file it
+            # would have produced.
+            hio.to_file(tmp_output_file, expected_content)
+            self._run_main(argv)
+        # Check outputs.
+        hunteuti.assert_sys_calls(self, sys_calls, expected_str)
+        self._check_output(input_file, expected_content)
+
+    def test4(self) -> None:
+        """
+        Test compressing a PDF to a different output file through the CLI
+        (not in-place).
+        """
+        # Prepare inputs.
+        scratch_dir = self.get_scratch_space()
+        input_file = os.path.join(scratch_dir, "lecture.pdf")
+        hio.to_file(input_file, "original content")
+        gs_binary = "/usr/bin/gs"
+        output_file = os.path.join(scratch_dir, "lecture.compressed.pdf")
+        # Prepare outputs.
+        expected_content = "compressed content"
+
+        def _fake_gs_system(cmd: str) -> int:
+            _ = cmd
+            # Simulate `gs` writing the compressed file to the temporary
+            # output path.
+            tmp_output_file = output_file + ".compressed.tmp"
+            hio.to_file(tmp_output_file, expected_content)
+            return 0
+
+        argv = [
+            "compress_pdf.py",
+            "--input",
+            input_file,
+            "--output",
+            output_file,
+        ]
+        # Run test.
+        with (
+            mock.patch.object(
+                dshdcpd, "_find_gs_binary", return_value=gs_binary
+            ),
+            mock.patch.object(
+                dshdcpd.hsystem, "system", side_effect=_fake_gs_system
+            ),
+        ):
+            self._run_main(argv)
+        # Check outputs.
+        self._check_output(output_file, expected_content)
+        # The input file must be untouched since compression wrote to a
+        # separate `--output` path.
+        self.assertTrue(os.path.exists(input_file))
+
 
 # #############################################################################
 # Test__find_gs_binary
@@ -71,24 +270,21 @@ class Test__compress_pdf_ghostscript_global(hunitest.TestCase):
     Test dshdcpd._compress_pdf_ghostscript_global().
     """
 
-    # TODO(ai_gp): Test edge cases for the quality parameter (e.g., different
-    # quality settings) and file size boundary conditions (e.g., empty, large
-    # input files) (testing.rules.md:## What to Test)
-
-    def helper(self, output_file: str) -> None:
+    def helper(self, output_file: str, quality: str) -> None:
         """
         Run the function under test with a mocked `gs` binary and check the
         constructed command and the resulting output file.
 
         :param output_file: path passed as `output_file` (same as, or
             different from, the input file)
+        :param quality: Ghostscript `-dPDFSETTINGS` preset to pass to the
+            function under test
         """
         # Prepare inputs.
         scratch_dir = self.get_scratch_space()
         input_file = os.path.join(scratch_dir, "lecture.pdf")
         hio.to_file(input_file, "original content")
         gs_binary = "/usr/bin/gs"
-        quality = "/printer"
         tmp_output_file = output_file + ".compressed.tmp"
         # Prepare outputs.
         expected_cmd = (
@@ -97,18 +293,17 @@ class Test__compress_pdf_ghostscript_global(hunitest.TestCase):
             f"-dProcessColorModel=/DeviceRGB -dNOPAUSE -dQUIET -dBATCH "
             f"-sOutputFile={tmp_output_file} {input_file}"
         )
-        # TODO(ai_gp): Import hprint and use hprint.dedent() on multi-line
-        # strings, or use dedent=True in assertions (testing.rules.md:## Use
-        # Triple-Quote Assignment with `hprint.dedent` for Multi-line Strings)
-        expected_str = f"""
-        [
-            {{
-            'function': hsystem.system,
-            'args': ('{expected_cmd}',),
-            'kwargs': {{}},
-            }},
-        ]
-        """
+        expected_str = hprint.dedent(
+            f"""
+            [
+                {{
+                'function': hsystem.system,
+                'args': ('{expected_cmd}',),
+                'kwargs': {{}},
+                }},
+            ]
+            """
+        )
         expected_content = "compressed content"
         # Run test.
         with (
@@ -136,11 +331,9 @@ class Test__compress_pdf_ghostscript_global(hunitest.TestCase):
         # Prepare inputs.
         scratch_dir = self.get_scratch_space()
         output_file = os.path.join(scratch_dir, "lecture.pdf")
-        # TODO(ai_gp): Change comment to "# Run test and check outputs." since
-        # the helper performs both operations (testing.rules.md:## Use Three
-        # Sections in Testing Methods)
-        # Run test.
-        self.helper(output_file)
+        quality = "/printer"
+        # Run test and check outputs.
+        self.helper(output_file, quality)
 
     def test2(self) -> None:
         """
@@ -149,11 +342,20 @@ class Test__compress_pdf_ghostscript_global(hunitest.TestCase):
         # Prepare inputs.
         scratch_dir = self.get_scratch_space()
         output_file = os.path.join(scratch_dir, "lecture.compressed.pdf")
-        # TODO(ai_gp): Change comment to "# Run test and check outputs." since
-        # the helper performs both operations (testing.rules.md:## Use Three
-        # Sections in Testing Methods)
-        # Run test.
-        self.helper(output_file)
+        quality = "/printer"
+        # Run test and check outputs.
+        self.helper(output_file, quality)
+
+    def test3(self) -> None:
+        """
+        Test compressing a PDF with a non-default quality preset.
+        """
+        # Prepare inputs.
+        scratch_dir = self.get_scratch_space()
+        output_file = os.path.join(scratch_dir, "lecture.pdf")
+        quality = "/screen"
+        # Run test and check outputs.
+        self.helper(output_file, quality)
 
 
 # #############################################################################
@@ -166,11 +368,7 @@ class Test__compress_pdf_ghostscript_dockerized(hunitest.TestCase):
     Test dshdcpd._compress_pdf_ghostscript_dockerized().
     """
 
-    # TODO(ai_gp): Test edge cases for the quality parameter (e.g., different
-    # quality settings) and file size boundary conditions (e.g., empty, large
-    # input files) (testing.rules.md:## What to Test)
-
-    def helper(self, output_file: str) -> None:
+    def helper(self, output_file: str, quality: str) -> None:
         """
         Run the function under test with `hdocker.build_and_run_docker_cmd`
         mocked out and check the constructed `gs` command and the resulting
@@ -178,28 +376,26 @@ class Test__compress_pdf_ghostscript_dockerized(hunitest.TestCase):
 
         :param output_file: path passed as `output_file` (same as, or
             different from, the input file)
+        :param quality: Ghostscript `-dPDFSETTINGS` preset to pass to the
+            function under test
         """
         # Prepare inputs.
         scratch_dir = self.get_scratch_space()
         input_file = os.path.join(scratch_dir, "lecture.pdf")
         hio.to_file(input_file, "original content")
-        quality = "/printer"
         tmp_output_file = output_file + ".compressed.tmp"
-        # TODO(ai_gp): Move expected_content to a separate "# Prepare outputs."
-        # section below the inputs (testing.rules.md:## Consolidate Inputs and
-        # Outputs)
-        expected_content = "compressed content"
+        # Prepare outputs.
         # Compute the in-container paths the same way
         # `_compress_pdf_ghostscript_dockerized()` does (a real, unmocked
         # call: `hdocker` is our own internal wrapper, not the external
         # dependency, so it is not mocked), to build the expected `gs`
-        # command.
+        # command and the expected call to `build_and_run_docker_cmd()`.
         (
             is_caller_host,
             use_sibling_container_for_callee,
             caller_mount_path,
             callee_mount_path,
-            _,
+            mount,
         ) = dshdcpd.hdocker.get_docker_mount_context()
         docker_input_file = dshdcpd.hdocker.convert_caller_to_callee_docker_path(
             input_file,
@@ -219,13 +415,25 @@ class Test__compress_pdf_ghostscript_dockerized(hunitest.TestCase):
             is_caller_host=is_caller_host,
             use_sibling_container_for_callee=use_sibling_container_for_callee,
         )
-        # Prepare outputs.
         expected_cmd = (
             f"gs -sDEVICE=pdfwrite -dPDFSETTINGS={quality} "
             f"-dCompatibilityLevel=1.4 -dColorConversionStrategy=/sRGB "
             f"-dProcessColorModel=/DeviceRGB -dNOPAUSE -dQUIET -dBATCH "
             f"-sOutputFile={docker_tmp_output_file} {docker_input_file}"
         )
+        use_sudo = False
+        expected_calls = [
+            (
+                use_sudo,
+                callee_mount_path,
+                mount,
+                dshdcpd._GHOSTSCRIPT_DOCKER_IMAGE,
+                "",
+                expected_cmd,
+                "system",
+            )
+        ]
+        expected_content = "compressed content"
         calls: List[Tuple[Any, ...]] = []
 
         def _fake_build_and_run_docker_cmd(*args: Any, **kwargs: Any) -> str:
@@ -246,17 +454,7 @@ class Test__compress_pdf_ghostscript_dockerized(hunitest.TestCase):
                 input_file, output_file, quality=quality
             )
         # Check outputs.
-        # TODO(ai_gp): Convert calls to a string representation and compare
-        # the whole structure with assert_equal() instead of checking each
-        # part separately (testing.rules.md:## Compare Whole Output with
-        # `assert_equal`, Not Piecewise)
-        self.assertEqual(len(calls), 1)
-        container_image = calls[0][3]
-        tool_cmd = calls[0][5]
-        mode = calls[0][6]
-        self.assert_equal(container_image, "minidocks/ghostscript")
-        self.assert_equal(mode, "system")
-        self.assert_equal(tool_cmd, expected_cmd)
+        self.assert_equal(str(calls), str(expected_calls))
         actual_content = hio.from_file(output_file)
         self.assert_equal(actual_content, expected_content)
         self.assertFalse(os.path.exists(tmp_output_file))
@@ -268,11 +466,9 @@ class Test__compress_pdf_ghostscript_dockerized(hunitest.TestCase):
         # Prepare inputs.
         scratch_dir = self.get_scratch_space()
         output_file = os.path.join(scratch_dir, "lecture.pdf")
-        # TODO(ai_gp): Change comment to "# Run test and check outputs." since
-        # the helper performs both operations (testing.rules.md:## Use Three
-        # Sections in Testing Methods)
-        # Run test.
-        self.helper(output_file)
+        quality = "/printer"
+        # Run test and check outputs.
+        self.helper(output_file, quality)
 
     def test2(self) -> None:
         """
@@ -281,121 +477,17 @@ class Test__compress_pdf_ghostscript_dockerized(hunitest.TestCase):
         # Prepare inputs.
         scratch_dir = self.get_scratch_space()
         output_file = os.path.join(scratch_dir, "lecture.compressed.pdf")
-        # TODO(ai_gp): Change comment to "# Run test and check outputs." since
-        # the helper performs both operations (testing.rules.md:## Use Three
-        # Sections in Testing Methods)
-        # Run test.
-        self.helper(output_file)
+        quality = "/printer"
+        # Run test and check outputs.
+        self.helper(output_file, quality)
 
-
-# #############################################################################
-# Test_compress_pdf_py
-# #############################################################################
-
-
-class Test_compress_pdf_py(hunitest.TestCase):
-    """
-    End-to-end tests for the `compress_pdf.py` executable.
-    """
-
-    # TODO(ai_gp): Test edge cases such as different quality settings via CLI
-    # flags and different output file paths (not in-place compression)
-    # (testing.rules.md:## What to Test)
-
-    def _run_main(self, argv: List[str]) -> None:
+    def test3(self) -> None:
         """
-        Run `dshdcpd._main()` with a mocked `sys.argv`.
-
-        :param argv: command-line argument list to inject via
-            `mock.patch("sys.argv", ...)`
-        """
-        parser = dshdcpd._parse()
-        with mock.patch("sys.argv", argv):
-            dshdcpd._main(parser)
-
-    def _check_output(self, output_file: str, expected_content: str) -> None:
-        """
-        Check that `output_file` contains `expected_content`.
-
-        :param output_file: path to the file to check
-        :param expected_content: expected file content
-        """
-        # Check outputs.
-        actual_content = hio.from_file(output_file)
-        self.assert_equal(actual_content, expected_content)
-
-    def test1(self) -> None:
-        """
-        Test compressing a PDF in place through the CLI with the
-        `ghostscript_global` backend (the default).
+        Test compressing a PDF with a non-default quality preset.
         """
         # Prepare inputs.
         scratch_dir = self.get_scratch_space()
-        input_file = os.path.join(scratch_dir, "lecture.pdf")
-        hio.to_file(input_file, "original content")
-        gs_binary = "/usr/bin/gs"
-        # TODO(ai_gp): Move expected_content to a separate "# Prepare outputs."
-        # section below the inputs (testing.rules.md:## Consolidate Inputs and
-        # Outputs)
-        expected_content = "compressed content"
-
-        def _fake_gs_system(cmd: str) -> int:
-            _ = cmd
-            # Simulate `gs` writing the compressed file to the temporary
-            # output path.
-            tmp_output_file = input_file + ".compressed.tmp"
-            hio.to_file(tmp_output_file, expected_content)
-            return 0
-
-        argv = ["compress_pdf.py", "--input", input_file]
-        # Run test.
-        with (
-            mock.patch.object(
-                dshdcpd, "_find_gs_binary", return_value=gs_binary
-            ),
-            mock.patch.object(
-                dshdcpd.hsystem, "system", side_effect=_fake_gs_system
-            ),
-        ):
-            self._run_main(argv)
-        # Check outputs.
-        self._check_output(input_file, expected_content)
-
-    def test2(self) -> None:
-        """
-        Test compressing a PDF in place through the CLI with the
-        `ghostscript_dockerized` backend.
-        """
-        # Prepare inputs.
-        scratch_dir = self.get_scratch_space()
-        input_file = os.path.join(scratch_dir, "lecture.pdf")
-        hio.to_file(input_file, "original content")
-        # TODO(ai_gp): Move expected_content to a separate "# Prepare outputs."
-        # section below the inputs (testing.rules.md:## Consolidate Inputs and
-        # Outputs)
-        expected_content = "compressed content"
-
-        def _fake_build_and_run_docker_cmd(*args: Any, **kwargs: Any) -> str:
-            _ = args, kwargs
-            # Simulate `gs` writing the compressed file to the temporary
-            # output path.
-            tmp_output_file = input_file + ".compressed.tmp"
-            hio.to_file(tmp_output_file, expected_content)
-            return ""
-
-        argv = [
-            "compress_pdf.py",
-            "--input",
-            input_file,
-            "--backend",
-            "ghostscript_dockerized",
-        ]
-        # Run test.
-        with mock.patch.object(
-            dshdcpd.hdocker,
-            "build_and_run_docker_cmd",
-            side_effect=_fake_build_and_run_docker_cmd,
-        ):
-            self._run_main(argv)
-        # Check outputs.
-        self._check_output(input_file, expected_content)
+        output_file = os.path.join(scratch_dir, "lecture.pdf")
+        quality = "/screen"
+        # Run test and check outputs.
+        self.helper(output_file, quality)

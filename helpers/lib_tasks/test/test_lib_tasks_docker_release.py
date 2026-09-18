@@ -26,10 +26,10 @@ def _extract_commands_from_call(calls: List[umock._Call]) -> List[str]:
     Example:
         calls = [
             (
-                # args tuple: (context, command)
-                (mock_ctx, "docker build --no-cache image1"),
+                # args tuple: (command,)
+                ("docker build --no-cache image1",),
                 # kwargs dictionary
-                {"pty": True}
+                {"echo": False, "pty": True}
             )
         ]
         After extraction:
@@ -39,154 +39,145 @@ def _extract_commands_from_call(calls: List[umock._Call]) -> List[str]:
     :return: list of command strings
     """
     # Each mock call is a (args, kwargs) tuple, extract the command string
-    # from args[1] in each call.
-    call_list = [args_[1] for args_, kwargs_ in calls]
+    # from args[0] in each call (i.e., `self.mock_ctx.run(command, ...)`).
+    call_list = [args_[0] for args_, kwargs_ in calls]
     return call_list
 
 
 # #############################################################################
-# _DockerFlowTestHelper
+# Docker flow test helpers
 # #############################################################################
 
 
-# TODO(ai_gp): Base test class `_DockerFlowTestHelper` violates the rule to
-# avoid base test classes for shared code. Instead, create helper methods
-# within each test class to encapsulate shared utilities and have each test
-# method call these helpers directly (.claude/skills/testing.rules.md:##
-# Avoid Base Test Classes for Shared Code)
+# Shared setup, teardown, and assertion logic for Docker flow tests. These
+# are plain functions called explicitly from each test class (composition)
+# rather than a shared base test class (.claude/skills/testing.rules.md:##
+# Avoid Base Test Classes for Shared Code).
+
+
+def _set_up_docker_flow_test(self: hunitest.TestCase) -> None:
+    """
+    Set up common mocks and test inputs shared by Docker flow tests.
+
+    :param self: test case instance to attach the mocks and test inputs
+        to
+    """
+    # Capture system calls instead of executing them for real.
+    self.sys_calls_stack = contextlib.ExitStack()
+    self.sys_calls = self.sys_calls_stack.enter_context(
+        hunteuti.capture_sys_calls()
+    )
+    # Mock version validation.
+    self.version_patcher = umock.patch(
+        "helpers.lib_tasks.lib_tasks_docker.dassert_is_subsequent_version"
+    )
+    self.mock_version = self.version_patcher.start()
+    # Mock docker login.
+    self.docker_login_patcher = umock.patch(
+        "helpers.lib_tasks.lib_tasks_docker.docker_login"
+    )
+    self.mock_docker_login = self.docker_login_patcher.start()
+    # Mock environment variable.
+    self.env_patcher = umock.patch.dict(
+        "os.environ", {"CSFY_ECR_BASE_PATH": "test.ecr.path"}
+    )
+    self.get_default_param_patcher = umock.patch(
+        "helpers.lib_tasks.lib_tasks_utils.get_default_param",
+        side_effect=lambda param: {
+            "CSFY_ECR_BASE_PATH": "test.ecr.path",
+            "BASE_IMAGE": "test-image",
+        }.get(param, ""),
+    )
+    self.mock_get_default_param = self.get_default_param_patcher.start()
+    self.env_patcher.start()
+    self.get_docker_base_image_name_patcher = umock.patch(
+        "helpers.repo_config_utils.RepoConfig.get_docker_base_image_name"
+    )
+    self.mock_get_docker_base_image_name = (
+        self.get_docker_base_image_name_patcher.start()
+    )
+    # Note: `helpers.lib_tasks.lib_tasks_utils.run()` (an internal wrapper)
+    # is intentionally left unmocked and is exercised for real: it forwards
+    # to `self.mock_ctx.run()`, and `self.mock_ctx` is an `invoke.MockContext`
+    # whose `run()` method is the actual external dependency being mocked.
+    # This mocks at the call site instead of mocking our own internal helper
+    # (.claude/skills/testing.rules.md:## Mock Only External Dependencies,
+    # ## Mock at the Call Site).
+    self.patchers = {
+        "version": self.version_patcher,
+        "docker_login": self.docker_login_patcher,
+        "env": self.env_patcher,
+        "docker_base_image_name": self.get_docker_base_image_name_patcher,
+        "default_param": self.get_default_param_patcher,
+    }
+    # Test inputs.
+    self.mock_ctx = httestlib._build_mock_context_returning_ok()
+    self.test_version = "1.0.0"
+    self.test_base_image = "test-registry.com/test-image"
+    self.test_multi_arch = "linux/amd64,linux/arm64"
+    self.mock_get_docker_base_image_name.return_value = "test-image"
+
+
+def _tear_down_docker_flow_test(self: hunitest.TestCase) -> None:
+    """
+    Stop all mocks and clean up system call capture after each test case.
+
+    :param self: test case instance holding the mocks to tear down
+    """
+    for patcher in self.patchers.values():
+        patcher.stop()
+    self.sys_calls_stack.close()
+
+
+def _check_docker_command_output(
+    self: hunitest.TestCase,
+    expected: str,
+    call_args_list: List[umock._Call],
+) -> None:
+    """
+    Verify that the sequence of Docker commands from mock calls matches the
+    expected string.
+
+    :param self: test case instance used to perform the assertion
+    :param expected: expected command string
+    :param call_args_list: list of mock call objects
+    """
+    actual_cmds = _extract_commands_from_call(call_args_list)
+    actual_cmds = "\n".join(actual_cmds)
+    _LOG.debug("Actual Docker commands:\n%s", actual_cmds)
+    self.assert_equal(
+        actual_cmds,
+        expected,
+        purify_text=True,
+        purify_expected_text=True,
+        fuzzy_match=True,
+        remove_lead_trail_empty_lines=True,
+        dedent=True,
+    )
+
+
+# #############################################################################
+# Test_docker_build_local_image
+# #############################################################################
+
+
 @pytest.mark.need_dev_container
 @pytest.mark.skipif(
     not hserver.is_inside_docker(),
     reason="Skipping: tests require dev container",
 )
-class _DockerFlowTestHelper(hunitest.TestCase):
-    """
-    Helper test class to perform common setup, teardown logic and assertion
-    checks for Docker flow tests.
-    """
-
-    @pytest.fixture(autouse=True)
-    def setup_teardown_test(self) -> Generator:
-        self.set_up_test()
-        yield
-        self.tear_down_test()
-
-    def set_up_test(self) -> None:
-        # Capture system calls instead of executing them for real.
-        self.sys_calls_stack = contextlib.ExitStack()
-        self.sys_calls = self.sys_calls_stack.enter_context(
-            hunteuti.capture_sys_calls()
-        )
-        # TODO(ai_gp): Should mock external dependencies (subprocess), not
-        # internal helpers. Replace mocks of
-        # `helpers.lib_tasks.lib_tasks_utils.run` and similar internal
-        # wrappers with mocks of external subprocess/shell execution
-        # (.claude/skills/testing.rules.md:## Mock Only External Dependencies)
-        # Mock run.
-        self.run_patcher = umock.patch("helpers.lib_tasks.lib_tasks_utils.run")
-        self.mock_run = self.run_patcher.start()
-        # Mock version validation.
-        self.version_patcher = umock.patch(
-            "helpers.lib_tasks.lib_tasks_docker.dassert_is_subsequent_version"
-        )
-        self.mock_version = self.version_patcher.start()
-        # Mock docker login.
-        self.docker_login_patcher = umock.patch(
-            "helpers.lib_tasks.lib_tasks_docker.docker_login"
-        )
-        self.mock_docker_login = self.docker_login_patcher.start()
-        # Mock environment variable.
-        self.env_patcher = umock.patch.dict(
-            "os.environ", {"CSFY_ECR_BASE_PATH": "test.ecr.path"}
-        )
-        self.get_default_param_patcher = umock.patch(
-            "helpers.lib_tasks.lib_tasks_utils.get_default_param",
-            side_effect=lambda param: {
-                "CSFY_ECR_BASE_PATH": "test.ecr.path",
-                "BASE_IMAGE": "test-image",
-            }.get(param, ""),
-        )
-        self.mock_get_default_param = self.get_default_param_patcher.start()
-        self.env_patcher.start()
-        self.get_docker_base_image_name_patcher = umock.patch(
-            "helpers.repo_config_utils.RepoConfig.get_docker_base_image_name"
-        )
-        self.mock_get_docker_base_image_name = (
-            self.get_docker_base_image_name_patcher.start()
-        )
-        #
-        self.patchers = {
-            "run": self.run_patcher,
-            "version": self.version_patcher,
-            "docker_login": self.docker_login_patcher,
-            "env": self.env_patcher,
-            "docker_base_image_name": self.get_docker_base_image_name_patcher,
-            "default_param": self.get_default_param_patcher,
-        }
-        # Test inputs.
-        self.mock_ctx = httestlib._build_mock_context_returning_ok()
-        self.test_version = "1.0.0"
-        self.test_base_image = "test-registry.com/test-image"
-        self.test_multi_arch = "linux/amd64,linux/arm64"
-        self.mock_get_docker_base_image_name.return_value = "test-image"
-
-    def tear_down_test(self) -> None:
-        """
-        Clean up test environment by stopping all mocks after each test case.
-        """
-        for patcher in self.patchers.values():
-            patcher.stop()
-        self.sys_calls_stack.close()
-
-    def _check_docker_command_output(
-        self, expected: str, call_args_list: List[umock._Call]
-    ) -> None:
-        """
-        Verify that the sequence of Docker commands from mock calls matches the
-        expected string.
-
-        :param expected: expected command string
-        :param call_args_list: list of mock call objects
-        """
-        actual_cmds = _extract_commands_from_call(call_args_list)
-        actual_cmds = "\n".join(actual_cmds)
-        _LOG.debug("Actual Docker commands:\n%s", actual_cmds)
-        self.assert_equal(
-            actual_cmds,
-            expected,
-            purify_text=True,
-            purify_expected_text=True,
-            fuzzy_match=True,
-            remove_lead_trail_empty_lines=True,
-            dedent=True,
-        )
-
-
-# #############################################################################
-# Test_docker_build_local_image1
-# #############################################################################
-
-# TODO(ai_gp): Test class name should follow convention `Test_<FunctionName>`
-# without numeric suffix. Rename to `Test_docker_build_local_image`
-# (.claude/skills/testing.rules.md:## Naming Conventions for a Function)
-
-@pytest.mark.skipif(
-    not hserver.is_inside_docker(),
-    reason="Skipping: tests require dev container",
-)
-class Test_docker_build_local_image1(_DockerFlowTestHelper):
+class Test_docker_build_local_image(hunitest.TestCase):
     """
     Test building a local Docker image.
     """
 
-    # TODO(ai_gp): Test method name should be numbered only (e.g., `test1`)
-    # without descriptive prefix. Rename to `test1` and keep docstring
-    # explanation (.claude/skills/testing.rules.md:## Test Method Names)
-    # TODO(ai_gp): Use standard section comments for test structure:
-    # `# Prepare inputs.`, `# Prepare outputs.`, `# Run test and check
-    # outputs.` since helper handles checking (.claude/skills/testing.rules.md:##
-    # Use Three Sections in Testing Methods)
-    def test_single_arch1(self) -> None:
+    @pytest.fixture(autouse=True)
+    def setup_teardown_test(self) -> Generator:
+        _set_up_docker_flow_test(self)
+        yield
+        _tear_down_docker_flow_test(self)
+
+    def test1(self) -> None:
         """
         Test building with single architecture.
 
@@ -196,19 +187,11 @@ class Test_docker_build_local_image1(_DockerFlowTestHelper):
         - Custom build arguments
         - Local user-specific tagging
         """
-        # TODO(ai_gp): Hardcoded parameters should be assigned to variables
-        # first before calling the function. Assign cache, base_image, and
-        # poetry_mode to variables, then pass them to the function
-        # (.claude/skills/testing.rules.md:## Assign Variables and Then Call
-        # Functions)
-        # Call tested function.
-        hltadore.docker_build_local_image(
-            self.mock_ctx,
-            self.test_version,
-            cache=False,
-            base_image=self.test_base_image,
-            poetry_mode="update",
-        )
+        # Prepare inputs.
+        cache = False
+        base_image = self.test_base_image
+        poetry_mode = "update"
+        # Prepare outputs.
         # The output is a list of strings, each representing a command.
         expected = r"""
         cp -f devops/docker_build/dockerignore.dev $GIT_ROOT/.dockerignore
@@ -225,9 +208,19 @@ class Test_docker_build_local_image1(_DockerFlowTestHelper):
         cp -f pip_list.txt ./devops/docker_build/pip_list.txt
         docker image ls test-registry.com/test-image:local-$USER_NAME-1.0.0
         """
-        self._check_docker_command_output(expected, self.mock_run.call_args_list)
+        # Run test and check outputs.
+        hltadore.docker_build_local_image(
+            self.mock_ctx,
+            self.test_version,
+            cache=cache,
+            base_image=base_image,
+            poetry_mode=poetry_mode,
+        )
+        _check_docker_command_output(
+            self, expected, self.mock_ctx.run.call_args_list
+        )
 
-    def test_multi_arch1(self) -> None:
+    def test2(self) -> None:
         """
         Test building with multiple architectures.
 
@@ -237,15 +230,12 @@ class Test_docker_build_local_image1(_DockerFlowTestHelper):
         - Platform-specific build options
         - Image pushing to registry
         """
-        # Call tested function.
-        hltadore.docker_build_local_image(
-            self.mock_ctx,
-            self.test_version,
-            cache=False,
-            base_image=self.test_base_image,
-            poetry_mode="update",
-            multi_arch=self.test_multi_arch,
-        )
+        # Prepare inputs.
+        cache = False
+        base_image = self.test_base_image
+        poetry_mode = "update"
+        multi_arch = self.test_multi_arch
+        # Prepare outputs.
         expected = r"""
         cp -f devops/docker_build/dockerignore.dev $GIT_ROOT/.dockerignore
         docker buildx create \
@@ -270,22 +260,40 @@ class Test_docker_build_local_image1(_DockerFlowTestHelper):
         cp -f pip_list.txt ./devops/docker_build/pip_list.txt
         docker image ls test-registry.com/test-image:local-$USER_NAME-1.0.0
         """
-        self._check_docker_command_output(expected, self.mock_run.call_args_list)
+        # Run test and check outputs.
+        hltadore.docker_build_local_image(
+            self.mock_ctx,
+            self.test_version,
+            cache=cache,
+            base_image=base_image,
+            poetry_mode=poetry_mode,
+            multi_arch=multi_arch,
+        )
+        _check_docker_command_output(
+            self, expected, self.mock_ctx.run.call_args_list
+        )
 
 
 # #############################################################################
-# Test_docker_build_prod_image1
+# Test_docker_build_prod_image
 # #############################################################################
 
 
+@pytest.mark.need_dev_container
 @pytest.mark.skipif(
     not hserver.is_inside_docker(),
     reason="Skipping: tests require dev container",
 )
-class Test_docker_build_prod_image1(_DockerFlowTestHelper):
+class Test_docker_build_prod_image(hunitest.TestCase):
     """
     Test building a prod Docker image.
     """
+
+    @pytest.fixture(autouse=True)
+    def setup_teardown_test(self) -> Generator:
+        _set_up_docker_flow_test(self)
+        yield
+        _tear_down_docker_flow_test(self)
 
     @pytest.mark.skipif(
         hserver.is_host_mac(),
@@ -324,7 +332,9 @@ class Test_docker_build_prod_image1(_DockerFlowTestHelper):
         docker tag test-registry.com/test-image:prod-1.0.0 test-registry.com/test-image:prod
         docker image ls test-registry.com/test-image:prod
         """
-        self._check_docker_command_output(expected, self.mock_run.call_args_list)
+        _check_docker_command_output(
+            self, expected, self.mock_ctx.run.call_args_list
+        )
 
     def test_multi_arch_prod_image1(self) -> None:
         """
@@ -366,7 +376,9 @@ class Test_docker_build_prod_image1(_DockerFlowTestHelper):
         docker pull test-registry.com/test-image:prod-1.0.0
         docker image ls test-registry.com/test-image:prod-1.0.0
         """
-        self._check_docker_command_output(expected, self.mock_run.call_args_list)
+        _check_docker_command_output(
+            self, expected, self.mock_ctx.run.call_args_list
+        )
 
     @pytest.mark.skipif(
         not hgit.is_in_helpers_as_supermodule(),
@@ -407,7 +419,9 @@ class Test_docker_build_prod_image1(_DockerFlowTestHelper):
             /app
         docker image ls test-registry.com/test-image:prod-test_tag
         """
-        self._check_docker_command_output(expected, self.mock_run.call_args_list)
+        _check_docker_command_output(
+            self, expected, self.mock_ctx.run.call_args_list
+        )
 
     @pytest.mark.skipif(
         hserver.is_host_mac(),
@@ -449,22 +463,31 @@ class Test_docker_build_prod_image1(_DockerFlowTestHelper):
             /app
         docker image ls test-registry.com/test-image:prod-test_user-test_tag
         """
-        self._check_docker_command_output(expected, self.mock_run.call_args_list)
+        _check_docker_command_output(
+            self, expected, self.mock_ctx.run.call_args_list
+        )
 
 
 # #############################################################################
-# Test_docker_tag_push_multi_arch_prod_image1
+# Test_docker_tag_push_multi_arch_prod_image
 # #############################################################################
 
 
+@pytest.mark.need_dev_container
 @pytest.mark.skipif(
     not hserver.is_inside_docker(),
     reason="Skipping: tests require dev container",
 )
-class Test_docker_tag_push_multi_arch_prod_image1(_DockerFlowTestHelper):
+class Test_docker_tag_push_multi_arch_prod_image(hunitest.TestCase):
     """
     Test tagging and pushing a multi-architecture Docker image.
     """
+
+    @pytest.fixture(autouse=True)
+    def setup_teardown_test(self) -> Generator:
+        _set_up_docker_flow_test(self)
+        yield
+        _tear_down_docker_flow_test(self)
 
     def test_aws_ecr1(self) -> None:
         """
@@ -485,7 +508,9 @@ class Test_docker_tag_push_multi_arch_prod_image1(_DockerFlowTestHelper):
         expected = r"""
         docker buildx imagetools create -t test.ecr.path/test-image:prod test.ecr.path/test-image:prod-1.0.0
         """
-        self._check_docker_command_output(expected, self.mock_run.call_args_list)
+        _check_docker_command_output(
+            self, expected, self.mock_ctx.run.call_args_list
+        )
 
     def test_dockerhub1(self) -> None:
         """
@@ -508,24 +533,31 @@ class Test_docker_tag_push_multi_arch_prod_image1(_DockerFlowTestHelper):
         docker buildx imagetools create -t causify/test-image:prod-1.0.0 test.ecr.path/test-image:prod-1.0.0
         docker buildx imagetools create -t causify/test-image:prod test.ecr.path/test-image:prod-1.0.0
         """
-        self._check_docker_command_output(expected, self.mock_run.call_args_list)
+        _check_docker_command_output(
+            self, expected, self.mock_ctx.run.call_args_list
+        )
 
 
 # #############################################################################
-# Test_docker_tag_push_multi_build_local_image_as_dev1
+# Test_docker_tag_push_multi_build_local_image_as_dev
 # #############################################################################
 
 
+@pytest.mark.need_dev_container
 @pytest.mark.skipif(
     not hserver.is_inside_docker(),
     reason="Skipping: tests require dev container",
 )
-class Test_docker_tag_push_multi_build_local_image_as_dev1(
-    _DockerFlowTestHelper
-):
+class Test_docker_tag_push_multi_build_local_image_as_dev(hunitest.TestCase):
     """
     Test tagging and pushing a multi-arch local Docker image as dev.
     """
+
+    @pytest.fixture(autouse=True)
+    def setup_teardown_test(self) -> Generator:
+        _set_up_docker_flow_test(self)
+        yield
+        _tear_down_docker_flow_test(self)
 
     def test_aws_ecr1(self) -> None:
         """
@@ -548,7 +580,9 @@ class Test_docker_tag_push_multi_build_local_image_as_dev1(
         docker buildx imagetools create -t test.ecr.path/test-image:dev-1.0.0 test.ecr.path/test-image:local-$USER_NAME-1.0.0
         docker buildx imagetools create -t test.ecr.path/test-image:dev test.ecr.path/test-image:local-$USER_NAME-1.0.0
         """
-        self._check_docker_command_output(expected, self.mock_run.call_args_list)
+        _check_docker_command_output(
+            self, expected, self.mock_ctx.run.call_args_list
+        )
 
     def test_dockerhub1(self) -> None:
         """
@@ -571,22 +605,31 @@ class Test_docker_tag_push_multi_build_local_image_as_dev1(
         docker buildx imagetools create -t causify/test-image:dev-1.0.0 test.ecr.path/test-image:local-$USER_NAME-1.0.0
         docker buildx imagetools create -t causify/test-image:dev test.ecr.path/test-image:local-$USER_NAME-1.0.0
         """
-        self._check_docker_command_output(expected, self.mock_run.call_args_list)
+        _check_docker_command_output(
+            self, expected, self.mock_ctx.run.call_args_list
+        )
 
 
 # #############################################################################
-# Test_docker_release_dev_image1
+# Test_docker_release_dev_image
 # #############################################################################
 
 
+@pytest.mark.need_dev_container
 @pytest.mark.skipif(
     not hserver.is_inside_docker(),
     reason="Skipping: tests require dev container",
 )
-class Test_docker_release_dev_image1(_DockerFlowTestHelper):
+class Test_docker_release_dev_image(hunitest.TestCase):
     """
     Test releasing a dev Docker image.
     """
+
+    @pytest.fixture(autouse=True)
+    def setup_teardown_test(self) -> Generator:
+        _set_up_docker_flow_test(self)
+        yield
+        _tear_down_docker_flow_test(self)
 
     def test_aws_ecr1(self) -> None:
         """
@@ -632,22 +675,31 @@ class Test_docker_release_dev_image1(_DockerFlowTestHelper):
         docker push test.ecr.path/test-image:dev-1.0.0
         docker push test.ecr.path/test-image:dev
         """
-        self._check_docker_command_output(expected, self.mock_run.call_args_list)
+        _check_docker_command_output(
+            self, expected, self.mock_ctx.run.call_args_list
+        )
 
 
 # #############################################################################
-# Test_docker_release_prod_image1
+# Test_docker_release_prod_image
 # #############################################################################
 
 
+@pytest.mark.need_dev_container
 @pytest.mark.skipif(
     not hserver.is_inside_docker(),
     reason="Skipping: tests require dev container",
 )
-class Test_docker_release_prod_image1(_DockerFlowTestHelper):
+class Test_docker_release_prod_image(hunitest.TestCase):
     """
     Test releasing a prod Docker image.
     """
+
+    @pytest.fixture(autouse=True)
+    def setup_teardown_test(self) -> Generator:
+        _set_up_docker_flow_test(self)
+        yield
+        _tear_down_docker_flow_test(self)
 
     @pytest.mark.skipif(
         hserver.is_host_mac(),
@@ -695,22 +747,31 @@ class Test_docker_release_prod_image1(_DockerFlowTestHelper):
         docker push test.ecr.path/test-image:prod-1.0.0
         docker push test.ecr.path/test-image:prod
         """
-        self._check_docker_command_output(expected, self.mock_run.call_args_list)
+        _check_docker_command_output(
+            self, expected, self.mock_ctx.run.call_args_list
+        )
 
 
 # #############################################################################
-# Test_docker_release_multi_build_dev_image1
+# Test_docker_release_multi_build_dev_image
 # #############################################################################
 
 
+@pytest.mark.need_dev_container
 @pytest.mark.skipif(
     not hserver.is_inside_docker(),
     reason="Skipping: tests require dev container",
 )
-class Test_docker_release_multi_build_dev_image1(_DockerFlowTestHelper):
+class Test_docker_release_multi_build_dev_image(hunitest.TestCase):
     """
     Test releasing a multi-arch dev Docker image.
     """
+
+    @pytest.fixture(autouse=True)
+    def setup_teardown_test(self) -> Generator:
+        _set_up_docker_flow_test(self)
+        yield
+        _tear_down_docker_flow_test(self)
 
     def test_single_registry1(self) -> None:
         """
@@ -761,7 +822,9 @@ class Test_docker_release_multi_build_dev_image1(_DockerFlowTestHelper):
         docker buildx imagetools create -t test.ecr.path/test-image:dev-1.0.0 test.ecr.path/test-image:local-$USER_NAME-1.0.0
         docker buildx imagetools create -t test.ecr.path/test-image:dev test.ecr.path/test-image:local-$USER_NAME-1.0.0
         """
-        self._check_docker_command_output(expected, self.mock_run.call_args_list)
+        _check_docker_command_output(
+            self, expected, self.mock_ctx.run.call_args_list
+        )
 
     def test_multiple_registries1(self) -> None:
         """
@@ -813,22 +876,31 @@ class Test_docker_release_multi_build_dev_image1(_DockerFlowTestHelper):
         docker buildx imagetools create -t causify/test-image:dev-1.0.0 test.ecr.path/test-image:local-$USER_NAME-1.0.0
         docker buildx imagetools create -t causify/test-image:dev test.ecr.path/test-image:local-$USER_NAME-1.0.0
         """
-        self._check_docker_command_output(expected, self.mock_run.call_args_list)
+        _check_docker_command_output(
+            self, expected, self.mock_ctx.run.call_args_list
+        )
 
 
 # #############################################################################
-# Test_docker_rollback_dev_image1
+# Test_docker_rollback_dev_image
 # #############################################################################
 
 
+@pytest.mark.need_dev_container
 @pytest.mark.skipif(
     not hserver.is_inside_docker(),
     reason="Skipping: tests require dev container",
 )
-class Test_docker_rollback_dev_image1(_DockerFlowTestHelper):
+class Test_docker_rollback_dev_image(hunitest.TestCase):
     """
     Test rolling back a dev Docker image.
     """
+
+    @pytest.fixture(autouse=True)
+    def setup_teardown_test(self) -> Generator:
+        _set_up_docker_flow_test(self)
+        yield
+        _tear_down_docker_flow_test(self)
 
     def test_aws_ecr1(self) -> None:
         """
@@ -852,22 +924,31 @@ class Test_docker_rollback_dev_image1(_DockerFlowTestHelper):
         docker push test.ecr.path/test-image:dev-1.0.0
         docker push test.ecr.path/test-image:dev
         """
-        self._check_docker_command_output(expected, self.mock_run.call_args_list)
+        _check_docker_command_output(
+            self, expected, self.mock_ctx.run.call_args_list
+        )
 
 
 # #############################################################################
-# Test_docker_rollback_prod_image1
+# Test_docker_rollback_prod_image
 # #############################################################################
 
 
+@pytest.mark.need_dev_container
 @pytest.mark.skipif(
     not hserver.is_inside_docker(),
     reason="Skipping: tests require dev container",
 )
-class Test_docker_rollback_prod_image1(_DockerFlowTestHelper):
+class Test_docker_rollback_prod_image(hunitest.TestCase):
     """
     Test rolling back a prod Docker image.
     """
+
+    @pytest.fixture(autouse=True)
+    def setup_teardown_test(self) -> Generator:
+        _set_up_docker_flow_test(self)
+        yield
+        _tear_down_docker_flow_test(self)
 
     def test_aws_ecr1(self) -> None:
         """
@@ -891,22 +972,31 @@ class Test_docker_rollback_prod_image1(_DockerFlowTestHelper):
         docker push test.ecr.path/test-image:prod-1.0.0
         docker push test.ecr.path/test-image:prod
         """
-        self._check_docker_command_output(expected, self.mock_run.call_args_list)
+        _check_docker_command_output(
+            self, expected, self.mock_ctx.run.call_args_list
+        )
 
 
 # #############################################################################
-# Test_docker_push_prod_candidate_image1
+# Test_docker_push_prod_candidate_image
 # #############################################################################
 
 
+@pytest.mark.need_dev_container
 @pytest.mark.skipif(
     not hserver.is_inside_docker(),
     reason="Skipping: tests require dev container",
 )
-class Test_docker_push_prod_candidate_image1(_DockerFlowTestHelper):
+class Test_docker_push_prod_candidate_image(hunitest.TestCase):
     """
     Test pushing a prod candidate Docker image.
     """
+
+    @pytest.fixture(autouse=True)
+    def setup_teardown_test(self) -> Generator:
+        _set_up_docker_flow_test(self)
+        yield
+        _tear_down_docker_flow_test(self)
 
     def test_aws_ecr1(self) -> None:
         """
@@ -926,22 +1016,31 @@ class Test_docker_push_prod_candidate_image1(_DockerFlowTestHelper):
         expected = r"""
         docker push test.ecr.path/test-image:prod-4759b3685f903e6c669096e960b248ec31c63b69
         """
-        self._check_docker_command_output(expected, self.mock_run.call_args_list)
+        _check_docker_command_output(
+            self, expected, self.mock_ctx.run.call_args_list
+        )
 
 
 # #############################################################################
-# Test_docker_release_multi_arch_prod_image1
+# Test_docker_release_multi_arch_prod_image
 # #############################################################################
 
 
+@pytest.mark.need_dev_container
 @pytest.mark.skipif(
     not hserver.is_inside_docker(),
     reason="Skipping: tests require dev container",
 )
-class Test_docker_release_multi_arch_prod_image1(_DockerFlowTestHelper):
+class Test_docker_release_multi_arch_prod_image(hunitest.TestCase):
     """
     Test releasing a multi-arch prod Docker image.
     """
+
+    @pytest.fixture(autouse=True)
+    def setup_teardown_test(self) -> Generator:
+        _set_up_docker_flow_test(self)
+        yield
+        _tear_down_docker_flow_test(self)
 
     def test_multiple_registries1(self) -> None:
         """
@@ -989,19 +1088,22 @@ class Test_docker_release_multi_arch_prod_image1(_DockerFlowTestHelper):
         docker buildx imagetools create -t causify/test-image:prod-1.0.0 test.ecr.path/test-image:prod-1.0.0
         docker buildx imagetools create -t causify/test-image:prod test.ecr.path/test-image:prod-1.0.0
         """
-        self._check_docker_command_output(expected, self.mock_run.call_args_list)
+        _check_docker_command_output(
+            self, expected, self.mock_ctx.run.call_args_list
+        )
 
 
 # #############################################################################
-# Test_docker_create_candidate_image1
+# Test_docker_create_candidate_image
 # #############################################################################
 
 
+@pytest.mark.need_dev_container
 @pytest.mark.skipif(
     not hserver.is_inside_docker(),
     reason="Skipping: tests require dev container",
 )
-class Test_docker_create_candidate_image1(_DockerFlowTestHelper):
+class Test_docker_create_candidate_image(hunitest.TestCase):
     """
     Test creating a candidate Docker image.
     """
@@ -1011,7 +1113,7 @@ class Test_docker_create_candidate_image1(_DockerFlowTestHelper):
         Set up test environment with additional mocks specific to this test
         class.
         """
-        self.set_up_test()
+        _set_up_docker_flow_test(self)
         # Mock git hash.
         self.git_hash_patcher = umock.patch(
             "helpers.hgit.get_head_hash",
@@ -1048,7 +1150,7 @@ class Test_docker_create_candidate_image1(_DockerFlowTestHelper):
         """
         Clean up test environment.
         """
-        self.tear_down_test()
+        _tear_down_docker_flow_test(self)
 
     @pytest.fixture(autouse=True)
     def setup_teardown_test(self) -> Generator:
@@ -1087,15 +1189,16 @@ class Test_docker_create_candidate_image1(_DockerFlowTestHelper):
 
 
 # #############################################################################
-# Test_docker_update_prod_task_definition1
+# Test_docker_update_prod_task_definition
 # #############################################################################
 
 
+@pytest.mark.need_dev_container
 @pytest.mark.skipif(
     not hserver.is_inside_docker(),
     reason="Skipping: tests require dev container",
 )
-class Test_docker_update_prod_task_definition1(_DockerFlowTestHelper):
+class Test_docker_update_prod_task_definition(hunitest.TestCase):
     """
     Test updating a prod task definition to the desired version.
     """
@@ -1116,7 +1219,7 @@ class Test_docker_update_prod_task_definition1(_DockerFlowTestHelper):
         Set up test environment with additional mocks specific to this test
         class.
         """
-        self.set_up_test()
+        _set_up_docker_flow_test(self)
         # Mock AWS and S3 functionality.
         self.aws_patcher = umock.patch(
             "helpers.haws.get_task_definition_image_url"
@@ -1158,8 +1261,8 @@ class Test_docker_update_prod_task_definition1(_DockerFlowTestHelper):
         ]:
             if key in os.environ:
                 del os.environ[key]
-        # Call parent teardown.
-        self.tear_down_test()
+        # Call shared teardown.
+        _tear_down_docker_flow_test(self)
 
     @pytest.fixture(autouse=True)
     def setup_teardown_test(self) -> Generator:
@@ -1227,7 +1330,9 @@ class Test_docker_update_prod_task_definition1(_DockerFlowTestHelper):
         docker push test.ecr.path/test-image:prod-1.0.0
         docker push test.ecr.path/test-image:prod
         """
-        self._check_docker_command_output(expected, self.mock_run.call_args_list)
+        _check_docker_command_output(
+            self, expected, self.mock_ctx.run.call_args_list
+        )
         # Check whether `update_task_definition` was called with the expected arguments.
         expected_image_url = "test.ecr.path/test-image:prod-1.0.0"
         mock_update_task_definition.assert_called_once_with(
@@ -1284,13 +1389,9 @@ class Test_docker_update_prod_task_definition1(_DockerFlowTestHelper):
                 airflow_dags_s3_path="s3://test-bucket/dags/",
                 task_definition="test_task",
             )
-        # TODO(ai_gp): Should not use `self.assertIn()` for checking output.
-        # Instead, prepare the expected error message and use
-        # `self.assert_equal(actual, expected, fuzzy_match=True)`
-        # (.claude/skills/testing.rules.md:## Compare Whole Output with
-        # assert_equal, Not Piecewise)
         # Check the error message.
-        self.assertIn("S3 upload failed", str(cm.exception))
+        expected_error_message = "S3 upload failed"
+        self.assert_equal(str(cm.exception), expected_error_message)
         # Check whether rollback commands were executed.
         expected = r"""
         docker pull test.ecr.path/test-image:4759b3685f903e6c669096e960b248ec31c63b69
@@ -1298,21 +1399,24 @@ class Test_docker_update_prod_task_definition1(_DockerFlowTestHelper):
         docker tag test.ecr.path/test-image:4759b3685f903e6c669096e960b248ec31c63b69 test.ecr.path/test-image:prod
         docker rmi test.ecr.path/test-image:4759b3685f903e6c669096e960b248ec31c63b69
         """
-        self._check_docker_command_output(expected, self.mock_run.call_args_list)
+        _check_docker_command_output(
+            self, expected, self.mock_ctx.run.call_args_list
+        )
         # Check whether task definition was rolled back.
         self.mock_aws.assert_called_with("test_task")
 
 
 # #############################################################################
-# Test_docker_tag_push_dev_image1
+# Test_docker_tag_push_dev_image
 # #############################################################################
 
 
+@pytest.mark.need_dev_container
 @pytest.mark.skipif(
     not hserver.is_inside_docker(),
     reason="Skipping: tests require dev container",
 )
-class Test_docker_tag_push_dev_image1(_DockerFlowTestHelper):
+class Test_docker_tag_push_dev_image(hunitest.TestCase):
     """
     Test tagging and pushing dev image from a base registry to multiple registries.
     """
@@ -1321,7 +1425,7 @@ class Test_docker_tag_push_dev_image1(_DockerFlowTestHelper):
         """
         Set up test environment with additional mocks for GHCR workflow.
         """
-        super().set_up_test()
+        _set_up_docker_flow_test(self)
         # Mock version retrieval from changelog.
         self.changelog_version_patcher = umock.patch(
             "helpers.hversion.get_changelog_version"
@@ -1352,7 +1456,7 @@ class Test_docker_tag_push_dev_image1(_DockerFlowTestHelper):
         """
         Clean up test environment.
         """
-        self.tear_down_test()
+        _tear_down_docker_flow_test(self)
 
     @pytest.fixture(autouse=True)
     def setup_teardown_test(self) -> Generator:
@@ -1392,7 +1496,9 @@ class Test_docker_tag_push_dev_image1(_DockerFlowTestHelper):
         docker tag ghcr.io/causify-ai/test-image:dev-1.0.0 test.ecr.path/test-image:dev-1.0.0
         docker push test.ecr.path/test-image:dev-1.0.0
         """
-        self._check_docker_command_output(expected, self.mock_run.call_args_list)
+        _check_docker_command_output(
+            self, expected, self.mock_ctx.run.call_args_list
+        )
 
     def test_dry_run1(self) -> None:
         """
@@ -1411,41 +1517,46 @@ class Test_docker_tag_push_dev_image1(_DockerFlowTestHelper):
             container_dir_name=".",
             dry_run=True,
         )
-        # Verify expected Docker commands were executed.
+        # Verify that no Docker command was actually executed: `dry_run=True`
+        # makes `helpers.lib_tasks.lib_tasks_utils.run()` skip the call to
+        # `self.mock_ctx.run()` for every command.
         expected = r"""
-        docker pull ghcr.io/causify-ai/test-image:dev-1.0.0
-        docker tag ghcr.io/causify-ai/test-image:dev-1.0.0 ghcr.io/causify-ai/test-image:dev
-        docker push ghcr.io/causify-ai/test-image:dev
-        docker tag ghcr.io/causify-ai/test-image:dev-1.0.0 ghcr.io/causify-ai/test-image:dev-1.0.0
-        docker push ghcr.io/causify-ai/test-image:dev-1.0.0
-        docker tag ghcr.io/causify-ai/test-image:dev-1.0.0 test.ecr.path/test-image:dev
-        docker push test.ecr.path/test-image:dev
-        docker tag ghcr.io/causify-ai/test-image:dev-1.0.0 test.ecr.path/test-image:dev-1.0.0
-        docker push test.ecr.path/test-image:dev-1.0.0
         """
-        self._check_docker_command_output(expected, self.mock_run.call_args_list)
+        _check_docker_command_output(
+            self, expected, self.mock_ctx.run.call_args_list
+        )
 
 
 # #############################################################################
-# Test_docker_build_test_dev_image1
+# Test_docker_build_test_dev_image
 # #############################################################################
 
 
+@pytest.mark.need_dev_container
 @pytest.mark.skipif(
     not hserver.is_inside_docker(),
     reason="Skipping: tests require dev container",
 )
-class Test_docker_build_test_dev_image1(_DockerFlowTestHelper):
+class Test_docker_build_test_dev_image(hunitest.TestCase):
     """
     Test the complete periodic dev image release workflow.
     """
+
+    @pytest.fixture(autouse=True)
+    def setup_teardown_test(self) -> Generator:
+        """
+        Set up and tear down test environment for each test.
+        """
+        self.set_up_test()
+        yield
+        _tear_down_docker_flow_test(self)
 
     def set_up_test(self) -> None:
         """
         Set up test environment with additional mocks for the dev image
         workflow.
         """
-        super().set_up_test()
+        _set_up_docker_flow_test(self)
         # Mock version operations.
         self.get_changelog_version_patcher = umock.patch(
             "helpers.hversion.get_changelog_version"
@@ -1621,7 +1732,9 @@ class Test_docker_build_test_dev_image1(_DockerFlowTestHelper):
         docker tag test.ecr.path/test-image:local-testuser-2.4.0 ghcr.io/causify-ai/test-image:dev-2.4.0
         docker push ghcr.io/causify-ai/test-image:dev-2.4.0
         """
-        self._check_docker_command_output(expected, self.mock_run.call_args_list)
+        _check_docker_command_output(
+            self, expected, self.mock_ctx.run.call_args_list
+        )
 
     def test_with_existing_reviewers1(self) -> None:
         """

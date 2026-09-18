@@ -1,9 +1,7 @@
 #!/usr/bin/env python
 
 """
-# TODO(ai_gp): Use single quotes for file paths: 'notes_to_pdf.py' instead
-# of backticks (coding.rules.md:## Enclose File Paths in Single Quotes)
-Convert a "notes" text file into markdown suitable for `notes_to_pdf.py`.
+Convert a "notes" text file into markdown suitable for 'notes_to_pdf.py'.
 
 The full list of transformations is:
 - Handle banners around chapters
@@ -27,6 +25,8 @@ import os
 import re
 from typing import Dict, List, Match, Optional, Tuple, cast
 
+from tqdm import tqdm
+
 import helpers.hdbg as hdbg
 import helpers.hio as hio
 import helpers.hmarkdown as hmarkdo
@@ -40,15 +40,6 @@ _LOG = logging.getLogger(__name__)
 # #############################################################################
 # Constants
 # #############################################################################
-
-
-# TODO(ai_gp): Move _NUM_SPACES to _transform_lines() function scope
-# (coding.rules.md:## Place Constants Close to Usage)
-_NUM_SPACES = 2
-
-# TODO(ai_gp): Move _TRACE to _transform_lines() function scope
-# (coding.rules.md:## Place Constants Close to Usage)
-_TRACE = False
 
 
 _DEFAULT_ACTIONS: List[str] = ["process_links", "colorize_bullets"]
@@ -89,11 +80,19 @@ def _colorize_backticks(
     # Pattern to match single backticks (not triple backticks).
     # This matches backtick-wrapped text that doesn't contain triple backticks
     # and is not followed by curly braces (e.g., excludes `hello`{...}).
-    # Prevents: opening backtick not followed by backtick or brace,
-    # and closing backtick not followed by backtick or brace.
-    # TODO(ai_gp): Use re.VERBOSE for complex regex with lookahead/lookbehind
-    # (coding.rules.md:## Explain Complex Regex)
-    pattern = r"(?<!})`(?!`|\{)([^`]+?)(?<!`)`(?!`)(?!\{)"
+    pattern = re.compile(
+        r"""
+        (?<!})      # opening backtick: not preceded by `}` (excludes `hello`{...})
+        `           # opening backtick
+        (?!`|\{)    # opening backtick: not followed by another backtick or `{`
+        ([^`]+?)    # capture: content between backticks, non-greedy, no backticks
+        (?<!`)      # closing backtick: not preceded by another backtick
+        `           # closing backtick
+        (?!`)       # closing backtick: not followed by another backtick
+        (?!\{)      # closing backtick: not followed by `{`
+        """,
+        re.VERBOSE,
+    )
 
     def replace_func(m: Match) -> str:
         """
@@ -146,7 +145,7 @@ def _colorize_backticks(
             txt = f"`#text(fill: {color})[{escaped_text}]`{{=typst}}"
         return txt
 
-    line = re.sub(pattern, replace_func, line)
+    line = pattern.sub(replace_func, line)
     if line != in_line:
         _LOG.debug("    -> line=%s", line)
     return line
@@ -300,6 +299,10 @@ def _extract_section(lines: List[str], title: str) -> Optional[List[str]]:
 
 # TODO(ai_gp): Rename to _extract_slide_metadata() since it's only used
 # internally (coding.rules.md:## Mark Private Functions)
+# Not renamed: this function is not module-internal. It is imported and
+# called as `dshdprno.extract_slide_metadata()` from
+# `dev_scripts_helpers/documentation/lib_notes_to_pdf.py::resolve_slides_engine()`,
+# so it is part of this module's public interface.
 def extract_slide_metadata(
     lines: List[str],
 ) -> Tuple[Dict[str, str], List[str]]:
@@ -455,11 +458,8 @@ def _generate_title_slide(
     return txt
 
 
-# TODO(ai_gp): Add layer description to section header in format
-# # #############################################################################
-# # <Layer Description>
-# # #############################################################################
-# (coding.rules.md:## Organize Functions Into Logical Layers)
+# #############################################################################
+# Process and transform lines.
 # #############################################################################
 
 
@@ -489,11 +489,8 @@ def _expand_includes(lines: List[str]) -> List[str]:
         if m:
             file_path = m.group(1)
             title = m.group(2)
-            # TODO(ai_gp): Enclose variables in single quotes:
-            # "Found include directive: file='%s' title='%s'"
-            # (coding.rules.md:## Enclose Variables in Single Quotes in Log Messages)
             _LOG.debug(
-                "Found include directive: file=%s title=%s",
+                "Found include directive: file='%s' title='%s'",
                 file_path,
                 title,
             )
@@ -543,10 +540,9 @@ def _validate_slide_names(lines: List[str]) -> None:
     """
     header_list, _ = hmarkdo.extract_slides_from_markdown(lines)
     for header_info in header_list:
-        # TODO(ai_gp): Use hdbg.dassert_ne() instead of generic dassert()
-        # (coding.rules.md:## Use Specialized `dassert_*`)
-        hdbg.dassert(
+        hdbg.dassert_ne(
             header_info.description.strip(),
+            "",
             "Slide at line %d has no title (only whitespace)",
             header_info.line_number,
         )
@@ -632,15 +628,13 @@ def _validate_unique_slide_names(lines: List[str]) -> None:
 
 # TODO(gp): Use hmarkdown.process_lines().
 # TODO(gp): Add a way to control the list of transformations.
-# TODO(ai_gp): Replace Optional[List[str]] = None with List[str] = []
-# (coding.rules.md:## Minimize Default Values of None in Function Interfaces)
 def _transform_lines(
     lines: List[str],
     type_: str,
     is_qa: bool,
     output_format: str,
     *,
-    actions: Optional[List[str]] = None,
+    actions: List[str] = _VALID_ACTIONS,
 ) -> List[str]:
     """
     Process the notes to convert them into a format suitable for pandoc.
@@ -648,10 +642,14 @@ def _transform_lines(
     :param lines: list of lines of the notes
     :param type_: type of output to generate (e.g., `pdf`, `html`, `slides`)
     :param is_qa: True if the input is a QA file
-    :param actions: optional list of actions to perform
+    :param actions: list of actions to perform (default: all valid actions)
     :param output_format: output format for color commands (latex or typst)
     :return: list of processed lines
     """
+    # Number of spaces used to indent QA answer lines.
+    _NUM_SPACES = 2
+    # Enable verbose per-step tracing of the line transformation pipeline.
+    _TRACE = False
     _LOG.debug("\n%s", hprint.frame("transform_lines"))
     hdbg.dassert_isinstance(lines, list)
     lines = [line.rstrip("\n") for line in lines]
@@ -680,9 +678,7 @@ def _transform_lines(
     in_math_block = False
     # True inside an inline math context ($...$).
     in_inline_math = False
-    # TODO(ai_gp): Add progress bar using tqdm for expensive line processing loop
-    # (coding.rules.md:## Use Progress Bar)
-    for i, line in enumerate(lines):
+    for i, line in enumerate(tqdm(lines, desc="Transforming lines")):
         _LOG.debug("%s:line=%s", i, line)
         # 1) Remove comment block.
         if _TRACE:
@@ -794,11 +790,8 @@ def _transform_lines(
                 next_line_is_chapter = ((i + 1) < len(lines)) and (
                     lines[i + 1].startswith("#") or lines[i + 1].startswith("* ")
                 )
-                # TODO(ai_gp): Enclose variables in single quotes:
-                # "is_empty='%s' prev_line_is_verbatim='%s' next_line_is_chapter='%s'"
-                # (coding.rules.md:## Enclose Variables in Single Quotes in Log Messages)
                 _LOG.debug(
-                    "  is_empty=%s prev_line_is_verbatim=%s next_line_is_chapter=%s",
+                    "  is_empty='%s' prev_line_is_verbatim='%s' next_line_is_chapter='%s'",
                     is_empty,
                     prev_line_is_verbatim,
                     next_line_is_chapter,
@@ -809,9 +802,7 @@ def _transform_lines(
                     or next_line_is_verbatim
                 ):
                     out.append(" " * _NUM_SPACES + line)
-    # TODO(ai_gp): Replace empty comment with descriptive comment
-    # (coding.rules.md:## Replace Empty Lines with Comments)
-    #
+    # Post-process slides: colorize links and bullet points.
     if type_ == "slides":
         # Colorize links.
         to_execute, actions = hselacti.mark_action("process_links", actions)
@@ -914,8 +905,6 @@ def _remove_headers(lines: List[str], max_level: int) -> List[str]:
     return out
 
 
-# TODO(ai_gp): Replace Optional[List[str]] = None with List[str] = []
-# (coding.rules.md:## Minimize Default Values of None in Function Interfaces)
 def _preprocess_lines(
     lines: List[str],
     type_: str,
@@ -923,7 +912,7 @@ def _preprocess_lines(
     is_qa: bool,
     output_format: str,
     *,
-    actions: Optional[List[str]] = None,
+    actions: List[str] = _VALID_ACTIONS,
 ) -> List[str]:
     """
     Preprocess the lines of the notes.
@@ -933,7 +922,7 @@ def _preprocess_lines(
     :param toc_type: type of table of contents to add
     :param is_qa: True if the input is a QA file
     :param output_format: "latex" (default) or "typst"
-    :param actions: optional list of actions to perform
+    :param actions: list of actions to perform (default: all valid actions)
     :param output_format: output format for color commands (latex or typst)
     :return: list of preprocessed lines
     """
@@ -986,11 +975,8 @@ def _preprocess_lines(
     return out
 
 
-# TODO(ai_gp): Add layer description to section header in format
-# # #############################################################################
-# # <Layer Description>
-# # #############################################################################
-# (coding.rules.md:## Organize Functions Into Logical Layers)
+# #############################################################################
+# CLI / entry points.
 # #############################################################################
 
 
@@ -1062,9 +1048,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
     )
     # Get the selected actions.
     actions = hselacti.select_actions(args, _VALID_ACTIONS, _DEFAULT_ACTIONS)
-    # TODO(ai_gp): Enclose variable in single quotes: "Selected actions: '%s'"
-    # (coding.rules.md:## Enclose Variables in Single Quotes in Log Messages)
-    _LOG.info("Selected actions: %s", actions)
+    _LOG.info("Selected actions: '%s'", actions)
     # Read file.
     txt = hio.from_file(args.input)
     # Process.

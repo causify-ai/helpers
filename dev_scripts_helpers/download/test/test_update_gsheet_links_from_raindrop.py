@@ -190,9 +190,66 @@ class Test__combine_raindrop_with_gsheet_links(hunitest.TestCase):
                 gsheet_columns, gsheet_rows, raindrop_rows, expected_rows
             )
 
-    # TODO(ai_gp): Add test for large input edge case with multiple
-    # raindrop rows to verify prepending/ordering behavior
-    # (testing.rules.md:## What to Test)
+    def test5(self) -> None:
+        """
+        Test multiple Raindrop rows are all prepended before the existing
+        gsheet row, preserving their input order.
+        """
+        # Prepare inputs.
+        gsheet_columns = ["Title", "Hn_url", "Article_url", "Timestamp"]
+        gsheet_rows = [
+            {
+                "Title": "Existing",
+                "Hn_url": "https://news.ycombinator.com/item?id=0",
+                "Article_url": "",
+                "Timestamp": "2023-01-01 00:00:00",
+            },
+        ]
+        raindrop_rows = [
+            {
+                "id": "1",
+                "title": "First",
+                "url": "https://news.ycombinator.com/item?id=1",
+                "created": "2024-06-01T00:00:00.000Z",
+            },
+            {
+                "id": "2",
+                "title": "Second",
+                "url": "https://news.ycombinator.com/item?id=2",
+                "created": "2024-06-02T00:00:00.000Z",
+            },
+            {
+                "id": "3",
+                "title": "Third",
+                "url": "https://news.ycombinator.com/item?id=3",
+                "created": "2024-06-03T00:00:00.000Z",
+            },
+        ]
+        # Prepare outputs. All 3 Raindrop rows are prepended, in the same
+        # order as `raindrop_rows`, before the existing gsheet row.
+        expected_rows = [
+            {
+                "Title": "First",
+                "Hn_url": "https://news.ycombinator.com/item?id=1",
+                "Article_url": "",
+                "Timestamp": "2024-06-01 00:00:00",
+            },
+            {
+                "Title": "Second",
+                "Hn_url": "https://news.ycombinator.com/item?id=2",
+                "Article_url": "",
+                "Timestamp": "2024-06-02 00:00:00",
+            },
+            {
+                "Title": "Third",
+                "Hn_url": "https://news.ycombinator.com/item?id=3",
+                "Article_url": "",
+                "Timestamp": "2024-06-03 00:00:00",
+            },
+            gsheet_rows[0],
+        ]
+        # Run test.
+        self.helper(gsheet_columns, gsheet_rows, raindrop_rows, expected_rows)
 
 
 # #############################################################################
@@ -500,10 +557,32 @@ class Test__get_latest_timestamp_from_file(hunitest.TestCase):
         # Run test.
         self.helper(rows, expected)
 
-    # TODO(ai_gp): Add test for single row boundary condition
-    # (testing.rules.md:## What to Test)
-    # TODO(ai_gp): Add test for all empty timestamps edge case
-    # (testing.rules.md:## What to Test)
+    def test3(self) -> None:
+        """
+        Test a single-row gsheet CSV returns that row's own timestamp.
+        """
+        # Prepare inputs.
+        rows = [
+            {"Timestamp": "2024-03-15 08:00:00"},
+        ]
+        # Prepare outputs.
+        expected = "2024-03-15 08:00:00"
+        # Run test.
+        self.helper(rows, expected)
+
+    def test4(self) -> None:
+        """
+        Test all rows with an empty `Timestamp` value raises `ValueError`
+        since no timestamp is available to compute the cutoff.
+        """
+        # Prepare inputs.
+        rows = [
+            {"Timestamp": ""},
+            {"Timestamp": ""},
+        ]
+        # Run test and check output.
+        with self.assertRaises(ValueError):
+            self.helper(rows, "")
 
 
 # #############################################################################

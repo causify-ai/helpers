@@ -18,19 +18,16 @@ _LOG = logging.getLogger(__name__)
 
 
 # #############################################################################
-# Test__update_article_urls
+# Test_update_article_urls
 # #############################################################################
 
-# TODO(ai_gp): Rename class to Test_update_article_urls (omit leading
-# underscore from function name in test class name per convention
-# (testing.rules.md:## Naming Conventions for a Function)
 
-class Test__update_article_urls(hunitest.TestCase):
+class Test_update_article_urls(hunitest.TestCase):
     """
     Test `process_gsheet_links._update_article_urls()`.
     """
 
-    def helper(self, rows: list) -> list:
+    def helper(self, rows: list, expected: Optional[str] = None) -> list:
         """
         Write `rows` as the HN CSV, run `_update_article_urls()`, and
         return the resulting rows.
@@ -41,6 +38,9 @@ class Test__update_article_urls(hunitest.TestCase):
 
         :param rows: rows to write to the HN CSV (must all share the same
             columns, including `Hn_url` and `Article_url`)
+        :param expected: expected `Article_url` of the first row, or
+            `None` to skip that check (e.g., when the caller checks
+            multiple rows itself)
         :return: rows read back from the URLs CSV
         """
         scratch_dir = self.get_scratch_space()
@@ -52,6 +52,8 @@ class Test__update_article_urls(hunitest.TestCase):
             dshdbou.write_csv(hn_csv, rows, fieldnames=columns)
             urls_csv = dsgl._update_article_urls()
             actual_rows = dshdbou.read_csv(urls_csv)
+        if expected is not None:
+            self.assert_equal(actual_rows[0]["Article_url"], expected)
         return actual_rows
 
     def helper_mock_hn_api(
@@ -102,13 +104,8 @@ class Test__update_article_urls(hunitest.TestCase):
         ]
         # Prepare outputs.
         expected = "https://example.com/a"
-        # Run test.
-        actual_rows = self.helper(rows)
-        # TODO(ai_gp): Move assertion into helper method; helper should accept
-        # optional expected parameter and perform checking
-        # (testing.rules.md:## Move Dedent and Checking into the Helper Method)
-        # Check outputs.
-        self.assert_equal(actual_rows[0]["Article_url"], expected)
+        # Run test and check outputs.
+        self.helper(rows, expected)
 
     def test2(self) -> None:
         """
@@ -141,46 +138,15 @@ class Test__update_article_urls(hunitest.TestCase):
         ]
         # Prepare outputs.
         expected = "https://example.com/existing"
-        # Run test.
-        actual_rows = self.helper(rows)
-        # TODO(ai_gp): Move assertion into helper method; helper should accept
-        # optional expected parameter and perform checking
-        # (testing.rules.md:## Move Dedent and Checking into the Helper Method)
-        # Check outputs.
-        self.assert_equal(actual_rows[0]["Article_url"], expected)
+        # Run test and check outputs.
+        self.helper(rows, expected)
 
-    # TODO(ai_gp): Remove test that asserts an exception is raised; the rule
-    # advises not to test error conditions (testing.rules.md:## What not to
-    # Test)
     def test4(self) -> None:
         """
-        Test an empty rows list raises since the CSV has no data to
-        process.
+        Test multiple non-HN URLs are each copied as-is into
+        `Article_url`.
         """
         # Prepare inputs.
-        rows: list = []
-        columns = ["Title", "Hn_url", "Article_url"]
-        scratch_dir = self.get_scratch_space()
-        # Run test and check outputs.
-        with hsystem.cd(scratch_dir):
-            hn_csv = dshdbou.get_tmp_file_path(
-                dsgl.HN_CSV_FILE, "process_gsheet_links"
-            )
-            dshdbou.write_csv(hn_csv, rows, fieldnames=columns)
-            with self.assertRaises(AssertionError):
-                dsgl._update_article_urls()
-
-    # TODO(ai_gp): Split into separate test methods for each case: non-HN URL
-    # copied as-is, HN URL resolved through API, and already-filled URL left
-    # untouched (testing.rules.md:## Test One Thing)
-    def test5(self) -> None:
-        """
-        Test multiple rows are each updated independently: a non-HN URL is
-        copied as-is, an HN URL is resolved through the HN API, and an
-        already-filled URL is left untouched.
-        """
-        # Prepare inputs.
-        extracted_url = "https://example.com/extracted"
         rows = [
             {
                 "Title": "Article A",
@@ -189,37 +155,81 @@ class Test__update_article_urls(hunitest.TestCase):
             },
             {
                 "Title": "Article B",
+                "Hn_url": "https://example.com/b",
+                "Article_url": "",
+            },
+        ]
+        # Prepare outputs.
+        expected = ["https://example.com/a", "https://example.com/b"]
+        # Run test.
+        actual_rows = self.helper(rows)
+        actual = [row["Article_url"] for row in actual_rows]
+        # Check outputs.
+        self.assert_equal(str(actual), str(expected))
+
+    def test5(self) -> None:
+        """
+        Test multiple HN URLs are each resolved independently through the
+        HN API.
+        """
+        # Prepare inputs.
+        extracted_url = "https://example.com/extracted"
+        rows = [
+            {
+                "Title": "Article A",
                 "Hn_url": "https://news.ycombinator.com/item?id=123",
                 "Article_url": "",
             },
             {
-                "Title": "Article C",
+                "Title": "Article B",
                 "Hn_url": "https://news.ycombinator.com/item?id=456",
-                "Article_url": "https://example.com/existing",
+                "Article_url": "",
             },
         ]
         # Prepare outputs.
-        expected = [
-            "https://example.com/a",
-            extracted_url,
-            "https://example.com/existing",
-        ]
+        expected = [extracted_url, extracted_url]
         # Run test.
         actual_rows = self.helper_mock_hn_api(rows, extracted_url, None)
         actual = [row["Article_url"] for row in actual_rows]
         # Check outputs.
         self.assert_equal(str(actual), str(expected))
 
+    def test6(self) -> None:
+        """
+        Test multiple rows with an already-filled `Article_url` are all
+        left untouched.
+        """
+        # Prepare inputs.
+        rows = [
+            {
+                "Title": "Article A",
+                "Hn_url": "https://news.ycombinator.com/item?id=123",
+                "Article_url": "https://example.com/existing-a",
+            },
+            {
+                "Title": "Article B",
+                "Hn_url": "https://news.ycombinator.com/item?id=456",
+                "Article_url": "https://example.com/existing-b",
+            },
+        ]
+        # Prepare outputs.
+        expected = [
+            "https://example.com/existing-a",
+            "https://example.com/existing-b",
+        ]
+        # Run test.
+        actual_rows = self.helper(rows)
+        actual = [row["Article_url"] for row in actual_rows]
+        # Check outputs.
+        self.assert_equal(str(actual), str(expected))
+
 
 # #############################################################################
-# Test__update_article_clusters
+# Test_update_article_clusters
 # #############################################################################
 
-# TODO(ai_gp): Rename class to Test_update_article_clusters (omit leading
-# underscore from function name in test class name per convention
-# (testing.rules.md:## Naming Conventions for a Function)
 
-class Test__update_article_clusters(hunitest.TestCase):
+class Test_update_article_clusters(hunitest.TestCase):
     """
     Test `process_gsheet_links._update_article_clusters()`.
     """
@@ -320,36 +330,10 @@ class Test__update_article_clusters(hunitest.TestCase):
         # Run test and check outputs.
         self.helper(rows, expected)
 
-    # TODO(ai_gp): Remove test that asserts an exception is raised; the rule
-    # advises not to test error conditions (testing.rules.md:## What not to
-    # Test)
     def test4(self) -> None:
         """
-        Test an empty rows list raises since the CSV has no data to
-        process.
-        """
-        # Prepare inputs.
-        rows: list = []
-        columns = ["Title", "Article_url", "Article_tag", "Article_cluster"]
-        scratch_dir = self.get_scratch_space()
-        # Run test and check outputs.
-        with hsystem.cd(scratch_dir):
-            tags_csv = dshdbou.get_tmp_file_path(
-                dsgl.TAGS_CSV_FILE, "process_gsheet_links"
-            )
-            dshdbou.write_csv(tags_csv, rows, fieldnames=columns)
-            with self.assertRaises(AssertionError):
-                dsgl._update_article_clusters()
-
-    # TODO(ai_gp): Split into separate test methods for each case: wrapped tag
-    # normalized and clustered, already-filled cluster left untouched, and
-    # unrecognized tag left with empty cluster (testing.rules.md:## Test One
-    # Thing)
-    def test5(self) -> None:
-        """
-        Test multiple rows are each clustered independently: a wrapped tag
-        is normalized and clustered, an already-filled cluster is left
-        untouched, and an unrecognized tag is left with an empty cluster.
+        Test multiple rows with a wrapped tag are each normalized and
+        clustered independently.
         """
         # Prepare inputs.
         rows = [
@@ -364,18 +348,70 @@ class Test__update_article_clusters(hunitest.TestCase):
             {
                 "Title": "Article B",
                 "Article_url": "https://example.com/b",
-                "Article_tag": "Open Source",
-                "Article_cluster": "Dev tools",
-            },
-            {
-                "Title": "Article C",
-                "Article_url": "https://example.com/c",
-                "Article_tag": "Programming Languages",
+                "Article_tag": (
+                    "The best tag for this article is **Open Source**."
+                ),
                 "Article_cluster": "",
             },
         ]
         # Prepare outputs.
-        expected = ["AI", "Dev tools", ""]
+        expected = ["AI", "Dev tools"]
+        # Run test.
+        actual_rows = self.helper(rows, None)
+        actual = [row["Article_cluster"] for row in actual_rows]
+        # Check outputs.
+        self.assert_equal(str(actual), str(expected))
+
+    def test5(self) -> None:
+        """
+        Test multiple rows with an already-filled `Article_cluster` are
+        all left untouched.
+        """
+        # Prepare inputs.
+        rows = [
+            {
+                "Title": "Article A",
+                "Article_url": "https://example.com/a",
+                "Article_tag": "Open Source",
+                "Article_cluster": "Dev tools",
+            },
+            {
+                "Title": "Article B",
+                "Article_url": "https://example.com/b",
+                "Article_tag": "AI Agents",
+                "Article_cluster": "AI",
+            },
+        ]
+        # Prepare outputs.
+        expected = ["Dev tools", "AI"]
+        # Run test.
+        actual_rows = self.helper(rows, None)
+        actual = [row["Article_cluster"] for row in actual_rows]
+        # Check outputs.
+        self.assert_equal(str(actual), str(expected))
+
+    def test6(self) -> None:
+        """
+        Test multiple rows with an unrecognized tag are all left with an
+        empty cluster.
+        """
+        # Prepare inputs.
+        rows = [
+            {
+                "Title": "Article A",
+                "Article_url": "https://example.com/a",
+                "Article_tag": "Programming Languages",
+                "Article_cluster": "",
+            },
+            {
+                "Title": "Article B",
+                "Article_url": "https://example.com/b",
+                "Article_tag": "Some Other Topic",
+                "Article_cluster": "",
+            },
+        ]
+        # Prepare outputs.
+        expected = ["", ""]
         # Run test.
         actual_rows = self.helper(rows, None)
         actual = [row["Article_cluster"] for row in actual_rows]
@@ -384,14 +420,11 @@ class Test__update_article_clusters(hunitest.TestCase):
 
 
 # #############################################################################
-# Test__normalize_tag
+# Test_normalize_tag
 # #############################################################################
 
-# TODO(ai_gp): Rename class to Test_normalize_tag (omit leading underscore
-# from function name in test class name per convention
-# (testing.rules.md:## Naming Conventions for a Function)
 
-class Test__normalize_tag(hunitest.TestCase):
+class Test_normalize_tag(hunitest.TestCase):
     """
     Test `process_gsheet_links._normalize_tag()`.
     """

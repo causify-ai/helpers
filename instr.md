@@ -171,7 +171,7 @@
 
 ---
 
-### [x] Move `assert_equal` into `helper_mock_hn_api()` in `Test__update_article_urls`
+### [x] Move `assert_equal` into `helper_mock_hn_api()` in `Test_update_article_urls`
 
 * Repo:
 - [x] helpers (https://github.com/causify-ai/helpers)
@@ -193,7 +193,7 @@
 - **Confidence in the fix**: high
 - **Fix complexity**: low
 - **Verification plan**:
-  - `pytest dev_scripts_helpers/download/test/test_process_gsheet_links.py::Test__update_article_urls`
+  - `pytest dev_scripts_helpers/download/test/test_process_gsheet_links.py::Test_update_article_urls`
     still passes
 
 * Solution
@@ -210,7 +210,7 @@
 
 ---
 
-### [x] Move `assert_equal` into `helper()` in `Test__update_article_clusters`
+### [x] Move `assert_equal` into `helper()` in `Test_update_article_clusters`
 
 * Repo:
 - [x] helpers (https://github.com/causify-ai/helpers)
@@ -231,7 +231,7 @@
 - **Confidence in the fix**: high
 - **Fix complexity**: low
 - **Verification plan**:
-  - `pytest dev_scripts_helpers/download/test/test_process_gsheet_links.py::Test__update_article_clusters`
+  - `pytest dev_scripts_helpers/download/test/test_process_gsheet_links.py::Test_update_article_clusters`
     still passes
 
 * Solution
