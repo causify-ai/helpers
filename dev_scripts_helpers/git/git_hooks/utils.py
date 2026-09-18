@@ -490,20 +490,23 @@ def check_tmp_log_files(
         ),
     )
     # Check all the files.
-    error = False
+    offending_files = []
     for status, file_name in file_statuses:
         if not _is_tmp_log_file(file_name):
             continue
         if status == "D":
             # Deleting a `*.log` / `tmp.*` file is fine.
             continue
+        offending_files.append(file_name)
+    error = bool(offending_files)
+    if error:
         msg = (
-            f"File '{file_name}' matches the `*.log` / `tmp.*` pattern and "
+            "The following files match the `*.log` / `tmp.*` pattern and "
             "can't be added or modified: these files are scratch output "
-            "and should only be deleted"
+            "and should only be deleted\n"
+            + "\n".join(f"- {file_name}" for file_name in offending_files)
         )
         _LOG.error(msg)
-        error = True
     # Handle error.
     _handle_error(func_name, error, abort_on_error)
 
