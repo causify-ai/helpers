@@ -27,20 +27,27 @@ _LOG = logging.getLogger(__name__)
 # #############################################################################
 
 
-class TestLibTasks1(hunitest.TestCase):
+class Test_get_gh_issue_title(hunitest.TestCase):
     """
-    Test some auxiliary functions, e.g., `_get_gh_issue_title()`.
+    Test `_get_gh_issue_title()`.
     """
 
     @pytest.mark.skip("CmTask #2362.")
-    def test_get_gh_issue_title1(self) -> None:
+    def test1(self) -> None:
+        """
+        Test `_get_gh_issue_title()` basic case.
+        """
+        # Prepare inputs.
         issue_id = 1
         repo = "amp"
-        actual = hltltagh._get_gh_issue_title(issue_id, repo)
+        # Prepare outputs.
         expected = (
             "AmpTask1_Bridge_Python_and_R",
             "https://github.com/alphamatic/amp/issues/1",
         )
+        # Run test.
+        actual = hltltagh._get_gh_issue_title(issue_id, repo)
+        # Check outputs.
         self.assert_equal(str(actual), str(expected))
 
     @pytest.mark.skipif(
@@ -48,7 +55,10 @@ class TestLibTasks1(hunitest.TestCase):
         reason="""Skip unless helpers is the supermodule. Fails when updating submodules;
             passes in fast tests super-repo run. See CmTask10845.""",
     )
-    def test_get_gh_issue_title4(self) -> None:
+    def test4(self) -> None:
+        """
+        Test `_get_gh_issue_title()` with current repo.
+        """
         cmd = "invoke gh_login"
         hsystem.system(cmd)
         #
@@ -56,23 +66,39 @@ class TestLibTasks1(hunitest.TestCase):
         repo = "current"
         _ = hltltagh._get_gh_issue_title(issue_id, repo)
 
-    def test_get_org_name1(self) -> None:
+
+class Test_get_org_name(hunitest.TestCase):
+    """
+    Test `_get_org_name()`.
+    """
+
+    def test1(self) -> None:
         """
-        Test _get_org_name when org_name is provided.
+        Test `_get_org_name()` when org_name is provided.
         """
+        # Prepare inputs.
         org_name = "test-org"
-        result = hltltagh._get_org_name(org_name)
+        # Prepare outputs.
         expected = "test-org"
+        # Run test.
+        result = hltltagh._get_org_name(org_name)
+        # Check outputs.
         self.assertEqual(result, expected)
 
     @umock.patch.object(hgit, "get_repo_full_name_from_dirname")
-    def test_get_org_name2(self, mock_get_repo: umock.Mock) -> None:
+    def test2(self, mock_get_repo: umock.Mock) -> None:
         """
-        Test _get_org_name when org_name is empty (infers from repo).
+        Test `_get_org_name()` when org_name is empty (infers from repo).
         """
+        # Setup mocks.
         mock_get_repo.return_value = "causify-ai/helpers"
-        result = hltltagh._get_org_name("")
+        # Prepare inputs.
+        org_name = ""
+        # Prepare outputs.
         expected = "causify-ai"
+        # Run test.
+        result = hltltagh._get_org_name(org_name)
+        # Check outputs.
         self.assertEqual(result, expected)
         mock_get_repo.assert_called_once_with(".", include_host_name=False)
 
@@ -82,77 +108,84 @@ class TestLibTasks1(hunitest.TestCase):
 # #############################################################################
 
 
-class TestGhOrgTeamFunctions(hunitest.TestCase):
+class Test_gh_get_org_team_names(hunitest.TestCase):
     """
-    Test gh_get_org_team_names and gh_get_team_member_names with mocked data.
+    Test `gh_get_org_team_names()`.
     """
 
-    @umock.patch.object(hltltagh, "_gh_run_and_get_json")
-    @umock.patch.object(hltltagh, "_get_org_name")
-    def test_gh_get_org_team_names1(
-        self, mock_get_org_name: umock.Mock, mock_gh_run: umock.Mock
-    ) -> None:
+    def test1(self) -> None:
         """
-        Test gh_get_org_team_names with sorted team names.
+        Test `gh_get_org_team_names()` with sorted team names.
         """
-        # Setup mocks.
-        mock_get_org_name.return_value = "test-org"
-        mock_gh_run.return_value = [
-            {"slug": "dev_backend", "id": 1},
-            {"slug": "dev_frontend", "id": 2},
-            {"slug": "qa_team", "id": 3},
-        ]
-        # Call function.
-        result = hltltagh.gh_get_org_team_names("test-org", sort=True)
-        # Verify result.
+        # Prepare inputs.
+        org_name = "test-org"
+        sort = True
+        # Prepare outputs.
         expected = ["dev_backend", "dev_frontend", "qa_team"]
+        # Run test.
+        with (
+            umock.patch.object(hltltagh, "_get_org_name") as mock_get_org_name,
+            umock.patch.object(hltltagh, "_gh_run_and_get_json") as mock_gh_run,
+        ):
+            mock_get_org_name.return_value = "test-org"
+            mock_gh_run.return_value = [
+                {"slug": "dev_backend", "id": 1},
+                {"slug": "dev_frontend", "id": 2},
+                {"slug": "qa_team", "id": 3},
+            ]
+            result = hltltagh.gh_get_org_team_names(org_name, sort=sort)
+        # Check outputs.
         self.assertEqual(result, expected)
-        # Verify mocks were called correctly.
-        mock_get_org_name.assert_called_once_with("test-org")
+        mock_get_org_name.assert_called_once_with(org_name)
         mock_gh_run.assert_called_once_with(
             "gh api /orgs/test-org/teams --paginate"
         )
 
-    @umock.patch.object(hltltagh, "_gh_run_and_get_json")
-    @umock.patch.object(hltltagh, "_get_org_name")
-    def test_gh_get_team_member_names1(
-        self, mock_get_org_name: umock.Mock, mock_gh_run: umock.Mock
-    ) -> None:
+
+class Test_gh_get_team_member_names(hunitest.TestCase):
+    """
+    Test `gh_get_team_member_names()`.
+    """
+
+    def test1(self) -> None:
         """
-        Test gh_get_team_member_names with member list.
+        Test `gh_get_team_member_names()` with member list.
         """
-        # Setup mocks.
-        mock_get_org_name.return_value = "test-org"
-        mock_gh_run.return_value = [
-            {"login": "user1", "id": 101},
-            {"login": "user2", "id": 102},
-            {"login": "user3", "id": 103},
-        ]
-        # Call function.
-        result = hltltagh.gh_get_team_member_names(
-            "dev_team", org_name="test-org"
-        )
-        # Verify result.
+        # Prepare inputs.
+        team_name = "dev_team"
+        org_name = "test-org"
+        # Prepare outputs.
         expected = ["user1", "user2", "user3"]
+        # Run test.
+        with (
+            umock.patch.object(hltltagh, "_get_org_name") as mock_get_org_name,
+            umock.patch.object(hltltagh, "_gh_run_and_get_json") as mock_gh_run,
+        ):
+            mock_get_org_name.return_value = "test-org"
+            mock_gh_run.return_value = [
+                {"login": "user1", "id": 101},
+                {"login": "user2", "id": 102},
+                {"login": "user3", "id": 103},
+            ]
+            result = hltltagh.gh_get_team_member_names(team_name, org_name=org_name)
+        # Check outputs.
         self.assertEqual(result, expected)
-        # Verify mocks were called correctly.
-        mock_get_org_name.assert_called_once_with("test-org")
+        mock_get_org_name.assert_called_once_with(org_name)
         mock_gh_run.assert_called_once_with(
             "gh api /orgs/test-org/teams/dev_team/members --paginate"
         )
 
 
 # #############################################################################
-# TestGhHelpersWithMockDict1
+# TestGhGetWorkflows
 # #############################################################################
 
 
-class TestGhHelpersWithMockDict1(hunitest.TestCase):
+class Test_gh_get_workflows(hunitest.TestCase):
     """
-    Test the `gh_get_*` helpers against the committed real-`gh` fixture.
+    Test `gh_get_workflows()` against the committed real-`gh` fixture.
 
-    Each test loads
-    `helpers/lib_tasks/test/input/test_lib_tasks_gh/_gh_run_and_get_json.json`,
+    Loads `helpers/lib_tasks/test/input/test_lib_tasks_gh/_gh_run_and_get_json.json`,
     patches `_gh_run_and_get_json()` with a `MockDict` of its recorded calls,
     and asserts properties of the helper's post-processing of the real
     `gh` output. Refresh the fixture with:
@@ -179,13 +212,24 @@ class TestGhHelpersWithMockDict1(hunitest.TestCase):
         super().setUpClass()
         cls._mock = hplayba.MockDict(hltltagh._GH_FIXTURE_FILE)
 
-    def test_gh_get_workflows_sorts_and_stringifies(self) -> None:
+    def _patch(self) -> Any:
+        """
+        Return a `unittest.mock.patch` context that swaps in the shared
+        `MockDict` for `_gh_run_and_get_json()`.
+        """
+        return self._mock.patch(
+            "helpers.lib_tasks.lib_tasks_gh._gh_run_and_get_json"
+        )
+
+    def test1(self) -> None:
         """
         Test that `gh_get_workflows()` stringifies ids and sorts by name.
         """
+        # Prepare inputs.
+        repo = self._REPO
         # Run test.
         with self._patch():
-            workflows = hltltagh.gh_get_workflows(self._REPO)
+            workflows = hltltagh.gh_get_workflows(repo)
         # Check outputs.
         # Each entry exposes exactly `id` and `name`.
         for w in workflows:
@@ -196,21 +240,63 @@ class TestGhHelpersWithMockDict1(hunitest.TestCase):
         names = [w["name"] for w in workflows]
         self.assertEqual(names, sorted(names))
 
-    def test_gh_get_workflows_unsorted_preserves_recorded_order(self) -> None:
+    def test2(self) -> None:
         """
         Test that `gh_get_workflows(sort=False)` preserves `gh`'s order.
         """
+        # Prepare inputs.
+        repo = self._REPO
+        sort = False
         # Run test.
         with self._patch():
-            workflows = hltltagh.gh_get_workflows(self._REPO, sort=False)
+            workflows = hltltagh.gh_get_workflows(repo, sort=sort)
+            raw = self._mock(f"gh workflow list --json id,name --repo {repo}")
         # Check outputs.
-        # The recorded raw response is the authority for ordering.
-        raw = self._mock(f"gh workflow list --json id,name --repo {self._REPO}")
         self.assertEqual([w["name"] for w in workflows], [r["name"] for r in raw])
         # Ids are still stringified.
         self.assertTrue(all(isinstance(w["id"], str) for w in workflows))
 
-    def test_gh_get_open_prs_returns_recorded_payload(self) -> None:
+
+# #############################################################################
+# TestGhGetOpenPrs
+# #############################################################################
+
+
+class Test_gh_get_open_prs(hunitest.TestCase):
+    """
+    Test `gh_get_open_prs()` against the committed real-`gh` fixture.
+
+    Loads `helpers/lib_tasks/test/input/test_lib_tasks_gh/_gh_run_and_get_json.json`,
+    patches `_gh_run_and_get_json()` with a `MockDict` of its recorded calls,
+    and asserts properties of the helper's post-processing of the real
+    `gh` output.
+    """
+
+    # Repo recorded into the fixture; helpers must be called with this name so
+    # the patched `_gh_run_and_get_json()` lookup hits a recorded entry.
+    _REPO = "causify-ai/helpers"
+
+    @classmethod
+    def setUpClass(cls) -> None:
+        """
+        Load the committed fixture once per class run.
+
+        `MockDict` is stateless after construction, so one instance is safely
+        shared across tests.
+        """
+        super().setUpClass()
+        cls._mock = hplayba.MockDict(hltltagh._GH_FIXTURE_FILE)
+
+    def _patch(self) -> Any:
+        """
+        Return a `unittest.mock.patch` context that swaps in the shared
+        `MockDict` for `_gh_run_and_get_json()`.
+        """
+        return self._mock.patch(
+            "helpers.lib_tasks.lib_tasks_gh._gh_run_and_get_json"
+        )
+
+    def test1(self) -> None:
         """
         Test that `gh_get_open_prs()` returns the recorded list of PR ids.
         """
@@ -225,7 +311,47 @@ class TestGhHelpersWithMockDict1(hunitest.TestCase):
             # `gh` PR ids are GraphQL global ids prefixed with `PR_`.
             self.assertTrue(pr["id"].startswith("PR_"))
 
-    def test_gh_get_workflow_type_names_sorted_no_duplicates(self) -> None:
+
+# #############################################################################
+# TestGhGetWorkflowTypeNames
+# #############################################################################
+
+
+class Test_gh_get_workflow_type_names(hunitest.TestCase):
+    """
+    Test `gh_get_workflow_type_names()` against the committed real-`gh` fixture.
+
+    Loads `helpers/lib_tasks/test/input/test_lib_tasks_gh/_gh_run_and_get_json.json`,
+    patches `_gh_run_and_get_json()` with a `MockDict` of its recorded calls,
+    and asserts properties of the helper's post-processing of the real
+    `gh` output.
+    """
+
+    # Repo recorded into the fixture; helpers must be called with this name so
+    # the patched `_gh_run_and_get_json()` lookup hits a recorded entry.
+    _REPO = "causify-ai/helpers"
+
+    @classmethod
+    def setUpClass(cls) -> None:
+        """
+        Load the committed fixture once per class run.
+
+        `MockDict` is stateless after construction, so one instance is safely
+        shared across tests.
+        """
+        super().setUpClass()
+        cls._mock = hplayba.MockDict(hltltagh._GH_FIXTURE_FILE)
+
+    def _patch(self) -> Any:
+        """
+        Return a `unittest.mock.patch` context that swaps in the shared
+        `MockDict` for `_gh_run_and_get_json()`.
+        """
+        return self._mock.patch(
+            "helpers.lib_tasks.lib_tasks_gh._gh_run_and_get_json"
+        )
+
+    def test1(self) -> None:
         """
         Test that `gh_get_workflow_type_names()` returns sorted unique names.
         """
@@ -240,7 +366,47 @@ class TestGhHelpersWithMockDict1(hunitest.TestCase):
         # No duplicates (the helper asserts internally; mirror it here).
         self.assertEqual(len(names), len(set(names)))
 
-    def test_gh_get_workflow_details_replays_recorded_chain(self) -> None:
+
+# #############################################################################
+# TestGhGetWorkflowDetails
+# #############################################################################
+
+
+class Test_gh_get_workflow_details(hunitest.TestCase):
+    """
+    Test `gh_get_workflow_details()` against the committed real-`gh` fixture.
+
+    Loads `helpers/lib_tasks/test/input/test_lib_tasks_gh/_gh_run_and_get_json.json`,
+    patches `_gh_run_and_get_json()` with a `MockDict` of its recorded calls,
+    and asserts properties of the helper's post-processing of the real
+    `gh` output.
+    """
+
+    # Repo recorded into the fixture; helpers must be called with this name so
+    # the patched `_gh_run_and_get_json()` lookup hits a recorded entry.
+    _REPO = "causify-ai/helpers"
+
+    @classmethod
+    def setUpClass(cls) -> None:
+        """
+        Load the committed fixture once per class run.
+
+        `MockDict` is stateless after construction, so one instance is safely
+        shared across tests.
+        """
+        super().setUpClass()
+        cls._mock = hplayba.MockDict(hltltagh._GH_FIXTURE_FILE)
+
+    def _patch(self) -> Any:
+        """
+        Return a `unittest.mock.patch` context that swaps in the shared
+        `MockDict` for `_gh_run_and_get_json()`.
+        """
+        return self._mock.patch(
+            "helpers.lib_tasks.lib_tasks_gh._gh_run_and_get_json"
+        )
+
+    def test1(self) -> None:
         """
         Test that `gh_get_workflow_details()` replays the recorded chain.
 
@@ -268,22 +434,13 @@ class TestGhHelpersWithMockDict1(hunitest.TestCase):
                 {"conclusion", "status", "url", "workflowName"},
             )
 
-    def _patch(self) -> Any:
-        """
-        Return a `unittest.mock.patch` context that swaps in the shared
-        `MockDict` for `_gh_run_and_get_json()`.
-        """
-        return self._mock.patch(
-            "helpers.lib_tasks.lib_tasks_gh._gh_run_and_get_json"
-        )
-
 
 # #############################################################################
 # Test_gh_get_overall_build_status_for_repo1
 # #############################################################################
 
 
-class Test_gh_get_overall_build_status_for_repo1(hunitest.TestCase):
+class Test_gh_get_overall_build_status_for_repo(hunitest.TestCase):
     """
     Test `gh_get_overall_build_status_for_repo()`, which derives its result
     directly from a DataFrame and does not call `_gh_run_and_get_json()`.
@@ -388,10 +545,25 @@ class Test_gh_login(hunitest.TestCase):
         self.assert_equal(str(actual), str(expected))
 
 
+# Columns of the table returned by `_get_workflow_table()`.
+_WORKFLOW_TABLE_COLS = [
+    "completed",
+    "status",
+    "workflow",
+    "branch",
+    "event",
+    "id",
+    "elapsed",
+    "age",
+]
+
+
 # #############################################################################
 # Test__get_workflow_table
 # #############################################################################
 
+
+# TODO(ai_gp): Factor out common code
 
 class Test__get_workflow_table(hunitest.TestCase):
     """
@@ -433,6 +605,58 @@ class Test__get_workflow_table(hunitest.TestCase):
         with self.assertRaises(AssertionError):
             table.get_column("name")
 
+    def test2(self) -> None:
+        """
+        Test that the branch and the limit are passed to `gh run list`.
+        """
+        # Prepare inputs.
+        txt = "completed\tsuccess\tTitle1\tFast tests\tbranch1\tpush\t1\t1m\t2m"
+        # Run test.
+        with umock.patch.object(
+            hsystem, "system_to_string", return_value=(0, txt)
+        ) as mock_system:
+            hltltagh._get_workflow_table(
+                "github.com/causify-ai/helpers", branch_name="branch1"
+            )
+        # Check outputs.
+        actual = mock_system.call_args.args[0]
+        expected = (
+            "export NO_COLOR=1; gh run list --limit 100"
+            " --repo github.com/causify-ai/helpers --branch branch1"
+        )
+        self.assert_equal(actual, expected)
+
+    def test3(self) -> None:
+        """
+        Test that no branch is passed to `gh run list` when it is not
+        specified.
+        """
+        # Prepare inputs.
+        txt = "completed\tsuccess\tTitle1\tFast tests\tmaster\tpush\t1\t1m\t2m"
+        # Run test.
+        with umock.patch.object(
+            hsystem, "system_to_string", return_value=(0, txt)
+        ) as mock_system:
+            hltltagh._get_workflow_table()
+        # Check outputs.
+        actual = mock_system.call_args.args[0]
+        expected = "export NO_COLOR=1; gh run list --limit 100"
+        self.assert_equal(actual, expected)
+
+    def test4(self) -> None:
+        """
+        Test that an empty `gh run list` output gives an empty table.
+        """
+        # Prepare inputs.
+        branch_name = "branch1"
+        # Run test.
+        with umock.patch.object(
+            hsystem, "system_to_string", return_value=(0, "")
+        ):
+            table = hltltagh._get_workflow_table(branch_name=branch_name)
+        # Check outputs.
+        self.assertEqual(table.size(), (0, 8))
+
 
 # #############################################################################
 # Test_gh_workflow_list
@@ -465,6 +689,7 @@ class Test_gh_workflow_list(hunitest.TestCase):
             "completed\tsuccess\tFast tests\tmaster\tpush\t1\t1m\t2m",
             delimiter="\t",
         )
+        filter_by_branch = "all"
         # Run test.
         with (
             umock.patch.object(hltltagh, "gh_login"),
@@ -473,7 +698,7 @@ class Test_gh_workflow_list(hunitest.TestCase):
             ),
             umock.patch.object(hltltagh, "_print_table") as mock_print,
         ):
-            hltltagh.gh_workflow_list(ctx, filter_by_branch="all")
+            hltltagh.gh_workflow_list(ctx, filter_by_branch=filter_by_branch)
         # Check outputs.
         mock_print.assert_called_once_with(table)
 
@@ -486,11 +711,12 @@ class Test_gh_workflow_list(hunitest.TestCase):
         # Prepare inputs.
         ctx = httestlib._build_mock_context_returning_ok()
         interval = 30
+        daemon = True
         # Run test.
         with umock.patch.object(
             hdaemon, "run_periodic_daemon_mode"
         ) as mock_daemon:
-            hltltagh.gh_workflow_list(ctx, daemon=True, interval=interval)
+            hltltagh.gh_workflow_list(ctx, daemon=daemon, interval=interval)
         # Check outputs.
         mock_daemon.assert_called_once()
         run_fn, actual_interval = mock_daemon.call_args.args
@@ -528,13 +754,15 @@ class Test_gh_workflow_list(hunitest.TestCase):
             "completed\tsuccess\tFast tests\tmaster\tpush\t1\t1m\t2m",
             delimiter="\t",
         )
+        filter_by_branch = "all"
+        repo_short_name = "amp"
         # Run test.
         with (
             umock.patch.object(hltltagh, "gh_login"),
             umock.patch.object(
                 hltltagh,
                 "_get_repo_full_name_from_cmd",
-                return_value=("github.com/causify-ai/amp", "amp"),
+                return_value=("github.com/causify-ai/amp", repo_short_name),
             ) as mock_get_repo,
             umock.patch.object(
                 hltltagh, "_get_workflow_table", return_value=table
@@ -542,11 +770,71 @@ class Test_gh_workflow_list(hunitest.TestCase):
             umock.patch.object(hltltagh, "_print_table"),
         ):
             hltltagh.gh_workflow_list(
-                ctx, filter_by_branch="all", repo_short_name="amp"
+                ctx, filter_by_branch=filter_by_branch, repo_short_name=repo_short_name
             )
         # Check outputs.
-        mock_get_repo.assert_called_once_with("amp")
-        mock_get_table.assert_called_once_with("github.com/causify-ai/amp")
+        mock_get_repo.assert_called_once_with(repo_short_name)
+        mock_get_table.assert_called_once_with(
+            "github.com/causify-ai/amp", branch_name=None
+        )
+
+    def test4(self) -> None:
+        """
+        Test that the branch filter is pushed down to `_get_workflow_table()`.
+        """
+        # Prepare inputs.
+        ctx = httestlib._build_mock_context_returning_ok()
+        table = htable.Table([], _WORKFLOW_TABLE_COLS)
+        filter_by_branch = "master"
+        # Run test.
+        with (
+            umock.patch.object(hltltagh, "gh_login"),
+            umock.patch.object(
+                hltltagh,
+                "_get_repo_full_name_from_cmd",
+                return_value=("github.com/causify-ai/helpers", "helpers"),
+            ),
+            umock.patch.object(
+                hltltagh, "_get_workflow_table", return_value=table
+            ) as mock_get_table,
+        ):
+            hltltagh.gh_workflow_list(ctx, filter_by_branch=filter_by_branch)
+        # Check outputs.
+        mock_get_table.assert_called_once_with(
+            "github.com/causify-ai/helpers", branch_name=filter_by_branch
+        )
+
+    def test5(self) -> None:
+        """
+        Test that a warning is issued and nothing is printed when no run
+        matches the filters.
+        """
+        # Prepare inputs.
+        ctx = httestlib._build_mock_context_returning_ok()
+        table = htable.Table([], _WORKFLOW_TABLE_COLS)
+        filter_by_branch = "all"
+        # Run test.
+        with (
+            umock.patch.object(hltltagh, "gh_login"),
+            umock.patch.object(
+                hltltagh,
+                "_get_repo_full_name_from_cmd",
+                return_value=("github.com/causify-ai/helpers", "helpers"),
+            ),
+            umock.patch.object(
+                hltltagh, "_get_workflow_table", return_value=table
+            ),
+            umock.patch.object(hltltagh, "_print_table") as mock_print,
+            self.assertLogs(hltltagh._LOG, level="WARNING") as cm,
+        ):
+            hltltagh.gh_workflow_list(ctx, filter_by_branch=filter_by_branch)
+        # Check outputs.
+        mock_print.assert_not_called()
+        # Log message format: "LEVEL:logger.name:message"
+        # Use fuzzy matching to handle variable logger name/timestamp formats.
+        actual_log = cm.output[0]
+        expected_log = ".*No workflow runs found.*"
+        self.assert_equal(actual_log, expected_log, fuzzy_match=True)
 
 
 # #############################################################################
@@ -565,6 +853,15 @@ class Test_gh_workflow_run(hunitest.TestCase):
         """
         # Prepare inputs.
         ctx = httestlib._build_mock_context_returning_ok()
+        branch = "master"
+        workflows = "all"
+        # Prepare outputs.
+        expected = [
+            "gh workflow run fast_tests.yml --ref master"
+            " --repo github.com/causify-ai/helpers",
+            "gh workflow run slow_tests.yml --ref master"
+            " --repo github.com/causify-ai/helpers",
+        ]
         # Run test.
         with (
             umock.patch.object(hltltagh, "gh_login"),
@@ -574,15 +871,9 @@ class Test_gh_workflow_run(hunitest.TestCase):
                 return_value=("github.com/causify-ai/helpers", "helpers"),
             ),
         ):
-            hltltagh.gh_workflow_run(ctx, branch="master", workflows="all")
+            hltltagh.gh_workflow_run(ctx, branch=branch, workflows=workflows)
         # Check outputs.
         actual = [call.args[0] for call in ctx.run.mock_calls]
-        expected = [
-            "gh workflow run fast_tests.yml --ref master"
-            " --repo github.com/causify-ai/helpers",
-            "gh workflow run slow_tests.yml --ref master"
-            " --repo github.com/causify-ai/helpers",
-        ]
         self.assert_equal(str(actual), str(expected))
 
     def test2(self) -> None:
@@ -591,6 +882,13 @@ class Test_gh_workflow_run(hunitest.TestCase):
         """
         # Prepare inputs.
         ctx = httestlib._build_mock_context_returning_ok()
+        branch = "current_branch"
+        workflows = "custom_workflow"
+        # Prepare outputs.
+        expected = [
+            "gh workflow run custom_workflow.yml --ref feature_x"
+            " --repo github.com/causify-ai/helpers"
+        ]
         # Run test.
         with (
             umock.patch.object(hltltagh, "gh_login"),
@@ -604,14 +902,10 @@ class Test_gh_workflow_run(hunitest.TestCase):
             ),
         ):
             hltltagh.gh_workflow_run(
-                ctx, branch="current_branch", workflows="custom_workflow"
+                ctx, branch=branch, workflows=workflows
             )
         # Check outputs.
         actual = [call.args[0] for call in ctx.run.mock_calls]
-        expected = [
-            "gh workflow run custom_workflow.yml --ref feature_x"
-            " --repo github.com/causify-ai/helpers"
-        ]
         self.assert_equal(str(actual), str(expected))
 
     def test3(self) -> None:
@@ -776,27 +1070,6 @@ class Test_gh_create_pr(hunitest.TestCase):
         self.assertEqual(list(ctx.run.mock_calls), [])
 
     def test3(self) -> None:
-        """
-        Test that `auto_merge=True` with `draft=True` raises.
-        """
-        # Prepare inputs.
-        ctx = httestlib._build_mock_context_returning_ok()
-        # Run test and check output.
-        with (
-            umock.patch.object(hltltagh, "gh_login"),
-            umock.patch.object(
-                hgit, "get_branch_name", return_value="SomeBranch"
-            ),
-            umock.patch.object(
-                hltltagh,
-                "_get_repo_full_name_from_cmd",
-                return_value=("github.com/causify-ai/helpers", "helpers"),
-            ),
-        ):
-            with self.assertRaises(AssertionError):
-                hltltagh.gh_create_pr(ctx, draft=True, auto_merge=True)
-
-    def test4(self) -> None:
         """
         Test that `dry_run=True` never issues the underlying `ctx.run`
         call.
@@ -980,30 +1253,6 @@ class Test_gh_delete_workflow_runs(hunitest.TestCase):
 
     def test1(self) -> None:
         """
-        Test that an unknown workflow name raises `ValueError`.
-        """
-        # Prepare inputs.
-        ctx = httestlib._build_mock_context_returning_ok()
-        # Run test and check output.
-        with (
-            umock.patch.object(hltltagh, "gh_login"),
-            umock.patch.object(
-                hltltagh,
-                "_get_repo_full_name_from_cmd",
-                return_value=("github.com/causify-ai/helpers", "helpers"),
-            ),
-            umock.patch.object(
-                hltltagh,
-                "gh_get_workflows",
-                return_value=[{"id": "42", "name": "Fast tests"}],
-            ),
-        ):
-            with self.assertRaises(ValueError) as cm:
-                hltltagh.gh_delete_workflow_runs(ctx, "Unknown workflow")
-        self.assertIn("Unknown workflow", str(cm.exception))
-
-    def test2(self) -> None:
-        """
         Test that no matching runs skips deletion entirely.
         """
         # Prepare inputs.
@@ -1013,7 +1262,7 @@ class Test_gh_delete_workflow_runs(hunitest.TestCase):
         # Check outputs.
         self.assertEqual(list(ctx.run.mock_calls), [])
 
-    def test3(self) -> None:
+    def test2(self) -> None:
         """
         Test that declining the confirmation prompt skips deletion.
         """
@@ -1024,7 +1273,7 @@ class Test_gh_delete_workflow_runs(hunitest.TestCase):
         # Check outputs.
         self.assertEqual(list(ctx.run.mock_calls), [])
 
-    def test4(self) -> None:
+    def test3(self) -> None:
         """
         Test that confirmed deletion issues one `gh api -X DELETE` call per
         run id.
@@ -1041,7 +1290,7 @@ class Test_gh_delete_workflow_runs(hunitest.TestCase):
         ]
         self.assert_equal(str(actual), str(expected))
 
-    def test5(self) -> None:
+    def test4(self) -> None:
         """
         Test that `dry_run=True` never issues the underlying `ctx.run`
         call.
@@ -1053,7 +1302,7 @@ class Test_gh_delete_workflow_runs(hunitest.TestCase):
         # Check outputs.
         self.assertEqual(list(ctx.run.mock_calls), [])
 
-    def test6(self) -> None:
+    def test5(self) -> None:
         """
         Test that a non-default `repo_short_name` is resolved and used to
         build the `gh api` run path.

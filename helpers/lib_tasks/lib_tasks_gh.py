@@ -43,6 +43,10 @@ _GH_FIXTURE_FILE = os.path.join(
     "_gh_run_and_get_json.json",
 )
 
+# Max number of runs requested to `gh run list`, since its default (20 runs
+# across all the branches) can miss the runs of a branch.
+_GH_RUN_LIST_LIMIT = 100
+
 # pylint: disable=protected-access
 
 # #############################################################################
@@ -122,17 +126,28 @@ def _get_org_name(org_name: str) -> str:
     return org_name
 
 
-def _get_workflow_table(repo_full_name_with_host: str = "") -> htable.Table:
+def _get_workflow_table(
+    repo_full_name_with_host: str = "",
+    branch_name: Optional[str] = None,
+    limit: int = _GH_RUN_LIST_LIMIT,
+) -> htable.Table:
     """
     Get a table with the status of the GH workflow for the current repo.
 
     :param repo_full_name_with_host: e.g., `github.com/causify-ai/helpers`;
         if empty, default to whatever repo the CWD is in (`gh`'s default)
+    :param branch_name: if not None, ask GH for the runs of this branch only;
+        otherwise the runs of all the branches are returned
+    :param limit: max number of runs to return; `gh run list` returns only the
+        20 most recent runs across all the branches by default, so the runs of
+        a branch can be missed if other branches have been more active
     """
     # Get the workflow status from GH.
-    cmd = "export NO_COLOR=1; gh run list"
+    cmd = f"export NO_COLOR=1; gh run list --limit {limit}"
     if repo_full_name_with_host:
         cmd += f" --repo {repo_full_name_with_host}"
+    if branch_name is not None:
+        cmd += f" --branch {branch_name}"
     _, txt = hsystem.system_to_string(cmd)
     _LOG.debug(hprint.to_str("txt"))
     # pylint: disable=line-too-long
@@ -144,10 +159,6 @@ def _get_workflow_table(repo_full_name_with_host: str = "") -> htable.Table:
     # in_progress             AmpTask1786_Integrate_20230518_2        Slow tests      AmpTask1786_Integrate_20230518_2        pull_request    5027911518      10m9s   10m
     # pylint: enable=line-too-long
     # The output is tab separated, so convert it into CSV.
-    first_line = txt.split("\n")[0]
-    _LOG.debug("first_line=%s", first_line.replace("\t", ","))
-    num_cols = len(first_line.split("\t"))
-    _LOG.debug(hprint.to_str("first_line num_cols"))
     cols = [
         # E.g., completed, in_progress.
         "completed",
@@ -162,9 +173,17 @@ def _get_workflow_table(repo_full_name_with_host: str = "") -> htable.Table:
         "elapsed",
         "age",
     ]
-    hdbg.dassert_eq(num_cols, len(cols))
-    # Build the table.
-    table = htable.Table.from_text(cols, txt, delimiter="\t")
+    if txt.strip():
+        first_line = txt.split("\n")[0]
+        _LOG.debug("first_line=%s", first_line.replace("\t", ","))
+        num_cols = len(first_line.split("\t"))
+        _LOG.debug(hprint.to_str("first_line num_cols"))
+        hdbg.dassert_eq(num_cols, len(cols))
+        # Build the table.
+        table = htable.Table.from_text(cols, txt, delimiter="\t")
+    else:
+        # `gh` returns no output when there are no runs.
+        table = htable.Table([], cols)
     _LOG.debug(hprint.to_str("table"))
     # Remove the "name" column as it's redundant with "workflow".
     table = table.remove_column("name")
@@ -244,12 +263,15 @@ def gh_workflow_list(  # type: ignore
     repo_full_name_with_host, _ = _get_repo_full_name_from_cmd(
         repo_short_name
     )
-    # Get the table.
-    table = _get_workflow_table(repo_full_name_with_host)
+    # Get the table, asking GH for the runs of the requested branch only.
+    branch_name = _get_branch_name(filter_by_branch)
+    table = _get_workflow_table(
+        repo_full_name_with_host, branch_name=branch_name
+    )
     # Filter table based on the branch.
     if filter_by_branch != "all":
         field = "branch"
-        value = _get_branch_name(filter_by_branch)
+        value = branch_name
         print(f"Filtering table by {field}={value}")
         table = table.filter_rows(field, value)
     # Filter table by the workflow status.
@@ -258,6 +280,13 @@ def gh_workflow_list(  # type: ignore
         value = filter_by_completed
         print(f"Filtering table by {field}={value}")
         table = table.filter_rows(field, value)
+    if table.size()[0] == 0:
+        _LOG.warning(
+            "No workflow runs found for filter_by_branch=%s filter_by_completed=%s",
+            filter_by_branch,
+            filter_by_completed,
+        )
+        return
     if (
         filter_by_branch not in ("current_branch", "master")
         or not report_only_status
