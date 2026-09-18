@@ -82,7 +82,7 @@ _DEFAULT_JOURNAL_FILE = "tmp.cc_lint_journal.json"
 # #############################################################################
 
 
-def _get_rules_for_topic(topic: str) -> Dict[str, Dict]:
+def _get_rules_for_topic(topic: str) -> Dict[str, Any]:
     """
     Get rules and templates for a given topic.
 

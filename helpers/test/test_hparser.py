@@ -4,12 +4,15 @@ Import as:
 import helpers.test.test_hparser as httehpar
 """
 
+import logging
 import argparse
 from typing import Any, Dict, List, Optional
 
 import helpers.hparser as hparser
 import helpers.hprint as hprint
 import helpers.hunit_test as hunitest
+
+_LOG = logging.getLogger(__name__)
 
 
 # #############################################################################
@@ -46,11 +49,11 @@ class _ForceNoColorFormatter(hparser.CustomHelpFormatter):
 
 
 # #############################################################################
-# Test_CustomHelpFormatter_split_lines
+# TestCustomHelpFormatterSplitLines
 # #############################################################################
 
 
-class Test_CustomHelpFormatter_split_lines(hunitest.TestCase):
+class TestCustomHelpFormatterSplitLines(hunitest.TestCase):
     """
     Test `hparser.CustomHelpFormatter._split_lines()`.
     """
@@ -64,6 +67,7 @@ class Test_CustomHelpFormatter_split_lines(hunitest.TestCase):
         :param expected: expected output lines, newline-separated
         """
         # Prepare inputs.
+        text = hprint.dedent(text)
         formatter = hparser.CustomHelpFormatter("prog")
         # Run test.
         actual = formatter._split_lines(text, width)
@@ -71,7 +75,6 @@ class Test_CustomHelpFormatter_split_lines(hunitest.TestCase):
         # Check outputs.
         self.assert_equal(actual, expected, dedent=True)
 
-    # TODO(ai_gp): Move all the dedent in the helper
     def test1(self) -> None:
         """
         Test that a bullet hand-wrapped across several physical lines is
@@ -85,7 +88,6 @@ class Test_CustomHelpFormatter_split_lines(hunitest.TestCase):
           invocation, shelling out to the `cc` wrapper
         - 'session' applies incrementally
         """
-        text = hprint.dedent(text)
         width = 40
         # Prepare outputs.
         expected = """
@@ -109,7 +111,6 @@ class Test_CustomHelpFormatter_split_lines(hunitest.TestCase):
           Available: py (Python)
           Default: 'py,ipynb,md'
         """
-        text = hprint.dedent(text)
         width = 66
         # Prepare outputs.
         expected = """
@@ -146,7 +147,11 @@ class Test_CustomHelpFormatter_split_lines(hunitest.TestCase):
         empty output line.
         """
         # Prepare inputs.
-        text = "Para one\n\nPara two"
+        text = """
+        Para one
+
+        Para two
+        """
         width = 40
         # Prepare outputs.
         expected = """
@@ -159,11 +164,11 @@ class Test_CustomHelpFormatter_split_lines(hunitest.TestCase):
 
 
 # #############################################################################
-# Test_CustomHelpFormatter_reflow_help_paragraphs
+# TestCustomHelpFormatterReflowHelpParagraphs
 # #############################################################################
 
 
-class Test_CustomHelpFormatter_reflow_help_paragraphs(hunitest.TestCase):
+class TestCustomHelpFormatterReflowHelpParagraphs(hunitest.TestCase):
     """
     Test `hparser.CustomHelpFormatter._reflow_help_paragraphs()`.
     """
@@ -176,6 +181,8 @@ class Test_CustomHelpFormatter_reflow_help_paragraphs(hunitest.TestCase):
         :param expected: expected list of `(indent, paragraph_text)` or
             `None` for blank lines
         """
+        # Prepare inputs.
+        text = hprint.dedent(text)
         # Run test.
         actual = hparser.CustomHelpFormatter._reflow_help_paragraphs(text)
         # Check outputs.
@@ -193,7 +200,6 @@ class Test_CustomHelpFormatter_reflow_help_paragraphs(hunitest.TestCase):
           more continuation
         - 'b' bullet two
         """
-        text = hprint.dedent(text)
         # Prepare outputs.
         expected = [
             (
@@ -212,7 +218,11 @@ class Test_CustomHelpFormatter_reflow_help_paragraphs(hunitest.TestCase):
         paragraph instead of being merged into one another.
         """
         # Prepare inputs.
-        text = "Comma-separated list\n  Available: py\n  Default: 'py'"
+        text = """
+        Comma-separated list
+          Available: py
+          Default: 'py'
+        """
         # Prepare outputs.
         expected = [
             ("", "Comma-separated list"),
@@ -228,7 +238,11 @@ class Test_CustomHelpFormatter_reflow_help_paragraphs(hunitest.TestCase):
         `None`) and that a bullet after it starts a fresh paragraph.
         """
         # Prepare inputs.
-        text = "- 'a' bullet\n\n- 'b' bullet"
+        text = """
+        - 'a' bullet
+
+        - 'b' bullet
+        """
         # Prepare outputs.
         expected = [
             ("", "- 'a' bullet"),
@@ -240,11 +254,11 @@ class Test_CustomHelpFormatter_reflow_help_paragraphs(hunitest.TestCase):
 
 
 # #############################################################################
-# Test_CustomHelpFormatter_get_help_string
+# TestCustomHelpFormatterGetHelpString
 # #############################################################################
 
 
-class Test_CustomHelpFormatter_get_help_string(hunitest.TestCase):
+class TestCustomHelpFormatterGetHelpString(hunitest.TestCase):
     """
     Test `hparser.CustomHelpFormatter._get_help_string()`.
     """
@@ -263,7 +277,7 @@ class Test_CustomHelpFormatter_get_help_string(hunitest.TestCase):
         # Run test.
         actual = formatter._get_help_string(action)
         # Check outputs.
-        self.assertEqual(actual, expected)
+        self.assert_equal(actual, expected)
 
     def test1(self) -> None:
         """
@@ -381,14 +395,13 @@ class Test_CustomHelpFormatter_get_help_string(hunitest.TestCase):
 
 
 # #############################################################################
-# Test_CustomHelpFormatter_color
+# TestCustomHelpFormatterUseColor
 # #############################################################################
 
 
-class Test_CustomHelpFormatter_color(hunitest.TestCase):
+class TestCustomHelpFormatterUseColor(hunitest.TestCase):
     """
-    Test `hparser.CustomHelpFormatter`'s color auto-detection and
-    `_color()`/`_colorize_default_annotation()` helpers.
+    Test `hparser.CustomHelpFormatter`'s `_use_color` auto-detection.
     """
 
     def test1(self) -> None:
@@ -401,33 +414,57 @@ class Test_CustomHelpFormatter_color(hunitest.TestCase):
         # Check outputs.
         self.assertFalse(formatter._use_color)
 
-    def test2(self) -> None:
+
+# #############################################################################
+# TestCustomHelpFormatterColor
+# #############################################################################
+
+
+class TestCustomHelpFormatterColor(hunitest.TestCase):
+    """
+    Test `hparser.CustomHelpFormatter._color()`.
+    """
+
+    def test1(self) -> None:
         """
         Test that `_color()` returns the text unchanged when
         colorization is off.
         """
         # Prepare inputs.
         formatter = _ForceNoColorFormatter("prog")
+        # Prepare outputs.
+        expected = "--files"
         # Run test.
         actual = formatter._color("--files", "green")
         # Check outputs.
-        expected = "--files"
-        self.assertEqual(actual, expected)
+        self.assert_equal(actual, expected)
 
-    def test3(self) -> None:
+    def test2(self) -> None:
         """
         Test that `_color()` matches `hprint.color_highlight()` when
         colorization is on.
         """
         # Prepare inputs.
         formatter = _ForceColorFormatter("prog")
+        # Prepare outputs.
+        expected = hprint.color_highlight("--files", "green")
         # Run test.
         actual = formatter._color("--files", "green")
         # Check outputs.
-        expected = hprint.color_highlight("--files", "green")
-        self.assertEqual(actual, expected)
+        self.assert_equal(actual, expected)
 
-    def test4(self) -> None:
+
+# #############################################################################
+# TestCustomHelpFormatterColorizeDefaultAnnotation
+# #############################################################################
+
+
+class TestCustomHelpFormatterColorizeDefaultAnnotation(hunitest.TestCase):
+    """
+    Test `hparser.CustomHelpFormatter._colorize_default_annotation()`.
+    """
+
+    def test1(self) -> None:
         """
         Test that only the "(default: ...)" substring of a help line is
         colorized, not the rest of the line.
@@ -435,15 +472,17 @@ class Test_CustomHelpFormatter_color(hunitest.TestCase):
         # Prepare inputs.
         formatter = _ForceColorFormatter("prog")
         line = "Token budget per merged rule chunk (default: 1500)"
+        # Prepare outputs.
+        expected = (
+            "Token budget per merged rule chunk "
+            + hprint.color_highlight("(default: 1500)", "gray")
+        )
         # Run test.
         actual = formatter._colorize_default_annotation(line)
         # Check outputs.
-        expected_prefix = "Token budget per merged rule chunk "
-        expected_suffix = hprint.color_highlight("(default: 1500)", "gray")
-        self.assertTrue(actual.startswith(expected_prefix))
-        self.assertTrue(actual.endswith(expected_suffix))
+        self.assert_equal(actual, expected, fuzzy_match=True)
 
-    def test5(self) -> None:
+    def test2(self) -> None:
         """
         Test that a line with no "(default: ...)" annotation is
         unaffected by `_colorize_default_annotation()`.
@@ -451,19 +490,20 @@ class Test_CustomHelpFormatter_color(hunitest.TestCase):
         # Prepare inputs.
         formatter = _ForceColorFormatter("prog")
         line = "Select specific files"
+        # Prepare outputs.
+        expected = "Select specific files"
         # Run test.
         actual = formatter._colorize_default_annotation(line)
         # Check outputs.
-        expected = "Select specific files"
-        self.assertEqual(actual, expected)
+        self.assert_equal(actual, expected)
 
 
 # #############################################################################
-# Test_CustomHelpFormatter_visible_len
+# TestCustomHelpFormatterVisibleLen
 # #############################################################################
 
 
-class Test_CustomHelpFormatter_visible_len(hunitest.TestCase):
+class TestCustomHelpFormatterVisibleLen(hunitest.TestCase):
     """
     Test `hparser.CustomHelpFormatter._visible_len()`.
     """
@@ -475,11 +515,13 @@ class Test_CustomHelpFormatter_visible_len(hunitest.TestCase):
         # Prepare inputs.
         plain = "--files FILES"
         colored = hprint.color_highlight(plain, "green")
+        # Prepare outputs.
+        expected = len(plain)
         # Run test.
         actual = hparser.CustomHelpFormatter._visible_len(colored)
         # Check outputs.
         self.assertGreater(len(colored), len(plain))
-        self.assertEqual(actual, len(plain))
+        self.assertEqual(actual, expected)
 
     def test2(self) -> None:
         """
@@ -487,19 +529,20 @@ class Test_CustomHelpFormatter_visible_len(hunitest.TestCase):
         """
         # Prepare inputs.
         text = "--files FILES"
+        # Prepare outputs.
+        expected = len(text)
         # Run test.
         actual = hparser.CustomHelpFormatter._visible_len(text)
         # Check outputs.
-        expected = len(text)
         self.assertEqual(actual, expected)
 
 
 # #############################################################################
-# Test_CustomHelpFormatter_format_help
+# TestCustomHelpFormatterFormatHelp
 # #############################################################################
 
 
-class Test_CustomHelpFormatter_format_help(hunitest.TestCase):
+class TestCustomHelpFormatterFormatHelp(hunitest.TestCase):
     """
     Test `argparse.ArgumentParser.format_help()` end-to-end with
     `hparser.CustomHelpFormatter`.
@@ -536,7 +579,21 @@ class Test_CustomHelpFormatter_format_help(hunitest.TestCase):
         )
         return parser
 
-    # TODO(ai_gp): Factor common code and assert_equal in an helper.
+    def helper(self, formatter_class: type, expected: str) -> None:
+        """
+        Check `parser.format_help()`'s output for `formatter_class`.
+
+        :param formatter_class: formatter class to pass to
+            `_build_parser()`
+        :param expected: expected rendered help text
+        """
+        # Prepare inputs.
+        parser = self._build_parser(formatter_class)
+        # Run test.
+        actual = parser.format_help()
+        # Check outputs.
+        self.assert_equal(actual, expected, dedent=True)
+
     def test1(self) -> None:
         """
         Test that `CustomHelpFormatter` wraps to 90 columns by default,
@@ -552,8 +609,6 @@ class Test_CustomHelpFormatter_format_help(hunitest.TestCase):
         Test that a required `--mode` doesn't render "(default: None)",
         while an optional with a real default still does.
         """
-        # Prepare inputs.
-        parser = self._build_parser(_ForceNoColorFormatter)
         # Prepare outputs.
         expected = """
         usage: myprog [-h] [--files FILES] [--max_chunk_tokens MAX_CHUNK_TOKENS] --mode {a,b,c}
@@ -568,17 +623,13 @@ class Test_CustomHelpFormatter_format_help(hunitest.TestCase):
                                 - 'b' does another
         """
         # Run test.
-        actual = parser.format_help()
-        # Check outputs.
-        self.assert_equal(actual, expected, dedent=True)
+        self.helper(_ForceNoColorFormatter, expected)
 
     def test3(self) -> None:
         """
         Test that a hand-wrapped bullet list is reflowed cleanly in the
         rendered help (no mid-word orphan lines).
         """
-        # Prepare inputs.
-        parser = self._build_parser(_ForceNoColorFormatter)
         # Prepare outputs.
         expected = """
         usage: myprog [-h] [--files FILES] [--max_chunk_tokens MAX_CHUNK_TOKENS] --mode {a,b,c}
@@ -593,9 +644,7 @@ class Test_CustomHelpFormatter_format_help(hunitest.TestCase):
                                 - 'b' does another
         """
         # Run test.
-        actual = parser.format_help()
-        # Check outputs.
-        self.assert_equal(actual, expected, dedent=True)
+        self.helper(_ForceNoColorFormatter, expected)
 
     def test4(self) -> None:
         """

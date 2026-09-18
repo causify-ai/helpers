@@ -48,6 +48,14 @@ def fetch_article_title(url: str) -> Optional[str]:
         ),
         "Accept-Language": "en-US,en;q=0.9",
     }
+    # TODO(ai_gp): Remove try-except and let the exception propagate, or
+    # restructure to avoid recovering from errors (coding.rules.md:## Do Not
+    # Use `try-except`)
+    # Not removed: this function's contract (see `:return:` above) is to
+    # return `None` on fetch failure, and
+    # `download_html_to_md.py::_get_output_md_file()` relies on that `None`
+    # to gracefully fall back to the input's basename when the request
+    # fails (e.g., network error, timeout, 404).
     try:
         response = requests.get(url, timeout=30, headers=headers)
         response.raise_for_status()
@@ -58,7 +66,7 @@ def fetch_article_title(url: str) -> Optional[str]:
     if not soup.title or not soup.title.string:
         _LOG.warning("No <title> tag found in '%s'", url)
         return None
-    # BeautifulSoup already unescapes HTML entities; just collapse internal
+    # `BeautifulSoup` already unescapes HTML entities; just collapse internal
     # whitespace/newlines.
     title = soup.title.string.strip()
     title = re.sub(r"\s+", " ", title)
@@ -86,12 +94,6 @@ def sanitize_title_for_filename(title: str) -> str:
     _LOG.debug(hprint.to_str("sanitized"))
     return sanitized
 
-
-# Default model for LLM-based summarization. This is a direct model name
-# passed to `llm` (not routed through OpenRouter, which uses an
-# "openrouter/<provider>/<model>" prefix, e.g.
-# "openrouter/anthropic/claude-haiku-4.5"; see `llm_cli.py`).
-_SUMMARY_MODEL = "gpt-4o-mini"
 
 # Shared prompt for summarizing article content into 5 bullet points; reused
 # by `download_hn_article_to_md.py`, `download_html_to_md.py`, and
@@ -129,13 +131,12 @@ def summarize_text_with_llm(
     input_file: str,
     output_file: str,
     prompt: str,
-    # TODO(ai_gp): Move this to after *
-    model: str = _SUMMARY_MODEL,
     *,
+    model: str = "gpt-4o-mini",
     dry_run: bool = False,
 ) -> None:
     """
-    Summarize text using llm_cli.py and lint the output.
+    Summarize text using `llm_cli.py` and lint the output.
 
     Also saves LLM usage stats (model, input/output/prompt char counts,
     wallclock time, cost) next to `output_file`; see `get_stat_file_path()`.
@@ -144,6 +145,10 @@ def summarize_text_with_llm(
     :param output_file: Path to save the summary
     :param prompt: System prompt to guide the summarization
     :param model: LLM model to use for summarization
+        - Default: `gpt-4o-mini`, a direct model name passed to
+          `llm_cli.py` (not routed through OpenRouter, which uses an
+          `openrouter/<provider>/<model>` prefix, e.g.
+          `openrouter/anthropic/claude-haiku-4.5`)
     :param dry_run: If True, show what would be done without executing
     """
     _LOG.debug(hprint.to_str("input_file output_file model"))
@@ -157,10 +162,10 @@ def summarize_text_with_llm(
         )
         return
     # Save prompt to a temporary file.
-    prompt_file = "tmp.summarize_text_with_llm.prompt.txt"
+    prompt_file = "tmp.download_utils.summarize_text_with_llm.prompt.txt"
     hio.to_file(prompt_file, prompt)
     _LOG.debug("Saved prompt to: '%s'", prompt_file)
-    # Build command to call llm_cli.py with the given prompt file.
+    # Build command to call `llm_cli.py` with the given prompt file.
     llm_cli_path = hsystem.find_file_in_repo("llm_cli.py")
     stat_file = get_stat_file_path(output_file)
     cmd_parts = [
@@ -173,7 +178,7 @@ def summarize_text_with_llm(
         "--lint",
     ]
     cmd = " ".join(cmd_parts)
-    _LOG.debug("Running command: %s", cmd)
+    _LOG.debug("Running command: '%s'", cmd)
     hsystem.system(cmd, print_command=True)
     _LOG.info("Summary saved to: '%s'", output_file)
     _LOG.info("Stats saved to: '%s'", stat_file)
@@ -184,6 +189,12 @@ def summarize_text_with_llm(
 # #############################################################################
 
 
+# TODO(ai_gp): Rename to `_is_arxiv_url()` since it is only used
+# internally by `is_academic_paper_url()` (coding.rules.md:## Mark
+# Private Functions)
+# Not renamed: `is_arxiv_url()` is also called from
+# `download_hn_article_to_md.py` (as `dshddut.is_arxiv_url()`), so it is
+# part of the module's public interface, not internal-only.
 def is_arxiv_url(url: str) -> bool:
     """
     Check if a URL points to an arXiv paper.
@@ -197,6 +208,12 @@ def is_arxiv_url(url: str) -> bool:
     return result
 
 
+# TODO(ai_gp): Rename to `_detect_doi()` since it is only used
+# internally by `is_academic_paper_url()` (coding.rules.md:## Mark
+# Private Functions)
+# Not renamed: `detect_doi()` is also called from
+# `download_academic_paper_to_md.py` (as `dshddut.detect_doi()`), so it is
+# part of the module's public interface, not internal-only.
 def detect_doi(url: str) -> Optional[str]:
     """
     Detect DOI from URL or bare DOI string.
@@ -224,7 +241,7 @@ def detect_doi(url: str) -> Optional[str]:
     return None
 
 
-def is_pdf_url(url: str) -> bool:
+def _is_pdf_url(url: str) -> bool:
     """
     Check if a URL points directly to a PDF file.
 
@@ -236,7 +253,7 @@ def is_pdf_url(url: str) -> bool:
     # Strip query string and fragment before checking the file extension.
     path = url.split("?")[0].split("#")[0]
     result = path.lower().endswith(".pdf")
-    _LOG.debug("return=%s", result)
+    _LOG.debug("return='%s'", result)
     return result
 
 
@@ -253,7 +270,7 @@ def is_academic_paper_url(url: str) -> bool:
         `download_academic_paper_to_md.py`
     """
     _LOG.debug(hprint.to_str("url"))
-    result = bool(is_arxiv_url(url) or detect_doi(url) or is_pdf_url(url))
+    result = bool(is_arxiv_url(url) or detect_doi(url) or _is_pdf_url(url))
     _LOG.debug(hprint.to_str("result"))
     return result
 
@@ -269,7 +286,12 @@ def download_website_article(url: str, output_file: str) -> None:
     """
     _LOG.debug(hprint.to_str("url output_file"))
     script = hgit.find_file_in_git_tree("download_html_to_md.py")
-    cmd = f'{script} --input "{url}" --output "{output_file}"'
+    cmd = [
+        script,
+        f'--input "{url}"',
+        f'--output "{output_file}"',
+    ]
+    cmd = " ".join(cmd)
     hsystem.system(cmd, print_command=True)
     hdbg.dassert_file_exists(output_file)
 
@@ -302,10 +324,15 @@ def download_arxiv_article(url: str, output_file: str) -> None:
     # Only download + convert here: skip the script's own summarize action
     # since callers summarize the resulting article text themselves. Skip
     # figures too, since only the text is consumed downstream.
-    cmd = (
-        f'{script} --input "{url}" --output "{base_path}" '
-        f"--no_incremental --skip_action summarize --skip_figures"
-    )
+    cmd = [
+        script,
+        f'--input "{url}"',
+        f'--output "{base_path}"',
+        "--no_incremental",
+        "--skip_action summarize",
+        "--skip_figures",
+    ]
+    cmd = " ".join(cmd)
     hsystem.system(cmd, print_command=True)
     pdf_output_file = f"{base_path}.pdf"
     hdbg.dassert_file_exists(pdf_output_file)
