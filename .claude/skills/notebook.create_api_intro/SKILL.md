@@ -47,9 +47,11 @@ model: sonnet
 
 - Use the structure from `.claude/templates/notebook.template.py` for consistent
   notebook initialization
-  - First Cell: Include autoreload, logging, and core dependencies
-  - Second Cell: Optionally install packages on-the-fly
-  - Third Cell: Notebook-specific imports and logger
+  - Follow the cell layout in `.claude/skills/notebook.rules.md` under
+    `## Use Standard Template Structure`: title cell with scope and
+    pedagogical arc, optional pip cell, autoreload and third-party imports
+    cell, and a last setup cell that calls `utils.init_loggers(_LOG)`
+  - Do not add an `## Imports` header
 
 ## Follow General Notebook Conventions
 

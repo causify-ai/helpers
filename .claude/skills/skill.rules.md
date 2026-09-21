@@ -262,8 +262,8 @@
     `.claude/templates/graphviz.template.md`
 - A topic may have more than one template for different variants; distinguish
   variants with a suffix before `.template`
-  - E.g., `.claude/templates/notebook.template.py` and
-    `.claude/templates/API_notebook.template.py`
+  - E.g., `.claude/templates/notebook.template.ipynb` and
+    `.claude/templates/API_notebook.template.ipynb`
 - Not every topic needs a template
 
 ## Referencing Template Files

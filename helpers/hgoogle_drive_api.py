@@ -897,6 +897,40 @@ def create_or_overwrite_with_timestamp(
     return file_id
 
 
+# Google Drive folder ('test') where temporary Google Sheets are created. It is
+# the same folder that contains the temporary Sheet used by
+# `save_df_to_tmp_gsheet()`.
+_TMP_GDRIVE_FOLDER_ID = "1HTyRpbb4tFqRxjX6yQgosmCcpVxcF6X9"
+
+
+def create_tmp_gsheet(
+    *,
+    credentials: Optional["goasea.Credentials"] = None,
+) -> str:
+    """
+    Create an empty temporary Google Sheet with a timestamp in its name.
+
+    The Sheet is created in the temporary Google Drive folder, so it inherits
+    the sharing settings of the folder.
+
+    E.g., a new Sheet named `tmp_file_2026-09-19_14-03-22`.
+
+    :param credentials: Google credentials object.
+    :return: URL of the new Google Sheet.
+    """
+    if credentials is None:
+        credentials = get_credentials()
+    file_id = create_or_overwrite_with_timestamp(
+        "tmp_file",
+        _TMP_GDRIVE_FOLDER_ID,
+        file_type="sheets",
+        credentials=credentials,
+    )
+    url = f"https://docs.google.com/spreadsheets/d/{file_id}/edit"
+    _LOG.debug("Created temporary Google Sheet: '%s'", url)
+    return url
+
+
 # #############################################################################
 # Google folder API
 # #############################################################################

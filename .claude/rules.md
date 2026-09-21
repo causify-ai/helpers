@@ -116,7 +116,7 @@ Based on the files that you need to operate, read and follow the corresponding r
   - The utility-module template `.claude/templates/notebook_utils_template.py`
   - For a notebook presenting a package API: the templates
     `.claude/templates/API_notebook.template.ipynb` and
-    `.claude/templates/API_notebook.template.py`
+    `.claude/templates/API_notebook.py.template`
 
 ## Tool Tutorials
 

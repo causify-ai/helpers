@@ -7,20 +7,22 @@ model: haiku
 - Given a Jupyter notebook, format the markdown cells corresponding to
   interactive / visualization cells
 - Each visualization uses the triplet structure:
-  - Pre-visualization markdown (goal + plot descriptions)
+  - Pre-visualization markdown (goal, then description of inputs and panels)
   - Code cell (visualization / interactive widget)
-  - Post-visualization markdown (key observations + experiments)
+  - Post-visualization markdown (guided usage, then implementation and the
+    `print_obj_info()` code cell)
 
 # Workflow
 
 ## Update the Cell Triplets
 - Update all markdown cells around interactive cells to follow the triplet
   structure:
-  - **Before the visualization**: A markdown cell with the goal, plot
-    descriptions (under each title), and widget descriptions (close to each
-    widget)
-  - **After the visualization**: A key observations markdown cell explaining
-    what experiments can be done and what was learned
+  - **Before the visualization**: A markdown cell with the goal, then a
+    description cell with the plot descriptions (under each title) and widget
+    descriptions (close to each widget)
+  - **After the visualization**: A guided-usage markdown cell explaining what
+    experiments can be done and what was learned, then the implementation cell
+    and the `print_obj_info()` code cell
 - Follow the conventions from `## Visualization Cell Triplet Details`
   in `.claude/skills/notebook.rules.md`
 

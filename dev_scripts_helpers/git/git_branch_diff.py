@@ -11,6 +11,8 @@ Diff files of the current branch against a specified point in time.
 - Diff against `origin/master`, only in a subdirectory, only Python files:
 > git_branch_diff.py --target master --subdir helpers --file_types py
 
+- CSV files are rendered as text tables with `csvlook` before being diffed
+
 Import as:
 
 import dev_scripts_helpers.git.git_branch_diff as dsggibrd
@@ -19,6 +21,7 @@ import dev_scripts_helpers.git.git_branch_diff as dsggibrd
 import argparse
 import logging
 import os
+import shutil
 from typing import Tuple
 
 import helpers.hdbg as hdbg
@@ -49,6 +52,40 @@ def _run_or_skip(cmd: str, dry_run: bool, **kwargs) -> None:  # type: ignore
 # #############################################################################
 # Diffing
 # #############################################################################
+
+
+def _is_csv_file(file_name: str) -> bool:
+    """
+    Return whether `file_name` is a CSV file.
+
+    :param file_name: path of the file
+    """
+    return file_name.lower().endswith(".csv")
+
+
+def _render_csv_file(in_file: str, out_file: str) -> str:
+    """
+    Render a CSV file as a text table with `csvlook`.
+
+    Return `in_file` unchanged, i.e., raw text, if `in_file` is `/dev/null`,
+    `csvlook` is not installed, or `csvlook` fails (e.g., ragged CSV).
+
+    :param in_file: CSV file to render
+    :param out_file: file to write the rendered table to
+    :return: the file to diff
+    """
+    if in_file == "/dev/null":
+        return in_file
+    if shutil.which("csvlook") is None:
+        _LOG.warning("csvlook not found: diffing '%s' as raw text", in_file)
+        return in_file
+    # Disable type inference to avoid reformatting the values (e.g., 1.50).
+    cmd = f"csvlook --no-inference {in_file} >{out_file} 2>/dev/null"
+    rc = hsystem.system(cmd, abort_on_error=False)
+    if rc != 0:
+        _LOG.warning("csvlook failed for '%s': diffing as raw text", in_file)
+        return in_file
+    return out_file
 
 
 def _git_diff_with_branch(
@@ -228,8 +265,15 @@ def _git_diff_with_branch(
             left_file = "/dev/null"
         else:
             left_file = tmp_file
+        # Render CSV files as text tables to make the diff readable. Do not
+        # wrap lines, since the tables are wide.
+        vimdiff_opts = ""
+        if _is_csv_file(branch_file):
+            left_file = _render_csv_file(left_file, f"{tmp_file}.left.txt")
+            right_file = _render_csv_file(right_file, f"{tmp_file}.right.txt")
+            vimdiff_opts = "-c 'windo set nowrap' "
         # Generate vimdiff command to compare base and current versions.
-        cmd = f"vimdiff {left_file} {right_file}"
+        cmd = f"vimdiff {vimdiff_opts}{left_file} {right_file}"
         _LOG.debug("-> %s", cmd)
         script_txt.append(cmd)
     script_txt = "\n".join(script_txt)

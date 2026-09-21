@@ -26,7 +26,11 @@ _LOG = logging.getLogger(__name__)
 
 
 def init_loggers(notebook_log: logging.Logger) -> None:
-    global _LOG
+    """
+    Wire the notebook logger into the utils logger.
+
+    :param notebook_log: logger owned by the notebook
+    """
     hnotebo.init_loggers(notebook_log, utils_log=_LOG)
 
 
