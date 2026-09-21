@@ -206,7 +206,6 @@ class Test_build_nbconvert_cmd(hunitest.TestCase):
         # Check outputs.
         self.assert_equal(actual, expected)
 
-
     def test2(self) -> None:
         """
         Test that `cell_timeout` sets the per-cell timeout.
@@ -233,7 +232,9 @@ class Test_build_nbconvert_cmd(hunitest.TestCase):
         # Run test.
         actual = self._build(progress=True)
         # Check outputs.
-        self.assertIn("--to html --log-level=DEBUG --ExecutePreprocessor", actual)
+        self.assertIn(
+            "--to html --log-level=DEBUG --ExecutePreprocessor", actual
+        )
 
     def test5(self) -> None:
         """

@@ -114,7 +114,6 @@ class Test_parse_extensions(hunitest.TestCase):
         self.helper(ext_str, expected)
 
 
-
 # #############################################################################
 # Test_parse_positional
 # #############################################################################
@@ -220,4 +219,3 @@ class Test_parse_positional(hunitest.TestCase):
         expected = ("", "src", ["py"])
         # Run test.
         self.helper(positional, dir_flag, expected, has_pattern=has_pattern)
-
