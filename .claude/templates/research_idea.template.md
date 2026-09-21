@@ -28,8 +28,8 @@
 
 ## Questions
 
-1. [Open question 1 — what remains unknown?]
-2. [Open question 2 — what would a proof or counterexample look like?]
+1. [Open question 1: what remains unknown?]
+2. [Open question 2: what would a proof or counterexample look like?]
 3. [Provocative implication: if true, what does this change?]
 
 ## Research Topics
@@ -42,8 +42,8 @@
 [ ] Look for related research (what has already been done)
 [ ] Finalize the implementation plan
 [ ] GP to review / approve the plan
-[ ] Hack a quick end-to-end prototype (e.g., in 1-2 days) to show that you
-    understood the problem and can make progress
+[ ] Hack a quick end-to-end prototype (e.g., in 1-2 days) to show that you understood
+    the problem and can make progress
 [ ] Break the problem down in phases and milestones
 [ ] Execute one step at the time
 
