@@ -202,7 +202,7 @@ class DockerTestCase(hunitest.TestCase):
 
         :param notebook_name: notebook filename relative to the project dir
         :param generate_html: if True, render with the `html_anchorfix`
-            template (same one `run_nbconvert.sh` uses) so the exported HTML
+            template (same one `run_nbconvert.py` uses) so the exported HTML
             has working per-cell anchors and any `ipywidgets` keep their last
             rendered look; if False, just check that the notebook executes
             without error
@@ -226,7 +226,7 @@ class DockerTestCase(hunitest.TestCase):
             "--ExecutePreprocessor.timeout=-1"
         )
         if generate_html:
-            # Match `run_nbconvert.sh`'s template so the HTML has working
+            # Match `run_nbconvert.py`'s template so the HTML has working
             # per-cell anchors.
             nbconvert_cmd += (
                 " --template html_anchorfix "

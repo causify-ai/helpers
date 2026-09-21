@@ -12,6 +12,7 @@ import argparse
 import logging
 from typing import List, Optional
 
+import dev_scripts_helpers.system_tools.search_utils as dshstseut
 import helpers.hdbg as hdbg
 import helpers.hparser as hparser
 import helpers.hprint as hprint
@@ -28,7 +29,7 @@ _LOG = logging.getLogger(__name__)
 def _build_find_command(
     pattern: str,
     dir_name: str,
-    extension: str,
+    extensions: List[str],
     *,
     only_files: bool = False,
 ) -> str:
@@ -37,16 +38,15 @@ def _build_find_command(
 
     :param pattern: substring to look for in the file/dir name
     :param dir_name: directory to search in
-    :param extension: file extension filter (e.g., ".py"), or "" for no filter
+    :param extensions: file extensions to filter by (e.g., `["py", "md"]`), or
+        `[]` for no filter
     :param only_files: restrict the search to files, skipping directories
     :return: shell command ready to run, including the `grep`/`sort` pipeline
     """
-    _LOG.debug(hprint.to_str("pattern dir_name extension only_files"))
+    _LOG.debug(hprint.to_str("pattern dir_name extensions only_files"))
     name = "*" + pattern + "*"
-    # Append extension filter if provided (e.g., ".py" or "py").
-    if extension:
-        ext = extension.lstrip(".")
-        name = f"{name}.{ext}"
+    # Match the name against each extension, if any.
+    names = [f"{name}.{ext}" for ext in extensions] if extensions else [name]
     cmd = []
     cmd.append(f"find {dir_name}")
     # Skip certain dirs.
@@ -55,7 +55,11 @@ def _build_find_command(
     )
     if only_files:
         cmd.append("-type f")
-    cmd.append(f'-iname "{name}"')
+    iname_cmds = [f'-iname "{name}"' for name in names]
+    if len(iname_cmds) == 1:
+        cmd.append(iname_cmds[0])
+    else:
+        cmd.append(r"\( " + " -o ".join(iname_cmds) + r" \)")
     # Guarantee that only non-pruned files are printed.
     cmd.append("-print")
     cmd.append("| grep -v __pycache__")
@@ -83,18 +87,8 @@ def parse(description: str = "") -> argparse.ArgumentParser:
         description=description,
         formatter_class=hparser.CustomHelpFormatter,
     )
-    parser.add_argument(
-        "positional",
-        nargs="*",
-        help="First param is the regex, optional second param is the file "
-        "extension (e.g., .py)",
-    )
-    parser.add_argument(
-        "--dir",
-        action="store",
-        default=".",
-        help="Directory to search in",
-    )
+    # Add `<pattern> [<dir>] [<ext>]`, `--dir`, `--dry_run`, shared with `rig`.
+    dshstseut.add_search_args(parser)
     parser.add_argument("--only_files", action="store_true", help="Only files")
     parser.add_argument("--log", action="store_true", help="Report logging")
     hparser.add_verbosity_arg(parser)
@@ -124,24 +118,23 @@ def main(
         report_command_line=False,
         log_filename="",
     )
-    positional = parsed.positional
     # Error check.
-    if len(positional) < 1:
+    if len(parsed.positional) < 1:
         print("Error: not enough parameters")
         parser.print_help()
         return -1
-    if len(positional) > 2:
-        print("Error: too many parameters")
-        parser.print_help()
-        return -1
-    # Parse positional arguments: pattern [extension].
-    pattern = positional[0]
-    extension = positional[1] if len(positional) >= 2 else ""
-    dir_name = parsed.dir
+    # Parse `<pattern> [<dir>] [<ext>]` with the code shared with `rig`.
+    pattern, dir_name, extensions = dshstseut.parse_positional(
+        parsed.positional, parsed.dir
+    )
     hdbg.dassert_dir_exists(dir_name)
     cmd = _build_find_command(
-        pattern, dir_name, extension, only_files=parsed.only_files
+        pattern, dir_name, extensions, only_files=parsed.only_files
     )
+    if parsed.dry_run:
+        # Print the command and exit without running it.
+        print(cmd)
+        return 0
     if (parsed.log_level == "DEBUG") or parsed.log:
         print(cmd)
         print()

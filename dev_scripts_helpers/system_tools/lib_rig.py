@@ -14,10 +14,11 @@ import shlex
 import subprocess
 from typing import Any, Dict, List, Optional
 
+import dev_scripts_helpers.system_tools.search_utils as dshstseut
 import helpers.hdbg as hdbg
 import helpers.hgit as hgit
-import helpers.hselect_input_output as hseinout
 import helpers.hparser as hparser
+import helpers.hselect_input_output as hseinout
 
 _LOG = logging.getLogger(__name__)
 
@@ -82,9 +83,8 @@ def parse(description: str = "") -> argparse.ArgumentParser:
         description=description,
         formatter_class=hparser.CustomHelpFormatter,
     )
-    parser.add_argument(
-        "positional", nargs="*", help="Positional arguments for search"
-    )
+    # Add `<pattern> [<dir>] [<ext>]`, `--dir`, `--dry_run`, shared with `ffind`.
+    dshstseut.add_search_args(parser)
     hseinout.add_file_selection_args(parser)
     # Special search mode.
     parser.add_argument(
@@ -129,12 +129,6 @@ def parse(description: str = "") -> argparse.ArgumentParser:
         default="",
         help="Additional ripgrep options (e.g., '-S -i' for smart case and ignore case)",
     )
-    # Dry-run.
-    parser.add_argument(
-        "--dry_run",
-        action="store_true",
-        help="Print the ripgrep command and exit without running it",
-    )
     parser.add_argument(
         "--print_files",
         action="store_true",
@@ -158,26 +152,14 @@ def _parse_arguments(parsed: argparse.Namespace) -> Dict[str, Any]:
     :param parsed: Raw parsed arguments from `ArgumentParser`
     :return: Dictionary with processed ripgrep command components and flags
     """
-    # Build ripgrep pattern from first positional arg.
-    ripgrep_pattern = parsed.positional[0] if parsed.positional else None
-    # Build ripgrep directory from second positional arg (default: current dir).
-    ripgrep_dir = "."
-    if len(parsed.positional) > 1:
-        ripgrep_dir = parsed.positional[1]
-    # Build ripgrep extensions from third positional arg.
-    ripgrep_extensions = None
-    if len(parsed.positional) > 2:
-        ripgrep_extensions = [
-            ext.strip() for ext in parsed.positional[2].split(",")
-        ]
-        # Ensure extensions don't have a dot prefix since ripgrep expects
-        # bare extension names (e.g., "py" not ".py") when using `-g glob`.
-        for ext in ripgrep_extensions:
-            hdbg.dassert(
-                not ext.startswith("."),
-                "Extension '%s' must not start with dot",
-                ext,
-            )
+    # Parse `[<pattern>] [<dir>] [<ext>]` with the code shared with `ffind`.
+    # The modes that don't take a pattern (e.g., `--todo`) start from `<dir>`.
+    has_pattern = parsed.def_mode or parsed.rule_mode or not parsed.todo_str
+    ripgrep_pattern, ripgrep_dir, ripgrep_extensions = (
+        dshstseut.parse_positional(
+            parsed.positional, parsed.dir, has_pattern=has_pattern
+        )
+    )
     # Build extra rg options from user input.
     ripgrep_opts = parsed.rg_opts
     # Expand -i to -S -i for ripgrep (smart-case + ignore-case).
@@ -212,19 +194,6 @@ def _parse_arguments(parsed: argparse.Namespace) -> Dict[str, Any]:
         else:
             todo_pattern = parsed.todo_str
         ripgrep_pattern = rf"^\s*(#|//)\s*TODO\({todo_pattern}\)"
-        # Directory and extensions can come from positional args.
-        if len(parsed.positional) > 0:
-            ripgrep_dir = parsed.positional[0]
-        if len(parsed.positional) > 1:
-            ripgrep_extensions = [
-                ext.strip() for ext in parsed.positional[1].split(",")
-            ]
-            for ext in ripgrep_extensions:
-                hdbg.dassert(
-                    not ext.startswith("."),
-                    "Extension '%s' must not start with dot",
-                    ext,
-                )
     # Package computed components and behavioral flags into a result dictionary.
     result: Dict[str, Any] = {
         "pattern": ripgrep_pattern,

@@ -18,22 +18,42 @@ if [[ -z "$1" ]]; then
     exit 1
 fi
 NOTEBOOK="$1"
+if [[ ! -f "$NOTEBOOK" ]]; then
+    echo "Error: notebook '$NOTEBOOK' not found"
+    exit 1
+fi
 
-# Get the git root, used to point nbconvert at the shared template dir and
-# to compute where this dir lands inside the container (mounted at
+# `docker_cmd.sh` and `docker_name.sh` live in the dir of the notebook (each
+# tutorial dir has its own Docker setup), not in this script dir.
+NOTEBOOK_DIR=$(cd "$(dirname "$NOTEBOOK")" && pwd -P)
+NOTEBOOK_NAME=$(basename "$NOTEBOOK")
+DOCKER_CMD_SH="$NOTEBOOK_DIR/docker_cmd.sh"
+if [[ ! -e "$DOCKER_CMD_SH" ]]; then
+    echo "Error: can't find '$DOCKER_CMD_SH'"
+    exit 1
+fi
+
+# Get the git root of the notebook, used to compute where the notebook dir and
+# the shared template dir land inside the container (git root is mounted at
 # /git_root).
-GIT_ROOT=$(git rev-parse --show-toplevel)
-SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
-REL_DIR=$(python3 -c "import os,sys; print(os.path.relpath(sys.argv[1], sys.argv[2]))" "$SCRIPT_DIR" "$GIT_ROOT")
+GIT_ROOT=$(cd "$NOTEBOOK_DIR" && git rev-parse --show-toplevel)
+SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)
+RELPATH_PY="import os,sys; print(os.path.relpath(sys.argv[1], sys.argv[2]))"
+REL_NOTEBOOK_DIR=$(python3 -c "$RELPATH_PY" "$NOTEBOOK_DIR" "$GIT_ROOT")
+REL_TEMPLATE_DIR=$(python3 -c "$RELPATH_PY" \
+    "$SCRIPT_DIR/nbconvert_templates" "$GIT_ROOT")
 
 # Build the nbconvert command to run inside the container. `cd` into the
 # matching /git_root path first: docker_cmd.sh does not start the container
 # in this dir, so a relative notebook path would otherwise match no files.
-CMD="cd /git_root/$REL_DIR && jupyter nbconvert --execute --to html \
+CMD="cd /git_root/$REL_NOTEBOOK_DIR && jupyter nbconvert --execute --to html \
 --ExecutePreprocessor.timeout=-1 \
 --template html_anchorfix \
---TemplateExporter.extra_template_basedirs=/git_root/helpers_root/dev_scripts_helpers/notebooks/nbconvert_templates \
-$NOTEBOOK"
+--TemplateExporter.extra_template_basedirs=/git_root/$REL_TEMPLATE_DIR \
+$NOTEBOOK_NAME"
 
-# Run the command inside the Docker container via docker_cmd.sh.
-$SCRIPT_DIR/docker_cmd.sh "$CMD"
+# Run the command inside the Docker container via the notebook's
+# `docker_cmd.sh`. Run it from the notebook dir so that it finds the right git
+# root and `docker_name.sh`.
+cd "$NOTEBOOK_DIR"
+bash "$DOCKER_CMD_SH" "$CMD"

@@ -102,10 +102,10 @@ class Test_main(hunitest.TestCase):
 
     def test3(self) -> None:
         """
-        Test filter by file extension using the second positional argument.
+        Test filter by file extension using the third positional argument.
         """
         # Prepare inputs: `helpers` is a real dir relative to cwd.
-        args = ["stocktwits", ".py", "--dir", "helpers"]
+        args = ["stocktwits", "helpers", "py"]
         # Prepare outputs.
         expected_cmd = (
             f'find helpers {_FIND_PRUNE} -iname "*stocktwits*.py" -print '
@@ -143,14 +143,13 @@ class Test_main(hunitest.TestCase):
 
     def test6(self) -> None:
         """
-        Test too many positional arguments returns a usage error.
+        Test too many positional arguments raises an assertion error.
         """
         # Prepare inputs.
-        args = ["stocktwits", ".py", "extra"]
-        expected_cmd = ""
-        expected_exit_code = -1
-        # Run test.
-        self.helper(args, expected_cmd, expected_exit_code)
+        args = ["stocktwits", ".", "py", "extra"]
+        # Run test and expect assertion error.
+        with self.assertRaises(AssertionError):
+            dshstliff.main(args)
 
     def test7(self) -> None:
         """
@@ -172,3 +171,106 @@ class Test_main(hunitest.TestCase):
         # Run test and expect assertion error.
         with self.assertRaises(AssertionError):
             dshstliff.main(args)
+
+    def test9(self) -> None:
+        """
+        Test search in a directory selected with the second positional argument.
+        """
+        # Prepare inputs: `helpers` is a real dir relative to cwd.
+        args = ["stocktwits", "helpers"]
+        # Prepare outputs.
+        expected_cmd = (
+            f'find helpers {_FIND_PRUNE} -iname "*stocktwits*" -print '
+            "| grep -v __pycache__ | sort"
+        )
+        expected_exit_code = 0
+        # Run test.
+        self.helper(args, expected_cmd, expected_exit_code)
+
+    def test10(self) -> None:
+        """
+        Test `ffind <pattern> . <ext>`, following the `rig` format.
+        """
+        # Prepare inputs.
+        args = ["notebook", ".", "py"]
+        # Prepare outputs.
+        expected_cmd = (
+            f'find . {_FIND_PRUNE} -iname "*notebook*.py" -print '
+            "| grep -v __pycache__ | sort"
+        )
+        expected_exit_code = 0
+        # Run test.
+        self.helper(args, expected_cmd, expected_exit_code)
+
+    def test11(self) -> None:
+        """
+        Test that the extension filter is combined with `--only_files`.
+        """
+        # Prepare inputs.
+        args = ["notebook", ".", "py", "--only_files"]
+        # Prepare outputs.
+        expected_cmd = (
+            f'find . {_FIND_PRUNE} -type f -iname "*notebook*.py" -print '
+            "| grep -v __pycache__ | sort"
+        )
+        expected_exit_code = 0
+        # Run test.
+        self.helper(args, expected_cmd, expected_exit_code)
+
+    def test12(self) -> None:
+        """
+        Test that a non-existent positional dir raises an assertion error.
+        """
+        # Prepare inputs.
+        args = ["stocktwits", "/nonexistent_dir_xyz", "py"]
+        # Run test and expect assertion error.
+        with self.assertRaises(AssertionError):
+            dshstliff.main(args)
+
+    def test13(self) -> None:
+        """
+        Test that passing the dir both as positional arg and `--dir` fails.
+        """
+        # Prepare inputs.
+        args = ["stocktwits", ".", "--dir", "helpers"]
+        # Run test and expect assertion error.
+        with self.assertRaises(AssertionError):
+            dshstliff.main(args)
+
+    def test14(self) -> None:
+        """
+        Test a comma-separated list of extensions, as in `rig`.
+        """
+        # Prepare inputs.
+        args = ["notebook", ".", "py, md"]
+        # Prepare outputs.
+        expected_cmd = (
+            f'find . {_FIND_PRUNE} \\( -iname "*notebook*.py" -o '
+            '-iname "*notebook*.md" \\) -print | grep -v __pycache__ | sort'
+        )
+        expected_exit_code = 0
+        # Run test.
+        self.helper(args, expected_cmd, expected_exit_code)
+
+    def test15(self) -> None:
+        """
+        Test that an extension starting with dot raises an assertion error.
+        """
+        # Prepare inputs.
+        args = ["notebook", ".", ".py"]
+        # Run test and expect assertion error.
+        with self.assertRaises(AssertionError):
+            dshstliff.main(args)
+
+    def test16(self) -> None:
+        """
+        Test that `--dry_run` prints the command without running it.
+        """
+        # Prepare inputs.
+        args = ["notebook", ".", "py", "--dry_run"]
+        # Run test: no call to `hsystem.system()` is expected.
+        with hunteuti.capture_sys_calls() as sys_calls:
+            exit_code = dshstliff.main(args)
+        # Check outputs.
+        self.assertEqual(exit_code, 0)
+        self.assertEqual(len(sys_calls), 0)

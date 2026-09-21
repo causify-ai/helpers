@@ -432,3 +432,35 @@ class TestRigScript(hunitest.TestCase):
             expected_cmd,
             expected_exit_code,
         )
+
+    def test23(self) -> None:
+        """
+        Test `--dir` as an alternative to the positional directory.
+        """
+        # Prepare inputs.
+        args = ["import", "--dir", "src"]
+        # Prepare outputs.
+        expected_cmd = "rg import --hidden -n --no-heading --color=never -g !.git src"
+        expected_exit_code = 0
+        # Run test.
+        self.helper(args, expected_cmd, expected_exit_code)
+
+    def test24(self) -> None:
+        """
+        Test that passing the dir both as positional arg and `--dir` fails.
+        """
+        # Prepare inputs.
+        args = ["import", "src", "--dir", "src"]
+        # Run test and expect assertion error.
+        with self.assertRaises(AssertionError):
+            dshstliri.main(args)
+
+    def test25(self) -> None:
+        """
+        Test that too many positional arguments raise an assertion error.
+        """
+        # Prepare inputs.
+        args = ["import", "src", "py", "extra"]
+        # Run test and expect assertion error.
+        with self.assertRaises(AssertionError):
+            dshstliri.main(args)
