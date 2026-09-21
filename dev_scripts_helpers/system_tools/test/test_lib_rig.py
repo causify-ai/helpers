@@ -440,7 +440,9 @@ class TestRigScript(hunitest.TestCase):
         # Prepare inputs.
         args = ["import", "--dir", "src"]
         # Prepare outputs.
-        expected_cmd = "rg import --hidden -n --no-heading --color=never -g !.git src"
+        expected_cmd = (
+            "rg import --hidden -n --no-heading --color=never -g !.git src"
+        )
         expected_exit_code = 0
         # Run test.
         self.helper(args, expected_cmd, expected_exit_code)

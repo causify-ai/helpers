@@ -50,8 +50,7 @@ def add_search_args(parser: argparse.ArgumentParser) -> argparse.ArgumentParser:
         "--dir",
         action="store",
         default="",
-        help="Directory to search in, as an alternative to the positional "
-        "<dir>",
+        help="Directory to search in, as an alternative to the positional <dir>",
     )
     parser.add_argument(
         "--dry_run",
