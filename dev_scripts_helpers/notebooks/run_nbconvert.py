@@ -297,14 +297,7 @@ def _run_notebook_in_docker(
     )
     # Run from the notebook dir so that `docker_cmd.sh` finds the right git root
     # and `docker_name.sh`.
-    # Read stdin from `/dev/null`: `docker_cmd.sh` attaches stdin to the
-    # container (`container run -i`), and with a live stdin (e.g., a terminal)
-    # the notebook hangs at a random cell, with `nbconvert` and the kernel both
-    # idle, so even the cell timeout does not always fire.
-    cmd = (
-        f"cd {notebook_dir} && "
-        f"bash {docker_cmd_script} '{nbconvert_cmd}' < /dev/null"
-    )
+    cmd = f"cd {notebook_dir} && bash {docker_cmd_script} '{nbconvert_cmd}'"
     if progress:
         # `nbconvert` logs to stderr, so merge it into the pipe. `pipefail`
         # keeps the exit code of the notebook run instead of the one of `awk`.
