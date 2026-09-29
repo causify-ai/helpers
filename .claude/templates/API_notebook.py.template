@@ -15,40 +15,43 @@
 # %% [markdown]
 # # <PACKAGE_NAME> <TOPIC> API
 #
-# A guided exploration of <PACKAGE_NAME>'s <TOPIC_DESCRIPTION>:
-# - <KEY_ABSTRACTION_1>: <brief_description>
-# - <KEY_ABSTRACTION_2>: <brief_description>
-# - <KEY_ABSTRACTION_3>: <brief_description>
+# - This notebook explores <PACKAGE_NAME>'s <TOPIC_DESCRIPTION> through
+#   <describe the running example>
+# - The pedagogical arc:
+#   - <KEY_ABSTRACTION_1>: <brief_description>
+#   - <KEY_ABSTRACTION_2>: <brief_description>
+#   - <KEY_ABSTRACTION_3>: <brief_description>
 
-# %% [markdown]
-# ## Imports and Setup
+# %%
+# Only needed for a package not preinstalled in the Docker image; drop this
+# cell entirely otherwise.
+# !pip install -q <PACKAGE_NAME>==<VERSION>
+
+# import <PACKAGE_NAME>
+# print("<PACKAGE_NAME> version: ", <PACKAGE_NAME>.__version__)
 
 # %%
 # %load_ext autoreload
 # %autoreload 2
 
 import logging
-import sys
-import warnings
 
-warnings.filterwarnings('ignore')
-
-# %%
-# Core imports from the package
+# Core imports from the package, plus the other third-party imports that the
+# notebook body uses, sorted alphabetically.
 import <PACKAGE_NAME> as <SHORT_ALIAS>
+import matplotlib.pyplot as plt
+import seaborn as sns
 
 # %%
-# Use this for most notebooks.
-import helpers.htutorial as htutori
+import helpers.hnotebook as hnotebook
 
-htutori.config_notebook()
+# Import the package-specific utilities, always as `utils`.
+import <PACKAGE_NAME>_utils as utils
 
-# Import package-specific utilities.
-import tutorials.<PACKAGE_NAME>.<PACKAGE_NAME>_utils as t<PACKAGE_ABBREV>uti
-
-# Initialize logger.
-logging.basicConfig(level=logging.INFO)
+# Initialize notebook configuration and logging.
+hnotebook.config_notebook()
 _LOG = logging.getLogger(__name__)
+utils.init_loggers(_LOG)
 
 # Convert `display` into `print()` when running outside IPython.
 try:

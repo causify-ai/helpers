@@ -11,6 +11,15 @@ Diff files of the current branch against a specified point in time.
 - Diff against `origin/master`, only in a subdirectory, only Python files:
 > git_branch_diff.py --target master --subdir helpers --file_types py
 
+- CSV files are rendered as text tables with `csvlook` before being diffed
+
+# Handling of added, deleted, and moved files
+
+- An added or a deleted file is diffed against `/dev/null`
+- A file moved without changes is not diffed, but reported as
+  `Move 'old_path' to 'new_path'`
+- A file moved and modified is diffed as a deleted file and an added file
+
 Import as:
 
 import dev_scripts_helpers.git.git_branch_diff as dsggibrd
@@ -19,7 +28,8 @@ import dev_scripts_helpers.git.git_branch_diff as dsggibrd
 import argparse
 import logging
 import os
-from typing import Tuple
+import shutil
+from typing import Dict, Tuple
 
 import helpers.hdbg as hdbg
 import helpers.hgit as hgit
@@ -49,6 +59,86 @@ def _run_or_skip(cmd: str, dry_run: bool, **kwargs) -> None:  # type: ignore
 # #############################################################################
 # Diffing
 # #############################################################################
+
+
+def _is_csv_file(file_name: str) -> bool:
+    """
+    Return whether `file_name` is a CSV file.
+
+    :param file_name: path of the file
+    """
+    return file_name.lower().endswith(".csv")
+
+
+def _render_csv_file(in_file: str, out_file: str) -> str:
+    """
+    Render a CSV file as a text table with `csvlook`.
+
+    Return `in_file` unchanged, i.e., raw text, if `in_file` is `/dev/null`,
+    `csvlook` is not installed, or `csvlook` fails (e.g., ragged CSV).
+
+    :param in_file: CSV file to render
+    :param out_file: file to write the rendered table to
+    :return: the file to diff
+    """
+    if in_file == "/dev/null":
+        return in_file
+    if shutil.which("csvlook") is None:
+        _LOG.warning("csvlook not found: diffing '%s' as raw text", in_file)
+        return in_file
+    # Disable type inference to avoid reformatting the values (e.g., 1.50).
+    cmd = f"csvlook --no-inference {in_file} >{out_file} 2>/dev/null"
+    rc = hsystem.system(cmd, abort_on_error=False)
+    if rc != 0:
+        _LOG.warning("csvlook failed for '%s': diffing as raw text", in_file)
+        return in_file
+    return out_file
+
+
+def _get_moved_files(hash_: str, dir_name: str) -> Dict[str, str]:
+    """
+    Find the files moved without changes between `hash_` and the current state.
+
+    Only exact moves (100% similarity) are reported, so a moved file with edits
+    is still diffed as a deleted and an added file and no change is hidden.
+
+    :param hash_: what to diff against, empty string to diff the working dir
+        against `HEAD`
+    :param dir_name: dir where to run `git`
+    :return: mapping from the old path to the new path of each moved file
+        ```
+
+        {'dir1/foo.py': 'dir2/foo.py'}
+
+        ```
+    """
+    _LOG.debug(hprint.to_str("hash_ dir_name"))
+    # Diff in the natural direction (old -> new) so that the first path of a
+    # rename is the old one. This is the opposite of the order used to list the
+    # files in `_git_diff_with_branch()`.
+    if hash_:
+        revs = f"{hash_} HEAD"
+    else:
+        revs = "HEAD"
+    cmd = [
+        "git diff",
+        "--name-status",
+        "--find-renames=100%",
+        "--diff-filter=R",
+        revs,
+    ]
+    cmd = " ".join(cmd)
+    cmd = f"cd {dir_name} && {cmd}"
+    _, output = hsystem.system_to_string(cmd)
+    # Parse lines like `R100\tdir1/foo.py\tdir2/foo.py`.
+    moves = {}
+    for line in output.split("\n"):
+        if not line:
+            continue
+        _, old_file, new_file = line.split("\t")
+        moves[old_file] = new_file
+    _LOG.debug("return=%s", moves)
+    return moves
 
 
 def _git_diff_with_branch(
@@ -91,7 +181,10 @@ def _git_diff_with_branch(
     cmd.append("git diff")
     if diff_type:
         cmd.append(f"--diff-filter={diff_type}")
-    cmd.append(f"--name-only HEAD {hash_}")
+    # Disable rename detection so that both the old and the new path of a moved
+    # file are listed, independently of the user's git config. Moved files are
+    # handled separately through `_get_moved_files()`.
+    cmd.append(f"--no-renames --name-only HEAD {hash_}")
     cmd = " ".join(cmd)
     files = hsystem.system_to_files(
         cmd, dir_name, remove_files_non_present=False
@@ -184,11 +277,24 @@ def _git_diff_with_branch(
         files = files_tmp
         _LOG.info("After filtering by subdir: files=%s", len(files))
         _LOG.debug("%s", "\n".join(files))
+    # Handle the files moved without changes: there is nothing to diff, so
+    # report them and remove both their paths from the files to diff. A move is
+    # reported if any of its two paths survived the filters above.
+    moves = _get_moved_files(hash_, dir_name)
+    moves = {
+        old_file: new_file
+        for old_file, new_file in moves.items()
+        if old_file in files or new_file in files
+    }
+    moved_files = set(moves.keys()) | set(moves.values())
+    files = [f for f in files if f not in moved_files]
     # Summary of what will be diffed.
-    _LOG.info("\n" + hprint.frame(f"# files={len(files)}"))
+    _LOG.info("\n" + hprint.frame(f"# files={len(files)} moves={len(moves)}"))
     _LOG.info("\n" + "\n".join(files))
+    for old_file, new_file in moves.items():
+        _LOG.info("Move '%s' to '%s'", old_file, new_file)
     if len(files) == 0:
-        _LOG.warning("No files match the filter criteria: exiting")
+        _LOG.warning("No files to diff: exiting")
         return
     if only_print_files:
         _LOG.warning("Exiting as per user request with --only-print-files")
@@ -228,8 +334,15 @@ def _git_diff_with_branch(
             left_file = "/dev/null"
         else:
             left_file = tmp_file
+        # Render CSV files as text tables to make the diff readable. Do not
+        # wrap lines, since the tables are wide.
+        vimdiff_opts = ""
+        if _is_csv_file(branch_file):
+            left_file = _render_csv_file(left_file, f"{tmp_file}.left.txt")
+            right_file = _render_csv_file(right_file, f"{tmp_file}.right.txt")
+            vimdiff_opts = "-c 'windo set nowrap' "
         # Generate vimdiff command to compare base and current versions.
-        cmd = f"vimdiff {left_file} {right_file}"
+        cmd = f"vimdiff {vimdiff_opts}{left_file} {right_file}"
         _LOG.debug("-> %s", cmd)
         script_txt.append(cmd)
     script_txt = "\n".join(script_txt)

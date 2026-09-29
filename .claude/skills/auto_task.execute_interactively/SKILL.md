@@ -77,9 +77,8 @@ model: haiku
 
 - If the N-th task requires writing code, test the code both locally and in the CI
   following the procedures here
-  - `.claude/skills/github.get_pr_to_pass_ci/SKILL.md`
+  - `.claude/skills/github.get_pr_to_pass_ci_tests/SKILL.md`
   - `.claude/skills/github.get_pr_to_pass_local_tests/SKILL.md`
-  - `.claude/skills/github.get_pr_to_commit_state/SKILL.md`
 
 ### Wait for User to Confirm
 

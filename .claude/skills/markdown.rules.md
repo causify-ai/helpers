@@ -89,6 +89,29 @@ text
       - `render_images.py`: Auto-renders diagrams
       ```
 
+## Checkboxes
+- Always put a list marker before a checkbox: write `- [ ]` and `- [x]`, never a
+  bare `[ ]` or `[x]` at the start of a line
+  - A bare checkbox is not a list item, so linters and renderers merge consecutive
+    lines into a single paragraph
+- Indent the continuation lines of a wrapped checkbox item by 6 spaces, so that
+  they align with the text after `- [ ] `
+- E.g.:
+  - **Bad**:
+    ```markdown
+    [ ] Look for related research
+    [ ] Finalize the implementation plan
+    [ ] Hack a quick end-to-end prototype (e.g., in 1-2 days) to show that you
+        understood the problem and can make progress
+    ```
+  - **Good**:
+    ```markdown
+    - [ ] Look for related research
+    - [ ] Finalize the implementation plan
+    - [ ] Hack a quick end-to-end prototype (e.g., in 1-2 days) to show that you
+          understood the problem and can make progress
+    ```
+
 # Text Formatting
 
 ## Use Verbatim

@@ -125,7 +125,7 @@
 
 ## Complete the Tutorial
 
-### 4. Set Up Docker
+### Set Up Docker
 - The Docker container structure should follow `class_project/project_template/`
   - Container must have everything needed to run tutorials and develop
   - Include all dependencies in `requirements.txt` with pinned versions
@@ -166,9 +166,70 @@
 - [ ] `README.md` follows the Quick Start template
 - [ ] Linter passes with no errors (`linters2/lint_branch.sh`)
 
+## Available Skills
+- Use these skills to automate the steps of a tutorial:
+  - `.claude/skills/tutorial_in_60_mins.create/SKILL.md`: create a new tutorial
+    dir `tutorials/<TOPIC>` (utils, notebooks, Docker, README, tests, blog post)
+  - `.claude/skills/tutorial_in_60_mins.format/SKILL.md`: format an existing
+    dir to follow this spec
+  - `.claude/skills/tutorial_in_60_mins.merge_markdown/SKILL.md`: merge a
+    standalone markdown file into a notebook
+  - `.claude/skills/tutorial_in_60_mins.propagate_docker_changes/SKILL.md`: sync
+    the Docker files of tutorials and class projects with `project_template`
+- Other skills used often for a tutorial:
+  - `.claude/skills/notebook.*`: create, split, format, and lint the notebooks
+    and move code to `*_utils.py`
+  - `.claude/skills/docker.use_standard_style/SKILL.md`: align the Docker files
+    to the standard style
+  - `.claude/skills/readme.create/SKILL.md`: write the `README.md` of the dir
+  - `.claude/skills/blog.write_tutorial_readme/SKILL.md` and
+    `.claude/skills/blog.write_ml_tutorial/SKILL.md`: write the blog post
+- `helpers_root/how_to.ai_workflows.md`: lists the `tutorial_in_60_mins` skill
+  group
+
+## Existing Tutorials and Projects
+- Before starting, read the closest existing tutorial and project and imitate it
+- Follow the pointers below, do not copy their content here
+
+### Workflow and Templates
+- `class_project/create_project.README.md`: how to create a dir from the
+  template and sync the Docker files
+- `tutorials/tutorials_checklist.md`: onboarding checklist and quality
+  principles
+- `tutorials/project_template/`: skeleton to copy
+- `class_project/project_template/`: Docker structure to follow
+
+### Tutorials Already Built
+- `tutorials/<Tool>/`: one dir per tool, read its `README.md` first
+- Reference tutorials to imitate:
+  - `tutorials/Autogen`
+  - `tutorials/BambooAI`
+  - `tutorials/TensorFlow`
+  - `tutorials/fastapi`
+- `msml610/tutorials/L03_knowledge_representation/`: reference for the
+  notebook style
+- `research/Causal_Analysis_of_Agent_Skill_And_Luck/all.learn_Causal_Analysis_of_Success_in_60_minutes.how_to_guide.md`:
+  tutorial written on the research side
+
+### Blog Posts
+- `website/docs/blog/posts/in_60_mins.<Tool>.md`: published posts, e.g.,
+  `in_60_mins.AutoGen.md`, `in_60_mins.BambooAI.md`, `in_60_mins.Tensorflow.md`
+- `website/README.blog.md`: tracks blog posts and their status
+- `helpers_root/docs/blogging/all.write_blog.how_to_guide.md`: blog guide
+
+### Class Projects Already Built
+- `class_project/README.md`: how the "Learn X in 60 Minutes" class projects work
+- `class_project/project_descriptions/README.md`: tracking table with the status,
+  authors, GitHub issue, and result dir of each proposal
+- `class_project/project_descriptions/{MSML610,DATA605}/<Tool>_Project_Description.md`:
+  the proposal of each tool
+- `class_project/msml610/<Session>/projects/` and
+  `class_project/data605/<Session>/projects/`: the work of the students, read
+  the `README.md` of each project dir
+
 ## Tools of the Trade
 - Format markdown: `lint_text.py -i ...`
-- Clean up Python code: Use the agent skill `/coding.format`
+- Clean up Python code: Use the agent skill `/coding.improve_code_for_humans`
 - Render locally: `website/test.sh`
 - Reference tutorials:
   - [`DATA605`](https://github.com/gpsaggese/gpsaggese.github.io/tree/master/data605/tutorials)

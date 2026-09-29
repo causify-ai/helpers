@@ -18,6 +18,12 @@ output-format = "concise"
 # E731: Do not assign a `lambda` expression, use a `def`
 ignore = ["E731"]
 
+[tool.ruff.lint.per-file-ignores]
+# Tutorial notebooks paired with jupytext have code cells before imports.
+# E402: Module level import not at top of file
+"**/tutorials/**/*.py" = ["E402"]
+"**/tutorials/**/*.ipynb" = ["E402"]
+
 [tool.pyrefly]
 # Currently, Pyrefly doesn't officially support [tool.pyrefly] config
 # Instead, use CLI flags like `pyrefly lint . --config path/to/config.yaml`

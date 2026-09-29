@@ -15,7 +15,7 @@ model: haiku
 # Workflow
 
 ## Read the Spec and Reference
-- Read the spec in `.claude/skills/tool_X_in_60_mins.rules.md`
+- Read the spec in `.claude/skills/tutorial_in_60_mins.rules.md`
 - Use as a reference of how a tutorial looks like
   - `tutorials/AutoGen`
   - `tutorials/BambooAI`
@@ -27,7 +27,7 @@ model: haiku
 
 ## Improve Content of the Tutorial
 - Organize the content of the directory `tutorials/<TOPIC>` following the
-  directions of `.claude/skills/tool_X_in_60_mins.rules.md`
+  directions of `.claude/skills/tutorial_in_60_mins.rules.md`
 - Use as a reference of how a tutorial looks like
   - `tutorials/AutoGen`
   - `tutorials/BambooAI`
@@ -59,7 +59,7 @@ model: haiku
 
 # Verification
 - [ ] `tutorials/<TARGET>` matches the structure in
-  `.claude/skills/tool_X_in_60_mins.rules.md`
+  `.claude/skills/tutorial_in_60_mins.rules.md`
 - [ ] Docker build system in `tutorials/<TOPIC>` follows
   `.claude/skills/docker.use_standard_style/SKILL.md`
 - [ ] `tutorials/<TOPIC>/README.md` was linted with `lint_text.py -i`

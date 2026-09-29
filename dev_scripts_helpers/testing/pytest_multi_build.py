@@ -28,6 +28,7 @@ import os
 from typing import List
 
 import helpers.hdbg as hdbg
+import helpers.hio as hio
 import helpers.hnotify as hnotify
 import helpers.hparser as hparser
 import helpers.hprint as hprint
@@ -70,6 +71,13 @@ def _parse() -> argparse.ArgumentParser:
         "--no_delete_cache",
         action="store_true",
         help="skip manage_cache.py --action clear_all",
+    )
+    parser.add_argument(
+        "--output_dir",
+        action="store",
+        default="tmp.pytest_multi_build",
+        help="Directory storing the per-build log files. Not cleaned up "
+        "before starting, so builds can be run piecemeal",
     )
     parser.add_argument(
         "--timeout",
@@ -123,6 +131,8 @@ def _run_build(
     cmd: str,
     build_num: int,
     total_builds: int,
+    *,
+    output_dir: str = "tmp.pytest_multi_build",
 ) -> None:
     """
     Run a single build with specified command.
@@ -131,9 +141,10 @@ def _run_build(
     :param cmd: Command to run (e.g., 'pytest_log target1 target2' or './script.sh')
     :param build_num: Current build number (1-indexed)
     :param total_builds: Total number of builds to run
+    :param output_dir: Directory storing the per-build log file
     """
-    _LOG.debug("build_name=%s", build_name)
-    output_file = f"tmp.pytest_multi_build.{build_name}.txt"
+    _LOG.debug(hprint.to_str("build_name output_dir"))
+    output_file = os.path.join(output_dir, f"{build_name}.txt")
     # Print banner showing progress
     banner_msg = f"{build_num}/{total_builds}: Running build '{build_name}' -> '{output_file}'"
     _LOG.info("\n%s", hprint.frame(banner_msg))
@@ -156,26 +167,15 @@ def _run_build(
     _LOG.info("Build '%s' completed with exit code %d", build_name, exit_code)
 
 
-def _cleanup_old_files() -> None:
-    """
-    Clean up old build output files.
-    """
-    _LOG.debug("_cleanup_old_files called")
-    # Remove stale output files from previous runs.
-    for build_name in hpytest.BUILD_CONFIG.keys():
-        output_file = f"tmp.pytest_multi_build.{build_name}.txt"
-        if os.path.exists(output_file):
-            _LOG.debug("Removing old file: %s", output_file)
-            os.remove(output_file)
-
-
-def _summarize_results(build_names: List[str]) -> None:
+def _summarize_results(build_names: List[str], output_dir: str) -> None:
     """
     Summarize test results by executing pytest_failed_multi_build.py.
 
     :param build_names: List of build names to summarize
+    :param output_dir: Directory storing the per-build log files, passed
+        along as `--input_dir` to `pytest_failed_multi_build.py`
     """
-    _LOG.debug("_summarize_results called")
+    _LOG.debug(hprint.to_str("build_names output_dir"))
     script_dir = os.path.dirname(os.path.abspath(__file__))
     pytest_failed_multi_build_script = os.path.join(
         script_dir, "pytest_failed_multi_build.py"
@@ -183,7 +183,10 @@ def _summarize_results(build_names: List[str]) -> None:
     hdbg.dassert_file_exists(pytest_failed_multi_build_script)
     # Build command to execute pytest_failed_multi_build.py.
     build_names_str = " ".join(build_names)
-    cmd = f"{pytest_failed_multi_build_script} --build_names {build_names_str}"
+    cmd = (
+        f"{pytest_failed_multi_build_script} --build_names {build_names_str}"
+        f" --input_dir {output_dir}"
+    )
     _LOG.info("\n%s", hprint.frame("Summarizing test results"))
     _LOG.info("Executing: %s", cmd)
     hsystem.system(cmd, suppress_output=False)
@@ -196,8 +199,10 @@ def _main(parser: argparse.ArgumentParser) -> None:
     _LOG.debug("_main called")
     args = parser.parse_args()
     hdbg.init_logger(verbosity=args.log_level, use_exec_path=True)
-    # Clean up old output files from previous runs.
-    _cleanup_old_files()
+    # Create the output dir without deleting existing content, so builds can
+    # be run piecemeal (e.g., a single build at a time) without losing the
+    # logs from previous runs.
+    hio.create_dir(args.output_dir, incremental=True)
     # Determine command to execute: either build pytest command from targets or use provided script.
     if args.target:
         cmd = _build_pytest_cmd(args.target)
@@ -223,10 +228,16 @@ def _main(parser: argparse.ArgumentParser) -> None:
             docker_restarted = True
         if not args.no_delete_cache:
             _clear_cache()
-        _run_build(build_name, cmd, build_num, total_builds)
+        _run_build(
+            build_name,
+            cmd,
+            build_num,
+            total_builds,
+            output_dir=args.output_dir,
+        )
     _LOG.info("All builds completed")
     # Summarize results by calling pytest_failed_multi_build.py.
-    _summarize_results(build_names)
+    _summarize_results(build_names, args.output_dir)
 
 
 if __name__ == "__main__":

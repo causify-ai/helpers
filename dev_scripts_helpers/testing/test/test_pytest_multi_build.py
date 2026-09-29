@@ -8,7 +8,7 @@ import os
 
 import pytest
 
-import helpers.hio as hio
+import helpers.hdbg as hdbg
 import helpers.hunit_test as hunitest
 import helpers.hunit_test_utils as hunteuti
 import dev_scripts_helpers.testing.pytest_multi_build as dshtpmubu
@@ -62,77 +62,6 @@ class Test_build_pytest_cmd(hunitest.TestCase):
         actual = dshtpmubu._build_pytest_cmd(targets)
         # Check outputs.
         self.assert_equal(actual, "pytest_log --no_clear_screen .")
-
-
-# #############################################################################
-# Test_cleanup_old_files
-# #############################################################################
-
-
-class Test_cleanup_old_files(hunitest.TestCase):
-    """
-    Test _cleanup_old_files function for cleaning up old output files.
-    """
-
-    def test1(self) -> None:
-        """
-        Test removing old build output files.
-        """
-        # Prepare inputs.
-        scratch_dir = self.get_scratch_space()
-        # Create old output files.
-        for build_name in ["docker", "apple", "dev_container"]:
-            output_file = os.path.join(
-                scratch_dir, f"tmp.pytest_multi_build.{build_name}.txt"
-            )
-            hio.to_file(output_file, "old output")
-        # Change working directory for the test.
-        original_dir = os.getcwd()
-        try:
-            os.chdir(scratch_dir)
-            # Run test.
-            dshtpmubu._cleanup_old_files()
-            # Check outputs.
-            expected_files = {}
-            for build_name in ["docker", "apple", "dev_container"]:
-                output_file = f"tmp.pytest_multi_build.{build_name}.txt"
-                expected_files[output_file] = False
-            actual_files = {
-                f"tmp.pytest_multi_build.{build_name}.txt": os.path.exists(
-                    f"tmp.pytest_multi_build.{build_name}.txt"
-                )
-                for build_name in ["docker", "apple", "dev_container"]
-            }
-            self.assert_equal(str(actual_files), str(expected_files))
-        finally:
-            os.chdir(original_dir)
-
-    def test2(self) -> None:
-        """
-        Test cleanup with no old files present.
-        """
-        # Prepare inputs.
-        scratch_dir = self.get_scratch_space()
-        # Change working directory for the test.
-        original_dir = os.getcwd()
-        try:
-            os.chdir(scratch_dir)
-            # Run test (should not raise).
-            dshtpmubu._cleanup_old_files()
-            # Check outputs.
-            actual_files = {
-                f"tmp.pytest_multi_build.{build_name}.txt": os.path.exists(
-                    f"tmp.pytest_multi_build.{build_name}.txt"
-                )
-                for build_name in ["docker", "apple", "dev_container"]
-            }
-            expected_files = {
-                f"tmp.pytest_multi_build.{build_name}.txt": False
-                for build_name in ["docker", "apple", "dev_container"]
-            }
-            self.assert_equal(str(actual_files), str(expected_files))
-        finally:
-            os.chdir(original_dir)
 
 
 # #############################################################################
@@ -203,6 +132,35 @@ class Test_run_build(hunitest.TestCase):
             for build_num, build_name in enumerate(build_names, start=1):
                 dshtpmubu._run_build(build_name, cmd, build_num, total_builds)
                 # Invariant: function should complete without raising exceptions.
+        finally:
+            os.chdir(original_dir)
+
+    def test4(self) -> None:
+        """
+        Test that the log file is written under a custom `output_dir`.
+        """
+        # Prepare inputs.
+        build_name = "docker"
+        cmd = "pytest_log helpers/test/"
+        build_num = 1
+        total_builds = 1
+        output_dir = "custom_output_dir"
+        # Prepare outputs.
+        scratch_dir = self.get_scratch_space()
+        original_dir = os.getcwd()
+        try:
+            os.chdir(scratch_dir)
+            # Run test.
+            dshtpmubu._run_build(
+                build_name,
+                cmd,
+                build_num,
+                total_builds,
+                output_dir=output_dir,
+            )
+            # Check outputs.
+            expected_log_file = os.path.join(output_dir, f"{build_name}.txt")
+            hdbg.dassert_file_exists(expected_log_file)
         finally:
             os.chdir(original_dir)
 

@@ -167,7 +167,9 @@ class Test_gh_get_team_member_names(hunitest.TestCase):
                 {"login": "user2", "id": 102},
                 {"login": "user3", "id": 103},
             ]
-            result = hltltagh.gh_get_team_member_names(team_name, org_name=org_name)
+            result = hltltagh.gh_get_team_member_names(
+                team_name, org_name=org_name
+            )
         # Check outputs.
         self.assertEqual(result, expected)
         mock_get_org_name.assert_called_once_with(org_name)
@@ -252,7 +254,9 @@ class Test_gh_get_workflows(hunitest.TestCase):
             workflows = hltltagh.gh_get_workflows(repo, sort=sort)
             raw = self._mock(f"gh workflow list --json id,name --repo {repo}")
         # Check outputs.
-        self.assertEqual([w["name"] for w in workflows], [r["name"] for r in raw])
+        self.assertEqual(
+            [w["name"] for w in workflows], [r["name"] for r in raw]
+        )
         # Ids are still stringified.
         self.assertTrue(all(isinstance(w["id"], str) for w in workflows))
 
@@ -508,18 +512,14 @@ class Test_gh_login(hunitest.TestCase):
 
         # Run test.
         with (
-            umock.patch(
-                "helpers.lib_tasks.lib_tasks_utils.report_task"
-            ),
+            umock.patch("helpers.lib_tasks.lib_tasks_utils.report_task"),
             umock.patch("os.path.expanduser", side_effect=lambda p: p),
             umock.patch("os.path.exists", side_effect=_exists),
         ):
             hltltagh.gh_login(ctx, account=account, print_status=False)
         # Check outputs.
         actual = [call.args[0] for call in ctx.run.mock_calls]
-        expected = [
-            "gh auth login --with-token <~/.ssh/github_pat.test-org.txt"
-        ]
+        expected = ["gh auth login --with-token <~/.ssh/github_pat.test-org.txt"]
         self.assert_equal(str(actual), str(expected))
 
     def test2(self) -> None:
@@ -532,9 +532,7 @@ class Test_gh_login(hunitest.TestCase):
         account = "test-org"
         # Run test.
         with (
-            umock.patch(
-                "helpers.lib_tasks.lib_tasks_utils.report_task"
-            ),
+            umock.patch("helpers.lib_tasks.lib_tasks_utils.report_task"),
             umock.patch("os.path.expanduser", side_effect=lambda p: p),
             umock.patch("os.path.exists", return_value=False),
         ):
@@ -564,6 +562,7 @@ _WORKFLOW_TABLE_COLS = [
 
 
 # TODO(ai_gp): Factor out common code
+
 
 class Test__get_workflow_table(hunitest.TestCase):
     """
@@ -770,7 +769,9 @@ class Test_gh_workflow_list(hunitest.TestCase):
             umock.patch.object(hltltagh, "_print_table"),
         ):
             hltltagh.gh_workflow_list(
-                ctx, filter_by_branch=filter_by_branch, repo_short_name=repo_short_name
+                ctx,
+                filter_by_branch=filter_by_branch,
+                repo_short_name=repo_short_name,
             )
         # Check outputs.
         mock_get_repo.assert_called_once_with(repo_short_name)
@@ -901,9 +902,7 @@ class Test_gh_workflow_run(hunitest.TestCase):
                 return_value=("github.com/causify-ai/helpers", "helpers"),
             ),
         ):
-            hltltagh.gh_workflow_run(
-                ctx, branch=branch, workflows=workflows
-            )
+            hltltagh.gh_workflow_run(ctx, branch=branch, workflows=workflows)
         # Check outputs.
         actual = [call.args[0] for call in ctx.run.mock_calls]
         self.assert_equal(str(actual), str(expected))

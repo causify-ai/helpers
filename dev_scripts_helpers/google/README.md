@@ -33,6 +33,12 @@ This directory has no subdirectories.
 
 ### Examples
 
+- Upload CSV to a new temporary Google Sheet (`tmp_file_<timestamp>`, no URL
+  needed) and open it in the browser:
+  ```bash
+  > to_gsheet.py --input_file data.csv --open
+  ```
+
 - Upload CSV to new tab:
   ```bash
   > to_gsheet.py \
@@ -48,6 +54,15 @@ This directory has no subdirectories.
       --url "https://docs.google.com/spreadsheets/d/..." \
       --tabname "my_data" \
       --overwrite
+  ```
+
+- Upload and open the tab in the browser:
+  ```bash
+  > to_gsheet.py \
+      --input_file data.csv \
+      --url "https://docs.google.com/spreadsheets/d/..." \
+      --tabname "my_data" \
+      --open
   ```
 
 - Run with verbose logging:

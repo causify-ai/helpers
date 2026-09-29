@@ -4,9 +4,8 @@ model: haiku
 ---
 
 # Goal
-- Given the current `<SRC>` Git branch (e.g.,
-  `HelpersTask1273_Get_Mac_tests_to_pass`), write instructions to build a child
-  PR on a new `<DST>` branch
+- Given the current `<SRC>` Git branch, write instructions to build a child PR on a
+  new `<DST>` branch
 
 # Workflow
 
@@ -14,17 +13,18 @@ model: haiku
 - Find which branch name is next available:
   ```bash
   > i git_branch_next_name
-  12:01:47 - INFO  hgit.py _get_branch_next_name_via_github_api:124       Found highest number '3' in all branches, next is '4'
+  Found highest number '3' in all branches, next is '4'
   branch_next_name='HelpersTask1273_Get_Mac_tests_to_pass_4'
   ```
 
 ## Create the Instructions File
-- Create a file `pr_merge.txt` with the instructions to:
+- Create a file `plan-pr_merge.txt` with the instructions to:
   - Create a `<DST>` branch (e.g., `HelpersTask1273_Get_Mac_tests_to_pass_4`)
   - Copy the files needed to merge PR2 from `github_PR_plan.md` from the current
     branch to the target branch
-  - Create a file `pr_commit_msg.txt` with the description of what the PR does
-  - Create a file `pr_pytest.sh` with the tests to run to check the behavior of
+  - Create a file `plan-pr_commit_msg.txt` with the description of what the PR does
+  - Create a file `plan-pr_title.txt` with the one line G
+  - Create a file `plan-pr_pytest.sh` with the tests to run to check the behavior of
     the PR
   - Make sure there are comments for each phase and that each command is correct
 
@@ -101,7 +101,7 @@ model: haiku
   ```
 
 # Verification
-- [ ] Confirm `pr_merge.txt`, `pr_commit_msg.txt`, and `pr_pytest.sh` were
+- [ ] Confirm `plan-pr_merge.txt`, `plan-pr_commit_msg.txt`, and `plan-pr_pytest.sh` were
       created
 - [ ] Confirm `pr_pytest.sh` is executable and runs the correct tests
 - [ ] Confirm every phase has a comment and every command is correct

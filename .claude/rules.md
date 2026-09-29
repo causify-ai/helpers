@@ -50,8 +50,15 @@ Based on the files that you need to operate, read and follow the corresponding r
   MUST follow:
   - The rules `.claude/skills/auto_task.rules.md`
   - The template `.claude/templates/auto_task.template.md`
+- For writing the implementation spec of one complex PR in an `auto_task` plan you
+  MUST follow the template `.claude/templates/specs.template.md`
 - For executing a sequence of ready tasks as a stack of branches and PRs you MUST
   follow `.claude/skills/auto_task.execute_with_stacked_prs/SKILL.md`
+
+## TODO Files
+
+- For a TODO / task queue file organized by execution stage (e.g.,
+  `ai_task_queue.md`) you MUST follow `.claude/skills/todo.rules.md`
 
 ## GitHub PR Plan
 
@@ -83,6 +90,13 @@ Based on the files that you need to operate, read and follow the corresponding r
 
 - For writing shell script (files with a `.sh` extension) you MUST follow:
   - The rules `.claude/skills/bash.rules.md`
+
+## Scripts
+
+- For writing a Python CLI script (`_parse()` / `_main(parser)` structure) you
+  MUST follow:
+  - The rules `.claude/skills/script.rules.md`
+  - The rules `.claude/skills/coding.rules.md`
 
 ## Testing
 
@@ -116,19 +130,34 @@ Based on the files that you need to operate, read and follow the corresponding r
   - The utility-module template `.claude/templates/notebook_utils_template.py`
   - For a notebook presenting a package API: the templates
     `.claude/templates/API_notebook.template.ipynb` and
-    `.claude/templates/API_notebook.template.py`
+    `.claude/templates/API_notebook.py.template`
 
 ## Tool Tutorials
 
-- For a "Learn X in 60 Minutes" tutorial you MUST follow
-  `.claude/skills/tool_X_in_60_mins.rules.md`
-- For a "Learn X in 30 Minutes" tutorial you MUST follow
-  `.claude/skills/tool_X_in_30_mins.rules.md`
+- For a "X in 60 Minutes" tutorial (a directory with notebooks and Docker files) you
+  MUST follow `.claude/skills/tutorial_in_60_mins.rules.md`
+- For an "X in 30 Minutes" tool guide (a single markdown file) you MUST follow
+  `.claude/skills/tool_guide_in_30_mins.rules.md`
+
+## Tutorial Specs
+
+- For a tutorial proposal document (`class_project/project_descriptions/*/*.md`)
+  you MUST follow:
+  - The rules `.claude/skills/tutorial_specs.rules.md`
+  - The template `.claude/templates/tutorial_specs.template.md`
 
 ## Package Landscape
 
 - For a package/library functionality-cluster comparison doc you MUST follow the
   template `.claude/templates/package.template.md`
+
+# Research
+
+## Research Ideas
+
+- For a research idea document (`research/ideas/*.md`) you MUST follow:
+  - The rules `.claude/skills/research_idea.rules.md`
+  - The template `.claude/templates/research_idea.template.md`
 
 # Books and Lectures
 
@@ -139,8 +168,9 @@ Based on the files that you need to operate, read and follow the corresponding r
 
 ## Book
 
-- For a book table of contents / map you MUST follow the template
-  `.claude/templates/book_map.template.md`
+- For a book table of contents / map (`book_map.md`) you MUST follow:
+  - The rules `.claude/skills/book_map.rules.md`
+  - The template `.claude/templates/book_map.template.md`
 
 ## Slides
 

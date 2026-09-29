@@ -62,7 +62,7 @@ _NO_TIMEOUT = -1
 _START_KEY = "iopub.status.busy"
 _END_KEY = "iopub.status.idle"
 # Relative path (from the Git root) to the template used to render the HTML
-# export, matching `run_nbconvert.sh` / `helpers.hdocker_tests`.
+# export, matching `run_nbconvert.py` / `helpers.hdocker_tests`.
 _TEMPLATE_REL_DIR = (
     "helpers_root/dev_scripts_helpers/notebooks/nbconvert_templates"
 )
