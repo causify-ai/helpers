@@ -189,6 +189,9 @@
 
 - Diff files of current branch against a specified point (base, master, HEAD, or
   hash)
+- An added or deleted file is diffed against `/dev/null`
+- A file moved without changes is not diffed, but reported as
+  `Move 'old_path' to 'new_path'`
 - Diff against branch point
 
   ```bash
