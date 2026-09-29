@@ -30,36 +30,40 @@ structure, and the `README.md` tracking table
 ## Sections
 
 - A proposal has these sections, in this order:
-  1. Description: what the tool is (no heading)
-  2. `Technologies Used`: the tool name and its key features
-  3. `### <Session>`: what is required in the current class session, with a
-     `#### Tutorial`, a `#### Project`, and a `#### Milestones` subsection
-  4. `### Project <N>: <Title>`: the project options, for `N` in 1, 2, 3
+  1. `# Description`: what the tool is, with a `## Technologies Used` subsection
+     for the tool name and its key features
+  2. `# Tutorial`: the spec of the tutorial of the current class session
+  3. `# Project`: the projects, with one `## Project <N>: <Title>` subsection for
+     `N` in 1, 2, 3
+     - `Project 1` is the main project and has a `### Milestones` subsection
 - Do not use `---` lines to separate blocks, separate them with a blank line
 - Do not invent new sections; reuse the ones in the template
 
 ## Description
 
-- Start the file with the label `**Description**`, not with a heading
+- Start the file with the level 1 heading `# Description`
 - Write one paragraph that answers:
   - What is the tool?
   - What problem does it solve?
   - Why is it worth a 60-minute tutorial?
-- Under `Technologies Used`, write the tool name and 3-5 bullets of key features
+- Under `## Technologies Used`, write the tool name and 3-5 bullets of key features
   - The features are the checklist that the `<project>.API.ipynb` notebook must
     cover
 
-## Session Section
+## Session Scope
 
-- Use one `### <Session>` heading per class session, e.g., `### Fall2026`
-- Put the newest session first
-- Keep the sections of older sessions, so the history of the proposal is visible
+- Do not add a heading for the class session
+- Write `# Tutorial` and the `### Milestones` subsection of `Project 1` for the
+  current class session only
+- When a new session starts, update these sections and leave the older text to the
+  Git history
+- Record the session in the `Session` column of the `README.md` tracking table
 - Mark unfinished text with `TODO(ai_gp): <what to improve>`
 
-## Tutorial Subsection
+## Tutorial Section
 
-- The `#### Tutorial` subsection is the spec of the "Learn X in 60 Minutes"
-  tutorial for that session
+- The `# Tutorial` section is the spec of the "Learn X in 60 Minutes"
+  tutorial for the current session
 - Always state that the tutorial follows the usual "Learn X in 60 mins" approach,
   and link `.claude/skills/tutorials_in_60_mins.rules.md`
 - Say where the work starts:
@@ -78,21 +82,11 @@ structure, and the `README.md` tracking table
   - Write `<tool>` as the lowercase tool name that is a valid Python module name,
     e.g., `crewai_utils.py` and `semantic_kernel_utils.py`
 
-## Project Subsection
-
-- The `#### Project: <Title>` subsection describes the one project that the
-  session requires
-- Use the same fields as a project option (see `## Project Options`), except
-  `Difficulty`
-- Use `#### Project: ?` when the project is not defined yet, and add a `TODO`
-- The project should reuse the code in `<Tool>_utils.py`, so the example notebook
-  orchestrates the code and does not duplicate it
-
 ## Milestones Subsection
 
-- The `#### Milestones` subsection lists, in order, the steps that deliver the
+- The `### Milestones` subsection lists, in order, the steps that deliver the
   tutorial and the project of the session
-- Every milestone must be related to the project in the `#### Project` subsection:
+- Every milestone must be related to the project that contains it:
   - Name the project tasks that the milestone advances, using the task names of
     the project
   - Name the result that the milestone produces, e.g., a deliverable file, a
@@ -109,23 +103,31 @@ structure, and the `README.md` tracking table
   the project and not the reverse
 - Use `TODO(ai_gp): Add milestones related to the project` while the project is
   not defined
-- Do not add milestones to the project options, only to the session section
+- Do not add milestones to `Project 2` and `Project 3`, only to `Project 1`
 
-## Project Options
+## Projects
 
-- Give the options in order of difficulty, normally 3
-- Do not renumber an option when another option is removed or is moved to the
-  session project
-- Use the heading `### Project <N>: <Title>`
+- Put the projects under the level 1 heading `# Project`
+- Use the heading `## Project <N>: <Title>` for each project
+- Give normally 3 projects
+- Do not renumber a project when another project is removed
+- `Project 1` is the main project: the one that is specified the most
+  - Give it a `### Milestones` subsection
+  - It should reuse the code in `<Tool>_utils.py`, so the example notebook
+    orchestrates the code and does not duplicate it
+- `Project 2` and `Project 3` are alternatives that are specified less and have
+  no milestones
+- Any project can have a difficulty, but write it only in the `**Difficulty**`
+  bullet and never in the title
 - Write each field as a top-level bullet, e.g., `- **Project Objective**: ...`, and
   nest the tasks under `- **Tasks**:`
 - Use the fields in this order:
-  1. `**Difficulty**: <N> (<Easy|Medium|Hard>)`
+  1. `**Difficulty**: <N> (<Easy|Medium|Hard>)` (optional)
   2. `**Project Objective**`: one or two sentences with the goal to optimize
   3. `**Dataset Suggestions**`
   4. `**Tasks**`
   5. `**Bonus Ideas (Optional)**`
-- Use this difficulty ladder:
+- Use this difficulty ladder for the `**Difficulty**` value:
   - `1 (Easy)`: one dataset, one model or one API path, basic use of the tool
   - `2 (Medium)`: feature engineering, comparing several models or methods, tuning
   - `3 (Hard)`: several data sources or an advanced feature of the tool, plus
@@ -171,10 +173,14 @@ structure, and the `README.md` tracking table
 
 ## Heading Levels
 
-- Proposals keep the heading levels of the existing files: `###` for sessions and
-  project options, `####` for subsections
-- This is a deliberate exception to the heading rules in
-  `.claude/skills/markdown.rules.md`, so existing files and links stay valid
+- Start the headers from level 1 and do not skip a level, as required by
+  `.claude/skills/markdown.rules.md`
+  - Use `#` for the main sections: description, tutorial, and project
+  - Use `##` for the subsections: technologies used and each project
+  - Use `###` for the milestones of `Project 1`
+- Do not use `####` headers, so there are no level 4 headers
+- Older proposals use `###` and `####` and have a heading per session: restructure
+  them to the layout above when you edit them
 
 ## Template Usage
 
@@ -263,4 +269,4 @@ structure, and the `README.md` tracking table
 - `class_project/project_descriptions/MSML610/Ax_Project_Description.md`: a
   proposal with the three project options in the standard fields
 - `class_project/project_descriptions/MSML610/CrewAI_Project_Description.md`: a
-  proposal with a `#### Tutorial` subsection that has full specs
+  proposal with a `Tutorial` section that has full specs
