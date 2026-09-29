@@ -496,6 +496,72 @@ class Test_extract_gh_issue_number_from_branch(hunitest.TestCase):
 
 
 # #############################################################################
+# Test__get_max_branch_num
+# #############################################################################
+
+
+class Test__get_max_branch_num(hunitest.TestCase):
+    def helper(
+        self, branch_names: List[str], curr_branch_name: str, expected: int
+    ) -> None:
+        """
+        Check the highest number among the branches `<curr_branch_name>_N`.
+        """
+        actual = hgit._get_max_branch_num(branch_names, curr_branch_name)
+        self.assert_equal(str(actual), str(expected))
+
+    def test1(self) -> None:
+        """
+        Test that the highest number is returned, not the last or the count.
+        """
+        branch_names = ["gp_1", "gp_10", "gp_2", "gp_6"]
+        curr_branch_name = "gp"
+        expected = 10
+        # Run test.
+        self.helper(branch_names, curr_branch_name, expected)
+
+    def test2(self) -> None:
+        """
+        Test that remote-tracking branches are matched.
+        """
+        branch_names = ["gp_1", "origin/gp_6", "origin/gp_3"]
+        curr_branch_name = "gp"
+        expected = 6
+        # Run test.
+        self.helper(branch_names, curr_branch_name, expected)
+
+    def test3(self) -> None:
+        """
+        Test that branches with a different prefix or suffix are ignored.
+        """
+        branch_names = ["gp", "gp_scratch_9", "gp_qa_1", "xgp_7", "gp_3_tmp"]
+        curr_branch_name = "gp"
+        expected = 0
+        # Run test.
+        self.helper(branch_names, curr_branch_name, expected)
+
+    def test4(self) -> None:
+        """
+        Test that an empty list and empty lines return 0.
+        """
+        branch_names = [""]
+        curr_branch_name = "gp"
+        expected = 0
+        # Run test.
+        self.helper(branch_names, curr_branch_name, expected)
+
+    def test5(self) -> None:
+        """
+        Test that special regex characters in the branch name are escaped.
+        """
+        branch_names = ["gp-fix.v2_4", "gpXfixXv2_9"]
+        curr_branch_name = "gp-fix.v2"
+        expected = 4
+        # Run test.
+        self.helper(branch_names, curr_branch_name, expected)
+
+
+# #############################################################################
 # Test_find_git_root1
 # #############################################################################
 
