@@ -125,7 +125,7 @@
 
 ## Complete the Tutorial
 
-### 4. Set Up Docker
+### Set Up Docker
 - The Docker container structure should follow `class_project/project_template/`
   - Container must have everything needed to run tutorials and develop
   - Include all dependencies in `requirements.txt` with pinned versions
@@ -168,7 +168,7 @@
 
 ## Tools of the Trade
 - Format markdown: `lint_text.py -i ...`
-- Clean up Python code: Use the agent skill `/coding.format`
+- Clean up Python code: Use the agent skill `/coding.improve_code_for_humans`
 - Render locally: `website/test.sh`
 - Reference tutorials:
   - [`DATA605`](https://github.com/gpsaggese/gpsaggese.github.io/tree/master/data605/tutorials)

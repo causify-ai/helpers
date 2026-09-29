@@ -165,9 +165,9 @@ def _get_rules_for_topic(topic: str) -> Dict[str, Dict]:
             "rules": ["testing.rules.md"],
             "templates": ["testing.template.py"],
         },
-        "tutorials_in_30_mins": {
+        "tool_guide_in_30_mins": {
             "role": "role.coding.md",
-            "rules": ["tutorials_in_30_mins.rules.md"],
+            "rules": ["tool_guide_in_30_mins.rules.md"],
             "templates": [],
         },
         "tutorials_in_60_mins": {
@@ -226,7 +226,7 @@ def _infer_topic_from_filename(file_path: str) -> str:
         if basename.startswith("README"):
             topic = "readme"
         elif "_in_30_mins.md" in basename:
-            topic = "tutorials_in_30_mins"
+            topic = "tool_guide_in_30_mins"
         elif "_in_60_mins.md" in basename:
             topic = "tutorials_in_60_mins"
         elif ".claude/skills/" in file_path:

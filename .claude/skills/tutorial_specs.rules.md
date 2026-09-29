@@ -225,7 +225,8 @@ structure, and the `README.md` tracking table
   - Time split: setup, intro, API notebook, example notebook
   - Deliverables: `<project>_utils.py`, `<project>.API.ipynb`,
     `<project>.example.ipynb`
-- `.claude/skills/tutorials_in_30_mins.rules.md`: shorter 30-minute variant
+- `.claude/skills/tool_guide_in_30_mins.rules.md`: single-markdown quick-reference
+  guide for a tool (not a tutorial directory)
 
 ## Skills
 

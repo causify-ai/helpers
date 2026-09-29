@@ -69,9 +69,9 @@ class Test_infer_topic_from_filename(hunitest.TestCase):
         Test detection of tool-in-30-mins markdown files.
         """
         # Prepare inputs.
-        filename = "tutorials/tutorials_in_30_mins.md"
+        filename = "tutorials/tool_guide_in_30_mins.md"
         # Prepare outputs.
-        expected = "tutorials_in_30_mins"
+        expected = "tool_guide_in_30_mins"
         # Run test.
         self.helper(filename, expected)
 
@@ -401,7 +401,7 @@ class Test_get_rules_for_topic(hunitest.TestCase):
             "skill",
             "slides",
             "testing",
-            "tutorials_in_30_mins",
+            "tool_guide_in_30_mins",
             "tutorials_in_60_mins",
             "typst",
         ]

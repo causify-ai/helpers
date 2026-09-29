@@ -1,9 +1,14 @@
 - This document contains all the rules for creating a markdown file following
-  the "tutorials_in_30_mins" format
+  the "tool_guide_in_30_mins" format
 
 - These are quick-reference guides that introduce a developer tool in
   approximately 30 minutes of reading time, covering its purpose, basic usage,
   and practical examples
+
+- A tool guide is a single markdown file (e.g.,
+  `website/docs/blog/posts/in_30_mins.<tool>.md`), not a tutorial directory
+  - For a hands-on tutorial directory with notebooks and Docker files, see
+    `.claude/skills/tutorials_in_60_mins.rules.md`
 
 # Overview and Guidelines
 - Follow the format and conventions in:
