@@ -32,7 +32,7 @@
   - `svg`: SVG graphics handling
   - `text`: General text and writing conventions
   - `tikz`: TikZ diagram creation
-  - `tutorials_in_60_mins`: Tool tutorials and guides
+  - `tutorial_in_60_mins`: Tool tutorials and guides
   - `visuals`: Visual design and graphics
 
 ### Skills

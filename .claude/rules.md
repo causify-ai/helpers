@@ -135,7 +135,7 @@ Based on the files that you need to operate, read and follow the corresponding r
 ## Tool Tutorials
 
 - For a "X in 60 Minutes" tutorial (a directory with notebooks and Docker files) you
-  MUST follow `.claude/skills/tutorials_in_60_mins.rules.md`
+  MUST follow `.claude/skills/tutorial_in_60_mins.rules.md`
 - For an "X in 30 Minutes" tool guide (a single markdown file) you MUST follow
   `.claude/skills/tool_guide_in_30_mins.rules.md`
 

@@ -4,7 +4,7 @@ structure, and the `README.md` tracking table
 
 - A proposal specifies a "Learn X in 60 Minutes" tutorial for one tool `X` and the
   class projects that use it
-- The tutorial itself must follow `.claude/skills/tutorials_in_60_mins.rules.md`
+- The tutorial itself must follow `.claude/skills/tutorial_in_60_mins.rules.md`
 
 # Directory Layout
 
@@ -65,11 +65,28 @@ structure, and the `README.md` tracking table
 - The `# Tutorial` section is the spec of the "Learn X in 60 Minutes"
   tutorial for the current session
 - Always state that the tutorial follows the usual "Learn X in 60 mins" approach,
-  and link `.claude/skills/tutorials_in_60_mins.rules.md`
+  and link `.claude/skills/tutorial_in_60_mins.rules.md`
+- Point to the documentation to implement the tutorial, and do not copy it:
+  - `.claude/skills/tutorial_in_60_mins.rules.md`: structure, deliverables, and
+    validation checklist
+  - `.claude/skills/tutorial_in_60_mins.create/SKILL.md`: build the tutorial dir
+  - `tutorials/README.gp.md` and `tutorials/tutorials_checklist.md`: workflow and
+    quality principles
+- Check the previous tutorials and projects before writing the spec:
+  - Look in `tutorials/` for a dir of the tool or of a related tool, and read its
+    `README.md`
+  - Look in `class_project/project_descriptions/README.md` and in the `Result`
+    dirs `class_project/{msml610,data605}/<Session>/projects/` for earlier work
+    on the tool
+  - Add the pointers to the dirs and to their `README.md` in the `# Tutorial`
+    section, so the students start from the existing work
+  - The full list of existing work is in the section
+    `Existing Tutorials and Projects` of
+    `.claude/skills/tutorial_in_60_mins.rules.md`
 - Say where the work starts:
   - If `tutorials/<Tool>/` exists, improve it and do not restart from scratch
   - If it does not exist, create it with
-    `.claude/skills/tutorials_in_60_mins.create/SKILL.md`
+    `.claude/skills/tutorial_in_60_mins.create/SKILL.md`
 - Name a reference tutorial to imitate, e.g.,
   `msml610/tutorials/L03_knowledge_representation/`
 - Point to the skills that automate part of the work, e.g.,
@@ -94,7 +111,7 @@ structure, and the `README.md` tracking table
 - Do not write generic milestones that fit any tool, e.g., "Read the
   documentation"
 - Shape the milestones with the time split of
-  `.claude/skills/tutorials_in_60_mins.rules.md`: setup, introduction, API
+  `.claude/skills/tutorial_in_60_mins.rules.md`: setup, introduction, API
   notebook, example notebook
   - The API notebook milestone covers the features of the tool that the project
     tasks use
@@ -218,52 +235,14 @@ structure, and the `README.md` tracking table
 
 # Tutorial Ecosystem
 
-## Conventions
-
-- `.claude/skills/tutorials_in_60_mins.rules.md`: main spec for a 60-minute
-  tutorial
-  - Time split: setup, intro, API notebook, example notebook
-  - Deliverables: `<project>_utils.py`, `<project>.API.ipynb`,
-    `<project>.example.ipynb`
+- The conventions, skills, workflow, templates, and examples of a tutorial are
+  documented once in `.claude/skills/tutorial_in_60_mins.rules.md`, so point to
+  them and do not copy them here
+  - `Available Skills`: the skills that create, format, and sync a tutorial
+  - `Existing Tutorials and Projects`: the workflow docs, templates, tutorials,
+    blog posts, and class projects already built
 - `.claude/skills/tool_guide_in_30_mins.rules.md`: single-markdown quick-reference
   guide for a tool (not a tutorial directory)
-
-## Skills
-
-- `.claude/skills/tutorials_in_60_mins.create/SKILL.md`: create a new tutorial dir
-- `.claude/skills/tutorials_in_60_mins.format/SKILL.md`: format a dir to follow the
-  conventions
-- `.claude/skills/tutorials_in_60_mins.merge_markdown/SKILL.md`: merge a markdown
-  file into a notebook
-- `.claude/skills/tutorials_in_60_mins.propagate_docker_changes/SKILL.md`: sync the
-  Docker files with `project_template`
-- `helpers_root/how_to.ai_workflows.md`: lists the `tutorials_in_60_mins` skill
-  group
-
-## Workflow
-
-- `tutorials/README.gp.md`: steps to create a tutorial, from
-  `class_project/create_project.py` to `/blog.write_tutorial_readme`
-- `tutorials/tutorials_checklist.md`: onboarding checklist and quality principles
-- `helpers_root/docs/blogging/all.write_blog.how_to_guide.md`: blog guide that
-  points to the tutorial conventions
-
-## Templates and Examples
-
-- `tutorials/project_template/`: skeleton to copy (`template_utils.py`,
-  `template.API.ipynb`, `template.example.ipynb`, Docker scripts)
-- `tutorials/fastapi/`: complete example of the three deliverables
-- `tutorials/<tool>/`: one dir per tool, e.g., `shap`, `lime`, `tsfresh`,
-  `LangChain_LangGraph`, `TorchRL_MAC`
-- `research/Causal_Analysis_of_Agent_Skill_And_Luck/all.learn_Causal_Analysis_of_Success_in_60_minutes.how_to_guide.md`:
-  research-side tutorial
-
-## Blog Posts
-
-- `website/docs/blog/posts/in_60_mins.<Tool>.md`: published posts (`CausalML`,
-  `Tensorflow`, `AutoGen`, `BambooAI`, `TorchRL_MAC`, `FastAPI`)
-- `website/docs/blog/posts/draft.in_60_mins.GluonTS.md`: draft post
-- `website/README.blog.md`: tracks blog posts and their status
 
 # Examples
 

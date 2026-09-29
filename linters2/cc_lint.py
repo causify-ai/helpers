@@ -170,9 +170,9 @@ def _get_rules_for_topic(topic: str) -> Dict[str, Dict]:
             "rules": ["tool_guide_in_30_mins.rules.md"],
             "templates": [],
         },
-        "tutorials_in_60_mins": {
+        "tutorial_in_60_mins": {
             "role": "role.coding.md",
-            "rules": ["tutorials_in_60_mins.rules.md"],
+            "rules": ["tutorial_in_60_mins.rules.md"],
             "templates": [],
         },
         "typst": {
@@ -228,7 +228,7 @@ def _infer_topic_from_filename(file_path: str) -> str:
         elif "_in_30_mins.md" in basename:
             topic = "tool_guide_in_30_mins"
         elif "_in_60_mins.md" in basename:
-            topic = "tutorials_in_60_mins"
+            topic = "tutorial_in_60_mins"
         elif ".claude/skills/" in file_path:
             topic = "skill"
         else:

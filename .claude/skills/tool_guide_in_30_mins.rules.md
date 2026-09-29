@@ -8,7 +8,7 @@
 - A tool guide is a single markdown file (e.g.,
   `website/docs/blog/posts/in_30_mins.<tool>.md`), not a tutorial directory
   - For a hands-on tutorial directory with notebooks and Docker files, see
-    `.claude/skills/tutorials_in_60_mins.rules.md`
+    `.claude/skills/tutorial_in_60_mins.rules.md`
 
 # Overview and Guidelines
 - Follow the format and conventions in:

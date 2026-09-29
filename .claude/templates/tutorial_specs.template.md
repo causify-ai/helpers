@@ -14,7 +14,15 @@ worth a 60-minute tutorial>
 # Tutorial
 
 - Usual tutorial "Learn <TOOL> in 60 mins", following
-  `.claude/skills/tutorials_in_60_mins.rules.md`
+  `.claude/skills/tutorial_in_60_mins.rules.md`
+  - Build it with `.claude/skills/tutorial_in_60_mins.create/SKILL.md`
+  - Follow the workflow in `tutorials/README.gp.md` and the quality principles in
+    `tutorials/tutorials_checklist.md`
+- Check the previous tutorials and projects, listed in the section
+  `Existing Tutorials and Projects` of
+  `.claude/skills/tutorial_in_60_mins.rules.md`
+  - Read `tutorials/<TOOL>/README.md` and the `Result` dirs of
+    `class_project/project_descriptions/README.md` for <TOOL> and related tools
 - Start from the existing `tutorials/<TOOL>/` and make it better
 - Make it look like `msml610/tutorials/L03_knowledge_representation/`
 - Use the skills in `.claude/skills/notebook.*` to automate part of the work, and

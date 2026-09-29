@@ -15,12 +15,12 @@ model: sonnet
 # Workflow
 
 ## Read the Specs and Examples
-- Read the spec in `.claude/skills/tutorials_in_60_mins.rules.md`
+- Read the spec in `.claude/skills/tutorial_in_60_mins.rules.md`
 
 ## Improve Content of the Tutorial
 - Assume that the user has already created the tutorial directory
   `tutorials/<TOPIC>` following the directions of
-  `.claude/skills/tutorials_in_60_mins.rules.md`
+  `.claude/skills/tutorial_in_60_mins.rules.md`
 
 - In `tutorials/<TOPIC>` the files that typically need customization are
   - `XYZ_utils.py`: Reusable helper functions (no notebook logic)
