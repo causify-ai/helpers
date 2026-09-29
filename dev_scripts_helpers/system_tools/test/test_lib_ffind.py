@@ -44,7 +44,7 @@ class Test_main(hunitest.TestCase):
             verification
         :param expected_exit_code: expected exit code or None to skip exit code
             verification
-        :param side_effect: exception to raise from `hsystem.system()`
+        :param side_effect: exception to raise from `subprocess.run()`
         """
         # Run test.
         with hunteuti.capture_sys_calls(side_effect=side_effect) as sys_calls:
@@ -56,11 +56,12 @@ class Test_main(hunitest.TestCase):
         if expected_cmd != "":
             expected_sys_calls = [
                 {
-                    "function": "hsystem.system",
+                    "function": "subprocess.run",
                     "args": (expected_cmd,),
                     "kwargs": {
-                        "suppress_output": False,
-                        "abort_on_error": False,
+                        "shell": True,
+                        "text": True,
+                        "check": False,
                     },
                 }
             ]
@@ -268,7 +269,7 @@ class Test_main(hunitest.TestCase):
         """
         # Prepare inputs.
         args = ["notebook", ".", "py", "--dry_run"]
-        # Run test: no call to `hsystem.system()` is expected.
+        # Run test: no call to `subprocess.run()` is expected.
         with hunteuti.capture_sys_calls() as sys_calls:
             exit_code = dshstliff.main(args)
         # Check outputs.

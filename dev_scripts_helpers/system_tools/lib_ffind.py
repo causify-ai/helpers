@@ -10,13 +10,13 @@ import dev_scripts_helpers.system_tools.lib_ffind as dshstliff
 
 import argparse
 import logging
+import subprocess
 from typing import List, Optional
 
 import dev_scripts_helpers.system_tools.search_utils as dshstseut
 import helpers.hdbg as hdbg
 import helpers.hparser as hparser
 import helpers.hprint as hprint
-import helpers.hsystem as hsystem
 
 _LOG = logging.getLogger(__name__)
 
@@ -138,7 +138,9 @@ def main(
     if (parsed.log_level == "DEBUG") or parsed.log:
         print(cmd)
         print()
-    hsystem.system(cmd, suppress_output=False, abort_on_error=False)
+    # Print the raw output, without the `  ... ` prefix added by
+    # `hsystem.system()`.
+    subprocess.run(cmd, shell=True, text=True, check=False)
     return 0
 
 
