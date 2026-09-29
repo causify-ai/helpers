@@ -1,5 +1,5 @@
 - This document contains all the rules for creating a markdown file following
-  the "tool_X_in_30_mins" format
+  the "tutorials_in_30_mins" format
 
 - These are quick-reference guides that introduce a developer tool in
   approximately 30 minutes of reading time, covering its purpose, basic usage,

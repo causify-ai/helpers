@@ -121,9 +121,9 @@ Based on the files that you need to operate, read and follow the corresponding r
 ## Tool Tutorials
 
 - For a "Learn X in 60 Minutes" tutorial you MUST follow
-  `.claude/skills/tool_X_in_60_mins.rules.md`
+  `.claude/skills/tutorials_in_60_mins.rules.md`
 - For a "Learn X in 30 Minutes" tutorial you MUST follow
-  `.claude/skills/tool_X_in_30_mins.rules.md`
+  `.claude/skills/tutorials_in_30_mins.rules.md`
 
 ## Package Landscape
 
