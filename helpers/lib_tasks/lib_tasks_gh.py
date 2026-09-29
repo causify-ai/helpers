@@ -227,7 +227,11 @@ def _download_failed_run_log(
 # `_print_table()` (used by `gh_workflow_list()`/`invoke gh_watch`) and
 # `dev_scripts_helpers/github/ci_state.py` so both color statuses the same
 # way.
-_STATUS_COLOR_MAP = {"success": "green", "failure": "red", "in progress": "yellow"}
+_STATUS_COLOR_MAP = {
+    "success": "green",
+    "failure": "red",
+    "in progress": "yellow",
+}
 
 
 def _colorize_status(status: str) -> str:
@@ -312,9 +316,7 @@ def gh_workflow_list(  # type: ignore
     )
     # Login.
     gh_login(ctx)
-    repo_full_name_with_host, _ = _get_repo_full_name_from_cmd(
-        repo_short_name
-    )
+    repo_full_name_with_host, _ = _get_repo_full_name_from_cmd(repo_short_name)
     # Get the table, asking GH for the runs of the requested branch only.
     branch_name = _get_branch_name(filter_by_branch)
     table = _get_workflow_table(
@@ -470,9 +472,7 @@ def gh_workflow_run(  # type: ignore
     else:
         gh_tests = [workflows]
     _LOG.debug(hprint.to_str("workflows"))
-    repo_full_name_with_host, _ = _get_repo_full_name_from_cmd(
-        repo_short_name
-    )
+    repo_full_name_with_host, _ = _get_repo_full_name_from_cmd(repo_short_name)
     # Run.
     for gh_test in gh_tests:
         gh_test += ".yml"
@@ -1434,9 +1434,7 @@ def gh_delete_workflow_runs(  # type: ignore
     # Login.
     gh_login(ctx)
     #
-    repo_full_name_with_host, _ = _get_repo_full_name_from_cmd(
-        repo_short_name
-    )
+    repo_full_name_with_host, _ = _get_repo_full_name_from_cmd(repo_short_name)
     # Get workflow ID by name.
     repo_path = repo_full_name_with_host.replace("github.com/", "")
     workflows = gh_get_workflows(repo_path)
