@@ -289,7 +289,7 @@ def _render_image_code(
             \usepackage{pgfplots}
             \usepackage{mathrsfs} % For script font
             \usepackage{xcolor}
-            \usetikzlibrary{positioning}
+            \usetikzlibrary{positioning,patterns}
             \pgfplotsset{compat=newest}
             \begin{document}
             \begin{tikzpicture}

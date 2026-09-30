@@ -791,9 +791,9 @@ class Test_build_stats_to_str_incomplete_status(hunitest.TestCase):
         ################################################################################
         Build         | Completed   | Status | Passed | Skipped | Failed | Total | Duration | pytest log file                          | pytest log dir                   |
         ------------- | ----------- | ------ | ------ | ------- | ------ | ----- | -------- | ---------------------------------------- | -------------------------------- |
-        docker        | DONE        | FAIL   | 235    | 9       | 19     | 263   | 45.2s    | tmp.pytest_multi_build.docker.txt        | tmp.pytest_failed.docker/        |
-        apple         | NOT STARTED | N/A    | 0      | 0       | 0      | 0     | N/A      | tmp.pytest_multi_build.apple.txt         | tmp.pytest_failed.apple/         |
-        dev_container | DONE        | PASS   | 240    | 8       | 0      | 248   | 50.1s    | tmp.pytest_multi_build.dev_container.txt | tmp.pytest_failed.dev_container/ |
+        docker        | DONE        | FAIL   | 235    | 9       | 19     | 263   | 45.2s    | tmp.pytest_multi_build/docker.txt        | tmp.pytest_failed.docker/        |
+        apple         | NOT STARTED | N/A    | 0      | 0       | 0      | 0     | N/A      | tmp.pytest_multi_build/apple.txt         | tmp.pytest_failed.apple/         |
+        dev_container | DONE        | PASS   | 240    | 8       | 0      | 248   | 50.1s    | tmp.pytest_multi_build/dev_container.txt | tmp.pytest_failed.dev_container/ |
         """
         # Run test.
         self.helper(build_stats, expected)
@@ -859,7 +859,7 @@ class Test_build_stats_to_str_colorization(hunitest.TestCase):
         ################################################################################
         Build  | Completed | Status | Passed | Skipped | Failed | Total | Duration | pytest log file                   | pytest log dir            |
         ------ | --------- | ------ | ------ | ------- | ------ | ----- | -------- | --------------------------------- | ------------------------- |
-        docker | DONE      | PASS   | 368    | 20      | 0      | 388   | 11.87s   | tmp.pytest_multi_build.docker.txt | tmp.pytest_failed.docker/ |"""
+        docker | DONE      | PASS   | 368    | 20      | 0      | 388   | 11.87s   | tmp.pytest_multi_build/docker.txt | tmp.pytest_failed.docker/ |"""
         # Run test.
         self._check_colorized_output(build_stats, "PASS", expected, dedent=True)
 
@@ -886,7 +886,7 @@ class Test_build_stats_to_str_colorization(hunitest.TestCase):
         ################################################################################
         Build  | Completed | Status | Passed | Skipped | Failed | Total | Duration | pytest log file                   | pytest log dir            |
         ------ | --------- | ------ | ------ | ------- | ------ | ----- | -------- | --------------------------------- | ------------------------- |
-        docker | DONE      | FAIL   | 357    | 20      | 11     | 388   | 12.45s   | tmp.pytest_multi_build.docker.txt | tmp.pytest_failed.docker/ |"""
+        docker | DONE      | FAIL   | 357    | 20      | 11     | 388   | 12.45s   | tmp.pytest_multi_build/docker.txt | tmp.pytest_failed.docker/ |"""
         # Run test.
         self._check_colorized_output(build_stats, "FAIL", expected, dedent=True)
 
@@ -913,7 +913,7 @@ class Test_build_stats_to_str_colorization(hunitest.TestCase):
         ################################################################################
         Build         | Completed   | Status | Passed | Skipped | Failed | Total | Duration | pytest log file                          | pytest log dir                   |
         ------------- | ----------- | ------ | ------ | ------- | ------ | ----- | -------- | ---------------------------------------- | -------------------------------- |
-        dev_container | NOT STARTED | N/A    | 0      | 0       | 0      | 0     | N/A      | tmp.pytest_multi_build.dev_container.txt | tmp.pytest_failed.dev_container/ |"""
+        dev_container | NOT STARTED | N/A    | 0      | 0       | 0      | 0     | N/A      | tmp.pytest_multi_build/dev_container.txt | tmp.pytest_failed.dev_container/ |"""
         # Run test.
         self._check_colorized_output(
             build_stats, "NOT STARTED", expected, dedent=True
@@ -943,7 +943,7 @@ class Test_build_stats_to_str_colorization(hunitest.TestCase):
         ################################################################################
         Build | Completed   | Status | Passed | Skipped | Failed | Total | Duration | pytest log file                  | pytest log dir           |
         ----- | ----------- | ------ | ------ | ------- | ------ | ----- | -------- | -------------------------------- | ------------------------ |
-        apple | IN PROGRESS | N/A    | 150    | 5       | 0      | 155   | N/A      | tmp.pytest_multi_build.apple.txt | tmp.pytest_failed.apple/ |"""
+        apple | IN PROGRESS | N/A    | 150    | 5       | 0      | 155   | N/A      | tmp.pytest_multi_build/apple.txt | tmp.pytest_failed.apple/ |"""
         # Run test.
         self._check_colorized_output(
             build_stats, "IN PROGRESS", expected, dedent=True
@@ -973,7 +973,7 @@ class Test_build_stats_to_str_colorization(hunitest.TestCase):
         ################################################################################
         Build  | Completed   | Status | Passed | Skipped | Failed | Total | Duration | pytest log file                   | pytest log dir            |
         ------ | ----------- | ------ | ------ | ------- | ------ | ----- | -------- | --------------------------------- | ------------------------- |
-        docker | IN PROGRESS | N/A    | 0      | 0       | 0      | 0     | N/A      | tmp.pytest_multi_build.docker.txt | tmp.pytest_failed.docker/ |"""
+        docker | IN PROGRESS | N/A    | 0      | 0       | 0      | 0     | N/A      | tmp.pytest_multi_build/docker.txt | tmp.pytest_failed.docker/ |"""
         # Run test.
         self._check_colorized_output(
             build_stats, "IN PROGRESS", expected, dedent=True

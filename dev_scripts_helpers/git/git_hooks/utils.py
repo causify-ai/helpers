@@ -490,20 +490,23 @@ def check_tmp_log_files(
         ),
     )
     # Check all the files.
-    error = False
+    offending_files = []
     for status, file_name in file_statuses:
         if not _is_tmp_log_file(file_name):
             continue
         if status == "D":
             # Deleting a `*.log` / `tmp.*` file is fine.
             continue
+        offending_files.append(file_name)
+    error = bool(offending_files)
+    if error:
         msg = (
-            f"File '{file_name}' matches the `*.log` / `tmp.*` pattern and "
+            "The following files match the `*.log` / `tmp.*` pattern and "
             "can't be added or modified: these files are scratch output "
-            "and should only be deleted"
+            "and should only be deleted\n"
+            + "\n".join(f"- {file_name}" for file_name in offending_files)
         )
         _LOG.error(msg)
-        error = True
     # Handle error.
     _handle_error(func_name, error, abort_on_error)
 
@@ -520,9 +523,8 @@ def check_ruff_format(
     Run `ruff check --fix` and `ruff format` on the touched Python files.
 
     Ruff can rewrite a file in place to fix lint issues or reformat it. When
-    that happens the commit is aborted so the user can review the changes,
-    `git add` them, and commit again, instead of a differently-formatted
-    version silently landing in the commit.
+    that happens the commit is not aborted: the reformatted file is just
+    reported so the user can `git add` it later, and the commit proceeds.
 
     :param file_list: files to process
         - Default: the staged/modified files from `_get_files()`
@@ -556,18 +558,16 @@ def check_ruff_format(
     if rc != 0:
         error = True
     # Detect files that `ruff` rewrote so the user can review and restage
-    # them.
+    # them later. This is informational only and does not abort the commit.
     modified_files = [
         f for f in file_list if hio.from_file(f) != original_contents[f]
     ]
     if modified_files:
-        _LOG.error(
-            "'ruff' reformatted %d file(s):\n%s\nReview the changes, `git "
-            "add` them, and commit again",
+        _LOG.warning(
+            "'ruff' reformatted %d file(s):\n%s\n`git add` them when convenient",
             len(modified_files),
             "\n".join(modified_files),
         )
-        error = True
     # Handle error.
     _handle_error(func_name, error, abort_on_error)
 

@@ -15,6 +15,7 @@ from typing import Any, Dict, List, Optional
 import tqdm
 from invoke.tasks import task
 
+import dev_scripts_helpers.git.git_branch_create as dsggibrc
 import helpers.hdaemon as hdaemon
 import helpers.hdbg as hdbg
 import helpers.hsystem as hsystem
@@ -851,9 +852,6 @@ def git_branch_copy(  # type: ignore
         not use_patch,
         "Patch-based branch copying is not yet implemented",
     )
-    # Remove untracked files to ensure clean state when copying branch.
-    cmd = "git clean -fd"
-    hltltaut.run(ctx, cmd, dry_run=dry_run)
     curr_branch_name = hgit.get_branch_name()
     # Cannot copy master branch since it would be copying the source to itself.
     hdbg.dassert_ne(
@@ -861,18 +859,9 @@ def git_branch_copy(  # type: ignore
         "master",
         "Cannot copy master branch",
     )
-    # Sync with master first to ensure new branch includes latest changes (if requested).
-    if not skip_git_merge_master:
-        cmd = "invoke git_merge_master --abort-if-not-ff --no-auto-merge"
-        if not submodules:
-            cmd += " --no-submodules"
-        hltltaut.run(ctx, cmd, dry_run=dry_run)
-    else:
-        _LOG.warning("Skipping git_merge_master as requested")
-    if use_patch:
-        # TODO(gp): Create a patch or do a `git merge`.
-        pass
-    # Generate unique branch name if not provided.
+    # Determine and validate the target branch name before any destructive
+    # step below (`git clean -fd`, merging master), so an invalid name fails
+    # fast without mutating the working directory.
     if new_branch_name is None or new_branch_name == "":
         new_branch_name = hgit.get_branch_next_name(method=method)
     _LOG.info("new_branch_name='%s'", new_branch_name)
@@ -884,6 +873,22 @@ def git_branch_copy(  # type: ignore
     # Allow scratch branches to bypass naming convention.
     if new_branch_name.startswith("gp_scratch"):
         check_branch_name = False
+    if check_branch_name:
+        dsggibrc._dassert_valid_branch_name(new_branch_name)
+    # Remove untracked files to ensure clean state when copying branch.
+    cmd = "git clean -fd"
+    hltltaut.run(ctx, cmd, dry_run=dry_run)
+    # Sync with master first to ensure new branch includes latest changes (if requested).
+    if not skip_git_merge_master:
+        cmd = "invoke git_merge_master --abort-if-not-ff --no-auto-merge"
+        if not submodules:
+            cmd += " --no-submodules"
+        hltltaut.run(ctx, cmd, dry_run=dry_run)
+    else:
+        _LOG.warning("Skipping git_merge_master as requested")
+    if use_patch:
+        # TODO(gp): Create a patch or do a `git merge`.
+        pass
     # Create or checkout the target branch.
     mode = "all"
     new_branch_exists = hgit.does_branch_exist(new_branch_name, mode)

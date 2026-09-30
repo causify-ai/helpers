@@ -30,9 +30,107 @@
 
 - Follow the template `.claude/templates/notebook.template.py` for consistent
   notebook initialization
-- First Cell: Include autoreload, logging, and core dependencies
-- Second Cell: Optionally install packages on-the-fly
-- Third Cell: Notebook-specific imports and logger
+- First cell (markdown): title and intro bullets
+  - The H1 title names the notebook topic
+  - The first bullet states the scope of the notebook
+  - The second bullet, "The pedagogical arc", lists the steps of the notebook
+  - Example:
+
+    ```markdown
+    # Entailment, Implication, and Inference: the Rain and Wet Ground World
+
+    - This notebook stays on the lecture's own smallest examples, rain and wet
+      ground, and $x = 0$ implies $x \cdot y = 0$, to make the model-theoretic
+      definitions concrete without a larger running project
+    - The pedagogical arc:
+      - Models, possible worlds, and satisfaction
+      - Entailment as model inclusion, verified by model checking
+      - The same definition applied to a non-Boolean world
+      - Implication vs entailment vs inference, three views of one example
+    ```
+
+- Do not add an `## Imports` (or `## Setup`) header: the setup code cells
+  follow the title cell directly
+
+- Second cell (code): install packages on-the-fly, only if needed
+  - Omit the cell if the Docker image already has all the packages needed
+  - Pin the version and print it
+  - In the notebook the command is `!pip install ...`, in the paired `.py`
+    file it is `# !pip install ...` (Jupytext comments it out)
+
+    ```python
+    !pip install -q sympy==1.14.0
+
+    import sympy
+
+    print("sympy version: ", sympy.__version__)
+    ```
+
+- Third cell (code): autoreload and third-party imports
+  - If there is no pip cell, this is the second cell
+  - Put every third-party import that the notebook body uses in this cell
+    (e.g., `numpy`, `pandas`)
+  - Sort the imports alphabetically, with `import x` lines before
+    `from x import y` lines
+  - Do not import `display` here: the last setup cell imports it
+    ```python
+    %load_ext autoreload
+    %autoreload 2
+
+    import logging
+
+    import matplotlib.pyplot as plt
+    import seaborn as sns
+    ```
+
+  - Do not set the plotting style (e.g., `sns.set_style("whitegrid")`,
+    `plt.rcParams["figure.figsize"]`) since `hnotebook.config_notebook()`
+    already does it
+
+- Last setup cell (code): helpers imports, paired utils, and logger init
+  - Import `helpers.hintrospection as hintros` only if the notebook body uses
+    it
+  - Always import the paired `*_utils.py` module as `utils`, never with a
+    custom alias
+  - If the notebook needs another local module, import it after `utils` with
+    its own short alias
+  - Use `hnotebook.config_notebook()`, not `htutorial.config_notebook()` or
+    `logging.basicConfig()`
+
+    ```python
+    import helpers.hnotebook as hnotebook
+
+    import L03_01_entailment_implication_inference_utils as utils
+
+    # Initialize notebook configuration and logging.
+    hnotebook.config_notebook()
+    _LOG = logging.getLogger(__name__)
+    utils.init_loggers(_LOG)
+
+    # Convert `display` into `print()` when running outside IPython.
+    try:
+        from IPython.display import display
+    except ImportError:
+        display = print  # type: ignore
+    ```
+
+  - Always add the `display` fallback at the end of this cell, even if the
+    notebook body does not call `display()` yet, so that the paired `.py`
+    file also runs as a script when IPython is not installed
+  - The paired `*_utils.py` file defines `init_loggers()`, which forwards to
+    `hnotebook.init_loggers()`:
+
+    ```python
+    import helpers.hnotebook as hnotebo
+
+    def init_loggers(notebook_log: logging.Logger) -> None:
+        """
+        Wire the notebook logger into the utils logger.
+
+        :param notebook_log: logger owned by the notebook
+        """
+        hnotebo.init_loggers(notebook_log, utils_log=_LOG)
+    ```
 
 # Code Architecture and Responsibility
 
@@ -558,9 +656,9 @@
 
 ## Wrap Markdown Cells at 85 Characters
 
-- Every markdown cell (Goal, Implementation, Usage, Guided usage, and any other prose
-  or bullet) wraps at 85 characters maximum, per `.claude/skills/markdown.rules.md`
-  `## Text Wrapping and Structure`
+- Every markdown cell (Goal, Description, Guided usage, Implementation, and any
+  other prose or bullet) wraps at 85 characters maximum, per
+  `.claude/skills/markdown.rules.md` `## Text Wrapping and Structure`
 - In the paired `.py` file, this is the full comment line, the leading `# ` (or
   `#   - `) prefix included, not just the text after it
 - Tables and fenced code blocks are exempt, the same as in
@@ -645,24 +743,24 @@
     - The sentence's truth is read off each fixed row
   ```
 
-## Separate Goal, Implementation, and Usage, Keep Each List Tight
+## Keep Goal, Description, Guided Usage, and Implementation Tight
 
 - A widget cell's markdown splits into separate bullet lists, each its own markdown
-  cell, with a blank line between lists that share one cell:
+  cell, in this order, with a blank line between lists that share one cell:
   - `**Goal**`: what the cell teaches, with no mention of individual panels or
     controls
-  - `**Implementation**: \`function_name(params)\``: how the function gets there, one
-    bullet per algorithmic step, naming the helper it calls
-  - `**Usage**`: split into two nested lists:
-    - `- Inputs`: one ``**`name`**: description`` bullet per interactive control,
+  - `**Description**`: split into two nested lists:
+    - `- Inputs`: one `` `name`: description `` bullet per interactive control,
       name plus what it changes
-    - `- Panels`: one ``**`Panel`**: description`` bullet per panel or subplot the
-      widget renders, plus the ``**`Comments`**:`` bullet
+    - `- Panels`: one `` `Panel`: description `` bullet per panel or subplot the
+      widget renders, plus the `` `Comments`: `` bullet
   - `**Guided usage**`: one bullet per action on a control, with the observation it
     produces nested underneath, instead of general facts about the cell's topic
-- Bold plus backtick for `Inputs`/`Panels` names is an intentional exception to
-  `.claude/skills/markdown.rules.md` `## Do Not Combine Bold with Verbatim`, kept
-  only for this label position so every item name scans the same way down the list
+  - `**Implementation** \`function_name(params)\``: how the function gets there, one
+    bullet per algorithmic step, naming the helper it calls
+- Section labels (`**Goal**`, `**Description**`, `**Guided usage**`,
+  `**Implementation**`) take no trailing colon
+- Item names in `Inputs`/`Panels` are plain backtick, not bold plus backtick
 - Within each of these lists, there must be no blank line between items: a blank line
   splits a list into two and reads as a paragraph break, not a continuation
 - Wrap each bullet to 85 characters maximum, following
@@ -670,41 +768,47 @@
 - **Bad** (Goal and panel bullets crammed into one list):
 
   ```markdown
-  **Goal**:
+  **Goal**
   - Define $KB \models \alpha$ as $M(KB) \subseteq M(\alpha)$, and verify
     that $KB = \{Rain, Rain \implies WetGround\}$ entails $WetGround$
   - Run the model-checking algorithm explicitly: enumerate every model,
     find $M(KB)$, check $\alpha$ in each of those rows
-  - **`Model table`**: the same 4-row table, with $M(KB)$ shaded blue and
+  - `Model table`: the same 4-row table, with $M(KB)$ shaded blue and
     $M(\alpha)$ outlined in dashed orange
-  - **`Comments`**: which `KB` sentences are toggled on, the query $\alpha$,
+  - `Comments`: which `KB` sentences are toggled on, the query $\alpha$,
     and the entailment verdict
   ```
 
-- **Good** (Goal, Implementation, and Usage as separate tight lists):
+- **Good** (Goal, Description, Guided usage, and Implementation as separate tight
+  lists):
 
   ```markdown
-  **Goal**:
+  **Goal**
   - Define $KB \models \alpha$ as $M(KB) \subseteq M(\alpha)$, and verify
     that $KB = \{Rain, Rain \implies WetGround\}$ entails $WetGround$
   - Run the model-checking algorithm explicitly: enumerate every model,
     find $M(KB)$, check $\alpha$ in each of those rows
 
-  **Implementation**: `cell_kb_entailment(figsize=None)`
+  **Description**
+  - Inputs
+    - `kb_sentence`: which `KB` sentences are toggled on
+    - `alpha`: the query sentence checked against $M(KB)$
+
+  - Panels
+    - `Model table`: the same 4-row table, with $M(KB)$ shaded blue and
+      $M(\alpha)$ outlined in dashed orange
+    - `Comments`: which `KB` sentences are toggled on, the query
+      $\alpha$, and the entailment verdict
+
+  **Guided usage**
+  - Toggle `Rain => WetGround` off, leaving only `Rain` in `KB`
+    - Observe $M(\alpha)$ no longer contains $M(KB)$: the verdict flips to
+      "not entailed", and a counterexample row appears
+
+  **Implementation** `cell_kb_entailment(figsize=None)`
   - Enumerates every model with `enumerate_assignments()`, and evaluates
     `KB` and $\alpha$ in each one with `truth_values()`
   - Shades $M(KB)$ and outlines $M(\alpha)$ on the same table
-
-  **Usage**
-  - Inputs
-    - **`kb_sentence`**: which `KB` sentences are toggled on
-    - **`alpha`**: the query sentence checked against $M(KB)$
-
-  - Panels
-    - **`Model table`**: the same 4-row table, with $M(KB)$ shaded blue and
-      $M(\alpha)$ outlined in dashed orange
-    - **`Comments`**: which `KB` sentences are toggled on, the query
-      $\alpha$, and the entailment verdict
   ```
 
 - **Good** (Guided usage as actions plus observations, not general facts):
@@ -924,43 +1028,47 @@
 - Each visualization in a notebook is composed of notebook cells grouped into three
   stages: pre-visualization markdown, the visualization code, and post-visualization
   markdown. Each stage can be more than one cell:
-  1. **Pre-visualization markdown**: what the cell teaches, then how it teaches it
+  1. **Pre-visualization markdown**: what the cell teaches, then what its controls
+     and panels are
 
      ```markdown
      ## Cell 1: Visualizing Population Distribution
 
-     **Goal**:
+     **Goal**
      - Visualize the true population distribution
      - Understand sampling from a finite population
      ```
 
-     followed by its own `**Implementation**` cell (see
+     followed by its own `**Description**` cell (see
      `## Visualization Cell Triplet Details`)
-  2. **Code cells**: the function-info call, then the visualization / widget itself
-     (optionally with ipywidgets), with a `**Usage**` markdown cell between them
-     describing every input and panel
+  2. **Code cell**: the visualization / widget itself (optionally with ipywidgets)
 
      ```python
      # Display the population as a bin of colored marbles.
      utils.visualize_population_distribution()
      ```
 
-     - Documents the plots and their diagrams with comments, e.g.,
+     - Documents the plots and their diagrams in the `**Description**` cell, e.g.,
 
        ```
-       **`Population bin`**: Shows the full population as colored marbles
-       **`Sample bin`**: Shows a random sample drawn from the population
+       `Population bin`: Shows the full population as colored marbles
+       `Sample bin`: Shows a random sample drawn from the population
        ```
 
-  3. **Guided-usage markdown**: what to do on the controls, and what to observe as a
-     result, not general facts about the topic
+  3. **Post-visualization markdown**: guided usage, then implementation, followed by
+     the function-info code cell
+     - **Guided usage**: what to do on the controls, and what to observe as a
+       result, not general facts about the topic
 
-     ```markdown
-     **Guided usage**
-     - Drag `sample_size` from 10 up to 500
-       - Observe the sample distribution converge toward the population
-         distribution shown on the left
-     ```
+       ```markdown
+       **Guided usage**
+       - Drag `sample_size` from 10 up to 500
+         - Observe the sample distribution converge toward the population
+           distribution shown on the left
+       ```
+
+     - **Implementation**: how the function gets there, so the reader looks at it
+       only after seeing what it does (see `## Visualization Cell Triplet Details`)
 
 - For all the markdown cells use bullet points with nested bullets for clarity and
   conciseness, following the rules in
@@ -969,8 +1077,10 @@
 
 ## Visualization Cell Triplet Details
 
-- Each visualization follows the cell sequence: Goal, Implementation, function-info
-  code, Usage, widget code, Guided usage
+- Each visualization follows the cell sequence: Goal, Description, widget code,
+  Guided usage, Implementation, function-info code
+- Section labels (`**Goal**`, `**Description**`, `**Guided usage**`,
+  `**Implementation**`) take no trailing colon
 
 ### Markdown Cell (Before the Visualization)
 
@@ -979,42 +1089,30 @@
   ```markdown
   ## Cell <PART>.<ID>: <Short Description>
 
-  **Goal**:
+  **Goal**
   - Build intuition for <CONCEPT>
   - <Learning objective 2>
   ```
 
-- Right after `**Goal**`, in its own markdown cell, add an `**Implementation**`
-  section naming the function and walking through how it gets there, one bullet per
-  algorithmic step (see
-  `## Separate Goal, Implementation, and Usage, Keep Each List Tight`):
+- Right after `**Goal**`, in its own markdown cell, describe every input and every
+  panel in one `**Description**` markdown cell, split into `- Inputs` and `- Panels`,
+  with a blank line between the two nested lists (see
+  `## Keep Goal, Description, Guided Usage, and Implementation Tight`):
 
   ```markdown
-  **Implementation**: `visualize_population_distribution(figsize=None)`
-  - Draws `n_population` marbles, colored by `mu`, the true red fraction
-  - Draws a random sample of `sample_size` marbles from the same population
-  ```
-
-- The code cell right after `**Implementation**` calls `hintros.print_obj_info()` on
-  the function, instead of printing its docstring and linking to its source
-  separately (see `## Use Introspection Code for Public APIs`)
-- After that code cell, describe every input and every panel in one `**Usage**`
-  markdown cell, split into `- Inputs` and `- Panels`, with a blank line between the
-  two nested lists:
-
-  ```markdown
-  **Usage**
+  **Description**
   - Inputs
-    - **`mu`**: true proportion of red marbles in the population, 0.0-1.0
-    - **`sample_size`**: number of marbles drawn into the sample bin
+    - `mu`: true proportion of red marbles in the population, 0.0-1.0
+    - `sample_size`: number of marbles drawn into the sample bin
 
   - Panels
-    - **`Population bin`**: Shows the full unknown population as colored
+    - `Population bin`: Shows the full unknown population as colored
       marbles
-    - **`Sample bin`**: Shows a random sample drawn from the population
-    - **`Comments`**: Current parameter values and state observations
+    - `Sample bin`: Shows a random sample drawn from the population
+    - `Comments`: Current parameter values and state observations
   ```
 
+- Item names in `Inputs` and `Panels` are plain backtick, not bold plus backtick
 - Each widget has its description close to it (in the widget's `description`
   parameter or as a label above the widget), ensuring it is entirely readable
 
@@ -1055,6 +1153,21 @@
     - Observe only cells next to a terminal move at first; the interior
       refines only in later sweeps
   ```
+
+- Right after `**Guided usage**`, in its own markdown cell, add an
+  `**Implementation**` section naming the function and walking through how it gets
+  there, one bullet per algorithmic step (see
+  `## Keep Goal, Description, Guided Usage, and Implementation Tight`):
+
+  ```markdown
+  **Implementation** `visualize_population_distribution(figsize=None)`
+  - Draws `n_population` marbles, colored by `mu`, the true red fraction
+  - Draws a random sample of `sample_size` marbles from the same population
+  ```
+
+- The code cell right after `**Implementation**` calls `hintros.print_obj_info()` on
+  the function, instead of printing its docstring and linking to its source
+  separately (see `## Use Introspection Code for Public APIs`)
 
 ## Interactive Idiom for Notebooks
 

@@ -530,11 +530,25 @@ def _parse() -> argparse.ArgumentParser:
         default="@me",
         help="GitHub user to assign the issue to",
     )
-    parser.add_argument(
+    # After-branch-creation behavior: mutually exclusive since a worktree
+    # already checks out the new branch separately from the outer repo.
+    after_branch_group = parser.add_mutually_exclusive_group()
+    after_branch_group.add_argument(
         "--create_worktree",
         action="store_true",
         default=False,
         help="Create git worktree (default: False, only create branch)",
+    )
+    after_branch_group.add_argument(
+        "--stay_on_new_branch",
+        action="store_true",
+        default=False,
+        help=(
+            "Stay checked out on the newly created branch instead of "
+            "returning to the original branch afterwards, like plain "
+            "`git checkout -b` (default: False, return to the original "
+            "branch)"
+        ),
     )
     parser.add_argument(
         "--no_create_pr",
@@ -644,7 +658,7 @@ def _main_workflow(
         if args.gh_assignee:
             cmd += f" --assignees {shlex.quote(args.gh_assignee)}"
         _LOG.info("Creating GitHub issue via invoke: %s", cmd)
-        _, output = hsystem.system_to_string(cmd)
+        _, output = hsystem.system_to_string(cmd, log_level=logging.INFO)
         _LOG.debug("Invoke output:\n%s", output)
         # Parse issue ID from output.
         match = re.search(r"Created issue #(\d+)", output)
@@ -723,9 +737,12 @@ def _main(parser: argparse.ArgumentParser) -> None:
     try:
         _main_workflow(args, original_branch, repo_targets)
     finally:
-        # Return to original branch if we switched away.
+        # Return to original branch if we switched away, unless the caller
+        # asked to stay on the newly created branch (like `git checkout -b`).
         current_branch = hgit.get_branch_name()
-        if current_branch != original_branch:
+        if args.stay_on_new_branch:
+            _LOG.info("Staying on new branch: '%s'", current_branch)
+        elif current_branch != original_branch:
             _LOG.info("Returning to original branch: '%s'", original_branch)
             cmd = f"git checkout {shlex.quote(original_branch)}"
             hsystem.system(cmd)

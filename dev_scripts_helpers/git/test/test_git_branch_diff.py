@@ -7,7 +7,7 @@ import dev_scripts_helpers.git.test.test_git_branch_diff as dsggtgibrd
 """
 
 import unittest.mock as umock
-from typing import Any, Dict
+from typing import Any, Dict, List
 
 import helpers.hgit as hgit
 import helpers.hio as hio
@@ -71,6 +71,7 @@ class Test__git_diff_with_branch(hunitest.TestCase):
                 hgit, "get_branch_name", return_value="HelpersTask1_Foo"
             ),
             umock.patch.object(hsystem, "system_to_files", return_value=[]),
+            umock.patch.object(dsggibrd, "_get_moved_files", return_value={}),
             umock.patch.object(hio, "create_dir") as mock_create_dir,
         ):
             self.call()
@@ -89,6 +90,7 @@ class Test__git_diff_with_branch(hunitest.TestCase):
             umock.patch.object(
                 hsystem, "system_to_files", return_value=["a.py"]
             ),
+            umock.patch.object(dsggibrd, "_get_moved_files", return_value={}),
             umock.patch.object(hio, "create_dir") as mock_create_dir,
         ):
             self.call(only_print_files=True)
@@ -109,15 +111,14 @@ class Test__git_diff_with_branch(hunitest.TestCase):
             umock.patch.object(
                 hsystem, "system_to_files", return_value=["a.py"]
             ),
+            umock.patch.object(dsggibrd, "_get_moved_files", return_value={}),
             umock.patch.object(
                 hgit,
                 "get_repo_full_name_from_client",
                 return_value="myorg/myrepo",
             ),
             umock.patch.object(hio, "create_dir") as mock_create_dir,
-            umock.patch.object(
-                hsystem, "system", return_value=0
-            ) as mock_system,
+            umock.patch.object(hsystem, "system", return_value=0) as mock_system,
             umock.patch.object(dsggibrd.os, "system") as mock_os_system,
             umock.patch.object(
                 hio, "create_executable_script"
@@ -138,6 +139,242 @@ class Test__git_diff_with_branch(hunitest.TestCase):
         """
         self.assert_equal(actual, expected, fuzzy_match=True, dedent=True)
         mock_os_system.assert_called_once_with(script_file_name)
+
+    def test5(self) -> None:
+        """
+        Test that a moved file is not diffed, while other files still are.
+        """
+        # Prepare inputs.
+        dst_dir = "/tmp/myorg/myrepo/tmp.base"
+        files = ["dir1/foo.py", "dir2/foo.py", "bar.py"]
+        moves = {"dir1/foo.py": "dir2/foo.py"}
+        # Run test.
+        with (
+            umock.patch.object(
+                hgit, "get_branch_name", return_value="HelpersTask1_Foo"
+            ),
+            umock.patch.object(hsystem, "system_to_files", return_value=files),
+            umock.patch.object(dsggibrd, "_get_moved_files", return_value=moves),
+            umock.patch.object(
+                hgit,
+                "get_repo_full_name_from_client",
+                return_value="myorg/myrepo",
+            ),
+            umock.patch.object(hio, "create_dir"),
+            umock.patch.object(hsystem, "system", return_value=0),
+            umock.patch.object(dsggibrd.os, "system"),
+            umock.patch.object(
+                hio, "create_executable_script"
+            ) as mock_create_script,
+        ):
+            self.call(dry_run=False)
+        # Check outputs.
+        _, script_txt = mock_create_script.call_args[0]
+        self.assertEqual(script_txt, f"vimdiff {dst_dir}/bar.py /dev/null")
+
+    def test6(self) -> None:
+        """
+        Test that only moved files short-circuits before creating anything.
+        """
+        # Prepare inputs.
+        files = ["dir1/foo.py", "dir2/foo.py"]
+        moves = {"dir1/foo.py": "dir2/foo.py"}
+        # Run test.
+        with (
+            umock.patch.object(
+                hgit, "get_branch_name", return_value="HelpersTask1_Foo"
+            ),
+            umock.patch.object(hsystem, "system_to_files", return_value=files),
+            umock.patch.object(dsggibrd, "_get_moved_files", return_value=moves),
+            umock.patch.object(hio, "create_dir") as mock_create_dir,
+        ):
+            self.call()
+        # Check outputs.
+        mock_create_dir.assert_not_called()
+
+    def helper_moves(
+        self,
+        files: List[str],
+        moves: Dict[str, str],
+        expected: str,
+    ) -> None:
+        """
+        Run with `only_print_files=True` and check the logged `Move` lines.
+
+        :param files: files listed by `git diff`
+        :param moves: moved files returned by `_get_moved_files()`
+        :param expected: expected `Move` lines, one per line
+        """
+        # Run test.
+        only_print_files = True
+        with (
+            umock.patch.object(
+                hgit, "get_branch_name", return_value="HelpersTask1_Foo"
+            ),
+            umock.patch.object(hsystem, "system_to_files", return_value=files),
+            umock.patch.object(dsggibrd, "_get_moved_files", return_value=moves),
+            self.assertLogs(dsggibrd._LOG, level="INFO") as logs,
+        ):
+            self.call(only_print_files=only_print_files)
+        # Check outputs.
+        actual = [
+            line.split(":", 2)[2] for line in logs.output if "Move" in line
+        ]
+        actual = "\n".join(actual)
+        self.assert_equal(actual, expected, dedent=True)
+
+    def test7(self) -> None:
+        """
+        Test that a move outside of the filtered files is not reported.
+        """
+        # Prepare inputs.
+        files = ["bar.py"]
+        moves = {"dir1/foo.py": "dir2/foo.py"}
+        # Prepare outputs.
+        expected = ""
+        # Run test.
+        self.helper_moves(files, moves, expected)
+
+    def test8(self) -> None:
+        """
+        Test that a moved file is reported as `Move 'X' to 'Y'`.
+        """
+        # Prepare inputs.
+        files = ["dir1/foo.py", "dir2/foo.py"]
+        moves = {"dir1/foo.py": "dir2/foo.py"}
+        # Prepare outputs.
+        expected = """
+        Move 'dir1/foo.py' to 'dir2/foo.py'
+        """
+        # Run test.
+        self.helper_moves(files, moves, expected)
+
+    def test9(self) -> None:
+        """
+        Test that added and deleted files are diffed against `/dev/null`.
+        """
+        # Prepare inputs.
+        dst_dir = "/tmp/myorg/myrepo/tmp.base"
+        # `new.py` is added (exists only in the branch), while `deleted.py` is
+        # deleted (exists only in the base).
+        files = ["deleted.py", "new.py"]
+
+        def _system(cmd: str, **kwargs: Any) -> int:
+            _ = kwargs
+            # The added file does not exist in the base, so `git show` fails.
+            rc = 1 if "new.py" in cmd else 0
+            return rc
+
+        # Run test.
+        with (
+            umock.patch.object(
+                hgit, "get_branch_name", return_value="HelpersTask1_Foo"
+            ),
+            umock.patch.object(hsystem, "system_to_files", return_value=files),
+            umock.patch.object(dsggibrd, "_get_moved_files", return_value={}),
+            umock.patch.object(
+                hgit,
+                "get_repo_full_name_from_client",
+                return_value="myorg/myrepo",
+            ),
+            umock.patch.object(hio, "create_dir"),
+            umock.patch.object(hsystem, "system", side_effect=_system),
+            umock.patch.object(
+                dsggibrd.os.path,
+                "exists",
+                side_effect=lambda f: f == "new.py",
+            ),
+            umock.patch.object(dsggibrd.os, "system"),
+            umock.patch.object(
+                hio, "create_executable_script"
+            ) as mock_create_script,
+        ):
+            self.call(dry_run=False)
+        # Check outputs.
+        _, script_txt = mock_create_script.call_args[0]
+        expected = f"""
+        vimdiff {dst_dir}/deleted.py /dev/null
+        vimdiff /dev/null new.py
+        """
+        self.assert_equal(script_txt, expected, fuzzy_match=True, dedent=True)
+
+
+# #############################################################################
+# Test__get_moved_files
+# #############################################################################
+
+
+class Test__get_moved_files(hunitest.TestCase):
+    """
+    Test `_get_moved_files()`.
+    """
+
+    def helper(
+        self, hash_: str, output: str, expected_cmd: str
+    ) -> Dict[str, str]:
+        """
+        Call `_get_moved_files()` with a mocked `git` output.
+
+        :param hash_: what to diff against
+        :param output: mocked output of `git diff`
+        :param expected_cmd: command expected to be run
+        :return: moved files
+        """
+        with umock.patch.object(
+            hsystem, "system_to_string", return_value=(0, output)
+        ) as mock_system_to_string:
+            actual = dsggibrd._get_moved_files(hash_, ".")
+        mock_system_to_string.assert_called_once_with(expected_cmd)
+        return actual
+
+    def test1(self) -> None:
+        """
+        Test that exact moves are parsed as `old -> new`.
+        """
+        # Prepare inputs.
+        hash_ = "base_hash"
+        output = "R100\tdir1/foo.py\tdir2/foo.py\nR100\tbar.py\tbaz.py"
+        expected_cmd = (
+            "cd . && git diff --name-status --find-renames=100%"
+            " --diff-filter=R base_hash HEAD"
+        )
+        # Run test.
+        actual = self.helper(hash_, output, expected_cmd)
+        # Check outputs.
+        expected = {"dir1/foo.py": "dir2/foo.py", "bar.py": "baz.py"}
+        self.assertEqual(actual, expected)
+
+    def test2(self) -> None:
+        """
+        Test that no moves gives an empty mapping.
+        """
+        # Prepare inputs.
+        hash_ = "base_hash"
+        output = ""
+        expected_cmd = (
+            "cd . && git diff --name-status --find-renames=100%"
+            " --diff-filter=R base_hash HEAD"
+        )
+        # Run test.
+        actual = self.helper(hash_, output, expected_cmd)
+        # Check outputs.
+        self.assertEqual(actual, {})
+
+    def test3(self) -> None:
+        """
+        Test that an empty hash diffs the working dir against `HEAD`.
+        """
+        # Prepare inputs.
+        hash_ = ""
+        output = "R100\tfoo.py\tbar.py"
+        expected_cmd = (
+            "cd . && git diff --name-status --find-renames=100%"
+            " --diff-filter=R HEAD"
+        )
+        # Run test.
+        actual = self.helper(hash_, output, expected_cmd)
+        # Check outputs.
+        self.assertEqual(actual, {"foo.py": "bar.py"})
 
 
 # #############################################################################
@@ -186,9 +423,7 @@ class Test__git_diff_with_branch_wrapper(hunitest.TestCase):
         Test that `include_submodules=False` diffs only the main repo.
         """
         # Run test.
-        with umock.patch.object(
-            dsggibrd, "_git_diff_with_branch"
-        ) as mock_diff:
+        with umock.patch.object(dsggibrd, "_git_diff_with_branch") as mock_diff:
             self.call(include_submodules=False)
         # Check outputs.
         mock_diff.assert_called_once()
@@ -199,9 +434,7 @@ class Test__git_diff_with_branch_wrapper(hunitest.TestCase):
         """
         # Run test.
         with (
-            umock.patch.object(
-                dsggibrd, "_git_diff_with_branch"
-            ) as mock_diff,
+            umock.patch.object(dsggibrd, "_git_diff_with_branch") as mock_diff,
             umock.patch.object(hgit, "is_amp_present", return_value=True),
             umock.patch.object(hsystem, "cd") as mock_cd,
         ):
@@ -217,9 +450,7 @@ class Test__git_diff_with_branch_wrapper(hunitest.TestCase):
         """
         # Run test.
         with (
-            umock.patch.object(
-                dsggibrd, "_git_diff_with_branch"
-            ) as mock_diff,
+            umock.patch.object(dsggibrd, "_git_diff_with_branch") as mock_diff,
             umock.patch.object(hgit, "is_amp_present", return_value=False),
         ):
             self.call(include_submodules=True)
