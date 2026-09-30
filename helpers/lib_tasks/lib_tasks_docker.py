@@ -13,7 +13,7 @@ from typing import Any, Dict, List, Optional, Union, cast
 
 # TODO(gp): We should use `pip install types-PyYAML` to get the mypy stubs.
 import yaml
-from invoke import task
+from invoke.tasks import task
 
 # We want to minimize the dependencies from non-standard Python packages since
 # this code needs to run with minimal dependencies and without Docker.

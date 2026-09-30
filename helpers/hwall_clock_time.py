@@ -9,7 +9,10 @@ import helpers.hwall_clock_time as hwacltim
 
 import datetime
 import logging
-from typing import Callable, Optional, Union
+from typing import Callable, Optional, TYPE_CHECKING, Union
+
+if TYPE_CHECKING:
+    import pandas as pd
 
 _LOG = logging.getLogger(__name__)
 
