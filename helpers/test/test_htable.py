@@ -148,6 +148,7 @@ class Test_repr(hunitest.TestCase):
 # #############################################################################
 
 
+# TODO(ai_gp): Factor out common code.
 class Test_str(hunitest.TestCase):
     """
     Test `htable.Table.__str__()`.
@@ -205,6 +206,7 @@ class Test_str(hunitest.TestCase):
 # #############################################################################
 
 
+# TODO(ai_gp): Factor out common code.
 class Test_filter_rows(hunitest.TestCase):
     """
     Test `htable.Table.filter_rows()`.
@@ -267,6 +269,7 @@ class Test_filter_rows(hunitest.TestCase):
 # #############################################################################
 
 
+# TODO(ai_gp): Factor out common code.
 class Test_unique(hunitest.TestCase):
     """
     Test `htable.Table.unique()`.
@@ -304,6 +307,7 @@ class Test_unique(hunitest.TestCase):
 # #############################################################################
 
 
+# TODO(ai_gp): Factor out common code.
 class Test_compute_column_widths(hunitest.TestCase):
     """
     Test `htable.compute_column_widths()`.

@@ -354,6 +354,7 @@ class Test_git_modified_files1(hunitest.TestCase):
 # #############################################################################
 
 
+# TODO(ai_gp): Factor out common code.
 # Outside CK infra, the following class hangs, so we skip it.
 @pytest.mark.requires_ck_infra
 class Test_find_docker_file1(hunitest.TestCase):
@@ -814,6 +815,7 @@ class Test_find_git_root4(hunitest.TestCase):
 # #############################################################################
 
 
+# TODO(ai_gp): Factor out common code.
 class Test_find_git_root5(hunitest.TestCase):
     """
     Check that the error is raised when no .git directory is found.
@@ -897,6 +899,7 @@ class Test_find_git_root5(hunitest.TestCase):
 # #############################################################################
 
 
+# TODO(ai_gp): Factor out common code.
 class Test_get_files_to_process_files(hunitest.TestCase):
     """
     Test get_files_to_process with --files argument (space-separated list).
@@ -1056,6 +1059,7 @@ class Test_get_files_to_process_git(hunitest.TestCase):
 # #############################################################################
 
 
+# TODO(ai_gp): Factor out common code.
 class Test_get_files_to_process_from_file(hunitest.TestCase):
     """
     Test get_files_to_process with --from_file argument.
@@ -1098,6 +1102,7 @@ class Test_get_files_to_process_from_file(hunitest.TestCase):
 # #############################################################################
 
 
+# TODO(ai_gp): Factor out common code, if possible.
 class Test_get_files_to_process_assert(hunitest.TestCase):
     """
     Test get_files_to_process mutual exclusivity assertions.

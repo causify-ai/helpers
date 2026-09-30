@@ -814,6 +814,12 @@ class Test_gh_workflow_list(hunitest.TestCase):
         ctx = httestlib._build_mock_context_returning_ok()
         table = htable.Table([], _WORKFLOW_TABLE_COLS)
         filter_by_branch = "all"
+        # Prepare outputs.
+        # Log message format: "LEVEL:logger.name:message".
+        expected_log = (
+            "WARNING:helpers.lib_tasks.lib_tasks_gh:No workflow runs found for "
+            "filter_by_branch=all filter_by_completed=all"
+        )
         # Run test.
         with (
             umock.patch.object(hltltagh, "gh_login"),
@@ -831,11 +837,7 @@ class Test_gh_workflow_list(hunitest.TestCase):
             hltltagh.gh_workflow_list(ctx, filter_by_branch=filter_by_branch)
         # Check outputs.
         mock_print.assert_not_called()
-        # Log message format: "LEVEL:logger.name:message"
-        # Use fuzzy matching to handle variable logger name/timestamp formats.
-        actual_log = cm.output[0]
-        expected_log = ".*No workflow runs found.*"
-        self.assert_equal(actual_log, expected_log, fuzzy_match=True)
+        self.assert_equal("\n".join(cm.output), expected_log)
 
 
 # #############################################################################

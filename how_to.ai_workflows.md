@@ -34,6 +34,7 @@
   - `tikz`: TikZ diagram creation
   - `tutorial_in_60_mins`: Tool tutorials and guides
   - `visuals`: Visual design and graphics
+// TODO(ai_gp): Add tools_in_30_mins and other missing ones
 
 ### Skills
 - A **skill** is a specific, actionable task organized under a topic (e.g.,

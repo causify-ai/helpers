@@ -1,4 +1,4 @@
-# Cc_lint.py
+# `cc_lint.py`
 
 Claude Code integration for topic-based formatting
 
