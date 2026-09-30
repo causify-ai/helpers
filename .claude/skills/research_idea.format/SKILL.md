@@ -19,8 +19,12 @@ model: sonnet
 - Map the content already in `<FILE>` onto the template's sections (`Status`,
   `Core Idea`, `Formalization`, `Key Examples`, `Questions`, `Research
   Topics`, `Next steps`, `Implementation plan`, `References`)
-- Do not fabricate content for a section the input does not support; leave the
-  template's placeholder bullets for that section instead
+- Do not leave the template's placeholder bullets in a section: fill it from the
+  idea's own content, or remove the empty bullets
+- Do not invent facts, results, or citations to fill a section; write only what
+  follows from the idea (e.g., a hypothetical example marked as illustrative)
+- Do not add an `Assignee` field: assignees live only in the README table
+- Write references as `Author(s), _Title_. (Year)`
 - Write the result back into `<FILE>`, replacing its previous content
 
 # Conventions
@@ -36,5 +40,7 @@ model: sonnet
 
 # Verification
 - [ ] `<FILE>` follows the section order of `.claude/templates/research_idea.template.md`
-- [ ] No fabricated content was added for sections the input did not cover
+- [ ] No template placeholder text is left in the file
+- [ ] No fabricated facts or citations were added
+- [ ] No `Assignee` line; references use `Author(s), _Title_. (Year)`
 - [ ] Lines fit in 85 characters

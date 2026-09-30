@@ -3,7 +3,6 @@
 ## Status
 - **Status:**: draft | in_progress | done
 - **Complete Specs:**: 0-100%
-- **Assignee:**: ...
 
 ## Core Idea [REQUIRED]
 
