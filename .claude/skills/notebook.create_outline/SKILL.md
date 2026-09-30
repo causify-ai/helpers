@@ -23,9 +23,11 @@ model: sonnet
 # Outline Unit Structure
 
 - Each unit in the outline corresponds to a triplet of cells in the final notebook:
-  - **Markdown cell**: Section header, goal, and pedagogical content (before viz)
+  - **Markdown cell**: Section header, goal, and description of the panels and
+    controls (before viz)
   - **Code cell**: Visualization, widgets, and interactive controls
-  - **Markdown cell**: Guided usage, actions plus observations (after viz)
+  - **Markdown cell**: Guided usage, actions plus observations, then the
+    implementation (after viz)
 
 ## Numbering and Naming
 
@@ -45,31 +47,34 @@ model: sonnet
   ```markdown
   ## Cell i: <Concise Learning Objective>
 
-  **Goal**:
+  **Goal**
   - <Learning objective 1>
   - <Learning objective 2>
 
-  **Plots and their descriptions**:
-  - **`<Plot 1 name>`**: <Description of what it shows>
-  - **`<Plot 2 name>`**: <Description of what it shows>
-  - **`Comments`**: Current parameter values and state observations
+  **Plots and their descriptions**
+  - `<Plot 1 name>`: <Description of what it shows>
+  - `<Plot 2 name>`: <Description of what it shows>
+  - `Comments`: Current parameter values and state observations
 
-  **Widgets** (if applicable):
-  - **`<widget name>`**: <description, range, effect on display>
+  **Widgets** (if applicable)
+  - `<widget name>`: <description, range, effect on display>
   - Each widget description is close to the widget itself
 
-  **Guided usage** (post-visualization):
+  **Guided usage** (post-visualization)
   - <Action on a widget, plus the observation it produces>
   - <Action on a widget, plus the observation it produces>
 
-  **Implementation**: Libraries and functions used
+  **Implementation** Libraries and functions used
   ```
 
+- Section labels take no trailing colon, and item names are plain backtick, not bold
+  plus backtick
 - In the final notebook, **Plots and their descriptions** plus **Widgets** become the
-  `**Usage**` markdown cell (split into `- Inputs` and `- Panels`), and
-  **Implementation** becomes its own `**Implementation**` markdown cell, expanded
-  into one bullet per algorithmic step: see `.claude/skills/notebook.rules.md`
-  `## Visualization Cell Triplet Details`
+  `**Description**` markdown cell (split into `- Inputs` and `- Panels`), placed
+  right after **Goal**
+- **Implementation** becomes its own `**Implementation**` markdown cell, expanded
+  into one bullet per algorithmic step, placed after **Guided usage**: see
+  `.claude/skills/notebook.rules.md` `## Visualization Cell Triplet Details`
 
 ### Goal (Required)
 
@@ -79,7 +84,7 @@ model: sonnet
 
 ### Plots and Their Descriptions (Required)
 
-- Describe each plot using the pattern `**\`<Plot name>\`\*\*: <DESCRIPTION>`
+- Describe each plot using the pattern `` `<Plot name>`: <DESCRIPTION> ``
 - Each plot's description is placed together with the plot title, not in a separate
   section
 - Be specific about what the visualization shows (not implementation details)
@@ -87,7 +92,7 @@ model: sonnet
 - Example:
 
   ```
-  **`Population bin`**: Shows full population as colored marbles
+  `Population bin`: Shows full population as colored marbles
   ```
 
 ### Widgets (If Applicable)
@@ -133,7 +138,7 @@ model: sonnet
   ```markdown
   ## Cell 1: Visualizing Population Distribution
 
-  **Goal**:
+  **Goal**
   - Give students a concrete visual representation of the unknown population
     distribution they're trying to infer from samples
   - Understand that we can only observe samples, not the full population
@@ -142,30 +147,30 @@ model: sonnet
 - Visualization cell
 
   ```markdown
-  **Implementation**: Matplotlib animation for marbles, ipywidgets FloatSlider
-    for control, matplotlib patches for marble visualization
-
-  **Plots and their descriptions**:
-  - **`Population bin`**: Animated bin visualization with colored marbles
+  **Plots and their descriptions**
+  - `Population bin`: Animated bin visualization with colored marbles
     (red vs blue) showing the true population
-  - **`Sample bin`**: Shows a random sample drawn from the population
-  - **`Comments`**: Current parameter values (mu, sample count)
+  - `Sample bin`: Shows a random sample drawn from the population
+  - `Comments`: Current parameter values (mu, sample count)
 
-  **Widgets**:
-  - **`mu`**: slider for true proportion of red marbles (0.0-1.0)
-  - **`seed`**: random seed for reproducibility
+  **Widgets**
+  - `mu`: slider for true proportion of red marbles (0.0-1.0)
+  - `seed`: random seed for reproducibility
   ```
 
 - Commentary
 
   ```markdown
-  **Guided usage**:
+  **Guided usage**
   - Drag `mu` from 0.2 to 0.8, leaving `sample_size` fixed
     - Observe the sample bin's color mix shift to track the hidden
       population, even though the population itself stays unseen
   - Repeat with a different `seed`
     - Observe the sample bin change while the population bin does not:
       only the sample is one random draw
+
+  **Implementation** Matplotlib animation for marbles, ipywidgets FloatSlider
+    for control, matplotlib patches for marble visualization
   ```
 
 # Lint

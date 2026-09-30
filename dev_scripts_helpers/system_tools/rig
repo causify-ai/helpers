@@ -3,11 +3,13 @@
 """
 rig - Ripgrep search wrapper with smart defaults and mode shortcuts.
 
-Interface:
+Interface (same as `ffind`, see `search_utils.py`):
   rig <pattern> [<dir>] [<ext>] [--options]
   - <pattern>: Search pattern (optional when a mode flag like --todo is used)
   - <dir>: Directory to search (default: current directory `.`)
   - <ext>: File extension filter, e.g. `py` or `py,md` (requires <dir>)
+  - `--dir` is an alternative to the positional <dir>
+  - `--dry_run` prints the ripgrep command without running it
 
 Basic examples:
   # Search for "TODO" in Python files in src directory.

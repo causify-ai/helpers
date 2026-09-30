@@ -90,7 +90,29 @@ def get_branch_name(dir_name: str = ".") -> str:
     return output
 
 
+def _get_max_branch_num(branch_names: List[str], curr_branch_name: str) -> int:
+    """
+    Return the highest N among the branches named `<curr_branch_name>_N`.
+
+    Remote-tracking branches (e.g., `origin/gp_3`) are matched too.
+
+    E.g., `["gp_1", "origin/gp_6", "gp_scratch_9", "gp"]` for `gp` -> 6
+
+    :param branch_names: branch names to search
+    :param curr_branch_name: current branch name (e.g., "gp")
+    :return: highest N, or 0 if there is no matching branch
+    """
+    regex = re.compile(rf"^(?:origin/)?{re.escape(curr_branch_name)}_(\d+)$")
+    max_num = 0
+    for branch_name in branch_names:
+        match = regex.match(branch_name.strip())
+        if match:
+            max_num = max(max_num, int(match.group(1)))
+    return max_num
+
+
 def _get_branch_next_name_via_github_api(
+    dir_name: str,
     curr_branch_name: str,
     *,
     max_num_ids: int = 100,
@@ -98,46 +120,45 @@ def _get_branch_next_name_via_github_api(
     """
     Find the next available branch name using GitHub API (fast method).
 
-    Uses `gh pr list` to query merged branches and extract the highest number.
+    Use `gh pr list` to get the branches of all the PRs (open, closed, merged)
+    and `git branch -a` to get the local and remote branches. The next name uses
+    the highest number found in any of them.
 
+    :param dir_name: directory containing the git repository
     :param curr_branch_name: current branch name (e.g., "gp_scratch")
     :param max_num_ids: maximum number of IDs to check
     :return: next available branch name or None if GitHub API is not available
     """
-    try:
-        # Query all PRs (merged, closed, open) and extract branch names
-        # matching pattern.
-        cmd = (
-            "gh pr list --state all --json headRefName "
-            "| jq -r '.[].headRefName | select(test(\"^{branch}_[0-9]+$\"))' "
-            "| sed 's/.*_//' | sort -rn | head -1"
-        ).format(branch=re.escape(curr_branch_name))
-        _LOG.debug("Running GitHub API query: %s", cmd)
-        ret, output = hsystem.system_to_one_line(cmd, suppress_output=True)
-        if ret != 0:
-            _LOG.debug("GitHub API query failed, falling back to linear scan")
-            return None
-        # Extract the highest number from all branches.
-        output = output.strip()
-        if output:
-            highest_num = int(output)
-            next_num = highest_num + 1
-            new_branch_name = f"{curr_branch_name}_{next_num}"
-            _LOG.info(
-                "Found highest number '%s' in all branches, next is '%s'",
-                highest_num,
-                next_num,
-            )
-            return new_branch_name
-        # No existing numbered branches found.
-        _LOG.debug("No existing numbered branches found, starting at 1")
-        return f"{curr_branch_name}_1"
-    except Exception as e:
-        _LOG.debug(
-            "Error querying GitHub API: %s, falling back to linear scan",
-            e,
-        )
+    # `gh pr list` returns only 30 PRs by default, so set the limit explicitly.
+    cmd = [
+        f"cd {dir_name} &&",
+        "gh pr list",
+        "--state all",
+        "--limit 1000",
+        "--json headRefName",
+        "--jq '.[].headRefName'",
+    ]
+    cmd = " ".join(cmd)
+    ret, output = hsystem.system_to_string(
+        cmd, abort_on_error=False, suppress_output=True
+    )
+    if ret != 0:
+        _LOG.debug("GitHub API query failed, falling back to linear scan")
         return None
+    branch_names = output.split("\n")
+    # Add the local and remote branches, which can be without a PR.
+    cmd = f"cd {dir_name} && git branch -a --format='%(refname:short)'"
+    _, output = hsystem.system_to_string(cmd, suppress_output=True)
+    branch_names.extend(output.split("\n"))
+    # Compute the next name.
+    max_num = _get_max_branch_num(branch_names, curr_branch_name)
+    new_branch_name = f"{curr_branch_name}_{max_num + 1}"
+    _LOG.info(
+        "Found highest number '%s' in all branches, next is '%s'",
+        max_num,
+        new_branch_name,
+    )
+    return new_branch_name
 
 
 @functools.lru_cache()
@@ -257,7 +278,7 @@ def _get_branch_next_name_linear_scan(
     """
     for i in range(1, max_num_ids):
         new_branch_name = f"{curr_branch_name}_{i}"
-        _LOG.info("Trying branch name '%s' ...", new_branch_name)
+        _LOG.debug("Trying branch name '%s' ...", new_branch_name)
         mode = "all"
         exists = does_branch_exist(new_branch_name, mode, dir_name=dir_name)
         _LOG.log(log_verb, "-> exists=%s", exists)
@@ -303,6 +324,7 @@ def get_branch_next_name(
     next_name: Optional[str] = None
     if method in ("auto", "github_api"):
         next_name = _get_branch_next_name_via_github_api(
+            dir_name,
             curr_branch_name,
             max_num_ids=max_num_ids,
         )

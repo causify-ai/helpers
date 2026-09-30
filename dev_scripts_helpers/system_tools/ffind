@@ -3,16 +3,35 @@
 """
 # Usage Example
 
+Interface (same as `rig`, see `search_utils.py`):
+  ffind <pattern> [<dir>] [<ext>] [--options]
+  - <pattern>: Substring to look for in the file/dir name
+  - <dir>: Directory to search (default: current directory `.`)
+  - <ext>: File extension filter, e.g. `py` or `py,md` (requires <dir>)
+
 - Find all files/dirs whose name contains Task243, i.e., the regex
   "*Task243*":
 > ffind Task243
 
 - Look for files/dirs with name containing "stocktwits" in "this_dir":
+> ffind stocktwits this_dir
+
+- Look for files with name containing "notebook" in the current dir with "py"
+  extension:
+> ffind notebook . py
+
+- Look for files with name containing "stocktwits" in "this_dir" with "py"
+  extension:
+> ffind stocktwits this_dir py
+
+- Look for files with name containing "notebook" with "py" or "md" extension:
+> ffind notebook . py,md
+
+- `--dir` is an alternative to the positional <dir>:
 > ffind stocktwits --dir this_dir
 
-- Look for files with name containing "stocktwits" in "this_dir" with ".py"
-  extension:
-> ffind stocktwits .py --dir this_dir
+- Print the `find` command without running it:
+> ffind notebook . py --dry_run
 
 - Look only for files:
 > ffind stocktwits --only_files

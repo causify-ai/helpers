@@ -206,24 +206,26 @@ class Test_transform_text_py(hunitest.TestCase):
         # Prepare inputs.
         # (No explicit input needed; testing available transforms list)
         # Prepare outputs.
-        expected = str([
-            "test",
-            "format_headers",
-            "increase_headers_level",
-            "toc",
-            "md_list_to_latex",
-            "md_to_latex",
-            "md_remove_formatting",
-            "md_remove_bullets",
-            "md_clean_up",
-            "md_only_format",
-            "md_bold_bullets",
-            "md_add_checkbox",
-            "md_colorize_bold_text",
-            "md_format",
-            "slide_format_figures",
-            "slide_add_figure",
-        ])
+        expected = str(
+            [
+                "test",
+                "format_headers",
+                "increase_headers_level",
+                "toc",
+                "md_list_to_latex",
+                "md_to_latex",
+                "md_remove_formatting",
+                "md_remove_bullets",
+                "md_clean_up",
+                "md_only_format",
+                "md_bold_bullets",
+                "md_add_checkbox",
+                "md_colorize_bold_text",
+                "md_format",
+                "slide_format_figures",
+                "slide_add_figure",
+            ]
+        )
         # Run test.
         transforms = dshdotrte._get_available_transforms()
         # Check outputs.
