@@ -85,8 +85,11 @@ structure, and the `README.md` tracking table
     `.claude/skills/tutorial_in_60_mins.rules.md`
 - Say where the work starts:
   - If `tutorials/<Tool>/` exists, improve it and do not restart from scratch
-  - If it does not exist, create it with
-    `.claude/skills/tutorial_in_60_mins.create/SKILL.md`
+  - If it does not exist, the student creates the project dir following the class
+    instructions in `class_project/README.md`, section `Contribution to the Repo`,
+    and starts from `class_project/project_template`
+    - Do not write "Create `tutorials/<Tool>/`, since it does not exist yet"
+    - Do not copy the class instructions, point to them
 - Name a reference tutorial to imitate, e.g.,
   `msml610/tutorials/L03_knowledge_representation/`
 - Point to the skills that automate part of the work, e.g.,
@@ -110,6 +113,8 @@ structure, and the `README.md` tracking table
     table, or a plot
 - Do not write generic milestones that fit any tool, e.g., "Read the
   documentation"
+- Do not name `tutorials/<Tool>/` in a milestone result when the dir does not
+  exist yet, write "project dir created" instead
 - Shape the milestones with the time split of
   `.claude/skills/tutorial_in_60_mins.rules.md`: setup, introduction, API
   notebook, example notebook

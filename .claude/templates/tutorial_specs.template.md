@@ -24,6 +24,10 @@ worth a 60-minute tutorial>
   - Read `tutorials/<TOOL>/README.md` and the `Result` dirs of
     `class_project/project_descriptions/README.md` for <TOOL> and related tools
 - Start from the existing `tutorials/<TOOL>/` and make it better
+  - If `tutorials/<TOOL>/` does not exist, replace this line with:
+    - Create the project dir following the class instructions in
+      `class_project/README.md`, section `Contribution to the Repo`
+      - Start from `class_project/project_template`
 - Make it look like `msml610/tutorials/L03_knowledge_representation/`
 - Use the skills in `.claude/skills/notebook.*` to automate part of the work, and
   document how you used them
