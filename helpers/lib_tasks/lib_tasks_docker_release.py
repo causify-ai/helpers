@@ -10,7 +10,7 @@ import os
 from operator import attrgetter
 from typing import Any, Optional
 
-from invoke import task
+from invoke.tasks import task
 
 # We want to minimize the dependencies from non-standard Python packages since
 # this code needs to run with minimal dependencies and without Docker.
