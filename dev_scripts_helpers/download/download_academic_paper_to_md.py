@@ -658,9 +658,7 @@ def _download(
         _download_ssrn_with_chrome(url, pdf_path, log_level=log_level)
         _LOG.info("Successfully downloaded and saved: '%s'", pdf_path)
     else:
-        _, pdf_content, pdf_url = _resolve_metadata_and_content(
-            url, email=email
-        )
+        _, pdf_content, pdf_url = _resolve_metadata_and_content(url, email=email)
         # Download the PDF now if metadata resolution did not already fetch it
         # (the DOI/arXiv branches only resolve a URL, not the content).
         if pdf_content is None:
@@ -780,9 +778,7 @@ def _save_to_papers_dir(
         papers dir
     :param dry_run: if True, show what would be done without executing
     """
-    _LOG.debug(
-        hprint.to_str("base_path papers_dir no_incremental dry_run")
-    )
+    _LOG.debug(hprint.to_str("base_path papers_dir no_incremental dry_run"))
     papers_dir = os.path.expanduser(papers_dir)
     pdf_path = f"{base_path}.pdf"
     summary_path = f"{base_path}.summary.md"
@@ -800,9 +796,7 @@ def _save_to_papers_dir(
     for src_path in src_paths:
         dst_path = os.path.join(papers_dir, os.path.basename(src_path))
         if dry_run:
-            _LOG.warning(
-                "[DRY_RUN] Would copy '%s' to '%s'", src_path, dst_path
-            )
+            _LOG.warning("[DRY_RUN] Would copy '%s' to '%s'", src_path, dst_path)
         elif os.path.abspath(src_path) == os.path.abspath(dst_path):
             # Copying a file onto itself fails, and there is nothing to do.
             _LOG.info("File is already at '%s', nothing to copy", dst_path)

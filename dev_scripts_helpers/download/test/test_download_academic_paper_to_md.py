@@ -525,9 +525,7 @@ class Test__download(hunitest.TestCase):
         # Run test.
         input_path = self.helper(pdf_path)
         # Check outputs.
-        self.assertEqual(
-            self.read_bytes(pdf_path), self.read_bytes(input_path)
-        )
+        self.assertEqual(self.read_bytes(pdf_path), self.read_bytes(input_path))
 
     def test2(self) -> None:
         """
@@ -562,9 +560,7 @@ class Test__download(hunitest.TestCase):
         # Run test.
         input_path = self.helper(pdf_path, no_incremental=True)
         # Check outputs.
-        self.assertEqual(
-            self.read_bytes(pdf_path), self.read_bytes(input_path)
-        )
+        self.assertEqual(self.read_bytes(pdf_path), self.read_bytes(input_path))
 
     def test5(self) -> None:
         """

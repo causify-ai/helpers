@@ -361,7 +361,6 @@ class Test_run_latex_py(hunitest.TestCase):
             "run_latex.py",
             "--input",
             in_file_path,
-            "--skip_action=copy_to_gdrive",
             "--skip_action=open_pdf",
         ]
         # Prepare outputs.
@@ -390,7 +389,6 @@ class Test_run_latex_py(hunitest.TestCase):
             in_file_path,
             "--output",
             out_file_path,
-            "--skip_action=copy_to_gdrive",
             "--skip_action=open_pdf",
         ]
         # Run test.
@@ -413,8 +411,6 @@ class Test_run_latex_py(hunitest.TestCase):
             "run_latex.py",
             "--input",
             in_file_path,
-            "--skip_action",
-            "copy_to_gdrive",
         ]
         # Run test.
         with (
@@ -447,3 +443,24 @@ class Test_run_latex_py(hunitest.TestCase):
             self._run_main(argv)
         # Check outputs.
         self.assertEqual(mock_copy.call_count, 1)
+
+    def test5(self) -> None:
+        """
+        Test that the Google Drive copy is not run by default.
+        """
+        # Prepare inputs.
+        in_file_path = os.path.join(self.get_scratch_space(), "book.tex")
+        argv = [
+            "run_latex.py",
+            "--input",
+            in_file_path,
+            "--skip_action=open_pdf",
+        ]
+        # Run test.
+        with (
+            mock.patch.object(dshdrula.dshdlila, "run_basic_latex"),
+            mock.patch.object(dshdrula, "_copy_to_google_drive") as mock_copy,
+        ):
+            self._run_main(argv)
+        # Check outputs.
+        self.assertEqual(mock_copy.call_count, 0)

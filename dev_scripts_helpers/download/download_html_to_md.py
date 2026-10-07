@@ -151,9 +151,7 @@ def _download_html(
             response = requests.get(input_url, headers=headers, timeout=30)
             response.raise_for_status()
             html_content = response.text
-            _LOG.debug(
-                "Received response: status_code=%s", response.status_code
-            )
+            _LOG.debug("Received response: status_code=%s", response.status_code)
         except requests.exceptions.HTTPError as e:
             # Some sites (e.g., behind Cloudflare/Akamai) reject plain HTTP
             # clients regardless of headers. Fall back to a headless

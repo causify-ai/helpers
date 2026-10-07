@@ -20,8 +20,9 @@ in Skim on macOS.
 - Full build with bibliography (two passes, bibtex, two more passes):
 > run_latex.py --input book.tex --num_passes 3
 
-- Build, copy to Google Drive, and open the PDF in Skim:
-> run_latex.py --input book.tex -a copy_to_gdrive -a open_pdf
+- Build, open the PDF in Skim (default), and also copy it to Google Drive (not
+  run by default):
+> run_latex.py --input book.tex --action copy_to_gdrive
 
 - Watch mode: rebuild on file changes, skip opening on subsequent runs:
 > run_latex.py --input book.tex --daemon
@@ -71,7 +72,6 @@ _VALID_ACTIONS = [
 
 _DEFAULT_ACTIONS = [
     "compile",
-    "copy_to_gdrive",
     "open_pdf",
 ]
 

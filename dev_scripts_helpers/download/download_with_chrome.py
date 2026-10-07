@@ -107,7 +107,9 @@ def _resolve_urls(input_arg: str, mode: str, referer: str) -> Tuple[str, str]:
     url = input_arg
     ssrn_id = dshddut.get_ssrn_id(input_arg)
     if ssrn_id:
-        abstract_url = f"https://papers.ssrn.com/sol3/papers.cfm?abstract_id={ssrn_id}"
+        abstract_url = (
+            f"https://papers.ssrn.com/sol3/papers.cfm?abstract_id={ssrn_id}"
+        )
         if mode == "html":
             url = abstract_url
         else:
@@ -141,7 +143,9 @@ def _get_default_chrome_path() -> str:
     :return: path on macOS, command name on Linux
     """
     if sys.platform == "darwin":
-        chrome_path = "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
+        chrome_path = (
+            "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
+        )
     else:
         chrome_path = "google-chrome"
     return chrome_path
