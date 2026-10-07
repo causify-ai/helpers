@@ -11,12 +11,13 @@
 | File                                   | Description                                                                  | Cluster             |
 | -------------------------------------- | ---------------------------------------------------------------------------- | ------------------- |
 | `bookmark_utils.py`                    | Shared helpers for downloading/uploading Google Sheets data and CSV files    | Shared Utilities    |
-| `download_academic_paper_to_md.py`     | Download an academic paper (arXiv/DOI/PDF), convert to Markdown, summarize   | Content Downloaders |
+| `download_academic_paper_to_md.py`     | Download an academic paper (arXiv/DOI/SSRN/PDF), convert, summarize          | Content Downloaders |
 | `download_hn_article_to_md.py`         | Download a Hacker News submission (comments and article), convert, summarize | Content Downloaders |
 | `download_html_to_md.py`               | Download a generic web page and convert it to Markdown, summarize            | Content Downloaders |
 | `download_link_articles.py`            | Download/summarize article content and HN comments for rows in a Gsheet      | Gsheet Pipelines    |
 | `download_to_md.py`                    | Detect input type and dispatch to the matching `download_*_to_md.py` script  | Content Downloaders |
-| `download_utils.py`                    | Shared helpers for fetching article titles and summarizing text via an LLM   | Shared Utilities    |
+| `download_utils.py`                    | Shared helpers for article titles, LLM summaries, and block-page detection   | Shared Utilities    |
+| `download_with_chrome.py`              | Download a page or file (e.g., an SSRN PDF) with a real Chrome over CDP      | Content Downloaders |
 | `podcast_dl.py`                        | Download and format a podcast transcript from various sources                | Podcast Tools       |
 | `podcast_dl_example.sh`                | Example invocations of `podcast_dl.py` for each supported source type        | Podcast Tools       |
 | `process_bookmarks.py`                 | Download, summarize, and archive to Google Drive HN bookmarks from a CSV     | Bookmark Pipeline   |
@@ -66,11 +67,13 @@
 - Detects the type of `--input` and dispatches to the matching converter:
   - **hn**: HN submission URL (`news.ycombinator.com/item?id=...`) ->
     `download_hn_article_to_md.py`
-  - **academic_paper**: arXiv URL, DOI (URL or bare), or generic `.pdf` URL ->
-    `download_academic_paper_to_md.py`
+  - **academic_paper**: arXiv URL, DOI (URL or bare), SSRN URL, generic `.pdf` URL,
+    or path to a local `.pdf` file -> `download_academic_paper_to_md.py`
   - **html**: anything else (generic web page) -> `download_html_to_md.py`
 - `--output` is only forwarded to the dispatched script when specified; otherwise the
   dispatched script derives its own output name
+- `--email` is only forwarded to `download_academic_paper_to_md.py`, which uses it
+  for the Unpaywall lookup (see below)
 
 #### Examples
 - Download a generic web page (auto-detected as html):
@@ -83,6 +86,16 @@
   > download_to_md.py --input "https://arxiv.org/abs/1706.03762"
   ```
 
+- Use a PDF already saved locally (auto-detected as academic_paper):
+  ```bash
+  > download_to_md.py --input ~/Downloads/ssrn_5277078.pdf
+  ```
+
+- Download a DOI, looking up an open-access PDF with Unpaywall:
+  ```bash
+  > download_to_md.py --input "10.1038/nature12373" --email me@example.org
+  ```
+
 - Download an HN submission with an explicit output base name:
   ```bash
   > download_to_md.py \
@@ -93,11 +106,38 @@
 ### `download_academic_paper_to_md.py`
 
 #### What It Does
-- Downloads academic papers from arXiv, DOI, or a generic PDF URL
+- Downloads academic papers from arXiv, DOI, SSRN, or a generic PDF URL, or takes a
+  PDF already saved locally
 - Saves the paper with a standardized base name, e.g.,
   `2016.Ribeiro_et_al.Why_Should_I_Trust_You...`, shared across the `.pdf`, `.md`,
   and `.summary.md` outputs
 - Converts the PDF to Markdown and summarizes it
+- For a DOI, queries CrossRef for the metadata and Unpaywall for an open-access PDF
+  - Unpaywall requires a real contact email, passed with `--email`
+  - Without `--email`, the Unpaywall lookup is skipped: the paper can still be named
+    from CrossRef, but there is no PDF to download
+  - Only a direct PDF link (`url_for_pdf`) is used: a landing page, e.g., an SSRN
+    abstract page, is not a PDF and is ignored
+  - If no direct PDF link is found, download the PDF manually and pass it as a local
+    file
+- For a local PDF, the `download` action copies the file to the standardized path
+  (it does nothing if the PDF is already there)
+  - The base name comes from the metadata embedded in the PDF
+  - If the PDF has no embedded title, the file name is used instead
+  - Use `--output` to set the base name explicitly
+- For an SSRN paper (abstract URL, delivery URL, or DOI `10.2139/ssrn.<id>`), the PDF
+  is downloaded through a real Chrome with `download_with_chrome.py`, since SSRN
+  blocks scripted clients (HTTP `403`)
+  - The paper is named from CrossRef, which can differ from the title of the latest
+    PDF version
+  - Chrome is started if it is not running, and closed after the download: a Chrome
+    that was already running is left open
+  - If a check needs a person (e.g., a CAPTCHA), complete it in the Chrome window
+- The opt-in `save_to_papers_dir` action copies the PDF and the summary to the
+  papers dir (`--papers_dir`, default `/Users/saggese/src/notes1/papers`)
+  - Enable it with `--action save_to_papers_dir`: it runs after `summarize`
+  - If the summary is missing (e.g., `summarize` was skipped), only the PDF is copied
+  - Existing files in the papers dir are skipped unless `--no_incremental` is passed
 
 #### Examples
 - Download from an arXiv URL (runs download, convert, summarize by default):
@@ -105,9 +145,31 @@
   > download_academic_paper_to_md.py --input "https://arxiv.org/abs/1706.03762"
   ```
 
-- Download from a DOI URL or bare DOI:
+- Download from a DOI URL or bare DOI, looking up an open-access PDF with Unpaywall:
   ```bash
-  > download_academic_paper_to_md.py --input "10.1038/nature12373"
+  > download_academic_paper_to_md.py \
+      --input "10.1038/nature12373" \
+      --email me@example.org
+  ```
+
+- Download an SSRN paper through Chrome, then convert and summarize it:
+  ```bash
+  > download_academic_paper_to_md.py \
+      --input "https://papers.ssrn.com/sol3/papers.cfm?abstract_id=5277078"
+  ```
+
+- Use a PDF already saved locally, e.g., saved from a browser: copy it under the standardized
+  name, convert it, and summarize it:
+  ```bash
+  > download_academic_paper_to_md.py --input ~/Downloads/ssrn_5277078.pdf
+  ```
+
+- Use a local PDF with an explicit base name (produces `mypaper.pdf`, `mypaper.md`,
+  `mypaper.summary.md`):
+  ```bash
+  > download_academic_paper_to_md.py \
+      --input ~/Downloads/ssrn_5277078.pdf \
+      --output ./my_papers/mypaper
   ```
 
 - Save under a custom directory when `--output` is not passed:
@@ -121,6 +183,21 @@
   > download_academic_paper_to_md.py \
       --input "10.1038/nature12373" \
       --skip_action summarize
+  ```
+
+- Also copy the PDF and the summary to the papers dir:
+  ```bash
+  > download_academic_paper_to_md.py \
+      --input "https://arxiv.org/abs/1706.03762" \
+      --action save_to_papers_dir
+  ```
+
+- Copy the PDF and the summary to a custom papers dir:
+  ```bash
+  > download_academic_paper_to_md.py \
+      --input "https://arxiv.org/abs/1706.03762" \
+      --action save_to_papers_dir \
+      --papers_dir ./my_papers
   ```
 
 - Show what would be done without downloading, converting, or summarizing:
@@ -165,6 +242,11 @@
   using one of several converters: `auto` (BeautifulSoup, falling back to
   readability), `pandoc`, `bs`, or `readability`
 - Summarizes the converted content
+- Retries with a headless browser when the plain request is rejected (HTTP error)
+- Fails with an error, and saves nothing, when the downloaded page is a
+  bot-protection page (e.g., "Just a moment...") instead of the content
+  - Some sites also block the headless browser (e.g., SSRN): use
+    `download_with_chrome.py` for them
 
 #### Examples
 - Download a page and convert with the default `auto` converter:
@@ -186,6 +268,86 @@
       --input https://example.com \
       --output output.md \
       --skip_action summarize
+  ```
+
+### `download_with_chrome.py`
+
+#### What It Does
+- Downloads a URL with a real Chrome browser attached through the Chrome DevTools
+  Protocol (CDP), for sites that block scripted clients, including the headless
+  browser of `download_html_to_md.py`
+  - The site sees an ordinary Chrome session, with its own profile and cookies
+  - A check that needs a person (e.g., a CAPTCHA) is completed in the Chrome window,
+    while the script waits (`--timeout_sec`)
+- `--mode html` saves the rendered HTML of a page
+- `--mode file` saves a file (e.g., a PDF): the referer page is opened first, then
+  the file is fetched from inside that page, with the cookies of the site
+- For an SSRN abstract URL, delivery URL, or DOI (`10.2139/ssrn.<id>`), the referer
+  and the PDF URL are derived automatically
+- Uses a Chrome with remote debugging on `--cdp_url` (default
+  `http://127.0.0.1:9222`)
+  - `--launch_chrome` starts one if none is listening, with a dedicated profile
+    (`--chrome_profile_dir`, default `~/.cache/chrome_cdp_profile`) that keeps the
+    cookies between runs
+  - A Chrome started by `--launch_chrome` is closed when the download succeeds
+    (pass `--keep_chrome` to keep it open, e.g., to reuse it in the next run)
+  - A Chrome that was already running is never closed
+  - On a failure the Chrome window is left open, to see what the page shows
+- Saves nothing and fails if the result is still a bot-protection page, or if a
+  `.pdf` output is not a PDF
+
+#### Examples
+- Download the PDF of an SSRN paper, starting Chrome if it is not running:
+  ```bash
+  > download_with_chrome.py \
+      --launch_chrome \
+      --mode file \
+      --input "https://papers.ssrn.com/sol3/papers.cfm?abstract_id=5277078" \
+      --output ssrn_5277078.pdf
+  ```
+
+- Download the PDF from the DOI, with a Chrome already running with
+  `--remote-debugging-port=9222`:
+  ```bash
+  > download_with_chrome.py \
+      --mode file \
+      --input "10.2139/ssrn.5277078" \
+      --output ssrn_5277078.pdf
+  ```
+
+- Download a file from any site, opening a referer page first:
+  ```bash
+  > download_with_chrome.py \
+      --mode file \
+      --input "https://example.com/files/paper.pdf" \
+      --referer "https://example.com/paper" \
+      --output paper.pdf
+  ```
+
+- Save the rendered HTML of a page:
+  ```bash
+  > download_with_chrome.py \
+      --launch_chrome \
+      --input "https://example.com/page" \
+      --output page.html
+  ```
+
+- Keep the Chrome started by the script open after the download:
+  ```bash
+  > download_with_chrome.py \
+      --launch_chrome \
+      --keep_chrome \
+      --input "https://example.com/page" \
+      --output page.html
+  ```
+
+- Show what would be done without starting Chrome or downloading:
+  ```bash
+  > download_with_chrome.py \
+      --mode file \
+      --input "10.2139/ssrn.5277078" \
+      --output ssrn_5277078.pdf \
+      --dry_run
   ```
 
 ### `podcast_dl.py`
@@ -411,6 +573,32 @@
   ```
 
 ## Description of Workflows
+
+### Paper From a Site That Blocks Scripts (e.g., SSRN)
+- **Purpose**: get the Markdown and the summary of a paper that cannot be downloaded
+  by a plain script or by a headless browser
+
+- **Steps**:
+  1. Run the pipeline on the SSRN URL (or DOI), which downloads the PDF through a
+     real Chrome, converts it, and summarizes it:
+     ```bash
+     > download_academic_paper_to_md.py \
+         --input "https://papers.ssrn.com/sol3/papers.cfm?abstract_id=5277078"
+     ```
+  2. Find `<base>.pdf`, `<base>.md`, and `<base>.summary.md` under `$PAPERS_DIR` (or
+     the current directory)
+
+- **Notes**:
+  - A Chrome window opens during the download and closes by itself when it is done
+  - If the site shows a check that needs a person, complete it in that window: the
+    script continues by itself
+  - The CrossRef title of an SSRN paper can differ from the title of its latest
+    PDF version, so check the name chosen for the files
+  - To download only the PDF, run `download_with_chrome.py` (see above), then pass the
+    file to `download_academic_paper_to_md.py --input`
+  - If the Chrome download does not work, save the PDF from your browser and pass it
+    as a local file with `--input`; use `--output` to choose the base name, since many
+    SSRN PDFs have no embedded title
 
 ### Full Link-Processing Workflow
 - **Purpose**: Ingest new bookmarks, classify them, and archive their content and

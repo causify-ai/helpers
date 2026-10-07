@@ -5,7 +5,8 @@ Detect the type of `--input` and dispatch to the matching `download_*_to_md.py`
 script.
     - **hn**: Hacker News submission URL (`news.ycombinator.com/item?id=...`)
       -> dispatches to `download_hn_article_to_md.py`
-    - **academic_paper**: arXiv URL, DOI (URL or bare), or generic `.pdf` URL
+    - **academic_paper**: arXiv URL, DOI (URL or bare), generic `.pdf` URL, or
+      path to a local `.pdf` file
       -> dispatches to `download_academic_paper_to_md.py`
     - **html**: anything else (generic web page) -> dispatches to
       `download_html_to_md.py`
@@ -24,6 +25,13 @@ script.
 
 - Download a Hacker News submission (auto-detected as hn):
 > download_to_md.py --input "https://news.ycombinator.com/item?id=12345"
+
+- Use a PDF already saved locally (auto-detected as academic_paper):
+> download_to_md.py --input ~/Downloads/ssrn_5277078.pdf
+
+- Download a DOI, looking up an open-access PDF with Unpaywall (the email is
+  forwarded to `download_academic_paper_to_md.py` only):
+> download_to_md.py --input "10.1038/nature12373" --email me@example.org
 
 - Specify an explicit output path/base name, forwarded to the dispatched script:
 > download_to_md.py --input "https://arxiv.org/abs/1706.03762" --output ./papers/attention
@@ -62,7 +70,7 @@ def detect_input_type(input_arg: str) -> str:
     """
     Detect the type of `input_arg` to select the script to dispatch to.
 
-    :param input_arg: URL to classify
+    :param input_arg: URL or local file path to classify
     :return: "hn", "academic_paper", or "html"
     """
     _LOG.debug(hprint.to_str("input_arg"))
@@ -89,22 +97,27 @@ def _dispatch(
     output_arg: str,
     input_type: str,
     *,
+    email: str = "",
     dry_run: bool = False,
     no_incremental: bool = False,
 ) -> None:
     """
     Dispatch to the `download_*_to_md.py` script matching `input_type`.
 
-    :param input_arg: URL to download
+    :param input_arg: URL or local file to download
     :param output_arg: output path/base name to forward, empty if not
         specified
     :param input_type: "hn", "academic_paper", or "html"
+    :param email: contact email to forward as `--email` when `input_type` is
+        "academic_paper", empty if not specified
     :param dry_run: if True, forward `--dry_run` to the dispatched script
     :param no_incremental: if True, forward `--no_incremental` to the
         dispatched script
     """
     _LOG.debug(
-        hprint.to_str("input_arg output_arg input_type dry_run no_incremental")
+        hprint.to_str(
+            "input_arg output_arg input_type email dry_run no_incremental"
+        )
     )
     # Resolve the script to dispatch to based on the detected input type; all
     # 3 target scripts share the same `--input` CLI flag.
@@ -125,6 +138,9 @@ def _dispatch(
     ]
     if output_arg:
         cmd.append(f'--output "{output_arg}"')
+    # Only the academic paper script has an `--email` option (for Unpaywall).
+    if email and input_type == "academic_paper":
+        cmd.append(f'--email "{email}"')
     if dry_run:
         cmd.append("--dry_run")
     if no_incremental:
@@ -154,8 +170,18 @@ def _parse() -> argparse.ArgumentParser:
         "--input",
         required=True,
         help=(
-            "URL to download: academic paper (arXiv/DOI/PDF), Hacker News "
-            "submission, or generic web page"
+            "URL to download: academic paper (arXiv/DOI/PDF URL or local PDF "
+            "file), Hacker News submission, or generic web page"
+        ),
+    )
+    parser.add_argument(
+        "--email",
+        default="",
+        help=(
+            "Contact email forwarded as --email to "
+            "`download_academic_paper_to_md.py` (ignored for other input "
+            "types), used to look up an open-access PDF for a DOI with "
+            "Unpaywall"
         ),
     )
     parser.add_argument(
@@ -199,6 +225,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
         args.input,
         args.output,
         input_type,
+        email=args.email,
         dry_run=args.dry_run,
         no_incremental=args.no_incremental,
     )

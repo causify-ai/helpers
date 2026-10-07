@@ -12,6 +12,9 @@ r"""
   - bs: Uses BeautifulSoup to find main content, then markdownify to convert
   - readability: Uses readability library for article extraction
 - Summarize the content
+- Fail, without saving anything, if the downloaded page is a bot-protection page
+  (e.g., "Just a moment...") instead of the content: for such sites use
+  `download_with_chrome.py`
 
 # Usage Example
 
@@ -160,6 +163,18 @@ def _download_html(
                 "Request failed (%s), retrying with headless browser...", e
             )
             html_content = _download_html_with_browser(input_url)
+        # Fail loudly on a bot-protection page: converting it would silently
+        # produce a "paper" that is only a block notice, and saving it would
+        # make the next incremental run skip the download.
+        marker = dshddut.detect_blocked_page(html_content)
+        hdbg.dassert_eq(
+            marker,
+            "",
+            "'%s' returned a bot-protection page instead of the content: the "
+            "site blocks scripted downloads. Save the page from a browser and "
+            "pass the file as --input, or use `download_with_chrome.py`",
+            input_url,
+        )
     hio.to_file(output_html_file, html_content)
     _LOG.info("Saved HTML to '%s'", output_html_file)
 

@@ -95,6 +95,57 @@ def sanitize_title_for_filename(title: str) -> str:
     return sanitized
 
 
+# Phrases (lowercase) found in the visible text of the pages that bot-protection
+# systems (e.g., Cloudflare, Akamai, Imperva, Elsevier's content protection)
+# return instead of the requested content.
+BLOCKED_PAGE_MARKERS = [
+    "just a moment",
+    "attention required! | cloudflare",
+    "enable javascript and cookies to continue",
+    "checking your browser before accessing",
+    "verify you are human",
+    "performing security verification",
+    "you may be using an automated script",
+    "access denied",
+    "unusual traffic from your computer",
+    "pardon our interruption",
+    "are you a robot",
+    "captcha",
+]
+
+# A block page has only a few lines of text, while a real page has much more:
+# a marker is only trusted on pages with less visible text than this, so that
+# an article that merely mentions a "captcha" is not flagged.
+BLOCKED_PAGE_MAX_TEXT_CHARS = 2000
+
+
+def detect_blocked_page(html_content: str) -> str:
+    """
+    Detect a bot-protection page returned instead of the requested content.
+
+    Such pages often come with a `200` status or are rendered by a browser, so
+    the HTTP status alone does not reveal them. A page is flagged when its
+    visible text is short and contains a known marker.
+
+    :param html_content: HTML of the downloaded page
+    :return: the matching marker, e.g., "just a moment", or "" if the page
+        looks like real content
+    """
+    _LOG.debug(hprint.to_str("html_content"))
+    # Keep only the text a person would see: drop scripts and styles, which are
+    # large in block pages (e.g., 900 KB of HTML for 400 characters of text).
+    soup = bs4.BeautifulSoup(html_content, "html.parser")
+    for tag in soup(["script", "style", "noscript"]):
+        tag.decompose()
+    text = re.sub(r"\s+", " ", soup.get_text(" ")).strip().lower()
+    marker = ""
+    if len(text) < BLOCKED_PAGE_MAX_TEXT_CHARS:
+        matches = [m for m in BLOCKED_PAGE_MARKERS if m in text]
+        marker = matches[0] if matches else ""
+    _LOG.debug("return=%s", marker)
+    return marker
+
+
 # Shared prompt for summarizing article content into 5 bullet points; reused
 # by `download_hn_article_to_md.py`, `download_html_to_md.py`, and
 # `download_academic_paper_to_md.py` to avoid repeating the same prompt text.
@@ -241,6 +292,39 @@ def detect_doi(url: str) -> Optional[str]:
     return None
 
 
+def get_ssrn_id(input_arg: str) -> str:
+    """
+    Extract the SSRN abstract id from an SSRN URL or DOI.
+
+    E.g., all of these return "5277078":
+    - `https://papers.ssrn.com/sol3/papers.cfm?abstract_id=5277078`
+    - `https://papers.ssrn.com/sol3/Delivery.cfm/5277078.pdf?abstractid=5277078`
+    - `https://www.ssrn.com/abstract=5277078`
+    - `10.2139/ssrn.5277078`
+
+    :param input_arg: URL or DOI
+    :return: the abstract id, or "" if the input is not an SSRN paper
+    """
+    _LOG.debug(hprint.to_str("input_arg"))
+    ssrn_id = ""
+    if "ssrn" in input_arg.lower():
+        # Match the id after any of the forms SSRN uses for it.
+        pattern = r"""
+            (?:
+                abstract_id=         # papers.cfm?abstract_id=<id>
+              | abstractid=          # Delivery.cfm/<id>.pdf?abstractid=<id>
+              | ssrn\.com/abstract=  # www.ssrn.com/abstract=<id>
+              | 10\.2139/ssrn\.      # DOI
+            )
+            (\d+)
+        """
+        match = re.search(pattern, input_arg, re.VERBOSE)
+        if match:
+            ssrn_id = match.group(1)
+    _LOG.debug("return=%s", ssrn_id)
+    return ssrn_id
+
+
 def _is_pdf_url(url: str) -> bool:
     """
     Check if a URL points directly to a PDF file.
@@ -259,18 +343,27 @@ def _is_pdf_url(url: str) -> bool:
 
 def is_academic_paper_url(url: str) -> bool:
     """
-    Check if a URL points to an academic paper (arXiv, DOI, or PDF).
+    Check if a URL points to an academic paper (arXiv, DOI, PDF, or SSRN).
 
     Single source of truth for what counts as an "academic paper" URL,
     shared by `download_to_md.py`'s input-type detection and
     `download_article()`'s dispatch below, so the two stay consistent.
 
-    :param url: Article URL or bare DOI
+    A path to a local `.pdf` file also counts, like a PDF URL. An SSRN
+    abstract page counts too: it is not a PDF, but
+    `download_academic_paper_to_md.py` downloads its paper through Chrome.
+
+    :param url: Article URL, bare DOI, or local file path
     :return: True if the URL should be routed to
         `download_academic_paper_to_md.py`
     """
     _LOG.debug(hprint.to_str("url"))
-    result = bool(is_arxiv_url(url) or detect_doi(url) or _is_pdf_url(url))
+    result = bool(
+        is_arxiv_url(url)
+        or detect_doi(url)
+        or _is_pdf_url(url)
+        or get_ssrn_id(url)
+    )
     _LOG.debug(hprint.to_str("result"))
     return result
 
