@@ -53,6 +53,10 @@
 - Overwrite existing files:
 > download_academic_paper_to_md.py --input "10.1038/nature12373" --no_incremental
 
+- Summarize with a specific LLM model (by default the OpenRouter model of
+  `llm_cli.py`, which needs the `OPENROUTER_KEY` env var):
+> download_academic_paper_to_md.py --input "10.1038/nature12373" --model openrouter/anthropic/claude-haiku-4.5
+
 - Only download and convert, skip summarization:
 > download_academic_paper_to_md.py --input "10.1038/nature12373" --skip_action summarize
 
@@ -723,7 +727,9 @@ def _convert(
 # #############################################################################
 
 
-def _summarize(base_path: str, *, dry_run: bool = False) -> None:
+def _summarize(
+    base_path: str, *, model: str = "", dry_run: bool = False
+) -> None:
     """
     Summarize the converted markdown content using an LLM.
 
@@ -731,9 +737,12 @@ def _summarize(base_path: str, *, dry_run: bool = False) -> None:
 
     :param base_path: base path (no extension) shared by the pdf/md/summary
         files
+    :param model: LLM model name
+        - Default: `""`, which uses the default model of `llm_cli.py`, an
+          OpenRouter one
     :param dry_run: if True, show what would be done without executing
     """
-    _LOG.debug(hprint.to_str("base_path dry_run"))
+    _LOG.debug(hprint.to_str("base_path model dry_run"))
     md_path = f"{base_path}.md"
     summary_path = f"{base_path}.summary.md"
     if not dry_run:
@@ -743,6 +752,7 @@ def _summarize(base_path: str, *, dry_run: bool = False) -> None:
         md_path,
         summary_path,
         dshddut.ARTICLE_SUMMARY_PROMPT,
+        model=model,
         dry_run=dry_run,
     )
     if not dry_run:
@@ -850,6 +860,16 @@ def _parse() -> argparse.ArgumentParser:
         ),
     )
     parser.add_argument(
+        "--model",
+        default="",
+        help=(
+            "LLM model for the `summarize` action, e.g., "
+            "`openrouter/anthropic/claude-haiku-4.5`. If not specified, the "
+            "default model of `llm_cli.py` is used, an OpenRouter one (it "
+            "needs the `OPENROUTER_KEY` env var)"
+        ),
+    )
+    parser.add_argument(
         "--email",
         default="",
         help=(
@@ -945,7 +965,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
                     dry_run=args.dry_run,
                 )
             elif action == "summarize":
-                _summarize(base_path, dry_run=args.dry_run)
+                _summarize(base_path, model=args.model, dry_run=args.dry_run)
             elif action == "save_to_papers_dir":
                 _save_to_papers_dir(
                     base_path,

@@ -9,6 +9,7 @@ import pytest
 pytest.importorskip("pandas")
 
 import helpers.hcache_simple as hcacsimp
+import helpers.hllm_cli as hllmcli
 import helpers.hsystem as hsystem
 import helpers.hunit_test as hunitest
 import dev_scripts_helpers.download.bookmark_utils as dshdbout
@@ -553,3 +554,43 @@ class Test_normalize_tag(hunitest.TestCase):
         expected = ""
         # Run test.
         self.helper(raw_tag, expected)
+
+
+# #############################################################################
+# Test__parse
+# #############################################################################
+
+
+class Test__parse(hunitest.TestCase):
+    """
+    Test the command-line arguments of `process_gsheet_links.py`.
+    """
+
+    def test1(self) -> None:
+        """
+        Test the default tagging model is the OpenRouter one of `hllm_cli`.
+        """
+        # Prepare inputs.
+        parser = dshdpgsli._parse()
+        # Prepare outputs.
+        expected = hllmcli.DEFAULT_MODEL
+        # Run test.
+        args = parser.parse_args([])
+        # Check outputs.
+        self.assert_equal(args.model, expected)
+        self.assertTrue(args.model.startswith("openrouter/"))
+
+    def test2(self) -> None:
+        """
+        Test the tagging model can be changed with `--model`.
+        """
+        # Prepare inputs.
+        parser = dshdpgsli._parse()
+        model = "openrouter/anthropic/claude-haiku-4.5"
+        # Prepare outputs.
+        expected = model
+        # Run test.
+        args = parser.parse_args(["--model", model])
+        # Check outputs.
+        self.assert_equal(args.model, expected)
+

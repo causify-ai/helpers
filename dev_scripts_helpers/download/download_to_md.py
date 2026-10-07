@@ -33,6 +33,10 @@ script.
   forwarded to `download_academic_paper_to_md.py` only):
 > download_to_md.py --input "10.1038/nature12373" --email me@example.org
 
+- Summarize with a specific LLM model, forwarded to the dispatched script (by
+  default its OpenRouter model, which needs the `OPENROUTER_KEY` env var):
+> download_to_md.py --input "https://arxiv.org/abs/1706.03762" --model openrouter/anthropic/claude-haiku-4.5
+
 - Specify an explicit output path/base name, forwarded to the dispatched script:
 > download_to_md.py --input "https://arxiv.org/abs/1706.03762" --output ./papers/attention
 
@@ -98,6 +102,7 @@ def _dispatch(
     input_type: str,
     *,
     email: str = "",
+    model: str = "",
     dry_run: bool = False,
     no_incremental: bool = False,
 ) -> None:
@@ -110,13 +115,15 @@ def _dispatch(
     :param input_type: "hn", "academic_paper", or "html"
     :param email: contact email to forward as `--email` when `input_type` is
         "academic_paper", empty if not specified
+    :param model: LLM model to forward as `--model` to the summarize action,
+        empty to use the default model of the dispatched script
     :param dry_run: if True, forward `--dry_run` to the dispatched script
     :param no_incremental: if True, forward `--no_incremental` to the
         dispatched script
     """
     _LOG.debug(
         hprint.to_str(
-            "input_arg output_arg input_type email dry_run no_incremental"
+            "input_arg output_arg input_type email model dry_run no_incremental"
         )
     )
     # Resolve the script to dispatch to based on the detected input type; all
@@ -141,6 +148,8 @@ def _dispatch(
     # Only the academic paper script has an `--email` option (for Unpaywall).
     if email and input_type == "academic_paper":
         cmd.append(f'--email "{email}"')
+    if model:
+        cmd.append(f'--model "{model}"')
     if dry_run:
         cmd.append("--dry_run")
     if no_incremental:
@@ -194,6 +203,16 @@ def _parse() -> argparse.ArgumentParser:
         ),
     )
     parser.add_argument(
+        "--model",
+        default="",
+        help=(
+            "LLM model forwarded as --model to the dispatched script, used "
+            "to summarize, e.g., `openrouter/anthropic/claude-haiku-4.5`. If "
+            "not specified, the dispatched script uses its default model, an "
+            "OpenRouter one (it needs the `OPENROUTER_KEY` env var)"
+        ),
+    )
+    parser.add_argument(
         "--dry_run",
         action="store_true",
         help=(
@@ -226,6 +245,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
         args.output,
         input_type,
         email=args.email,
+        model=args.model,
         dry_run=args.dry_run,
         no_incremental=args.no_incremental,
     )

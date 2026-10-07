@@ -10,6 +10,7 @@ import dev_scripts_helpers.download.download_utils as dshddut
 """
 
 import logging
+import os
 import re
 from typing import Optional
 
@@ -165,17 +166,53 @@ def get_stat_file_path(summary_file: str) -> str:
     """
     Derive the stats JSON file path for a summary file.
 
-    :param summary_file: path to a `*.summary.md` file produced by
-        `summarize_text_with_llm()`
+    :param summary_file: path to a summary file produced by
+        `summarize_text_with_llm()`, e.g., `*.summary.md` or `*.summary.txt`
     :return: path to the sibling stats file (e.g.,
         `foo.summary.md` -> `foo.summary.stat.json`)
     """
-    hdbg.dassert(
-        summary_file.endswith(".md"),
-        "Summary file must end in '.md': %s",
-        summary_file,
+    stem, ext = os.path.splitext(summary_file)
+    hdbg.dassert_ne(
+        ext, "", "Summary file must have an extension: '%s'", summary_file
     )
-    return summary_file[: -len(".md")] + ".stat.json"
+    return stem + ".stat.json"
+
+
+def _build_llm_cli_cmd(
+    llm_cli_path: str,
+    input_file: str,
+    output_file: str,
+    prompt_file: str,
+    stat_file: str,
+    *,
+    model: str = "",
+) -> str:
+    """
+    Build the `llm_cli.py` command line to summarize a file.
+
+    :param llm_cli_path: path to `llm_cli.py`
+    :param input_file: path to the input text file
+    :param output_file: path to save the result
+    :param prompt_file: path to the file with the system prompt
+    :param stat_file: path to save the LLM usage stats
+    :param model: LLM model name
+        - Default: `""`, which omits `--model` so that `llm_cli.py` uses its
+          own default model
+    :return: command line
+    """
+    _LOG.debug(hprint.to_str("input_file output_file prompt_file model"))
+    cmd_parts = [
+        llm_cli_path,
+        f"--input={input_file}",
+        f"--output={output_file}",
+        f"--pf={prompt_file}",
+    ]
+    # Without `--model`, `llm_cli.py` uses its default model: an OpenRouter one.
+    if model:
+        cmd_parts.append(f"--model={model}")
+    cmd_parts += [f"--stat_file={stat_file}", "--lint"]
+    cmd = " ".join(cmd_parts)
+    return cmd
 
 
 def summarize_text_with_llm(
@@ -183,7 +220,7 @@ def summarize_text_with_llm(
     output_file: str,
     prompt: str,
     *,
-    model: str = "gpt-4o-mini",
+    model: str = "",
     dry_run: bool = False,
 ) -> None:
     """
@@ -196,10 +233,12 @@ def summarize_text_with_llm(
     :param output_file: Path to save the summary
     :param prompt: System prompt to guide the summarization
     :param model: LLM model to use for summarization
-        - Default: `gpt-4o-mini`, a direct model name passed to
-          `llm_cli.py` (not routed through OpenRouter, which uses an
-          `openrouter/<provider>/<model>` prefix, e.g.
-          `openrouter/anthropic/claude-haiku-4.5`)
+        - Default: `""`, which uses the default model of `llm_cli.py`, an
+          OpenRouter one (it needs the `OPENROUTER_KEY` env var)
+        - Use the `openrouter/<provider>/<model>` prefix for another
+          OpenRouter model, e.g., `openrouter/anthropic/claude-haiku-4.5`
+        - A direct model name, e.g., `gpt-4o-mini`, is not routed through
+          OpenRouter and needs the key of its provider
     :param dry_run: If True, show what would be done without executing
     """
     _LOG.debug(hprint.to_str("input_file output_file model"))
@@ -209,7 +248,7 @@ def summarize_text_with_llm(
             "[DRY RUN] Would summarize: %s -> %s (model: %s)",
             input_file,
             output_file,
-            model,
+            model or "default",
         )
         return
     # Save prompt to a temporary file.
@@ -219,16 +258,14 @@ def summarize_text_with_llm(
     # Build command to call `llm_cli.py` with the given prompt file.
     llm_cli_path = hsystem.find_file_in_repo("llm_cli.py")
     stat_file = get_stat_file_path(output_file)
-    cmd_parts = [
+    cmd = _build_llm_cli_cmd(
         llm_cli_path,
-        f"--input={input_file}",
-        f"--output={output_file}",
-        f"--pf={prompt_file}",
-        f"--model={model}",
-        f"--stat_file={stat_file}",
-        "--lint",
-    ]
-    cmd = " ".join(cmd_parts)
+        input_file,
+        output_file,
+        prompt_file,
+        stat_file,
+        model=model,
+    )
     _LOG.debug("Running command: '%s'", cmd)
     hsystem.system(cmd, print_command=True)
     _LOG.info("Summary saved to: '%s'", output_file)

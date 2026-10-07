@@ -388,6 +388,7 @@ def _process_row(
     script: str,
     output_dir: str,
     gdrive_dir: str,
+    model: str,
     no_incremental: bool,
     no_save_to_google_drive: bool,
     dry_run: bool,
@@ -400,6 +401,8 @@ def _process_row(
     :param output_dir: local dir for the raw per-item files and the merged
         summary
     :param gdrive_dir: Google Drive dir the merged summary is copied to
+    :param model: LLM model forwarded to `download_hn_article_to_md.py`, "" to
+        use its default model, an OpenRouter one
     :param no_incremental: if True, force `download_hn_article_to_md.py` to
         overwrite existing local per-item files
     :param no_save_to_google_drive: if True, keep the merged summary in
@@ -412,8 +415,8 @@ def _process_row(
     """
     _LOG.debug(
         hprint.to_str(
-            "output_dir gdrive_dir no_incremental no_save_to_google_drive "
-            "dry_run"
+            "output_dir gdrive_dir model no_incremental "
+            "no_save_to_google_drive dry_run"
         )
     )
     hn_url = (row.get("Hn_url") or "").strip()
@@ -458,6 +461,8 @@ def _process_row(
         f'--input "{hn_url}"',
         f'--output_dir "{output_dir}"',
     ]
+    if model:
+        cmd_parts.append(f'--model "{model}"')
     if no_incremental:
         cmd_parts.append("--no_incremental")
     cmd = " ".join(cmd_parts)
@@ -569,6 +574,14 @@ def _parse() -> argparse.ArgumentParser:
         f"{_DEFAULT_GDRIVE_DIR})",
     )
     parser.add_argument(
+        "--model",
+        default="",
+        help="LLM model for the summaries, e.g., "
+        "`openrouter/anthropic/claude-haiku-4.5`. If not specified, the "
+        "default model of `llm_cli.py` is used, an OpenRouter one (it needs "
+        "the `OPENROUTER_KEY` env var)",
+    )
+    parser.add_argument(
         "--no_incremental",
         action="store_true",
         help="Reprocess rows even if already marked Done, overwriting "
@@ -621,6 +634,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
             script=script,
             output_dir=args.output_dir,
             gdrive_dir=args.gdrive_dir,
+            model=args.model,
             no_incremental=args.no_incremental,
             no_save_to_google_drive=args.no_save_to_google_drive,
             dry_run=args.dry_run,

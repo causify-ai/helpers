@@ -263,3 +263,115 @@ class Test_is_academic_paper_url(hunitest.TestCase):
         expected = False
         # Run test.
         self.helper(url, expected)
+
+
+# #############################################################################
+# Test__build_llm_cli_cmd
+# #############################################################################
+
+
+class Test__build_llm_cli_cmd(hunitest.TestCase):
+    """
+    Test `download_utils._build_llm_cli_cmd()`.
+    """
+
+    def helper(self, model: str, expected: str) -> None:
+        """
+        Test helper for `_build_llm_cli_cmd()`.
+
+        :param model: LLM model name, "" for the default one
+        :param expected: expected command line
+        """
+        # Prepare inputs.
+        llm_cli_path = "llm_cli.py"
+        input_file = "paper.md"
+        output_file = "paper.summary.md"
+        prompt_file = "prompt.txt"
+        stat_file = "paper.summary.stat.json"
+        # Run test.
+        actual = dshddut._build_llm_cli_cmd(
+            llm_cli_path,
+            input_file,
+            output_file,
+            prompt_file,
+            stat_file,
+            model=model,
+        )
+        # Check outputs.
+        self.assert_equal(actual, expected)
+
+    def test1(self) -> None:
+        """
+        Test that `--model` is omitted by default, so that `llm_cli.py` uses
+        its own default model.
+        """
+        # Prepare inputs.
+        model = ""
+        # Prepare outputs.
+        expected = (
+            "llm_cli.py --input=paper.md --output=paper.summary.md "
+            "--pf=prompt.txt --stat_file=paper.summary.stat.json --lint"
+        )
+        # Run test.
+        self.helper(model, expected)
+
+    def test2(self) -> None:
+        """
+        Test that an explicit model is passed with `--model`.
+        """
+        # Prepare inputs.
+        model = "openrouter/anthropic/claude-haiku-4.5"
+        # Prepare outputs.
+        expected = (
+            "llm_cli.py --input=paper.md --output=paper.summary.md "
+            "--pf=prompt.txt --model=openrouter/anthropic/claude-haiku-4.5 "
+            "--stat_file=paper.summary.stat.json --lint"
+        )
+        # Run test.
+        self.helper(model, expected)
+
+
+# #############################################################################
+# Test_get_stat_file_path
+# #############################################################################
+
+
+class Test_get_stat_file_path(hunitest.TestCase):
+    """
+    Test `download_utils.get_stat_file_path()`.
+    """
+
+    def helper(self, summary_file: str, expected: str) -> None:
+        """
+        Test helper for `get_stat_file_path()`.
+
+        :param summary_file: path of the summary file
+        :param expected: expected path of the stats file
+        """
+        # Run test.
+        actual = dshddut.get_stat_file_path(summary_file)
+        # Check outputs.
+        self.assert_equal(actual, expected)
+
+    def test1(self) -> None:
+        """
+        Test a markdown summary.
+        """
+        # Prepare inputs.
+        summary_file = "dir/foo.summary.md"
+        # Prepare outputs.
+        expected = "dir/foo.summary.stat.json"
+        # Run test.
+        self.helper(summary_file, expected)
+
+    def test2(self) -> None:
+        """
+        Test a text summary, as saved by `download_link_articles.py`.
+        """
+        # Prepare inputs.
+        summary_file = "dir/foo.2.article_url.summary.txt"
+        # Prepare outputs.
+        expected = "dir/foo.2.article_url.summary.stat.json"
+        # Run test.
+        self.helper(summary_file, expected)
+

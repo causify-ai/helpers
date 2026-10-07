@@ -51,6 +51,12 @@ submission URL.
     --skip_action summarize_hn_url \
     --skip_action summarize_article_url
 
+- Summarize with a specific LLM model (by default the OpenRouter model of
+  `llm_cli.py`, which needs the `OPENROUTER_KEY` env var):
+> download_hn_article_to_md.py \
+    --input "https://news.ycombinator.com/item?id=12345" \
+    --model openrouter/anthropic/claude-haiku-4.5
+
 - Use an explicit output base name instead of the derived title:
 > download_hn_article_to_md.py \
     --input "https://news.ycombinator.com/item?id=12345" \
@@ -459,6 +465,7 @@ def _summarize_hn_url(
     *,
     article_url: str = "",
     hn_url: str = "",
+    model: str = "",
     dry_run: bool = False,
     no_incremental: bool = False,
 ) -> None:
@@ -469,12 +476,15 @@ def _summarize_hn_url(
     :param summary_file: Path to save the summary to
     :param article_url: URL of the linked article, for the backlink header
     :param hn_url: URL of the HN submission, for the backlink header
+    :param model: LLM model name
+        - Default: `""`, which uses the default model of `llm_cli.py`, an
+          OpenRouter one
     :param dry_run: If True, show what would be done without executing
     :param no_incremental: If True, overwrite `summary_file` even if it
         already exists
     """
     _LOG.debug(
-        hprint.to_str("comments_file summary_file dry_run no_incremental")
+        hprint.to_str("comments_file summary_file model dry_run no_incremental")
     )
     if not dry_run:
         hdbg.dassert_file_exists(comments_file)
@@ -487,6 +497,7 @@ def _summarize_hn_url(
         comments_file,
         summary_file,
         _HN_COMMENTS_PROMPT,
+        model=model,
         dry_run=dry_run,
     )
     if not dry_run:
@@ -499,6 +510,7 @@ def _summarize_article_url(
     *,
     article_url: str = "",
     hn_url: str = "",
+    model: str = "",
     dry_run: bool = False,
     no_incremental: bool = False,
 ) -> None:
@@ -509,11 +521,16 @@ def _summarize_article_url(
     :param summary_file: Path to save the summary to
     :param article_url: URL of the linked article, for the backlink header
     :param hn_url: URL of the HN submission, for the backlink header
+    :param model: LLM model name
+        - Default: `""`, which uses the default model of `llm_cli.py`, an
+          OpenRouter one
     :param dry_run: If True, show what would be done without executing
     :param no_incremental: If True, overwrite `summary_file` even if it
         already exists
     """
-    _LOG.debug(hprint.to_str("article_file summary_file dry_run no_incremental"))
+    _LOG.debug(
+        hprint.to_str("article_file summary_file model dry_run no_incremental")
+    )
     if not dry_run:
         hdbg.dassert_file_exists(article_file)
     if os.path.exists(summary_file) and not no_incremental:
@@ -525,6 +542,7 @@ def _summarize_article_url(
         article_file,
         summary_file,
         dshddut.ARTICLE_SUMMARY_PROMPT,
+        model=model,
         dry_run=dry_run,
     )
     if not dry_run:
@@ -580,6 +598,16 @@ def _parse() -> argparse.ArgumentParser:
         help=(
             "Directory to save the generated files to (created if it "
             "doesn't exist). If not specified, the current directory is used"
+        ),
+    )
+    parser.add_argument(
+        "--model",
+        default="",
+        help=(
+            "LLM model for the summarize actions, e.g., "
+            "`openrouter/anthropic/claude-haiku-4.5`. If not specified, the "
+            "default model of `llm_cli.py` is used, an OpenRouter one (it "
+            "needs the `OPENROUTER_KEY` env var)"
         ),
     )
     # Add action selection arguments (download_hn_url, download_article_url, etc).
@@ -699,6 +727,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
                 article_summary_file,
                 article_url=article_url,
                 hn_url=hn_url,
+                model=args.model,
                 dry_run=args.dry_run,
                 no_incremental=args.no_incremental,
             )
@@ -708,6 +737,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
                 hn_summary_file,
                 article_url=article_url,
                 hn_url=hn_url,
+                model=args.model,
                 dry_run=args.dry_run,
                 no_incremental=args.no_incremental,
             )

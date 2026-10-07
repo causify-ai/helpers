@@ -212,6 +212,7 @@ class Test__dispatch(hunitest.TestCase):
         input_arg: str,
         input_type: str,
         email: str,
+        model: str,
         script_name: str,
         expected_args: str,
     ) -> None:
@@ -221,6 +222,7 @@ class Test__dispatch(hunitest.TestCase):
         :param input_arg: URL or local file to download
         :param input_type: "hn", "academic_paper", or "html"
         :param email: contact email to forward
+        :param model: LLM model to forward
         :param script_name: name of the script expected to be dispatched to
         :param expected_args: expected arguments of the dispatched script
         """
@@ -244,7 +246,9 @@ class Test__dispatch(hunitest.TestCase):
         )
         # Run test.
         with hunteuti.capture_sys_calls() as sys_calls:
-            dshddtomd._dispatch(input_arg, "", input_type, email=email)
+            dshddtomd._dispatch(
+                input_arg, "", input_type, email=email, model=model
+            )
         # Check outputs.
         hunteuti.assert_sys_calls(self, sys_calls, expected_str)
 
@@ -256,11 +260,14 @@ class Test__dispatch(hunitest.TestCase):
         input_arg = "10.2139/ssrn.5277078"
         input_type = "academic_paper"
         email = "me@example.org"
+        model = ""
         script_name = "download_academic_paper_to_md.py"
         # Prepare outputs.
         expected_args = '--input "10.2139/ssrn.5277078" --email "me@example.org"'
         # Run test.
-        self.helper(input_arg, input_type, email, script_name, expected_args)
+        self.helper(
+            input_arg, input_type, email, model, script_name, expected_args
+        )
 
     def test2(self) -> None:
         """
@@ -270,8 +277,51 @@ class Test__dispatch(hunitest.TestCase):
         input_arg = "https://example.com/article"
         input_type = "html"
         email = "me@example.org"
+        model = ""
         script_name = "download_html_to_md.py"
         # Prepare outputs.
         expected_args = '--input "https://example.com/article"'
         # Run test.
-        self.helper(input_arg, input_type, email, script_name, expected_args)
+        self.helper(
+            input_arg, input_type, email, model, script_name, expected_args
+        )
+
+    def test3(self) -> None:
+        """
+        Test the model is forwarded to the HTML script.
+        """
+        # Prepare inputs.
+        input_arg = "https://example.com/article"
+        input_type = "html"
+        email = ""
+        model = "openrouter/anthropic/claude-haiku-4.5"
+        script_name = "download_html_to_md.py"
+        # Prepare outputs.
+        expected_args = (
+            '--input "https://example.com/article" '
+            '--model "openrouter/anthropic/claude-haiku-4.5"'
+        )
+        # Run test.
+        self.helper(
+            input_arg, input_type, email, model, script_name, expected_args
+        )
+
+    def test4(self) -> None:
+        """
+        Test the model is forwarded to the academic paper script.
+        """
+        # Prepare inputs.
+        input_arg = "https://arxiv.org/abs/1706.03762"
+        input_type = "academic_paper"
+        email = ""
+        model = "openrouter/anthropic/claude-haiku-4.5"
+        script_name = "download_academic_paper_to_md.py"
+        # Prepare outputs.
+        expected_args = (
+            '--input "https://arxiv.org/abs/1706.03762" '
+            '--model "openrouter/anthropic/claude-haiku-4.5"'
+        )
+        # Run test.
+        self.helper(
+            input_arg, input_type, email, model, script_name, expected_args
+        )

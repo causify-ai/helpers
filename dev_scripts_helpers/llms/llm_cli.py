@@ -3,6 +3,7 @@
 # /// script
 # dependencies = [
 #   "llm",
+#   "llm-openrouter",
 #   "flowmark",
 #   "mdformat",
 #   "pyyaml",
@@ -13,6 +14,9 @@
 
 # Note that when using uv to install `llm` on the fly, it is not configured in
 # terms of plugins and keys.
+# The `llm-openrouter` plugin is installed explicitly, since the default model
+# is an `openrouter/...` one and `llm` does not know it otherwise ("Unknown
+# model"). The OpenRouter key is read from the `OPENROUTER_KEY` env var.
 
 r"""
 CLI script to apply LLM transformations to text files or text input.

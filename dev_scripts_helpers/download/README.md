@@ -112,6 +112,11 @@
   `2016.Ribeiro_et_al.Why_Should_I_Trust_You...`, shared across the `.pdf`, `.md`,
   and `.summary.md` outputs
 - Converts the PDF to Markdown and summarizes it
+  - The summary uses the default model of `llm_cli.py`, an OpenRouter one, which
+    needs the `OPENROUTER_KEY` env var
+  - Use `--model` for another model, e.g., `openrouter/anthropic/claude-haiku-4.5`
+    (a direct name like `gpt-4o-mini` goes to its provider, e.g., OpenAI, and needs
+    its key and credits)
 - For a DOI, queries CrossRef for the metadata and Unpaywall for an open-access PDF
   - Unpaywall requires a real contact email, passed with `--email`
   - Without `--email`, the Unpaywall lookup is skipped: the paper can still be named
@@ -183,6 +188,21 @@
   > download_academic_paper_to_md.py \
       --input "10.1038/nature12373" \
       --skip_action summarize
+  ```
+
+- Summarize with a specific model:
+  ```bash
+  > download_academic_paper_to_md.py \
+      --input "10.1038/nature12373" \
+      --model openrouter/anthropic/claude-haiku-4.5
+  ```
+
+- Only summarize an already converted paper (e.g., after a failed LLM call):
+  ```bash
+  > download_academic_paper_to_md.py \
+      --input "10.1038/nature12373" \
+      --clear_actions \
+      --action summarize
   ```
 
 - Also copy the PDF and the summary to the papers dir:
