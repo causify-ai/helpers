@@ -59,6 +59,22 @@
   - `Interesting`: Relevance rating (1 to 5)
   - `Notes`: Additional notes and comments
 
+## LLM Model
+- All the tools that summarize or tag with an LLM use the same default model, an
+  OpenRouter one (`DEFAULT_MODEL` in `helpers/hllm_cli.py`)
+  - It needs the `OPENROUTER_KEY` env var
+  - `llm_cli.py` installs the `llm-openrouter` plugin on the fly, so no setup is
+    needed besides the key
+- Every such tool has a `--model` option to use another model
+  - Use the `openrouter/<provider>/<model>` prefix, e.g.,
+    `openrouter/anthropic/claude-haiku-4.5`
+  - A direct name like `gpt-4o-mini` is not routed through OpenRouter: it goes to its
+    provider, e.g., OpenAI, and needs the key and the credits of that provider
+- Tools with `--model`: `download_to_md.py`, `download_academic_paper_to_md.py`,
+  `download_html_to_md.py`, `download_hn_article_to_md.py`,
+  `download_link_articles.py`, `process_bookmarks.py`, `process_gsheet_links.py`
+- `download_to_md.py` forwards `--model` to the script it dispatches to
+
 ## Description of Executables
 
 ### `download_to_md.py`
@@ -112,11 +128,8 @@
   `2016.Ribeiro_et_al.Why_Should_I_Trust_You...`, shared across the `.pdf`, `.md`,
   and `.summary.md` outputs
 - Converts the PDF to Markdown and summarizes it
-  - The summary uses the default model of `llm_cli.py`, an OpenRouter one, which
-    needs the `OPENROUTER_KEY` env var
-  - Use `--model` for another model, e.g., `openrouter/anthropic/claude-haiku-4.5`
-    (a direct name like `gpt-4o-mini` goes to its provider, e.g., OpenAI, and needs
-    its key and credits)
+  - The summary uses the default LLM model, an OpenRouter one: use `--model` to
+    change it (see "LLM Model")
 - For a DOI, queries CrossRef for the metadata and Unpaywall for an open-access PDF
   - Unpaywall requires a real contact email, passed with `--email`
   - Without `--email`, the Unpaywall lookup is skipped: the paper can still be named
@@ -491,7 +504,7 @@
   > process_gsheet_links.py \
       --url "$LINKS_GSHEET" \
       --action update_article_tag \
-      --model gpt-4o-mini
+      --model openrouter/anthropic/claude-haiku-4.5
   ```
 
 ### `download_link_articles.py`

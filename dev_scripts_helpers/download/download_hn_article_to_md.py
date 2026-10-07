@@ -322,9 +322,7 @@ def _fetch_submission(hn_url: str) -> Dict[str, Any]:
 # #############################################################################
 
 
-def _prepend_backlinks(
-    output_file: str, article_url: str, hn_url: str
-) -> None:
+def _prepend_backlinks(output_file: str, article_url: str, hn_url: str) -> None:
     """
     Prepend a plain-text backlink header to a freshly-written output file.
 

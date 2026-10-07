@@ -593,4 +593,3 @@ class Test__parse(hunitest.TestCase):
         args = parser.parse_args(["--model", model])
         # Check outputs.
         self.assert_equal(args.model, expected)
-

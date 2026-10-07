@@ -9,10 +9,19 @@ is required. It also reports any `LaTeX`/`Package`/`Class` warnings found in
 the resulting `.log` file, and can copy the PDF to Google Drive and open it
 in Skim on macOS.
 
+Before compiling, it renders the diagrams (e.g., `graphviz`, `mermaid`) in the
+`.tex` files next to the input via `render_images.py`, in place. A paper can be
+split into several `.tex` files included by the main one, so all the `.tex`
+files in the directory of the input are processed. This replaces the obsolete
+`run_latex.sh`.
+
 # Usage Example
 
 - Quick single-pass build (default):
 > run_latex.py --input book.tex
+
+- Build without rendering the diagrams:
+> run_latex.py --input book.tex --skip_action render_images
 
 - Two-pass build (resolves cross-references):
 > run_latex.py --input book.tex --num_passes 2
@@ -64,6 +73,7 @@ _LOG = logging.getLogger(__name__)
 # #############################################################################
 
 _VALID_ACTIONS = [
+    "render_images",
     "compile",
     "compress_pdf",
     "copy_to_gdrive",
@@ -71,9 +81,60 @@ _VALID_ACTIONS = [
 ]
 
 _DEFAULT_ACTIONS = [
+    "render_images",
     "compile",
     "open_pdf",
 ]
+
+# #############################################################################
+# Image rendering
+# #############################################################################
+
+# Marker of an image code block (e.g., "% ```graphviz") that `render_images.py`
+# can render; files without it have nothing to render.
+_IMAGE_CODE_FENCE = "```"
+
+
+def _render_images(
+    in_file_path: str,
+    *,
+    force_rebuild: bool = False,
+    use_sudo: bool = False,
+) -> None:
+    """
+    Render the diagrams in the `.tex` files next to the input via
+    `render_images.py`.
+
+    A paper can be split into several `.tex` files included by the main one,
+    so all the `.tex` files in the directory of the input are processed, in
+    place. The files with no image code block are skipped, so that they are not
+    rewritten.
+
+    :param in_file_path: path to the `.tex` file to compile
+    :param force_rebuild: whether to force rebuild the Docker container
+    :param use_sudo: whether to use sudo for Docker commands
+    """
+    _LOG.debug(hprint.func_signature_to_str())
+    in_dir_name = os.path.dirname(os.path.abspath(in_file_path))
+    all_tex_file_paths = sorted(glob.glob(os.path.join(in_dir_name, "*.tex")))
+    tex_file_paths = [
+        tex_file_path
+        for tex_file_path in all_tex_file_paths
+        if _IMAGE_CODE_FENCE in hio.from_file(tex_file_path)
+    ]
+    if not tex_file_paths:
+        _LOG.debug("No image code found in '%s', skipping", in_dir_name)
+        return
+    exec_file = hgit.find_file("render_images.py")
+    opts: List[str] = []
+    if force_rebuild:
+        opts.append("--dockerized_force_rebuild")
+    if use_sudo:
+        opts.append("--dockerized_use_sudo")
+    for tex_file_path in tex_file_paths:
+        cmd = " ".join([exec_file, "--input", tex_file_path] + opts)
+        hsystem.system(cmd, suppress_output=False, log_level=logging.DEBUG)
+
 
 # #############################################################################
 # Compilation
@@ -298,7 +359,13 @@ def _main(parser: argparse.ArgumentParser) -> None:
             to_execute, actions = hselacti.mark_action(action, actions)
             if not to_execute:
                 continue
-            if action == "compile":
+            if action == "render_images":
+                _render_images(
+                    in_file_path,
+                    force_rebuild=args.dockerized_force_rebuild,
+                    use_sudo=args.dockerized_use_sudo,
+                )
+            elif action == "compile":
                 _compile_latex(
                     in_file_path,
                     out_file_path,

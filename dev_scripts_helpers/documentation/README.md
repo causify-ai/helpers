@@ -32,15 +32,16 @@ The toolchain supports multiple documentation workflows:
     - Standard Latex code to convert into PDF files
     - E.g., [`//cmamp/papers`]
     - E.g., [`//cmamp/papers/KaizenFlow`]
-    - Each project lives in its own directory (e.g., under `//papers`) with
-      dockerized scripts that assign project-specific variables and then call
-      the main scripts to do the actual work
-      - `run_latex.sh`: create the PDF from the Latex files
-      - `lint_latex.sh`: lint the Latex files
+    - Each project lives in its own directory (e.g., under `//papers`) and is
+      built and linted by calling the main scripts directly, without
+      per-project wrapper scripts
+      - `run_latex.py`: render the diagrams with `render_images.py` and create
+        the PDF from the Latex files
+      - `lint_text.py`: lint the Latex files
     - Run the scripts from the top of the repo tree, e.g.,
       ```bash
-      > papers/DataFlow_stream_computing_framework/run_latex.sh
-      > papers/DataFlow_stream_computing_framework/lint_latex.sh
+      > run_latex.py -i papers/DataFlow_stream_computing_framework/paper.tex
+      > lint_text.py -i papers/DataFlow_stream_computing_framework/paper.tex --use_dockerized_prettier
       ```
   - **markdown**
     - Documentation using Causify markdown extensions
@@ -129,6 +130,7 @@ The toolchain supports multiple documentation workflows:
     - `preprocess_notes.py`: Converts Causify notes to Pandoc Markdown
     - `render_images.py`: Auto-renders diagrams (PlantUML, Mermaid, TikZ,
       Graphviz)
+    - `run_latex.py`: Renders diagrams and compiles LaTeX files to PDF in Docker
     - `transform_text.py`: Applies transformations (TOC, headers, lists)
     - `update_md.py`: Multi-action LLM tool for markdown files (summarize,
       update content, apply style)
@@ -173,12 +175,12 @@ The toolchain supports multiple documentation workflows:
   - Shell Script Utilities
     - `epub_to_md.sh`: Converts EPUB to Markdown (shell wrapper)
     - `latexdockercmd.sh`: LaTeX Docker command utility
-    - `lint_latex.sh`: Dockerized linter for LaTeX files using Prettier
+    - `lint_latex.sh`: Obsolete, use `lint_text.py` on the `.tex` files
     - `open_md_in_browser.sh`: Renders Markdown to HTML and opens in browser
     - `open_md_on_github.sh`: Opens a file in GitHub web interface
     - `open_md.sh`: Opens Markdown files (general utility)
     - `replace_latex.sh`: Shell wrapper for LaTeX batch transformations
-    - `run_latex.sh`: Dockerized LaTeX compilation with PDF viewer
+    - `run_latex.sh`: Obsolete, use `run_latex.py`
 
 # Description of Executables
 
@@ -1476,31 +1478,51 @@ The `--md_end "END"` special value is useful for reading from a starting section
   > open_md_on_github.sh docs/README.md
   ```
 
-## `run_latex.sh`
+## `run_latex.py`
 
 ### What It Does
-- Dockerized LaTeX compilation script
-- Compiles a LaTeX `.tex` file to PDF using Docker
-- Runs `pdflatex` twice to resolve references
-- Opens the resulting PDF in Skim.app (macOS)
-- Uses `blang/latex:ubuntu` Docker image
+- Compiles a LaTeX `.tex` file to PDF with `pdflatex` (and `bibtex`) in Docker,
+  so no local LaTeX installation is needed
+- Replaces the obsolete `run_latex.sh`
+- Runs by default these actions, in order:
+  - `render_images`: renders the diagrams (e.g., Graphviz, Mermaid) in every
+    `.tex` file in the directory of the input via `render_images.py`, in place,
+    since a paper can be split into several `.tex` files
+  - `compile`: runs `pdflatex`, `bibtex` and the extra `pdflatex` passes,
+    depending on `--num_passes`, and reports the LaTeX warnings
+  - `open_pdf`: opens the PDF
+- Runs on demand the actions `compress_pdf` and `copy_to_gdrive`
+- Writes `<input>.pdf` unless `--output` is specified
 
 ### Examples
 - Compile a LaTeX file to PDF
   ```bash
-  > run_latex.sh paper.tex
+  > run_latex.py -i paper.tex
+  ```
+- Full build with bibliography
+  ```bash
+  > run_latex.py -i paper.tex --num_passes 3
+  ```
+- Build without rendering the diagrams
+  ```bash
+  > run_latex.py -i paper.tex --skip_action render_images
+  ```
+- Rebuild on file changes
+  ```bash
+  > run_latex.py -i paper.tex --daemon
   ```
 
 ## `lint_latex.sh`
 
 ### What It Does
-- Dockerized linter for LaTeX files using Prettier
-- Runs `lint_text.py` on every `.tex` file in the same directory as the script
+- Obsolete: run `lint_text.py` directly, since it supports `.tex` files
+- Used to run `lint_text.py` on every `.tex` file in the same directory as the
+  script
 
 ### Examples
 - Lint the LaTeX files in a project directory
   ```bash
-  > papers/DataFlow_stream_computing_framework/lint_latex.sh
+  > lint_text.py -i papers/DataFlow_stream_computing_framework/paper.tex --use_dockerized_prettier
   ```
 
 ## `replace_latex.sh`

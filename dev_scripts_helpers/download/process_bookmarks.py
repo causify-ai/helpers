@@ -619,7 +619,9 @@ def _main(parser: argparse.ArgumentParser) -> None:
         rows, no_incremental=args.no_incremental, limit=args.limit
     )
     if args.dry_run:
-        _LOG.warning("DRY RUN MODE: showing what would be done without executing")
+        _LOG.warning(
+            "DRY RUN MODE: showing what would be done without executing"
+        )
     script = hgit.find_file_in_git_tree("download_hn_article_to_md.py")
     if not args.dry_run:
         hio.create_dir(args.output_dir, incremental=True)

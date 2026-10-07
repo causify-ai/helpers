@@ -374,4 +374,3 @@ class Test_get_stat_file_path(hunitest.TestCase):
         expected = "dir/foo.2.article_url.summary.stat.json"
         # Run test.
         self.helper(summary_file, expected)
-

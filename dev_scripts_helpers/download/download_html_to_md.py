@@ -33,11 +33,11 @@ r"""
 
 - Enable the `summarize` action on top of the default actions to also
   generate `<output>.summary.md`:
-> download_html_to_md.py --input https://example.com --output output.md -e summarize
+> download_html_to_md.py --input https://example.com --output output.md --action summarize
 
 - Summarize with a specific LLM model (by default the OpenRouter model of
   `llm_cli.py`, which needs the `OPENROUTER_KEY` env var):
-> download_html_to_md.py --input https://example.com --output output.md -e summarize --model openrouter/anthropic/claude-haiku-4.5
+> download_html_to_md.py --input https://example.com --output output.md --action summarize --model openrouter/anthropic/claude-haiku-4.5
 
 - Show what would be done without downloading, converting, or summarizing:
 > download_html_to_md.py --input https://example.com --output output.md --dry_run
