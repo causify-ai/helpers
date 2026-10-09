@@ -196,9 +196,7 @@ class Test__render_images(hunitest.TestCase):
                 in_file_path, force_rebuild=force_rebuild, use_sudo=use_sudo
             )
         # Check outputs.
-        self.assert_equal(
-            str(list(mock_system.call_args_list)), str(expected)
-        )
+        self.assert_equal(str(list(mock_system.call_args_list)), str(expected))
 
     def test1(self) -> None:
         """
@@ -603,7 +601,8 @@ class Test_run_latex_py(hunitest.TestCase):
             self._run_main(argv)
         # Check outputs.
         self.assert_equal(
-            str(manager.mock_calls), str([mock.call.render(), mock.call.compile()])
+            str(manager.mock_calls),
+            str([mock.call.render(), mock.call.compile()]),
         )
 
     def test7(self) -> None:
