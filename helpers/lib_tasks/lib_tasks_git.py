@@ -202,7 +202,7 @@ def git_merge_master(
     abort_if_not_clean=True,
     skip_fetch=False,
     auto_merge=True,  # type: ignore
-    submodules=True,
+    submodules=False,
     dry_run=False,
 ):
     """
@@ -214,7 +214,7 @@ def git_merge_master(
     :param auto_merge: automatically commit and push if merge is
         successful
     :param submodules: also fetch master in submodules (see
-        `git_fetch_master`)
+        `git_fetch_master`), skipped by default
     :param dry_run: instead of merging, run a dry-run 3-way merge and
         report which files would conflict, which would merge cleanly,
         and which change on only one side.
@@ -230,8 +230,8 @@ def git_merge_master(
         cmd += " --skip_fetch"
     if not auto_merge:
         cmd += " --no_auto_merge"
-    if not submodules:
-        cmd += " --no_submodules"
+    if submodules:
+        cmd += " --submodules"
     if dry_run:
         cmd += " --dry_run"
     hltltaut.run(ctx, cmd)

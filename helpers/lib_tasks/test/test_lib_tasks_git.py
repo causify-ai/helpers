@@ -189,12 +189,12 @@ class Test_git_merge_master(hunitest.TestCase):
             abort_if_not_clean=False,
             skip_fetch=True,
             auto_merge=False,
-            submodules=False,
+            submodules=True,
             dry_run=True,
         )
         # Prepare outputs.
         expected = """
-        call('/repo/git_merge_master.py --abort_if_not_ff --no_abort_if_not_clean --skip_fetch --no_auto_merge --no_submodules --dry_run', echo=False)
+        call('/repo/git_merge_master.py --abort_if_not_ff --no_abort_if_not_clean --skip_fetch --no_auto_merge --submodules --dry_run', echo=False)
         """
         # Run test.
         self.helper(kwargs, expected)
