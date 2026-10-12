@@ -134,6 +134,17 @@ def _parser() -> argparse.ArgumentParser:
             "For flowmark: 'library', 'uvx-rs', 'uvx', 'global', or 'global-rs'."
         ),
     )
+    parser.add_argument(
+        "--tmp_dir",
+        action="store",
+        type=str,
+        default="",
+        help=(
+            "Directory to save the intermediate files used by `prettier` "
+            "(default: current dir). It must be reachable from the Docker "
+            "mount, e.g., a dir under the Git root"
+        ),
+    )
     # TODO(gp): Convert to backend "global", "dockerized".
     parser.add_argument(
         "--use_dockerized_prettier",

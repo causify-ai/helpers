@@ -39,7 +39,8 @@ class Test_convert_pdf_to_md(hunitest.TestCase):
         out_dir = self.get_scratch_space()
         # Run test.
         cmd = (
-            f"{script_path} --input {pdf_file} --output {out_dir} --skip_figures"
+            f"{script_path} --input {pdf_file} --output {out_dir} "
+            "--no_extract_figures"
         )
         hsystem.system(cmd)
         # Check outputs.

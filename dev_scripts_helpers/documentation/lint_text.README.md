@@ -190,6 +190,10 @@
 - `--no_use_dockerized_prettier`: Use global prettier installation
 - `--use_dockerized_markdown_toc`: Use Docker version for TOC (default: enabled)
 - `--no_use_dockerized_markdown_toc`: Use global markdown-toc
+- `--tmp_dir <dir>`: Directory to save the intermediate files used by `prettier`
+  (default: current dir)
+  - It must be reachable from the Docker mount (e.g., a dir under the Git root)
+  - It is ignored when `--backend` is specified
 
 ### Action Control
 

@@ -2,6 +2,7 @@
 
 import logging
 import os
+from unittest import mock
 
 import helpers.hgit as hgit
 import helpers.hio as hio
@@ -604,3 +605,66 @@ class Test_remove_data_uri_images(hunitest.TestCase):
         """
         # Run test.
         self.helper(input_content, expected)
+
+
+# #############################################################################
+# Test__download_html
+# #############################################################################
+
+
+class Test__download_html(hunitest.TestCase):
+    """
+    Test `download_html_to_md._download_html()` with a mocked HTTP response.
+    """
+
+    def helper(self, response_text: str, output_file: str) -> None:
+        """
+        Test helper for `_download_html()`: "download" a page from a mocked
+        `requests.get()`, so no network is used.
+
+        :param response_text: HTML returned by the mocked server
+        :param output_file: path to save the HTML to
+        """
+        # Prepare inputs.
+        response = mock.Mock()
+        response.text = hprint.dedent(response_text)
+        response.status_code = 200
+        input_url = "https://example.com/article"
+        # Run test.
+        with mock.patch("requests.get", return_value=response):
+            dshddhtmd._download_html(input_url, output_file)
+
+    def test1(self) -> None:
+        """
+        Test a regular page is saved.
+        """
+        # Prepare inputs.
+        response_text = """
+        <html><body><p>Hello, world.</p></body></html>
+        """
+        output_file = os.path.join(self.get_scratch_space(), "page.html")
+        # Prepare outputs.
+        expected = "<html><body><p>Hello, world.</p></body></html>"
+        # Run test.
+        self.helper(response_text, output_file)
+        # Check outputs.
+        actual = hio.from_file(output_file)
+        self.assert_equal(actual.strip(), expected)
+
+    def test2(self) -> None:
+        """
+        Test a bot-protection page returned with a `200` status fails loudly
+        and is not saved.
+        """
+        # Prepare inputs.
+        response_text = """
+        <html><head><title>Just a moment...</title></head>
+        <body>Enable JavaScript and cookies to continue</body></html>
+        """
+        output_file = os.path.join(self.get_scratch_space(), "page.html")
+        # Run test.
+        with self.assertRaises(AssertionError) as cm:
+            self.helper(response_text, output_file)
+        # Check outputs.
+        self.assertIn("bot-protection page", str(cm.exception))
+        self.assertFalse(os.path.exists(output_file))
