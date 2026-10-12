@@ -57,6 +57,11 @@
   `llm_cli.py`, which needs the `OPENROUTER_KEY` env var):
 > download_academic_paper_to_md.py --input "10.1038/nature12373" --model openrouter/anthropic/claude-haiku-4.5
 
+- Summarize keeping the structure of the paper (a level-1 header for each main
+  section, with bullet points under it) instead of the default short summary of
+  7-10 bullet points:
+> download_academic_paper_to_md.py --input "10.1038/nature12373" --summary_type structured
+
 - Only download and convert, skip summarization:
 > download_academic_paper_to_md.py --input "10.1038/nature12373" --skip_action summarize
 
@@ -67,8 +72,9 @@
 - Copy the PDF and the summary to a custom papers dir:
 > download_academic_paper_to_md.py --input "https://arxiv.org/abs/1706.03762" --action save_to_papers_dir --papers_dir ./my_papers
 
-- Convert without extracting figures/images from the PDF:
-> download_academic_paper_to_md.py --input "10.1038/nature12373" --skip_figures
+- Also extract figures/images from the PDF when converting it (by default
+  they are not extracted):
+> download_academic_paper_to_md.py --input "10.1038/nature12373" --extract_figures
 
 - Show what would be done without downloading, converting, or summarizing:
 > download_academic_paper_to_md.py --input "10.1038/nature12373" --dry_run
@@ -86,7 +92,7 @@ import shutil
 from typing import Any, Dict, List, Optional, Tuple
 
 import feedparser
-import fitz
+import pymupdf
 import requests
 
 import helpers.hdbg as hdbg
@@ -345,7 +351,7 @@ def _extract_pdf_metadata_pymupdf(pdf_path: str) -> Dict[str, Any]:
     """
     _LOG.debug(hprint.to_str("pdf_path"))
     _LOG.debug("Extracting metadata from PDF: %s", pdf_path)
-    doc = fitz.open(pdf_path)
+    doc = pymupdf.open(pdf_path)
     metadata = doc.metadata
     # Extract title.
     title = metadata.get("title", None) if metadata else None
@@ -694,7 +700,11 @@ def _download(
 
 
 def _convert(
-    pdf_path: str, *, skip_figures: bool = False, dry_run: bool = False
+    pdf_path: str,
+    *,
+    extract_figures: bool = False,
+    log_level: str = "INFO",
+    dry_run: bool = False,
 ) -> None:
     """
     Convert the PDF to Markdown using `convert_pdf_to_md.py`.
@@ -702,11 +712,12 @@ def _convert(
     Writes `<pdf_stem>.md` next to `pdf_path`, i.e. `<base_path>.md`.
 
     :param pdf_path: path to the PDF file to convert
-    :param skip_figures: if True, do not extract images/figures from the
-        PDF
+    :param extract_figures: if True, extract images/figures from the PDF
+        - Default: False, which skips the extraction
+    :param log_level: logging level to forward to the called script
     :param dry_run: if True, show what would be done without executing
     """
-    _LOG.debug(hprint.to_str("pdf_path skip_figures dry_run"))
+    _LOG.debug(hprint.to_str("pdf_path extract_figures log_level dry_run"))
     if dry_run:
         _LOG.info("[DRY RUN] Would convert PDF to markdown: %s", pdf_path)
         _LOG.debug("return: dry run, nothing written")
@@ -715,9 +726,20 @@ def _convert(
     _LOG.info("Converting PDF to markdown: %s", pdf_path)
     script_path = hgit.find_file_in_git_tree("convert_pdf_to_md.py")
     output_dir = os.path.dirname(pdf_path) or "."
-    cmd = f"{script_path} --input {pdf_path} --output {output_dir} --overwrite"
-    if skip_figures:
-        cmd += " --skip_figures"
+    # Always pass the figure flag explicitly, so the result does not depend on
+    # the default of `convert_pdf_to_md.py` (which extracts the figures).
+    extract_figures_flag = (
+        "--extract_figures" if extract_figures else "--no_extract_figures"
+    )
+    cmd = [
+        script_path,
+        f"--input {pdf_path}",
+        f"--output {output_dir}",
+        "--overwrite",
+        extract_figures_flag,
+        f"-v {log_level}",
+    ]
+    cmd = " ".join(cmd)
     _LOG.debug("Running command: %s", cmd)
     hsystem.system(cmd, print_command=True)
 
@@ -728,7 +750,11 @@ def _convert(
 
 
 def _summarize(
-    base_path: str, *, model: str = "", dry_run: bool = False
+    base_path: str,
+    *,
+    summary_type: str = "short",
+    model: str = "",
+    dry_run: bool = False,
 ) -> None:
     """
     Summarize the converted markdown content using an LLM.
@@ -737,12 +763,17 @@ def _summarize(
 
     :param base_path: base path (no extension) shared by the pdf/md/summary
         files
+    :param summary_type: type of summary, one of
+        `download_utils.SUMMARY_TYPES`
+        - `short`: 7-10 bullet points, with no structure
+        - `structured`: level-1 headers with bullet points, keeping the
+          structure of the paper
     :param model: LLM model name
         - Default: `""`, which uses the default model of `llm_cli.py`, an
           OpenRouter one
     :param dry_run: if True, show what would be done without executing
     """
-    _LOG.debug(hprint.to_str("base_path model dry_run"))
+    _LOG.debug(hprint.to_str("base_path summary_type model dry_run"))
     md_path = f"{base_path}.md"
     summary_path = f"{base_path}.summary.md"
     if not dry_run:
@@ -751,7 +782,7 @@ def _summarize(
     dshddut.summarize_text_with_llm(
         md_path,
         summary_path,
-        dshddut.ARTICLE_SUMMARY_PROMPT,
+        dshddut.get_summary_prompt(summary_type),
         model=model,
         dry_run=dry_run,
     )
@@ -870,6 +901,16 @@ def _parse() -> argparse.ArgumentParser:
         ),
     )
     parser.add_argument(
+        "--summary_type",
+        default="short",
+        choices=dshddut.SUMMARY_TYPES,
+        help=(
+            "Type of summary for the `summarize` action: `short` (7-10 bullet "
+            "points, with no structure) or `structured` (a level-1 header for "
+            "each main section of the paper, with bullet points under it)"
+        ),
+    )
+    parser.add_argument(
         "--email",
         default="",
         help=(
@@ -893,10 +934,11 @@ def _parse() -> argparse.ArgumentParser:
         action="store_true",
         help="Overwrite existing files instead of skipping",
     )
-    parser.add_argument(
-        "--skip_figures",
-        action="store_true",
-        help="Skip extracting figures/images when converting the PDF to markdown",
+    hparser.add_bool_arg(
+        parser,
+        "extract_figures",
+        default_value=False,
+        help_="Extract figures/images when converting the PDF to markdown",
     )
     parser.add_argument(
         "--dry_run",
@@ -941,7 +983,10 @@ def _main(parser: argparse.ArgumentParser) -> None:
     pdf_path = f"{base_path}.pdf"
     # Get selected actions.
     actions = hselacti.select_actions(args, _VALID_ACTIONS, _DEFAULT_ACTIONS)
-    _LOG.info("Selected actions: %s", actions)
+    _LOG.info(
+        "\n%s",
+        hselacti.actions_to_string(actions, _VALID_ACTIONS, add_frame=True),
+    )
     if args.dry_run:
         _LOG.info("DRY RUN MODE: showing what would be done without executing")
     # Execute actions.
@@ -961,11 +1006,17 @@ def _main(parser: argparse.ArgumentParser) -> None:
             elif action == "convert":
                 _convert(
                     pdf_path,
-                    skip_figures=args.skip_figures,
+                    extract_figures=args.extract_figures,
+                    log_level=args.log_level,
                     dry_run=args.dry_run,
                 )
             elif action == "summarize":
-                _summarize(base_path, model=args.model, dry_run=args.dry_run)
+                _summarize(
+                    base_path,
+                    summary_type=args.summary_type,
+                    model=args.model,
+                    dry_run=args.dry_run,
+                )
             elif action == "save_to_papers_dir":
                 _save_to_papers_dir(
                     base_path,

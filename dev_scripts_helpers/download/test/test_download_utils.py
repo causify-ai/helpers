@@ -374,3 +374,52 @@ class Test_get_stat_file_path(hunitest.TestCase):
         expected = "dir/foo.2.article_url.summary.stat.json"
         # Run test.
         self.helper(summary_file, expected)
+
+
+# #############################################################################
+# Test_get_summary_prompt
+# #############################################################################
+
+
+class Test_get_summary_prompt(hunitest.TestCase):
+    """
+    Test `download_utils.get_summary_prompt()`.
+    """
+
+    def test1(self) -> None:
+        """
+        Test the `short` summary uses the 7-10 bullet points prompt.
+        """
+        # Run test.
+        actual = dshddut.get_summary_prompt("short")
+        # Check outputs.
+        self.assert_equal(actual, dshddut.ARTICLE_SUMMARY_PROMPT)
+
+    def test2(self) -> None:
+        """
+        Test the `structured` summary uses the level-1 headers prompt.
+        """
+        # Run test.
+        actual = dshddut.get_summary_prompt("structured")
+        # Check outputs.
+        self.assert_equal(actual, dshddut.ARTICLE_STRUCTURED_SUMMARY_PROMPT)
+        self.assertIn("header of level 1", actual)
+
+    def test3(self) -> None:
+        """
+        Test that every summary type has a distinct prompt.
+        """
+        # Run test.
+        actual = [dshddut.get_summary_prompt(t) for t in dshddut.SUMMARY_TYPES]
+        # Check outputs.
+        self.assertEqual(len(set(actual)), len(dshddut.SUMMARY_TYPES))
+
+    def test4(self) -> None:
+        """
+        Test that an unknown summary type is rejected.
+        """
+        # Run test.
+        with self.assertRaises(AssertionError) as cm:
+            dshddut.get_summary_prompt("long")
+        # Check outputs.
+        self.assertIn("long", str(cm.exception))

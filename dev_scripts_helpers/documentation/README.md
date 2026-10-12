@@ -1322,6 +1322,12 @@ The `--md_end "END"` special value is useful for reading from a starting section
   > uv run convert_pdf_to_md.py --input document.pdf --output output_dir
   ```
 
+- Convert PDF to Markdown without extracting images (figures are extracted by
+  default; image references are kept as HTML comments)
+  ```bash
+  > uv run convert_pdf_to_md.py --input document.pdf --output output_dir --no_extract_figures
+  ```
+
 - With verbose logging
   ```bash
   > uv run convert_pdf_to_md.py --input paper.pdf --output paper_md -v DEBUG

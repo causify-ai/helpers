@@ -161,6 +161,54 @@ ARTICLE_SUMMARY_PROMPT = hprint.dedent(
     """
 )
 
+# Prompt for a summary that keeps the structure of the article: a level-1
+# header for each main section, with bullet points under it. The headers of the
+# input are not relied upon, since a markdown converted from a PDF has headers
+# that are wrong, missing, or used for body text.
+ARTICLE_STRUCTURED_SUMMARY_PROMPT = hprint.dedent(
+    """
+    - Summarize the main article keeping its structure
+    - Write a markdown header of level 1 (`#`) for each main section of the
+      article (e.g., abstract, introduction, methods, results, conclusions)
+      - The article was converted from a PDF, so its markdown headers can be
+        wrong, missing, or used for body text: infer the sections from the
+        content
+      - Skip the front matter (title block, authors, affiliations), the page
+        headers and footers, and the references
+    - Under each header write bullet points, using sub-bullets for the details
+      - Do not use headers of level 2 or deeper
+    - Use fewer than about 800 words in total
+    - Follow the conventions in:
+      - @.claude/skills/markdown.rules.md
+      - @.claude/skills/text.rules.md
+    """
+)
+
+# Types of summary, mapped to the prompt that generates them:
+# - `short`: 7-10 bullet points, with no structure
+# - `structured`: level-1 headers with bullet points, like the article
+_SUMMARY_PROMPTS = {
+    "short": ARTICLE_SUMMARY_PROMPT,
+    "structured": ARTICLE_STRUCTURED_SUMMARY_PROMPT,
+}
+SUMMARY_TYPES = list(_SUMMARY_PROMPTS)
+
+
+def get_summary_prompt(summary_type: str) -> str:
+    """
+    Get the prompt that generates a type of summary.
+
+    :param summary_type: type of summary, one of `SUMMARY_TYPES`
+        - `short`: 7-10 bullet points, with no structure
+        - `structured`: level-1 headers with bullet points, keeping the
+          structure of the article
+    :return: system prompt to pass to `summarize_text_with_llm()`
+    """
+    _LOG.debug(hprint.to_str("summary_type"))
+    hdbg.dassert_in(summary_type, SUMMARY_TYPES)
+    prompt = _SUMMARY_PROMPTS[summary_type]
+    return prompt
+
 
 def get_stat_file_path(summary_file: str) -> str:
     """
@@ -460,7 +508,7 @@ def download_arxiv_article(url: str, output_file: str) -> None:
         f'--output "{base_path}"',
         "--no_incremental",
         "--skip_action summarize",
-        "--skip_figures",
+        "--no_extract_figures",
     ]
     cmd = " ".join(cmd)
     hsystem.system(cmd, print_command=True)

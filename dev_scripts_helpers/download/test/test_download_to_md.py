@@ -5,7 +5,7 @@ import logging
 import pytest
 
 pytest.importorskip("feedparser")
-pytest.importorskip("fitz")
+pytest.importorskip("pymupdf")
 
 import helpers.hgit as hgit
 import helpers.hprint as hprint

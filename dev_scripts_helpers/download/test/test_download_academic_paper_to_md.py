@@ -9,10 +9,10 @@ from unittest import mock
 import pytest
 
 pytest.importorskip("feedparser")
-pytest.importorskip("fitz")
+pytest.importorskip("pymupdf")
 pytest.importorskip("requests")
 
-import fitz
+import pymupdf
 
 import helpers.hgit as hgit
 import helpers.hio as hio
@@ -35,7 +35,7 @@ def _create_pdf(file_path: str, *, title: str = "", author: str = "") -> None:
     :param title: title stored in the PDF metadata
     :param author: author(s) stored in the PDF metadata
     """
-    doc = fitz.open()
+    doc = pymupdf.open()
     doc.new_page()  # type: ignore
     doc.set_metadata(  # type: ignore
         {

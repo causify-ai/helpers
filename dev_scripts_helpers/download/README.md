@@ -130,6 +130,11 @@
 - Converts the PDF to Markdown and summarizes it
   - The summary uses the default LLM model, an OpenRouter one: use `--model` to
     change it (see "LLM Model")
+  - `--summary_type short` (default) writes 7-10 bullet points with no structure
+  - `--summary_type structured` writes a level-1 header for each main section of the
+    paper, with bullet points under it
+    - The sections are inferred from the content, since the headers of a markdown
+      converted from a PDF are unreliable
 - For a DOI, queries CrossRef for the metadata and Unpaywall for an open-access PDF
   - Unpaywall requires a real contact email, passed with `--email`
   - Without `--email`, the Unpaywall lookup is skipped: the paper can still be named
@@ -194,6 +199,13 @@
   ```bash
   > PAPERS_DIR=./my_papers download_academic_paper_to_md.py \
       --input "https://arxiv.org/abs/1706.03762"
+  ```
+
+- Summarize keeping the structure of the paper (level-1 headers with bullet points):
+  ```bash
+  > download_academic_paper_to_md.py \
+      --input "10.1038/nature12373" \
+      --summary_type structured
   ```
 
 - Only download and convert, skip summarization:
