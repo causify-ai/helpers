@@ -3,7 +3,7 @@
 import logging
 import os
 import pprint
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional
 from unittest import mock
 
 import pytest
@@ -121,6 +121,7 @@ class Test__is_local_file(hunitest.TestCase):
 # #############################################################################
 
 # TODO(ai_gp): Factor out common code in all the tests
+
 
 class Test__extract_pdf_metadata_pymupdf(hunitest.TestCase):
     """
