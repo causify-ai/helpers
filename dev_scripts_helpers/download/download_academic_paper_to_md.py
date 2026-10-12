@@ -11,7 +11,8 @@
 - Convert them to Markdown
 - Summarize the markdown text
 
-- The output file name is shared across the `.pdf`, `.md`, and `.summary.md` outputs
+- The output file name is shared across the `.pdf`, `.md`, `.short.md`, and
+  `.structured.md` outputs
 
 # Usage Example
 
@@ -62,14 +63,18 @@
   7-10 bullet points:
 > download_academic_paper_to_md.py --input "10.1038/nature12373" --summary_type structured
 
+- Generate both summaries: the short one in `<base>.short.md` and the
+  structured one in `<base>.structured.md`:
+> download_academic_paper_to_md.py --input "10.1038/nature12373" --summary_type all
+
 - Only download and convert, skip summarization:
 > download_academic_paper_to_md.py --input "10.1038/nature12373" --skip_action summarize
 
-- Also copy the PDF and the summary to the papers dir (by default
-  `/Users/saggese/src/notes1/papers`):
+- Also copy all the files (PDF, markdown, summaries) to the papers dir (by
+  default `/Users/saggese/src/notes1/papers`):
 > download_academic_paper_to_md.py --input "https://arxiv.org/abs/1706.03762" --action save_to_papers_dir
 
-- Copy the PDF and the summary to a custom papers dir:
+- Copy all the files to a custom papers dir:
 > download_academic_paper_to_md.py --input "https://arxiv.org/abs/1706.03762" --action save_to_papers_dir --papers_dir ./my_papers
 
 - Also extract figures/images from the PDF when converting it (by default
@@ -89,7 +94,7 @@ import logging
 import os
 import re
 import shutil
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Set, Tuple
 
 import feedparser
 import pymupdf
@@ -113,10 +118,15 @@ _RETRY_DELAY_SEC = 2
 _API_TIMEOUT = 30
 _DOWNLOAD_TIMEOUT = 300
 
-# Default dir where the `save_to_papers_dir` action copies the PDF and the
-# summary of a paper. It is different from `$PAPERS_DIR`, the dir where the
-# files are generated.
+# Default dir where the `save_to_papers_dir` action copies the files of a
+# paper (PDF, markdown, and summaries). It is different from `$PAPERS_DIR`, the
+# dir where the files are generated.
 _DEFAULT_PAPERS_DIR = "/Users/saggese/src/notes1/papers"
+
+# Value of `--summary_type` that generates every type of summary. It is local
+# to this script, since the other downloaders generate a single summary.
+_ALL_SUMMARY_TYPE = "all"
+_SUMMARY_TYPE_CHOICES = dshddut.SUMMARY_TYPES + [_ALL_SUMMARY_TYPE]
 
 # - Extracts metadata (year, authors, title) from arXiv API, CrossRef, or PDF
 #   (including a local PDF file passed as `--input`)
@@ -613,7 +623,7 @@ def _download(
     Download the PDF for `url` and save it to `pdf_path`.
 
     A local PDF file is copied to `pdf_path` instead, so that the `.pdf`,
-    `.md`, and `.summary.md` outputs share the same base name.
+    `.md`, and summary outputs share the same base name.
 
     An SSRN paper is downloaded through Chrome, since SSRN blocks scripted
     clients.
@@ -749,6 +759,34 @@ def _convert(
 # #############################################################################
 
 
+def _get_summary_paths(
+    base_path: str, summary_type: str
+) -> List[Tuple[str, str]]:
+    """
+    Get the summaries to generate and the file where to save each of them.
+
+    The summary of a type is saved to `<base_path>.<type>.md`, e.g.,
+    `<base_path>.short.md`, so that the summaries of different types do not
+    overwrite each other.
+
+    :param base_path: base path (no extension) shared by the output files
+    :param summary_type: one of `download_utils.SUMMARY_TYPES` or
+        `_ALL_SUMMARY_TYPE`
+    :return: list of (summary type, path of the summary file)
+    """
+    _LOG.debug(hprint.to_str("base_path summary_type"))
+    hdbg.dassert_in(summary_type, _SUMMARY_TYPE_CHOICES)
+    if summary_type == _ALL_SUMMARY_TYPE:
+        summary_types = dshddut.SUMMARY_TYPES
+    else:
+        summary_types = [summary_type]
+    summary_paths = [
+        (type_, f"{base_path}.{type_}.md") for type_ in summary_types
+    ]
+    _LOG.debug(hprint.to_str("summary_paths"))
+    return summary_paths
+
+
 def _summarize(
     base_path: str,
     *,
@@ -759,15 +797,16 @@ def _summarize(
     """
     Summarize the converted markdown content using an LLM.
 
-    Reads `<base_path>.md` and writes `<base_path>.summary.md`.
+    Reads `<base_path>.md` and writes `<base_path>.short.md` and/or
+    `<base_path>.structured.md`, one for each type of summary.
 
-    :param base_path: base path (no extension) shared by the pdf/md/summary
-        files
+    :param base_path: base path (no extension) shared by the output files
     :param summary_type: type of summary, one of
-        `download_utils.SUMMARY_TYPES`
+        `download_utils.SUMMARY_TYPES` or `all`
         - `short`: 7-10 bullet points, with no structure
         - `structured`: level-1 headers with bullet points, keeping the
           structure of the paper
+        - `all`: both, calling the LLM once per type
     :param model: LLM model name
         - Default: `""`, which uses the default model of `llm_cli.py`, an
           OpenRouter one
@@ -775,19 +814,19 @@ def _summarize(
     """
     _LOG.debug(hprint.to_str("base_path summary_type model dry_run"))
     md_path = f"{base_path}.md"
-    summary_path = f"{base_path}.summary.md"
     if not dry_run:
         hdbg.dassert_file_exists(md_path)
-    _LOG.info("Summarizing markdown file: '%s'...", md_path)
-    dshddut.summarize_text_with_llm(
-        md_path,
-        summary_path,
-        dshddut.get_summary_prompt(summary_type),
-        model=model,
-        dry_run=dry_run,
-    )
-    if not dry_run:
-        _LOG.info("Summary saved to: '%s'", summary_path)
+    for type_, summary_path in _get_summary_paths(base_path, summary_type):
+        _LOG.info("Summarizing markdown file: '%s' (%s)...", md_path, type_)
+        dshddut.summarize_text_with_llm(
+            md_path,
+            summary_path,
+            dshddut.get_summary_prompt(type_),
+            model=model,
+            dry_run=dry_run,
+        )
+        if not dry_run:
+            _LOG.info("Summary saved to: '%s'", summary_path)
 
 
 # #############################################################################
@@ -799,50 +838,78 @@ def _save_to_papers_dir(
     base_path: str,
     papers_dir: str,
     *,
+    summary_type: str = "short",
     no_incremental: bool = False,
     dry_run: bool = False,
 ) -> None:
     """
-    Copy the PDF and the summary of a paper to the papers dir.
+    Copy all the files of a paper to the papers dir.
 
-    Copies `<base_path>.pdf` and `<base_path>.summary.md` to
-    `<papers_dir>/<base_name>.pdf` and `<papers_dir>/<base_name>.summary.md`.
+    Copies `<base_path>.pdf`, `<base_path>.md`, `<base_path>.short.md`, and
+    `<base_path>.structured.md` to the same file names in `<papers_dir>`.
 
-    A missing summary (e.g., the `summarize` action was skipped) is not an
-    error: only the PDF is copied, with a warning.
+    Only the PDF is required. A missing `.md` or summary (e.g., the `convert`
+    or `summarize` action was skipped, or the type of summary was not
+    generated) is not an error: it is not copied. There is a warning when no
+    summary at all is found.
 
-    :param base_path: base path (no extension) shared by the pdf/md/summary
-        files
+    The PDF is always copied, replacing an old PDF in the papers dir. The
+    other files already in the papers dir are skipped unless `no_incremental`
+    is True, since they can have been edited there.
+
+    :param base_path: base path (no extension) shared by the output files
     :param papers_dir: dir to copy the files to (e.g.,
         `/Users/saggese/src/notes1/papers`)
-    :param no_incremental: if True, overwrite existing files in the
-        papers dir
+    :param summary_type: type of summary of the run, one of
+        `download_utils.SUMMARY_TYPES` or `all`
+        - It is used only in a dry run, to assume which summaries will be
+          generated
+    :param no_incremental: if True, overwrite existing files other than the
+        PDF in the papers dir
     :param dry_run: if True, show what would be done without executing
     """
-    _LOG.debug(hprint.to_str("base_path papers_dir no_incremental dry_run"))
+    _LOG.debug(
+        hprint.to_str("base_path papers_dir summary_type no_incremental dry_run")
+    )
     papers_dir = os.path.expanduser(papers_dir)
     pdf_path = f"{base_path}.pdf"
-    summary_path = f"{base_path}.summary.md"
-    # Select the files to copy. In a dry run nothing was generated yet, so
-    # assume both files will exist.
-    src_paths = [pdf_path, summary_path]
-    if not dry_run:
+    md_path = f"{base_path}.md"
+    # Candidate files: all the files that the other actions can generate.
+    summary_paths = [
+        path for _, path in _get_summary_paths(base_path, _ALL_SUMMARY_TYPE)
+    ]
+    candidate_paths = [pdf_path, md_path] + summary_paths
+    # In a dry run nothing was generated yet, so assume that the files that the
+    # other actions would generate exist.
+    generated_paths: Set[str] = set()
+    if dry_run:
+        generated_paths = {pdf_path, md_path}
+        generated_paths.update(
+            path for _, path in _get_summary_paths(base_path, summary_type)
+        )
+    else:
         hdbg.dassert_file_exists(pdf_path)
-        if not os.path.exists(summary_path):
-            _LOG.warning(
-                "Summary '%s' not found, saving only the PDF", summary_path
-            )
-            src_paths = [pdf_path]
         hio.create_dir(papers_dir, incremental=True)
+    src_paths = [
+        path
+        for path in candidate_paths
+        if path in generated_paths or os.path.exists(path)
+    ]
+    if not set(summary_paths).intersection(src_paths):
+        _LOG.warning(
+            "No summary found for '%s', saving without a summary", base_path
+        )
     for src_path in src_paths:
         dst_path = os.path.join(papers_dir, os.path.basename(src_path))
-        if dry_run:
-            _LOG.warning("[DRY_RUN] Would copy '%s' to '%s'", src_path, dst_path)
-        elif os.path.abspath(src_path) == os.path.abspath(dst_path):
+        # The PDF is never edited in the papers dir, so it is always copied.
+        overwrite = no_incremental or src_path == pdf_path
+        if os.path.abspath(src_path) == os.path.abspath(dst_path):
             # Copying a file onto itself fails, and there is nothing to do.
             _LOG.info("File is already at '%s', nothing to copy", dst_path)
-        elif os.path.exists(dst_path) and not no_incremental:
+        elif os.path.exists(dst_path) and not overwrite:
             _LOG.warning("File already exists, skipping: '%s'", dst_path)
+        elif dry_run:
+            _LOG.warning("[DRY_RUN] Would copy '%s' to '%s'", src_path, dst_path)
         else:
             _LOG.info("Copying '%s' to '%s'", src_path, dst_path)
             shutil.copyfile(src_path, dst_path)
@@ -883,7 +950,8 @@ def _parse() -> argparse.ArgumentParser:
         default=None,
         help=(
             "Output base path (no extension), shared by the generated "
-            "<output>.pdf, <output>.md, <output>.summary.md files. If not "
+            "<output>.pdf, <output>.md, <output>.short.md, "
+            "<output>.structured.md files. If not "
             "specified, a standardized name is derived from the paper's "
             "metadata (or from the file name, for a local PDF without an "
             "embedded title) and saved under $PAPERS_DIR (or the current "
@@ -903,11 +971,13 @@ def _parse() -> argparse.ArgumentParser:
     parser.add_argument(
         "--summary_type",
         default="short",
-        choices=dshddut.SUMMARY_TYPES,
+        choices=_SUMMARY_TYPE_CHOICES,
         help=(
             "Type of summary for the `summarize` action: `short` (7-10 bullet "
-            "points, with no structure) or `structured` (a level-1 header for "
-            "each main section of the paper, with bullet points under it)"
+            "points, with no structure), `structured` (a level-1 header for "
+            "each main section of the paper, with bullet points under it), or "
+            "`all` (both). A summary is saved to <output>.<type>.md, e.g., "
+            "<output>.short.md"
         ),
     )
     parser.add_argument(
@@ -923,10 +993,10 @@ def _parse() -> argparse.ArgumentParser:
         "--papers_dir",
         default=_DEFAULT_PAPERS_DIR,
         help=(
-            "Dir where the `save_to_papers_dir` action copies the PDF and the "
-            "summary (enable it with `--action save_to_papers_dir`). It is "
-            "independent of $PAPERS_DIR, the dir where the files are "
-            "generated"
+            "Dir where the `save_to_papers_dir` action copies all the files "
+            "of the paper: PDF, markdown, and summaries (enable it with "
+            "`--action save_to_papers_dir`). It is independent of "
+            "$PAPERS_DIR, the dir where the files are generated"
         ),
     )
     parser.add_argument(
@@ -1021,6 +1091,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
                 _save_to_papers_dir(
                     base_path,
                     args.papers_dir,
+                    summary_type=args.summary_type,
                     no_incremental=args.no_incremental,
                     dry_run=args.dry_run,
                 )

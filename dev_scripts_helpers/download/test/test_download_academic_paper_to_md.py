@@ -3,7 +3,7 @@
 import logging
 import os
 import pprint
-from typing import Any, Dict, List, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 from unittest import mock
 
 import pytest
@@ -120,6 +120,7 @@ class Test__is_local_file(hunitest.TestCase):
 # Test__extract_pdf_metadata_pymupdf
 # #############################################################################
 
+# TODO(ai_gp): Factor out common code in all the tests
 
 class Test__extract_pdf_metadata_pymupdf(hunitest.TestCase):
     """
@@ -577,6 +578,94 @@ class Test__download(hunitest.TestCase):
 
 
 # #############################################################################
+# Test__get_summary_paths
+# #############################################################################
+
+
+class Test__get_summary_paths(hunitest.TestCase):
+    """
+    Test `download_academic_paper_to_md._get_summary_paths()`.
+    """
+
+    def test1(self) -> None:
+        """
+        Test `short` is saved to `.short.md`.
+        """
+        # Run test.
+        actual = dsdapt._get_summary_paths("dir/paper", "short")
+        # Check outputs.
+        expected = [("short", "dir/paper.short.md")]
+        self.assertEqual(actual, expected)
+
+    def test2(self) -> None:
+        """
+        Test `structured` is saved to `.structured.md`.
+        """
+        # Run test.
+        actual = dsdapt._get_summary_paths("dir/paper", "structured")
+        # Check outputs.
+        expected = [("structured", "dir/paper.structured.md")]
+        self.assertEqual(actual, expected)
+
+    def test3(self) -> None:
+        """
+        Test `all` generates both summaries in different files.
+        """
+        # Run test.
+        actual = dsdapt._get_summary_paths("dir/paper", "all")
+        # Check outputs.
+        expected = [
+            ("short", "dir/paper.short.md"),
+            ("structured", "dir/paper.structured.md"),
+        ]
+        self.assertEqual(actual, expected)
+
+
+# #############################################################################
+# Test__parse
+# #############################################################################
+
+
+class Test__parse(hunitest.TestCase):
+    """
+    Test the `--summary_type` argument of
+    `download_academic_paper_to_md._parse()`.
+    """
+
+    def test1(self) -> None:
+        """
+        Test `--summary_type` accepts `all`.
+        """
+        # Prepare inputs.
+        parser = dsdapt._parse()
+        # Run test.
+        args = parser.parse_args(["--input", "x.pdf", "--summary_type", "all"])
+        # Check outputs.
+        self.assert_equal(args.summary_type, "all")
+
+    def test2(self) -> None:
+        """
+        Test `--summary_type` is `short` by default.
+        """
+        # Prepare inputs.
+        parser = dsdapt._parse()
+        # Run test.
+        args = parser.parse_args(["--input", "x.pdf"])
+        # Check outputs.
+        self.assert_equal(args.summary_type, "short")
+
+    def test3(self) -> None:
+        """
+        Test `--summary_type` rejects an unknown type.
+        """
+        # Prepare inputs.
+        parser = dsdapt._parse()
+        # Run test.
+        with self.assertRaises(SystemExit):
+            parser.parse_args(["--input", "x.pdf", "--summary_type", "bad"])
+
+
+# #############################################################################
 # Test__save_to_papers_dir
 # #############################################################################
 
@@ -589,100 +678,166 @@ class Test__save_to_papers_dir(hunitest.TestCase):
     def helper(
         self,
         *,
-        with_summary: bool = True,
-        existing_pdf: bool = False,
+        with_md: bool = True,
+        with_short: bool = True,
+        with_structured: bool = False,
+        existing: Optional[List[str]] = None,
         no_incremental: bool = False,
         dry_run: bool = False,
-    ) -> Tuple[str, str]:
+        summary_type: str = "short",
+    ) -> str:
         """
         Test helper for `_save_to_papers_dir()`.
 
-        :param with_summary: if True, create the summary file
-        :param existing_pdf: if True, create an old PDF in the papers dir
+        The PDF is always created. The content of every generated file is
+        `new <extension>`, and the content of an existing file in the papers
+        dir is `old <extension>`.
+
+        :param with_md: if True, create the converted markdown file
+        :param with_short: if True, create the short summary file
+        :param with_structured: if True, create the structured summary file
+        :param existing: extensions of the old files to create in the papers
+            dir, e.g., `["pdf", "short.md"]`
         :param no_incremental: if True, overwrite existing files
         :param dry_run: if True, do not execute the actions
-        :return: sorted list of the files in the papers dir, as a string,
-            and the content of the PDF in the papers dir (empty if
-            missing)
+        :param summary_type: type of summary of the run
+        :return: content of the files in the papers dir, as a string of a dict
+            from extension to content, sorted by extension
         """
         # Prepare inputs.
         scratch_dir = self.get_scratch_space()
-        base_path = os.path.join(scratch_dir, "papers", "2017.Vaswani.Paper")
+        base_name = "2017.Vaswani.Paper"
+        base_path = os.path.join(scratch_dir, "papers", base_name)
         hio.create_dir(os.path.dirname(base_path), incremental=True)
-        hio.to_file(f"{base_path}.pdf", "new pdf")
-        if with_summary:
-            hio.to_file(f"{base_path}.summary.md", "summary")
+        generated = ["pdf"]
+        if with_md:
+            generated.append("md")
+        if with_short:
+            generated.append("short.md")
+        if with_structured:
+            generated.append("structured.md")
+        for ext in generated:
+            hio.to_file(f"{base_path}.{ext}", f"new {ext}")
         papers_dir = os.path.join(scratch_dir, "saved_papers")
-        dst_pdf_path = os.path.join(papers_dir, "2017.Vaswani.Paper.pdf")
-        if existing_pdf:
+        if existing:
             hio.create_dir(papers_dir, incremental=True)
-            hio.to_file(dst_pdf_path, "old pdf")
+            for ext in existing:
+                hio.to_file(
+                    os.path.join(papers_dir, f"{base_name}.{ext}"), f"old {ext}"
+                )
         # Run test.
         dsdapt._save_to_papers_dir(
             base_path,
             papers_dir,
+            summary_type=summary_type,
             no_incremental=no_incremental,
             dry_run=dry_run,
         )
         # Check outputs.
-        files = []
+        contents = {}
         if os.path.exists(papers_dir):
-            files = sorted(os.listdir(papers_dir))
-        pdf_content = ""
-        if os.path.exists(dst_pdf_path):
-            pdf_content = hio.from_file(dst_pdf_path)
-        return str(files), pdf_content
+            for file_name in sorted(os.listdir(papers_dir)):
+                ext = file_name[len(base_name) + 1 :]
+                file_path = os.path.join(papers_dir, file_name)
+                contents[ext] = hio.from_file(file_path)
+        return str(contents)
 
     def test1(self) -> None:
         """
-        Test the PDF and the summary are copied, creating the dir.
+        Test the PDF, the markdown, and the short summary are copied,
+        creating the dir.
         """
         # Run test.
-        actual_files, actual_pdf = self.helper()
+        actual = self.helper()
         # Check outputs.
-        expected_files = (
-            "['2017.Vaswani.Paper.pdf', '2017.Vaswani.Paper.summary.md']"
+        expected = str(
+            {
+                "md": "new md",
+                "pdf": "new pdf",
+                "short.md": "new short.md",
+            }
         )
-        self.assert_equal(actual_files, expected_files)
-        self.assert_equal(actual_pdf, "new pdf")
+        self.assert_equal(actual, expected)
 
     def test2(self) -> None:
         """
-        Test only the PDF is copied when the summary is missing.
+        Test all the files are copied when both summaries exist.
         """
         # Run test.
-        actual_files, _ = self.helper(with_summary=False)
+        actual = self.helper(with_structured=True)
         # Check outputs.
-        self.assert_equal(actual_files, "['2017.Vaswani.Paper.pdf']")
+        expected = str(
+            {
+                "md": "new md",
+                "pdf": "new pdf",
+                "short.md": "new short.md",
+                "structured.md": "new structured.md",
+            }
+        )
+        self.assert_equal(actual, expected)
 
     def test3(self) -> None:
+        """
+        Test only the PDF is copied when the other files are missing.
+        """
+        # Run test.
+        actual = self.helper(with_md=False, with_short=False)
+        # Check outputs.
+        expected = str({"pdf": "new pdf"})
+        self.assert_equal(actual, expected)
+
+    def test4(self) -> None:
         """
         Test nothing is copied with `dry_run`.
         """
         # Run test.
-        actual_files, _ = self.helper(dry_run=True)
+        actual = self.helper(dry_run=True, summary_type="all")
         # Check outputs.
-        self.assert_equal(actual_files, "[]")
-
-    def test4(self) -> None:
-        """
-        Test an existing PDF in the papers dir is not overwritten by
-        default.
-        """
-        # Run test.
-        _, actual_pdf = self.helper(existing_pdf=True)
-        # Check outputs.
-        self.assert_equal(actual_pdf, "old pdf")
+        self.assert_equal(actual, "{}")
 
     def test5(self) -> None:
         """
-        Test an existing PDF in the papers dir is overwritten with
+        Test an existing PDF in the papers dir is replaced by default, and
+        another existing file is not overwritten.
+        """
+        # Run test.
+        actual = self.helper(existing=["pdf", "short.md"])
+        # Check outputs.
+        expected = str(
+            {
+                "md": "new md",
+                "pdf": "new pdf",
+                "short.md": "old short.md",
+            }
+        )
+        self.assert_equal(actual, expected)
+
+    def test6(self) -> None:
+        """
+        Test all the existing files in the papers dir are overwritten with
         `no_incremental`.
         """
         # Run test.
-        _, actual_pdf = self.helper(existing_pdf=True, no_incremental=True)
+        actual = self.helper(existing=["pdf", "short.md"], no_incremental=True)
         # Check outputs.
-        self.assert_equal(actual_pdf, "new pdf")
+        expected = str(
+            {
+                "md": "new md",
+                "pdf": "new pdf",
+                "short.md": "new short.md",
+            }
+        )
+        self.assert_equal(actual, expected)
+
+    def test7(self) -> None:
+        """
+        Test an existing PDF in the papers dir is not changed with `dry_run`.
+        """
+        # Run test.
+        actual = self.helper(existing=["pdf"], dry_run=True)
+        # Check outputs.
+        expected = str({"pdf": "old pdf"})
+        self.assert_equal(actual, expected)
 
 
 # #############################################################################
