@@ -271,14 +271,15 @@
       --action summarize
   ```
 
-- Also copy all the files (PDF, markdown, summaries) to the papers dir:
+- Also copy the PDF (cropped margins) and the summary to the papers dir, without
+  the converted markdown:
   ```bash
   > download_academic_paper_to_md.py \
       --input "https://arxiv.org/abs/1706.03762" \
       --action save_to_papers_dir
   ```
 
-- Copy all the files to a custom papers dir:
+- Copy the PDF and the summary to a custom papers dir:
   ```bash
   > download_academic_paper_to_md.py \
       --input "https://arxiv.org/abs/1706.03762" \
