@@ -190,7 +190,9 @@ def _add_all_untracked_files(*, exclude_tmp: bool = False) -> None:
 # #############################################################################
 
 
-def _print_file_list(title: str, files: List[str], *, max_files: int = 50) -> None:
+def _print_file_list(
+    title: str, files: List[str], *, max_files: int = 50
+) -> None:
     """
     Print a titled, bulleted list of file paths, truncating if very long.
 
@@ -264,15 +266,14 @@ def _preview_git_merge_master(current_branch: str, target_branch: str) -> bool:
     other_clean_files = sorted(
         both_sides_files - auto_merged_files - set(conflict_files)
     )
-    trivial_files = sorted(
-        (current_files | target_files) - both_sides_files
-    )
+    trivial_files = sorted((current_files | target_files) - both_sides_files)
     print(
-        "\n" + hprint.frame(f"Preview: merge `{target_branch}` into `{current_branch}`")
+        "\n"
+        + hprint.frame(
+            f"Preview: merge `{target_branch}` into `{current_branch}`"
+        )
     )
-    print(
-        "(dry run via `git merge-tree`: no files, index, or history touched)"
-    )
+    print("(dry run via `git merge-tree`: no files, index, or history touched)")
     _print_file_list("Conflicting files", conflict_files)
     _print_file_list(
         "Files changed on both branches, merge cleanly",
