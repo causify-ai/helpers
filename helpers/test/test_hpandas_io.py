@@ -17,6 +17,8 @@ _AWS_PROFILE = "ck"
 # #############################################################################
 
 
+@pytest.mark.requires_aws
+@pytest.mark.requires_ck_infra
 class TestReadDataFromS3(hunitest.TestCase):
     def test_read_csv1(self) -> None:
         s3fs = hs3.get_s3fs(_AWS_PROFILE)

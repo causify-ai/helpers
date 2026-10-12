@@ -1459,6 +1459,8 @@ def _process_single_file(
         "width": args.width,
         "use_dockerized_prettier": args.use_dockerized_prettier,
         "use_dockerized_markdown_toc": args.use_dockerized_markdown_toc,
+        # Directory for the intermediate files of `prettier_on_str()`.
+        "tmp_dir": args.tmp_dir,
     }
     # Add backend and mode if specified.
     if args.backend:

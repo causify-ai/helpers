@@ -6,7 +6,7 @@ naming, template, and the `README.md` tracking table
 ## Files
 
 - Each research idea is one file `research/ideas/<STATUS>.<Idea_Name>.md`
-- The shared template is `research/ideas/template.research_idea.md`
+- The shared template is `.claude/templates/research_idea.template.md`
 - The tracking index is `research/ideas/README.md`
 
 ## Status Prefixes
@@ -27,8 +27,13 @@ naming, template, and the `README.md` tracking table
 
 ## Template Usage
 
-- Follow the template `research/ideas/template.research_idea.md` for the section
+- Follow the template `.claude/templates/research_idea.template.md` for the section
   structure of a research idea file
+- Do not add an `Assignee` field to an idea file: assignees are tracked only in the
+  README table
+- Write references as `Author(s), _Title_. (Year)`
+- Do not leave template placeholder text (e.g., `[Example 1]`, `Do this and that`) in a
+  finished section: fill it from the idea's own content or remove the bullet
 - Do not invent new top-level sections; reuse the template's sections (`Core Idea`,
   `Formalization`, `Key Examples`, `Questions`, `Research Topics`, `Next steps`,
   `Implementation plan`, `References`)

@@ -22,8 +22,20 @@ model: opus
   `RL_for_Automated_EDA`); ask the user if the idea does not suggest an
   obvious name
 - Create `papers/<Paper_Name>/` if it does not exist
-- Copy `Makefile`, `references.bib`, `ieee-template.typ`, and `figures/` from
+- Link `Makefile` to `papers/template/Makefile` with a symlink, so that all the
+  paper dirs stay in sync, e.g.,
+  `ln -s ../template/Makefile papers/<Paper_Name>/Makefile`
+  - Do not copy it and do not edit it for a single paper
+- Copy `references.bib`, `ieee-template.typ`, and `figures/` from
   `papers/template/` into the new directory
+- Do not copy `run_latex.sh`, `lint_latex.sh`, or `template.pdf`, since they
+  are obsolete or build outputs
+  - Build with `make` (which calls `run_latex.py` for LaTeX, which also renders
+    the diagrams with `render_images.py`)
+  - Lint with `lint_text.py -i <file> --use_dockerized_prettier`
+- If the paper is written in LaTeX instead of Markdown, also copy `paper.tex`
+  and keep the `\input{papers/template/style.tex}` line in `paper.tex`, which
+  is shared by all the papers
 - Do not overwrite an existing `paper.md` without confirming with the user
 
 ## Write `paper.md`
@@ -59,7 +71,8 @@ model: opus
 - `papers/Optimal_strategy_for_racket_sports/paper.md`
 
 # Verification
-- [ ] `papers/<Paper_Name>/` contains `Makefile`, `references.bib`,
+- [ ] `papers/<Paper_Name>/Makefile` is a symlink to `../template/Makefile`
+- [ ] `papers/<Paper_Name>/` contains `references.bib`,
   `ieee-template.typ`, `figures/`, and `paper.md`
 - [ ] No `<...>` placeholder remains in `paper.md`
 - [ ] Every claim has a `[@key]` citation with a matching `references.bib`

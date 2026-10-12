@@ -62,6 +62,11 @@ _LOG = logging.getLogger(__name__)
 # _LOG.trace = lambda *args, **kwargs: None
 _LOG.trace = _LOG.debug
 
+# Default LLM model of the LLM CLI scripts: an OpenRouter one, so it needs the
+# `llm-openrouter` plugin and the `OPENROUTER_KEY` env var. Scripts that call an
+# LLM take it from here, and let the user change it with `--model`.
+DEFAULT_MODEL = "openrouter/deepseek/deepseek-v4-flash"
+
 
 # #############################################################################
 # Lazy imports
@@ -1692,7 +1697,7 @@ def add_llm_args(
     output_required: bool = False,
     system_prompt_required: bool = False,
     # model_default: str = "gpt-4o-mini",
-    model_default: str = "openrouter/deepseek/deepseek-v4-flash",
+    model_default: str = DEFAULT_MODEL,
     include_model: bool = True,
     include_backend: bool = True,
 ) -> argparse.ArgumentParser:

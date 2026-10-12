@@ -2,11 +2,13 @@
 
 # """
 # Print which side is "ours" and which is "theirs" for the git operation
-# currently in progress (merge, rebase, cherry-pick, or revert).
+# currently in progress (merge, rebase, cherry-pick, revert, or stash
+# apply/pop).
 #
 # "Ours" / "theirs" flip meaning between merge and rebase:
 # - merge: ours = current branch, theirs = branch being merged in
 # - rebase: ours = onto target, theirs = original branch being replayed
+# - stash apply/pop: ours = current branch, theirs = stash
 # """
 
 source helpers.sh
@@ -76,6 +78,13 @@ elif [ -f "$GIT_DIR/REVERT_HEAD" ]; then
   print_commit HEAD
   echo "THEIRS = commit being reverted"
   print_commit "$(cat "$GIT_DIR/REVERT_HEAD")"
+elif [ -n "$(git ls-files -u)" ]; then
+  # `git stash apply/pop` leaves no state file, only unmerged index entries.
+  echo "Operation: stash apply/pop (or other index-only conflict)"
+  echo "OURS   = current branch"
+  print_commit HEAD
+  echo "THEIRS = stash (assuming stash@{0}, check 'git stash list')"
+  print_commit "stash@{0}"
 else
   echo "No merge/rebase/cherry-pick/revert in progress."
   exit 0
