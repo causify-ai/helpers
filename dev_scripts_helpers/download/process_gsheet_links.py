@@ -41,6 +41,13 @@ This script manages the following actions:
     --url "https://docs.google.com/spreadsheets/d/1i6Z7v2..." \
     --all_actions
 
+- Tag the articles with a specific LLM model (by default the OpenRouter model
+  of `hllm_cli`, which needs the `OPENROUTER_KEY` env var):
+> process_gsheet_links.py \
+    --url "https://docs.google.com/spreadsheets/d/1i6Z7v2..." \
+    --clear_actions --action update_article_tag \
+    --model openrouter/anthropic/claude-haiku-4.5
+
 Import as:
 
 import dev_scripts_helpers.download.process_gsheet_links as dsgl
@@ -302,7 +309,7 @@ def _update_article_tags(
     Only processes rows where Article_tag is empty; skips rows with existing values.
 
     :param batch_size: Number of articles to process in each batch
-    :param model: Optional LLM model name to use
+    :param model: LLM model name to use, e.g., `hllmcli.DEFAULT_MODEL`
     :return: Path to the updated CSV file
     """
     _LOG.debug(hprint.to_str("model batch_size"))
@@ -518,8 +525,12 @@ def _parse() -> argparse.ArgumentParser:
     parser.add_argument(
         "--model",
         action="store",
-        default="gpt-4o-mini",
-        help="LLM model name to use for tagging (default: gpt-4o-mini)",
+        default=hllmcli.DEFAULT_MODEL,
+        help=(
+            "LLM model name to use for tagging, e.g., "
+            "`openrouter/anthropic/claude-haiku-4.5`. The default is an "
+            "OpenRouter model, which needs the `OPENROUTER_KEY` env var"
+        ),
     )
     hselacti.add_action_arg(parser, _VALID_ACTIONS, _DEFAULT_ACTIONS)
     hcacsimp.add_cache_control_arg(parser)

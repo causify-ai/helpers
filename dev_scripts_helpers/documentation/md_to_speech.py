@@ -182,6 +182,8 @@ def _extract_markdown_section(
     file_path: str,
     md_start: str,
     md_end: str,
+    *,
+    tmp_dir: str = "",
 ) -> str:
     """
     Extract a markdown section, write to tmp file, run lint_text.py.
@@ -193,6 +195,11 @@ def _extract_markdown_section(
     :param file_path: path to markdown input file
     :param md_start: starting header (full "## Title" or partial "Title")
     :param md_end: ending header or None to auto-detect next same-level, or "END" to extract to end of file
+    :param tmp_dir: directory (e.g., a test's scratch space) to save the
+        tmp file and the intermediate files of `lint_text.py`
+        - If empty, the current dir is used
+        - It must be reachable from the Docker mount (e.g., a dir under the
+          Git root)
     :return: processed content of the extracted section
     """
     hdbg.dassert_isinstance(md_start, str)
@@ -206,13 +213,23 @@ def _extract_markdown_section(
     # Use a unique file name (instead of the fixed `_TMP_EXTRACT_FILE`) so
     # that concurrent / overlapping calls (e.g., parallel test runs) don't
     # clobber each other's tmp file.
-    tmp_extract_file = f"{_TMP_EXTRACT_FILE}.{uuid.uuid4().hex[:8]}.md"
+    tmp_extract_file = os.path.join(
+        tmp_dir, f"{_TMP_EXTRACT_FILE}.{uuid.uuid4().hex[:8]}.md"
+    )
     hio.to_file(tmp_extract_file, extracted_content)
     _LOG.info("Extracted section written to '%s'", tmp_extract_file)
     # Lint.
     _LOG.info("Linting ...")
     lint_script = hgit.find_file_in_git_tree("lint_text.py")
-    cmd = f"{lint_script} -i {tmp_extract_file} -w 1000"
+    cmd = [
+        lint_script,
+        f"-i {tmp_extract_file}",
+        "-w 1000",
+    ]
+    # Save the intermediate files of `lint_text.py` in the same dir.
+    if tmp_dir:
+        cmd.append(f"--tmp_dir {tmp_dir}")
+    cmd = " ".join(cmd)
     hsystem.system(cmd)
     _LOG.info("Linting ... done")
     # Read back.

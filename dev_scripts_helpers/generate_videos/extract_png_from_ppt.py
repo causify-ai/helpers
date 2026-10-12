@@ -22,7 +22,7 @@ import os
 import tempfile
 from pathlib import Path
 
-import fitz
+import pymupdf
 from pptx import Presentation
 from pptx.enum.shapes import MSO_SHAPE_TYPE
 
@@ -105,12 +105,12 @@ def extract_slides_as_png(ppt_path: str, output_dir: str) -> bool:
     )
     # Convert PDF pages to PNG images.
     _LOG.debug("Converting PDF to PNG images from %s", actual_pdf_path)
-    pdf_document = fitz.open(actual_pdf_path)
+    pdf_document = pymupdf.open(actual_pdf_path)
     slide_count = 0
     for page_num in range(pdf_document.page_count):
         page = pdf_document.load_page(page_num)
         # Render page as image with high resolution.
-        matrix = fitz.Matrix(2.0, 2.0)  # 2x zoom for better quality.
+        matrix = pymupdf.Matrix(2.0, 2.0)  # 2x zoom for better quality.
         pix = page.get_pixmap(matrix=matrix)
         # Save as PNG.
         slide_filename = f"slide_{page_num + 1:03d}.png"

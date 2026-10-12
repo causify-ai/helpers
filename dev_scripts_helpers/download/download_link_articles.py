@@ -93,11 +93,12 @@ characters replaced with underscores:
     --url "https://docs.google.com/spreadsheets/d/..." \
     --clear_actions --action summarize_hn_url
 
-- Summarize articles with a specific LLM model instead of the default:
+- Summarize articles with a specific LLM model instead of the default
+  (an OpenRouter model, which needs the `OPENROUTER_KEY` env var):
 > download_link_articles.py \
     --url "https://docs.google.com/spreadsheets/d/..." \
     --clear_actions --action summarize_article_url \
-    --model gpt-4o
+    --model openrouter/anthropic/claude-haiku-4.5
 
 - Show what would be done without downloading or summarizing:
 > download_link_articles.py \
@@ -126,16 +127,10 @@ import helpers.hparser as hparser
 import helpers.hprint as hprint
 import helpers.hcache_simple as hcacsimp
 import helpers.hselect_action as hselacti
-import helpers.hsystem as hsystem
 import dev_scripts_helpers.download.download_utils as dshddut
 import dev_scripts_helpers.download.bookmark_utils as dshdbout
 
 _LOG = logging.getLogger(__name__)
-
-# Default LLM model used by `summarize_article_url` / `summarize_hn_url`,
-# overridable via `--model`.
-_DEFAULT_MODEL = "gpt-4o-mini"
-
 
 # #############################################################################
 # Phase 1: Download Gsheet
@@ -697,57 +692,11 @@ def _download_article_urls(
 # #############################################################################
 
 
-def _summarize_text_with_llm(
-    input_file: str,
-    output_file: str,
-    prompt: str,
-    model: str,
-    dry_run: bool = False,
-) -> None:
-    """
-    Summarize text using llm_cli.py and lint the output.
-
-    :param input_file: Path to input text file to summarize
-    :param output_file: Path to save the summary
-    :param prompt: System prompt to guide the summarization
-    :param model: LLM model to use for summarization
-    :param dry_run: If True, show what would be done without executing
-    """
-    _LOG.debug(hprint.to_str("input_file output_file model"))
-    _LOG.info("Summarizing: '%s'", input_file)
-    if dry_run:
-        _LOG.info(
-            "[DRY RUN] Would summarize: %s -> %s (model: %s)",
-            input_file,
-            output_file,
-            model,
-        )
-        return
-    # Save prompt to a temporary file.
-    prompt_file = "tmp.summarize_text_with_llm.prompt.txt"
-    hio.to_file(prompt_file, prompt)
-    _LOG.debug("Saved prompt to: '%s'", prompt_file)
-    # Build command to call llm_cli.py with the given prompt file.
-    llm_cli_path = "dev_scripts_helpers/llms/llm_cli.py"
-    cmd_parts = [
-        llm_cli_path,
-        f"--input={input_file}",
-        f"--output={output_file}",
-        f"--pf={prompt_file}",
-        f"--model={model}",
-        "--lint",
-    ]
-    cmd = " ".join(cmd_parts)
-    _LOG.debug("Running command: %s", cmd)
-    hsystem.system(cmd, print_command=True)
-    _LOG.info("Summary saved to: '%s'", output_file)
-
-
 def _summarize_articles(
     rows: List[Dict[str, Any]],
     *,
     indices: List[int],
-    model: str = _DEFAULT_MODEL,
+    model: str = "",
     dry_run: bool = False,
     no_incremental: bool = False,
 ) -> None:
@@ -760,6 +709,8 @@ def _summarize_articles(
     :param rows: List of data rows
     :param indices: List of row indices to process
     :param model: LLM model to use for summarization
+        - Default: `""`, which uses the default model of `llm_cli.py`, an
+          OpenRouter one
     :param dry_run: If True, show what would be done without executing
     :param no_incremental: If True, overwrite the summary even if it
         already exists
@@ -797,11 +748,11 @@ def _summarize_articles(
             )
             continue
         _LOG.info("Summarizing article text for: %s", title)
-        _summarize_text_with_llm(
+        dshddut.summarize_text_with_llm(
             article_file,
             article_summary_file,
             article_prompt,
-            model,
+            model=model,
             dry_run=dry_run,
         )
 
@@ -810,7 +761,7 @@ def _summarize_hn_url(
     rows: List[Dict[str, Any]],
     *,
     indices: List[int],
-    model: str = _DEFAULT_MODEL,
+    model: str = "",
     dry_run: bool = False,
     no_incremental: bool = False,
 ) -> None:
@@ -823,6 +774,8 @@ def _summarize_hn_url(
     :param rows: List of data rows
     :param indices: List of row indices to process
     :param model: LLM model to use for summarization
+        - Default: `""`, which uses the default model of `llm_cli.py`, an
+          OpenRouter one
     :param dry_run: If True, show what would be done without executing
     :param no_incremental: If True, overwrite the summary even if it
         already exists
@@ -870,11 +823,11 @@ def _summarize_hn_url(
             )
             continue
         _LOG.info("Summarizing HN comments for: %s", title)
-        _summarize_text_with_llm(
+        dshddut.summarize_text_with_llm(
             comments_file,
             comments_summary_file,
             comments_prompt,
-            model,
+            model=model,
             dry_run=dry_run,
         )
 
@@ -943,8 +896,13 @@ def _parse() -> argparse.ArgumentParser:
     parser.add_argument(
         "--model",
         action="store",
-        default=_DEFAULT_MODEL,
-        help="LLM model to use for summarize_article_url / summarize_hn_url",
+        default="",
+        help=(
+            "LLM model to use for summarize_article_url / summarize_hn_url, "
+            "e.g., `openrouter/anthropic/claude-haiku-4.5`. If not specified, "
+            "the default model of `llm_cli.py` is used, an OpenRouter one "
+            "(it needs the `OPENROUTER_KEY` env var)"
+        ),
     )
     # Add cache control argument.
     hcacsimp.add_cache_control_arg(parser)

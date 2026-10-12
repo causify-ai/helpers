@@ -12,6 +12,9 @@ r"""
   - bs: Uses BeautifulSoup to find main content, then markdownify to convert
   - readability: Uses readability library for article extraction
 - Summarize the content
+- Fail, without saving anything, if the downloaded page is a bot-protection page
+  (e.g., "Just a moment...") instead of the content: for such sites use
+  `download_with_chrome.py`
 
 # Usage Example
 
@@ -30,7 +33,11 @@ r"""
 
 - Enable the `summarize` action on top of the default actions to also
   generate `<output>.summary.md`:
-> download_html_to_md.py --input https://example.com --output output.md -e summarize
+> download_html_to_md.py --input https://example.com --output output.md --action summarize
+
+- Summarize with a specific LLM model (by default the OpenRouter model of
+  `llm_cli.py`, which needs the `OPENROUTER_KEY` env var):
+> download_html_to_md.py --input https://example.com --output output.md --action summarize --model openrouter/anthropic/claude-haiku-4.5
 
 - Show what would be done without downloading, converting, or summarizing:
 > download_html_to_md.py --input https://example.com --output output.md --dry_run
@@ -148,9 +155,7 @@ def _download_html(
             response = requests.get(input_url, headers=headers, timeout=30)
             response.raise_for_status()
             html_content = response.text
-            _LOG.debug(
-                "Received response: status_code=%s", response.status_code
-            )
+            _LOG.debug("Received response: status_code=%s", response.status_code)
         except requests.exceptions.HTTPError as e:
             # Some sites (e.g., behind Cloudflare/Akamai) reject plain HTTP
             # clients regardless of headers. Fall back to a headless
@@ -160,6 +165,18 @@ def _download_html(
                 "Request failed (%s), retrying with headless browser...", e
             )
             html_content = _download_html_with_browser(input_url)
+        # Fail loudly on a bot-protection page: converting it would silently
+        # produce a "paper" that is only a block notice, and saving it would
+        # make the next incremental run skip the download.
+        marker = dshddut.detect_blocked_page(html_content)
+        hdbg.dassert_eq(
+            marker,
+            "",
+            "'%s' returned a bot-protection page instead of the content: the "
+            "site blocks scripted downloads. Save the page from a browser and "
+            "pass the file as --input, or use `download_with_chrome.py`",
+            input_url,
+        )
     hio.to_file(output_html_file, html_content)
     _LOG.info("Saved HTML to '%s'", output_html_file)
 
@@ -421,6 +438,7 @@ def _lint(output_md_file: str, *, dry_run: bool = False) -> None:
 def _summarize(
     output_md_file: str,
     *,
+    model: str = "",
     dry_run: bool = False,
     no_incremental: bool = False,
 ) -> None:
@@ -428,11 +446,14 @@ def _summarize(
     Summarize the markdown content using an LLM.
 
     :param output_md_file: Path to markdown file to summarize
+    :param model: LLM model name
+        - Default: `""`, which uses the default model of `llm_cli.py`, an
+          OpenRouter one
     :param dry_run: if True, show what would be done without executing
     :param no_incremental: if True, overwrite the summary even if it
         already exists
     """
-    _LOG.debug(hprint.to_str("output_md_file dry_run no_incremental"))
+    _LOG.debug(hprint.to_str("output_md_file model dry_run no_incremental"))
     summary_file = f"{output_md_file}.summary.md"
     if not dry_run and os.path.exists(summary_file) and not no_incremental:
         _LOG.warning("Summary already exists, skipping: '%s'", summary_file)
@@ -442,6 +463,7 @@ def _summarize(
         output_md_file,
         summary_file,
         dshddut.ARTICLE_SUMMARY_PROMPT,
+        model=model,
         dry_run=dry_run,
     )
     if not dry_run:
@@ -526,6 +548,16 @@ def _parse() -> argparse.ArgumentParser:
         help="Converter to use for HTML to markdown conversion",
     )
     parser.add_argument(
+        "--model",
+        default="",
+        help=(
+            "LLM model for the summarize actions, e.g., "
+            "`openrouter/anthropic/claude-haiku-4.5`. If not specified, the "
+            "default model of `llm_cli.py` is used, an OpenRouter one (it "
+            "needs the `OPENROUTER_KEY` env var)"
+        ),
+    )
+    parser.add_argument(
         "--dry_run",
         action="store_true",
         help="Dry run mode: show what would be done without actually executing actions",
@@ -608,6 +640,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
         elif action == "summarize":
             _summarize(
                 output_md_file,
+                model=args.model,
                 dry_run=args.dry_run,
                 no_incremental=args.no_incremental,
             )

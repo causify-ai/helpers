@@ -189,12 +189,12 @@ class Test_git_merge_master(hunitest.TestCase):
             abort_if_not_clean=False,
             skip_fetch=True,
             auto_merge=False,
-            submodules=False,
+            submodules=True,
             dry_run=True,
         )
         # Prepare outputs.
         expected = """
-        call('/repo/git_merge_master.py --abort_if_not_ff --no_abort_if_not_clean --skip_fetch --no_auto_merge --no_submodules --dry_run', echo=False)
+        call('/repo/git_merge_master.py --abort_if_not_ff --no_abort_if_not_clean --skip_fetch --no_auto_merge --submodules --dry_run', echo=False)
         """
         # Run test.
         self.helper(kwargs, expected)
@@ -220,8 +220,12 @@ class Test_git_clean(hunitest.TestCase):
         hltltagi.git_clean(ctx)
         # Check outputs.
         actual = _get_ctx_run_calls(ctx)
-        self.assertIn("call('git clean -fd >/dev/null 2>&1', echo=False)", actual)
-        self.assertIn("git submodule foreach 'git clean -fd >/dev/null 2>&1'", actual)
+        self.assertIn(
+            "call('git clean -fd >/dev/null 2>&1', echo=False)", actual
+        )
+        self.assertIn(
+            "git submodule foreach 'git clean -fd >/dev/null 2>&1'", actual
+        )
         self.assertNotIn("invoke fix_perms", actual)
         self.assertIn("| xargs rm -rf", actual)
 
@@ -291,13 +295,13 @@ class Test_git_add_all_untracked(hunitest.TestCase):
 
     def test2(self) -> None:
         """
-        Test that `exclude_tmp=True` filters out `tmp.*` files.
+        Test that `exclude_tmp=True` filters out `tmp.*` and `*.log` files.
         """
         # Prepare inputs.
         exclude_tmp = True
         # Prepare outputs.
         expected = """
-        call("git ls-files -o --exclude-standard -z | grep -zv '^tmp\\\\.' | xargs -0 git add", echo=False)
+        call("git ls-files -o --exclude-standard -z | grep -zvE '(^|/)(tmp\\\\.[^/]*|[^/]*\\\\.log)$' | xargs -0 git add", echo=False)
         """
         # Run test.
         self.helper(exclude_tmp, expected)
@@ -520,9 +524,7 @@ class Test_git_files(hunitest.TestCase):
         ):
             printed = io.StringIO()
             with contextlib.redirect_stdout(printed):
-                hltltagi.git_files(
-                    ctx, only_print_files=True, mode=mode
-                )
+                hltltagi.git_files(ctx, only_print_files=True, mode=mode)
         # Check outputs.
         mock_get_test_files.assert_called_once_with(files_as_list)
 
@@ -548,9 +550,7 @@ class Test_git_files(hunitest.TestCase):
         ):
             printed = io.StringIO()
             with contextlib.redirect_stdout(printed):
-                hltltagi.git_files(
-                    ctx, only_print_files=True, on_one_line=True
-                )
+                hltltagi.git_files(ctx, only_print_files=True, on_one_line=True)
         # Check outputs.
         actual = printed.getvalue().strip()
         self.assert_equal(actual, expected)
@@ -611,9 +611,7 @@ class Test__delete_branches(hunitest.TestCase):
         confirm_delete = True
         # Run test.
         with (
-            umock.patch.object(
-                hgit, "get_merged_branches", return_value=[]
-            ),
+            umock.patch.object(hgit, "get_merged_branches", return_value=[]),
             umock.patch.object(hgit, "delete_branches") as mock_delete,
         ):
             hltltagi._delete_branches(tag, confirm_delete)
@@ -637,9 +635,7 @@ class Test__delete_branches(hunitest.TestCase):
         ):
             hltltagi._delete_branches(tag, confirm_delete)
         # Check outputs.
-        mock_delete.assert_called_once_with(
-            ".", tag, branches, confirm_delete
-        )
+        mock_delete.assert_called_once_with(".", tag, branches, confirm_delete)
 
     def test3(self) -> None:
         """
@@ -708,9 +704,7 @@ class Test_git_branch_delete_merged(hunitest.TestCase):
         """
         # Run test.
         with (
-            umock.patch.object(
-                hgit, "get_branch_name", return_value="master"
-            ),
+            umock.patch.object(hgit, "get_branch_name", return_value="master"),
             umock.patch.object(
                 hltltagi, "_delete_branches"
             ) as mock_delete_branches,
@@ -749,16 +743,12 @@ class Test_git_branch_delete_merged(hunitest.TestCase):
         confirm_delete = True
         # Run test.
         with (
-            umock.patch.object(
-                hgit, "get_branch_name", return_value="master"
-            ),
+            umock.patch.object(hgit, "get_branch_name", return_value="master"),
             umock.patch.object(
                 hltltagi, "_delete_branches"
             ) as mock_delete_branches,
         ):
-            hltltagi.git_branch_delete_merged(
-                ctx, confirm_delete, dry_run=True
-            )
+            hltltagi.git_branch_delete_merged(ctx, confirm_delete, dry_run=True)
         # Check outputs.
         actual = _get_ctx_run_calls(ctx)
         self.assertEqual(actual, "")
@@ -868,13 +858,9 @@ class Test_git_branch_rename(hunitest.TestCase):
         """
         # Run test.
         with (
-            umock.patch.object(
-                hgit, "get_branch_name", return_value=old_name
-            ),
+            umock.patch.object(hgit, "get_branch_name", return_value=old_name),
             umock.patch.object(hsystem, "query_yes_no"),
-            umock.patch.object(
-                hltltagi, "_get_open_pr_info", return_value=None
-            ),
+            umock.patch.object(hltltagi, "_get_open_pr_info", return_value=None),
             umock.patch.object(hltltagh, "gh_create_pr") as mock_create_pr,
         ):
             hltltagi.git_branch_rename(ctx, new_name)
@@ -902,9 +888,7 @@ class Test_git_branch_rename(hunitest.TestCase):
         }
         # Run test.
         with (
-            umock.patch.object(
-                hgit, "get_branch_name", return_value=old_name
-            ),
+            umock.patch.object(hgit, "get_branch_name", return_value=old_name),
             umock.patch.object(hsystem, "query_yes_no"),
             umock.patch.object(
                 hltltagi, "_get_open_pr_info", return_value=pr_info
@@ -944,9 +928,7 @@ class Test_git_branch_rename(hunitest.TestCase):
         }
         # Run test.
         with (
-            umock.patch.object(
-                hgit, "get_branch_name", return_value=old_name
-            ),
+            umock.patch.object(hgit, "get_branch_name", return_value=old_name),
             umock.patch.object(hsystem, "query_yes_no"),
             umock.patch.object(
                 hltltagi, "_get_open_pr_info", return_value=pr_info
@@ -979,9 +961,7 @@ class Test_git_branch_rename(hunitest.TestCase):
         }
         # Run test.
         with (
-            umock.patch.object(
-                hgit, "get_branch_name", return_value=old_name
-            ),
+            umock.patch.object(hgit, "get_branch_name", return_value=old_name),
             umock.patch.object(hsystem, "query_yes_no") as mock_query,
             umock.patch.object(
                 hltltagi, "_get_open_pr_info", return_value=pr_info
@@ -1096,7 +1076,7 @@ class Test_git_branch_copy(hunitest.TestCase):
         # Prepare outputs.
         expected = f"""
         call('git clean -fd', echo=False)
-        call('invoke git_merge_master --abort-if-not-ff --no-auto-merge --no-submodules', echo=False)
+        call('invoke git_merge_master --abort-if-not-ff --no-auto-merge', echo=False)
         call("git checkout master && invoke git_branch_create --branch-name '{new_branch_name}'", echo=False)
         call('git merge --squash --ff {curr_branch_name} && git reset HEAD', echo=False)
         """
@@ -1110,9 +1090,7 @@ class Test_git_branch_copy(hunitest.TestCase):
                 "get_branch_next_name",
                 return_value=new_branch_name,
             ),
-            umock.patch.object(
-                hgit, "does_branch_exist", return_value=False
-            ),
+            umock.patch.object(hgit, "does_branch_exist", return_value=False),
         ):
             hltltagi.git_branch_copy(ctx)
         # Check outputs.
@@ -1137,9 +1115,7 @@ class Test_git_branch_copy(hunitest.TestCase):
                 "get_branch_next_name",
                 return_value=new_branch_name,
             ),
-            umock.patch.object(
-                hgit, "does_branch_exist", return_value=False
-            ),
+            umock.patch.object(hgit, "does_branch_exist", return_value=False),
         ):
             hltltagi.git_branch_copy(ctx, skip_git_merge_master=True)
         # Check outputs.
@@ -1212,14 +1188,46 @@ class Test_git_branch_copy(hunitest.TestCase):
                 "get_branch_next_name",
                 return_value=new_branch_name,
             ),
-            umock.patch.object(
-                hgit, "does_branch_exist", return_value=False
-            ),
+            umock.patch.object(hgit, "does_branch_exist", return_value=False),
         ):
             hltltagi.git_branch_copy(ctx, dry_run=True)
         # Check outputs.
         actual = _get_ctx_run_calls(ctx)
         self.assertEqual(actual, "")
+
+    def test7(self) -> None:
+        """
+        Test that `submodules=True` forwards `--submodules` to
+        `git_merge_master`.
+        """
+        # Prepare inputs.
+        ctx = httestlib._build_mock_context_returning_ok()
+        curr_branch_name = "HelpersTask1_Foo"
+        new_branch_name = "HelpersTask1_Foo_2"
+        submodules = True
+        # Prepare outputs.
+        expected = f"""
+        call('git clean -fd', echo=False)
+        call('invoke git_merge_master --abort-if-not-ff --no-auto-merge --submodules', echo=False)
+        call("git checkout master && invoke git_branch_create --branch-name '{new_branch_name}'", echo=False)
+        call('git merge --squash --ff {curr_branch_name} && git reset HEAD', echo=False)
+        """
+        # Run test.
+        with (
+            umock.patch.object(
+                hgit, "get_branch_name", return_value=curr_branch_name
+            ),
+            umock.patch.object(
+                hgit,
+                "get_branch_next_name",
+                return_value=new_branch_name,
+            ),
+            umock.patch.object(hgit, "does_branch_exist", return_value=False),
+        ):
+            hltltagi.git_branch_copy(ctx, submodules=submodules)
+        # Check outputs.
+        actual = _get_ctx_run_calls(ctx)
+        self.assert_equal(actual, expected, fuzzy_match=True, dedent=True)
 
 
 # #############################################################################
@@ -1397,9 +1405,7 @@ class Test_git_repo_copy(hunitest.TestCase):
                 hsystem, "system_to_string"
             ) as mock_system_to_string,
         ):
-            hltltagi.git_repo_copy(
-                ctx, file_name, src_git_dir, dst_git_dir
-            )
+            hltltagi.git_repo_copy(ctx, file_name, src_git_dir, dst_git_dir)
         # Check outputs.
         mock_project_file.assert_called_once_with(
             file_name,
@@ -1469,8 +1475,7 @@ class Test__get_submodule_paths(hunitest.TestCase):
         """
         # Prepare inputs.
         output = (
-            "submodule.helpers_root.path helpers_root\n"
-            "submodule.amp.path amp\n"
+            "submodule.helpers_root.path helpers_root\nsubmodule.amp.path amp\n"
         )
         # Prepare outputs.
         expected = ["helpers_root", "amp"]
@@ -1502,9 +1507,7 @@ class Test__get_branch_name(hunitest.TestCase):
         """
         # Prepare inputs.
         submodule_path = self.get_scratch_space()
-        hio.create_dir(
-            os.path.join(submodule_path, ".git"), incremental=True
-        )
+        hio.create_dir(os.path.join(submodule_path, ".git"), incremental=True)
         # Run test.
         with umock.patch.object(
             hsystem, "system_to_string", return_value=(0, "master\n")
@@ -1789,9 +1792,7 @@ class Test_git_fix_perms(hunitest.TestCase):
         # Run test.
         printed = io.StringIO()
         with contextlib.redirect_stdout(printed):
-            hltltagi.git_fix_perms(
-                ctx, check=True, fix=False, dir_name=dir_name
-            )
+            hltltagi.git_fix_perms(ctx, check=True, fix=False, dir_name=dir_name)
         # Check outputs.
         actual = printed.getvalue()
         self.assertIn(wrong_file, actual)
@@ -1808,9 +1809,7 @@ class Test_git_fix_perms(hunitest.TestCase):
         # Run test.
         printed = io.StringIO()
         with contextlib.redirect_stdout(printed):
-            hltltagi.git_fix_perms(
-                ctx, check=False, fix=True, dir_name=dir_name
-            )
+            hltltagi.git_fix_perms(ctx, check=False, fix=True, dir_name=dir_name)
         # Check outputs.
         self.assertTrue(hltltagi._has_ug_write_perms(wrong_file))
 
