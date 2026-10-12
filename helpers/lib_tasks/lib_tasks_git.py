@@ -881,8 +881,10 @@ def git_branch_copy(  # type: ignore
     # Sync with master first to ensure new branch includes latest changes (if requested).
     if not skip_git_merge_master:
         cmd = "invoke git_merge_master --abort-if-not-ff --no-auto-merge"
-        if not submodules:
-            cmd += " --no-submodules"
+        # `git_merge_master` skips submodules by default, so pass the flag only
+        # when they are requested.
+        if submodules:
+            cmd += " --submodules"
         hltltaut.run(ctx, cmd, dry_run=dry_run)
     else:
         _LOG.warning("Skipping git_merge_master as requested")

@@ -1076,7 +1076,7 @@ class Test_git_branch_copy(hunitest.TestCase):
         # Prepare outputs.
         expected = f"""
         call('git clean -fd', echo=False)
-        call('invoke git_merge_master --abort-if-not-ff --no-auto-merge --no-submodules', echo=False)
+        call('invoke git_merge_master --abort-if-not-ff --no-auto-merge', echo=False)
         call("git checkout master && invoke git_branch_create --branch-name '{new_branch_name}'", echo=False)
         call('git merge --squash --ff {curr_branch_name} && git reset HEAD', echo=False)
         """
@@ -1194,6 +1194,40 @@ class Test_git_branch_copy(hunitest.TestCase):
         # Check outputs.
         actual = _get_ctx_run_calls(ctx)
         self.assertEqual(actual, "")
+
+    def test7(self) -> None:
+        """
+        Test that `submodules=True` forwards `--submodules` to
+        `git_merge_master`.
+        """
+        # Prepare inputs.
+        ctx = httestlib._build_mock_context_returning_ok()
+        curr_branch_name = "HelpersTask1_Foo"
+        new_branch_name = "HelpersTask1_Foo_2"
+        submodules = True
+        # Prepare outputs.
+        expected = f"""
+        call('git clean -fd', echo=False)
+        call('invoke git_merge_master --abort-if-not-ff --no-auto-merge --submodules', echo=False)
+        call("git checkout master && invoke git_branch_create --branch-name '{new_branch_name}'", echo=False)
+        call('git merge --squash --ff {curr_branch_name} && git reset HEAD', echo=False)
+        """
+        # Run test.
+        with (
+            umock.patch.object(
+                hgit, "get_branch_name", return_value=curr_branch_name
+            ),
+            umock.patch.object(
+                hgit,
+                "get_branch_next_name",
+                return_value=new_branch_name,
+            ),
+            umock.patch.object(hgit, "does_branch_exist", return_value=False),
+        ):
+            hltltagi.git_branch_copy(ctx, submodules=submodules)
+        # Check outputs.
+        actual = _get_ctx_run_calls(ctx)
+        self.assert_equal(actual, expected, fuzzy_match=True, dedent=True)
 
 
 # #############################################################################
