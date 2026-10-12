@@ -291,13 +291,13 @@ class Test_git_add_all_untracked(hunitest.TestCase):
 
     def test2(self) -> None:
         """
-        Test that `exclude_tmp=True` filters out `tmp.*` files.
+        Test that `exclude_tmp=True` filters out `tmp.*` and `*.log` files.
         """
         # Prepare inputs.
         exclude_tmp = True
         # Prepare outputs.
         expected = """
-        call("git ls-files -o --exclude-standard -z | grep -zv '^tmp\\\\.' | xargs -0 git add", echo=False)
+        call("git ls-files -o --exclude-standard -z | grep -zvE '(^|/)(tmp\\\\.[^/]*|[^/]*\\\\.log)$' | xargs -0 git add", echo=False)
         """
         # Run test.
         self.helper(exclude_tmp, expected)
