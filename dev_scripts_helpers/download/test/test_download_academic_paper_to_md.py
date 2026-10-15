@@ -579,13 +579,13 @@ class Test__download(hunitest.TestCase):
 
 
 # #############################################################################
-# Test__get_summary_paths
+# Test__get_summary_path
 # #############################################################################
 
 
-class Test__get_summary_paths(hunitest.TestCase):
+class Test__get_summary_path(hunitest.TestCase):
     """
-    Test `download_academic_paper_to_md._get_summary_paths()`.
+    Test `download_academic_paper_to_md._get_summary_path()`.
     """
 
     def test1(self) -> None:
@@ -593,33 +593,181 @@ class Test__get_summary_paths(hunitest.TestCase):
         Test `short` is saved to `.short.md`.
         """
         # Run test.
-        actual = dsdapt._get_summary_paths("dir/paper", "short")
+        actual = dsdapt._get_summary_path("dir/paper", "short")
         # Check outputs.
-        expected = [("short", "dir/paper.short.md")]
-        self.assertEqual(actual, expected)
+        self.assert_equal(actual, "dir/paper.short.md")
 
     def test2(self) -> None:
         """
         Test `structured` is saved to `.structured.md`.
         """
         # Run test.
-        actual = dsdapt._get_summary_paths("dir/paper", "structured")
+        actual = dsdapt._get_summary_path("dir/paper", "structured")
         # Check outputs.
-        expected = [("structured", "dir/paper.structured.md")]
-        self.assertEqual(actual, expected)
+        self.assert_equal(actual, "dir/paper.structured.md")
 
     def test3(self) -> None:
         """
-        Test `all` generates both summaries in different files.
+        Test `all` is saved to a single file, `.all.md`.
         """
         # Run test.
-        actual = dsdapt._get_summary_paths("dir/paper", "all")
+        actual = dsdapt._get_summary_path("dir/paper", "all")
         # Check outputs.
-        expected = [
-            ("short", "dir/paper.short.md"),
-            ("structured", "dir/paper.structured.md"),
+        self.assert_equal(actual, "dir/paper.all.md")
+
+    def test4(self) -> None:
+        """
+        Test an unknown type of summary is rejected.
+        """
+        # Run test.
+        with self.assertRaises(AssertionError):
+            dsdapt._get_summary_path("dir/paper", "bad")
+
+
+# #############################################################################
+# Test__combine_summaries
+# #############################################################################
+
+
+class Test__combine_summaries(hunitest.TestCase):
+    """
+    Test `download_academic_paper_to_md._combine_summaries()`.
+    """
+
+    def test1(self) -> None:
+        """
+        Test each summary gets a `// <Type>` header and they are separated by
+        an empty line.
+        """
+        # Prepare inputs.
+        summaries = [
+            ("short", "- Point 1\n- Point 2\n"),
+            ("structured", "# Introduction\n- Point 3\n"),
         ]
+        # Run test.
+        actual = dsdapt._combine_summaries(summaries)
+        # Check outputs.
+        expected = hprint.dedent(
+            """
+            // Short
+            - Point 1
+            - Point 2
+
+            // Structured
+            # Introduction
+            - Point 3
+            """
+        )
+        self.assert_equal(actual, expected, dedent=True)
+
+    def test2(self) -> None:
+        """
+        Test a single summary has only its header.
+        """
+        # Run test.
+        actual = dsdapt._combine_summaries([("short", "- Point 1")])
+        # Check outputs.
+        self.assert_equal(actual, "// Short\n- Point 1\n")
+
+
+# #############################################################################
+# Test__merge_stats
+# #############################################################################
+
+
+class Test__merge_stats(hunitest.TestCase):
+    """
+    Test `download_academic_paper_to_md._merge_stats()`.
+    """
+
+    def test1(self) -> None:
+        """
+        Test numeric fields are summed and `tokens_per_second` is recomputed.
+        """
+        # Prepare inputs.
+        stats = [
+            {
+                "input_tokens": 100,
+                "output_tokens": 20,
+                "elapsed_time_in_seconds": 10.0,
+                "tokens_per_second": 12.0,
+                "model": "model_a",
+            },
+            {
+                "input_tokens": 100,
+                "output_tokens": 80,
+                "elapsed_time_in_seconds": 30.0,
+                "tokens_per_second": 6.0,
+                "model": "model_a",
+            },
+        ]
+        # Run test.
+        actual = dsdapt._merge_stats(stats)
+        # Check outputs.
+        expected = {
+            "input_tokens": 200,
+            "output_tokens": 100,
+            "elapsed_time_in_seconds": 40.0,
+            "tokens_per_second": 7.5,
+            "model": "model_a",
+        }
         self.assertEqual(actual, expected)
+
+    def test2(self) -> None:
+        """
+        Test a single stat is returned unchanged.
+        """
+        # Prepare inputs.
+        stats = [{"input_tokens": 100, "model": "model_a"}]
+        # Run test.
+        actual = dsdapt._merge_stats(stats)
+        # Check outputs.
+        self.assertEqual(actual, {"input_tokens": 100, "model": "model_a"})
+
+
+# #############################################################################
+# Test__summarize
+# #############################################################################
+
+
+class Test__summarize(hunitest.TestCase):
+    """
+    Test `download_academic_paper_to_md._summarize()`.
+    """
+
+    def helper(self, summary_type: str) -> str:
+        """
+        Run `_summarize()` in dry run mode, with no markdown file.
+
+        :param summary_type: type of summary of the run
+        :return: sorted names of the files in the dir of the paper
+        """
+        # Prepare inputs.
+        scratch_dir = self.get_scratch_space()
+        base_path = os.path.join(scratch_dir, "paper")
+        # Run test.
+        dsdapt._summarize(base_path, summary_type=summary_type, dry_run=True)
+        # Check outputs.
+        actual = str(sorted(os.listdir(scratch_dir)))
+        return actual
+
+    def test1(self) -> None:
+        """
+        Test a dry run of `short` writes nothing.
+        """
+        # Run test.
+        actual = self.helper("short")
+        # Check outputs.
+        self.assert_equal(actual, "[]")
+
+    def test2(self) -> None:
+        """
+        Test a dry run of `all` writes nothing, not even a file per type.
+        """
+        # Run test.
+        actual = self.helper("all")
+        # Check outputs.
+        self.assert_equal(actual, "[]")
 
 
 # #############################################################################
@@ -682,6 +830,7 @@ class Test__save_to_papers_dir(hunitest.TestCase):
         with_md: bool = True,
         with_short: bool = True,
         with_structured: bool = False,
+        with_all: bool = False,
         existing: Optional[List[str]] = None,
         no_incremental: bool = False,
         dry_run: bool = False,
@@ -694,9 +843,11 @@ class Test__save_to_papers_dir(hunitest.TestCase):
         `new <extension>`, and the content of an existing file in the papers
         dir is `old <extension>`.
 
-        :param with_md: if True, create the converted markdown file
+        :param with_md: if True, create the converted markdown file, which
+            must not be copied
         :param with_short: if True, create the short summary file
         :param with_structured: if True, create the structured summary file
+        :param with_all: if True, create the summary file with all the types
         :param existing: extensions of the old files to create in the papers
             dir, e.g., `["pdf", "short.md"]`
         :param no_incremental: if True, overwrite existing files
@@ -717,6 +868,8 @@ class Test__save_to_papers_dir(hunitest.TestCase):
             generated.append("short.md")
         if with_structured:
             generated.append("structured.md")
+        if with_all:
+            generated.append("all.md")
         for ext in generated:
             hio.to_file(f"{base_path}.{ext}", f"new {ext}")
         papers_dir = os.path.join(scratch_dir, "saved_papers")
@@ -745,15 +898,14 @@ class Test__save_to_papers_dir(hunitest.TestCase):
 
     def test1(self) -> None:
         """
-        Test the PDF, the markdown, and the short summary are copied,
-        creating the dir.
+        Test the PDF and the short summary are copied, creating the dir,
+        and the markdown is not copied.
         """
         # Run test.
         actual = self.helper()
         # Check outputs.
         expected = str(
             {
-                "md": "new md",
                 "pdf": "new pdf",
                 "short.md": "new short.md",
             }
@@ -762,14 +914,14 @@ class Test__save_to_papers_dir(hunitest.TestCase):
 
     def test2(self) -> None:
         """
-        Test all the files are copied when both summaries exist.
+        Test the PDF and every summary that exists are copied, but not the
+        markdown.
         """
         # Run test.
         actual = self.helper(with_structured=True)
         # Check outputs.
         expected = str(
             {
-                "md": "new md",
                 "pdf": "new pdf",
                 "short.md": "new short.md",
                 "structured.md": "new structured.md",
@@ -779,10 +931,10 @@ class Test__save_to_papers_dir(hunitest.TestCase):
 
     def test3(self) -> None:
         """
-        Test only the PDF is copied when the other files are missing.
+        Test only the PDF is copied when there is no summary.
         """
         # Run test.
-        actual = self.helper(with_md=False, with_short=False)
+        actual = self.helper(with_md=True, with_short=False)
         # Check outputs.
         expected = str({"pdf": "new pdf"})
         self.assert_equal(actual, expected)
@@ -806,7 +958,6 @@ class Test__save_to_papers_dir(hunitest.TestCase):
         # Check outputs.
         expected = str(
             {
-                "md": "new md",
                 "pdf": "new pdf",
                 "short.md": "old short.md",
             }
@@ -823,7 +974,6 @@ class Test__save_to_papers_dir(hunitest.TestCase):
         # Check outputs.
         expected = str(
             {
-                "md": "new md",
                 "pdf": "new pdf",
                 "short.md": "new short.md",
             }
@@ -838,6 +988,21 @@ class Test__save_to_papers_dir(hunitest.TestCase):
         actual = self.helper(existing=["pdf"], dry_run=True)
         # Check outputs.
         expected = str({"pdf": "old pdf"})
+        self.assert_equal(actual, expected)
+
+    def test8(self) -> None:
+        """
+        Test the single summary file with all the types is copied.
+        """
+        # Run test.
+        actual = self.helper(with_short=False, with_all=True)
+        # Check outputs.
+        expected = str(
+            {
+                "all.md": "new all.md",
+                "pdf": "new pdf",
+            }
+        )
         self.assert_equal(actual, expected)
 
 

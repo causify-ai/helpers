@@ -171,6 +171,8 @@ Based on the files that you need to operate, read and follow the corresponding r
 - For a book table of contents / map (`book_map.md`) you MUST follow:
   - The rules `.claude/skills/book_map.rules.md`
   - The template `.claude/templates/book_map.template.md`
+- For a paper reading list (`paper_list.md`) you MUST follow the rules
+  `.claude/skills/paper_list.rules.md`
 
 ## Slides
 

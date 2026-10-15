@@ -126,7 +126,7 @@
   PDF already saved locally
 - Saves the paper with a standardized base name, e.g.,
   `2016.Ribeiro_et_al.Why_Should_I_Trust_You...`, shared across the `.pdf`, `.md`,
-  `.short.md`, and `.structured.md` outputs
+  and summary outputs (`.short.md`, `.structured.md`, or `.all.md`)
 - Converts the PDF to Markdown and summarizes it
   - The summary uses the default LLM model, an OpenRouter one: use `--model` to
     change it (see "LLM Model")
@@ -136,8 +136,11 @@
     paper, with bullet points under it, to `<base>.structured.md`
     - The sections are inferred from the content, since the headers of a markdown
       converted from a PDF are unreliable
-  - `--summary_type all` writes both `<base>.short.md` and `<base>.structured.md`,
-    with one LLM call per type
+  - `--summary_type all` writes both summaries to the single file `<base>.all.md`,
+    a `// Short` section followed by a `// Structured` section, with one LLM call
+    per type
+  - A run always generates a single summary file (and its `.stat.json` file),
+    whatever the `--summary_type`
 - For a DOI, queries CrossRef for the metadata and Unpaywall for an open-access PDF
   - Unpaywall requires a real contact email, passed with `--email`
   - Without `--email`, the Unpaywall lookup is skipped: the paper can still be named
@@ -159,14 +162,14 @@
   - Chrome is started if it is not running, and closed after the download: a Chrome
     that was already running is left open
   - If a check needs a person (e.g., a CAPTCHA), complete it in the Chrome window
-- The opt-in `save_to_papers_dir` action copies all the files of the paper (PDF,
-  markdown, short and structured summaries) to the papers dir (`--papers_dir`, default `/Users/saggese/src/notes1/papers`)
+- The opt-in `save_to_papers_dir` action copies the PDF and the summary of the paper
+  to the papers dir (`--papers_dir`, default `/Users/saggese/src/notes1/papers`)
   - Enable it with `--action save_to_papers_dir`: it runs after `summarize`
-  - Only the PDF is required: a file that does not exist (e.g., `.structured.md`
-    without `--summary_type all`, or any summary if `summarize` was skipped) is not
-    copied
+  - The converted markdown `<base>.md` is not copied
+  - Only the PDF is required: a summary that does not exist (e.g., `.all.md` without
+    `--summary_type all`, or any summary if `summarize` was skipped) is not copied
   - The PDF is always copied, replacing an old PDF in the papers dir
-  - The other existing files in the papers dir are skipped (they can have been edited
+  - The existing summaries in the papers dir are skipped (they can have been edited
     there) unless `--no_incremental` is passed
   - Figures extracted with `--extract_figures` are not copied
 
@@ -216,8 +219,8 @@
       --summary_type structured
   ```
 
-- Generate both the short and the structured summary (`mypaper.short.md` and
-  `mypaper.structured.md`):
+- Generate both the short and the structured summary in the single file
+  `mypaper.all.md`, with a `// Short` and a `// Structured` section:
   ```bash
   > download_academic_paper_to_md.py \
       --input "10.1038/nature12373" \
