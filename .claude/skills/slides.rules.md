@@ -861,14 +861,20 @@ Use these commands consistently across all slides:
   them side by side in columns rather than stacking:
   ```
   ::: columns
-  :::: {.column width=50%}
+  :::: {.column width=60%}
   (text)
-  :::: {.column width=45%}
+  ::::
+  :::: {.column width=40%}
+
   (figure)
 
   ::::
   :::
   ```
+  - Use 60/40 (text/figure) as the default widths
+  - Use another split only when the content needs it
+    - E.g., 70/30 for a narrow figure or 50/50 for two comparable blocks
+  - Make the two widths sum to 100%
 
 # Examples and Templates
 - Follow the template `.claude/templates/slides.template.md`
