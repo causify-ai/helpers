@@ -163,6 +163,8 @@ The toolchain supports multiple documentation workflows:
       sequences
     - `convert_table.py`: Converts between table formats (CSV, TSV, Markdown)
     - `count_words.py`: Counts words and estimates reading time
+    - `crop_pdf.py`: Crops PDF pages to their content or by fixed margins with
+      `pdfCropMargins` (self-standing, runs with `uv`)
     - `replace_latex.py`: Batch LaTeX transformations
     - `run_pandoc.py`: Runs Pandoc conversions
   - Generation and Publishing Tools
@@ -670,6 +672,56 @@ The `--md_end "END"` special value is useful for reading from a starting section
 - Concatenate PDFs with verbose logging
   ```bash
   > concatenate_pdfs.py --input_files "chapter*.pdf" --output_file book.pdf -v DEBUG
+  ```
+
+## `crop_pdf.py`
+
+### What It Does
+- Crops the pages of a PDF, removing white margins (auto mode) or fixed-size
+  borders (`--margins`)
+- Delegates the cropping to `pdfCropMargins`, as
+  `download_academic_paper_to_md.py` does
+- Self-standing: it imports nothing from this repo, and `uv` installs its
+  dependency (`pdfCropMargins`) in an isolated environment on the first run
+- Rewrites the page boxes, so viewers and LaTeX show the cropped page, and
+  leaves the page content untouched
+- Leaves pages outside `--pages` unchanged
+- Supports dry-run mode to print the `pdfCropMargins` command without running it
+- Known limitations of `pdfCropMargins` 2.2.1:
+  - A blank page is left unchanged, except with `--padding`, which shrinks it to
+    an empty square
+  - With `--margins`, left/right and top/bottom are swapped on pages rotated by
+    90 or 270 degrees
+
+### Examples
+- Crop the white margins of all the pages into `figure.cropped.pdf`
+  ```bash
+  > crop_pdf.py --input figure.pdf
+  ```
+
+- Keep 5 points of padding around the content
+  ```bash
+  > crop_pdf.py --input figure.pdf --output figure_tight.pdf --padding 5
+  ```
+
+- Crop all the pages by the same amount to keep slides aligned
+  ```bash
+  > crop_pdf.py --input slides.pdf --output slides_tight.pdf --uniform
+  ```
+
+- Crop only pages 1-3 and 7-9
+  ```bash
+  > crop_pdf.py --input paper.pdf --output paper_tight.pdf --pages "1-3,7-9"
+  ```
+
+- Remove 20 points from the left and 36 points from the top of every page
+  ```bash
+  > crop_pdf.py --input paper.pdf --output paper_trimmed.pdf --margins 20 36 0 0
+  ```
+
+- Show the `pdfCropMargins` command without running it
+  ```bash
+  > crop_pdf.py --input figure.pdf --dry_run
   ```
 
 ## `run_pandoc.py`

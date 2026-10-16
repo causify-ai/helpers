@@ -81,6 +81,12 @@
   ```markdown
   ## Subsection Title
   ```
+  - Use `##` only for a group of at least 5 slides
+    - Do not use it for a group of 1-4 slides: put those slides directly under
+      the `#` section
+    - Do not use it for a label such as `## Motivation` or `## Why AI`
+  - Each `#` and `##` header adds a "Table of Content" navigation page to the
+    PDF, so extra headers inflate the page count
 
 - Do not wrap `##` section headers in decorative comment banners
   (`## ###########...`); a bare `## Section Title` is enough

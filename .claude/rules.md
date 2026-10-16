@@ -159,6 +159,12 @@ Based on the files that you need to operate, read and follow the corresponding r
   - The rules `.claude/skills/research_idea.rules.md`
   - The template `.claude/templates/research_idea.template.md`
 
+## Paper Rating
+
+- For rating an academic paper from 1 to 5 you MUST follow:
+  - The rules `.claude/skills/paper.rules.md`
+  - The template `.claude/templates/paper_rating.template.md`
+
 # Books and Lectures
 
 ## Lectures

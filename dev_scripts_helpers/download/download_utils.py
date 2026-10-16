@@ -184,28 +184,121 @@ ARTICLE_STRUCTURED_SUMMARY_PROMPT = hprint.dedent(
     """
 )
 
+# Deepest header level that an `up_to_l<N>` summary can keep. Headers of level 4
+# or deeper are avoided in markdown.
+MAX_SUMMARY_LEVEL = 3
+
+# What a header of each level stands for in the article, from level 1 down.
+_SECTION_LEVEL_DESCRIPTIONS = [
+    "each main section of the article (e.g., abstract, introduction, methods, "
+    "results, conclusions)",
+    "each subsection of a main section",
+    "each sub-subsection of a subsection",
+]
+
+
+def _build_up_to_level_prompt(max_level: int) -> str:
+    """
+    Build the prompt of a summary that keeps the structure of the article up to
+    a header level.
+
+    It is the generalization of `ARTICLE_STRUCTURED_SUMMARY_PROMPT`, which
+    keeps only the level-1 headers.
+
+    :param max_level: deepest level of header to write, from 2 to
+        `MAX_SUMMARY_LEVEL`
+    :return: system prompt to pass to `summarize_text_with_llm()`
+    """
+    _LOG.debug(hprint.to_str("max_level"))
+    hdbg.dassert_lte(2, max_level)
+    hdbg.dassert_lte(max_level, MAX_SUMMARY_LEVEL)
+    template = hprint.dedent(
+        """
+        - Summarize the main article keeping its structure to level {max_level}
+        - Write a markdown header for each section, down to level {max_level}:
+        {level_lines}
+          - The article was converted from a PDF, so its markdown headers can be
+            wrong, missing, or used for body text: infer the sections from the
+            content
+          - Skip the front matter (title block, authors, affiliations), the page
+            headers and footers, and the references
+        - Under each header write bullet points, using sub-bullets for the details
+          - Do not use headers of level {too_deep_level} or deeper
+        - Use fewer than about {num_words} words in total
+        - Follow the conventions in:
+          - @.claude/skills/markdown.rules.md
+          - @.claude/skills/text.rules.md
+        """
+    )
+    level_lines = "\n".join(
+        f"  - Level {level} (`{'#' * level}`): {description}"
+        for level, description in enumerate(
+            _SECTION_LEVEL_DESCRIPTIONS[:max_level], start=1
+        )
+    )
+    prompt = template.format(
+        max_level=max_level,
+        level_lines=level_lines,
+        too_deep_level=max_level + 1,
+        # The deeper the structure, the more text is needed to fill it.
+        num_words=400 * (max_level + 1),
+    )
+    return prompt
+
+
 # Types of summary, mapped to the prompt that generates them:
 # - `short`: 7-10 bullet points, with no structure
 # - `structured`: level-1 headers with bullet points, like the article
+# - `up_to_l<N>`: headers up to level N (2 to `MAX_SUMMARY_LEVEL`) with bullet
+#   points, like the article
 _SUMMARY_PROMPTS = {
     "short": ARTICLE_SUMMARY_PROMPT,
     "structured": ARTICLE_STRUCTURED_SUMMARY_PROMPT,
 }
+_SUMMARY_PROMPTS.update(
+    {
+        f"up_to_l{level}": _build_up_to_level_prompt(level)
+        for level in range(2, MAX_SUMMARY_LEVEL + 1)
+    }
+)
 SUMMARY_TYPES = list(_SUMMARY_PROMPTS)
+
+# Other names of a type of summary, mapped to the type they stand for:
+# `structured` keeps the headers up to level 1.
+SUMMARY_TYPE_ALIASES = {"up_to_l1": "structured"}
+
+
+def normalize_summary_type(summary_type: str) -> str:
+    """
+    Get the type of summary that an alias stands for.
+
+    :param summary_type: type of summary or alias, one of `SUMMARY_TYPES` or
+        `SUMMARY_TYPE_ALIASES`
+        - E.g., `up_to_l1`
+    :return: type of summary, one of `SUMMARY_TYPES`
+        - E.g., `structured`
+    """
+    _LOG.debug(hprint.to_str("summary_type"))
+    summary_type = SUMMARY_TYPE_ALIASES.get(summary_type, summary_type)
+    hdbg.dassert_in(summary_type, SUMMARY_TYPES)
+    return summary_type
 
 
 def get_summary_prompt(summary_type: str) -> str:
     """
     Get the prompt that generates a type of summary.
 
-    :param summary_type: type of summary, one of `SUMMARY_TYPES`
+    :param summary_type: type of summary, one of `SUMMARY_TYPES` or
+        `SUMMARY_TYPE_ALIASES`
         - `short`: 7-10 bullet points, with no structure
-        - `structured`: level-1 headers with bullet points, keeping the
+        - `structured` or `up_to_l1`: level-1 headers with bullet points,
+          keeping the structure of the article
+        - `up_to_l<N>`: headers up to level N with bullet points, keeping the
           structure of the article
     :return: system prompt to pass to `summarize_text_with_llm()`
     """
     _LOG.debug(hprint.to_str("summary_type"))
-    hdbg.dassert_in(summary_type, SUMMARY_TYPES)
+    summary_type = normalize_summary_type(summary_type)
     prompt = _SUMMARY_PROMPTS[summary_type]
     return prompt
 

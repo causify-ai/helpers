@@ -1,7 +1,7 @@
 #!/usr/bin/env -S uv run
 
 # /// script
-# dependencies = ["feedparser", "pymupdf", "requests", "pyyaml", "beautifulsoup4", "tqdm"]
+# dependencies = ["feedparser", "pymupdf", "requests", "pyyaml", "beautifulsoup4", "tqdm", "pdfCropMargins"]
 # ///
 
 """
@@ -12,7 +12,7 @@
 - Summarize the markdown text
 
 - The output file name is shared across the `.pdf`, `.md`, and summary outputs
-  (`.short.md`, `.structured.md`, or `.all.md`)
+  (`.short.md`, `.structured.md`, `.up_to_l<N>.md`, or `.all.md`)
 - A run generates a single summary file, whatever the `--summary_type`
 
 # Usage Example
@@ -64,6 +64,11 @@
   7-10 bullet points:
 > download_academic_paper_to_md.py --input "10.1038/nature12373" --summary_type structured
 
+- Keep the headers of the paper up to level N (`up_to_l1`, the same as
+  `structured`, up to `up_to_l3`), with bullet points under each header, saved
+  to `<base>.up_to_l2.md` (`up_to_l1` is saved to `<base>.structured.md`):
+> download_academic_paper_to_md.py --input "10.1038/nature12373" --summary_type up_to_l2
+
 - Generate both summaries in a single file `<base>.all.md`, with a `// Short`
   section followed by a `// Structured` section:
 > download_academic_paper_to_md.py --input "10.1038/nature12373" --summary_type all
@@ -72,11 +77,15 @@
 > download_academic_paper_to_md.py --input "10.1038/nature12373" --skip_action summarize
 
 - Also copy the PDF and the summary to the papers dir (by default
-  `/Users/saggese/src/notes1/papers`), without the converted markdown:
+  `/Users/saggese/src/notes1/papers`), without the converted markdown: the
+  margins of the PDF in the papers dir are cropped with `pdfCropMargins`
 > download_academic_paper_to_md.py --input "https://arxiv.org/abs/1706.03762" --action save_to_papers_dir
 
 - Copy the PDF and the summary to a custom papers dir:
 > download_academic_paper_to_md.py --input "https://arxiv.org/abs/1706.03762" --action save_to_papers_dir --papers_dir ./my_papers
+
+- Copy the PDF to the papers dir without cropping its margins:
+> download_academic_paper_to_md.py --input "https://arxiv.org/abs/1706.03762" --action save_to_papers_dir --no_crop_pdf
 
 - Also extract figures/images from the PDF when converting it (by default
   they are not extracted):
@@ -95,6 +104,7 @@ import logging
 import os
 import re
 import shutil
+import sys
 import tempfile
 from typing import Any, Dict, List, Optional, Set, Tuple
 
@@ -129,7 +139,17 @@ _DEFAULT_PAPERS_DIR = "/Users/saggese/src/notes1/papers"
 # other in a single file. It is local to this script, since the other
 # downloaders generate a single summary.
 _ALL_SUMMARY_TYPE = "all"
-_SUMMARY_TYPE_CHOICES = dshddut.SUMMARY_TYPES + [_ALL_SUMMARY_TYPE]
+# Types of summary that `all` generates. The `up_to_l<N>` types are not
+# included, since `structured` is already `up_to_l1`.
+_ALL_SUMMARY_TYPES = ["short", "structured"]
+# Types of summary that have their own file: `all` and the types of
+# `download_utils`, without the aliases (e.g., `up_to_l1` is `structured`).
+_SUMMARY_FILE_TYPES = dshddut.SUMMARY_TYPES + [_ALL_SUMMARY_TYPE]
+_SUMMARY_TYPE_CHOICES = (
+    dshddut.SUMMARY_TYPES
+    + list(dshddut.SUMMARY_TYPE_ALIASES)
+    + [_ALL_SUMMARY_TYPE]
+)
 
 # - Extracts metadata (year, authors, title) from arXiv API, CrossRef, or PDF
 #   (including a local PDF file passed as `--input`)
@@ -771,13 +791,18 @@ def _get_summary_path(base_path: str, summary_type: str) -> str:
     different types do not overwrite each other, and `all` is saved to
     `<base_path>.all.md`.
 
+    An alias is saved to the file of the type it stands for: `up_to_l1` is
+    saved to `<base_path>.structured.md`.
+
     :param base_path: base path (no extension) shared by the output files
-    :param summary_type: one of `download_utils.SUMMARY_TYPES` or
-        `_ALL_SUMMARY_TYPE`
+    :param summary_type: one of `download_utils.SUMMARY_TYPES`,
+        `download_utils.SUMMARY_TYPE_ALIASES`, or `_ALL_SUMMARY_TYPE`
     :return: path of the summary file
     """
     _LOG.debug(hprint.to_str("base_path summary_type"))
     hdbg.dassert_in(summary_type, _SUMMARY_TYPE_CHOICES)
+    if summary_type != _ALL_SUMMARY_TYPE:
+        summary_type = dshddut.normalize_summary_type(summary_type)
     summary_path = f"{base_path}.{summary_type}.md"
     _LOG.debug(hprint.to_str("summary_path"))
     return summary_path
@@ -860,7 +885,7 @@ def _summarize_all(
     """
     _LOG.debug(hprint.to_str("md_path summary_path model dry_run"))
     if dry_run:
-        for type_ in dshddut.SUMMARY_TYPES:
+        for type_ in _ALL_SUMMARY_TYPES:
             dshddut.summarize_text_with_llm(
                 md_path,
                 summary_path,
@@ -874,7 +899,7 @@ def _summarize_all(
     summaries = []
     stats = []
     with tempfile.TemporaryDirectory(dir=out_dir) as tmp_dir:
-        for type_ in dshddut.SUMMARY_TYPES:
+        for type_ in _ALL_SUMMARY_TYPES:
             _LOG.info("Summarizing markdown file: '%s' (%s)...", md_path, type_)
             part_path = os.path.join(tmp_dir, f"{type_}.md")
             dshddut.summarize_text_with_llm(
@@ -905,12 +930,16 @@ def _summarize(
 
     :param base_path: base path (no extension) shared by the output files
     :param summary_type: type of summary, one of
-        `download_utils.SUMMARY_TYPES` or `all`
+        `download_utils.SUMMARY_TYPES`, `download_utils.SUMMARY_TYPE_ALIASES`,
+        or `all`
         - `short`: 7-10 bullet points, with no structure
-        - `structured`: level-1 headers with bullet points, keeping the
-          structure of the paper
-        - `all`: both in the same file, a `// Short` section followed by a
-          `// Structured` section, calling the LLM once per type
+        - `structured` or `up_to_l1`: level-1 headers with bullet points,
+          keeping the structure of the paper
+        - `up_to_l2`, `up_to_l3`: the same, keeping the headers of the paper
+          up to level 2 or 3
+        - `all`: `short` and `structured` in the same file, a `// Short`
+          section followed by a `// Structured` section, calling the LLM once
+          per type
     :param model: LLM model name
         - Default: `""`, which uses the default model of `llm_cli.py`, an
           OpenRouter one
@@ -939,6 +968,51 @@ def _summarize(
 
 
 # #############################################################################
+# Crop PDF
+# #############################################################################
+
+
+def _crop_pdf(pdf_path: str, *, dry_run: bool = False) -> None:
+    """
+    Crop the margins of a PDF in place with `pdfCropMargins`.
+
+    The pages are cropped to the tight bounding box of their content (`-p 0`
+    retains 0% of the original margins), like `pdfCropMargins -mo -p 0` does.
+    The cropped PDF is written to a temporary file that then replaces the
+    original PDF, so no `<name>_uncropped.pdf` backup (which `-mo` creates) is
+    left next to it.
+
+    :param pdf_path: path of the PDF to crop
+    :param dry_run: if True, show what would be done without executing
+    """
+    _LOG.debug(hprint.to_str("pdf_path dry_run"))
+    if dry_run:
+        _LOG.warning("[DRY_RUN] Would crop the margins of '%s'", pdf_path)
+    else:
+        hdbg.dassert_file_exists(pdf_path)
+        _LOG.info("Cropping the margins of '%s'", pdf_path)
+        # Crop to a temporary file in the same dir, so that replacing the PDF
+        # is a rename.
+        tmp_path = os.path.join(
+            os.path.dirname(pdf_path),
+            "tmp.download_academic_paper_to_md._crop_pdf.pdf",
+        )
+        # Run `pdfCropMargins` as a module of the interpreter that runs this
+        # script, so that the dependency declared inline for `uv run` is used,
+        # whatever `$PATH` contains.
+        cmd = [
+            f'"{sys.executable}" -m pdfCropMargins',
+            "-p 0",
+            f'-o "{tmp_path}"',
+            f'"{pdf_path}"',
+        ]
+        cmd = " ".join(cmd)
+        hsystem.system(cmd, print_command=True)
+        os.replace(tmp_path, pdf_path)
+        _LOG.info("Cropped: '%s'", pdf_path)
+
+
+# #############################################################################
 # Save to papers dir action
 # #############################################################################
 
@@ -948,6 +1022,7 @@ def _save_to_papers_dir(
     papers_dir: str,
     *,
     summary_type: str = "short",
+    crop_pdf: bool = False,
     no_incremental: bool = False,
     dry_run: bool = False,
 ) -> None:
@@ -955,9 +1030,9 @@ def _save_to_papers_dir(
     Copy the PDF and the summary of a paper to the papers dir.
 
     Copies `<base_path>.pdf` and the summary file (`<base_path>.short.md`,
-    `<base_path>.structured.md`, or `<base_path>.all.md`) to the same file
-    names in `<papers_dir>`. The converted markdown `<base_path>.md` is not
-    copied.
+    `<base_path>.structured.md`, `<base_path>.up_to_l<N>.md`, or
+    `<base_path>.all.md`) to the same file names in `<papers_dir>`. The
+    converted markdown `<base_path>.md` is not copied.
 
     Only the PDF is required. A missing summary (e.g., the `summarize` action
     was skipped, or the type of summary was not generated) is not an error:
@@ -971,22 +1046,29 @@ def _save_to_papers_dir(
     :param papers_dir: dir to copy the files to (e.g.,
         `/Users/saggese/src/notes1/papers`)
     :param summary_type: type of summary of the run, one of
-        `download_utils.SUMMARY_TYPES` or `all`
+        `download_utils.SUMMARY_TYPES`, `download_utils.SUMMARY_TYPE_ALIASES`,
+        or `all`
         - It is used only in a dry run, to assume which summary will be
           generated
+    :param crop_pdf: if True, crop the margins of the PDF in the papers dir
+        with `pdfCropMargins`
+        - Only the copy in the papers dir is cropped: `<base_path>.pdf` is
+          left unchanged, unless it is the file in the papers dir
     :param no_incremental: if True, overwrite existing summaries in the papers
         dir
     :param dry_run: if True, show what would be done without executing
     """
     _LOG.debug(
-        hprint.to_str("base_path papers_dir summary_type no_incremental dry_run")
+        hprint.to_str(
+            "base_path papers_dir summary_type crop_pdf no_incremental dry_run"
+        )
     )
     papers_dir = os.path.expanduser(papers_dir)
     pdf_path = f"{base_path}.pdf"
     # Candidate files: the PDF and every summary that the `summarize` action
     # can generate. The converted markdown is not copied.
     summary_paths = [
-        _get_summary_path(base_path, type_) for type_ in _SUMMARY_TYPE_CHOICES
+        _get_summary_path(base_path, type_) for type_ in _SUMMARY_FILE_TYPES
     ]
     candidate_paths = [pdf_path] + summary_paths
     # In a dry run nothing was generated yet, so assume that the files that the
@@ -1021,6 +1103,12 @@ def _save_to_papers_dir(
             _LOG.info("Copying '%s' to '%s'", src_path, dst_path)
             shutil.copyfile(src_path, dst_path)
             _LOG.info("Saved to papers dir: '%s'", dst_path)
+    if crop_pdf:
+        # Crop the copy in the papers dir, which is always there at this point
+        # (the PDF is always copied), so that the PDF in the working dir keeps
+        # the original margins.
+        papers_pdf_path = os.path.join(papers_dir, os.path.basename(pdf_path))
+        _crop_pdf(papers_pdf_path, dry_run=dry_run)
 
 
 # #############################################################################
@@ -1058,7 +1146,8 @@ def _parse() -> argparse.ArgumentParser:
         help=(
             "Output base path (no extension), shared by the generated "
             "<output>.pdf, <output>.md, and summary (<output>.short.md, "
-            "<output>.structured.md, or <output>.all.md) files. If not "
+            "<output>.structured.md, <output>.up_to_l<N>.md, or "
+            "<output>.all.md) files. If not "
             "specified, a standardized name is derived from the paper's "
             "metadata (or from the file name, for a local PDF without an "
             "embedded title) and saved under $PAPERS_DIR (or the current "
@@ -1081,11 +1170,14 @@ def _parse() -> argparse.ArgumentParser:
         choices=_SUMMARY_TYPE_CHOICES,
         help=(
             "Type of summary for the `summarize` action: `short` (7-10 bullet "
-            "points, with no structure), `structured` (a level-1 header for "
-            "each main section of the paper, with bullet points under it), or "
-            "`all` (both, as a `// Short` section followed by a "
+            "points, with no structure), `structured` or `up_to_l1` (a "
+            "level-1 header for each main section of the paper, with bullet "
+            "points under it), `up_to_l2` or `up_to_l3` (the same, keeping "
+            "the headers of the paper up to level 2 or 3), or `all` (`short` "
+            "and `structured`, as a `// Short` section followed by a "
             "`// Structured` section). A single summary file is saved to "
-            "<output>.<type>.md, e.g., <output>.short.md"
+            "<output>.<type>.md, e.g., <output>.short.md, and `up_to_l1` is "
+            "saved to <output>.structured.md"
         ),
     )
     parser.add_argument(
@@ -1117,6 +1209,15 @@ def _parse() -> argparse.ArgumentParser:
         "extract_figures",
         default_value=False,
         help_="Extract figures/images when converting the PDF to markdown",
+    )
+    hparser.add_bool_arg(
+        parser,
+        "crop_pdf",
+        default_value=True,
+        help_=(
+            "Crop the margins of the PDF copied to the papers dir by the "
+            "`save_to_papers_dir` action, with `pdfCropMargins -p 0`"
+        ),
     )
     parser.add_argument(
         "--dry_run",
@@ -1200,6 +1301,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
                     base_path,
                     args.papers_dir,
                     summary_type=args.summary_type,
+                    crop_pdf=args.crop_pdf,
                     no_incremental=args.no_incremental,
                     dry_run=args.dry_run,
                 )
