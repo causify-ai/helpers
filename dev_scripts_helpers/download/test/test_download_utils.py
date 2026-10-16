@@ -427,7 +427,9 @@ class Test_get_summary_prompt(hunitest.TestCase):
             for line in actual.splitlines()
             if line.startswith("  - Level ")
         ]
-        self.assertEqual(level_lines, ["  - Level 1 (`#`)", "  - Level 2 (`##`)"])
+        self.assertEqual(
+            level_lines, ["  - Level 1 (`#`)", "  - Level 2 (`##`)"]
+        )
         self.assertIn("keeping its structure to level 2", actual)
         self.assertIn("Do not use headers of level 3 or deeper", actual)
         self.assertIn("Use fewer than about 1200 words", actual)
