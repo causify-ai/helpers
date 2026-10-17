@@ -17,7 +17,6 @@ with active review tracking and executable documentation validation.
 
 - Processes
   - `onboarding`
-  - `general_background`
   - `work_organization`
   - `work_tools`
   - `coding`
@@ -99,18 +98,19 @@ with active review tracking and executable documentation validation.
 - `docs/build_system/`
   - Documents CI tools like Gitleaks, Semgrep, linters, and Pytest-Allure
     integrations for the build process.
-- `docs/code_guidelines/`
+- `docs/coding/`
   - Provides detailed how-to guides for writing clean, maintainable, and
     review-ready code with AI productivity tips.
 - `docs/documentation_meta/`
   - Explains documentation frameworks, diagrams, and tooling for producing
     technical and reproducible docs.
-- `docs/general_background/`
-  - Offers foundational references like glossaries, abbreviations, and curated
-    reading materials.
 - `docs/onboarding/`
   - Comprehensive onboarding guides and checklists for developers, interns, and
-    contractors.
+    contractors. Also includes foundational references like abbreviations and
+    curated reading materials.
+- `docs/planning/`
+  - How to plan work: end-to-end plan of a project, PR loop, progress log, and PR
+    description template.
 - `docs/tools/`
   - Guides for general-purpose development and infrastructure tools, including
     code hygiene, IDEs, and APIs.

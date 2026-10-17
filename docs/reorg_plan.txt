@@ -1,6 +1,6 @@
-docs/general_background/all.literature_review.reference.md
+docs/onboarding/all.literature_review.reference.md
 - Remove or move
-docs/general_background/all.reading_list.reference.md
+docs/onboarding/all.reading_list.reference.md
 
 docs/tools/all.pycharm.how_to_guide.md
 
@@ -29,15 +29,15 @@ docs/build_system/all.pytest_allure.how_to_guide.md
 docs/build_system/all.semgrep_workflow.explanation.md
 
 ### -> docs/coding?
-docs/code_guidelines/all.code_review.how_to_guide.md
-docs/code_guidelines/all.submit_code_for_review.how_to_guide.md
+docs/coding/all.code_review.how_to_guide.md
+docs/coding/all.submit_code_for_review.how_to_guide.md
 
-docs/code_guidelines/all.code_like_pragmatic_programmer.how_to_guide.md
-docs/code_guidelines/all.code_design.how_to_guide.md
-docs/code_guidelines/all.coding_style_guidelines.reference.md
-docs/code_guidelines/all.coding_style.how_to_guide.md
+docs/coding/all.code_like_pragmatic_programmer.how_to_guide.md
+docs/coding/all.code_design.how_to_guide.md
+docs/coding/all.coding_style_guidelines.reference.md
+docs/coding/all.coding_style.how_to_guide.md
 
-docs/code_guidelines/all.type_hints.how_to_guide.md
+docs/coding/all.type_hints.how_to_guide.md
 
 ### -> docs/documenting?
 docs/documentation_meta/all.architecture_diagrams.explanation.md
@@ -160,7 +160,7 @@ docs/README.md
 
 # DONE
 
-- [x] docs/general_background/all.common_abbreviations.reference.md
+- [x] docs/onboarding/all.common_abbreviations.reference.md
   docs/general_background/all.glossary.reference.md
 - merge with abbrev
 

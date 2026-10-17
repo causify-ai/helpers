@@ -19,15 +19,15 @@
 
 ## Coding
 
-- [ ] [Coding style guide](/docs/code_guidelines/all.coding_style.how_to_guide.md)
+- [ ] [Coding style guide](/docs/coding/all.coding_style.how_to_guide.md)
 - [ ] [How to write unit tests](/helpers/test/docs/all.write_unit_tests.how_to_guide.md)
 - [ ] [How to run unit tests](/helpers/test/docs/all.run_unit_tests.how_to_guide.md)
 - [ ] [Creating a Jupyter Notebook](/docs/tools/notebooks/all.jupyter_notebook.how_to_guide.md)
 
 ## Submitting your code for review
 
-- [ ] [What to do before opening a PR](/docs/code_guidelines/all.submit_code_for_review.how_to_guide.md)
-- [ ] [Code review process](/docs/code_guidelines/all.code_review.how_to_guide.md)
+- [ ] [What to do before opening a PR](/docs/coding/all.submit_code_for_review.how_to_guide.md)
+- [ ] [Code review process](/docs/coding/all.code_review.how_to_guide.md)
 
 ## Git(Hub)
 

@@ -92,7 +92,7 @@ The toolchain supports multiple documentation workflows:
 
 - E.g.,
   - Cross-repo links
-    - E.g., [`//helpers/docs/code_guidelines/all.coding_style_guidelines.reference.md`]
+    - E.g., [`//helpers/docs/coding/all.coding_style_guidelines.reference.md`]
   - Color  
     - E.g., `\red{...}`
   - Primitives we use in the slides  
