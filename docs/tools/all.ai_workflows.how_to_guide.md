@@ -81,6 +81,55 @@
   Name>`) per `.claude/skills/skill.rules.md`; fill them in and remove any
   optional sections that don't apply
 
+## Run a Skill
+
+- There are three ways to run a skill `<topic>.<action>`, depending on how much
+  control you need
+  - See the "Related Docs" section for the docs of each tool
+
+### Slash Command in a Claude Code Session
+
+- Type the skill name with a leading `/` in a Claude Code session, followed by the
+  file to operate on
+  ```text
+  claude> /<topic>.<action> <file>
+  ```
+  - E.g., `/coding.fix_comments helpers/hio.py`
+- Use this to run one skill interactively and review the result before moving on
+
+### `cc_lint.py` From the Shell
+
+- Run the skill on one or more files outside a session:
+  ```bash
+  > cc_lint.py --files "<file>" --skill <topic>.<action> --mode one_shot_with_cc
+  ```
+- Select files by git state instead of by name with `--modified`, `--branch`,
+  `--last_commit`, or `--all_files`
+- Use this to run the same skill over many files, or from a script
+- Use `--dry_run` to print the command without executing it
+
+### `cc` Wrapper for Interactive Sessions
+
+- `cc` starts an interactive Claude Code session with the repo defaults
+  - Passes extra arguments to `claude`
+  - Selects the model with flags (e.g., `--anth`, `--ds`, `--model MODEL_STR`)
+  - Renames the tmux pane while the session runs
+- Start a session, then run a skill with a slash command:
+  ```bash
+  > cc
+  ```
+  ```text
+  claude> /<topic>.<action> <file>
+  ```
+- Use `cc -p "<prompt>"` to run a single prompt non-interactively
+- See `dev_scripts_helpers/ai/README.md` for all the options
+
+### Pick the Right Way
+
+- Slash command: one skill, one file, you review as it runs
+- `cc_lint.py --skill`: many files, scripted runs, or a fixed model per run
+- `cc`: open-ended sessions that mix several skills and manual edits
+
 ## Tools
 
 ### `mdm`: Unified Markdown Content Manager
@@ -154,10 +203,8 @@
   state rather than by name
 
 ### Run a Skill on a File
-- Execute one skill (as opposed to a whole rules file) on a file:
-  ```
-  > cc_lint.py --files "<file>" --skill <topic>.<action> --mode one_shot_with_cc
-  ```
+- Execute one skill (as opposed to a whole rules file) on a file
+  - See the "Run a Skill" section above for the three ways to do it
 
 ### Create or Browse a Skill
 - `mdm skill list` (or `mdm skill list <pattern>`) to see what already exists
@@ -186,3 +233,19 @@
   ```
   to check the new file follows conventions the template doesn't already encode
   (e.g., naming, docstring content)
+
+## Related Docs
+
+- Use these docs for details on the tools and conventions mentioned above
+  - `docs/tools/all.auto_task.how_to_guide.md`: Delegate a task list to agents,
+    from GitHub issue to merged PR
+  - `docs/tools/all.ai_review.how_to_guide.md`: Review flows with LLMs
+    (`llm_transform.py`, `ai_review.py`, `inject_todos.py`)
+  - `linters2/cc_lint.README.md`: Full reference for `cc_lint.py`
+  - `dev_scripts_helpers/system_tools/mdm.README.md`: Full reference for `mdm`
+  - `dev_scripts_helpers/ai/README.md`: Options of the `cc` wrapper
+  - `.claude/skills/skill.rules.md`: How to write a skill
+  - `.claude/rules.md`: Map from file type to rules and templates
+- `ai_review.py` is the older prompt-based flow
+  - It does not use skills
+  - Prefer skills run via `cc_lint.py --skill` for new workflows

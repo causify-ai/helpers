@@ -214,10 +214,11 @@ This repo also ships "how we keep repos healthy" primitives:
 - `import_check/`: import hygiene validation
 - `linters/`, `linters2/`: lint framework and configs
 - `.github/`: CI workflows and checks
-- `.claude/`: Claude Code configuration and hooks
+- `.claude/`: Claude Code configuration, hooks, and skills (`.claude/skills/`)
+  - See `docs/tools/all.ai_workflows.how_to_guide.md` for how to run skills
+- `.claude/task_instructions.md`: Development instructions and task specifications
 - `CLAUDE.md`: Architecture overview and development patterns for Claude Code
 - `conftest.py`: Pytest configuration and shared test fixtures
-- `task_instructions.md`: Development instructions and task specifications
 - `main_pytest.py`: Main pytest runner and test execution controller
 - `tasks.py`: Entry point for pyinvoke task automation system
 - pre-commit and scanning configs (`.pre-commit-config.yaml`, `.semgrepignore`, etc.)

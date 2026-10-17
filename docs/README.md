@@ -114,6 +114,9 @@ with active review tracking and executable documentation validation.
 - `docs/tools/`
   - Guides for general-purpose development and infrastructure tools, including
     code hygiene, IDEs, and APIs.
+  - `docs/tools/all.ai_workflows.how_to_guide.md`
+    - Hub for AI-assisted work with Claude Code: how to run skills and links to
+      the related AI docs.
   - `docs/tools/dev_system/`
     - Focused on local development setup, environment configuration, dependency
       management, and repo orchestration.

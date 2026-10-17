@@ -67,6 +67,10 @@ This contains the absolute minimal amount of info to start developing
 - [How to integrate repos](/docs/tools/all.integrate_repos.how_to_guide.md)
   - Detailed instruction on how to integrate repos
 
+- [AI workflows: topics, skills, and rules](/docs/tools/all.ai_workflows.how_to_guide.md)
+  - How to run skills (slash command, `cc_lint.py`, `cc`) and where to find
+    the related AI docs
+
 ## Learn how to become efficient at developing
 
 This contains a set of resources that over time will make 10x more productive
