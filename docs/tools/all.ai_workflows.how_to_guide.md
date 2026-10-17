@@ -234,6 +234,253 @@
   to check the new file follows conventions the template doesn't already encode
   (e.g., naming, docstring content)
 
+## Coding Workflows
+
+- These workflows use the `coding.*` skills on Python files
+- Commit before running a skill, so that each skill produces a separate, easy to
+  review diff
+  - See `docs/tools/all.ai_review.how_to_guide.md`
+
+### Coding Skills at a Glance
+
+| Skill                            | Use when                                        |
+| :------------------------------- | :---------------------------------------------- |
+| `coding.todoai_gp`               | Implement the `TODO(ai_gp)` items in a file     |
+| `coding.annotate_with_todoai`    | Add a `TODO(ai_gp)` for each rule violation     |
+| `coding.reorg_functions`         | Reorder the functions in a file                 |
+| `coding.factor_common_code`      | Remove duplicated code, mostly in test files    |
+| `coding.fix_from_imports`        | Replace `from X import Y` with `import X`       |
+| `coding.fix_use_helpers`         | Replace ad-hoc code with `helpers` functions    |
+| `coding.fix_bloated_imports`     | Import big packages only where they are needed  |
+| `coding.fix_type_hints`          | Fix type hints                                  |
+| `coding.fix_dasserts`            | Fix `dassert` calls                             |
+| `coding.fix_pyright`             | Run `pyright` and fix the reported lints        |
+| `coding.fix_comments`            | Fix docstrings and comments, no logic change    |
+| `coding.fix_empty_lines`         | Remove empty lines inside functions             |
+| `coding.improve_code_for_humans` | Add comments and `_LOG.debug` statements        |
+| `coding.rename`                  | Rename a file, function, or variable everywhere |
+| `coding.find_doc`                | Find and summarize the docs of code             |
+
+- The other `coding.*` skills (e.g., `fix_inline`, `make_function_private`,
+  `use_single_return`) follow the same pattern
+  - List them with `mdm skill list coding`
+
+### Implement TODOs in a File
+
+- This is the most common coding workflow
+- Write the instruction in the code as a `TODO(ai_gp)` comment
+  ```python
+  # TODO(ai_gp): Factor out this block into a helper function
+  # TODO(ai_gp): Add a test for the empty input case
+  # TODO(ai_gp): foo_bar -> compute_foo_bar
+  ```
+  - `-> XYZ` means "rename to `XYZ`" and updates all the references
+- List the pending TODOs with `rig --todo`
+- Run the skill on the file
+  ```text
+  claude> /coding.todoai_gp <file>
+  ```
+  - It fixes also the other instances of the same TODO in the file
+  - It removes a TODO only if it was implemented
+  - If it cannot do it, it leaves the TODO and adds a comment with the reason
+- Review the diff and run the unit tests of the file
+- To fix a single TODO, pass the `rig --todo` output line instead of the file
+  ```text
+  claude> /coding.todoai_gp <file>:<line>:# TODO(ai_gp): ...
+  ```
+
+### Let the Rules Write the TODOs, Then Implement Them
+
+- Use this to review a file against `.claude/skills/coding.rules.md` before
+  changing any code
+- Add the TODOs without modifying the code
+  ```bash
+  > cc_lint.py --files "<file>" --add_todos --mode one_shot_with_cc
+  ```
+  - Alternatively, run `/coding.annotate_with_todoai <file>`
+    - It annotates the file, asks you to commit, and then runs
+      `/coding.todoai_gp` after you confirm
+    - Test files also get the `testing.rules.md` rules
+- Read the TODOs and delete the ones you disagree with
+- Commit, then implement the remaining ones with `/coding.todoai_gp <file>`
+
+### Clean Up a Python File With a Sequence of Skills
+
+- Use this on a new or messy file, e.g., a script or a `*_utils.py`
+- Run the skills in this order, committing between steps
+  1. Structure: `/coding.reorg_functions <file>`
+  2. Duplication: `/coding.factor_common_code <file>`
+  3. Imports: `/coding.fix_from_imports`, `/coding.fix_use_helpers`,
+     `/coding.fix_bloated_imports`
+  4. Types and lints: `/coding.fix_type_hints`, `/coding.fix_dasserts`,
+     `/coding.fix_pyright`
+  5. Text last: `/coding.fix_empty_lines`, `/coding.fix_comments`,
+     `/coding.improve_code_for_humans`
+  6. Run the unit tests of the file
+- Comments go last since the earlier steps change the code they describe
+- Run the same sequence from the shell, one skill per call
+  ```bash
+  > for skill in coding.fix_from_imports coding.fix_type_hints coding.fix_comments; do
+      cc_lint.py --files "<file>" --skill $skill --mode one_shot_with_cc
+    done
+  ```
+- To apply all the coding rules in a single call, use the topic instead of skills
+  ```bash
+  > cc_lint.py --files "<file>" --topic coding --mode session
+  ```
+  - `session` applies one rules section per turn in the same session
+  - Skills give more control since you review the diff after each one
+
+### Remove Duplication in Test Files
+
+- Preview first with `--dry_run`
+  ```text
+  claude> /coding.factor_common_code <test_file> --dry_run
+  ```
+  - It reports the proposed helper functions and the duplicated locations
+  - It writes a vim quickfix `cfile` to jump to the duplicated blocks
+    (`:cfile cfile`)
+- Run it again without `--dry_run` to apply the refactoring
+- Then run `/coding.fix_type_hints <test_file>` and the unit tests
+
+### Fix `pyright` Lints
+
+- Run the skill on one file at a time for large sets of files
+  ```text
+  claude> /coding.fix_pyright helpers/hpandas_*.py one file at the time
+  ```
+- It saves `tmp.pyright_before.txt` and `tmp.pyright_after.txt`: check that the
+  second has fewer issues
+- It runs the matching `test/test_<file>.py`
+
+## Notebook Workflows
+
+- These workflows use the `notebook.*` skills
+- A notebook is a triplet of files, kept in sync with `jupytext`
+  - `<name>.ipynb`: The notebook
+  - `<name>.py`: The paired Python file
+  - `<name>_utils.py`: The code behind the cells
+- The notebook skills sync the pair at the end
+  - Pair a new notebook with
+    `jupytext.py --action pair --files <name>.ipynb`
+- Follow `.claude/skills/notebook.rules.md` for the conventions
+
+### Notebook Skills at a Glance
+
+| Skill                               | Use when                                         |
+| :---------------------------------- | :----------------------------------------------- |
+| `notebook.brainstorm_outline`       | Get 5 notebook ideas from some material          |
+| `notebook.create_outline`           | Write the cell-by-cell plan of a notebook        |
+| `notebook.implement_outline`        | Build the notebook from an outline               |
+| `notebook.create_api_intro`         | Build a notebook that teaches a package API      |
+| `notebook.lint_numbered_cells`      | Renumber cells and sync function names           |
+| `notebook.split_header_cells`       | One header per markdown cell                     |
+| `notebook.split_cells`              | One logical task per code cell                   |
+| `notebook.format_md_cells`          | Format markdown cells as nested bullets          |
+| `notebook.format_interactive_cells` | Fix the markdown around interactive cells        |
+| `notebook.fix_logging`              | Use the standard logging init                    |
+| `notebook.refactor_to_utils`        | Move notebook code into `*_utils.py`             |
+| `notebook.delete_dead_code`         | Remove unused functions                          |
+| `notebook.fix_packages`             | Align Docker files and install packages in cells |
+| `notebook.create_animation`         | Make an animation from an `interact` function    |
+
+### Notebook From Lecture Material
+
+- Use this to turn a lecture or a doc into an interactive notebook
+- Brainstorm (optional)
+  ```text
+  claude> /notebook.brainstorm_outline <lecture file>
+  ```
+  - It writes `notebook_ideas.<TAG>.md` with 5 ideas
+- Create the outline from a lecture, a URL, or the ideas file
+  ```text
+  claude> /notebook.create_outline <lecture file, URL, or notebook_ideas.<TAG>.md>
+  ```
+  - It writes `notebook_outline.<TAG>.md` with no code
+  - Review and edit the outline: this is the cheap place to fix the design
+- Implement it
+  ```text
+  claude> /notebook.implement_outline <dir>/notebook_outline.<TAG>.md
+  ```
+  - It creates the `.ipynb`, the paired `.py`, and the `*_utils.py`
+- Polish with the skills below, then run the notebook (see "Check That a Notebook
+  Runs")
+
+### Polish a Generated Notebook
+
+- Run these skills on the notebook, committing between steps
+  1. `/notebook.split_header_cells <notebook>`
+  2. `/notebook.format_interactive_cells <notebook>` for widget notebooks
+  3. `/notebook.format_md_cells <notebook>`
+  4. `/notebook.lint_numbered_cells <notebook>`
+  5. `/notebook.fix_logging <notebook>` if the init cell is not the standard one
+- Then clean the paired `*_utils.py` with the coding skills
+  - `/coding.fix_from_imports`, `/coding.fix_empty_lines`, `/coding.fix_comments`,
+    `/coding.fix_type_hints`
+- Run `lint_numbered_cells` last: it renames the `cellN_*()` functions in the
+  notebook and in `*_utils.py` to match the headers
+
+### Notebook for a Package API
+
+- Use this to teach the API of a package, one concept per cell
+- Prerequisite: a project dir with the Docker files, e.g., cloned from
+  `class_project/project_template`
+- Create the notebook
+  ```text
+  claude> /notebook.create_api_intro <package> <doc URL> and save it in tutorials/<package>/<package>.01.API.<topic>.ipynb
+  ```
+  - Use the next `<ID>` for each new topic, e.g., `02.API.datasets`
+- Polish it
+  1. `/notebook.split_header_cells <notebook>`
+  2. `/notebook.format_md_cells <notebook>`
+  3. `/notebook.lint_numbered_cells <notebook>`
+  4. `/coding.fix_from_imports <utils file>`
+- Check that the notebook runs
+
+### Refactor an Existing Notebook
+
+- Use this when cells hold too much code or the notebook grew organically
+- Run the skills in this order, committing between steps
+  1. `/notebook.refactor_to_utils <notebook>`: move code to `*_utils.py`
+  2. `/notebook.delete_dead_code <notebook>`: remove unused functions
+  3. `/notebook.split_cells <notebook>`: one task per code cell
+  4. `/coding.fix_empty_lines`, `/coding.fix_comments`, `/coding.fix_type_hints`
+     on `*_utils.py`
+  5. `/notebook.lint_numbered_cells <notebook>`
+- Run `refactor_to_utils` again after the other steps if new inline code appears
+
+### Align Packages and Docker Files
+
+- Use this when a notebook needs a package that is not in the shared image
+  ```text
+  claude> /notebook.fix_packages <lesson dir> [<notebook> ...]
+  ```
+  - It aligns `Dockerfile` and `requirements.txt` with the project template
+  - It adds a pinned `!pip install` cell to the notebook that needs the package
+  - It also scans `*_utils.py`, since the imports of a notebook are not the full
+    list
+
+### Check That a Notebook Runs
+
+- Run the paired Python file in Docker
+  ```bash
+  > docker_cmd.sh "python /git_root/<dir>/<name>.py"
+  ```
+  - A `# !pip install` cell is a comment in the `.py` file
+  - Chain `pip install -q <package>==<version> &&` before `python` for those
+    packages
+  - See `## Testing Notebook` in `.claude/skills/notebook.rules.md`
+- Edit interactively with `docker_jupyter.sh`, then sync the pair with
+  `jupytext.py --action sync --files <name>.ipynb`
+
+### Apply All Notebook Rules in One Call
+
+- Use the topic instead of skills for a quick pass
+  ```bash
+  > cc_lint.py --files "<notebook>" --topic notebook --mode session
+  ```
+- Use skills when you need to review each transformation
+
 ## Related Docs
 
 - Use these docs for details on the tools and conventions mentioned above
