@@ -322,7 +322,7 @@
   [Managing common files](/docs/tools/dev_system/all.runnable_repo.reference.md#managing-common-files)
   for explanation
 - Refer to
-  [Managing symbolic links between directories](/docs/tools/dev_system/all.replace_common_files_with_script_links.md)
+  [Managing symbolic links between directories](/docs/tools/dev_system/all.replace_common_files_with_script_links.how_to_guide.md)
   for how to use the commands
 
 ## 5) Build Container and Running Tests

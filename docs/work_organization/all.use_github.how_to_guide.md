@@ -1,32 +1,5 @@
 # Use Github
 
-<!-- toc -->
-
-- [Introduction](#introduction)
-- [Concepts](#concepts)
-  * [Sprints](#sprints)
-  * [Projects](#projects)
-  * [Issue](#issue)
-  * [GH Actions](#gh-actions)
-  * [Label](#label)
-    + [List of Labels](#list-of-labels)
-  * [Status](#status)
-  * [PR](#pr)
-- [Issue Workflows](#issue-workflows)
-  * [Naming an Issue](#naming-an-issue)
-  * [Filing a New Issue](#filing-a-new-issue)
-  * [Updating an Issue](#updating-an-issue)
-  * [Closing an Issue](#closing-an-issue)
-- [PR Workflows](#pr-workflows)
-  * [PR Labels](#pr-labels)
-  * [Filing a New PR](#filing-a-new-pr)
-    + [General Tips](#general-tips)
-    + [Filing Process](#filing-process)
-  * [Review](#review)
-  * [Addressing a Comment](#addressing-a-comment)
-
-<!-- tocstop -->
-
 ## Introduction
 
 - In the following we use the abbreviations below:
@@ -95,6 +68,10 @@
   each repo
 - These actions run automatically based on defined triggers such as pushes, pull
   requests, or scheduled events
+- Inspect the actual checks of a repo before relying on them
+  - E.g., a green PR does not prove that the tests of a directory ran if the
+    workflow excludes that directory
+  - Review changes to the workflow behavior like any other change
 
 Disabling a GitHub Actions Workflow
 
@@ -167,6 +144,9 @@ out the code:
   - `Done`
     - Issues that are done and are waiting for closing
     - Integrators / team leaders are responsible for closing
+- Small projects can use a lean board with fewer statuses
+  - See
+    [all.github_projects_process.reference.md](/docs/work_organization/all.github_projects_process.reference.md#lean-board-with-four-statuses)
 
 ```mermaid
 stateDiagram
@@ -214,6 +194,14 @@ stateDiagram
 
 ### Filing a New Issue
 
+- Describe the task so that it is actionable
+  - Problem and why it matters
+  - Scope and explicit exclusions
+  - Acceptance criteria
+  - Dependencies
+  - See
+    [all.issue_workflow.explanation.md](/docs/work_organization/all.issue_workflow.explanation.md#task-issue)
+    for the anatomy of a task
 - If it is a "serious" problem (bug) put as much information about the Issue as
   possible, e.g.,:
   - What you are trying to achieve
@@ -276,6 +264,17 @@ stateDiagram
   - Show the progress to the team with quick updates
   - Update your Issue with pointers to gdocs, PRs, notebooks
   - If you have questions, post them on the bug and tag people
+- If you are blocked, report it on the Issue right away
+  - Do not wait for the next sync-up to ask for help
+  - Tag the person who can unblock you
+  - Use this template:
+    ```text
+    Blocker:
+    Impact:
+    Help needed from:
+    Next action and owner:
+    Follow-up date:
+    ```
 - Once the task, in your opinion, is done, change the status to `To Review` so
   that Integrator / team leaders can review it
 - If we decide to stop the work, add a `Paused` label
@@ -283,6 +282,8 @@ stateDiagram
 ### Closing an Issue
 
 - A task is closed when PR has been reviewed and merged into `master`
+  - For research or coordination work without a PR, attach the result and get
+    the agreed review before closing
 - When, in your opinion, there is no more work to be done on your side on an
   Issue, change its status to `Done` but do not close it
   - Integrators / team leaders will close it after review
@@ -291,15 +292,22 @@ stateDiagram
 - Done means that something is "DONE", not "99% done"
   - "DONE" means that the code is tested, readable, and usable by other
     teammates
+  - Work that is complete from the author's point of view is not Done while
+    review or acceptance is pending
 - Together we can decide that 99% done is good enough, but it should be a
   conscious decision and not comes as a surprise
 - There should be a reason when closing an issue
   - E.g. - closing as PR is merged
   - E.g. - closing since obsolete
+  - Record an issue closed as obsolete or duplicate in the weekly summary and do
+    not report it as delivered work
 
 ## PR Workflows
 
 ### PR Labels
+
+- Labels do not replace GitHub review requests, draft state, and approvals
+  - The GitHub review state is the source of truth
 
 - `PR_for_authors`
   - There are changes to be addressed by an author of a PR
@@ -315,6 +323,8 @@ stateDiagram
 
 - Implement a feature in a branch (not `master`), once it is ready for review
   push it and file a PR via GH interface
+- Stage and inspect only the files intended for the PR
+  - Keep unrelated changes in separate PRs
 - We have `invoke` tasks to automate some of these tasks:
   ```bash
   > i git_branch_create -i 828
@@ -352,6 +362,10 @@ stateDiagram
   - Usually the first label in the filed PR is `PR_for_reviewers`
   - If it is urgent/blocking, use the `Blocking` label
 - Make sure that the corresponding tests pass
+  - Run the relevant tests and the required repo checks
+  - For documentation, check links, accuracy, and formatting
+  - For websites, also check layout and interactions
+  - Report the checks that could not be run
 - Always lint (and commit files modified by Linter) before asking for a review
 
 ### Review
@@ -363,6 +377,7 @@ stateDiagram
   - Interfaces
   - Mistakes
   - Readability
+  - Validation evidence
 - There are 2 possible outcomes of a review:
   - There are changes to be addressed by author
     - A reviewer leaves comments to the code

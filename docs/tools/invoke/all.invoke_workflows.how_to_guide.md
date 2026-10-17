@@ -255,7 +255,7 @@ TODO(gp): Describe
 
 - For splitting large PRs, use the dedicated workflow `git_branch_copy'
 - See detailed guide in
-  [all.invoke_git_branch_copy.how_to_guide.md](/docs/tools/all.invoke_git_branch_copy.how_to_guide.md)
+  [all.invoke_git_branch_copy.how_to_guide.md](/docs/tools/invoke/all.invoke_git_branch_copy.how_to_guide.md)
 
 #### Systematic Code Transformation
 

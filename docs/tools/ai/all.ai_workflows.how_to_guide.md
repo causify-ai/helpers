@@ -239,7 +239,7 @@
 - These workflows use the `coding.*` skills on Python files
 - Commit before running a skill, so that each skill produces a separate, easy to
   review diff
-  - See `docs/tools/all.ai_review.how_to_guide.md`
+  - See `docs/tools/ai/all.ai_review.how_to_guide.md`
 
 ### Coding Skills at a Glance
 
@@ -484,9 +484,9 @@
 ## Related Docs
 
 - Use these docs for details on the tools and conventions mentioned above
-  - `docs/tools/all.auto_task.how_to_guide.md`: Delegate a task list to agents,
+  - `docs/tools/ai/all.auto_task.how_to_guide.md`: Delegate a task list to agents,
     from GitHub issue to merged PR
-  - `docs/tools/all.ai_review.how_to_guide.md`: Review flows with LLMs
+  - `docs/tools/ai/all.ai_review.how_to_guide.md`: Review flows with LLMs
     (`llm_transform.py`, `ai_review.py`, `inject_todos.py`)
   - `linters2/cc_lint.README.md`: Full reference for `cc_lint.py`
   - `dev_scripts_helpers/system_tools/mdm.README.md`: Full reference for `mdm`

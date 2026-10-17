@@ -215,7 +215,7 @@ This repo also ships "how we keep repos healthy" primitives:
 - `linters/`, `linters2/`: lint framework and configs
 - `.github/`: CI workflows and checks
 - `.claude/`: Claude Code configuration, hooks, and skills (`.claude/skills/`)
-  - See `docs/tools/all.ai_workflows.how_to_guide.md` for how to run skills
+  - See `docs/tools/ai/all.ai_workflows.how_to_guide.md` for how to run skills
 - `.claude/task_instructions.md`: Development instructions and task specifications
 - `CLAUDE.md`: Architecture overview and development patterns for Claude Code
 - `conftest.py`: Pytest configuration and shared test fixtures

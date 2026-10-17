@@ -2,9 +2,9 @@ docs/onboarding/all.literature_review.reference.md
 - Remove or move
 docs/onboarding/all.reading_list.reference.md
 
-docs/tools/all.pycharm.how_to_guide.md
+docs/tools/ide/all.pycharm.how_to_guide.md
 
-docs/tools/all.imports_and_packages.how_to_guide.md
+docs/tools/codebase/all.imports_and_packages.how_to_guide.md
 - Useful
 
 docs/tools/docker/all.develop_in_helpers.how_to_guide.md
@@ -14,7 +14,7 @@ docs/tools/docker/all.dockerhub.how_to_guide.md
 docs/tools/docker/all.dockerized_flow.explanation.md
 - Update
 
-docs/tools/all.ssh.how_to_guide.md
+docs/tools/security/all.ssh.how_to_guide.md
 - Thin
 
 docs/blogging/all.ghost_platform.how_to_guide.md
@@ -49,11 +49,11 @@ docs/documentation_meta/all.plotting_in_latex.how_to_guide.md
 docs/documentation_meta/all.writing_docs.how_to_guide.md
 
 ### Needs cleanup and move to docs/documenting
-docs/tools/all.tutorial_template.md
+docs/documentation_meta/all.tutorial_template.md
 - Diataxis template? Need clean up and move to documentation_meta/
-docs/tools/all.explanation_template.md
-docs/tools/all.how_to_guide_template.md
-docs/tools/all.reference_template.md
+docs/documentation_meta/all.explanation_template.md
+docs/documentation_meta/all.how_to_guide_template.md
+docs/documentation_meta/all.reference_template.md
 
 ### [ ] Review merge
 docs/onboarding/all.dev_must_read_checklist.reference.md
@@ -72,25 +72,25 @@ docs/onboarding/intern.running_causify_on_virtual_machine.how_to_guide.md
 docs/onboarding/intern.set_up_development_on_laptop.how_to_guide.md
 docs/onboarding/intern.signing_up.how_to_guide.md
 
-docs/tools/all.ai_review.how_to_guide.md
-docs/tools/all.bfg_repo_cleaner.how_to_guide.md
-docs/tools/all.code_coverage_subprocess.how_to_guide.md
-docs/tools/all.code_coverage_subprocess.reference.md
-docs/tools/all.code_review_tools.reference.md
-docs/tools/all.codebase_clean_up.how_to_guide.md
-docs/tools/all.codecov.how_to_guide.md
+docs/tools/ai/all.ai_review.how_to_guide.md
+docs/tools/git/all.bfg_repo_cleaner.how_to_guide.md
+docs/tools/testing_profiling/all.code_coverage_subprocess.how_to_guide.md
+docs/tools/testing_profiling/all.code_coverage_subprocess.reference.md
+docs/tools/ai/all.code_review_tools.reference.md
+docs/tools/codebase/all.codebase_clean_up.how_to_guide.md
+docs/tools/testing_profiling/all.codecov.how_to_guide.md
 docs/tools/all.evaluating_external_tools.how_to_guide.md
-docs/tools/all.import_check.reference.md
-docs/tools/all.integrate_repos.how_to_guide.md
-docs/tools/all.invoke_bash_print_tree.how_to_guide.md
-docs/tools/all.invoke_git_branch_copy.how_to_guide.md
-docs/tools/all.invoke_workflows.how_to_guide.md
-docs/tools/all.parquet.explanation.md
-docs/tools/all.profiling.how_to_guide.md
-docs/tools/all.selenium.how_to_guide.md
-docs/tools/all.sync_gh_projects.how_to_guide.md
-docs/tools/all.veracrypt.how_to_guide.md
-docs/tools/all.visual_studio_code.how_to_guide.md
+docs/tools/codebase/all.import_check.reference.md
+docs/tools/git/all.integrate_repos.how_to_guide.md
+docs/tools/invoke/all.invoke_bash_print_tree.how_to_guide.md
+docs/tools/invoke/all.invoke_git_branch_copy.how_to_guide.md
+docs/tools/invoke/all.invoke_workflows.how_to_guide.md
+docs/tools/data/all.parquet.explanation.md
+docs/tools/testing_profiling/all.profiling.how_to_guide.md
+docs/tools/data/all.selenium.how_to_guide.md
+docs/tools/dev_system/all.sync_gh_projects.how_to_guide.md
+docs/tools/security/all.veracrypt.how_to_guide.md
+docs/tools/ide/all.visual_studio_code.how_to_guide.md
 
 docs/tools/dev_system/all.conda_environment_obsolete.how_to_guide.md
 docs/tools/dev_system/all.create_a_runnable_dir.how_to_guide.md
@@ -101,7 +101,7 @@ docs/tools/dev_system/all.devops_docker.how_to_guide.md
 docs/tools/dev_system/all.devops_docker.reference.md
 docs/tools/dev_system/all.docker_optimizer_container.how_to_guide.md
 docs/tools/dev_system/all.python_package_upgrade_and_troubleshooting.how_to_guide.md
-docs/tools/dev_system/all.replace_common_files_with_script_links.md
+docs/tools/dev_system/all.replace_common_files_with_script_links.how_to_guide.md
 docs/tools/dev_system/all.runnable_repo.reference.md
 docs/tools/dev_system/all.synchronize_gh_issue_labels.how_to_guide.md
 docs/tools/dev_system/all.synchronize_gh_settings.how_to_guide.md

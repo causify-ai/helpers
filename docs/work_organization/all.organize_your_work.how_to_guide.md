@@ -6,8 +6,14 @@
   * [Golden rules](#golden-rules)
   * [Roles](#roles)
     + [Tech leads](#tech-leads)
+    + [Issue owners](#issue-owners)
+    + [Reviewers](#reviewers)
+    + [Meeting facilitators](#meeting-facilitators)
     + [Developers](#developers)
+  * [Starting work](#starting-work)
   * [How to organize your research](#how-to-organize-your-research)
+  * [Blockers and communication](#blockers-and-communication)
+  * [Finishing and choosing next work](#finishing-and-choosing-next-work)
   * [About the project you choose](#about-the-project-you-choose)
 
 <!-- tocstop -->
@@ -21,6 +27,9 @@
 - Everybody comes from a different place and different skill-level, somebody has
   a job, somebody has a full-time work
 - Let's be polite, helpful, and supportive to each other
+- Be clear about your availability
+  - Agree on realistic weekly commitments
+  - Communicate changes early
 - I'll remind you an adage that I tell myself when my teammates drive me crazy:
   "If you want to go fast, go alone; if you want to go far, go together"
 - While being assigned a warm-up issue:
@@ -60,6 +69,9 @@
   - Following our process, advertising it, and explaining it to new team members
   - Understand what other people in your team are doing and coordinate with them
   - Make sure code, notebooks, and data are reused and shared
+  - Clarify priorities and interfaces
+  - Help unblock contributors and coordinate the reviews
+  - Confirm the acceptance of completed work
 
 - What tech leads gain from being a tech lead:
   - Learn how to run a research / dev team
@@ -68,6 +80,26 @@
   - Work closely with GP / Paul
   - Material benefits (e.g., higher KaizenFlow bonuses once the reward system is
     in place)
+
+### Issue owners
+
+- Keep the issue and the board current
+- Provide reproducible results
+- Flag the dependencies
+- Follow through on the review feedback
+
+### Reviewers
+
+- Assess the proposed change and its validation
+- Give actionable feedback
+- Communicate the review delays that affect the sprint
+
+### Meeting facilitators
+
+- Guide the weekly blocker review, see
+  [all.scrum.explanation.md](/docs/work_organization/all.scrum.explanation.md#weekly-blocker-meeting)
+- Record the decisions, the unblock actions, the owners, and the follow-up dates
+- The team chooses the facilitator
 
 ### Developers
 
@@ -78,12 +110,40 @@
   3. Each can "replicate" the work so that both of you understand (no
      coordination)
 
+- Pairing and shared research are welcome
+  - Keep one accountable owner per issue
+  - Agree on how the collaborators divide the work to avoid duplicate or
+    conflicting changes
+
+## Starting work
+
+- Read the onboarding docs, the plan of the project, and the acceptance criteria
+  of the issue
+- Clarify the missing requirements before substantial implementation
+- Break the work into reviewable steps that fit the available sprint capacity
+- Use a branch in the repo when authorized, or a fork when the write access to
+  the repo is unavailable
+- Use the documented environment so that others can reproduce the result
+
 ## How to organize your research
 
 - The GH issues are for:
   - Reporting issues (e.g., "I am getting this error. What should I do?")
   - Updates (e.g., "I've made a bunch of progress and the details are in the
     gdoc <link>)
+  - A short update on the days you work:
+    - What was completed
+    - The next step
+    - The blockers
+
+- Record the experiments and the findings following
+  [Keep a Progress Log](/docs/planning/all.plan_work.how_to_guide.md#keep-a-progress-log)
+  - Link the record from the issue and the PR
+  - Do not commit secrets, private data, or large raw artifacts without an
+    agreed storage approach
+
+- Commit reviewable progress
+  - Use draft PRs when early feedback would help
 
 - Commit the code in a PR (even the same PR) so that it's easier to review the
   details together
@@ -131,6 +191,33 @@
   - Coordinate with them
   - We can only make progress together as a team and not as a single person (get
     over being shy)
+
+## Blockers and communication
+
+- Report a blocker in the issue
+  - Set the issue to the status used for blocked work
+  - Mention who can help
+  - State what you tried, the impact, and a concrete next action
+  - Use the template in
+    [all.use_github.how_to_guide.md](/docs/work_organization/all.use_github.how_to_guide.md#updating-an-issue)
+- Use the urgent channel agreed by the team for time-sensitive help
+  - Then record the outcome in the issue
+- Do not wait for the weekly meeting to report a blocker
+  - At the meeting, review the open blockers and agree on owners and follow-up
+    dates
+- Keep the deep technical discussion in focused follow-ups
+- Preserve the decisions in the issue or in the weekly summary
+
+## Finishing and choosing next work
+
+- Show how the acceptance criteria were met and link the validation evidence
+- Address the review feedback
+- Complete the closing process, see
+  [all.use_github.how_to_guide.md](/docs/work_organization/all.use_github.how_to_guide.md#closing-an-issue)
+- If you finish early, coordinate with the team before starting another priority
+  - Record any resulting change in the sprint scope
+- Preserve the carryover decisions at the end of the sprint, see
+  [Carryover of unfinished issues](/docs/work_organization/all.github_projects_process.reference.md#carryover-of-unfinished-issues)
 
 ## About the project you choose
 

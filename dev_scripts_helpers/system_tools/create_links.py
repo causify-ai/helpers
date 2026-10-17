@@ -5,7 +5,7 @@ dirs.
 
 A detailed description is:
 
-> docs/tools/dev_system/all.replace_common_files_with_script_links.md
+> docs/tools/dev_system/all.replace_common_files_with_script_links.how_to_guide.md
 
 # Usage Example
 

@@ -87,7 +87,7 @@
     [`all.submit_code_for_review.how_to_guide.md`](../coding/all.submit_code_for_review.how_to_guide.md#stick-to-smaller-prs)
     and the template `.claude/templates/github_PR_plan.template.md`
 - Delegate a task list to an AI agent with the `auto_task` flow
-  - See [`all.auto_task.how_to_guide.md`](../tools/all.auto_task.how_to_guide.md)
+  - See [`all.auto_task.how_to_guide.md`](../tools/ai/all.auto_task.how_to_guide.md)
 
 ## Create an End-to-End Plan
 
@@ -209,6 +209,14 @@
   - Plans live in `plan.<Project>.md`
 - Give each finding its evidence
   - What was measured, where, and the number with its unit
+- Record each experiment so that others can reproduce it
+  - The configuration and the commands
+  - The model or provider identity, when relevant
+  - The observed results and the limitations
+  - The links to the evidence
+- Link the record from its issue and PR
+- Do not commit secrets, private data, or large raw artifacts without an agreed
+  storage approach
 - Update the log in the PR that finishes the task
 
 ### Record Decisions
@@ -282,7 +290,7 @@
 - Code review:
   [`all.code_review.how_to_guide.md`](../coding/all.code_review.how_to_guide.md)
 - Delegating tasks to AI agents:
-  [`all.auto_task.how_to_guide.md`](../tools/all.auto_task.how_to_guide.md)
+  [`all.auto_task.how_to_guide.md`](../tools/ai/all.auto_task.how_to_guide.md)
 - Writing docs:
   [`all.writing_docs.how_to_guide.md`](../documentation_meta/all.writing_docs.how_to_guide.md)
 - Templates: `.claude/templates/auto_task.template.md`,

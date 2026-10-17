@@ -326,6 +326,9 @@ The idea is to send a morning TODO email to broadcast:
   - Exceptions are to send non-urgent information to everybody
 - There should be little replication among these forms of documentation
   - It's not ok to file a bug and then ping on Slack unless it's urgent
+- Report a blocker on the issue as soon as it happens
+  - Do not wait for the next sync-up if the team can resolve it sooner
+  - Record the outcome of any urgent chat on the issue
 
 #### DRY also applies to documentation
 

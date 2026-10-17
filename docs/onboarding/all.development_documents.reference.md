@@ -61,13 +61,13 @@ This contains the absolute minimal amount of info to start developing
   - How to write guidelines, format documentation, convert Gdocs to markdown
     files and vice versa
 
-- [Imports and packages](/docs/tools/all.imports_and_packages.how_to_guide.md)
+- [Imports and packages](/docs/tools/codebase/all.imports_and_packages.how_to_guide.md)
   - How to import code, use packages, and resolve circular dependencies
 
-- [How to integrate repos](/docs/tools/all.integrate_repos.how_to_guide.md)
+- [How to integrate repos](/docs/tools/git/all.integrate_repos.how_to_guide.md)
   - Detailed instruction on how to integrate repos
 
-- [AI workflows: topics, skills, and rules](/docs/tools/all.ai_workflows.how_to_guide.md)
+- [AI workflows: topics, skills, and rules](/docs/tools/ai/all.ai_workflows.how_to_guide.md)
   - How to run skills (slash command, `cc_lint.py`, `cc`) and where to find
     the related AI docs
 
@@ -81,7 +81,7 @@ This contains a set of resources that over time will make 10x more productive
 
 - [Design Philosophy](/docs/coding/all.code_design.how_to_guide.md)
 
-- [Codebase Clean-up](/docs/tools/all.codebase_clean_up.how_to_guide.md)
+- [Codebase Clean-up](/docs/tools/codebase/all.codebase_clean_up.how_to_guide.md)
 
 - [Scrum Methodology](/docs/work_organization/all.scrum.explanation.md)
 
@@ -89,9 +89,9 @@ This contains a set of resources that over time will make 10x more productive
 
 - [Buildmeister process](/docs/work_organization/all.buildmeister.how_to_guide.md)
 
-- [Profiling](/docs/tools/all.profiling.how_to_guide.md)
+- [Profiling](/docs/tools/testing_profiling/all.profiling.how_to_guide.md)
 
-- [Visual Studio Code](/docs/tools/all.visual_studio_code.how_to_guide.md)
+- [Visual Studio Code](/docs/tools/ide/all.visual_studio_code.how_to_guide.md)
 
 - [Gsheet into pandas](/docs/tools/notebooks/all.gsheet_into_pandas.how_to_guide.md)
 
@@ -101,7 +101,7 @@ This contains a set of resources that over time will make 10x more productive
 
 - [Type Hints](/docs/coding/all.type_hints.how_to_guide.md)
 
-- [PyCharm](/docs/tools/all.pycharm.how_to_guide.md)
+- [PyCharm](/docs/tools/ide/all.pycharm.how_to_guide.md)
 
 ## DeFi
 
