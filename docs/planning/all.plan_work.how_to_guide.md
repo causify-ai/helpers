@@ -9,6 +9,9 @@
 - The process is the same for any project in any repo
   - Rules specific to one repo (e.g., fork flow, naming) live in the docs of that
     repo
+  - This is "how we do things": other projects follow the same process
+    - A new project copies the structure of the example below and points to this
+      document, see [Write a Project Meta-Doc](#write-a-project-meta-doc)
 - Example:
   - the `Noesis` project in the `umd_classes` repo
   - `research/Noesis/docs/plans/plan.Noesis.md`: end-to-end plan
@@ -43,9 +46,12 @@
   | `<project>_progress.md`  | What is done, learned, next   | `mvp_progress.md`  |
   | `<project>_decisions.md` | Why it is built this way      | `mvp_decisions.md` |
   | `spec.<PR_ID>.md`        | How one complex PR is built   | `spec.PR_P2.md`    |
+  | `how_we_work.md`         | How the team works on it      | `how_we_work.md`   |
 
-- Start with `plan.<Project>.md` and the progress log
+- Start with `plan.<Project>.md`, the progress log, and `how_we_work.md`
   - Add the others only when needed
+- `how_we_work.md` is the meta-doc of the project
+  - See [Write a Project Meta-Doc](#write-a-project-meta-doc)
 - `<project>_plan.md` is the execution plan
   - It splits the PRs of the plan into smaller tasks with owners, dates, and
     acceptance criteria
@@ -65,6 +71,8 @@
      [`all.use_github.how_to_guide.md`](../work_organization/all.use_github.how_to_guide.md#naming-an-issue)
      - Write the issue number down: it goes in the branch name, the commits, and the
        PR
+     - Point to the section of the plan or of the spec in the issue, do not copy it
+       (DRY)
   4. Branch from the latest `master`, named after the issue
      - See "Branch workflow best practices" in
        [`all.git.how_to_guide.md`](../tools/git/all.git.how_to_guide.md#branch-workflow-best-practices)
@@ -101,6 +109,9 @@
   3. Split the work into versions, where each version can be run and demoed
   4. Write the PR entries of the next version in detail
      - Later versions can stay as a few bullets until they are close
+     - File GitHub issues only for the immediate work (the next version)
+       - The plan often changes after the first iteration
+       - Issues for later versions would go stale and need to be rewritten
   5. Review the plan before executing it
      - See `/auto_task.criticize`
 - To break a complex feature into an ordered PR plan with a spec per complex PR, see
@@ -243,6 +254,43 @@
 - Finish a task -> tick it in `plan.<Project>.md` and add a row to the history of
   `<project>_progress.md`
 - Change the scope or the order of the work -> edit the plan and log why
+- Change the way the team works -> edit `how_we_work.md`
+
+## Write a Project Meta-Doc
+
+- Goal: a new student or RA reads one file and knows how we work on the project
+  - Test: after reading it, the newcomer can deliver work of the same quality as
+    the current contributors
+- Create the file `how_we_work.md` in the project dir
+  - E.g., `research/Noesis/docs/how_we_work.md`
+- Keep it short: point to the existing docs instead of repeating them
+  - Add only what is specific to the project
+  - Point to an example PR or issue that follows the process well
+- State in it:
+  1. **Resources**: the GitHub project, the Slack channel, the Google Drive dir,
+     and the Google Doc of the project
+  2. **Master plan**: the file name of the plan, see
+     [Create an End-to-End Plan](#create-an-end-to-end-plan)
+  3. **Log**: where the log is and its format, see
+     [Keep a Progress Log](#keep-a-progress-log)
+  4. **Task rule**: execute only the tasks that are in the master plan
+     - Create the GitHub issue for a task before starting it
+  5. **AI rule**: which Claude skills to use in which step of the loop, see
+     [`all.ai_workflows.how_to_guide.md`](../tools/ai/all.ai_workflows.how_to_guide.md)
+     - Using AI is fine, but the author must be able to explain every line of
+       the AI-written code
+  6. **Communication rule**: GitHub for technical discussion, Slack for quick
+     pings, office hours for the rest
+  7. **Paper rule**: update the paper when there is new or important research
+     (e.g., once a week), so that it reflects the state of the code
+  8. **Records rule**: keep every decision and communication in a non-ephemeral
+     system
+     - Prefer markdown in the repo
+     - Never keep a decision only in Slack
+- Treat a bulleted task list in an issue or in a review comment as work to do
+  - Track each item in GitHub and mark it as done there
+  - Create a separate issue for each large item
+- Update the meta-doc when the process changes
 
 ## PR Description Template
 
@@ -291,6 +339,10 @@
   [`all.code_review.how_to_guide.md`](../coding/all.code_review.how_to_guide.md)
 - Delegating tasks to AI agents:
   [`all.auto_task.how_to_guide.md`](../tools/ai/all.auto_task.how_to_guide.md)
+- Claude skills and rules:
+  [`all.ai_workflows.how_to_guide.md`](../tools/ai/all.ai_workflows.how_to_guide.md)
+- Organizing your work (roles, blockers, communication):
+  [`all.organize_your_work.how_to_guide.md`](../work_organization/all.organize_your_work.how_to_guide.md)
 - Writing docs:
   [`all.writing_docs.how_to_guide.md`](../documentation_meta/all.writing_docs.how_to_guide.md)
 - Templates: `.claude/templates/auto_task.template.md`,

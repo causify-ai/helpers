@@ -169,6 +169,15 @@
   - E.g., on Asana we can do high level planning and track work that is not
     ready yet to be filed as GH Issues, similar to what we do with Google Docs
 
+- Create the milestones of the project
+  - Create each milestone in both GitHub and Asana, with the same name and date
+    - In GitHub, use the `Milestones` page of the repository
+    - In Asana, use a milestone task in the project
+  - Each milestone is a deliverable that a person can run or demo
+    - See "Create an End-to-End Plan" in
+      [`all.plan_work.how_to_guide.md`](/docs/planning/all.plan_work.how_to_guide.md#create-an-end-to-end-plan)
+  - Link the milestone to the section of the master plan, do not copy the plan
+
 - In general there is not a clear cut distinction between what goes in GH
   Project, GH Issues, Asana tasks, Google Docs planning
   - We agree that a GH Project includes many GH Issues

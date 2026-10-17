@@ -255,6 +255,14 @@ stateDiagram
   Issue, Google Doc, or design PR) before starting to write a code
   - A team leader / integrator should review the design
 - When you start working on an Issue, change its status to `In Progress`
+  - Post a comment on the Issue with:
+    - A realistic ETA
+      - See "Morning TODO email" in
+        [`all.team_collaboration.how_to_guide.md`](all.team_collaboration.how_to_guide.md#morning-todo-email)
+        for how to estimate and update an ETA
+    - A short plan of 3-4 bullet points
+      - The plan shows that you understood the goal
+      - If the plan is unclear, ask on the Issue before you start
   - Try to use `In Progress` only for Issues you are actively working on
   - A rule of thumb is that you should not have more than 2-3 `In Progress`
     Issues

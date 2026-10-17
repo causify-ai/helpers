@@ -117,8 +117,10 @@
 
 ## Starting work
 
-- Read the onboarding docs, the plan of the project, and the acceptance criteria
-  of the issue
+- Read the onboarding docs, the plan of the project, the `how_we_work.md` of the
+  project, and the acceptance criteria of the issue
+  - See
+    [Write a Project Meta-Doc](/docs/planning/all.plan_work.how_to_guide.md#write-a-project-meta-doc)
 - Clarify the missing requirements before substantial implementation
 - Break the work into reviewable steps that fit the available sprint capacity
 - Use a branch in the repo when authorized, or a fork when the write access to
@@ -163,9 +165,14 @@
     the dir synced locally on your computer so when you work on your project the
     data is always in sync with what others view
 
-- Keep a detailed research log in a Google Doc in the
-  [Project dir](https://drive.google.com/drive/u/0/folders/1eKj6u_cbQM0ZLZ4wRJ6xPM1oqIKwusUo)
-  - Document what you are doing, take screenshot, explain the results
+- Keep a detailed research log in markdown in the repo, see
+  [Keep a Progress Log](/docs/planning/all.plan_work.how_to_guide.md#keep-a-progress-log)
+  - A Google Doc in the
+    [Project dir](https://drive.google.com/drive/u/0/folders/1eKj6u_cbQM0ZLZ4wRJ6xPM1oqIKwusUo)
+    can supplement the log (e.g., screenshots, drafts)
+    - Link it from the log
+  - Document what you are doing, explain the results
+  - Keep every decision in a non-ephemeral system, never only in Slack or email
   - You can make progress _only_ if you are organized and consistent
 
 - Avoid emails any time possible

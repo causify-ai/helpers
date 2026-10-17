@@ -18,6 +18,7 @@
     + [Communication](#communication)
       - [Use the right form of communication](#use-the-right-form-of-communication)
       - [DRY also applies to documentation](#dry-also-applies-to-documentation)
+      - [Acknowledge a request with a link](#acknowledge-a-request-with-a-link)
       - [Avoid write-once code and research](#avoid-write-once-code-and-research)
       - [Consistency](#consistency)
       - [Training period](#training-period)
@@ -336,6 +337,31 @@ The idea is to send a morning TODO email to broadcast:
   Yourself
 - E.g., it's not a good idea to cut & paste pieces of Gdocs in a GitHub bug,
   rather just point to the relevant session on Gdocs from the GitHub bug
+- In an issue, link to the section of the plan or of the doc instead of copying it
+  - The doc stays the single source of truth
+  - When the plan changes, the issue does not go stale
+
+#### Acknowledge a request with a link
+
+- A request is lost when it is only acknowledged
+  - E.g., one person says "do this", the other says "ok", and nothing is done
+    unless the work is done immediately
+- Use this protocol:
+  1. One person says "do something"
+  2. The other person does it
+  3. The other person replies with the link of where it was done or tracked
+     - E.g., a PR, a GitHub issue, an Asana task, a section of a doc
+- A link is the acknowledgment
+  - "ok" without a link does not count
+- If you cannot do the work now, track the request before you reply
+  - Create a scratch Asana task or GitHub issue to accumulate the requests
+    - Copy and paste the message of the request into it
+    - Add the requests as they come, one per bullet or checkbox
+  - Reply with the link of the scratch task or issue
+  - Execute the requests when you have time, then check them off
+- Discuss the request in the issue and in the channel of the project
+  - The goal is that all of us agree on what, by when, and how
+  - Then we move to execution
 
 #### Avoid write-once code and research
 
