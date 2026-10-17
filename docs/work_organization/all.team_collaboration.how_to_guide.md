@@ -1,34 +1,3 @@
-<!-- toc -->
-
-- [General Rules of Collaboration](#general-rules-of-collaboration)
-  * [Ask somebody if you have any doubts](#ask-somebody-if-you-have-any-doubts)
-  * [Ping Team Leaders when you are out of tasks](#ping-team-leaders-when-you-are-out-of-tasks)
-  * [Collaboration for problem solving](#collaboration-for-problem-solving)
-  * [Collaboration](#collaboration)
-    + [Why do we need to follow this handbook?](#why-do-we-need-to-follow-this-handbook)
-      - [Learning from each other](#learning-from-each-other)
-      - [Consistency and process](#consistency-and-process)
-    + [Sync-ups](#sync-ups)
-      - [Company town-hall meetings](#company-town-hall-meetings)
-      - [Technical sync-ups](#technical-sync-ups)
-      - [Ad-hoc meetings](#ad-hoc-meetings)
-      - [Org emails](#org-emails)
-      - [Synchronization point](#synchronization-point)
-      - [Morning TODO email](#morning-todo-email)
-    + [Communication](#communication)
-      - [Use the right form of communication](#use-the-right-form-of-communication)
-      - [DRY also applies to documentation](#dry-also-applies-to-documentation)
-      - [Acknowledge a request with a link](#acknowledge-a-request-with-a-link)
-      - [Avoid write-once code and research](#avoid-write-once-code-and-research)
-      - [Consistency](#consistency)
-      - [Training period](#training-period)
-      - [Go slowly to go faster](#go-slowly-to-go-faster)
-    + [Vacations/OOTO time](#vacationsooto-time)
-    + [Improve your English!](#improve-your-english)
-      - [Study an English grammar book](#study-an-english-grammar-book)
-
-<!-- tocstop -->
-
 # General Rules of Collaboration
 
 - We are not going to discuss and debate the rationale behind the following
@@ -105,6 +74,7 @@
 
 - We meet regularly every week and with different audiences to check on the
   progress of the projects we work on
+- Come prepared to every meeting
 
 #### Company town-hall meetings
 
@@ -147,7 +117,7 @@
   interesting docs that are of general interest and relevance
 - Please make sure to read the docs carefully and internalize what we suggest to
   do and, especially, the rationale of the proposed solutions
-- It's ok to acknowledge the email replying to `eng@causify.ai`
+- It's ok to acknowledge the email replying to `eng@...`
 
 #### Synchronization point
 
@@ -177,7 +147,7 @@ The idea is to send a morning TODO email to broadcast:
 
 - E-mail template:
   ```
-  To: eng@causify.ai
+  To: eng@...
 
   Subject: TODO
 
@@ -200,7 +170,7 @@ The idea is to send a morning TODO email to broadcast:
 
 - Good example:
   ```
-  To: eng@causify.ai
+  To: eng@...
 
   Subject: TODO
 
@@ -225,7 +195,7 @@ The idea is to send a morning TODO email to broadcast:
 
 - Bad example:
   ```
-  To: eng@causify.ai
+  To: eng@...
 
   Subject: to-do
 
@@ -254,8 +224,8 @@ The idea is to send a morning TODO email to broadcast:
   - It is recommended to check the inbox (email, GitHub) first to reflect all
     the update in the plan for the day
 - Send an email to:
-  - For permanent team members/people on a 3-month trial: `eng@causify.ai`
-  - For interns or collaborators: `contributors@causify.ai`
+  - For permanent team members/people on a 3-month trial: `eng@...`
+  - For interns or collaborators: `contributors@...`
 - Email subject:
   - `TODO` (all caps)
   - It makes it easier to filter emails by subject
@@ -321,10 +291,14 @@ The idea is to send a morning TODO email to broadcast:
 - Google docs
   - Document research in a descriptive way
   - Explain what are the results independently on how they were reached
+  - Use suggestion mode when modifying a Gdoc so that everybody can see who
+    changed what
+    - The admin (GP) does not always need to do it
 - Emails
   - `TODO`s primarily
   - Rarely used for any other purpose
   - Exceptions are to send non-urgent information to everybody
+  - Resend an email to GP to put it on top of the inbox, since GP is very busy
 - There should be little replication among these forms of documentation
   - It's not ok to file a bug and then ping on Slack unless it's urgent
 - Report a blocker on the issue as soon as it happens
@@ -340,6 +314,10 @@ The idea is to send a morning TODO email to broadcast:
 - In an issue, link to the section of the plan or of the doc instead of copying it
   - The doc stays the single source of truth
   - When the plan changes, the issue does not go stale
+- Refer to a doc, an issue, a PR, or a task with its link instead of describing
+  it
+  - Everybody stays in sync by looking at the same source
+  - E.g., send GP the link to a Gdoc instead of describing its content
 
 #### Acknowledge a request with a link
 
