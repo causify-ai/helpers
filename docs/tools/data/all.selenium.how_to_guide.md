@@ -119,8 +119,6 @@
        login_field = driver.find_element(By.ID, "username")
        login_field.send_keys("xyz")
        ```
-
-       <img src="figs/selenium/image1.png">
    - By `Name`:
      - Description: Finds an element using its `Name` attribute.
      - Example:
@@ -129,8 +127,6 @@
        password_field = driver.find_element(By.NAME, "password")
        password_field.send_keys("xyz")
        ```
-
-       <img src="figs/selenium/image2.png">
    - By `Class Name`
      - Description: Locates elements by their `class` attribute
      - Example:
@@ -138,8 +134,6 @@
        # Example: Find a show name by its class name.
        shoe = driver.find_element(By.CLASS_NAME, "product-card-description_name__xHvJ2")
        ```
-
-       <img src="figs/selenium/image3.png">
    - By `Tag Name`:
      - Description: Targets elements based on their `HTML` tag (e.g., `div`,
        `button`)
@@ -149,8 +143,6 @@
        type = driver.find_elements(By.TAG_NAME, "p")
        print(type.text)
        ```
-
-       <img src="figs/selenium/image4.png">
    - By `CSS Selector`:
      - Description: Leverages `CSS selectors` for flexible element
        identification.
@@ -195,8 +187,6 @@
        # Example: Find a shoe block using an XPath query
        show_block = driver.find_element(By.XPATH, "/html/body/div[1]/div[2]/main/section[3]/article[2]/div")
        ```
-
-       <img src="figs/selenium/image5.png">
 
 5. The above tutorial describes how to set up `Selenium`, find elements on a
    webpage, and automate tasks like clicking, sending data and scraping data.

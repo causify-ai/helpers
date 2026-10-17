@@ -18,7 +18,7 @@ with active review tracking and executable documentation validation.
 - Processes
   - `onboarding`
   - `work_organization`
-  - `work_tools`
+  - `tools`
   - `coding`
   - ...
 
@@ -75,7 +75,7 @@ with active review tracking and executable documentation validation.
 ## File description
 
 - Invariants:
-  - Files are organized by directory (e.g., `docs`, `docs/work_tools`)
+  - Files are organized by directory (e.g., `docs`, `docs/tools`)
   - Each file name uses the Diataxis naming convention
   - Each file name should be linked to the corresponding file as always
   - Files are organized in alphabetical order to make it easy to add more files
