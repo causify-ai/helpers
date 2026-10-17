@@ -146,7 +146,3 @@ with active review tracking and executable documentation validation.
 - `docs/work_organization/`
   - Team process documentation: roles, workflows, feedback, issue tracking, and
     collaboration practices like Scrum and Kaizen.
-
-- Review:
-  - GP, 2025-05-09
-  - GP, 2024-08-11
