@@ -270,6 +270,8 @@ The idea is to send a morning TODO email to broadcast:
     - Work organization tasks
     - Marketing and funding
     - On-boarding process
+  - See [`all.asana_process.how_to_guide.md`](all.asana_process.how_to_guide.md)
+    for how we use Asana to track projects
 - Slack
   - This is our messenger for tight interaction (like a debug session) or
     immediacy (e.g., "are you ready for the sync up?")

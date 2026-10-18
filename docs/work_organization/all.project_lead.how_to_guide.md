@@ -1,28 +1,5 @@
 # Project Lead
 
-<!-- toc -->
-
-- [Summary](#summary)
-- [Project Lead vs Tech Lead](#project-lead-vs-tech-lead)
-- [Coordinate and Distribute the Work](#coordinate-and-distribute-the-work)
-  * [Keep the Plan and the Board Current](#keep-the-plan-and-the-board-current)
-  * [Assign the Work](#assign-the-work)
-  * [Unblock People](#unblock-people)
-  * [Keep the Review Queue Moving](#keep-the-review-queue-moving)
-- [Keep the Agenda](#keep-the-agenda)
-  * [Prepare the Meetings](#prepare-the-meetings)
-  * [Run the Meetings](#run-the-meetings)
-  * [Close the Loop After the Meetings](#close-the-loop-after-the-meetings)
-- [Be GP's Right Hand](#be-gps-right-hand)
-  * [Know the State of the Project](#know-the-state-of-the-project)
-  * [Report Status](#report-status)
-  * [Escalate Decisions](#escalate-decisions)
-  * [Protect GP's Time](#protect-gps-time)
-- [Checklist](#checklist)
-- [Resources](#resources)
-
-<!-- tocstop -->
-
 ## Summary
 
 - This document describes the responsibilities of the project lead, i.e., the
@@ -65,6 +42,8 @@
 - Create the milestones in GitHub and Asana
   - See "How to set up a new project" in
     [`all.github_projects_process.reference.md`](all.github_projects_process.reference.md#how-to-set-up-a-new-project)
+  - See [`all.asana_process.how_to_guide.md`](all.asana_process.how_to_guide.md)
+    for how we use Asana to track projects
 - Name the PRs of the master plan by component
   - E.g., `PR_S11`, see "Rules for the Plan" in
     [`all.plan_work.how_to_guide.md`](../planning/all.plan_work.how_to_guide.md#rules-for-the-plan)
