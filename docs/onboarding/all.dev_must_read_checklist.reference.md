@@ -31,6 +31,7 @@
 
 ## Submitting your code for review
 
+- [ ] [How to create a PR with Claude Code](/docs/tools/ai/all.create_pr_with_claude_code.how_to_guide.md)
 - [ ] [What to do before opening a PR](/docs/coding/all.submit_code_for_review.how_to_guide.md)
 - [ ] [Code review process](/docs/coding/all.code_review.how_to_guide.md)
 

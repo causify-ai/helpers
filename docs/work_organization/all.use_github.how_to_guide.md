@@ -355,14 +355,14 @@ stateDiagram
   you want the focus to be
 - Add a pointer in the description to the issue that PR is related to - this
   will ease the GH navigation for you and reviewers
-  - Do **not** link the PR to the issue through the dedicated GH functionality.
-    The reason is that when they are linked, GH automatically closes the issue
-    when the PR is merged, and this is inconvenient if there is more work to do.
-    We always want to have control over when the issue is closed.
-  - Sometimes GH creates these links itself - usually when the PR description
-    contains keywords like "Fixes #<issue_number>". So please avoid such
-    phrasing and instead use something more abstract like "Related to
-    #<issue_number>".
+  - If the PR completes the issue, start the description with
+    `Closes #<issue_number>`
+    - GH links the PR to the issue and closes the issue when the PR is merged
+  - If there is more work to do on the issue (e.g., more PRs are needed), use
+    `Related to #<issue_number>` instead
+    - Do not use closing keywords like "Closes" or "Fixes" in a PR that does not
+      complete the issue, since GH closes the issue when the PR is merged
+    - We always want to have control over when the issue is closed
 - Put yourself in the "Assignees" field
 - Add reviewers to the reviewers list
   - For optional review just do `FYI @username` in the description

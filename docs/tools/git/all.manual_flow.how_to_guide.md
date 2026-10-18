@@ -80,6 +80,25 @@
   > git_create_issue_and_branch.py --title "Large feature" --suffix 1
   ```
 
+- Add the new issue to a GitHub project, given by title or by URL (by default the
+  issue is not added to any project)
+
+  ```bash
+  > git_create_issue_and_branch.py \
+    --gh_issue_title "Add a baseline" \
+    --gh_project Optimal_strategy_for_racket_sports
+
+  > git_create_issue_and_branch.py \
+    --gh_issue_title "Add a baseline" \
+    --gh_project https://github.com/users/gpsaggese/projects/4
+  ```
+
+  - A title is looked up among the projects owned by the repo's owner; use the URL
+    for a project of another owner
+  - The project is resolved before the issue is created, so a wrong project aborts
+    without leaving an orphan issue
+  - Requires the `project` scope of `gh`: run `gh auth refresh -s project`
+
 #### `git_branch_create`
 
 - Create and push upstream branch, optionally creating a draft PR
