@@ -283,7 +283,7 @@ graph TD
 
 - For more complex scenarios requiring custom source and destination directories,
   use [`create_links.py`](/dev_scripts_helpers/system_tools/create_links.py) as described in
-  [Managing symbolic links between directories](/docs/tools/dev_system/all.replace_common_files_with_script_links.md)
+  [Managing symbolic links between directories](/docs/tools/dev_system/all.replace_common_files_with_script_links.how_to_guide.md)
 
 ## Managing repo configurations
 

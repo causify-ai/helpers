@@ -405,6 +405,45 @@ class Test_get_summary_prompt(hunitest.TestCase):
         self.assert_equal(actual, dshddut.ARTICLE_STRUCTURED_SUMMARY_PROMPT)
         self.assertIn("header of level 1", actual)
 
+    def test_up_to_l1(self) -> None:
+        """
+        Test `up_to_l1` is the `structured` summary.
+        """
+        # Run test.
+        actual = dshddut.get_summary_prompt("up_to_l1")
+        # Check outputs.
+        expected = dshddut.get_summary_prompt("structured")
+        self.assert_equal(actual, expected)
+
+    def test_up_to_l2(self) -> None:
+        """
+        Test `up_to_l2` asks for headers of level 1 and 2, and no deeper.
+        """
+        # Run test.
+        actual = dshddut.get_summary_prompt("up_to_l2")
+        # Check outputs.
+        level_lines = [
+            line.split(":")[0]
+            for line in actual.splitlines()
+            if line.startswith("  - Level ")
+        ]
+        self.assertEqual(
+            level_lines, ["  - Level 1 (`#`)", "  - Level 2 (`##`)"]
+        )
+        self.assertIn("keeping its structure to level 2", actual)
+        self.assertIn("Do not use headers of level 3 or deeper", actual)
+        self.assertIn("Use fewer than about 1200 words", actual)
+
+    def test_up_to_l3(self) -> None:
+        """
+        Test `up_to_l3` asks for headers up to level 3 and no deeper.
+        """
+        # Run test.
+        actual = dshddut.get_summary_prompt("up_to_l3")
+        # Check outputs.
+        self.assertIn("- Level 3 (`###`): each sub-subsection", actual)
+        self.assertIn("Do not use headers of level 4 or deeper", actual)
+
     def test3(self) -> None:
         """
         Test that every summary type has a distinct prompt.
@@ -423,3 +462,40 @@ class Test_get_summary_prompt(hunitest.TestCase):
             dshddut.get_summary_prompt("long")
         # Check outputs.
         self.assertIn("long", str(cm.exception))
+
+
+# #############################################################################
+# Test_normalize_summary_type
+# #############################################################################
+
+
+class Test_normalize_summary_type(hunitest.TestCase):
+    """
+    Test `download_utils.normalize_summary_type()`.
+    """
+
+    def test1(self) -> None:
+        """
+        Test an alias is replaced by the type it stands for.
+        """
+        # Run test.
+        actual = dshddut.normalize_summary_type("up_to_l1")
+        # Check outputs.
+        self.assert_equal(actual, "structured")
+
+    def test2(self) -> None:
+        """
+        Test a type is returned unchanged.
+        """
+        # Run test.
+        actual = dshddut.normalize_summary_type("up_to_l2")
+        # Check outputs.
+        self.assert_equal(actual, "up_to_l2")
+
+    def test3(self) -> None:
+        """
+        Test an unknown type is rejected.
+        """
+        # Run test.
+        with self.assertRaises(AssertionError):
+            dshddut.normalize_summary_type("up_to_l9")

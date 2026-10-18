@@ -11,6 +11,8 @@
   - It corresponds to the `### Topics` in a map
 - `skeleton_slides`: describes the high level flow of slides
   - Contain only H1, H2, * and optionally `// From <file>:<line number> 'reference'`
+  - Use H2 only for a group of at least 5 slides (see
+    `.claude/skills/slides.rules.md`, "Section Structure")
 - `lesson_slides`: complete slides on a topic
   - E.g., data605, msml610, book_springer
   - The slides can be on a topic (e.g., from data605, msml610) or merged slides

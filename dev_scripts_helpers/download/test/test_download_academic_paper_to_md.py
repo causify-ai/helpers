@@ -3,7 +3,7 @@
 import logging
 import os
 import pprint
-from typing import Any, Dict, List, Tuple
+from typing import Any, Dict, List, Optional
 from unittest import mock
 
 import pytest
@@ -24,7 +24,9 @@ import dev_scripts_helpers.download.download_academic_paper_to_md as dsdapt
 _LOG = logging.getLogger(__name__)
 
 
-def _create_pdf(file_path: str, *, title: str = "", author: str = "") -> None:
+def _create_pdf(
+    file_path: str, *, title: str = "", author: str = "", text: str = ""
+) -> None:
     """
     Create a one-page PDF with the given metadata.
 
@@ -34,9 +36,13 @@ def _create_pdf(file_path: str, *, title: str = "", author: str = "") -> None:
     :param file_path: path of the PDF to create
     :param title: title stored in the PDF metadata
     :param author: author(s) stored in the PDF metadata
+    :param text: text written in the middle of the page, so that the page
+        has content to crop to
     """
     doc = pymupdf.open()
-    doc.new_page()  # type: ignore
+    page = doc.new_page()  # type: ignore
+    if text:
+        page.insert_text((200, 300), text)
     doc.set_metadata(  # type: ignore
         {
             "title": title,
@@ -119,6 +125,8 @@ class Test__is_local_file(hunitest.TestCase):
 # #############################################################################
 # Test__extract_pdf_metadata_pymupdf
 # #############################################################################
+
+# TODO(ai_gp): Factor out common code in all the tests
 
 
 class Test__extract_pdf_metadata_pymupdf(hunitest.TestCase):
@@ -577,6 +585,360 @@ class Test__download(hunitest.TestCase):
 
 
 # #############################################################################
+# Test__get_summary_path
+# #############################################################################
+
+
+class Test__get_summary_path(hunitest.TestCase):
+    """
+    Test `download_academic_paper_to_md._get_summary_path()`.
+    """
+
+    def test1(self) -> None:
+        """
+        Test `short` is saved to `.short.md`.
+        """
+        # Run test.
+        actual = dsdapt._get_summary_path("dir/paper", "short")
+        # Check outputs.
+        self.assert_equal(actual, "dir/paper.short.md")
+
+    def test2(self) -> None:
+        """
+        Test `structured` is saved to `.structured.md`.
+        """
+        # Run test.
+        actual = dsdapt._get_summary_path("dir/paper", "structured")
+        # Check outputs.
+        self.assert_equal(actual, "dir/paper.structured.md")
+
+    def test3(self) -> None:
+        """
+        Test `all` is saved to a single file, `.all.md`.
+        """
+        # Run test.
+        actual = dsdapt._get_summary_path("dir/paper", "all")
+        # Check outputs.
+        self.assert_equal(actual, "dir/paper.all.md")
+
+    def test4(self) -> None:
+        """
+        Test an unknown type of summary is rejected.
+        """
+        # Run test.
+        with self.assertRaises(AssertionError):
+            dsdapt._get_summary_path("dir/paper", "bad")
+
+    def test5(self) -> None:
+        """
+        Test `up_to_l2` is saved to its own file, `.up_to_l2.md`.
+        """
+        # Run test.
+        actual = dsdapt._get_summary_path("dir/paper", "up_to_l2")
+        # Check outputs.
+        self.assert_equal(actual, "dir/paper.up_to_l2.md")
+
+    def test6(self) -> None:
+        """
+        Test `up_to_l1` is saved to the file of `structured`.
+        """
+        # Run test.
+        actual = dsdapt._get_summary_path("dir/paper", "up_to_l1")
+        # Check outputs.
+        self.assert_equal(actual, "dir/paper.structured.md")
+
+
+# #############################################################################
+# Test__combine_summaries
+# #############################################################################
+
+
+class Test__combine_summaries(hunitest.TestCase):
+    """
+    Test `download_academic_paper_to_md._combine_summaries()`.
+    """
+
+    def test1(self) -> None:
+        """
+        Test each summary gets a `// <Type>` header and they are separated by
+        an empty line.
+        """
+        # Prepare inputs.
+        summaries = [
+            ("short", "- Point 1\n- Point 2\n"),
+            ("structured", "# Introduction\n- Point 3\n"),
+        ]
+        # Run test.
+        actual = dsdapt._combine_summaries(summaries)
+        # Check outputs.
+        expected = hprint.dedent(
+            """
+            // Short
+            - Point 1
+            - Point 2
+
+            // Structured
+            # Introduction
+            - Point 3
+            """
+        )
+        self.assert_equal(actual, expected, dedent=True)
+
+    def test2(self) -> None:
+        """
+        Test a single summary has only its header.
+        """
+        # Run test.
+        actual = dsdapt._combine_summaries([("short", "- Point 1")])
+        # Check outputs.
+        self.assert_equal(actual, "// Short\n- Point 1\n")
+
+
+# #############################################################################
+# Test__merge_stats
+# #############################################################################
+
+
+class Test__merge_stats(hunitest.TestCase):
+    """
+    Test `download_academic_paper_to_md._merge_stats()`.
+    """
+
+    def test1(self) -> None:
+        """
+        Test numeric fields are summed and `tokens_per_second` is recomputed.
+        """
+        # Prepare inputs.
+        stats = [
+            {
+                "input_tokens": 100,
+                "output_tokens": 20,
+                "elapsed_time_in_seconds": 10.0,
+                "tokens_per_second": 12.0,
+                "model": "model_a",
+            },
+            {
+                "input_tokens": 100,
+                "output_tokens": 80,
+                "elapsed_time_in_seconds": 30.0,
+                "tokens_per_second": 6.0,
+                "model": "model_a",
+            },
+        ]
+        # Run test.
+        actual = dsdapt._merge_stats(stats)
+        # Check outputs.
+        expected = {
+            "input_tokens": 200,
+            "output_tokens": 100,
+            "elapsed_time_in_seconds": 40.0,
+            "tokens_per_second": 7.5,
+            "model": "model_a",
+        }
+        self.assertEqual(actual, expected)
+
+    def test2(self) -> None:
+        """
+        Test a single stat is returned unchanged.
+        """
+        # Prepare inputs.
+        stats = [{"input_tokens": 100, "model": "model_a"}]
+        # Run test.
+        actual = dsdapt._merge_stats(stats)
+        # Check outputs.
+        self.assertEqual(actual, {"input_tokens": 100, "model": "model_a"})
+
+
+# #############################################################################
+# Test__summarize
+# #############################################################################
+
+
+class Test__summarize(hunitest.TestCase):
+    """
+    Test `download_academic_paper_to_md._summarize()`.
+    """
+
+    def helper(self, summary_type: str) -> str:
+        """
+        Run `_summarize()` in dry run mode, with no markdown file.
+
+        :param summary_type: type of summary of the run
+        :return: sorted names of the files in the dir of the paper
+        """
+        # Prepare inputs.
+        scratch_dir = self.get_scratch_space()
+        base_path = os.path.join(scratch_dir, "paper")
+        # Run test.
+        dsdapt._summarize(base_path, summary_type=summary_type, dry_run=True)
+        # Check outputs.
+        actual = str(sorted(os.listdir(scratch_dir)))
+        return actual
+
+    def test1(self) -> None:
+        """
+        Test a dry run of `short` writes nothing.
+        """
+        # Run test.
+        actual = self.helper("short")
+        # Check outputs.
+        self.assert_equal(actual, "[]")
+
+    def test2(self) -> None:
+        """
+        Test a dry run of `all` writes nothing, not even a file per type.
+        """
+        # Run test.
+        actual = self.helper("all")
+        # Check outputs.
+        self.assert_equal(actual, "[]")
+
+
+# #############################################################################
+# Test__parse
+# #############################################################################
+
+
+class Test__parse(hunitest.TestCase):
+    """
+    Test the `--summary_type` argument of
+    `download_academic_paper_to_md._parse()`.
+    """
+
+    def test1(self) -> None:
+        """
+        Test `--summary_type` accepts `all`.
+        """
+        # Prepare inputs.
+        parser = dsdapt._parse()
+        # Run test.
+        args = parser.parse_args(["--input", "x.pdf", "--summary_type", "all"])
+        # Check outputs.
+        self.assert_equal(args.summary_type, "all")
+
+    def test_up_to_level(self) -> None:
+        """
+        Test `--summary_type` accepts `up_to_l1`, `up_to_l2`, and `up_to_l3`.
+        """
+        # Prepare inputs.
+        parser = dsdapt._parse()
+        # Run test.
+        actual = []
+        for summary_type in ["up_to_l1", "up_to_l2", "up_to_l3"]:
+            args = parser.parse_args(
+                ["--input", "x.pdf", "--summary_type", summary_type]
+            )
+            actual.append(args.summary_type)
+        # Check outputs.
+        self.assertEqual(actual, ["up_to_l1", "up_to_l2", "up_to_l3"])
+
+    def test2(self) -> None:
+        """
+        Test `--summary_type` is `short` by default.
+        """
+        # Prepare inputs.
+        parser = dsdapt._parse()
+        # Run test.
+        args = parser.parse_args(["--input", "x.pdf"])
+        # Check outputs.
+        self.assert_equal(args.summary_type, "short")
+
+    def test3(self) -> None:
+        """
+        Test `--summary_type` rejects an unknown type.
+        """
+        # Prepare inputs.
+        parser = dsdapt._parse()
+        # Run test.
+        with self.assertRaises(SystemExit):
+            parser.parse_args(["--input", "x.pdf", "--summary_type", "bad"])
+
+    def test4(self) -> None:
+        """
+        Test `--crop_pdf` is on by default.
+        """
+        # Prepare inputs.
+        parser = dsdapt._parse()
+        # Run test.
+        args = parser.parse_args(["--input", "x.pdf"])
+        # Check outputs.
+        self.assertTrue(args.crop_pdf)
+
+    def test5(self) -> None:
+        """
+        Test `--no_crop_pdf` turns the cropping off.
+        """
+        # Prepare inputs.
+        parser = dsdapt._parse()
+        # Run test.
+        args = parser.parse_args(["--input", "x.pdf", "--no_crop_pdf"])
+        # Check outputs.
+        self.assertFalse(args.crop_pdf)
+
+
+# #############################################################################
+# Test__crop_pdf
+# #############################################################################
+
+
+class Test__crop_pdf(hunitest.TestCase):
+    """
+    Test `download_academic_paper_to_md._crop_pdf()`.
+    """
+
+    def helper(self, *, dry_run: bool) -> str:
+        """
+        Crop a PDF with text in the middle of a page.
+
+        :param dry_run: if True, do not execute the crop
+        :return: string of a dict with whether the page became narrower and
+            the sorted files in the dir of the PDF
+        """
+        # Prepare inputs.
+        scratch_dir = self.get_scratch_space()
+        pdf_path = os.path.join(scratch_dir, "paper.pdf")
+        _create_pdf(pdf_path, text="Hello cropped world")
+        with pymupdf.open(pdf_path) as doc:
+            width_before = doc[0].rect.width
+        # Run test.
+        dsdapt._crop_pdf(pdf_path, dry_run=dry_run)
+        # Check outputs.
+        with pymupdf.open(pdf_path) as doc:
+            width_after = doc[0].rect.width
+        actual = {
+            "cropped": width_after < width_before,
+            "files": sorted(os.listdir(scratch_dir)),
+        }
+        return str(actual)
+
+    def test1(self) -> None:
+        """
+        Test the page is cropped in place, leaving no temporary file or
+        backup.
+        """
+        # `pdfCropMargins` is a dependency of the script, which `uv run`
+        # installs, but it can be missing in the test environment.
+        pytest.importorskip("pdfCropMargins")
+        # Prepare outputs.
+        expected = str({"cropped": True, "files": ["paper.pdf"]})
+        # Run test.
+        actual = self.helper(dry_run=False)
+        # Check outputs.
+        self.assert_equal(actual, expected)
+
+    def test2(self) -> None:
+        """
+        Test the PDF is not changed with `dry_run`.
+        """
+        # Prepare outputs.
+        expected = str({"cropped": False, "files": ["paper.pdf"]})
+        # Run test.
+        actual = self.helper(dry_run=True)
+        # Check outputs.
+        self.assert_equal(actual, expected)
+
+
+# #############################################################################
 # Test__save_to_papers_dir
 # #############################################################################
 
@@ -589,100 +951,203 @@ class Test__save_to_papers_dir(hunitest.TestCase):
     def helper(
         self,
         *,
-        with_summary: bool = True,
-        existing_pdf: bool = False,
+        with_md: bool = True,
+        with_short: bool = True,
+        with_structured: bool = False,
+        with_all: bool = False,
+        with_up_to_l2: bool = False,
+        existing: Optional[List[str]] = None,
         no_incremental: bool = False,
         dry_run: bool = False,
-    ) -> Tuple[str, str]:
+        summary_type: str = "short",
+    ) -> str:
         """
         Test helper for `_save_to_papers_dir()`.
 
-        :param with_summary: if True, create the summary file
-        :param existing_pdf: if True, create an old PDF in the papers dir
+        The PDF is always created. The content of every generated file is
+        `new <extension>`, and the content of an existing file in the papers
+        dir is `old <extension>`.
+
+        :param with_md: if True, create the converted markdown file, which
+            must not be copied
+        :param with_short: if True, create the short summary file
+        :param with_structured: if True, create the structured summary file
+        :param with_all: if True, create the summary file with all the types
+        :param with_up_to_l2: if True, create the summary file with the headers
+            up to level 2
+        :param existing: extensions of the old files to create in the papers
+            dir, e.g., `["pdf", "short.md"]`
         :param no_incremental: if True, overwrite existing files
         :param dry_run: if True, do not execute the actions
-        :return: sorted list of the files in the papers dir, as a string,
-            and the content of the PDF in the papers dir (empty if
-            missing)
+        :param summary_type: type of summary of the run
+        :return: content of the files in the papers dir, as a string of a dict
+            from extension to content, sorted by extension
         """
         # Prepare inputs.
         scratch_dir = self.get_scratch_space()
-        base_path = os.path.join(scratch_dir, "papers", "2017.Vaswani.Paper")
+        base_name = "2017.Vaswani.Paper"
+        base_path = os.path.join(scratch_dir, "papers", base_name)
         hio.create_dir(os.path.dirname(base_path), incremental=True)
-        hio.to_file(f"{base_path}.pdf", "new pdf")
-        if with_summary:
-            hio.to_file(f"{base_path}.summary.md", "summary")
+        generated = ["pdf"]
+        if with_md:
+            generated.append("md")
+        if with_short:
+            generated.append("short.md")
+        if with_structured:
+            generated.append("structured.md")
+        if with_all:
+            generated.append("all.md")
+        if with_up_to_l2:
+            generated.append("up_to_l2.md")
+        for ext in generated:
+            hio.to_file(f"{base_path}.{ext}", f"new {ext}")
         papers_dir = os.path.join(scratch_dir, "saved_papers")
-        dst_pdf_path = os.path.join(papers_dir, "2017.Vaswani.Paper.pdf")
-        if existing_pdf:
+        if existing:
             hio.create_dir(papers_dir, incremental=True)
-            hio.to_file(dst_pdf_path, "old pdf")
+            for ext in existing:
+                hio.to_file(
+                    os.path.join(papers_dir, f"{base_name}.{ext}"), f"old {ext}"
+                )
         # Run test.
         dsdapt._save_to_papers_dir(
             base_path,
             papers_dir,
+            summary_type=summary_type,
             no_incremental=no_incremental,
             dry_run=dry_run,
         )
         # Check outputs.
-        files = []
+        contents = {}
         if os.path.exists(papers_dir):
-            files = sorted(os.listdir(papers_dir))
-        pdf_content = ""
-        if os.path.exists(dst_pdf_path):
-            pdf_content = hio.from_file(dst_pdf_path)
-        return str(files), pdf_content
+            for file_name in sorted(os.listdir(papers_dir)):
+                ext = file_name[len(base_name) + 1 :]
+                file_path = os.path.join(papers_dir, file_name)
+                contents[ext] = hio.from_file(file_path)
+        return str(contents)
 
     def test1(self) -> None:
         """
-        Test the PDF and the summary are copied, creating the dir.
+        Test the PDF and the short summary are copied, creating the dir,
+        and the markdown is not copied.
         """
         # Run test.
-        actual_files, actual_pdf = self.helper()
+        actual = self.helper()
         # Check outputs.
-        expected_files = (
-            "['2017.Vaswani.Paper.pdf', '2017.Vaswani.Paper.summary.md']"
+        expected = str(
+            {
+                "pdf": "new pdf",
+                "short.md": "new short.md",
+            }
         )
-        self.assert_equal(actual_files, expected_files)
-        self.assert_equal(actual_pdf, "new pdf")
+        self.assert_equal(actual, expected)
 
     def test2(self) -> None:
         """
-        Test only the PDF is copied when the summary is missing.
+        Test the PDF and every summary that exists are copied, but not the
+        markdown.
         """
         # Run test.
-        actual_files, _ = self.helper(with_summary=False)
+        actual = self.helper(with_structured=True)
         # Check outputs.
-        self.assert_equal(actual_files, "['2017.Vaswani.Paper.pdf']")
+        expected = str(
+            {
+                "pdf": "new pdf",
+                "short.md": "new short.md",
+                "structured.md": "new structured.md",
+            }
+        )
+        self.assert_equal(actual, expected)
 
     def test3(self) -> None:
+        """
+        Test only the PDF is copied when there is no summary.
+        """
+        # Run test.
+        actual = self.helper(with_md=True, with_short=False)
+        # Check outputs.
+        expected = str({"pdf": "new pdf"})
+        self.assert_equal(actual, expected)
+
+    def test4(self) -> None:
         """
         Test nothing is copied with `dry_run`.
         """
         # Run test.
-        actual_files, _ = self.helper(dry_run=True)
+        actual = self.helper(dry_run=True, summary_type="all")
         # Check outputs.
-        self.assert_equal(actual_files, "[]")
-
-    def test4(self) -> None:
-        """
-        Test an existing PDF in the papers dir is not overwritten by
-        default.
-        """
-        # Run test.
-        _, actual_pdf = self.helper(existing_pdf=True)
-        # Check outputs.
-        self.assert_equal(actual_pdf, "old pdf")
+        self.assert_equal(actual, "{}")
 
     def test5(self) -> None:
         """
-        Test an existing PDF in the papers dir is overwritten with
+        Test an existing PDF in the papers dir is replaced by default, and
+        another existing file is not overwritten.
+        """
+        # Run test.
+        actual = self.helper(existing=["pdf", "short.md"])
+        # Check outputs.
+        expected = str(
+            {
+                "pdf": "new pdf",
+                "short.md": "old short.md",
+            }
+        )
+        self.assert_equal(actual, expected)
+
+    def test6(self) -> None:
+        """
+        Test all the existing files in the papers dir are overwritten with
         `no_incremental`.
         """
         # Run test.
-        _, actual_pdf = self.helper(existing_pdf=True, no_incremental=True)
+        actual = self.helper(existing=["pdf", "short.md"], no_incremental=True)
         # Check outputs.
-        self.assert_equal(actual_pdf, "new pdf")
+        expected = str(
+            {
+                "pdf": "new pdf",
+                "short.md": "new short.md",
+            }
+        )
+        self.assert_equal(actual, expected)
+
+    def test7(self) -> None:
+        """
+        Test an existing PDF in the papers dir is not changed with `dry_run`.
+        """
+        # Run test.
+        actual = self.helper(existing=["pdf"], dry_run=True)
+        # Check outputs.
+        expected = str({"pdf": "old pdf"})
+        self.assert_equal(actual, expected)
+
+    def test8(self) -> None:
+        """
+        Test the single summary file with all the types is copied.
+        """
+        # Run test.
+        actual = self.helper(with_short=False, with_all=True)
+        # Check outputs.
+        expected = str(
+            {
+                "all.md": "new all.md",
+                "pdf": "new pdf",
+            }
+        )
+        self.assert_equal(actual, expected)
+
+    def test9(self) -> None:
+        """
+        Test the summary file with the headers up to level 2 is copied.
+        """
+        # Run test.
+        actual = self.helper(with_short=False, with_up_to_l2=True)
+        # Check outputs.
+        expected = str(
+            {
+                "pdf": "new pdf",
+                "up_to_l2.md": "new up_to_l2.md",
+            }
+        )
+        self.assert_equal(actual, expected)
 
 
 # #############################################################################
@@ -841,6 +1306,47 @@ class Test_download_academic_paper_to_md_py(hunitest.TestCase):
         _create_pdf(input_path, title="A Protocol for Causal Factor Investing")
         output_base = os.path.join(scratch_dir, "out", "mypaper")
         papers_dir = os.path.join(scratch_dir, "saved_papers")
+        # Do not crop the PDF, so that the test does not need `pdfCropMargins`.
+        argv = [
+            "download_academic_paper_to_md.py",
+            "--input",
+            input_path,
+            "--output",
+            output_base,
+            "--clear_actions",
+            "--action",
+            "download",
+            "--action",
+            "save_to_papers_dir",
+            "--papers_dir",
+            papers_dir,
+            "--no_crop_pdf",
+        ]
+        # Run test.
+        self.run_main(argv)
+        # Check outputs.
+        actual = str(sorted(os.listdir(papers_dir)))
+        self.assert_equal(actual, "['mypaper.pdf']")
+
+    def test4(self) -> None:
+        """
+        Test `--action save_to_papers_dir` crops the PDF in `--papers_dir` by
+        default, and leaves the PDF in the output dir unchanged.
+        """
+        # `pdfCropMargins` is a dependency of the script, which `uv run`
+        # installs, but it can be missing in the test environment.
+        pytest.importorskip("pdfCropMargins")
+        # Prepare inputs.
+        scratch_dir = self.get_scratch_space()
+        input_path = os.path.join(scratch_dir, "in", "ssrn_5277078.pdf")
+        hio.create_dir(os.path.dirname(input_path), incremental=True)
+        _create_pdf(
+            input_path,
+            title="A Protocol for Causal Factor Investing",
+            text="Hello cropped world",
+        )
+        output_base = os.path.join(scratch_dir, "out", "mypaper")
+        papers_dir = os.path.join(scratch_dir, "saved_papers")
         argv = [
             "download_academic_paper_to_md.py",
             "--input",
@@ -858,5 +1364,19 @@ class Test_download_academic_paper_to_md_py(hunitest.TestCase):
         # Run test.
         self.run_main(argv)
         # Check outputs.
-        actual = str(sorted(os.listdir(papers_dir)))
-        self.assert_equal(actual, "['mypaper.pdf']")
+        widths = {}
+        for name, path in [
+            ("output_dir", f"{output_base}.pdf"),
+            ("papers_dir", os.path.join(papers_dir, "mypaper.pdf")),
+        ]:
+            with pymupdf.open(path) as doc:
+                widths[name] = doc[0].rect.width
+        actual = str(
+            {
+                "papers_dir_is_cropped": widths["papers_dir"]
+                < widths["output_dir"],
+                "files": sorted(os.listdir(papers_dir)),
+            }
+        )
+        expected = str({"papers_dir_is_cropped": True, "files": ["mypaper.pdf"]})
+        self.assert_equal(actual, expected)

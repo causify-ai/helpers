@@ -175,3 +175,6 @@
   - List of tasks assigned to you for today
   - New activities in the tasks assigned to you
   - New task assignment
+- See
+  [`all.asana_process.how_to_guide.md`](../work_organization/all.asana_process.how_to_guide.md)
+  for how we use Asana to track projects

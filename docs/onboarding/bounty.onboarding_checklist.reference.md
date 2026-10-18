@@ -25,12 +25,12 @@
   - [ ] **Carefully** study all the documents in
         [the must-read list](https://github.com/causify-ai/helpers/blob/master/docs/onboarding/all.dev_must_read_checklist.reference.md)
   - [ ] [General rules of collaboration](https://github.com/causify-ai/helpers/blob/master/docs/work_organization/all.team_collaboration.how_to_guide.md)
-  - [ ] [Coding style guide](https://github.com/causify-ai/helpers/blob/master/docs/code_guidelines/all.coding_style.how_to_guide.md)
+  - [ ] [Coding style guide](https://github.com/causify-ai/helpers/blob/master/docs/coding/all.coding_style.how_to_guide.md)
   - [ ] [How to write unit tests](https://github.com/causify-ai/helpers/blob/master/helpers/test/docs/all.write_unit_tests.how_to_guide.md)
   - [ ] [How to run unit tests](https://github.com/causify-ai/helpers/blob/master/helpers/test/docs/all.run_unit_tests.how_to_guide.md)
   - [ ] [Creating a Jupyter Notebook](https://github.com/causify-ai/helpers/blob/master/docs/tools/notebooks/all.jupyter_notebook.how_to_guide.md)
-  - [ ] [What to do before opening a PR](https://github.com/causify-ai/helpers/blob/master/docs/code_guidelines/all.submit_code_for_review.how_to_guide.md)
-  - [ ] [Code review process](https://github.com/causify-ai/helpers/blob/master/docs/code_guidelines/all.code_review.how_to_guide.md)
+  - [ ] [What to do before opening a PR](https://github.com/causify-ai/helpers/blob/master/docs/coding/all.submit_code_for_review.how_to_guide.md)
+  - [ ] [Code review process](https://github.com/causify-ai/helpers/blob/master/docs/coding/all.code_review.how_to_guide.md)
   - [ ] [Git workflows and best practices](https://github.com/causify-ai/helpers/blob/master/docs/tools/git/all.git.how_to_guide.md)
   - [ ] [GitHub organization](https://github.com/causify-ai/helpers/blob/master/docs/work_organization/all.use_github.how_to_guide.md)
   - [ ] [Tips for writing documentation](https://github.com/causify-ai/helpers/blob/master/docs/documentation_meta/all.writing_docs.how_to_guide.md)
@@ -102,8 +102,8 @@
     money with very little work
 - All code needs to be written using our coding style
   - See [`.claude/templates/coding.template.py`](/.claude/templates/coding.template.py),
-    [coding style doc](/docs/code_guidelines/all.coding_style.how_to_guide.md),
-    [examples of good code](/docs/code_guidelines/all.submit_code_for_review.how_to_guide.md#compare-your-code-to-example-code)
+    [coding style doc](/docs/coding/all.coding_style.how_to_guide.md),
+    [examples of good code](/docs/coding/all.submit_code_for_review.how_to_guide.md#compare-your-code-to-example-code)
   - We provide our Linter and our AI code-styler / reviewer (once available) to
     help with formatting and style fixes
 - All code needs to be unit tested according to our
@@ -111,5 +111,5 @@
 - The project needs to be documented in the way we
   [document software](/docs/documentation_meta/all.writing_docs.how_to_guide.md)
 - To get used to our process, for the first couple of PRs post the
-  [PR checklist](/docs/code_guidelines/all.submit_code_for_review.how_to_guide.md#checklist)
+  [PR checklist](/docs/coding/all.submit_code_for_review.how_to_guide.md#checklist)
   in a comment and check the boxes when the requirements are met

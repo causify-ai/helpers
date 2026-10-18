@@ -285,7 +285,7 @@ Introduce hard topics progressively:
 * Model Checking Example
 
 ::: columns
-:::: {.column width=65%}
+:::: {.column width=60%}
 - @Problem@: Determine if sentence $\alpha$ is entailed by knowledge base $KB$
 
 - @Approach@: Model enumeration
@@ -295,7 +295,7 @@ Introduce hard topics progressively:
 
 - @Complexity@: $O(2^n)$ where $n$ = number of variables
 ::::
-:::: {.column width=30%}
+:::: {.column width=40%}
 ```graphviz
 digraph {
   rankdir=TB
@@ -366,12 +366,12 @@ digraph {
 * Weather World: Conditional Independence (1/3)
 
 ::: columns
-:::: {.column width=50%}
+:::: {.column width=60%}
 - Variables: $Rain$, $Sprinkler$, $WetGrass$, $Weather$
 
 - @Question@: Is $Rain \perp Sprinkler$?
 ::::
-:::: {.column width=45%}
+:::: {.column width=40%}
 [diagram showing all nodes, no edges]
 ::::
 :::
@@ -382,11 +382,11 @@ digraph {
 * Weather World: Conditional Independence (2/3)
 
 ::: columns
-:::: {.column width=50%}
+:::: {.column width=60%}
 - @Question@: Is $Rain \perp Sprinkler | WetGrass$?
   - Given that we observe wet grass
 ::::
-:::: {.column width=45%}
+:::: {.column width=40%}
 [same diagram]
 ::::
 :::
@@ -397,11 +397,11 @@ digraph {
 * Weather World: Conditional Independence (3/3)
 
 ::: columns
-:::: {.column width=50%}
+:::: {.column width=60%}
 - @Question@: Is $Rain \perp Sprinkler | Weather$?
   - Given that we know the weather
 ::::
-:::: {.column width=45%}
+:::: {.column width=40%}
 [same diagram]
 ::::
 :::
@@ -418,13 +418,15 @@ digraph {
   :::: {.column width=60%}
   Left content here
   ::::
-  :::: {.column width=35%}
+  :::: {.column width=40%}
   Right content here (diagram, etc.)
   ::::
   :::
   ```
 
-- Common widths: 50/50, 60/40, 70/30
+- Default widths are 60/40 (text/figure)
+  - Use 50/50 for two comparable blocks and 70/30 for a narrow figure
+  - Make the two widths sum to 100%
 
 ## Mathematical Equations
 

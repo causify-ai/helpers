@@ -29,9 +29,9 @@ This contains the absolute minimal amount of info to start developing
 
 - [How to organize your work](/docs/work_organization/all.organize_your_work.how_to_guide.md)
 
-- [First Review Process](/docs/code_guidelines/all.submit_code_for_review.how_to_guide.md)
+- [First Review Process](/docs/coding/all.submit_code_for_review.how_to_guide.md)
 
-- [KaizenFlow Python coding style guide](/docs/code_guidelines/all.coding_style.how_to_guide.md)
+- [KaizenFlow Python coding style guide](/docs/coding/all.coding_style.how_to_guide.md)
 
 - [Jupyter notebook best practices](/docs/tools/notebooks/all.jupyter_notebook.how_to_guide.md)
 
@@ -44,7 +44,7 @@ This contains the absolute minimal amount of info to start developing
 - [Contributor Feedback](/docs/work_organization/all.contributor_feedback.how_to_guide.md)
   - How we give feedback to contributors
 
-- [Code review](/docs/code_guidelines/all.code_review.how_to_guide.md)
+- [Code review](/docs/coding/all.code_review.how_to_guide.md)
   - PR review workflow from the code author and code reviewer points of view
 
 - [Development workflow](/docs/onboarding/all.development.how_to_guide.md)
@@ -61,11 +61,15 @@ This contains the absolute minimal amount of info to start developing
   - How to write guidelines, format documentation, convert Gdocs to markdown
     files and vice versa
 
-- [Imports and packages](/docs/tools/all.imports_and_packages.how_to_guide.md)
+- [Imports and packages](/docs/tools/codebase/all.imports_and_packages.how_to_guide.md)
   - How to import code, use packages, and resolve circular dependencies
 
-- [How to integrate repos](/docs/tools/all.integrate_repos.how_to_guide.md)
+- [How to integrate repos](/docs/tools/git/all.integrate_repos.how_to_guide.md)
   - Detailed instruction on how to integrate repos
+
+- [AI workflows: topics, skills, and rules](/docs/tools/ai/all.ai_workflows.how_to_guide.md)
+  - How to run skills (slash command, `cc_lint.py`, `cc`) and where to find
+    the related AI docs
 
 ## Learn how to become efficient at developing
 
@@ -73,11 +77,11 @@ This contains a set of resources that over time will make 10x more productive
 
 - [Docker](/docs/tools/dev_system/all.devops_docker.how_to_guide.md)
 
-- [Reading List](/docs/general_background/all.reading_list.reference.md)
+- [Reading List](/docs/onboarding/all.reading_list.reference.md)
 
-- [Design Philosophy](/docs/code_guidelines/all.code_design.how_to_guide.md)
+- [Design Philosophy](/docs/coding/all.code_design.how_to_guide.md)
 
-- [Codebase Clean-up](/docs/tools/all.codebase_clean_up.how_to_guide.md)
+- [Codebase Clean-up](/docs/tools/codebase/all.codebase_clean_up.how_to_guide.md)
 
 - [Scrum Methodology](/docs/work_organization/all.scrum.explanation.md)
 
@@ -85,19 +89,19 @@ This contains a set of resources that over time will make 10x more productive
 
 - [Buildmeister process](/docs/work_organization/all.buildmeister.how_to_guide.md)
 
-- [Profiling](/docs/tools/all.profiling.how_to_guide.md)
+- [Profiling](/docs/tools/testing_profiling/all.profiling.how_to_guide.md)
 
-- [Visual Studio Code](/docs/tools/all.visual_studio_code.how_to_guide.md)
+- [Visual Studio Code](/docs/tools/ide/all.visual_studio_code.how_to_guide.md)
 
 - [Gsheet into pandas](/docs/tools/notebooks/all.gsheet_into_pandas.how_to_guide.md)
 
 - [Email](/docs/onboarding/all.organize_email.how_to_guide.md)
 
-- [Glossary and Common Abbreviations](/docs/general_background/all.common_abbreviations.reference.md)
+- [Glossary and Common Abbreviations](/docs/onboarding/all.common_abbreviations.reference.md)
 
-- [Type Hints](/docs/code_guidelines/all.type_hints.how_to_guide.md)
+- [Type Hints](/docs/coding/all.type_hints.how_to_guide.md)
 
-- [PyCharm](/docs/tools/all.pycharm.how_to_guide.md)
+- [PyCharm](/docs/tools/ide/all.pycharm.how_to_guide.md)
 
 ## DeFi
 

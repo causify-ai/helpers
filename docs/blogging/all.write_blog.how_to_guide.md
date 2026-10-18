@@ -90,7 +90,7 @@ When starting a blog on a project, open a GitHub Issue and track the following:
 ### Learn Our Style and Tooling
 
 - Read rules enforced by `linter` and `ai_review.py`
-  - [ ] Read ./docs/code_guidelines/all.coding_style_guidelines.reference.md
+  - [ ] Read ./docs/coding/all.coding_style_guidelines.reference.md
 
 ### Learn How We Organize Projects and Tutorials
 

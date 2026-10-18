@@ -13,7 +13,7 @@
 
 - Use bullet lists to organize the whole Markdown for consistency with other
   docs. See
-  [all.coding_style.how_to_guide.md](/docs/code_guidelines/all.coding_style.how_to_guide.md)
+  [all.coding_style.how_to_guide.md](/docs/coding/all.coding_style.how_to_guide.md)
   or any other published Markdown format as reference
 - Add missing "```" around code blocks. These could be missing in the original
   Google doc. Also adjust code block indentations if needed
@@ -48,6 +48,10 @@
     bottom to ensure accurate rendering.
   - Review the markdown file on GitHub to make sure it looks good, as it may
     slightly differ from the preview in your local markdown editor
+- When moving content out of a gdoc
+  - Strike out the moved text
+  - Add a link to the new version (e.g., the Markdown file on GitHub)
+  - Delete the struck-out text once the new version is reviewed
 - When a gdoc becomes obsolete, delete it
 
 ### Other Approaches
