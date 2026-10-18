@@ -92,8 +92,7 @@ place:
 - `.github/ISSUE_TEMPLATE/config.yml` with `blank_issues_enabled: false`,
   plus a structured template (checkboxes, no free-text "fund this?" field) —
   removes the easy free-text surface the bots filled in
-- Keep using `invite_gh_contributors.py` /
-  `dockerized_invite_gh_contributors.py` as the only path to real
+- Keep using `invite_gh_contributors.py` as the only path to real
   collaborator status, so "existing_users" interaction limits actually track
   real invitees
 
