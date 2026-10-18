@@ -265,46 +265,46 @@ class Test_git_add_all_untracked(hunitest.TestCase):
     Test `git_add_all_untracked()`.
     """
 
-    def helper(self, exclude_tmp: bool, expected: str) -> None:
+    def helper(self, kwargs: Any, expected: str) -> None:
         """
         Run `git_add_all_untracked()` and check the constructed command.
 
-        :param exclude_tmp: value forwarded to `git_add_all_untracked()`
+        :param kwargs: arguments forwarded to `git_add_all_untracked()`
         :param expected: expected single `ctx.run()` call
         """
         # Prepare inputs.
         ctx = httestlib._build_mock_context_returning_ok()
         # Run test.
-        hltltagi.git_add_all_untracked(ctx, exclude_tmp=exclude_tmp)
+        hltltagi.git_add_all_untracked(ctx, **kwargs)
         # Check outputs.
         actual = _get_ctx_run_calls(ctx)
         self.assert_equal(actual, expected, fuzzy_match=True, dedent=True)
 
     def test1(self) -> None:
         """
-        Test the default call does not filter out `tmp.*` files.
+        Test that the default call filters out `tmp.*` and `*.log` files.
         """
         # Prepare inputs.
-        exclude_tmp = False
-        # Prepare outputs.
-        expected = """
-        call('git ls-files -o --exclude-standard -z | xargs -0 git add', echo=False)
-        """
-        # Run test.
-        self.helper(exclude_tmp, expected)
-
-    def test2(self) -> None:
-        """
-        Test that `exclude_tmp=True` filters out `tmp.*` and `*.log` files.
-        """
-        # Prepare inputs.
-        exclude_tmp = True
+        kwargs = {}
         # Prepare outputs.
         expected = """
         call("git ls-files -o --exclude-standard -z | grep -zvE '(^|/)(tmp\\\\.[^/]*|[^/]*\\\\.log)$' | xargs -0 git add", echo=False)
         """
         # Run test.
-        self.helper(exclude_tmp, expected)
+        self.helper(kwargs, expected)
+
+    def test2(self) -> None:
+        """
+        Test that `add_all=True` does not filter out `tmp.*` and `*.log` files.
+        """
+        # Prepare inputs.
+        kwargs = {"add_all": True}
+        # Prepare outputs.
+        expected = """
+        call('git ls-files -o --exclude-standard -z | xargs -0 git add', echo=False)
+        """
+        # Run test.
+        self.helper(kwargs, expected)
 
     def test3(self) -> None:
         """
@@ -1075,6 +1075,7 @@ class Test_git_branch_copy(hunitest.TestCase):
         new_branch_name = "HelpersTask1_Foo_2"
         # Prepare outputs.
         expected = f"""
+        call('invoke git_add_all_untracked', echo=False)
         call('git clean -fd', echo=False)
         call('invoke git_merge_master --abort-if-not-ff --no-auto-merge', echo=False)
         call("git checkout master && invoke git_branch_create --branch-name '{new_branch_name}'", echo=False)
@@ -1207,6 +1208,7 @@ class Test_git_branch_copy(hunitest.TestCase):
         submodules = True
         # Prepare outputs.
         expected = f"""
+        call('invoke git_add_all_untracked', echo=False)
         call('git clean -fd', echo=False)
         call('invoke git_merge_master --abort-if-not-ff --no-auto-merge --submodules', echo=False)
         call("git checkout master && invoke git_branch_create --branch-name '{new_branch_name}'", echo=False)
