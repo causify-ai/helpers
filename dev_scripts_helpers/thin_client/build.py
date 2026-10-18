@@ -1,6 +1,17 @@
 #!/usr/bin/env python3
 """
 Build a thin virtual environment to run workflows on the dev container.
+
+The environment is built with `pip` by default, or with `uv` using
+`--installer uv`.
+
+# Usage Example
+
+- Build the thin environment with `pip`:
+> build.py
+
+- Build the thin environment with `uv`:
+> build.py --installer uv
 """
 
 import argparse
@@ -29,6 +40,46 @@ def _system(cmd: str) -> None:
     hsystem.system(cmd, suppress_output=False)
 
 
+def _create_venv(installer: str, venv_dir: str) -> None:
+    """
+    Create the virtual environment with the selected installer.
+
+    :param installer: tool used to build the env (`pip` or `uv`)
+    :param venv_dir: dir of the virtual environment
+    """
+    if installer == "uv":
+        # `--seed` installs `pip` in the venv, so that the `uv` env has the
+        # same tools as the `pip` one.
+        _system(f"uv venv --seed --python python3 {venv_dir}")
+    else:
+        _system(f"python3 -m venv {venv_dir}")
+        # Test activating the environment.
+        _system(f"source {venv_dir}/bin/activate")
+
+
+def _install_requirements(
+    installer: str, venv_dir: str, requirements_path: str
+) -> None:
+    """
+    Install the requirements in the virtual environment and show them.
+
+    :param installer: tool used to build the env (`pip` or `uv`)
+    :param venv_dir: dir of the virtual environment
+    :param requirements_path: file with the packages to install
+    """
+    if installer == "uv":
+        # `uv` targets the venv through its Python, without activating it.
+        python_bin = f"{venv_dir}/bin/python"
+        _system(f"uv pip install --python {python_bin} -r {requirements_path}")
+        _system(f"uv pip list --python {python_bin}")
+    else:
+        activate_cmd = f"source {venv_dir}/bin/activate"
+        _system(f"{activate_cmd} && python3 -m pip install --upgrade pip")
+        _system(f"{activate_cmd} && pip3 install -r {requirements_path}")
+        # Show the package list.
+        _system("pip3 list")
+
+
 def _main(parser: argparse.ArgumentParser) -> None:
     print(f"##> {SCRIPT_PATH}")
     args = parser.parse_args()
@@ -43,6 +94,16 @@ def _main(parser: argparse.ArgumentParser) -> None:
         raise RuntimeError(
             "AWS CLI is not installed. Please install it and try again."
         )
+    if args.installer == "uv":
+        # Fail before deleting the old virtual environment.
+        hdbg.dassert_is_not(
+            shutil.which("uv"),
+            None,
+            "uv is not installed: run 'brew install uv' or see "
+            "https://docs.astral.sh/uv/",
+        )
+        _, uv_version = hsystem.system_to_string("uv --version")
+        _LOG.info("# uv=%s", uv_version)
     dir_suffix = hrecouti.get_repo_config().get_dir_suffix()
     # Create the virtual environment.
     venv_dir = tcu.get_venv_dir(dir_suffix)
@@ -61,11 +122,10 @@ def _main(parser: argparse.ArgumentParser) -> None:
         _LOG.warning(msg)
         shutil.rmtree(venv_dir)
         msg = f"Deleting dir '{venv_dir}' ... done"
-    _LOG.info("Creating virtual environment in %s", venv_dir)
-    _system(f"python3 -m venv {venv_dir}")
-    # Test activating the environment.
-    activate_cmd = f"source {venv_dir}/bin/activate"
-    _system(activate_cmd)
+    _LOG.info(
+        "Creating virtual environment in %s with %s", venv_dir, args.installer
+    )
+    _create_venv(args.installer, venv_dir)
     # Install the requirements.
     thin_environ_dir = tcu.get_thin_environment_dir(dir_suffix)
     requirements_path = os.path.join(thin_environ_dir, "requirements.txt")
@@ -80,10 +140,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
         # see HelpersTask377.
         with open(tmp_requirements_path, "a") as f:
             f.write("pyyaml == 5.3.1\n")
-    _system(f"{activate_cmd} && python3 -m pip install --upgrade pip")
-    _system(f"{activate_cmd} && pip3 install -r {tmp_requirements_path}")
-    # Show the package list.
-    _system("pip3 list")
+    _install_requirements(args.installer, venv_dir, tmp_requirements_path)
     if hserver.is_host_mac():
         # Darwin specific updates.
         _system("brew update")
@@ -132,6 +189,13 @@ def _parse() -> argparse.ArgumentParser:
         formatter_class=hparser.CustomHelpFormatter,
     )
     hparser.add_verbosity_arg(parser)
+    parser.add_argument(
+        "--installer",
+        action="store",
+        choices=["pip", "uv"],
+        default="pip",
+        help="Tool used to create the virtual environment and install packages",
+    )
     parser.add_argument(
         "--do_not_confirm",
         action="store_true",
