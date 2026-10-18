@@ -21,11 +21,11 @@ Blocks anyone who is not an existing contributor/collaborator from opening
 issues or PRs, for a chosen period:
 
 ```bash
-> gh api -X PUT repos/causify-ai/helpers/interaction-limits \
+> gh api -X PUT repos/<org>/helpers/interaction-limits \
     -f limit=existing_users \
     -f expiry=one_month
 
-> gh api -X PUT repos/causify-ai/tutorials/interaction-limits \
+> gh api -X PUT repos/<org>/tutorials/interaction-limits \
     -f limit=existing_users \
     -f expiry=one_month
 ```
@@ -33,19 +33,19 @@ issues or PRs, for a chosen period:
 - `limit` options: `existing_users`, `contributors_only`, `collaborators_only`
 - Check current state:
   ```bash
-  > gh api repos/causify-ai/helpers/interaction-limits
-  > gh api repos/causify-ai/tutorials/interaction-limits
+  > gh api repos/<org>/helpers/interaction-limits
+  > gh api repos/<org>/tutorials/interaction-limits
   ```
-- As of 2026-09-10, `causify-ai/helpers` already has this active
+- As of 2026-09-10, `<org>/helpers` already has this active
   (`existing_users`, expires 2026-10-10) — renew before it lapses.
-  `causify-ai/tutorials` has none set (`{}`) — run the command above for it
+  `<org>/tutorials` has none set (`{}`) — run the command above for it
 
 ### Branch protection / required review
 
 Live settings can be inspected with:
 
 ```bash
-> gh api repos/causify-ai/helpers/branches/master/protection
+> gh api repos/<org>/helpers/branches/master/protection
 ```
 
 As of 2026-09-10, `required_approving_review_count` is `0` and
@@ -53,7 +53,7 @@ As of 2026-09-10, `required_approving_review_count` is `0` and
 without any human approval. Tighten with:
 
 ```bash
-> gh api -X PATCH repos/causify-ai/helpers/branches/master/protection/required_pull_request_reviews \
+> gh api -X PATCH repos/<org>/helpers/branches/master/protection/required_pull_request_reviews \
     -f required_approving_review_count=1 \
     -F require_code_owner_reviews=true
 ```
@@ -80,7 +80,7 @@ place:
 > dev_scripts_helpers/github/sync_gh_repo_settings.py \
     --input_file dev_scripts_helpers/github/settings/common_repo_settings.yaml \
     --repo_name helpers \
-    --org_name causify-ai
+    --org_name <org>
 ```
 
 ## Repo-content mitigations
@@ -100,7 +100,7 @@ place:
 ## Weekly detection scan
 
 ```bash
-> gh issue list -R causify-ai/helpers --search "bounty" --state all \
+> gh issue list -R <org>/helpers --search "bounty" --state all \
     --json number,title,state,author,url,createdAt --limit 100
 ```
 
@@ -114,9 +114,9 @@ followers for the rest:
 ## Manual triage (what we did for the 2026-09-09/10 wave)
 
 1. Listed PRs by author, matched against a curated `invalid_users.md` list
-2. `gh pr close <n> -R causify-ai/helpers --comment "Contributions from not invited users"`
+2. `gh pr close <n> -R <org>/helpers --comment "Contributions from not invited users"`
    for every open PR from those users
 3. Searched issues for "bounty", cross-referenced authors against the same
    PR-spam accounts plus account-age/follower signals
-4. `gh issue close <n> -R causify-ai/helpers --comment "Contributions from not invited users"`
+4. `gh issue close <n> -R <org>/helpers --comment "Contributions from not invited users"`
    for every open issue in the confirmed wave

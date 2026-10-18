@@ -18,7 +18,7 @@ docs/tools/security/all.ssh.how_to_guide.md
 - Thin
 
 docs/blogging/all.ghost_platform.how_to_guide.md
-docs/blogging/all.publish_causify_blogs.how_to_guide.md
+docs/blogging/all.publish_blogs.how_to_guide.md
 docs/blogging/all.publish_mkdocs.how_to_guide.md
 docs/blogging/all.write_blog.how_to_guide.md
 
@@ -68,7 +68,7 @@ docs/onboarding/all.track_time_with_hubstaff.how_to_guide.md
 docs/onboarding/bounty.onboarding_checklist.reference.md
 docs/onboarding/intern.onboarding_checklist.reference.md
 docs/onboarding/intern.prepare_for_development.how_to_guide.md
-docs/onboarding/intern.running_causify_on_virtual_machine.how_to_guide.md
+docs/onboarding/intern.running_on_virtual_machine.how_to_guide.md
 docs/onboarding/intern.set_up_development_on_laptop.how_to_guide.md
 docs/onboarding/intern.signing_up.how_to_guide.md
 
@@ -157,6 +157,605 @@ docs/work_organization/all.team_collaboration.how_to_guide.md
 docs/work_organization/all.use_github.how_to_guide.md
 
 docs/README.md
+
+# AI-ERA REVIEW (2026-10-18)
+
+Source: read-only review of every file in docs/, cross-checked against
+.claude/skills/*.rules.md, .claude/templates/ and the code.
+
+Verdict vocabulary:
+- DELETE: remove, no remaining value
+- MERGE INTO <x>: fold content into <x>, then delete the file
+- CONVERT TO RULE / SKILL / TEMPLATE: an agent should enforce it, so it belongs
+  in .claude/ instead of docs/ (keep a short "why" page only if needed)
+- SHRINK: keep, cut to the part a human still needs
+- UPDATE: keep, content is stale
+- KEEP+AI: keep, add a short "AI-assisted" section linking the matching skill
+
+Paths use current file names (two files were renamed, see 0.2).
+
+## 0. Causify removal: status and leftovers
+
+### 0.1 Done
+- [x] All literal "Causify" / "causify-ai" removed from docs/ (org URLs, emails,
+  S3 buckets, Slack link, 1Password links, ECR account id, brand text)
+- [x] Links to files inside this repo changed from
+  github.com/causify-ai/helpers/blob/... to repo-absolute links (`/docs/...`)
+- [x] Placeholders introduced, always inside backticks so renderers keep them:
+  `<org>`, `<site_repo>`, `<repo_name>`, `<blog_domain>`, `<docs_domain>`,
+  `<blog_bucket>`, `<data_bucket>`, `<company_domain>`, `<all_email>`,
+  `<contributors_email>`, `<infra_email>`, `<aws_account_id>`, `<region>`
+- [x] Template links (URL contains a placeholder) turned into code spans, since
+  they cannot resolve
+
+### 0.2 Renames done
+- docs/blogging/all.publish_causify_blogs.how_to_guide.md
+  -> docs/blogging/all.publish_blogs.how_to_guide.md
+- docs/onboarding/intern.running_causify_on_virtual_machine.how_to_guide.md
+  -> docs/onboarding/intern.running_on_virtual_machine.how_to_guide.md
+
+### 0.3 Left on purpose (the doc must match the code)
+- [ ] `dockerhub.causify` registry id in
+  docs/tools/dev_system/all.devops_docker.how_to_guide.md (3 places). It is an
+  accepted value in helpers/lib_tasks/lib_tasks_docker_release.py (+ tests)
+  - Action: rename the id in code and tests (e.g., `dockerhub.public`), then
+    update the doc
+- [ ] `CSFY_*` env vars (CSFY_AWS_PROFILE, CSFY_ECR_BASE_PATH, ...) in
+  docs/onboarding/all.development.how_to_guide.md, publish_mkdocs,
+  transition_to_cmamp2. They are read by tasks.py and devops/docker_run/*
+  - Action: rename in code, then update the docs
+- [ ] Code and config outside docs/ still mention causify (about 30 files, e.g.,
+  repo_config.yaml has the ECR account id; the docstring of
+  dev_scripts_helpers/github/sync_gh_projects.py uses "[TEMPLATE] Causify
+  Project"; helpers/hserver.py, hgit.py, repo_config_utils.py;
+  linters/amp_fix_md_links.py). Out of scope for the docs pass, needs its own PR
+
+### 0.4 Related company-internal names not removed (not literally "causify")
+- [ ] `cryptokaizen` (old org name): issue / PR links to cryptokaizen/cmamp in
+  invoke_workflows, invoke_git_branch_copy, conda_environment_obsolete,
+  docker_optimizer_container, thin_environment/*, selenium, parquet, diataxis,
+  github_projects_process, buildmeister, inframeister, datapull_DAGmeister,
+  organize_email. Also S3 buckets `cryptokaizen-*` and a private IP in
+  build_system/all.pytest_allure.how_to_guide.md and in onboarding docs
+  - Action: delete the historical issue links, parametrize the buckets
+- [ ] Product / repo names: cmamp, kaizenflow, orange, sorrentum, lemonade, the
+  `ck` AWS profile, `aws_ecr.ck`. Decide: replace by `<repo_name>` or drop the doc
+- [ ] People names in examples and "ask X" instructions (GP, Samarth, Vlad,
+  Juraj, Grisha, ...). Replace by roles ("repo admin", "team lead")
+- [ ] The example author in docs/blogging/all.publish_blogs.how_to_guide.md is a
+  real person (bio now says "Founder"). Replace by a neutral example author
+
+### 0.5 Security items found while reading (do first)
+- [ ] P0 docs/tools/notebooks/all.gsheet_into_pandas.how_to_guide.md: pasted
+  service-account JSON (project name, key id, client id, client email, partial
+  private key). Scrub, and rotate the key if it was ever real
+- [ ] P0 docs/tools/ide/all.pycharm.how_to_guide.md (a line with
+  `BEGIN OPENSSH PRIVATE KEY`, marked `gitleaks:allow`) and
+  docs/tools/ide/all.visual_studio_code.how_to_guide.md (same pattern). Confirm
+  these are truncated placeholders, otherwise remove and rotate
+- [ ] P1 docs/tools/docker/all.dockerhub.how_to_guide.md: shows
+  `docker login --password XYZ`. Use `--password-stdin`
+- [ ] P1 hard-coded personal paths and ids: `/Users/saggese`, `/data/saggese`,
+  `/data/sameepp`, `/app/DATA605/google_secret.json` (ai_review,
+  integrate_helpers, devops_docker.reference, invite_gh_contributors, logs in
+  many files)
+
+## 1. Improvements: clarify, generalize, make homogeneous
+
+### 1.1 Cross-cutting
+- [ ] One skeleton for every doc: H1, 1-2 sentence summary, audience /
+  prerequisites, TOC, body, References. Today many files start with a TOC and no
+  H1, or repeat the title as H1 + H2 (git, pycharm, profiling, jupyter_notebook,
+  organize_email, track_time; scrum H1 is "Refs"; organize_your_work H1 is
+  "Untitled")
+- [ ] Put the skeleton in .claude/templates/{how_to_guide,tutorial,reference,
+  explanation}.template.md and add .claude/skills/docs.rules.md (Diataxis naming
+  + skeleton). Register both in .claude/rules.md, which has no docs/ entry.
+  Replace the linter-mangled pseudo-XML docs/documentation_meta/
+  all.*_template.md and update .claude/skills/docs.add_content/SKILL.md (it cites
+  headings of writing_docs that will change)
+- [ ] Naming: drop persona prefixes `intern.*` / `bounty.*` (use all.*, persona
+  in the topic, e.g., all.onboarding_intern.reference); no status in file names
+  (`..._obsolete`); one verb (`sync_` vs `synchronize_`); `.tutorial` only for
+  real tutorials
+- [ ] Parametrize org / bucket / domain / people. Define the placeholder
+  convention once in docs/README.md
+- [ ] Mark any remaining company-specific doc with a `company.` prefix (or move
+  it to a separate repo) so it can be excluded
+- [ ] Links: repo-absolute `/docs/...` only. Remove `//amp/...`, `//cmamp/...`,
+  full GitHub blob URLs
+- [ ] Heading style: follow .claude/skills/markdown.rules.md (title case, no H4).
+  Many docs break it (coding_style, inframeister, team_collaboration,
+  onboarding_checklist)
+- [ ] Drop the "Last review:" tag (only 4 of ~130 files use it, git history
+  covers it) and remove the requirement from docs/README.md
+- [ ] Move tool docs next to the tool as README: replace_text, import_check,
+  create_links, sync_gh_*, invite_gh_contributors, publish_notebook,
+  add_toc_to_notebook, thin_client. Keep docs/ for cross-cutting guidance
+- [ ] Stale-path sweep: `dev_scripts/`, `amp/`, `//cmamp`, `core/`, `dataflow/`,
+  `oms/`, `edgar/`, `helpers/lib_tasks.py`, `/helpers/lib_tasks_*.py` (now
+  helpers/lib_tasks/), `helpers/create_links.py` (now
+  dev_scripts_helpers/system_tools/). Add a CI link / path check
+  (dev_scripts_helpers/documentation/check_links.py missed 12+ dead links)
+- [ ] Generate tables of invoke tasks / skills from `invoke --list` and
+  .claude/skills instead of writing them by hand
+- [ ] Move inline `TODO(gp)` / `TODO(ai_gp)` out of published docs into issues
+- [ ] Pick one source of truth for style rules.
+  docs/coding/all.coding_style_guidelines.reference.md conflicts with
+  .claude/skills (80 vs 85 columns, "use you not we") and is hard-wired in
+  dev_scripts_helpers/llms/llm_prompts.py (`review_llm`),
+  helpers/lib_tasks/lib_tasks_lint.py and hmarkdown_rules.py
+
+### 1.2 docs/README.md and docs/ root
+- [ ] Rewrite README: remove kaizenflow / datapull / dataflow / trade_execution /
+  "trading ops" examples, the Master Documentation Gdoc link, `jackmd`, `ffind`,
+  the dead `all.code_organization.reference.md`; add the missing docs/blogging/
+  and docs/planning/ entries; drop the "Dir vs no-dirs" debate; replace "How to
+  search" with "ask the agent". Add a per-file index (linked, alphabetical) since
+  the "File description" invariants require it. Keep the AI-agent line you
+  already added
+- [ ] docs/cleanup_md.sh: unreferenced script inside docs/. Delete, or move to
+  dev_scripts_helpers/documentation/
+- [ ] Fix stale entries in this plan: docs/tools/docker/
+  all.dockerized_flow.explanation.md does not exist;
+  docs/work_evaluation/all.asana_utiuls_guide.md is now
+  docs/work_organization/all.asana_utils.how_to_guide.md; the plan says
+  all.common_abbreviations was merged into docs/general_background/ but that dir
+  does not exist; add the files missing here (all.prevent_bounty_spam,
+  all.asana_process, all.project_lead, all.plan_work, tools/ai/*,
+  tools/helpers/all.hplayback)
+
+### 1.3 docs/coding
+- [ ] all.coding_style.how_to_guide.md (2400 lines): split. Keep ~300 lines of
+  principles; per-rule content goes to the reference; design patterns go to
+  code_design. Fix heading artifacts ("Don'T", "Doctrings Content", URL as H4,
+  H4/H5 everywhere, "DRY" parenting all principles), broken empty links, the link
+  to a pirated PDF; replace company examples (EDGAR, kibot, TR, RH1E, //amp,
+  Upsource, CMTask); resolve "Return None or Keep One Type" vs "Single Exit
+  Point"
+- [ ] all.code_design.how_to_guide.md: delete the stray "Invariants" block pasted
+  from oms/architecture.md; move "Our Approach to Doing Things" (Slack, GH
+  projects, `i git_create_branch`) to work_organization; keep ~100 lines
+- [ ] all.code_review.how_to_guide.md: fix double H1/H2; split author vs reviewer
+  views; remove kaizen-ai PR links and named integrators; link ai_review
+- [ ] all.submit_code_for_review.how_to_guide.md: title ("First Review Process")
+  does not match the file; remove kaizenflow image URLs, defi/tulip examples; fix
+  broken links to lib_tasks_lint; dedupe against code_review
+- [ ] all.type_hints.how_to_guide.md: add H1/H2; stale (dataflow example,
+  pyannotate, `dbg.`, mypy vs the repo's pyright)
+- [ ] Orphan figures: move docs/coding/figs/{unit_tests,str_to_df} next to their
+  docs
+
+### 1.4 docs/documentation_meta
+- [ ] all.diataxis.explanation.md: replace cryptokaizen/cmamp example links with
+  local files; add a "which type to use" decision table
+- [ ] all.writing_docs.how_to_guide.md: file-name pattern uses `ck` and
+  `{component}` (datapull, dataflow); TOC stale; skeleton conflicts with
+  .claude/templates; "Layout Rules" repeats markdown.rules.md
+- [ ] all.architecture_diagrams.explanation.md: replace EDGAR/Form8 examples with
+  this repo; drop the generic UML tutorial
+- [ ] all.markdown_tools.explanation.md: no H1, stub sections, tabs
+- [ ] all.plotting_in_latex.how_to_guide.md: link dump with `Https://` casing
+  damage, not a how-to
+- [ ] all.gdocs.how_to_guide.md: hard-coded /Users/saggese/Downloads, Sorrentum
+  link, dead anchor `#cleaning-up-converted-markdown`
+
+### 1.5 docs/onboarding
+- [ ] The must-read list is copied in 5 places (dev_must_read_checklist,
+  onboarding_checklist "Second Day", intern and bounty checklists,
+  development_documents). Keep one, link the others
+- [ ] all.onboarding_checklist.reference.md: HR/IT roles, NDA, Hubstaff, Airflow,
+  Slack are company-specific. Turn it into a template with role / tool
+  placeholders; move the "Meta" section to an explanation
+- [ ] all.development_setup.how_to_guide.md: company-specific (VPN, dev-server IP,
+  `ck` profile, ECR). Dead link to ck.setup_vpn_and_dev_server_access.how_to_guide.md
+  (also in onboarding_checklist). Orphan figs/setup_vpn_and_dev_server_access/ and
+  figs/troubleshooting/. Split into a generic "remote dev box" how-to + appendix
+- [ ] all.development.how_to_guide.md: kitchen sink, stale
+  (dev_scripts/client_setup/build.sh, amp/cmamp). Keep only "git credentials"
+  (move to tools/git/all.git.how_to_guide.md)
+- [ ] intern.set_up_development_on_laptop.how_to_guide.md (the generic setup doc):
+  drop the `ck` AWS section and the warning log; Docker install duplicates
+  tools/docker
+- [ ] intern.signing_up / intern.prepare_for_development: KaizenFlow-era (old
+  repo, SorrTask names). Merge into the intern checklist
+- [ ] all.hiring_process.how_to_guide.md: dangling anchor `#intern-scoring`; split
+  explanation (stages) from how-to (steps)
+- [ ] all.prevent_bounty_spam.how_to_guide.md: TOC lists a "Background" section
+  that does not exist; contains a dated incident log ("As of 2026-09-10"). Make it
+  a generic "harden a repo against spam PRs" guide; move the incident to an issue
+- [ ] all.common_abbreviations.reference.md: trading terms are stale (see 1.2 for
+  the glossary path problem)
+
+### 1.6 docs/work_organization, docs/planning
+- [ ] Inconsistent process between all.use_github and all.github_projects_process:
+  sprint Mon-Fri vs Sun-Sat; 4, 6 or 7 statuses; `To Review` undefined; `Paused`
+  is a label in one and a status in the other; the label list is hand-copied
+  while the source is dev_scripts_helpers/github/labels/gh_issues_labels.yml.
+  Make github_projects_process the single owner
+- [ ] all.github_projects_process.reference.md: reference + how-to ("set up a new
+  project"). Split
+- [ ] all.use_github.how_to_guide.md: too big; review / PR sections duplicate
+  coding/code_review and coding/submit_code_for_review
+- [ ] all.team_collaboration.how_to_guide.md (2.8k words): split into channels,
+  morning TODO email, norms; overlaps asana_process and project_lead
+- [ ] all.scrum.explanation.md: 5 H1s, H1 is "Refs"; textbook summary, the useful
+  part is the "Lightweight weekly sprint"
+- [ ] all.buildmeister.how_to_guide.md: 3 broken links ending `.md.figs`, missing
+  anchor `#handover-process`, private IP, stale repo names, empty "Post-mortem
+  (TBD)"
+- [ ] all.organize_your_work.how_to_guide.md: split roles to project_lead / scrum,
+  research logging to plan_work; Sorrentum paths and Drive links
+- [ ] all.asana_utils.how_to_guide.md: module reference, not a how-to; move to the
+  helpers/asana_utils.py docstring / README
+- [ ] all.rollout.how_to_guide.md: the example email is a stale notebook
+  announcement (http://research:8077). Use a generic example
+- [ ] all.issue_workflow.explanation.md: a TODO at the top asks to merge with
+  use_github. Do it
+- [ ] all.project_lead / all.asana_process: best skeleton (Summary + Resources),
+  use as the model; replace "Be GP's right hand" by "sponsor"
+- [ ] docs/planning/all.plan_work.how_to_guide.md: good. Inline a mini example
+  (the current one lives in another repo); link to
+  .claude/skills/auto_task.rules.md
+
+### 1.7 docs/blogging, docs/build_system
+- [ ] all.publish_blogs.how_to_guide.md: the post template is broken (frontmatter
+  collapsed into prose); preprocess path is stale (script is
+  docs_mkdocs/preprocess_mkdocs.py); contradicts .claude/skills/blog.rules.md
+  (description required vs "usually empty"; `blog/` vs `website/`); duplicates
+  publish_mkdocs
+- [ ] all.publish_mkdocs.how_to_guide.md: says the blog workflow needs no
+  preprocessing (contradicts publish_blogs); dead link to /docs/mkdocs/mkdocs.yml;
+  formatter mangled the yml comments and headings
+- [ ] all.ghost_platform.how_to_guide.md: 2 H1s; Jekyll and Hugo sections are raw
+  scratch notes (broken fences, `klakegg` image)
+- [ ] docs/build_system/*: no intro / skeleton; dead links (semgrep.yml,
+  allure.fast_test.yml, self-link pytest_allure.explanation.md); linter.yml is now
+  linter.yml.disabled; gitleaks notifies via Slack but semgrep via Telegram;
+  hard-coded buckets and IP
+
+### 1.8 docs/tools/ai
+- [ ] all.ai_workflows.how_to_guide.md: no TOC (3k words); mixes explanation,
+  reference, how-to. Move concepts to all.ai_skills_rules.explanation.md; replace
+  per-skill tables and the Coding / Notebook workflows by `mdm skill list <topic>`
+  and pointers; topic list is stale (`visuals` does not exist; docs, git, github,
+  slides, todo, paper, research_idea, figure are missing); delete the inline TODO
+- [ ] all.ai_review.how_to_guide.md: `apply_todos.py` does not exist, empty
+  sections for it and `inject_todos.py`; prompts `review_linter` and
+  `review_architecture` do not exist (only review_llm, review_correctness,
+  review_refactoring); wrong template name `all.how_to_guide_template_doc.md`;
+  overlaps dev_scripts_helpers/llms/README.md
+- [ ] all.auto_task.how_to_guide.md: add TOC; says the hook is
+  ~/.claude/hooks/check_git_auth.sh but the repo ships .claude/hooks/ and
+  .claude/settings.json wires only check_file_rules.sh. Explain installation; link
+  .github/workflows/claude.yml for remote mode
+- [ ] all.code_review_tools.reference.md: vendor comparison, not reference; price
+  snapshot; typo "Grapite"; ignores claude-code-review.yml and
+  .claude/agents/code.reviewer.md
+- [ ] all.evaluating_external_tools.how_to_guide.md: no H1 before the TOC; names
+  cmamp; add AI-tool criteria (data retention, agent permissions, token cost)
+
+### 1.9 docs/tools/codebase, data, dev_system, docker
+- [ ] codebase_clean_up: split the `replace_text.py` option reference from the PR
+  workflow; text says "re-run with --preview to apply" (wrong); stale link to
+  /helpers/lib_tasks_utils.py; Sorrentum examples
+- [ ] import_check.reference: tool README, move next to the tool, add H1
+- [ ] imports_and_packages: two H1s, TODO stubs ("Anatomy of a package", "Clarify
+  the rules"), examples (dataflow, datapull, market_data) not in this repo;
+  overlaps the Imports section of coding_style_guidelines
+- [ ] parquet.explanation: the change log (cmamp-1.14.0, CmampTask7331) is
+  history; move to the hparquet.py docstring / changelog.txt
+- [ ] selenium: links a notebook in an external repo; `chromedriver.storage` is
+  deprecated (Selenium Manager); code blocks lack language tags
+- [ ] create_a_super_repo_with_helpers: "Copy Files From Existing Repo" and
+  "Script Approach" pasted twice; `DST_PREFIX="umd_msml610"` leaks into the text;
+  stale numbering "5) Build Container"; org / password-manager / secrets steps
+  are company-specific
+- [ ] create_a_runnable_dir: same stale create_links.py path; step "4." twice;
+  steps 2-5 duplicate the super-repo guide. Factor out one shared "bootstrap" doc
+  with two variants
+- [ ] devops_docker.how_to_guide: no H1 / TOC (4k words); mixes explanation,
+  reference, how-to; the release flow appears about 4 times (a TODO says "Merge
+  with the rest"); /helpers/lib_tasks.py does not exist. Split into explanation +
+  reference + ONE parametrized release how-to
+- [ ] devops_docker.reference: "Declarative OS Package Installation" is a
+  how-to; the `docker_bash` section embeds real env vars and a personal path
+- [ ] runnable_repo.reference: really an explanation (rationale + history),
+  rename to .explanation.md; "Maintaining code across sub-repos" is a TODO
+- [ ] replace_common_files_with_script_links: `stage_linked_file.py` does not
+  exist anywhere. Fix or drop the section
+- [ ] dealing_with_missing_dependencies: "Delay the evaluation" (imports inside
+  functions) contradicts the no-local-import rule in imports_and_packages.
+  Reconcile
+- [ ] devops_docker_auto_release.explanation: links to
+  /helpers/lib_tasks_docker_release.py (moved to helpers/lib_tasks/); remove "New"
+  wording
+- [ ] synchronize_gh_issue_labels: wrong label path
+  (dev_scripts_helpers/labels/ vs .../github/labels/); raw <img> tags; the Invoke
+  section is a TODO
+- [ ] docker/all.docker.tutorial.md: not a tutorial. Rename to
+  all.docker_concepts.explanation.md; link
+  class_project/project_template/docker_scripts.README.md (the flow classes use);
+  compose `version: "3.0"` is obsolete
+- [ ] docker/all.dind_and_sibling_containers: unfinished sentences, OMS-specific
+  Postgres log. Keep the sibling-socket part
+- [ ] docker/all.develop_in_helpers: duplicates the devops how-to
+
+### 1.10 docs/tools/git, helpers, invoke, linter, notebooks, testing, thin env
+- [ ] git/all.manual_flow: best file. Rename (e.g.,
+  all.git_github_automation.reference.md); split the task / skill table
+  (reference) from the workflows (how-to); no TOC, several H1s, typo `cluade>`;
+  the skill writes `github_PR_plan.md`; tasks git_branch_subset_copy and
+  git_patch_create are missing. Merge policy conflicts with git.how_to_guide
+  (squash `gh pr merge -s --admin` vs `--no-ff` and "do not merge yourself").
+  Pick one
+- [ ] git/all.git.how_to_guide: "Git / Git workflow" duplicate title; stale `amp`
+  submodule, PTask/CmTask/sorrentum examples, 2019 logs; unresolved ours/theirs
+  TODO; "Deleting a branch" is superseded by git_branch_is_merged /
+  git_branch_delete_merged; "avoid rebase" conflicts with the git.merge_conflicts
+  skill
+- [ ] git_hooks.how_to_guide + reference: omit check_merged_branch,
+  `pre-commit.py --check <name>`, pre-commit-dry-run.py; never explain how
+  git_hooks/ relates to .pre-commit-config.yaml (ruff, ssort, docformatter,
+  jupytext)
+- [ ] integrate_repos: examples use amp1/cmamp1/kaizenflow1/lem/lime/orange/dev1;
+  clean_up_text_files.sh moved to dev_scripts_helpers/coding_tools/; steps
+  duplicated
+- [ ] helpers/all.hllm.explanation: stale (`_CompletionCache` is gone,
+  `get_completion` has no cache_file, "Proposal for integrating hcache_simple" is
+  implemented; hllm_cost, hllm_cli, hllm_decorator undocumented)
+- [ ] helpers/all.hcache_simple.explanation (1200 lines): add a 10-line summary +
+  quickstart; move the 12 examples to helpers/notebooks/hcache_simple.tutorial.ipynb
+- [ ] helpers/all.str_to_df: module moved (hpandas_transform.py); image missing
+  (no figs/ dir); cites a nonexistent oms/ file
+- [ ] invoke/all.invoke_workflows: "Listing all the tasks" is empty; categories
+  miss gh_watch, fix_perms, print_*, release_dags_to_airflow; `i lint --phases`
+  does not exist; the Docker section has an ECR id and core/, dataflow/ paths;
+  tasks now live in helpers/lib_tasks/lib_tasks_*.py; "Create a PR" is a TODO
+- [ ] invoke/all.invoke_git_branch_copy: heading says `git_create_patch`, the
+  task is `git_patch_create`; duplicates manual_flow; long cmamp logs
+- [ ] linter/all.developing_linter: documents the legacy linters/amp_* framework;
+  `i lint` now runs linters2/lint.py (--only-format = pre-commit + normalize_import
+  + add_class_frames, --only-check = pyright); ruff + pre-commit replaced
+  amp_black, amp_isort, amp_flake8, amp_pylint, amp_mypy. Rewrite against
+  linters2/README.md
+- [ ] notebooks/all.jupytext: pairing is now set by [tool.jupytext] in
+  pyproject.toml and the pre-commit jupytext hook; `process_jupytext.py` does not
+  exist but is still called; two identical "convert script to notebook" sections
+- [ ] notebooks/all.plotting: `get_multiple_plots` is in helpers/hmatplotlib.py
+- [ ] notebooks/add_toc_to_notebook, publish_notebook: stale dev_scripts/notebooks/
+  path; "What has changed" is an announcement
+- [ ] testing_profiling/code_coverage_subprocess (how-to + reference): steps,
+  .coveragerc and Dockerfile snippet pasted twice; link
+  hcoverage.generate_coverage_dockerfile(); title-casing damage ("Http://Localhost")
+- [ ] testing_profiling/codecov: mixes org-level Codecov setup with repo-level
+  coverage_tests.yml; overlaps run_coverage / run_coverage_subprocess. Write one
+  coverage overview
+- [ ] testing_profiling/profiling: stale paths (amp/dev_scripts/run_profiling.sh
+  is now in dev_scripts_helpers/coding_tools/), edgar/ and amp/ examples
+- [ ] thin_environment/*: the file list in thin_environment.reference is wrong
+  (real: sync_super_repo.sh, test_helpers.sh, test_super_repo.sh,
+  create_all_helpers_links.py, tmux_reset.py, README.md); package lists do not
+  match the real requirements files; links pinned to old-org blobs; stale
+  dev_scripts/client_setup/ paths
+
+## 2. Obsolete / lower value now that AI-agent workflows are mainstream
+
+### 2.1 DELETE
+- [ ] docs/onboarding/all.reading_list.reference.md (5 generic links)
+- [ ] docs/onboarding/all.literature_review.reference.md (2015-19 trading papers;
+  the format is in .claude/skills/paper.rules.md and
+  .claude/templates/paper_rating.template.md)
+- [ ] docs/onboarding/all.organize_email.how_to_guide.md (personal Gmail setup)
+- [ ] docs/onboarding/all.track_time_with_hubstaff.how_to_guide.md (GUI
+  walkthrough, 9 screenshots, company-specific)
+- [ ] docs/onboarding/all.receive_crypto_payment.how_to_guide.md (personal
+  finance)
+- [ ] docs/onboarding/all.development.how_to_guide.md (after moving git creds)
+- [ ] docs/coding/all.code_like_pragmatic_programmer.how_to_guide.md (1660-line
+  book summary, no repo guidance; move to books/ or class notes if wanted)
+- [ ] docs/documentation_meta/all.google_technical_writing.how_to_guide.md
+  (covered by .claude/skills/text.rules.md + text.humanize + text.criticize)
+- [ ] docs/documentation_meta/all.plotting_in_latex.how_to_guide.md (covered by
+  tikz.rules.md, figure.rules.md, figure.create_tikz)
+- [ ] docs/documentation_meta/all.markdown_tools.explanation.md (or fold 10 lines
+  into publish_mkdocs)
+- [ ] docs/cleanup_md.sh
+- [ ] docs/build_system/all.linter_gh_workflow.explanation.md (workflow disabled)
+- [ ] docs/tools/ai/all.code_review_tools.reference.md (price snapshot; the repo
+  already runs Claude review in CI)
+- [ ] docs/tools/data/all.selenium.how_to_guide.md (an LLM writes this
+  boilerplate; or move to tutorials/ as a tutorial_in_60_mins)
+- [ ] docs/tools/dev_system/all.conda_environment_obsolete.how_to_guide.md
+- [ ] docs/tools/dev_system/all.transition_to_cmamp2.how_to_guide.md
+- [ ] docs/tools/dev_system/all.transition_to_repo_config_yml.how_to_guide.md
+  (migration done)
+- [ ] docs/tools/dev_system/all.docker_optimizer_container.how_to_guide.md
+  (company-specific, unfinished)
+- [ ] docs/tools/docker/all.dockerhub.how_to_guide.md (company-specific, account
+  details)
+- [ ] docs/tools/git/all.bfg_repo_cleaner.how_to_guide.md (one command; fold into
+  the gitleaks leak-removal section)
+- [ ] docs/tools/git/all.integrate_helpers.how_to_guide.md (29-line stub)
+- [ ] docs/tools/helpers/all.qgrid.how_to_guide.md (qgrid is archived)
+- [ ] docs/tools/ide/all.pycharm.how_to_guide.md (keep 10 lines on the Docker
+  interpreter + Copilot; the rest is company dev-server / VNC / EC2)
+- [ ] docs/tools/security/all.ssh.how_to_guide.md (Wikipedia quote; fold two
+  lines into the git guide)
+- [ ] docs/tools/security/all.veracrypt.how_to_guide.md (company-specific)
+- [ ] docs/tools/thin_environment/all.gh_and_thin_env_requirements.reference.md
+  (put comments in requirements.txt)
+
+### 2.2 MERGE
+- [ ] onboarding/all.development_documents.reference -> docs/README.md
+- [ ] onboarding/intern.prepare_for_development + intern.signing_up -> the intern
+  onboarding checklist
+- [ ] work_organization/all.issue_workflow.explanation -> all.use_github
+- [ ] blogging/all.publish_blogs -> all.publish_mkdocs (frontmatter validation is
+  done by the preprocess script and the blog.check_format skill)
+- [ ] build_system/all.gitleaks_workflow + all.semgrep_workflow -> one
+  all.ci_workflows.reference.md
+- [ ] tools/git/all.git_hooks.{how_to_guide,reference} -> one file
+- [ ] tools/git/all.gitleaks.{how_to_guide,reference} + build_system gitleaks ->
+  one reference + short how-to
+- [ ] tools/git/all.invite_gh_contributors.{explanation,how_to_guide} -> one,
+  next to the script
+- [ ] tools/invoke/all.invoke_git_branch_copy -> git/all.manual_flow
+- [ ] tools/dev_system/all.sync_gh_projects + synchronize_gh_issue_labels +
+  synchronize_gh_settings -> one all.sync_github_settings.how_to_guide.md; move
+  the long logs to `--help`
+- [ ] tools/docker/all.develop_in_helpers -> dev_system/all.devops_docker
+- [ ] tools/dev_system/all.devops_docker.{how_to_guide,reference}: one release
+  flow, no ECR or company registry steps
+- [ ] tools/testing_profiling/all.code_coverage_subprocess.* -> one file (add
+  `/testing.reach_coverage`)
+- [ ] tools/thin_environment/all.thin_environment.reference ->
+  dev_scripts_helpers/thin_client/README.md
+- [ ] tools/notebooks/add_toc_to_notebook + publish_notebook ->
+  dev_scripts_helpers/notebooks/README.md
+- [ ] tools/ai/all.ai_review -> dev_scripts_helpers/llms/README.md (then SHRINK)
+- [ ] tools/helpers/all.str_to_df -> docstring of hpandas_transform.str_to_df
+- [ ] tools/data/all.parquet.explanation -> hparquet docstring (then SHRINK)
+- [ ] tools/dev_system/all.replace_common_files_with_script_links -> README of
+  create_links.py
+
+### 2.3 CONVERT TO RULE / SKILL / TEMPLATE
+- [ ] coding/all.coding_style.how_to_guide (docstrings, comments, logging,
+  assertions, default params, imports, functions) ->
+  .claude/skills/coding.rules.md + coding.fix_* skills; move only the naming /
+  import rules missing there; keep a short "why" page
+- [ ] coding/all.coding_style_guidelines.reference -> rule; keep the file only
+  while llm_prompts.review_llm needs it
+- [ ] coding/all.type_hints -> coding.rules.md typing section +
+  coding.fix_type_hints / coding.fix_pyright
+- [ ] documentation_meta/all.architecture_diagrams.explanation ->
+  .claude/skills/C4.rules.md (currently an EMPTY file; readme.write_architecture
+  links this doc)
+- [ ] documentation_meta/all.writing_docs -> markdown.rules.md + new
+  docs.rules.md; keep a 40-line human summary
+- [ ] blogging/all.write_blog -> .claude/skills/blog.rules.md
+- [ ] planning/all.plan_work: move the PR description template to
+  .claude/templates/pr_description.template.md (for github.find_name_for_pr)
+- [ ] tools/codebase/all.imports_and_packages -> coding.rules.md section "Imports
+  and Packages" (keep the helpers layer hierarchy)
+- [ ] tools/dev_system/all.create_a_runnable_dir + all.create_a_super_repo_with_helpers
+  -> skill docker.create_runnable_dir + a short explanation
+- [ ] tools/dev_system/all.python_package_upgrade_and_troubleshooting -> skill
+  docker.upgrade_package
+- [ ] tools/dev_system/all.dealing_with_missing_dependencies -> pytest.rules.md
+  or coding.rules.md
+- [ ] tools/git/all.git.how_to_guide -> new .claude/skills/git.rules.md (only
+  git.* / github.* skills exist today) + SHRINK
+- [ ] tools/linter/all.amp_fix_md_links.explanation -> markdown.rules.md (no
+  link or figure conventions there yet)
+- [ ] tools/notebooks/all.jupyter_notebook -> notebook.rules.md (missing:
+  idempotent cells, discarded data, warnings, restart-and-run-all); drop the
+  nbextensions section and stale imports (helpers.dbg, helpers.env, core.explore)
+- [ ] tools/notebooks/all.plotting -> notebook.rules.md (Visualization)
+
+### 2.4 SHRINK
+- [ ] coding/all.submit_code_for_review: the checklist is enforced by
+  github.get_pr_ready_to_merge and github.find_name_for_pr. Keep a 30-line PR
+  etiquette page + "edit AI output"
+- [ ] coding/all.code_design: merge into architecture.rules.md and docs.add_content
+- [ ] documentation_meta/all.gdocs: 15 lines or delete (gws.use skill, pandoc)
+- [ ] onboarding/all.development_setup: PuTTY, tmux.conf, bashrc are dotfile
+  chores an agent can do
+- [ ] onboarding/intern.running_on_virtual_machine: about 10 lines (stale
+  VMware / Broadcom GUI steps)
+- [ ] onboarding/all.common_abbreviations: keep domain terms, merge into the
+  glossary
+- [ ] work_organization/all.team_collaboration (an agent drafts the morning TODO
+  email from `gh`; "improve your English" -> text.humanize), all.scrum (keep the
+  lightweight sprint), all.organize_your_work, all.contributor_feedback (metrics
+  like "writes beautiful code" change with AI), all.buildmeister (manual issue
+  filing is covered by github.get_pr_to_pass_ci_tests + pytest.fix_ci_tests),
+  all.datapull_DAGmeister, all.inframeister (alert triage becomes agent-first),
+  all.asana_utils, all.rollout (to a checklist), all.use_github (branch / PR
+  naming is in auto_task.rules.md and github.find_name_for_pr)
+- [ ] blogging/all.ghost_platform: delete the Jekyll / Hugo notes and the
+  10-screenshot GUI walkthrough
+- [ ] build_system/all.pytest_allure.how_to_guide: buckets and IP
+- [ ] tools/ai/all.ai_workflows: keep concepts and run modes only
+- [ ] tools/codebase/all.codebase_clean_up: keep only the replace_text.py flow
+  (git.* skills and coding.rename cover the rest); delete the 47 one-off scripts
+  in dev_scripts_helpers/cleanup_scripts/
+- [ ] tools/git/all.integrate_repos (multi-fork process; candidate skill
+  git.integrate_repos)
+- [ ] tools/helpers/all.hcache_simple (design + flow only)
+- [ ] tools/ide/all.visual_studio_code (keep Remote-SSH, attach to container,
+  launch.json; delete VNC)
+- [ ] tools/invoke/all.invoke_bash_print_tree (the task docstring is enough),
+  all.invoke_workflows (move Docker flows to tools/docker, pytest flows to
+  helpers/test/docs)
+- [ ] tools/notebooks/all.jupytext (pairing is automatic), all.gsheet_into_pandas
+  (point to the gws.use skill), all.run_jupyter_notebook
+- [ ] tools/testing_profiling/all.codecov (org settings are company-specific)
+- [ ] tools/thin_environment/all.gh_thin_env_dependencies (keep one rule: keep
+  requirements.txt and gh_requirements.txt in sync)
+- [ ] tools/docker/all.dind_and_sibling_containers
+
+### 2.5 KEEP, add an "AI-assisted" section
+- [ ] onboarding/all.dev_must_read_checklist (agents read CLAUDE.md and
+  .claude/rules.md automatically, so "memorize" is moot) and the 3 onboarding
+  checklists (replace "final checks" by one smoke script + an agent-assisted
+  first PR)
+- [ ] onboarding/all.hiring_process: warm-up tasks are now trivially
+  AI-solvable, redesign the assessment
+- [ ] onboarding/all.prevent_bounty_spam: AI-generated spam PRs are the real
+  threat
+- [ ] coding/all.code_review: keep the human etiquette, cut the Google checklist
+  copy, link LLM pre-review (tools/ai/all.ai_review)
+- [ ] documentation_meta/all.diataxis: shrink to one page
+- [ ] tools/all.evaluating_external_tools
+- [ ] tools/git/all.manual_flow
+- [ ] tools/testing_profiling/all.profiling ("feed pstats text to the agent")
+- [ ] work_organization/all.github_projects_process
+- [ ] planning/all.plan_work
+
+### 2.6 KEEP as is / UPDATE only
+- KEEP: tools/ai/all.auto_task, tools/dev_system/all.devops_docker_auto_release.
+  explanation, tools/helpers/all.hplayback, tools/helpers/all.asyncio,
+  tools/codebase/all.import_check.reference, build_system/all.pytest_allure.
+  explanation, work_organization/all.project_lead, work_organization/
+  all.asana_process (company-specific)
+- UPDATE: tools/helpers/all.hllm.explanation, tools/linter/all.developing_linter,
+  tools/docker/all.docker.tutorial
+
+## 3. Missing docs an AI-era repo needs
+- [ ] docs/coding/all.ai_assisted_coding.how_to_guide.md: how to prompt, review
+  and commit AI-written code; avoiding AI slop; link the skills
+- [ ] Reviewing AI-generated PRs: checklist (hallucinated APIs, tests actually
+  run, size limit, provenance). Extends one paragraph in submit_code_for_review.
+  Possibly docs/tools/ai/all.ai_pr_checklist.reference.md (commit-before-skill, PR
+  size, verifying skills with skill.check_refs)
+- [ ] docs/tools/ai/all.ai_security.explanation.md (or all.agent_git_safety):
+  agent permissions (allow / deny), `.claude/git_authorized`, hooks such as
+  check_git_auth.sh, never merge or force-push, worktrees for parallel agents,
+  secrets hygiene (PATs in ~/.ssh, AWS creds, never paste tokens into prompts,
+  gitleaks / semgrep as guardrails)
+- [ ] docs/tools/ai/all.claude_code_setup.reference.md: `.claude/` layout
+  (settings, hooks, agents, commands), the symlink into helpers_root, the `cc`
+  wrapper, Claude Code in the thin environment and Docker (hooks, MCP, remote
+  container) as the replacement for the IDE docs
+- [ ] docs/tools/ai/all.ai_code_review.how_to_guide.md: local /code-review and
+  code.reviewer, plus CI with claude-code-review.yml and claude.yml (triggers,
+  scope, cost). One review-pipeline doc covering ai_review.py, cc_lint.py and the
+  human flow
+- [ ] docs/tools/ai/all.llm_models_and_costs.reference.md: model choice,
+  compute_llm_query_cost.py, print_daily_cost.py, compute_cost.py
+- [ ] docs/documentation_meta/all.skills_vs_docs.explanation.md: what goes in
+  docs/ (human "why") vs .claude/skills (agent "what"); rule vs skill vs
+  template; CLAUDE.md upkeep (point to skill.rules.md, rules.add,
+  skill.consolidate_skills)
+- [ ] docs/documentation_meta/all.docs_for_agents.how_to_guide.md: write docs
+  agents can consume (CLAUDE.md, README per dir, stable headings)
+- [ ] AI-assisted contribution policy: disclosure, ownership ("explain every
+  line"), CI agent scope
+- [ ] A task map (invoke tasks, scripts, skills) generated from `invoke --list`
+  and .claude/skills so agents and humans find the right tool
+- [ ] .claude/skills/git.rules.md: branch naming, commit messages, PR size,
+  merge policy (also listed in 2.3)
 
 # DONE
 

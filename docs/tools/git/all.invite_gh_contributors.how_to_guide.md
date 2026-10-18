@@ -31,7 +31,7 @@
 dev_scripts_helpers/github/invite_gh_contributors.py \
     --drive_url "https://docs.google.com/spreadsheets/d/..." \  # or  --csv_file  </path/to/users.csv>
     --gh_token  "$GH_PAT" \
-    --org_name  causify-ai \
+    --org_name  <org> \
     --repo_name tutorials \
     --log_level 20          # INFO
 ```

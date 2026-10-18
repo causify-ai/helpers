@@ -1,4 +1,4 @@
-# Causify Blog Platform Documentation
+# Ghost Blog Platform Documentation
 
 <!-- toc -->
 
@@ -32,7 +32,7 @@
 
 ## Introduction
 
-- The blog platform is accessible at [blog.causify.ai](https://blog.causify.ai)
+- The blog platform is accessible at `<blog_domain>`
 - It enables us to share company updates, thought leadership content, and
   technical insights
 - The audience includes both internal and external stakeholders
@@ -51,12 +51,12 @@
 
 ### Public Access
 
-- Navigate to [blog.causify.ai](https://blog.causify.ai). Readers can see
+- Navigate to `<blog_domain>`. Readers can see
   published posts without logging in
 
 ### Admin Access (Staff Portal)
 
-- Go to [blog.causify.ai/ghost](https://blog.causify.ai/ghost)
+- Go to `<blog_domain>/ghost`
 - Enter your email and password (provided via staff invites)
 - After logging in, you can create, edit, or publish content—depending on your
   role
@@ -71,7 +71,7 @@
 
 ### Logging In
 
-- Open [blog.causify.ai/ghost](https://blog.causify.ai/ghost)
+- Open `<blog_domain>/ghost`
 - Enter your credentials (email and password)
 - You'll be taken to the Ghost Admin Dashboard, where you can see recent posts,
   drafts, and announcements
@@ -269,7 +269,7 @@ Ananke is not compatible with the klakegg version
 
 - Step 1: Open the Ghost Admin panel
 
-  - Open [blog.causify.ai/ghost](https://blog.causify.ai/ghost)
+  - Open `<blog_domain>/ghost`
   - Enter your credentials to login
 
     <img src="figs/blog/image1.png" width="1000"/>
@@ -445,7 +445,7 @@ Ananke is not compatible with the klakegg version
   - Admin can go to **Staff → Select User → Resend Invitation or Change
     Password**. Alternatively, the user can use the **Forgot Password?** link
 
-- I see a "502 Bad Gateway" error when accessing blog.causify.ai. What do I do?
+- I see a "502 Bad Gateway" error when accessing `<blog_domain>`. What do I do?
   - Contact the Infra/DevOps team to investigate network issues
 
 - Why can't I see the scheduling option?
@@ -460,7 +460,7 @@ Ananke is not compatible with the klakegg version
 ### Summary & Next Steps
 
 - We have successfully deployed a secure, scalable Ghost blog at
-  [blog.causify.ai/ghost](https://blog.causify.ai/ghost)
+  `<blog_domain>/ghost`
   - Executives and stakeholders can review content for corporate alignment and
     brand consistency
   - Authors can quickly draft and publish posts, while editors ensure quality
@@ -469,6 +469,6 @@ Ananke is not compatible with the klakegg version
 
 - Next Steps:
   - Continue inviting staff members who need author access
-  - Customize the theme to fit the Causify brand
+  - Customize the theme to fit the brand
   - Review and refine settings as you collect feedback from readers and
     contributors

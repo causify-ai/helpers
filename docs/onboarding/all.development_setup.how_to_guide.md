@@ -347,9 +347,9 @@
   > mkdir ~/src
   > cd ~/src
   # In general form.
-  > git clone --recursive git@github.com:causify-ai/{repo_name}.git ~/src/{repo_name}{index}
+  > git clone --recursive git@github.com:<org>/{repo_name}.git ~/src/{repo_name}{index}
   # Example for cmamp.
-  > git clone --recursive git@github.com:causify-ai/cmamp.git ~/src/cmamp1
+  > git clone --recursive git@github.com:<org>/cmamp.git ~/src/cmamp1
   ```
 - You can have multiple cloned repos like `cmamp2`, `cmamp3` and so on to work
   on unrelated changes at the same time

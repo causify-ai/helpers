@@ -63,6 +63,7 @@ with active review tracking and executable documentation validation.
   because you are not familiar with it and not because you think the
   documentation is poorly done or not organized
 
+- Use AI agents to find docs by asking "what are the documents about XYZ?"
 - Look for files that contain words related to what you are looking for
   - E.g., `ffind XYZ`
 - Grep in the documentation looking for words related to what you are looking

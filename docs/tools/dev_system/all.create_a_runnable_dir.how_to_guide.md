@@ -34,8 +34,8 @@
 ## A Runnable Dir as Sub Directory Under a Super-Repo
 
 ```bash
-> export CSFY_RUNNABLE_DIR="ck.infra"
-> export CSFY_RUNNABLE_DIR_SUFFIX="cmamp_infra"
+> export RUNNABLE_DIR="ck.infra"
+> export RUNNABLE_DIR_SUFFIX="cmamp_infra"
 ```
 
 ### 1) Turn the Repo Into a Super-Repo with Helpers
@@ -60,14 +60,14 @@
   various tools (e.g., dev container workflow, `pytest`, `invoke`)
   ```bash
   > (cd helpers_root; git pull)
-  > echo $CSFY_RUNNABLE_DIR
-  > mkdir $CSFY_RUNNABLE_DIR
-  > cp helpers_root/{changelog.txt,conftest.py,pytest.ini,invoke.yaml,repo_config.yaml,tasks.py} $CSFY_RUNNABLE_DIR
+  > echo $RUNNABLE_DIR
+  > mkdir $RUNNABLE_DIR
+  > cp helpers_root/{changelog.txt,conftest.py,pytest.ini,invoke.yaml,repo_config.yaml,tasks.py} $RUNNABLE_DIR
   ```
   - `changelog.txt`: this is copied from the repo that builds the used container
     or started from scratch for a new container
     ```bash
-    > vim $CSFY_RUNNABLE_DIR/changelog.txt
+    > vim $RUNNABLE_DIR/changelog.txt
     # cmamp-infra-1.0.0
     - 2024-10-16
     - First release
@@ -78,13 +78,13 @@
   - `runnable_dir`: needed to be created as it is used for automated discovery
     of runnable dirs for `pytest` runs
     ```bash
-    > touch $CSFY_RUNNABLE_DIR/runnable_dir
+    > touch $RUNNABLE_DIR/runnable_dir
     ```
   - `repo_config.yaml`: store information about this specific repo (e.g., name,
     used container)
     - This needs to be modified
     ```bash
-    > vim $CSFY_RUNNABLE_DIR/repo_config.yaml
+    > vim $RUNNABLE_DIR/repo_config.yaml
     repo_info:
       repo_name: cmamp
     ...
@@ -104,7 +104,7 @@
 - Copy the `devops` from `//helpers` as a template dir
   ```bash
   > (cd helpers_root; git pull)
-  > cp -r helpers_root/devops $CSFY_RUNNABLE_DIR
+  > cp -r helpers_root/devops $RUNNABLE_DIR
   ```
 - Follow the instructions in
   [`/docs/tools/dev_system/all.devops_docker.reference.md`](/docs/tools/dev_system/all.devops_docker.reference.md)
@@ -112,14 +112,14 @@
   [`/docs/tools/dev_system/all.devops_docker.how_to_guide.md`](/docs/tools/dev_system/all.devops_docker.how_to_guide.md)
   to customize the files in order to build the Docker container
   - Typically, we might want to customize the following
-    - `$CSFY_RUNNABLE_DIR/devops/docker_build/dev.Dockerfile`: if we need to use
+    - `$RUNNABLE_DIR/devops/docker_build/dev.Dockerfile`: if we need to use
       a base image with different Linux distro or version
-    - `$CSFY_RUNNABLE_DIR/devops/docker_build/install_os_packages.sh`: if we
+    - `$RUNNABLE_DIR/devops/docker_build/install_os_packages.sh`: if we
       need to add or remove OS packages using the declarative approach
       - See
         [`/docs/tools/dev_system/all.devops_docker.reference.md#declarative-os-package-installation`](/docs/tools/dev_system/all.devops_docker.reference.md#declarative-os-package-installation)
         for details on the declarative OS package installation system
-    - `$CSFY_RUNNABLE_DIR/devops/docker_build/pyproject.toml`: if we need to add
+    - `$RUNNABLE_DIR/devops/docker_build/pyproject.toml`: if we need to add
       or remove Python dependencies
 - Always trim
   [`/devops/docker_build/pyproject.toml`](/devops/docker_build/pyproject.toml)
@@ -133,7 +133,7 @@
   ```bash
   # Use a suffix based on the repo name and runnable dir name, e.g., `cmamp_infra`.
   > SRC_DIR="./helpers_root/dev_scripts_helpers/thin_client"; echo $SRC_DIR
-  > DST_DIR="${CSFY_RUNNABLE_DIR}/dev_scripts_${CSFY_RUNNABLE_DIR_SUFFIX}/thin_client"; echo $DST_DIR
+  > DST_DIR="${RUNNABLE_DIR}/dev_scripts_${RUNNABLE_DIR_SUFFIX}/thin_client"; echo $DST_DIR
   > mkdir -p $DST_DIR
   > cp "$SRC_DIR/setenv.sh" $DST_DIR
   ```
@@ -161,7 +161,7 @@
 
   ```bash
   # Runnable dir is "ck.infra" in this case.
-  > ./helpers_root/helpers/create_links.py --src_dir ./helpers_root --dst_dir $CSFY_RUNNABLE_DIR --replace_links --use_relative_paths
+  > ./helpers_root/helpers/create_links.py --src_dir ./helpers_root --dst_dir $RUNNABLE_DIR --replace_links --use_relative_paths
   ```
 
 - Refer to
@@ -175,7 +175,7 @@
 
 - Commit changes
   ```bash
-  > git add $CSFY_RUNNABLE_DIR
+  > git add $RUNNABLE_DIR
   > git commit -m "Add runnable dir"
   ```
 
@@ -184,18 +184,18 @@
 - Run the single-arch flow to test the flow
 
   ```bash
-  > cd $CSFY_RUNNABLE_DIR
-  > source dev_scripts_${CSFY_RUNNABLE_DIR_SUFFIX}/thin_client/setenv.sh
-  > i docker_build_local_image --version 1.0.0 --container-dir-name $CSFY_RUNNABLE_DIR
+  > cd $RUNNABLE_DIR
+  > source dev_scripts_${RUNNABLE_DIR_SUFFIX}/thin_client/setenv.sh
+  > i docker_build_local_image --version 1.0.0 --container-dir-name $RUNNABLE_DIR
   > i docker_tag_local_image_as_dev --version 1.0.0
   > i docker_bash --skip-pull --version 1.0.0
   ```
 
 - Run the multi-arch flow
   ```bash
-  > cd $CSFY_RUNNABLE_DIR
-  > source dev_scripts_${CSFY_RUNNABLE_DIR_SUFFIX}/thin_client/setenv.sh
-  > i docker_build_local_image --version 1.0.0 --container-dir-name $CSFY_RUNNABLE_DIR --multi-arch "linux/amd64,linux/arm64"
+  > cd $RUNNABLE_DIR
+  > source dev_scripts_${RUNNABLE_DIR_SUFFIX}/thin_client/setenv.sh
+  > i docker_build_local_image --version 1.0.0 --container-dir-name $RUNNABLE_DIR --multi-arch "linux/amd64,linux/arm64"
   > i docker_tag_local_image_as_dev --version 1.0.0
   > i docker_bash --skip-pull --version 1.0.0
   ```
@@ -206,7 +206,7 @@
 
   ```bash
   # If the version of the locally built image is 1.0.0.
-  > cd $CSFY_RUNNABLE_DIR
+  > cd $RUNNABLE_DIR
   > i run_fast_tests --version 1.0.0 --skip-pull
   > i run_slow_tests --version 1.0.0 --skip-pull
   ```
@@ -220,7 +220,7 @@
 ### 9) Add the Dependency Lock Files to the Commit
 
 ```bash
-> cd $CSFY_RUNNABLE_DIR
+> cd $RUNNABLE_DIR
 > git add devops/docker_build/poetry.lock
 > git add devops/docker_build/pip_list.txt
 > git commit -m "Update dependencies"
@@ -242,7 +242,7 @@
   - Or run the following command to build, test, and release the image
 
   ```bash
-  > i docker_release_dev_image --version <version> --container-dir-name $CSFY_RUNNABLE_DIR
+  > i docker_release_dev_image --version <version> --container-dir-name $RUNNABLE_DIR
   ```
 
 - Release to GHCR
@@ -250,7 +250,7 @@
   - Only members of the `dev_releasers` group can release images to GHCR
   - TODO(heanh): Can we create an invoke target for this?
   - Check that you can view and access the container package at
-    [https://github.com/orgs/causify-ai/packages/](https://github.com/orgs/causify-ai/packages/).
+    `https://github.com/orgs/<org>/packages/`.
     If not, ask an admin to add you to the `dev_releasers` group
   - Create a GitHub personal access token at
     [https://github.com/settings/tokens](https://github.com/settings/tokens)
@@ -265,10 +265,10 @@
       specific release without relying on the moving `dev` tag
   ```bash
   > docker login ghcr.io -u <username> -p <personal_access_token>
-  > docker tag 623860924167.dkr.ecr.eu-north-1.amazonaws.com/<image_name>:dev ghcr.io/causify-ai/<image_name>:dev
-  > docker tag 623860924167.dkr.ecr.eu-north-1.amazonaws.com/<image_name>:dev ghcr.io/causify-ai/<image_name>:dev-<version>
-  > docker push ghcr.io/causify-ai/<image_name>:dev
-  > docker push ghcr.io/causify-ai/<image_name>:dev-<version>
+  > docker tag <aws_account_id>.dkr.ecr.<region>.amazonaws.com/<image_name>:dev ghcr.io/<org>/<image_name>:dev
+  > docker tag <aws_account_id>.dkr.ecr.<region>.amazonaws.com/<image_name>:dev ghcr.io/<org>/<image_name>:dev-<version>
+  > docker push ghcr.io/<org>/<image_name>:dev
+  > docker push ghcr.io/<org>/<image_name>:dev-<version>
   ```
 
 ### 11) Update and Release a New Version of the Image
@@ -284,8 +284,8 @@ dependencies
   - 1 is major, 2 is minor, 3 is patch
 
 ```bash
-> cd $CSFY_RUNNABLE_DIR
-> source dev_scripts_${CSFY_RUNNABLE_DIR_SUFFIX}/thin_client/setenv.sh
+> cd $RUNNABLE_DIR
+> source dev_scripts_${RUNNABLE_DIR_SUFFIX}/thin_client/setenv.sh
 > vim changelog.txt
 
 # Cmamp-Infra-1.2.0
@@ -297,19 +297,19 @@ dependencies
 
 2. Modify dependencies list
 
-- Modify `$CSFY_RUNNABLE_DIR/devops/docker_build/os_packages/os_packages.txt` to
+- Modify `$RUNNABLE_DIR/devops/docker_build/os_packages/os_packages.txt` to
   add or remove OS packages using the declarative approach
   - See
     [`/docs/tools/dev_system/all.devops_docker.reference.md#declarative-os-package-installation`](/docs/tools/dev_system/all.devops_docker.reference.md#declarative-os-package-installation)
     for details on the declarative OS package installation system
-- Modify `$CSFY_RUNNABLE_DIR/devops/docker_build/pyproject.toml` to add or
+- Modify `$RUNNABLE_DIR/devops/docker_build/pyproject.toml` to add or
   remove Python packages
 
 3. Build the image locally
 
 ```bash
 # Build the Image.
-> i docker_build_local_image --version 1.2.0 --container-dir-name $CSFY_RUNNABLE_DIR
+> i docker_build_local_image --version 1.2.0 --container-dir-name $RUNNABLE_DIR
 
 # Tag the Image as Dev.
 > i docker_tag_local_image_as_dev --version 1.2.0
@@ -318,7 +318,7 @@ dependencies
 4. Add the dependency lock files to the commit
 
 ```bash
-> cd $CSFY_RUNNABLE_DIR
+> cd $RUNNABLE_DIR
 > git add devops/docker_build/poetry.lock
 > git add devops/docker_build/pip_list.txt
 > git commit -m "Update dependencies"

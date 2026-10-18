@@ -56,7 +56,7 @@
   > ls helpers_root/
 
   > git submodule init
-  Submodule 'helpers_root' (git@github.com:causify-ai/helpers.git) registered for path 'helpers_root'
+  Submodule 'helpers_root' (git@github.com:<org>/helpers.git) registered for path 'helpers_root'
 
   > git submodule update
   Cloning into '/data/saggese/src/cmamp1/helpers_root'...
@@ -141,16 +141,16 @@
   16:14:49 - INFO  lib_tasks_docker.py _docker_login_ecr:350              Logging in to the target registry
     ... WARNING! Using --password via the CLI is insecure. Use --password-stdin.
     ... Login Succeeded
-  16:14:53 - INFO  lib_tasks_docker.py _docker_pull:233                   image='623860924167.dkr.ecr.eu-north-1.amazonaws.com/cmamp:dev'
-  docker pull 623860924167.dkr.ecr.eu-north-1.amazonaws.com/cmamp:dev
+  16:14:53 - INFO  lib_tasks_docker.py _docker_pull:233                   image='<aws_account_id>.dkr.ecr.<region>.amazonaws.com/cmamp:dev'
+  docker pull <aws_account_id>.dkr.ecr.<region>.amazonaws.com/cmamp:dev
   dev: Pulling from cmamp
   Digest: sha256:68a1c9dfe5ec8a22f2e86ed13642422c5ca7abd886deb40637314805aa35af9c
-  Status: Image is up to date for 623860924167.dkr.ecr.eu-north-1.amazonaws.com/cmamp:dev
-  623860924167.dkr.ecr.eu-north-1.amazonaws.com/cmamp:dev
+  Status: Image is up to date for <aws_account_id>.dkr.ecr.<region>.amazonaws.com/cmamp:dev
+  <aws_account_id>.dkr.ecr.<region>.amazonaws.com/cmamp:dev
 
   What's Next?
-    View a summary of image vulnerabilities and recommendations → docker scout quickview 623860924167.dkr.ecr.eu-north-1.amazonaws.com/cmamp:dev
-  IMAGE=623860924167.dkr.ecr.eu-north-1.amazonaws.com/cmamp:dev \
+    View a summary of image vulnerabilities and recommendations → docker scout quickview <aws_account_id>.dkr.ecr.<region>.amazonaws.com/cmamp:dev
+  IMAGE=<aws_account_id>.dkr.ecr.<region>.amazonaws.com/cmamp:dev \
           docker compose \
           --file /data/saggese/src/cmamp1/devops/compose/docker-compose.yml \
           --env-file devops/env/default.env \

@@ -1,4 +1,4 @@
-# **Running Causify On Virtual Machine How-to-Guide**
+# **Running the Dev Environment on a Virtual Machine How-to-Guide**
 
 <!-- toc -->
 

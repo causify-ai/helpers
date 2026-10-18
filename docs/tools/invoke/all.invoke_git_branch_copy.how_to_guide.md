@@ -158,7 +158,7 @@
   remote: Create a pull request for 'CmTask5874_Document_PR_flow_2' on GitHub by visiting:
   remote:      https://github.com/cryptokaizen/cmamp/pull/new/CmTask5874_Document_PR_flow_2
   remote:
-  To github.com:causify-ai/cmamp.git
+  To github.com:<org>/cmamp.git
   [new branch] CmTask5874_Document_PR_flow_2 ->
   CmTask5874_Document_PR_flow_2 git checkout -b CmTask5874_Document_PR_flow_2
   git push --set-upstream origin CmTask5874_Document_PR_flow_2 Branch

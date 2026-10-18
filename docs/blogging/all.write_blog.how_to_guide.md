@@ -1,6 +1,6 @@
 <!-- toc -->
 
-- [How to Write a Blog for Causify](#how-to-write-a-blog-for-causify)
+- [How to Write a Blog](#how-to-write-a-blog)
   * [Position of Blogs in Our Documentation Ecosystem](#position-of-blogs-in-our-documentation-ecosystem)
   * [Invariants](#invariants)
   * [Practical Guidelines for Blogs](#practical-guidelines-for-blogs)
@@ -14,13 +14,13 @@
 
 <!-- tocstop -->
 
-# How to Write a Blog for Causify
+# How to Write a Blog
 
-Writing a blog at Causify is about communicating our ideas clearly, while
-re-using and connecting with the broader body of internal documentation, white
-papers, tutorials, and research notes we already create. This guide explains how
-blogs fit into our documentation ecosystem, what principles to follow, and
-provides a checklist to get started.
+Writing a blog is about communicating our ideas clearly, while re-using and
+connecting with the broader body of internal documentation, white papers,
+tutorials, and research notes we already create. This guide explains how blogs
+fit into our documentation ecosystem, what principles to follow, and provides a
+checklist to get started.
 
 ## Position of Blogs in Our Documentation Ecosystem
 
@@ -114,7 +114,7 @@ When starting a blog on a project, open a GitHub Issue and track the following:
 
 ## Summary
 
-A Causify blog is not just a write-up, it’s a way of:
+A blog is not just a write-up, it’s a way of:
 
 - Communicating _why_ a project matters,
 - Placing our work in the context of SOTA, and
