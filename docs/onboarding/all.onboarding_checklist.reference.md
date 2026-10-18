@@ -270,7 +270,7 @@
     - There is an extension for VSCode, which allows to develop remotely
       [Remote - SSH](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-ssh)
     - Follow
-      [this instruction](/docs/tools/all.visual_studio_code.how_to_guide.md)
+      [this instruction](/docs/tools/ide/all.visual_studio_code.how_to_guide.md)
       on how to set it up in your Visual Studio Code
   - [ ] Run the unit tests and make sure they all pass
   - [ ] Run a docker container
@@ -279,7 +279,7 @@
     ```
   - [ ] Run a jupyter notebook
     - Follow
-      [this instruction](/docs/tools/all.visual_studio_code.how_to_guide.md#how-to-access-the-jupyter-server-running-on-the-remote-server-through-your-local-machine)
+      [this instruction](/docs/tools/ide/all.visual_studio_code.how_to_guide.md#how-to-access-the-jupyter-server-running-on-the-remote-server-through-your-local-machine)
       on how to access the Jupyter server running on the remote server through
       your local machine
     ```bash
@@ -291,12 +291,12 @@
 - [ ] **Team member**: carefully study all the documents in
       [the must-read list](/docs/onboarding/all.dev_must_read_checklist.reference.md)
   - [ ] [General rules of collaboration](/docs/work_organization/all.team_collaboration.how_to_guide.md)
-  - [ ] [Coding style guide](/docs/code_guidelines/all.coding_style.how_to_guide.md)
+  - [ ] [Coding style guide](/docs/coding/all.coding_style.how_to_guide.md)
   - [ ] [How to write unit tests](/helpers/test/docs/all.write_unit_tests.how_to_guide.md)
   - [ ] [How to run unit tests](/helpers/test/docs/all.run_unit_tests.how_to_guide.md)
   - [ ] [Creating a Jupyter Notebook](/docs/tools/notebooks/all.jupyter_notebook.how_to_guide.md)
-  - [ ] [What to do before opening a PR](/docs/code_guidelines/all.submit_code_for_review.how_to_guide.md)
-  - [ ] [Code review process](/docs/code_guidelines/all.code_review.how_to_guide.md)
+  - [ ] [What to do before opening a PR](/docs/coding/all.submit_code_for_review.how_to_guide.md)
+  - [ ] [Code review process](/docs/coding/all.code_review.how_to_guide.md)
   - [ ] [Git workflows and best practices](/docs/tools/git/all.git.how_to_guide.md)
   - [ ] [GitHub organization](/docs/work_organization/all.use_github.how_to_guide.md)
   - [ ] [Tips for writing documentation](/docs/documentation_meta/all.writing_docs.how_to_guide.md)

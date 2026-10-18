@@ -49,7 +49,7 @@
 
 Example:
 
-- <img src="figs/all.buildmeister.how_to_guide.md.figs/Slack_Image.png">
+- <img src="figs/buildmeister/Slack_Image.png">
 
 ## Buildmeister Instructions
 
@@ -207,7 +207,7 @@ current state of the results of all GitHub Actions workflows. See
 [run and publish the buildmeister dashboard](/dev_scripts_helpers/update_devops_packages/notebooks/Master_buildmeister_dashboard.ipynb)
 for detailed information.
 
-<img src="figs/all.buildmeister.how_to_guide.md.figs/Buildmeister_Image.png"/>
+<img src="figs/buildmeister/Buildmeister_Image.png"/>
 
 ### Logic Used to Determine Workflow Status
 
@@ -277,20 +277,20 @@ status of each GitHub Actions workflow:
       vertical line corresponds to a certain version of the test report, with
       the last line on the right corresponding to the current version
 
-      <img src="figs/all.buildmeister.how_to_guide.md.figs/Trend_Image.png"/>
+      <img src="figs/buildmeister/Trend_Image.png"/>
     - Monitor the `Duration Trend` to check the time taken to the run all tests
       comparing to historical trends
 
-      <img src="figs/all.buildmeister.how_to_guide.md.figs/Duration_trend.png"/>
+      <img src="figs/buildmeister/Duration_trend.png"/>
     - Monitor the `Duration Distribution`, where all the tests are divided into
       groups based on how long it took to complete them, and manually compare
       with the last week results
 
-      <img src="figs/all.buildmeister.how_to_guide.md.figs/Duration_Distribution.png"/>
+      <img src="figs/buildmeister/Duration_Distribution.png"/>
     - Monitor the `Retries Trend` to check the number of retries occurred in a
       particular run
 
-      <img src="figs/all.buildmeister.how_to_guide.md.figs/Retries_Image.png"/>
+      <img src="figs/buildmeister/Retries_Image.png"/>
     - The idea is to make sure it doesn't have drastic change in the values
 
 - Steps to perform if a test fails, timeouts or breaks

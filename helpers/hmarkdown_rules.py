@@ -48,7 +48,7 @@ _LOG = logging.getLogger(__name__)
 # Extract the rules from the markdown file:
 # ```
 # > extract_toc_from_txt.py \
-#       -i docs/code_guidelines/all.coding_style_guidelines.reference.md \
+#       -i docs/coding/all.coding_style_guidelines.reference.md \
 #       --max_level 2
 # - General
 #   - Spelling

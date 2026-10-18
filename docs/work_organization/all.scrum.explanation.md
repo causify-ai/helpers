@@ -1,34 +1,3 @@
-
-
-<!-- toc -->
-
-- [Refs](#refs)
-- [Roles](#roles)
-  * [Goal of Scrum methodology](#goal-of-scrum-methodology)
-  * [Metaphor for the roles in terms of a race car](#metaphor-for-the-roles-in-terms-of-a-race-car)
-  * [ScrumMaster](#scrummaster)
-  * [ProductOwner](#productowner)
-  * [DevTeam](#devteam)
-- [Artifacts](#artifacts)
-  * [Product backlog](#product-backlog)
-  * [Product backlog items](#product-backlog-items)
-  * [Complexity of PBI](#complexity-of-pbi)
-  * [High-priority vs lower-priority tasks](#high-priority-vs-lower-priority-tasks)
-  * [Sprint backlog](#sprint-backlog)
-  * [The burndown](#the-burndown)
-- [The meetings](#the-meetings)
-  * [Planning meeting](#planning-meeting)
-  * [Part one of sprint planning meeting](#part-one-of-sprint-planning-meeting)
-  * [Part two of sprint planning meeting](#part-two-of-sprint-planning-meeting)
-  * [Daily scrum](#daily-scrum)
-  * [Daily scrum: questions](#daily-scrum-questions)
-  * [What the daily scrum is not](#what-the-daily-scrum-is-not)
-  * [Sprint review](#sprint-review)
-  * [Sprint retrospective](#sprint-retrospective)
-  * [Sprint retrospective: questions](#sprint-retrospective-questions)
-
-<!-- tocstop -->
-
 # Refs
 
 - From "Lacey, The Scrum Field Guide: Practical Advice for Your First Year,
@@ -237,3 +206,99 @@
 - What went well during the sprint?
 
 - What could be improved in the next sprint?
+
+# Lightweight weekly sprint
+
+## Purpose
+
+- Small teams can use a lightweight workflow informed by Scrum
+  - It keeps the short feedback cycles to show observable progress
+  - It does not require every formal Scrum event
+  - It does not create additional mandatory meetings
+- For the framework itself, see the
+  [official Scrum Guide](https://scrumguides.org/scrum-guide.html)
+
+## Cadence
+
+- Each sprint is one week long
+  - The project picks the first day of the sprint, see
+    [Project-specific cadence](/docs/work_organization/all.github_projects_process.reference.md#project-specific-cadence)
+  - The last day of the sprint closes the sprint
+- The team meets once a week to check blockers, review the previous sprint, and
+  coordinate the new one
+- The project docs state the time, the timezone, the URL, and the facilitator of
+  the meeting
+
+## Goals and backlog
+
+- **Product goal**: The outcome the team is working toward
+- **Backlog**: Scoped work on the board that is not yet complete
+  - Keep near-term work specific
+  - Split large tasks into reviewable deliverables
+- **Sprint goal**: One clear outcome for the week
+  - E.g., "Run the nightly backtest end to end"
+- **Sprint work**: Issues selected to support the sprint goal
+  - Each issue has an owner, acceptance criteria, and an effort estimate in
+    hours when useful
+- Plan against the actual availability of the team
+- Revisit the scope when urgent work or new findings affect the capacity
+  - Record what was added and what was displaced
+
+## Weekly blocker meeting
+
+- Before the meeting
+  - Update the assigned issues with progress, evidence, remaining work,
+    blockers, and PRs awaiting review
+  - Review the completed work against the sprint goal
+  - Prepare the weekly summary, see
+    [Lean weekly summary](/docs/work_organization/all.github_projects_process.reference.md#lean-weekly-summary)
+
+- Agenda
+  1. Inspect the delivered results and the unfinished work of the previous
+     sprint
+     - Discuss the evidence or show a short demo when it helps
+  2. Review each blocked issue: cause, impact, and help or decision needed
+  3. Give each unblock action an owner and a follow-up date
+  4. Agree on the new sprint goal, the issues, the owners, and the realistic
+     capacity
+     - Decide the carryover explicitly
+  5. Record the decisions, links, and next actions in the weekly summary
+     - Record one process improvement if needed
+
+- Rules
+  - Raise a blocker immediately in the issue, do not wait for the meeting
+  - Move lengthy technical problem solving to a separate discussion with the
+    people needed
+  - The meeting coordinates work, it is not a report of percentages complete
+
+## Between meetings
+
+- Leave a short asynchronous issue update on the days you work
+  - What changed
+  - What comes next
+  - What blocks progress
+- A daily stand-up and an hour-based burndown chart are not required
+  - The team can add them if they solve a real coordination problem
+
+## Definition of Done
+
+- An issue is Done when:
+  - Its acceptance criteria are met
+  - The evidence is available
+  - The required checks and the review are complete
+  - Any required PR is merged
+- Research-only work has an accessible result and an agreed review
+- Insufficient evidence or an outstanding review means the work is unfinished
+  - Record the incomplete work honestly at the end of the sprint
+  - Decide at the weekly meeting whether to carry it forward
+
+## Responsibilities
+
+- The project maintainer coordinates priorities and acceptance
+- The issue owners deliver and update the work
+- The reviewers evaluate the work
+- The facilitator runs the weekly discussion
+- See
+  [all.organize_your_work.how_to_guide.md](/docs/work_organization/all.organize_your_work.how_to_guide.md#roles)
+- Confirm the named owners with the team, do not import roles from another
+  organization

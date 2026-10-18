@@ -1,7 +1,8 @@
-- Using the rules in `docs/ai_coding/ai.md_instructions.md`
+- Example for `.claude/skills/markdown.summarize/SKILL.md`: prose is compressed
+  into `* <TITLE>` chunks of bullets
 
-- The input text should be transformed into:
-  ```
+- The input text is:
+  ```markdown
   ## QUESTION 1: WHAT ARE YOUR CORE VALUES?
 
   Core Values are a timeless set of guiding principles. There are
@@ -55,7 +56,9 @@
   ```
 
 - The output should be:
-  ```
+  ```markdown
+  ## QUESTION 1: WHAT ARE YOUR CORE VALUES?
+
   * Core values
   - Are a timeless set of guiding principles
   - Define the culture, who fits and who doesn't
@@ -67,7 +70,7 @@
     - Needs to know who it is
     - Is defined by the Core Values
 
-  * Uses of Core Values
+  * Uses of core values
   - Hire
   - Fire
   - Review everyone

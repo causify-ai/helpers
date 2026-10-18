@@ -177,7 +177,7 @@
   (software developer, DevOps or data scientist) should abide. Read it on long
   commutes, during lunch, and treat yourself to a physical copy on Christmas.
   The book is summarized
-  [here](/docs/code_guidelines/all.code_like_pragmatic_programmer.how_to_guide.md), but
+  [here](/docs/coding/all.code_like_pragmatic_programmer.how_to_guide.md), but
   do not deprive yourself of the engaging manner in which Thomas & Hunt
   elaborate on these points -- on top of it all, it is a very, very enjoyable
   read.
@@ -780,7 +780,7 @@
 - Linter is in charge of reformatting the code according to our conventions and
   reporting potential problems
 - You can find instructions on how to run Linter
-  [here](/docs/code_guidelines/all.submit_code_for_review.how_to_guide.md#run-linter)
+  [here](/docs/coding/all.submit_code_for_review.how_to_guide.md#run-linter)
 
 #### Remove Linter Messages
 

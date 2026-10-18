@@ -1,12 +1,3 @@
-<!-- toc -->
-
-- [Issue workflow](#issue-workflow)
-  * [Idea](#idea)
-  * [Project](#project)
-  * [Task (Issue)](#task-issue)
-
-<!-- tocstop -->
-
 TODO(Grisha): consider merging the current doc with
 [`/docs/work_organization/all.use_github.how_to_guide.md`](/docs/work_organization/all.use_github.how_to_guide.md)
 into something like "ck.planning.how_to_guide.md".
@@ -47,6 +38,12 @@ This is helpful because:
 - Since an idea is abstract and unstructured it is easier to edit it later in a
   Gdoc rather than in a GitHub issue
 
+Alternatives to a Gdoc:
+
+- A shared planning note in the repo
+- A clearly marked exploratory issue
+- Link the idea from the relevant work so that the team can find it
+
 ## Project
 
 Unlike ideas, projects have clear goals, defined scope, tangible outcomes and
@@ -60,7 +57,11 @@ To go from "idea" to "project" one needs to perform a through analysis:
 - Identify a problem
 - Suggest solutions for the problem
 - Split the work into actionable tasks
+- Identify the dependencies between the tasks
 - Estimate the complexity
+- Record the decisions that change the scope or the interfaces
+
+A project does not need a new board for each milestone or feature.
 
 Team leaders are responsible for converting "ideas" into "projects". The outcome
 of the analysis is a GitHub Project with clear objectives, start/end dates,
@@ -74,5 +75,19 @@ activities or steps within a project.
 
 We use GitHub Issues to track tasks. Every issue should belong to a GH Project
 [`/docs/work_organization/all.use_github.how_to_guide.md#issue`](/docs/work_organization/all.use_github.how_to_guide.md#issue).
+
+A task has one accountable owner and a testable result. A task includes:
+
+- Problem and why it matters
+- Scope and explicit exclusions
+- Acceptance criteria: the evidence that shows the task is complete
+- Dependencies, owner, and an effort estimate
+- Relevant design notes, PRs, and findings
+
+A task is complete when its evidence exists and has been reviewed, not when the
+code runs.
+
+- E.g., "Run the model benchmark" is complete when the selected configuration,
+  the results, the costs, and the question set are documented and reviewed
 
 Last review: GP on 2024-05-25

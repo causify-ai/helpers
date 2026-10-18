@@ -39,6 +39,8 @@
 
 We have a asana utils code at : [`/helpers/asana_utils.py`](/helpers/asana_utils.py) which is a comprehensive Python module for analyzing team performance and productivity metrics in Asana.
 
+For how we use Asana to track projects, see [`all.asana_process.how_to_guide.md`](all.asana_process.how_to_guide.md).
+
 ## Overview
 
 The Asana Analytics module provides powerful tools to:

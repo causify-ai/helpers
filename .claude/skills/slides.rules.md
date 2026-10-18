@@ -81,6 +81,12 @@
   ```markdown
   ## Subsection Title
   ```
+  - Use `##` only for a group of at least 5 slides
+    - Do not use it for a group of 1-4 slides: put those slides directly under
+      the `#` section
+    - Do not use it for a label such as `## Motivation` or `## Why AI`
+  - Each `#` and `##` header adds a "Table of Content" navigation page to the
+    PDF, so extra headers inflate the page count
 
 - Do not wrap `##` section headers in decorative comment banners
   (`## ###########...`); a bare `## Section Title` is enough
@@ -121,10 +127,9 @@
     // course_title=<course>
     // lesson_title=<Lesson X.Y: Title>
     // slides_engine=typst
-
-    // References:
-    // - ...
     ```
+- Do not list references in the header, e.g., no `// References:` comment
+  block: put them in the `* References` slide (see "References Slide" below)
 
 ## Roadmap Slide
 - Right after the metadata-comment block and before the first `# <Topic>`
@@ -151,7 +156,7 @@
 
 ## Summary Slide
 - Right before the standalone `* References` slide at the end of the file
-  (see "Source Attribution" below — `References` already sits outside any
+  (see "References Slide" below — `References` already sits outside any
   `#`/`##` section), add a standalone `* Summary` slide recapping the
   lesson's key takeaways
   - Mirrors the `.typ` chapter's mandatory `= Summary` section, the same way
@@ -169,6 +174,26 @@
     - Both rest on the same core principles: syntax/semantics separation,
       entailment as truth preservation, and sound/complete inference
     ```
+
+## References Slide
+- List the references of the lesson only in a standalone `* References` slide
+  as the last slide of the file, after `* Summary`
+  - Do not put references in `//` comments (e.g., a `// References:` block in
+    the header or at the top of a section)
+  - Cite a reference in the text of the slide that uses it
+- Format each reference as a top-level bullet, separated from the next by a
+  blank line, following `.claude/skills/references.rules.md`
+  - E.g.,
+    ```markdown
+    * References
+
+    - **Yao et al.**: _"ReAct: Synergizing Reasoning and Acting in Language
+      Models"_, ICLR (2023)
+
+    - **Wu et al.**: _"AutoGen: Enabling Next-Gen LLM Applications via
+      Multi-Agent Conversation"_, arXiv (2023)
+    ```
+- Skip the slide if the lesson cites no reference
 
 ## Use 80 columns
 - Wrap text into 80 columns
@@ -861,14 +886,20 @@ Use these commands consistently across all slides:
   them side by side in columns rather than stacking:
   ```
   ::: columns
-  :::: {.column width=50%}
+  :::: {.column width=60%}
   (text)
-  :::: {.column width=45%}
+  ::::
+  :::: {.column width=40%}
+
   (figure)
 
   ::::
   :::
   ```
+  - Use 60/40 (text/figure) as the default widths
+  - Use another split only when the content needs it
+    - E.g., 70/30 for a narrow figure or 50/50 for two comparable blocks
+  - Make the two widths sum to 100%
 
 # Examples and Templates
 - Follow the template `.claude/templates/slides.template.md`

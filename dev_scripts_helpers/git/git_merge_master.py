@@ -185,6 +185,23 @@ def _add_all_untracked_files(*, exclude_tmp: bool = False) -> None:
     hsystem.system(cmd, suppress_output=False)
 
 
+def _has_changes_to_commit() -> bool:
+    """
+    Return whether `git commit -a` would commit something.
+
+    This is false when `git merge` already created the merge commit (or did
+    nothing because the branch is up to date), since committing then fails with
+    "nothing to commit".
+
+    Untracked files are ignored, since `_add_all_untracked_files()` stages the
+    ones that must be committed.
+
+    :return: True if there are staged or modified tracked files to commit
+    """
+    _, txt = hsystem.system_to_string("git status --porcelain -uno")
+    return txt.strip() != ""
+
+
 # #############################################################################
 # Preview
 # #############################################################################
@@ -349,8 +366,15 @@ def _git_merge_master(
         # hook), which the pre-commit hook refuses to commit.
         _add_all_untracked_files(exclude_tmp=True)
         _LOG.info("Auto-merge enabled: committing and pushing changes")
-        cmd = 'git commit -am "Merge master" && git push'
-        hsystem.system(cmd, suppress_output=False)
+        # A clean `git merge` already creates the merge commit, and `git commit`
+        # fails when there is nothing to commit, so commit only if needed. Push
+        # in any case to publish the merge commit.
+        if _has_changes_to_commit():
+            cmd = 'git commit -am "Merge master"'
+            hsystem.system(cmd, suppress_output=False)
+        else:
+            _LOG.info("Nothing to commit: the merge is already committed")
+        hsystem.system("git push", suppress_output=False)
 
 
 # #############################################################################

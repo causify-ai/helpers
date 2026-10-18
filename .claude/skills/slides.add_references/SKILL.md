@@ -11,7 +11,10 @@ model: sonnet
 
 ## Find References
 - If `<FILE>` already has references to technical papers, give priority to
-  those references (e.g., at the beginning in the form of `//` comments)
+  those references (e.g., in the `* References` slide at the end)
+
+- Do not add references as `//` comments: add them to the `* References` slide
+  following `.claude/skills/slides.rules.md` "References Slide"
 
 - Add supporting references, following the source types and retrieval
   methods in `.claude/skills/references.rules.md`

@@ -137,6 +137,9 @@
 - HiringMeister: create a task on Asana in the
   [Hiring](https://app.asana.com/1/1208196877870190/project/1208280136292379/list/1208280159230261)
   project
+  - See
+    [`all.asana_process.how_to_guide.md`](../work_organization/all.asana_process.how_to_guide.md)
+    for how we use Asana to track projects
   - The task goes in the "Onboarding" section
   - The name of the task is the name of the intern
   - In the task description, use the following template:

@@ -297,7 +297,7 @@ Normal
 * Two columns (template)
 
 ::: columns
-:::: {.column width=55%}
+:::: {.column width=60%}
 
 ::::
 :::: {.column width=40%}

@@ -39,7 +39,7 @@
   - Tutorials
 
 - This document is geared towards humans, while the style guide 
-  [`//helpers/docs/code_guidelines/all.coding_style_guidelines.reference.md`]
+  [`//helpers/docs/coding/all.coding_style_guidelines.reference.md`]
   is for non-human users (e.g., `linter` and `ai_review.py`)
 
 ## Meta

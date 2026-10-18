@@ -399,11 +399,11 @@ flowchart LR
   > open htmlcov/index.html
   ```
 
-  <img src="../../code_guidelines/figs/unit_tests/image_1.png">
+  <img src="../../coding/figs/unit_tests/image_1.png">
 
 - By clicking on a file you can see which lines are not covered
 
-  <img src="../../code_guidelines/figs/unit_tests/image_2.png">
+  <img src="../../coding/figs/unit_tests/image_2.png">
 
 #### An Example Coverage Session
 
@@ -776,7 +776,7 @@ flowchart LR
     ```
     - Note that the indentation matters since it's a YAML file
 
-      <img src="../../code_guidelines/figs/unit_tests/image_3.png">
+      <img src="../../coding/figs/unit_tests/image_3.png">
     - The `-s --dbg` is to show `_LOG.debug` in case you care about that to get
       more information
   - Commit the code to your branch (not in master, please) since GH runs tests

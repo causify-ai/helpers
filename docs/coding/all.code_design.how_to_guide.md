@@ -277,12 +277,12 @@ Invariants and conventions
   - "... keeps investors at bay"
   - At least 1 PR a day
   - Draft architectural PR when in doubt
-    <img src="all.code_design.how_to_guide_figs/image2.png" />
+    <img src="figs/code_design/image2.png" />
   - Break work in smaller chunks (multiple PRs per bug)
 
 - Go for a skateboard
   - = something that works end-to-end
-    <img src="all.code_design.how_to_guide_figs/image1.png" />
+    <img src="figs/code_design/image1.png" />
 
 - 1 PR per day
 - Even if it's not complete (do a draft)

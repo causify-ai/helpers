@@ -734,7 +734,7 @@ self.assert_equal(act, exp, fuzzy_match=True)
   you focus on what's important to test and force you to use an iterative
   approach rather than incremental (remember the Monalisa)
 
-  <img src="../../code_guidelines/figs/unit_tests/image_4.png">
+  <img src="../../coding/figs/unit_tests/image_4.png">
 
 #### Write a template of unit tests and ask for a review if you are not sure how what to test
 

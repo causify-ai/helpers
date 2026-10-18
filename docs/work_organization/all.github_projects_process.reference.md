@@ -1,19 +1,3 @@
-<!-- toc -->
-
-- [GitHub Projects process](#github-projects-process)
-  * [Overview](#overview)
-  * [GH project structure](#gh-project-structure)
-    + [Issue fields](#issue-fields)
-    + [How to set up a new project](#how-to-set-up-a-new-project)
-    + [Special types of project](#special-types-of-project)
-  * [Sprint process](#sprint-process)
-  * [Automation](#automation)
-    + [Built-in workflows](#built-in-workflows)
-    + [Github Actions automations](#github-actions-automations)
-  * [Parent and sub-issues](#parent-and-sub-issues)
-
-<!-- tocstop -->
-
 # GitHub Projects process
 
 ## Overview
@@ -55,6 +39,7 @@
 - Each view within a project contains specific fields:
   - **Assignee**
     - Names of people the issue is assigned to
+    - Use one accountable owner and name the collaborators in the issue
   - **Status**
     - What phase of the development the issue is in
     - We have 7 status options available that should be in sync within all
@@ -68,6 +53,9 @@
       - QA (Change being tested in QA)
   - **Label** (Bug, P0, P1)
     - Label assigned to the specific issue
+    - Priority and work type are separate from the status
+      - A high-priority issue is not necessarily blocked
+      - A blocked issue is not necessarily high priority
     - Current labels synced to all repos are located at
       [`/dev_scripts_helpers/github/labels/gh_issues_labels.yml`](/dev_scripts_helpers/github/labels/gh_issues_labels.yml)
   - **Estimate** in terms of "uninterrupted hours of work"
@@ -80,6 +68,7 @@
       time than expected
     - We are ok with doing our best to estimate and we are ok failing to meet
       our expectations, so that we can learn and improve
+    - Account for the available time of each person
   - **Sprint**
     - Which weekly sprint this issue belongs to
   - **Linked Pull Request**
@@ -87,6 +76,37 @@
 
 - It's possible to add new fields; the list above includes some of the agreed
   upon fields shared across all projects
+
+- Assignee and Status are required before work starts
+  - Sprint and Estimate are planning fields
+
+### Lean board with four statuses
+
+- Small teams can use a lean board instead of the 7 statuses above
+  - Review is tracked through the PR, so there is no separate In Review, QA, or
+    Paused status
+
+- The four statuses are:
+  - **Todo**: Work has not started
+    - Add a scoped issue with acceptance criteria
+  - **In Progress**: Work is active, including implementation, testing, or PR
+    review
+    - Keep the issue here while it awaits normal review or while addressing PR
+      feedback
+  - **Blocked**: Work cannot proceed because of a dependency or an unresolved
+    decision
+    - Record the blocker, who can resolve it, and the next action
+    - Use the template in
+      [all.use_github.how_to_guide.md](/docs/work_organization/all.use_github.how_to_guide.md#updating-an-issue)
+  - **Done**: The Definition of Done is met
+    - See
+      [all.scrum.explanation.md](/docs/work_organization/all.scrum.explanation.md#definition-of-done)
+
+- Rules for moving an issue
+  - When a blocker clears, return the issue to In Progress, or to Todo if the
+    work has not started
+  - Work that is deliberately deferred goes to Todo with an explanation
+  - Do not call an issue blocked unless a dependency prevents progress
 
 ### How to set up a new project
 
@@ -148,6 +168,17 @@
     status to the other departments and Team leaders
   - E.g., on Asana we can do high level planning and track work that is not
     ready yet to be filed as GH Issues, similar to what we do with Google Docs
+  - See [`all.asana_process.how_to_guide.md`](all.asana_process.how_to_guide.md)
+    for how we use Asana to track projects
+
+- Create the milestones of the project
+  - Create each milestone in both GitHub and Asana, with the same name and date
+    - In GitHub, use the `Milestones` page of the repository
+    - In Asana, use a milestone task in the project
+  - Each milestone is a deliverable that a person can run or demo
+    - See "Create an End-to-End Plan" in
+      [`all.plan_work.how_to_guide.md`](/docs/planning/all.plan_work.how_to_guide.md#create-an-end-to-end-plan)
+  - Link the milestone to the section of the master plan, do not copy the plan
 
 - In general there is not a clear cut distinction between what goes in GH
   Project, GH Issues, Asana tasks, Google Docs planning
@@ -216,7 +247,56 @@
     add status updates if needed, before broadcasting, to make sure we manage
     expectations.
 
+### Project-specific cadence
+
+- The sprint is one week long, but a project can pick its own start day
+  - The Sunday to Saturday schedule above is the default
+  - A project that uses a different schedule documents the following in its own
+    docs:
+    - The first and the last day of the sprint
+    - The day and the time of the weekly meeting
+    - The day of the status update
+  - E.g., the Noesis project uses Thursday to Wednesday sprints with a weekly
+    blocker meeting on Thursday
+- The weekly meeting to check blockers is described in
+  [all.scrum.explanation.md](/docs/work_organization/all.scrum.explanation.md#weekly-blocker-meeting)
+
+### Lean weekly summary
+
+- Small teams can use this template for the status update instead of the
+  Summary / Next steps format above:
+  ```text
+  Sprint: <first day> - <last day>
+  Goal:
+  Completed: issue / merged PR / evidence
+  Unfinished: issue / remaining work / carryover decision
+  Blockers: issue / cause / unblock owner / next action / follow-up date
+  Next sprint: goal / issues / owners
+  Weekly meeting decisions:
+  ```
+- Post it as a project status update
+  - If the feature is not available, post it in a linked issue
+
+### Carryover of unfinished issues
+
+- Record unfinished work as unfinished, even if most of the implementation is
+  complete
+- Carryover is not automatically committed to the next sprint
+  - Re-plan the carryover explicitly at the weekly meeting
+- The Sprint field holds a single iteration, so it is not the history of every
+  week spent on an issue
+  - Before moving an unfinished issue to a later sprint, record the previous
+    dates, the outcome, and the reason for the carryover in the status update
+    or in an issue comment
+- New urgent work can enter the sprint
+  - Record what was added and what was displaced
+
 ## Automation
+
+- Update the board manually unless a workflow has been verified on the project
+  - Do not assume that the automation of another organization exists in a new
+    project
+- Any automation must preserve the Definition of Done
 
 ### Built-in workflows
 
@@ -241,6 +321,11 @@
   [sprint_iteration.yml](https://github.com/causify-ai/cmamp/blob/master/.github/workflows/sprint_iteration.yml)
   is set up to move items in active projects from last sprint to current sprint
   at the beginning of each sprint.
+  - Do not roll over unfinished issues without recording the sprint outcome, see
+    [Carryover of unfinished issues](#carryover-of-unfinished-issues)
+  - An authorized project maintainer can configure the Sprint as an
+    [iteration field](https://docs.github.com/en/issues/planning-and-tracking-with-projects/understanding-fields/about-iteration-fields)
+    with a one-week duration and a project-specific start day
 - We have
   [sync_gh_issue_labels.py](https://github.com/causify-ai/helpers/tree/master/dev_scripts_helpers/github/sync_gh_issue_labels.py)
   to synchronize GitHub issue labels from a label inventory manifest file
@@ -256,3 +341,7 @@
   [sub-issues](https://docs.github.com/en/issues/tracking-your-work-with-issues/using-issues/adding-sub-issues)
   to breakdown complex or higher-level task into smaller chunks of works
 - Our current convention is _not_ to use this feature
+  - Break work that does not fit in a sprint into independently reviewable
+    issues
+  - Reference the related issues and use checklists for small steps
+  - Revisit the convention explicitly if hierarchical tracking becomes useful

@@ -30,7 +30,7 @@ some helpful tips and resources to guide you through your first review.
 ## Read Python Style Guide
 
 - Before submitting your code for review, we highly recommend that you read our
-  [Python Style Guide](/docs/code_guidelines/all.coding_style.how_to_guide.md),
+  [Python Style Guide](/docs/coding/all.coding_style.how_to_guide.md),
   which outlines the major conventions and best practices for writing Python
   code.
 - Adhering to these standards will help ensure that your code is easy to read,
@@ -170,7 +170,7 @@ some helpful tips and resources to guide you through your first review.
     avoid huge merge conflicts
 - You can also easily merge master into your branch by clicking on "Update
   branch" button on the PR page
-  <img src="/docs/code_guidelines/figs/submit_code_for_review/image1.png">
+  <img src="/docs/coding/figs/submit_code_for_review/image1.png">
 - **NEVER** press `Squash and merge` button yourself
   - You need to merge master branch into your branch - not vice verca!
   - This is a strictly Team Leaders' and Integrators' responsibility

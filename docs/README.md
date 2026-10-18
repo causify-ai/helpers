@@ -17,9 +17,8 @@ with active review tracking and executable documentation validation.
 
 - Processes
   - `onboarding`
-  - `general_background`
   - `work_organization`
-  - `work_tools`
+  - `tools`
   - `coding`
   - ...
 
@@ -76,7 +75,7 @@ with active review tracking and executable documentation validation.
 ## File description
 
 - Invariants:
-  - Files are organized by directory (e.g., `docs`, `docs/work_tools`)
+  - Files are organized by directory (e.g., `docs`, `docs/tools`)
   - Each file name uses the Diataxis naming convention
   - Each file name should be linked to the corresponding file as always
   - Files are organized in alphabetical order to make it easy to add more files
@@ -94,59 +93,67 @@ with active review tracking and executable documentation validation.
   ```
 
 - `docs/`
-  - Contains top-level references and guides for documentation, workflows, and
-    software components.
+  - Contains this README and topic directories with guides, references, and
+    explanations for development, processes, and tools.
 - `docs/build_system/`
   - Documents CI tools like Gitleaks, Semgrep, linters, and Pytest-Allure
     integrations for the build process.
-- `docs/code_guidelines/`
+- `docs/coding/`
   - Provides detailed how-to guides for writing clean, maintainable, and
     review-ready code with AI productivity tips.
 - `docs/documentation_meta/`
   - Explains documentation frameworks, diagrams, and tooling for producing
-    technical and reproducible docs.
-- `docs/general_background/`
-  - Offers foundational references like glossaries, abbreviations, and curated
-    reading materials.
+    technical and reproducible docs. Includes the Diataxis file templates.
 - `docs/onboarding/`
   - Comprehensive onboarding guides and checklists for developers, interns, and
-    contractors.
+    contractors. Also includes foundational references like abbreviations and
+    curated reading materials.
+- `docs/planning/`
+  - How to plan work: end-to-end plan of a project, PR loop, progress log, and PR
+    description template.
 - `docs/tools/`
-  - Guides for general-purpose development and infrastructure tools, including
-    code hygiene, IDEs, and APIs.
+  - Guides for general-purpose development and infrastructure tools, grouped by
+    topic. Holds the guide on evaluating external tools.
+  - `docs/tools/ai/`
+    - AI-assisted work with Claude Code: skills and rules hub, `auto_task`, AI
+      review flows, and code review tools.
+  - `docs/tools/codebase/`
+    - Codebase hygiene: clean-up scripts, import checks, and how to organize
+      imports and packages.
+  - `docs/tools/data/`
+    - Data formats and acquisition: Parquet with `pyarrow` and web crawling with
+      Selenium.
   - `docs/tools/dev_system/`
     - Focused on local development setup, environment configuration, dependency
       management, and repo orchestration.
   - `docs/tools/docker/`
     - Docker usage guides for development workflows, including sibling
       containers, DockerHub, and helper containers.
-  - `docs/tools/documentation_toolchain/`
-    - Covers the pipeline for rendering images, LaTeX integration, and notebook
-      asset extraction for docs.
   - `docs/tools/git/`
-    - Git usage and automation guides, including hooks and helper integrations.
+    - Git and GitHub usage and automation, including hooks, Gitleaks, repo
+      integration, and the manual PR flow.
   - `docs/tools/helpers/`
     - Small helper modules and utilities, like caching, playback, dataframes, and
       interactive grids.
-  - `docs/tools/jupyter_notebooks/`
-    - Jupyter-specific enhancements, including TOC creation, Jupytext usage, and
-      markdown publishing.
+  - `docs/tools/ide/`
+    - Setup and usage of PyCharm and Visual Studio Code.
+  - `docs/tools/invoke/`
+    - Invoke task workflows, including printing a bash tree and copying a Git
+      branch.
   - `docs/tools/linter/`
     - Development and customization of linters and link fixers for markdown
       content.
   - `docs/tools/notebooks/`
     - Guides for managing and plotting data in Jupyter notebooks, including
       pandas and publishing.
+  - `docs/tools/security/`
+    - Secure access and storage: SSH usage and VeraCrypt encrypted volumes.
+  - `docs/tools/testing_profiling/`
+    - Test coverage with Codecov and subprocess/Docker coverage, plus profiling
+      Python code.
   - `docs/tools/thin_environment/`
     - Documentation of lightweight Python environments for GitHub and CI/CD
       pipelines.
-  - `helpers/test/docs/`
-    - Unit testing practices: writing, structuring, and executing tests
-      effectively.
 - `docs/work_organization/`
   - Team process documentation: roles, workflows, feedback, issue tracking, and
     collaboration practices like Scrum and Kaizen.
-
-- Review:
-  - GP, 2025-05-09
-  - GP, 2024-08-11

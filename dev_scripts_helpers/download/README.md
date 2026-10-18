@@ -126,15 +126,27 @@
   PDF already saved locally
 - Saves the paper with a standardized base name, e.g.,
   `2016.Ribeiro_et_al.Why_Should_I_Trust_You...`, shared across the `.pdf`, `.md`,
-  and `.summary.md` outputs
+  and summary outputs (`.short.md`, `.structured.md`, `.up_to_l<N>.md`, or
+  `.all.md`)
 - Converts the PDF to Markdown and summarizes it
   - The summary uses the default LLM model, an OpenRouter one: use `--model` to
     change it (see "LLM Model")
-  - `--summary_type short` (default) writes 7-10 bullet points with no structure
+  - `--summary_type short` (default) writes 7-10 bullet points with no structure,
+    to `<base>.short.md`
   - `--summary_type structured` writes a level-1 header for each main section of the
-    paper, with bullet points under it
+    paper, with bullet points under it, to `<base>.structured.md`
     - The sections are inferred from the content, since the headers of a markdown
       converted from a PDF are unreliable
+  - `--summary_type up_to_l1` is the same as `structured`: it is saved to
+    `<base>.structured.md`
+  - `--summary_type up_to_l2` and `up_to_l3` keep the headers of the paper up to
+    level 2 or 3, with bullet points under each header, and write them to
+    `<base>.up_to_l2.md` and `<base>.up_to_l3.md`
+  - `--summary_type all` writes `short` and `structured` to the single file
+    `<base>.all.md`, a `// Short` section followed by a `// Structured` section,
+    with one LLM call per type
+  - A run always generates a single summary file (and its `.stat.json` file),
+    whatever the `--summary_type`
 - For a DOI, queries CrossRef for the metadata and Unpaywall for an open-access PDF
   - Unpaywall requires a real contact email, passed with `--email`
   - Without `--email`, the Unpaywall lookup is skipped: the paper can still be named
@@ -156,11 +168,23 @@
   - Chrome is started if it is not running, and closed after the download: a Chrome
     that was already running is left open
   - If a check needs a person (e.g., a CAPTCHA), complete it in the Chrome window
-- The opt-in `save_to_papers_dir` action copies the PDF and the summary to the
-  papers dir (`--papers_dir`, default `/Users/saggese/src/notes1/papers`)
+- The opt-in `save_to_papers_dir` action copies the PDF and the summary of the paper
+  to the papers dir (`--papers_dir`, default `/Users/saggese/src/notes1/papers`)
   - Enable it with `--action save_to_papers_dir`: it runs after `summarize`
-  - If the summary is missing (e.g., `summarize` was skipped), only the PDF is copied
-  - Existing files in the papers dir are skipped unless `--no_incremental` is passed
+  - The converted markdown `<base>.md` is not copied
+  - Only the PDF is required: a summary that does not exist (e.g., `.all.md` without
+    `--summary_type all`, or any summary if `summarize` was skipped) is not copied
+  - The PDF is always copied, replacing an old PDF in the papers dir
+  - The margins of the PDF in the papers dir are cropped with `pdfCropMargins -p 0`
+    (a tight bounding box of the content of each page), as `pdfCropMargins -mo -p 0`
+    does, but without leaving a `<name>_uncropped.pdf` backup
+    - It is on by default: turn it off with `--no_crop_pdf`
+    - The PDF in the output dir is left uncropped
+    - `pdfCropMargins` is installed by `uv run` through the inline dependencies of
+      the script
+  - The existing summaries in the papers dir are skipped (they can have been edited
+    there) unless `--no_incremental` is passed
+  - Figures extracted with `--extract_figures` are not copied
 
 #### Examples
 - Download from an arXiv URL (runs download, convert, summarize by default):
@@ -188,7 +212,7 @@
   ```
 
 - Use a local PDF with an explicit base name (produces `mypaper.pdf`, `mypaper.md`,
-  `mypaper.summary.md`):
+  `mypaper.short.md`):
   ```bash
   > download_academic_paper_to_md.py \
       --input ~/Downloads/ssrn_5277078.pdf \
@@ -206,6 +230,23 @@
   > download_academic_paper_to_md.py \
       --input "10.1038/nature12373" \
       --summary_type structured
+  ```
+
+- Keep the headers of the paper up to level 2 (`up_to_l1` is `structured`), saved to
+  `<base>.up_to_l2.md`:
+  ```bash
+  > download_academic_paper_to_md.py \
+      --input "10.1038/nature12373" \
+      --summary_type up_to_l2
+  ```
+
+- Generate both the short and the structured summary in the single file
+  `mypaper.all.md`, with a `// Short` and a `// Structured` section:
+  ```bash
+  > download_academic_paper_to_md.py \
+      --input "10.1038/nature12373" \
+      --output ./my_papers/mypaper \
+      --summary_type all
   ```
 
 - Only download and convert, skip summarization:
@@ -230,7 +271,8 @@
       --action summarize
   ```
 
-- Also copy the PDF and the summary to the papers dir:
+- Also copy the PDF (cropped margins) and the summary to the papers dir, without
+  the converted markdown:
   ```bash
   > download_academic_paper_to_md.py \
       --input "https://arxiv.org/abs/1706.03762" \
@@ -243,6 +285,14 @@
       --input "https://arxiv.org/abs/1706.03762" \
       --action save_to_papers_dir \
       --papers_dir ./my_papers
+  ```
+
+- Copy the PDF to the papers dir without cropping its margins:
+  ```bash
+  > download_academic_paper_to_md.py \
+      --input "https://arxiv.org/abs/1706.03762" \
+      --action save_to_papers_dir \
+      --no_crop_pdf
   ```
 
 - Show what would be done without downloading, converting, or summarizing:
@@ -630,7 +680,7 @@
      > download_academic_paper_to_md.py \
          --input "https://papers.ssrn.com/sol3/papers.cfm?abstract_id=5277078"
      ```
-  2. Find `<base>.pdf`, `<base>.md`, and `<base>.summary.md` under `$PAPERS_DIR` (or
+  2. Find `<base>.pdf`, `<base>.md`, and `<base>.short.md` under `$PAPERS_DIR` (or
      the current directory)
 
 - **Notes**:
