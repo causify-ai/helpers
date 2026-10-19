@@ -7,13 +7,13 @@ import dev_scripts_helpers.git.test.test_git_create_issue_and_branch as dsggtgia
 """
 
 import json
-import unittest.mock as mock
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
+from unittest import mock
 
-import helpers.hprint as hprint
+import dev_scripts_helpers.git.git_create_issue_and_branch as dshggciab
 import helpers.hunit_test as hunitest
 import helpers.hunit_test_utils as hunteuti
-import dev_scripts_helpers.git.git_create_issue_and_branch as dshggciab
+from helpers import hprint
 
 
 def _make_is_clean_side_effect(clean_dir_name: str):
@@ -36,7 +36,7 @@ def _make_is_clean_side_effect(clean_dir_name: str):
 
 
 def _make_system_to_string_side_effect(
-    projects: List[Dict[str, Any]], cmds: List[str]
+    projects: list[dict[str, Any]], cmds: list[str]
 ):
     """
     Build a `hsystem.system_to_string()` side effect that records each command.
@@ -50,9 +50,7 @@ def _make_system_to_string_side_effect(
         side_effect=...)`
     """
 
-    def system_to_string_side_effect(
-        cmd: str, **kwargs: Any
-    ) -> Tuple[int, str]:
+    def system_to_string_side_effect(cmd: str, **kwargs: Any) -> tuple[int, str]:
         _ = kwargs
         cmds.append(cmd)
         if cmd.startswith("gh project list"):
@@ -76,7 +74,7 @@ class Test__get_repo_targets(hunitest.TestCase):
     Test `git_create_issue_and_branch._get_repo_targets()`.
     """
 
-    def _helper(self, submodules: bool, expected: List[str]) -> None:
+    def _helper(self, submodules: bool, expected: list[str]) -> None:
         """
         Run `_get_repo_targets()` with a submodule present and check the result.
 
@@ -155,11 +153,13 @@ class Test__dassert_all_targets_clean(hunitest.TestCase):
         repo_targets = [".", "helpers_root"]
         is_clean_side_effect = _make_is_clean_side_effect(clean_dir_name)
         # Run test and check outputs.
-        with mock.patch(
-            "helpers.hgit.is_client_clean", side_effect=is_clean_side_effect
+        with (
+            mock.patch(
+                "helpers.hgit.is_client_clean", side_effect=is_clean_side_effect
+            ),
+            self.assertRaises(AssertionError),
         ):
-            with self.assertRaises(AssertionError):
-                dshggciab._dassert_all_targets_clean(repo_targets)
+            dshggciab._dassert_all_targets_clean(repo_targets)
 
     def test1(self) -> None:
         """
@@ -211,13 +211,15 @@ class Test__dassert_all_targets_on_master(hunitest.TestCase):
         # Prepare inputs.
         repo_targets = [".", "helpers_root"]
         # Run test and check outputs.
-        with mock.patch(
-            "helpers.hgit.get_branch_name", return_value=mocked_branch_name
+        with (
+            mock.patch(
+                "helpers.hgit.get_branch_name", return_value=mocked_branch_name
+            ),
+            self.assertRaises(AssertionError),
         ):
-            with self.assertRaises(AssertionError):
-                dshggciab._dassert_all_targets_on_master(
-                    repo_targets, original_branch
-                )
+            dshggciab._dassert_all_targets_on_master(
+                repo_targets, original_branch
+            )
 
     def test1(self) -> None:
         """
@@ -267,8 +269,8 @@ class Test__resolve_gh_project(hunitest.TestCase):
     def _helper(
         self,
         gh_project: str,
-        projects: List[Dict[str, Any]],
-        expected: Tuple[str, int],
+        projects: list[dict[str, Any]],
+        expected: tuple[str, int],
         expected_cmd: str,
     ) -> None:
         """
@@ -304,7 +306,7 @@ class Test__resolve_gh_project(hunitest.TestCase):
         """
         # Prepare inputs.
         gh_project = "https://github.com/users/gpsaggese/projects/4"
-        projects: List[Dict[str, Any]] = []
+        projects: list[dict[str, Any]] = []
         # Prepare outputs.
         expected = ("gpsaggese", 4)
         expected_cmd = ""
@@ -318,7 +320,7 @@ class Test__resolve_gh_project(hunitest.TestCase):
         """
         # Prepare inputs.
         gh_project = "https://github.com/orgs/causify-ai/projects/12/views/1"
-        projects: List[Dict[str, Any]] = []
+        projects: list[dict[str, Any]] = []
         # Prepare outputs.
         expected = ("causify-ai", 12)
         expected_cmd = ""
@@ -353,13 +355,13 @@ class Test__resolve_gh_project(hunitest.TestCase):
         output = json.dumps({"projects": projects, "totalCount": 1})
         repo_full_name_with_host = "github.com/gpsaggese/umd_classes"
         # Run test and check for error.
-        with mock.patch(
-            "helpers.hsystem.system_to_string", return_value=(0, output)
+        with (
+            mock.patch(
+                "helpers.hsystem.system_to_string", return_value=(0, output)
+            ),
+            self.assertRaises(AssertionError),
         ):
-            with self.assertRaises(AssertionError):
-                dshggciab._resolve_gh_project(
-                    gh_project, repo_full_name_with_host
-                )
+            dshggciab._resolve_gh_project(gh_project, repo_full_name_with_host)
 
     def test5(self) -> None:
         """
@@ -375,13 +377,13 @@ class Test__resolve_gh_project(hunitest.TestCase):
         output = json.dumps({"projects": projects, "totalCount": 2})
         repo_full_name_with_host = "github.com/gpsaggese/umd_classes"
         # Run test and check for error.
-        with mock.patch(
-            "helpers.hsystem.system_to_string", return_value=(0, output)
+        with (
+            mock.patch(
+                "helpers.hsystem.system_to_string", return_value=(0, output)
+            ),
+            self.assertRaises(AssertionError),
         ):
-            with self.assertRaises(AssertionError):
-                dshggciab._resolve_gh_project(
-                    gh_project, repo_full_name_with_host
-                )
+            dshggciab._resolve_gh_project(gh_project, repo_full_name_with_host)
 
 
 # #############################################################################
@@ -531,9 +533,7 @@ class Test_create_worktree(hunitest.TestCase):
     Tests for `_create_worktree()` function.
     """
 
-    def _helper(
-        self, submodule_paths: Optional[List[str]], expected: str
-    ) -> None:
+    def _helper(self, submodule_paths: list[str] | None, expected: str) -> None:
         """
         Run `_create_worktree()` and check the captured system calls and the
         returned worktree path.
@@ -627,7 +627,7 @@ class Test_git_create_issue_and_branch_py(hunitest.TestCase):
     End-to-end tests for the `git_create_issue_and_branch.py` executable.
     """
 
-    def _run_main(self, argv: List[str]) -> None:
+    def _run_main(self, argv: list[str]) -> None:
         """
         Run `_main()` with a mocked `sys.argv`.
 
@@ -947,9 +947,9 @@ class Test_git_create_issue_and_branch_py(hunitest.TestCase):
                 "helpers.hgit.is_client_clean",
                 side_effect=is_clean_side_effect,
             ),
+            self.assertRaises(AssertionError),
         ):
-            with self.assertRaises(AssertionError):
-                self._run_main(argv)
+            self._run_main(argv)
         # Check outputs: nothing should have been created anywhere.
         expected = "[]"
         hunteuti.assert_sys_calls(self, invocations, expected)
@@ -979,9 +979,9 @@ class Test_git_create_issue_and_branch_py(hunitest.TestCase):
                 "helpers.hgit.is_client_clean",
                 side_effect=is_clean_side_effect,
             ),
+            self.assertRaises(AssertionError),
         ):
-            with self.assertRaises(AssertionError):
-                self._run_main(argv)
+            self._run_main(argv)
         # Check outputs: nothing should have been created anywhere.
         expected = "[]"
         hunteuti.assert_sys_calls(self, invocations, expected)
@@ -1011,9 +1011,9 @@ class Test_git_create_issue_and_branch_py(hunitest.TestCase):
                 "helpers.hgit.get_branch_name",
                 side_effect=["HelpersTask999_Other", "master"],
             ),
+            self.assertRaises(AssertionError),
         ):
-            with self.assertRaises(AssertionError):
-                self._run_main(argv)
+            self._run_main(argv)
         # Check outputs: nothing should have been created anywhere.
         expected = "[]"
         hunteuti.assert_sys_calls(self, invocations, expected)
@@ -1043,9 +1043,9 @@ class Test_git_create_issue_and_branch_py(hunitest.TestCase):
                 "helpers.hgit.get_branch_name",
                 side_effect=["master", "HelpersTask999_Other"],
             ),
+            self.assertRaises(AssertionError),
         ):
-            with self.assertRaises(AssertionError):
-                self._run_main(argv)
+            self._run_main(argv)
         # Check outputs: nothing should have been created anywhere.
         expected = "[]"
         hunteuti.assert_sys_calls(self, invocations, expected)
@@ -1169,7 +1169,7 @@ class Test_git_create_issue_and_branch_py(hunitest.TestCase):
             {"number": 2, "title": "Other"},
             {"number": 4, "title": "Optimal_strategy_for_racket_sports"},
         ]
-        cmds: List[str] = []
+        cmds: list[str] = []
         system_to_string_side_effect = _make_system_to_string_side_effect(
             projects, cmds
         )
@@ -1230,7 +1230,7 @@ class Test_git_create_issue_and_branch_py(hunitest.TestCase):
             "Missing_project",
         ]
         projects = [{"number": 2, "title": "Other"}]
-        cmds: List[str] = []
+        cmds: list[str] = []
         system_to_string_side_effect = _make_system_to_string_side_effect(
             projects, cmds
         )
