@@ -31,6 +31,7 @@
     + [Checking what work has been done in a branch](#checking-what-work-has-been-done-in-a-branch)
     + [Checking if you need to merge `master` into your feature branch](#checking-if-you-need-to-merge-master-into-your-feature-branch)
     + [Comparing the difference of a directory among branches](#comparing-the-difference-of-a-directory-among-branches)
+    + [Work in a Worktree](#work-in-a-worktree)
     + [Resources](#resources)
   * [Merging `master`](#merging-master)
   * [Rebasing](#rebasing)
@@ -535,6 +536,34 @@
   vendors/first_rate/utils.py
   vendors/test/test_vendors.py
   ```
+
+#### Work in a Worktree
+
+- A worktree is a second dir of the same repo, checked out on its own branch
+  - Your main dir stays as it is, e.g., to keep a Jupyter session running
+- Create a worktree with a new branch from the latest `master`
+  ```bash
+  > git fetch origin master
+  > git worktree add -b <BRANCH> <DIR> origin/master
+  ```
+- A new worktree has empty submodule dirs: fill them
+  ```bash
+  > cd <DIR>
+  > git submodule update --init
+  ```
+  - If you have no SSH key for GitHub, fetch the submodules over HTTPS
+    ```bash
+    > git -c url."https://github.com/".insteadOf="git@github.com:" \
+        submodule update --init
+    ```
+- When the PR is merged, remove the worktree
+  - The branch is not deleted
+  ```bash
+  > git worktree remove <DIR>
+  ```
+- `git_create_issue_and_branch.py` creates the issue and the branch / worktree
+  in one step, see
+  [`all.manual_flow.how_to_guide.md`](/docs/tools/git/all.manual_flow.how_to_guide.md)
 
 #### Resources
 

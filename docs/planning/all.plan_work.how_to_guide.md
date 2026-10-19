@@ -94,6 +94,9 @@
   - See
     [`all.submit_code_for_review.how_to_guide.md`](../coding/all.submit_code_for_review.how_to_guide.md#stick-to-smaller-prs)
     and the template `.claude/templates/github_PR_plan.template.md`
+- Do a task step by step with Claude Code
+  - See
+    [`all.create_pr_with_claude_code.how_to_guide.md`](../tools/ai/all.create_pr_with_claude_code.how_to_guide.md)
 - Delegate a task list to an AI agent with the `auto_task` flow
   - See [`all.auto_task.how_to_guide.md`](../tools/ai/all.auto_task.how_to_guide.md)
 
@@ -225,10 +228,31 @@
   - The model or provider identity, when relevant
   - The observed results and the limitations
   - The links to the evidence
+- Write dates in UTC, as GitHub reports them
 - Link the record from its issue and PR
 - Do not commit secrets, private data, or large raw artifacts without an agreed
   storage approach
 - Update the log in the PR that finishes the task
+
+### Log Entry per PR
+
+- When a History row is too short for a PR, replace the table with one section
+  per merged PR
+  - Add each new section after the older ones, so the newest is the last
+- Use this skeleton for each section:
+  ```markdown
+  ## <date>: <PR title>
+
+  - **Issue**: <link>, closed by the PR
+  - **PR**: <link>, by <author>, opened <date>, merged <date>
+  - **Milestone**: <milestone, or none>
+  - **What was done**: <one bullet per change>
+  - **Testing**: <what was run, with the results>
+  - **CI note**: <failing checks that the PR did not cause, and why>
+  - **Note**: <how AI was used, and that the author reviewed every change>
+  ```
+- Keep an `## Open Work` section above the entries
+  - List the open issues and PRs, with one line on each
 
 ### Record Decisions
 
@@ -275,6 +299,9 @@
      [Keep a Progress Log](#keep-a-progress-log)
   4. **Task rule**: execute only the tasks that are in the master plan
      - Create the GitHub issue for a task before starting it
+     - Post an ETA in the issue when you take the task, and update it when it
+       changes, see
+       [Sync-ups](../work_organization/all.team_collaboration.how_to_guide.md#sync-ups)
   5. **AI rule**: which Claude skills to use in which step of the loop, see
      [`all.ai_workflows.how_to_guide.md`](../tools/ai/all.ai_workflows.how_to_guide.md)
      - Using AI is fine, but the author must be able to explain every line of
@@ -289,6 +316,8 @@
      - Never keep a decision only in Slack
 - Treat a bulleted task list in an issue or in a review comment as work to do
   - Track each item in GitHub and mark it as done there
+  - Tick each box with a short link to the result, e.g.,
+    `- [x] Update the master plan: PR #123`
   - Create a separate issue for each large item
 - Update the meta-doc when the process changes
 
@@ -313,10 +342,12 @@
 
   ## Evidence
   - Tests added (count, what they cover) and the command to run them
+  - Pass and fail counts of the full test suite, before and after the change
   - Any live check (what was called, result, cost)
 
   ## Not in This PR
   - Deliberately deferred items, and where they are tracked
+  - Problems found in existing code that this PR does not fix
 
   ## Questions for Reviewers
   - Anything you want the reviewer's opinion on
@@ -337,6 +368,8 @@
   [`all.submit_code_for_review.how_to_guide.md`](../coding/all.submit_code_for_review.how_to_guide.md)
 - Code review:
   [`all.code_review.how_to_guide.md`](../coding/all.code_review.how_to_guide.md)
+- Doing a task with Claude Code, from task to PR:
+  [`all.create_pr_with_claude_code.how_to_guide.md`](../tools/ai/all.create_pr_with_claude_code.how_to_guide.md)
 - Delegating tasks to AI agents:
   [`all.auto_task.how_to_guide.md`](../tools/ai/all.auto_task.how_to_guide.md)
 - Claude skills and rules:
