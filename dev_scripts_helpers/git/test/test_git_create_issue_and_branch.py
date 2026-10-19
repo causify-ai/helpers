@@ -1251,9 +1251,9 @@ class Test_git_create_issue_and_branch_py(hunitest.TestCase):
                 "helpers.lib_tasks.lib_tasks_gh._get_repo_full_name_from_cmd",
                 return_value=("github.com/gpsaggese/umd_classes", "umd_classes"),
             ),
+            self.assertRaises(AssertionError),
         ):
-            with self.assertRaises(AssertionError):
-                self._run_main(argv)
+            self._run_main(argv)
         # Check outputs: only the project lookup ran, no issue was created.
         expected_cmds = [
             "gh project list --owner gpsaggese --limit 200 --format json",
