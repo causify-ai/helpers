@@ -158,6 +158,7 @@ text
     ```
     - Extract with higher DPI for better image quality:
     ```
+- Do not use the section sign (U+00A7): write `Sec. 5.1` to refer to a section
 - Do not use &
   - **Bad**:
     ```

@@ -21,8 +21,9 @@ ignore = ["E731"]
 [tool.ruff.lint.per-file-ignores]
 # Tutorial notebooks paired with jupytext have code cells before imports.
 # E402: Module level import not at top of file
-"**/tutorials/**/*.py" = ["E402"]
-"**/tutorials/**/*.ipynb" = ["E402"]
+# N999: Invalid module name (tutorial files are named like `L05_01_01_*.py`)
+"**/tutorials/**/*.py" = ["E402", "N999"]
+"**/tutorials/**/*.ipynb" = ["E402", "N999"]
 
 [tool.pyrefly]
 # Currently, Pyrefly doesn't officially support [tool.pyrefly] config

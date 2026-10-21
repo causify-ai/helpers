@@ -65,7 +65,7 @@ model: opus
 - Follow the rules in `.claude/skills/markdown.rules.md` and
   `.claude/skills/text.rules.md`
 - Save the result in a file `spec.<TOPIC>.md` in the current directory
-  - E.g., to spec out `PR_P2b` from `plan.Noesis.md`, save `spec.PR_P2b.md`
+  - E.g., to spec out `PR_P2b` from `plan.md`, save `spec.PR_P2b.md`
   - Do not name it `plan.<TOPIC>.md`: that name is reserved for the roadmap
     document that lists PRs, not for a single PR's spec
 - Do not implement any code: describe the architecture only
