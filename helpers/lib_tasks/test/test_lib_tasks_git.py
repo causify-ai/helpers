@@ -5,17 +5,13 @@ import os
 import unittest.mock as umock
 from typing import Any
 
-
-import helpers.hgit as hgit
-import helpers.hio as hio
-import helpers.hprint as hprint
 import helpers.hselect_input_output as hseinout
-import helpers.hsystem as hsystem
 import helpers.hunit_test as hunitest
 import helpers.hunit_test_utils as hunteuti
 import helpers.lib_tasks.lib_tasks_gh as hltltagh
 import helpers.lib_tasks.lib_tasks_git as hltltagi
 import helpers.lib_tasks.test.test_lib_tasks as httestlib
+from helpers import hgit, hio, hprint, hsystem
 
 # pylint: disable=protected-access
 
@@ -184,14 +180,14 @@ class Test_git_merge_master(hunitest.TestCase):
         Test that every non-default flag appends its own CLI option.
         """
         # Prepare inputs.
-        kwargs = dict(
-            abort_if_not_ff=True,
-            abort_if_not_clean=False,
-            skip_fetch=True,
-            auto_merge=False,
-            submodules=True,
-            dry_run=True,
-        )
+        kwargs = {
+            "abort_if_not_ff": True,
+            "abort_if_not_clean": False,
+            "skip_fetch": True,
+            "auto_merge": False,
+            "submodules": True,
+            "dry_run": True,
+        }
         # Prepare outputs.
         expected = """
         call('/repo/git_merge_master.py --abort_if_not_ff --no_abort_if_not_clean --skip_fetch --no_auto_merge --submodules --dry_run', echo=False)
@@ -265,46 +261,46 @@ class Test_git_add_all_untracked(hunitest.TestCase):
     Test `git_add_all_untracked()`.
     """
 
-    def helper(self, exclude_tmp: bool, expected: str) -> None:
+    def helper(self, kwargs: Any, expected: str) -> None:
         """
         Run `git_add_all_untracked()` and check the constructed command.
 
-        :param exclude_tmp: value forwarded to `git_add_all_untracked()`
+        :param kwargs: arguments forwarded to `git_add_all_untracked()`
         :param expected: expected single `ctx.run()` call
         """
         # Prepare inputs.
         ctx = httestlib._build_mock_context_returning_ok()
         # Run test.
-        hltltagi.git_add_all_untracked(ctx, exclude_tmp=exclude_tmp)
+        hltltagi.git_add_all_untracked(ctx, **kwargs)
         # Check outputs.
         actual = _get_ctx_run_calls(ctx)
         self.assert_equal(actual, expected, fuzzy_match=True, dedent=True)
 
     def test1(self) -> None:
         """
-        Test the default call does not filter out `tmp.*` files.
+        Test that the default call filters out `tmp.*` and `*.log` files.
         """
         # Prepare inputs.
-        exclude_tmp = False
-        # Prepare outputs.
-        expected = """
-        call('git ls-files -o --exclude-standard -z | xargs -0 git add', echo=False)
-        """
-        # Run test.
-        self.helper(exclude_tmp, expected)
-
-    def test2(self) -> None:
-        """
-        Test that `exclude_tmp=True` filters out `tmp.*` and `*.log` files.
-        """
-        # Prepare inputs.
-        exclude_tmp = True
+        kwargs = {}
         # Prepare outputs.
         expected = """
         call("git ls-files -o --exclude-standard -z | grep -zvE '(^|/)(tmp\\\\.[^/]*|[^/]*\\\\.log)$' | xargs -0 git add", echo=False)
         """
         # Run test.
-        self.helper(exclude_tmp, expected)
+        self.helper(kwargs, expected)
+
+    def test2(self) -> None:
+        """
+        Test that `add_all=True` does not filter out `tmp.*` and `*.log` files.
+        """
+        # Prepare inputs.
+        kwargs = {"add_all": True}
+        # Prepare outputs.
+        expected = """
+        call('git ls-files -o --exclude-standard -z | xargs -0 git add', echo=False)
+        """
+        # Run test.
+        self.helper(kwargs, expected)
 
     def test3(self) -> None:
         """
@@ -370,18 +366,18 @@ class Test_git_branch_create(hunitest.TestCase):
         Test that every non-default flag appends its own CLI option.
         """
         # Prepare inputs.
-        kwargs = dict(
-            branch_name="HelpersTask999_Foo",
-            issue_id=999,
-            repo_short_name="amp",
-            suffix="02",
-            only_branch_from_master=False,
-            check_branch_name=False,
-            create_pr=False,
-            abort_if_not_clean=False,
-            abort_if_not_master=False,
-            dry_run=True,
-        )
+        kwargs = {
+            "branch_name": "HelpersTask999_Foo",
+            "issue_id": 999,
+            "repo_short_name": "amp",
+            "suffix": "02",
+            "only_branch_from_master": False,
+            "check_branch_name": False,
+            "create_pr": False,
+            "abort_if_not_clean": False,
+            "abort_if_not_master": False,
+            "dry_run": True,
+        }
         # Prepare outputs.
         expected = """
         call('/repo/git_branch_create.py --branch_name HelpersTask999_Foo --issue_id 999 --repo_short_name amp --suffix 02 --no_only_branch_from_master --no_check_branch_name --no_create_pr --no_abort_if_not_clean --no_abort_if_not_master --dry_run', echo=False)
@@ -441,14 +437,14 @@ class Test_git_patch_create(hunitest.TestCase):
         Test that every non-default flag appends its own CLI option.
         """
         # Prepare inputs.
-        kwargs = dict(
-            mode="tar",
-            files="a.py b.py",
-            from_file="files.txt",
-            modified=True,
-            branch=True,
-            last_commit=True,
-        )
+        kwargs = {
+            "mode": "tar",
+            "files": "a.py b.py",
+            "from_file": "files.txt",
+            "modified": True,
+            "branch": True,
+            "last_commit": True,
+        }
         # Prepare outputs.
         expected = """
         call("/repo/git_patch_create.py --mode tar --files 'a.py b.py' --from_file files.txt --modified --branch --last_commit", echo=False)
@@ -727,11 +723,13 @@ class Test_git_branch_delete_merged(hunitest.TestCase):
         # Prepare inputs.
         ctx = httestlib._build_mock_context_returning_ok()
         # Run test and check output.
-        with umock.patch.object(
-            hgit, "get_branch_name", return_value="other_branch"
+        with (
+            umock.patch.object(
+                hgit, "get_branch_name", return_value="other_branch"
+            ),
+            self.assertRaises(AssertionError),
         ):
-            with self.assertRaises(AssertionError):
-                hltltagi.git_branch_delete_merged(ctx)
+            hltltagi.git_branch_delete_merged(ctx)
 
     def test3(self) -> None:
         """
@@ -834,11 +832,13 @@ class Test_git_branch_rename(hunitest.TestCase):
         # Prepare inputs.
         ctx = httestlib._build_mock_context_returning_ok()
         # Run test and check output.
-        with umock.patch.object(
-            hgit, "get_branch_name", return_value="HelpersTask1_Foo"
+        with (
+            umock.patch.object(
+                hgit, "get_branch_name", return_value="HelpersTask1_Foo"
+            ),
+            self.assertRaises(AssertionError),
         ):
-            with self.assertRaises(AssertionError):
-                hltltagi.git_branch_rename(ctx, "HelpersTask1_Foo")
+            hltltagi.git_branch_rename(ctx, "HelpersTask1_Foo")
 
     def test2(self) -> None:
         """
@@ -1075,6 +1075,7 @@ class Test_git_branch_copy(hunitest.TestCase):
         new_branch_name = "HelpersTask1_Foo_2"
         # Prepare outputs.
         expected = f"""
+        call('invoke git_add_all_untracked', echo=False)
         call('git clean -fd', echo=False)
         call('invoke git_merge_master --abort-if-not-ff --no-auto-merge', echo=False)
         call("git checkout master && invoke git_branch_create --branch-name '{new_branch_name}'", echo=False)
@@ -1207,6 +1208,7 @@ class Test_git_branch_copy(hunitest.TestCase):
         submodules = True
         # Prepare outputs.
         expected = f"""
+        call('invoke git_add_all_untracked', echo=False)
         call('git clean -fd', echo=False)
         call('invoke git_merge_master --abort-if-not-ff --no-auto-merge --submodules', echo=False)
         call("git checkout master && invoke git_branch_create --branch-name '{new_branch_name}'", echo=False)
@@ -1283,13 +1285,13 @@ class Test_git_branch_subset_copy(hunitest.TestCase):
         Test that every non-default flag appends its own CLI option.
         """
         # Prepare inputs.
-        kwargs = dict(
-            from_file="files.txt",
-            pr=17,
-            method="linear_scan",
-            dst_dir="/tmp/dst",
-            dry_run=True,
-        )
+        kwargs = {
+            "from_file": "files.txt",
+            "pr": 17,
+            "method": "linear_scan",
+            "dst_dir": "/tmp/dst",
+            "dry_run": True,
+        }
         # Prepare outputs.
         expected = """
         call('/repo/git_branch_subset_copy.py --from_file files.txt --pr 17 --method linear_scan --dst_dir /tmp/dst --dry_run', echo=False)
@@ -1349,20 +1351,20 @@ class Test_git_branch_diff(hunitest.TestCase):
         Test that every non-default flag appends its own CLI option.
         """
         # Prepare inputs.
-        kwargs = dict(
-            target="hash",
-            hash_value="deadbeef",
-            files="a.py b.py",
-            from_file="files.txt",
-            last_commit=True,
-            subdir="helpers",
-            include_submodules=True,
-            diff_type="M",
-            file_types="py",
-            skip_file_types="txt",
-            only_print_files=True,
-            dry_run=True,
-        )
+        kwargs = {
+            "target": "hash",
+            "hash_value": "deadbeef",
+            "files": "a.py b.py",
+            "from_file": "files.txt",
+            "last_commit": True,
+            "subdir": "helpers",
+            "include_submodules": True,
+            "diff_type": "M",
+            "file_types": "py",
+            "skip_file_types": "txt",
+            "only_print_files": True,
+            "dry_run": True,
+        }
         # Prepare outputs.
         expected = """
         call("/repo/git_branch_diff.py --target hash --hash_value deadbeef --files 'a.py b.py' --from_file files.txt --last_commit --subdir helpers --include_submodules --diff_type M --file_types py --skip_file_types txt --only_print_files --dry_run", echo=False, pty=True)
@@ -1669,12 +1671,12 @@ class Test_git_backup(hunitest.TestCase):
         Test that every non-default flag appends its own CLI option.
         """
         # Prepare inputs.
-        kwargs = dict(
-            file_mode="modified",
-            backup_dir="/tmp/backups",
-            include_subrepos=False,
-            dry_run=True,
-        )
+        kwargs = {
+            "file_mode": "modified",
+            "backup_dir": "/tmp/backups",
+            "include_subrepos": False,
+            "dry_run": True,
+        }
         # Prepare outputs.
         expected = """
         call('/repo/git_backup.py --file_mode modified --backup_dir /tmp/backups --no_include_subrepos --dry_run', echo=False)

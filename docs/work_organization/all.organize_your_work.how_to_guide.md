@@ -117,7 +117,7 @@
 
 ## Starting work
 
-- Read the onboarding docs, the plan of the project, the `how_we_work.md` of the
+- Read `onboarding.md`, `plan.md`, and `how_we_work.md` in the `docs/` dir of the
   project, and the acceptance criteria of the issue
   - See
     [Write a Project Meta-Doc](/docs/planning/all.plan_work.how_to_guide.md#write-a-project-meta-doc)

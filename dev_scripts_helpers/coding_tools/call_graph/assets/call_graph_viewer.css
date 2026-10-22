@@ -1,0 +1,148 @@
+:root {
+  --bg: #ffffff;
+  --panel: #f6f7f9;
+  --border: #d0d4da;
+  --text: #1f2328;
+  --muted: #6b7280;
+  --accent: #e65100;
+  --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  height: 100%;
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font: 13px/1.4 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+body { display: flex; flex-direction: column; }
+
+/* Toolbar. */
+#toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  background: var(--panel);
+  border-bottom: 1px solid var(--border);
+}
+#toolbar input, #toolbar select, #toolbar button {
+  font: inherit;
+  padding: 3px 6px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: #fff;
+}
+#toolbar button { cursor: pointer; }
+#toolbar button:hover { background: #eef1f5; }
+#search { width: 280px; }
+#search.bad { border-color: #c62828; background: #fdecea; }
+#radius { width: 56px; }
+#status { margin-left: auto; color: var(--muted); }
+
+/* Split view. */
+#main { flex: 1; display: flex; min-height: 0; }
+#graph-pane, #code-pane { position: relative; min-width: 0; height: 100%; }
+#cy { position: absolute; inset: 0; }
+.gutter {
+  background: var(--panel);
+  border-left: 1px solid var(--border);
+  border-right: 1px solid var(--border);
+  cursor: col-resize;
+}
+
+/* Legend. */
+#legend {
+  position: absolute;
+  left: 10px;
+  bottom: 10px;
+  display: flex;
+  gap: 12px;
+  padding: 4px 8px;
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  color: var(--muted);
+  pointer-events: none;
+}
+.lg { display: inline-block; width: 26px; height: 0; vertical-align: middle; border-top: 2px solid #555; }
+.lg-uses { border-top-style: dashed; }
+.lg-inherit { border-top-color: #1a237e; }
+.lg-compose { border-top-color: #1b5e20; }
+
+/* Code pane. */
+#code-pane { display: flex; flex-direction: column; }
+#code-head { padding: 8px 12px; border-bottom: 1px solid var(--border); background: var(--panel); }
+#code-title { font-weight: 600; font-family: var(--mono); word-break: break-all; }
+#code-file { color: var(--muted); font-family: var(--mono); font-size: 12px; }
+#related { margin-top: 6px; max-height: 120px; overflow: auto; }
+.rel-group { margin: 2px 0; }
+.rel-label { color: var(--muted); margin-right: 6px; }
+.chip {
+  display: inline-block;
+  margin: 1px 3px 1px 0;
+  padding: 0 6px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: #fff;
+  font: 12px var(--mono);
+  cursor: pointer;
+}
+.chip:hover { background: #fff3e0; border-color: var(--accent); }
+#code { flex: 1; overflow: auto; padding: 6px 0; font: 12px/1.5 var(--mono); }
+.ln { display: flex; }
+.ln .no {
+  flex: none;
+  width: 4.5em;
+  padding-right: 1em;
+  text-align: right;
+  color: #9aa1ab;
+  user-select: none;
+}
+.ln .tx { white-space: pre; }
+.ln.hl { background: #fff8d6; }
+.ln.hl-call { background: #ffe0b2; }
+
+/* Tooltip. */
+#tip {
+  position: fixed;
+  z-index: 100;
+  display: none;
+  max-width: 460px;
+  padding: 8px 10px;
+  background: #fff;
+  border: 1px solid #9aa1ab;
+  border-radius: 6px;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.18);
+  pointer-events: none;
+}
+#tip .sig { font: 12px var(--mono); font-weight: 600; word-break: break-all; }
+#tip .doc { margin-top: 4px; color: #374151; white-space: pre-wrap; }
+#tip .meta { margin-top: 4px; color: var(--muted); font-size: 12px; }
+#tip .list { margin-top: 4px; font: 12px var(--mono); white-space: pre; }
+
+/* UML class box drawn on top of the graph canvas (rows must be 15px high). */
+.cg-class {
+  background: #fffde7;
+  /* An inset shadow, not a border, so the box keeps the size computed in JS. */
+  box-shadow: inset 0 0 0 1.5px #5d4037;
+  font: 12px/15px var(--mono);
+  color: #212121;
+  overflow: hidden;
+  user-select: none;
+}
+.cg-class.sel { box-shadow: inset 0 0 0 2.5px var(--accent); }
+.cg-head { text-align: center; font-weight: 700; padding-top: 3px; }
+.cg-head .ster { display: block; font-weight: 400; font-size: 11px; line-height: 12px; }
+.cg-head.abs .nm { font-style: italic; }
+.cg-comp { padding: 3px 5px; border-top: 1px solid #5d4037; }
+.cg-row { height: 15px; line-height: 15px; white-space: pre; overflow: hidden; }
+.cg-row.static { text-decoration: underline; }
+.cg-row.abstract { font-style: italic; }
+.cg-row.hit { background: #ffe0b2; }
+.cg-row.sel { background: #ffb74d; font-weight: 700; }
+.cg-row.more { color: var(--muted); }

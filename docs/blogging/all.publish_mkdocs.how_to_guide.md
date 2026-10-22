@@ -29,14 +29,14 @@
 
 ## Overview
 
-At Causify, we use MkDocs with the Material theme to publish documentation for
-multiple projects. We have two main publishing methods:
+We use MkDocs with the Material theme to publish documentation for multiple
+projects. We have two main publishing methods:
 
 1. **Custom domain with S3** (e.g.,
-   [https://docs.causify.ai](https://docs.causify.ai)) - VPN-protected internal
+   `https://<docs_domain>`) - VPN-protected internal
    documentation
 2. **GitHub Pages** (e.g.,
-   [https://causify-ai.github.io/helpers](https://causify-ai.github.io/helpers)) -
+   `https://<org>.github.io/helpers`) -
    Public documentation
 
 Both methods follow the same structure and workflow, with only minor variations
@@ -53,16 +53,16 @@ in the deployment step.
 - S3 bucket for static hosting
 - CloudFront distribution (optional, for caching)
 - VPN → VPC → Load Balancer → S3 VPC Endpoint → S3 bucket
-- Custom subdomain (e.g., `docs.causify.ai`)
+- Custom subdomain (e.g., `<docs_domain>`)
 
 **Examples:**
 
-- Causify documentation: [https://docs.causify.ai](https://docs.causify.ai)
-- Causify blog: [https://blog.causify.ai](https://blog.causify.ai)
+- Project documentation: `https://<docs_domain>`
+- Blog: `https://<blog_domain>`
 
 **Workflow:** GitHub Action builds MkDocs → syncs to S3 → invalidates CloudFront
 cache
-**Example**:-[Causify doc Git Action](https://github.com/causify-ai/csfy/blob/master/.github/workflows/publish_mkdocs.yml)
+**Example**: Docs Git Action (`https://github.com/<org>/<site_repo>/blob/master/.github/workflows/publish_mkdocs.yml`)
 
 ### Option 2: Github Pages
 
@@ -77,7 +77,7 @@ cache
 **Examples:**
 
 - Helpers documentation:
-  [https://causify-ai.github.io/helpers](https://causify-ai.github.io/helpers)
+  `https://<org>.github.io/helpers`
 
 **Workflow:** GitHub Action builds MkDocs → pushes to `gh-pages` branch → GitHub
 Pages serves it
@@ -304,7 +304,7 @@ jobs:
 ```
 
 The workflow will automatically run on push to master! **Example**:
-[Csfy Repo docs Git Action](https://github.com/causify-ai/csfy/blob/master/.github/workflows/publish_mkdocs.yml)
+Docs Git Action (`https://github.com/<org>/<site_repo>/blob/master/.github/workflows/publish_mkdocs.yml`)
 
 ### Publish to Github Pages
 
@@ -379,13 +379,13 @@ git push origin master
 After the workflow completes:
 
 - Your site will be available at: `https://<org>.github.io/<repo>/`
-- Example: `https://causify-ai.github.io/helpers/`
+- Example: `https://<org>.github.io/helpers/`
 
 ## Mkdocs Configuration
 
 ### Example Mkdocs.Yml
 
-Here's a standard `mkdocs.yml` template used across all Causify documentation:
+Here's a standard `mkdocs.yml` template used across all documentation:
 
 ```text
 site_name: Your Site Name
@@ -438,7 +438,7 @@ extra_css:
 
 - **Required**: The name of your documentation site
 - Appears in the browser title and site header
-- Example: `"Helpers Documentation"`, `"Causify Docs"`
+- Example: `"Helpers Documentation"`, `"Project Docs"`
 
 **`site_url`**
 
@@ -449,7 +449,7 @@ extra_css:
 **`theme`**
 
 - We use Material theme for all documentation
-- Colors: `primary: black`, `accent: cyan` (Causify brand colors)
+- Colors: `primary: black`, `accent: cyan` (brand colors)
 - Logo and favicon paths relative to `docs_dir`
 
 **`docs_dir`**
@@ -521,30 +521,30 @@ python helpers_root/docs/mkdocs/preprocess_mkdocs.py \
 
 ## Examples
 
-**Causify Documentation (S3 + Custom Domain):**
+**Documentation (S3 + Custom Domain):**
 
 - Repository:
-  [https://github.com/causify-ai/csfy](https://github.com/causify-ai/csfy)
-- Live site: [https://docs.causify.ai](https://docs.causify.ai) (VPN required)
+  `https://github.com/<org>/<site_repo>`
+- Live site: `https://<docs_domain>` (VPN required)
 - Workflow: `.github/workflows/publish_mkdocs.yml`
 - Configuration: `docs_mkdocs/mkdocs.yml`
 
 **Helpers Documentation (GitHub Pages):**
 
 - Repository:
-  [https://github.com/causify-ai/helpers](https://github.com/causify-ai/helpers)
+  `https://github.com/<org>/helpers`
 - Live site:
-  [https://causify-ai.github.io/helpers](https://causify-ai.github.io/helpers)
+  `https://<org>.github.io/helpers`
 - Workflow: `.github/workflows/publish_mkdocs.yml`
 - Configuration: [`/docs/mkdocs/mkdocs.yml`](/docs/mkdocs/mkdocs.yml)
 - Example:
-  [https://github.com/causify-ai/helpers/blob/master/docs/mkdocs/mkdocs.yml](/docs/mkdocs/mkdocs.yml)
+  [/docs/mkdocs/mkdocs.yml](/docs/mkdocs/mkdocs.yml)
 
-**Causify Blog (S3 + Custom Domain):**
+**Blog (S3 + Custom Domain):**
 
 - Repository:
-  [https://github.com/causify-ai/csfy](https://github.com/causify-ai/csfy)
-- Live site: [https://blog.causify.ai](https://blog.causify.ai)
+  `https://github.com/<org>/<site_repo>`
+- Live site: `https://<blog_domain>`
 - Workflow: `.github/workflows/publish_blog.yml`
 - Configuration: `blog/mkdocs.yml`
 - **Note:** Blogs don't use preprocessing

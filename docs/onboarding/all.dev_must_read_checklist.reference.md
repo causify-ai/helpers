@@ -7,6 +7,8 @@
   * [Git(Hub)](#github)
   * [Buildmeister duties](#buildmeister-duties)
   * [Writing docs](#writing-docs)
+  * [Asana and email](#asana-and-email)
+  * [Team leaders](#team-leaders)
   * [Beyond the must-read](#beyond-the-must-read)
 
 <!-- tocstop -->
@@ -15,7 +17,9 @@
 
 ## Org
 
+- [ ] [How to navigate the documentation](/docs/README.md)
 - [ ] [General rules of collaboration](/docs/work_organization/all.team_collaboration.how_to_guide.md)
+- [ ] [How to organize your work](/docs/work_organization/all.organize_your_work.how_to_guide.md)
 
 ## Coding
 
@@ -27,6 +31,7 @@
 
 ## Submitting your code for review
 
+- [ ] [How to create a PR with Claude Code](/docs/tools/ai/all.create_pr_with_claude_code.how_to_guide.md)
 - [ ] [What to do before opening a PR](/docs/coding/all.submit_code_for_review.how_to_guide.md)
 - [ ] [Code review process](/docs/coding/all.code_review.how_to_guide.md)
 
@@ -35,13 +40,24 @@
 - [ ] [Git workflows and best practices](/docs/tools/git/all.git.how_to_guide.md)
 - [ ] [GitHub organization](/docs/work_organization/all.use_github.how_to_guide.md)
 
-## Buildmeister duties
-
-- [ ] [Buildmeister Guide](/docs/work_organization/all.buildmeister.how_to_guide.md)
-
 ## Writing docs
 
 - [ ] [Tips for writing documentation](/docs/documentation_meta/all.writing_docs.how_to_guide.md)
+
+## Asana and email
+
+- [ ] [Asana process](/docs/work_organization/all.asana_process.how_to_guide.md)
+- [ ] [Organize your email](/docs/onboarding/all.organize_email.how_to_guide.md)
+
+## Team leaders
+
+- Read these only if you lead a project
+- [ ] [Project lead](/docs/work_organization/all.project_lead.how_to_guide.md)
+- [ ] [Contributor feedback](/docs/work_organization/all.contributor_feedback.how_to_guide.md)
+
+## Buildmeister duties
+
+- [ ] [Buildmeister Guide](/docs/work_organization/all.buildmeister.how_to_guide.md)
 
 ## Beyond the must-read
 
@@ -49,6 +65,7 @@
   above
 - Feel free to browse and read them at your leisure
 - If you have a question, first try to find the answer in one of the docs
-  - You can, for example, `grep` for relevant keywords
+  - You can, for example, `grep` for relevant keywords or ask an AI to search for the
+    info for you
 - If the answer is not in the docs, reach out to your team leader, and, if it is
   deemed useful for other (future) team members, file a PR to update the docs

@@ -6,7 +6,7 @@
   components/products/services
 
 - The entrypoint to preview available projects is
-  [Causify-ai GitHub Projects](https://github.com/orgs/causify-ai/projects)
+  GitHub Projects (`https://github.com/orgs/<org>/projects`)
   TODO(Juraj): this link will work only for people who are directly members of
   the organization (not collaborators)
 
@@ -21,7 +21,7 @@
   filter certain issues by their attributes, visualize them in a board/list
 
 - We use a base
-  [template](https://github.com/orgs/causify-ai/projects?query=is%3Aopen+is%3Atemplate)
+  template (`https://github.com/orgs/<org>/projects?query=is%3Aopen+is%3Atemplate`)
   for all of our projects to ensure consistency between projects
 
 - The base template consists of the following views:
@@ -111,13 +111,13 @@
 ### How to set up a new project
 
 - Click on `Projects` tab in the desired repository, e.g.
-  [causify-ai/cmamp](https://github.com/causify-ai/cmamp)
+  `<org>/cmamp`
 
 - Click on the green `New Project` button
 
 - A new window with a pop-up should appear, in the pop-up choose
   `Project templates` > `From your organization` and choose ** [TEMPLATE]
-  Causify Project**
+  Project**
 
 - Change the default name `@yourusername untitled project` to a relevant name
   - The name should be short and representative of what needs to be done
@@ -318,7 +318,7 @@
 
 - For more customized automated workflows we use GitHub actions
 - A GitHub Action
-  [sprint_iteration.yml](https://github.com/causify-ai/cmamp/blob/master/.github/workflows/sprint_iteration.yml)
+  sprint_iteration.yml (`https://github.com/<org>/cmamp/blob/master/.github/workflows/sprint_iteration.yml`)
   is set up to move items in active projects from last sprint to current sprint
   at the beginning of each sprint.
   - Do not roll over unfinished issues without recording the sprint outcome, see
@@ -327,10 +327,10 @@
     [iteration field](https://docs.github.com/en/issues/planning-and-tracking-with-projects/understanding-fields/about-iteration-fields)
     with a one-week duration and a project-specific start day
 - We have
-  [sync_gh_issue_labels.py](https://github.com/causify-ai/helpers/tree/master/dev_scripts_helpers/github/sync_gh_issue_labels.py)
+  [sync_gh_issue_labels.py](/dev_scripts_helpers/github/sync_gh_issue_labels.py)
   to synchronize GitHub issue labels from a label inventory manifest file
 - We also have
-  [sync_gh_projects.py](https://github.com/causify-ai/helpers/tree/master/dev_scripts_helpers/github/sync_gh_projects.py)
+  [sync_gh_projects.py](/dev_scripts_helpers/github/sync_gh_projects.py)
   to compare a source GitHub Project (the template) with a destination project
   and ensures all global fields and views from the template exist in the
   destination

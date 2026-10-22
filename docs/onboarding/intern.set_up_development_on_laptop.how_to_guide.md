@@ -32,13 +32,13 @@
 - Example of the cloning command:
 
   ```bash
-  > git clone --recursive git@github.com:causify-ai/{repo_name}.git ~/src/{repo_name}1
+  > git clone --recursive git@github.com:<org>/{repo_name}.git ~/src/{repo_name}1
   ```
   - The previous command might not work sometimes, in which case try the
     alternative command using HTTP instead of SSH:
 
   ```bash
-  > git clone --recursive https://github.com/causify-ai/{repo_name}.git ~/src/{repo_name}1
+  > git clone --recursive https://github.com/<org>/{repo_name}.git ~/src/{repo_name}1
   ```
 
 - All the source code should go under `~/src` (e.g., `/Users/<YOUR_USER>/src` on
@@ -56,12 +56,12 @@
 - Ensure that you save the SSH key with the below name format and at the
   specified location
 
-  File location: `~/.ssh/id_rsa.causify-ai.github`
+  File location: `~/.ssh/id_rsa.<org>.github`
 
   Example command to generate SSH key:
 
   ```bash
-  > ssh-keygen -t ed25519 -C "your_email@example.com" -f ~/.ssh/id_rsa.causify-ai.github
+  > ssh-keygen -t ed25519 -C "your_email@example.com" -f ~/.ssh/id_rsa.<org>.github
   ```
 
 - To create a Personal Access Token (classic) with necessary scopes like `repo`,
@@ -70,14 +70,14 @@
   click "Generate new token (classic)".
 
 - After obtaining the token, store it in a file named
-  `github_pat.causify-ai.txt` at the specified path
+  `github_pat.<org>.txt` at the specified path
 
-  File location: `~/.ssh/github_pat.causify-ai.txt`
+  File location: `~/.ssh/github_pat.<org>.txt`
 
   Example command to save using `vim`:
 
   ```bash
-  > vim ~/.ssh/github_pat.causify-ai.txt
+  > vim ~/.ssh/github_pat.<org>.txt
   ```
 
 ## Build and activate the thin environment
@@ -143,7 +143,7 @@
   toolchain to it, but there are always subtle incompatible behaviors that drive
   everyone crazy
   - If you are using Windows, we suggest to use dual boot with Linux or use a
-    [virtual machine with Linux](/docs/onboarding/intern.running_causify_on_virtual_machine.how_to_guide.md)
+    [virtual machine with Linux](/docs/onboarding/intern.running_on_virtual_machine.how_to_guide.md)
   - Install VMWare software
   - Reference [video](https://www.youtube.com/watch?v=cCLjS-gaI38) for
     installing Ubuntu on VMWare software
@@ -343,7 +343,7 @@
 
 - Test access to the S3 bucket:
   ```bash
-  > aws s3 ls s3://causify-data-collaborators --profile ck
+  > aws s3 ls s3://<data_bucket> --profile ck
                             PRE causal_automl/
   ```
 

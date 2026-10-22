@@ -164,7 +164,7 @@ The toolchain supports multiple documentation workflows:
     - `convert_table.py`: Converts between table formats (CSV, TSV, Markdown)
     - `count_words.py`: Counts words and estimates reading time
     - `crop_pdf.py`: Crops PDF pages to their content or by fixed margins with
-      `pdfCropMargins` (self-standing, runs with `uv`)
+      `pdfCropMargins` (runs with `uv`)
     - `replace_latex.py`: Batch LaTeX transformations
     - `run_pandoc.py`: Runs Pandoc conversions
   - Generation and Publishing Tools
@@ -681,8 +681,11 @@ The `--md_end "END"` special value is useful for reading from a starting section
   borders (`--margins`)
 - Delegates the cropping to `pdfCropMargins`, as
   `download_academic_paper_to_md.py` does
-- Self-standing: it imports nothing from this repo, and `uv` installs its
-  dependency (`pdfCropMargins`) in an isolated environment on the first run
+- Uses the `helpers` library (arguments, logging, assertions, and command
+  execution), and `uv` installs its dependency (`pdfCropMargins`) in an isolated
+  environment on the first run
+- Takes a single PDF with `--input` and writes `--output`, which defaults to
+  `<input>.cropped.pdf`
 - Rewrites the page boxes, so viewers and LaTeX show the cropped page, and
   leaves the page content untouched
 - Leaves pages outside `--pages` unchanged

@@ -35,11 +35,9 @@ import os
 import subprocess
 import sys
 import time
+from typing import Optional
 
-import helpers.hdbg as hdbg
-import helpers.hgit as hgit
-import helpers.hparser as hparser
-import helpers.hprint as hprint
+from helpers import hdbg, hgit, hparser, hprint
 
 _LOG = logging.getLogger(__name__)
 
@@ -83,6 +81,7 @@ def _run_command(
                     stderr=subprocess.STDOUT,
                     text=True,
                     timeout=3600,
+                    check=False,
                 )
         else:
             result = subprocess.run(
@@ -91,9 +90,10 @@ def _run_command(
                 capture_output=False,
                 text=True,
                 timeout=3600,
+                check=False,
             )
         return result.returncode
-    except Exception as e:
+    except (subprocess.SubprocessError, OSError) as e:
         _LOG.error("Error running command: %s", str(e))
         return -1
 
@@ -280,7 +280,7 @@ def _get_target_dirs() -> list[str]:
 def _run_all_ci(
     pytest_target: str = "",
     no_abort_if_not_master: bool = False,
-    repo_dirs: list[str] | None = None,
+    repo_dirs: Optional[list[str]] = None,
     nice_level: int = 10,
     no_clean_check: bool = False,
 ) -> bool:
@@ -373,7 +373,7 @@ def _run_daemon_mode(
     start_time: datetime.time,
     pytest_target: str = "",
     no_abort_if_not_master: bool = False,
-    repo_dirs: list[str] | None = None,
+    repo_dirs: Optional[list[str]] = None,
     nice_level: int = 10,
     no_clean_check: bool = False,
 ) -> None:

@@ -1,41 +1,41 @@
 <!-- toc -->
 
 - [`invite_gh_contributors.py` Explanation](#invite_gh_contributorspy-explanation)
-  * [Public interface](#public-interface)
-  * [Execution flow](#execution-flow)
-  * [Key implementation choices](#key-implementation-choices)
-
-<!-- tocstop -->
-
-# `invite_gh_contributors.py` Explanation
-
-This document is about how this script works and flows.
-
-## Public interface
+## Public interface
 
 ```bash
-# Google Sheet Source
+# Google Sheet source
 dev_scripts_helpers/github/invite_gh_contributors.py \
-    --drive_url <google‑sheet‑url>  \
-    --gh_token  <github‑pat>       \
-    --org_name  <github‑org>       \
+    --drive_url <google-sheet-url> \
+    --org_name  <github-org>       \
     --repo_name <repo>             \
-    [--log_level 20]
+    [--no_skip_invited] [--dry_run] [-v INFO]
 
 # CSV source (mutually exclusive with --drive_url)
 dev_scripts_helpers/github/invite_gh_contributors.py \
     --csv_file  </path/to/users.csv> \
-    --gh_token  <github‑pat>         \
-    --org_name  <github‑org>         \
+    --org_name  <github-org>         \
     --repo_name <repo>               \
-    [--log_level 20]
+    [--no_skip_invited] [--dry_run] [-v INFO]
+
+# Users passed on the command line (mutually exclusive with the sources above)
+dev_scripts_helpers/github/invite_gh_contributors.py \
+    --add_gh_user <user> [--add_gh_user <user> ...] \
+    --org_name    <github-org>                      \
+    --repo_name   <repo>                            \
+    [--permission pull] [--no_skip_invited] [--dry_run] [-v INFO]
 ```
 
 - **`drive_url`/`csv_file`**: Spreadsheet containing a `GitHub user` column.
-- **`gh_token`**: PAT with `repo` scope (or fine‑grained "Repository
-  administration").
-- **`org_name` / `repo_name`**: identify thtarget repository.
-- **`log_level`**: standard Python numeric levels (10 = DEBUG, 20 = INFO).
+- **`add_gh_user`**: GitHub user name to invite. It can be repeated.
+- **`permission`**: permission granted to the invited users (default `write`).
+- **`GITHUB_TOKEN` env var**: PAT with `repo` scope (or fine-grained "Repository
+  administration"). If unset, the token from `gh auth token` is used.
+- **`org_name` / `repo_name`**: identify the target repository.
+- **`skip_invited`**: invite only the passed users that are neither
+  collaborators nor have a pending invitation (on by default).
+- **`dry_run`**: log who would be invited without inviting anyone.
+- **`-v`**: standard log level.
 
 ## Execution flow
 
@@ -44,26 +44,31 @@ flowchart TD
     A[parse CLI args] --> B[init logging]
     B --> C[extract_usernames_from_gsheet/csv]
     C -->|"list[str]"| D[send_invitations]
-    D --> E{already collaborator?}
-    E -- yes --> F[skip + log]
-    E -- no --> G[_invite wrapper]
-    G -->|add_to_collaborators| H[GitHub API]
+    D --> E["split users: collaborators / pending / to invite"]
+    E --> F{dry_run?}
+    F -- yes --> G[log Would invite]
+    F -- no --> H[_invite wrapper]
+    H -->|add_to_collaborators| I[GitHub API]
     subgraph Rate-limit
         direction TB
-        G
+        H
         note("@ratelimit.limits 50 calls / 24h → sleep_and_retry if exceeded")
     end
 ```
 
 ## Key implementation choices
 
-- **Dependency auto‑install**: the small `pip install` loop avoids a separate
-  requirements file when the script runs in fresh environments, at the cost of
-  start‑up time.
-- **Service‑account auth**: credentials path is hard‑coded but can be fed via
-  env‑var if desired; the helper supports both.
-- **Idempotence**: `repo.has_in_collaborators()` prevents duplicate invites
-  counting toward the daily quota.
+- **Dependencies via `uv`**: the `uv run` shebang and the inline `# /// script`
+  block install the dependencies into a cached environment, so no separate
+  requirements file or Docker image is needed.
+- **Service-account auth**: the key is read from the default path used by
+  `hgoogle_drive_api.get_credentials()`
+  (`~/.config/gspread_pandas/google_secret.json`).
+- **Idempotence**: the passed users are diffed against the repo collaborators
+  and the pending invitations (case-insensitive), so users already invited are
+  not invited again and do not count toward the daily quota.
+- **Dry run**: only the `add_to_collaborators` call is guarded by `--dry_run`,
+  so the diff is still computed and logged.
 - **Sleep strategy**: we rely entirely on `ratelimit.sleep_and_retry`, so the
   process may block for hours. Even if the process is terminated, the
   idempotence measure will prevent the added names from contributing to the

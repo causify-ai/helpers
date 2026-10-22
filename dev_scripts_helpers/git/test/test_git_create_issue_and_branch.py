@@ -6,13 +6,14 @@ Import as:
 import dev_scripts_helpers.git.test.test_git_create_issue_and_branch as dsggtgiab
 """
 
-import unittest.mock as mock
-from typing import List, Optional
+import json
+from typing import Any, Optional
+from unittest import mock
 
-import helpers.hprint as hprint
+import dev_scripts_helpers.git.git_create_issue_and_branch as dshggciab
 import helpers.hunit_test as hunitest
 import helpers.hunit_test_utils as hunteuti
-import dev_scripts_helpers.git.git_create_issue_and_branch as dshggciab
+from helpers import hprint
 
 
 def _make_is_clean_side_effect(clean_dir_name: str):
@@ -34,6 +35,35 @@ def _make_is_clean_side_effect(clean_dir_name: str):
     return is_clean_side_effect
 
 
+def _make_system_to_string_side_effect(
+    projects: list[dict[str, Any]], cmds: list[str]
+):
+    """
+    Build a `hsystem.system_to_string()` side effect that records each command.
+
+    `gh project list` is answered with `projects` and any other command (i.e.,
+    `invoke gh_issue_create`) with a created issue #1290.
+
+    :param projects: projects returned by `gh project list`
+    :param cmds: list that each command run is appended to
+    :return: side effect function suitable for `mock.patch(...,
+        side_effect=...)`
+    """
+
+    def system_to_string_side_effect(cmd: str, **kwargs: Any) -> tuple[int, str]:
+        _ = kwargs
+        cmds.append(cmd)
+        if cmd.startswith("gh project list"):
+            output = json.dumps(
+                {"projects": projects, "totalCount": len(projects)}
+            )
+        else:
+            output = "Created issue #1290"
+        return 0, output
+
+    return system_to_string_side_effect
+
+
 # #############################################################################
 # Test__get_repo_targets
 # #############################################################################
@@ -44,7 +74,7 @@ class Test__get_repo_targets(hunitest.TestCase):
     Test `git_create_issue_and_branch._get_repo_targets()`.
     """
 
-    def _helper(self, submodules: bool, expected: List[str]) -> None:
+    def _helper(self, submodules: bool, expected: list[str]) -> None:
         """
         Run `_get_repo_targets()` with a submodule present and check the result.
 
@@ -123,11 +153,13 @@ class Test__dassert_all_targets_clean(hunitest.TestCase):
         repo_targets = [".", "helpers_root"]
         is_clean_side_effect = _make_is_clean_side_effect(clean_dir_name)
         # Run test and check outputs.
-        with mock.patch(
-            "helpers.hgit.is_client_clean", side_effect=is_clean_side_effect
+        with (
+            mock.patch(
+                "helpers.hgit.is_client_clean", side_effect=is_clean_side_effect
+            ),
+            self.assertRaises(AssertionError),
         ):
-            with self.assertRaises(AssertionError):
-                dshggciab._dassert_all_targets_clean(repo_targets)
+            dshggciab._dassert_all_targets_clean(repo_targets)
 
     def test1(self) -> None:
         """
@@ -179,13 +211,15 @@ class Test__dassert_all_targets_on_master(hunitest.TestCase):
         # Prepare inputs.
         repo_targets = [".", "helpers_root"]
         # Run test and check outputs.
-        with mock.patch(
-            "helpers.hgit.get_branch_name", return_value=mocked_branch_name
+        with (
+            mock.patch(
+                "helpers.hgit.get_branch_name", return_value=mocked_branch_name
+            ),
+            self.assertRaises(AssertionError),
         ):
-            with self.assertRaises(AssertionError):
-                dshggciab._dassert_all_targets_on_master(
-                    repo_targets, original_branch
-                )
+            dshggciab._dassert_all_targets_on_master(
+                repo_targets, original_branch
+            )
 
     def test1(self) -> None:
         """
@@ -220,6 +254,175 @@ class Test__dassert_all_targets_on_master(hunitest.TestCase):
         mocked_branch_name = "HelpersTask1290_Test"
         # Run test.
         self._helper(original_branch, mocked_branch_name)
+
+
+# #############################################################################
+# Test__resolve_gh_project
+# #############################################################################
+
+
+class Test__resolve_gh_project(hunitest.TestCase):
+    """
+    Test `git_create_issue_and_branch._resolve_gh_project()`.
+    """
+
+    def _helper(
+        self,
+        gh_project: str,
+        projects: list[dict[str, Any]],
+        expected: tuple[str, int],
+        expected_cmd: str,
+    ) -> None:
+        """
+        Run `_resolve_gh_project()` with a mocked `gh project list` and check
+        the result and the command that was run.
+
+        :param gh_project: value passed to `gh_project` param
+        :param projects: projects returned by the mocked `gh project list`
+        :param expected: expected (owner, number)
+        :param expected_cmd: expected `gh` command, or "" if `gh` must not be
+            called (i.e., the project is a URL)
+        """
+        # Prepare inputs.
+        repo_full_name_with_host = "github.com/gpsaggese/umd_classes"
+        output = json.dumps({"projects": projects, "totalCount": len(projects)})
+        # Run test.
+        with mock.patch(
+            "helpers.hsystem.system_to_string", return_value=(0, output)
+        ) as mock_system_to_string:
+            actual = dshggciab._resolve_gh_project(
+                gh_project, repo_full_name_with_host
+            )
+        # Check outputs.
+        self.assert_equal(str(actual), str(expected))
+        if expected_cmd:
+            mock_system_to_string.assert_called_once_with(expected_cmd)
+        else:
+            mock_system_to_string.assert_not_called()
+
+    def test1(self) -> None:
+        """
+        Test that a personal project URL is parsed without calling `gh`.
+        """
+        # Prepare inputs.
+        gh_project = "https://github.com/users/gpsaggese/projects/4"
+        projects: list[dict[str, Any]] = []
+        # Prepare outputs.
+        expected = ("gpsaggese", 4)
+        expected_cmd = ""
+        # Run test.
+        self._helper(gh_project, projects, expected, expected_cmd)
+
+    def test2(self) -> None:
+        """
+        Test that an organization project URL with a trailing path (e.g., a
+        view) is parsed, using the owner of the URL and not the repo's.
+        """
+        # Prepare inputs.
+        gh_project = "https://github.com/orgs/causify-ai/projects/12/views/1"
+        projects: list[dict[str, Any]] = []
+        # Prepare outputs.
+        expected = ("causify-ai", 12)
+        expected_cmd = ""
+        # Run test.
+        self._helper(gh_project, projects, expected, expected_cmd)
+
+    def test3(self) -> None:
+        """
+        Test that a title is looked up among the projects of the repo's owner.
+        """
+        # Prepare inputs.
+        gh_project = "Optimal_strategy_for_racket_sports"
+        projects = [
+            {"number": 2, "title": "Other"},
+            {"number": 4, "title": "Optimal_strategy_for_racket_sports"},
+        ]
+        # Prepare outputs.
+        expected = ("gpsaggese", 4)
+        expected_cmd = (
+            "gh project list --owner gpsaggese --limit 200 --format json"
+        )
+        # Run test.
+        self._helper(gh_project, projects, expected, expected_cmd)
+
+    def test4(self) -> None:
+        """
+        Test that a title matching no project aborts.
+        """
+        # Prepare inputs.
+        gh_project = "Optimal_strategy_for_racket_sports"
+        projects = [{"number": 2, "title": "Other"}]
+        output = json.dumps({"projects": projects, "totalCount": 1})
+        repo_full_name_with_host = "github.com/gpsaggese/umd_classes"
+        # Run test and check for error.
+        with (
+            mock.patch(
+                "helpers.hsystem.system_to_string", return_value=(0, output)
+            ),
+            self.assertRaises(AssertionError),
+        ):
+            dshggciab._resolve_gh_project(gh_project, repo_full_name_with_host)
+
+    def test5(self) -> None:
+        """
+        Test that a title matching more than one project aborts, since the
+        project would be ambiguous.
+        """
+        # Prepare inputs.
+        gh_project = "Dup"
+        projects = [
+            {"number": 2, "title": "Dup"},
+            {"number": 3, "title": "Dup"},
+        ]
+        output = json.dumps({"projects": projects, "totalCount": 2})
+        repo_full_name_with_host = "github.com/gpsaggese/umd_classes"
+        # Run test and check for error.
+        with (
+            mock.patch(
+                "helpers.hsystem.system_to_string", return_value=(0, output)
+            ),
+            self.assertRaises(AssertionError),
+        ):
+            dshggciab._resolve_gh_project(gh_project, repo_full_name_with_host)
+
+
+# #############################################################################
+# Test__add_issue_to_project
+# #############################################################################
+
+
+class Test__add_issue_to_project(hunitest.TestCase):
+    """
+    Test `git_create_issue_and_branch._add_issue_to_project()`.
+    """
+
+    def test1(self) -> None:
+        """
+        Test that the issue is added to the project by URL.
+        """
+        # Prepare inputs.
+        issue_id = 1290
+        repo_full_name_with_host = "github.com/gpsaggese/umd_classes"
+        project_owner = "gpsaggese"
+        project_number = 4
+        # Run test and capture system calls.
+        with hunteuti.capture_sys_calls() as invocations:
+            dshggciab._add_issue_to_project(
+                issue_id,
+                repo_full_name_with_host,
+                project_owner,
+                project_number,
+            )
+        # Check outputs.
+        expected = r"""[
+        {
+        'function': hsystem.system,
+        'args': ('gh project item-add 4 --owner gpsaggese --url https://github.com/gpsaggese/umd_classes/issues/1290',),
+        'kwargs': {'log_level': 20},
+        },
+        ]"""
+        expected = hprint.dedent(expected)
+        hunteuti.assert_sys_calls(self, invocations, expected)
 
 
 # #############################################################################
@@ -331,7 +534,7 @@ class Test_create_worktree(hunitest.TestCase):
     """
 
     def _helper(
-        self, submodule_paths: Optional[List[str]], expected: str
+        self, submodule_paths: Optional[list[str]], expected: str
     ) -> None:
         """
         Run `_create_worktree()` and check the captured system calls and the
@@ -426,7 +629,7 @@ class Test_git_create_issue_and_branch_py(hunitest.TestCase):
     End-to-end tests for the `git_create_issue_and_branch.py` executable.
     """
 
-    def _run_main(self, argv: List[str]) -> None:
+    def _run_main(self, argv: list[str]) -> None:
         """
         Run `_main()` with a mocked `sys.argv`.
 
@@ -746,9 +949,9 @@ class Test_git_create_issue_and_branch_py(hunitest.TestCase):
                 "helpers.hgit.is_client_clean",
                 side_effect=is_clean_side_effect,
             ),
+            self.assertRaises(AssertionError),
         ):
-            with self.assertRaises(AssertionError):
-                self._run_main(argv)
+            self._run_main(argv)
         # Check outputs: nothing should have been created anywhere.
         expected = "[]"
         hunteuti.assert_sys_calls(self, invocations, expected)
@@ -778,9 +981,9 @@ class Test_git_create_issue_and_branch_py(hunitest.TestCase):
                 "helpers.hgit.is_client_clean",
                 side_effect=is_clean_side_effect,
             ),
+            self.assertRaises(AssertionError),
         ):
-            with self.assertRaises(AssertionError):
-                self._run_main(argv)
+            self._run_main(argv)
         # Check outputs: nothing should have been created anywhere.
         expected = "[]"
         hunteuti.assert_sys_calls(self, invocations, expected)
@@ -810,9 +1013,9 @@ class Test_git_create_issue_and_branch_py(hunitest.TestCase):
                 "helpers.hgit.get_branch_name",
                 side_effect=["HelpersTask999_Other", "master"],
             ),
+            self.assertRaises(AssertionError),
         ):
-            with self.assertRaises(AssertionError):
-                self._run_main(argv)
+            self._run_main(argv)
         # Check outputs: nothing should have been created anywhere.
         expected = "[]"
         hunteuti.assert_sys_calls(self, invocations, expected)
@@ -842,9 +1045,9 @@ class Test_git_create_issue_and_branch_py(hunitest.TestCase):
                 "helpers.hgit.get_branch_name",
                 side_effect=["master", "HelpersTask999_Other"],
             ),
+            self.assertRaises(AssertionError),
         ):
-            with self.assertRaises(AssertionError):
-                self._run_main(argv)
+            self._run_main(argv)
         # Check outputs: nothing should have been created anywhere.
         expected = "[]"
         hunteuti.assert_sys_calls(self, invocations, expected)
@@ -898,3 +1101,164 @@ class Test_git_create_issue_and_branch_py(hunitest.TestCase):
         ]"""
         expected = hprint.dedent(expected)
         hunteuti.assert_sys_calls(self, invocations, expected)
+
+    def test11(self) -> None:
+        """
+        Test that `--gh_project` given as a URL adds an existing issue to the
+        project, before creating the branch.
+        """
+        # Prepare inputs.
+        argv = [
+            "git_create_issue_and_branch.py",
+            "--gh_issue_id",
+            "1290",
+            "--gh_project",
+            "https://github.com/users/gpsaggese/projects/4",
+        ]
+        # Run test with mocked system calls.
+        with (
+            hunteuti.capture_sys_calls() as invocations,
+            mock.patch("helpers.hgit.is_client_clean", return_value=True),
+            mock.patch(
+                "helpers.hgit.get_branch_name",
+                return_value="HelpersTask1290_Test",
+            ),
+            mock.patch("helpers.hgit.has_submodules", return_value=False),
+            mock.patch(
+                "helpers.lib_tasks.lib_tasks_gh._get_repo_full_name_from_cmd",
+                return_value=("github.com/gpsaggese/umd_classes", "umd_classes"),
+            ),
+            mock.patch(
+                "helpers.lib_tasks.lib_tasks_gh._get_gh_issue_title",
+                return_value=(
+                    "HelpersTask1290_Test",
+                    "http://example.com/1290",
+                ),
+            ),
+            mock.patch("helpers.hgit.does_branch_exist", return_value=False),
+        ):
+            self._run_main(argv)
+        # Check outputs.
+        expected = r"""[
+        {
+        'function': hsystem.system,
+        'args': ('gh project item-add 4 --owner gpsaggese --url https://github.com/gpsaggese/umd_classes/issues/1290',),
+        'kwargs': {'log_level': 20},
+        },
+        {
+        'function': hsystem.system,
+        'args': ('invoke git_branch_create --issue-id 1290',),
+        'kwargs': {'log_level': 20},
+        },
+        ]"""
+        expected = hprint.dedent(expected)
+        hunteuti.assert_sys_calls(self, invocations, expected)
+
+    def test12(self) -> None:
+        """
+        Test that `--gh_project` given as a title is resolved before the issue
+        is created and that the new issue is then added to the project.
+        """
+        # Prepare inputs.
+        argv = [
+            "git_create_issue_and_branch.py",
+            "--gh_issue_title",
+            "Test Issue",
+            "--gh_project",
+            "Optimal_strategy_for_racket_sports",
+        ]
+        projects = [
+            {"number": 2, "title": "Other"},
+            {"number": 4, "title": "Optimal_strategy_for_racket_sports"},
+        ]
+        cmds: list[str] = []
+        system_to_string_side_effect = _make_system_to_string_side_effect(
+            projects, cmds
+        )
+        # Run test with mocked system calls.
+        with (
+            hunteuti.capture_sys_calls() as invocations,
+            mock.patch(
+                "helpers.hsystem.system_to_string",
+                side_effect=system_to_string_side_effect,
+            ),
+            mock.patch("helpers.hgit.is_client_clean", return_value=True),
+            mock.patch(
+                "helpers.hgit.get_branch_name",
+                return_value="HelpersTask1290_Test",
+            ),
+            mock.patch("helpers.hgit.has_submodules", return_value=False),
+            mock.patch(
+                "helpers.lib_tasks.lib_tasks_gh._get_repo_full_name_from_cmd",
+                return_value=("github.com/gpsaggese/umd_classes", "umd_classes"),
+            ),
+            mock.patch(
+                "helpers.lib_tasks.lib_tasks_gh._dassert_no_duplicate_open_issue"
+            ),
+        ):
+            self._run_main(argv)
+        # Check outputs: the project is resolved before the issue is created.
+        expected_cmds = [
+            "gh project list --owner gpsaggese --limit 200 --format json",
+            "invoke gh_issue_create --title 'Test Issue' --assignees @me",
+        ]
+        self.assert_equal(str(cmds), str(expected_cmds))
+        expected = r"""[
+        {
+        'function': hsystem.system,
+        'args': ('gh project item-add 4 --owner gpsaggese --url https://github.com/gpsaggese/umd_classes/issues/1290',),
+        'kwargs': {'log_level': 20},
+        },
+        {
+        'function': hsystem.system,
+        'args': ('invoke git_branch_create --issue-id 1290',),
+        'kwargs': {'log_level': 20},
+        },
+        ]"""
+        expected = hprint.dedent(expected)
+        hunteuti.assert_sys_calls(self, invocations, expected)
+
+    def test13(self) -> None:
+        """
+        Test that a `--gh_project` title matching no project aborts before the
+        issue is created.
+        """
+        # Prepare inputs.
+        argv = [
+            "git_create_issue_and_branch.py",
+            "--gh_issue_title",
+            "Test Issue",
+            "--gh_project",
+            "Missing_project",
+        ]
+        projects = [{"number": 2, "title": "Other"}]
+        cmds: list[str] = []
+        system_to_string_side_effect = _make_system_to_string_side_effect(
+            projects, cmds
+        )
+        # Run test with mocked system calls.
+        with (
+            hunteuti.capture_sys_calls() as invocations,
+            mock.patch(
+                "helpers.hsystem.system_to_string",
+                side_effect=system_to_string_side_effect,
+            ),
+            mock.patch("helpers.hgit.is_client_clean", return_value=True),
+            mock.patch(
+                "helpers.hgit.get_branch_name",
+                return_value="HelpersTask1290_Test",
+            ),
+            mock.patch("helpers.hgit.has_submodules", return_value=False),
+            mock.patch(
+                "helpers.lib_tasks.lib_tasks_gh._get_repo_full_name_from_cmd",
+                return_value=("github.com/gpsaggese/umd_classes", "umd_classes"),
+            ),
+            self.assertRaises(AssertionError),
+        ):
+            self._run_main(argv)
+        # Check outputs: only the project lookup ran, no issue was created.
+        expected_cmds = [
+            "gh project list --owner gpsaggese --limit 200 --format json",
+        ]
+        self.assert_equal(str(cmds), str(expected_cmds))
+        hunteuti.assert_sys_calls(self, invocations, "[]")

@@ -10,24 +10,19 @@ import os
 import shlex
 import stat
 import subprocess
-from typing import Any, Dict, List, Optional
+from typing import Any, Optional
 
 import tqdm
 from invoke.tasks import task
 
-import dev_scripts_helpers.git.git_branch_create as dsggibrc
-import helpers.hdaemon as hdaemon
-import helpers.hdbg as hdbg
-import helpers.hsystem as hsystem
-
 # We want to minimize the dependencies from non-standard Python packages since
 # this code needs to run with minimal dependencies and without Docker.
-import helpers.hgit as hgit
+import dev_scripts_helpers.git.git_branch_create as dsggibrc
 import helpers.hselect_input_output as hseinout
-import helpers.hprint as hprint
 import helpers.hunit_test_utils as hunteuti
 import helpers.lib_tasks.lib_tasks_gh as hltltagh
 import helpers.lib_tasks.lib_tasks_utils as hltltaut
+from helpers import hdaemon, hdbg, hgit, hprint, hsystem
 
 _LOG = logging.getLogger(__name__)
 
@@ -37,14 +32,14 @@ _LOG = logging.getLogger(__name__)
 _SYMLINK_WRITE_BITS = stat.S_IWUSR | stat.S_IWGRP | stat.S_IWOTH
 
 
-def _collect_symlinks(dir: str) -> List[str]:
+def _collect_symlinks(dir: str) -> list[str]:
     """
     Collect symlink paths under a given directory.
 
     :param dir: directory to walk
     :return: symlink paths under `dir`
     """
-    out: List[str] = []
+    out: list[str] = []
     for dirpath, dirnames, filenames in os.walk(dir, topdown=True):
         # Skips `.git` directories. Does not follow symlinked directories.
         if ".git" in dirnames:
@@ -295,19 +290,20 @@ def git_clean(ctx, fix_perms_=False, dry_run=False):  # type: ignore
 
 
 @task
-def git_add_all_untracked(ctx, exclude_tmp=False, dry_run=False):  # type: ignore
+def git_add_all_untracked(ctx, add_all=False, dry_run=False):  # type: ignore
     """
-    Add all untracked files to Git.
+    Add all untracked files to Git, except scratch files.
 
-    :param exclude_tmp: skip scratch files, i.e., `*.log` and `tmp.*` files
-        in any directory (e.g., `tmp.precommit_output.txt`), which the
-        pre-commit hook refuses to commit
+    Scratch files are `*.log` and `tmp.*` files in any directory (e.g.,
+    `tmp.precommit_output.txt`), which the pre-commit hook refuses to commit.
+
+    :param add_all: add also the scratch files
     :param dry_run: if True, log the command without executing it
     """
-    hltltaut.report_task(txt=hprint.to_str("dry_run"))
+    hltltaut.report_task(txt=hprint.to_str("add_all dry_run"))
     # cmd = "git add $(git ls-files -o --exclude-standard)"
     cmd = "git ls-files -o --exclude-standard -z"
-    if exclude_tmp:
+    if not add_all:
         cmd += " | grep -zvE '(^|/)(tmp\\.[^/]*|[^/]*\\.log)$'"
     cmd += " | xargs -0 git add"
     hltltaut.run(ctx, cmd, dry_run=dry_run)
@@ -354,16 +350,13 @@ def git_patch_create(  # type: ignore
 @task
 def git_files(  # type: ignore
     ctx,
-    #
     files="",
     from_file="",
     modified=False,
     branch=False,
     last_commit=False,
     all_files=False,
-    #
     branch_point=False,
-    #
     file_types="",
     skip_file_types="",
     pbcopy=False,
@@ -641,18 +634,16 @@ def git_branch_delete_merged(ctx, confirm_delete=True, dry_run=False):  # type: 
         "master",
         "Must be on master branch to safely delete merged branches",
     )
-    #
     cmd = "git fetch --all --prune"
     hltltaut.run(ctx, cmd, dry_run=dry_run)
     # Delete local and remote branches that are already merged into master.
     _delete_branches("local", confirm_delete, dry_run=dry_run)
     _delete_branches("remote", confirm_delete, dry_run=dry_run)
-    #
     cmd = "git fetch --all --prune"
     hltltaut.run(ctx, cmd, dry_run=dry_run)
 
 
-def _get_open_pr_info(branch_name: str) -> Optional[Dict[str, Any]]:
+def _get_open_pr_info(branch_name: str) -> Optional[dict[str, Any]]:
     """
     Return info about the open PR whose head is `branch_name`.
 
@@ -668,7 +659,7 @@ def _get_open_pr_info(branch_name: str) -> Optional[Dict[str, Any]]:
     if rc != 0:
         # No PR (open or otherwise) is associated with this branch.
         return None
-    pr_info: Dict[str, Any] = json.loads(txt)
+    pr_info: dict[str, Any] = json.loads(txt)
     if pr_info["state"] != "OPEN":
         # A merged or already-closed PR is not something to carry forward.
         return None
@@ -831,6 +822,9 @@ def git_branch_copy(  # type: ignore
     """
     Create a new branch with the same content of the current branch.
 
+    The untracked files are staged with `git_add_all_untracked()`, so they are
+    copied too, except for the scratch files (i.e., `tmp.*` and `*.log`).
+
     :param new_branch_name: name for the new branch
     :param skip_git_merge_master: skip merging master into current branch
     :param use_patch: apply patching instead of merging
@@ -875,7 +869,13 @@ def git_branch_copy(  # type: ignore
         check_branch_name = False
     if check_branch_name:
         dsggibrc._dassert_valid_branch_name(new_branch_name)
-    # Remove untracked files to ensure clean state when copying branch.
+    # Stage the untracked files (except `tmp.*` and `*.log` scratch files), so
+    # that they are carried over to the new branch and not removed by the clean
+    # below.
+    cmd = "invoke git_add_all_untracked"
+    hltltaut.run(ctx, cmd, dry_run=dry_run)
+    # Remove the remaining untracked files (i.e., the scratch files) to ensure
+    # clean state when copying branch.
     cmd = "git clean -fd"
     hltltaut.run(ctx, cmd, dry_run=dry_run)
     # Sync with master first to ensure new branch includes latest changes (if requested).
@@ -992,7 +992,9 @@ def git_branch_diff(  # type: ignore
     Filtering and location options:
     :param subdir: subdir to consider for diffing, instead of `.`
     :param include_submodules: run recursively on all submodules
-    :param diff_type: files to diff using git `--diff-filter` options
+    :param diff_type: files to diff using git `--diff-filter` options, e.g.,
+        'A' (added), 'M' (modified), 'D' (deleted), 'R' (renamed). Use a
+        lowercase letter to skip that type, e.g., 'd' skips deleted files
     :param file_types: a comma-separated list of extensions to check, e.g.,
         'csv,py'. An empty string means keep all the extensions
     :param skip_file_types: a comma-separated list of extensions to skip, e.g.,
@@ -1072,7 +1074,7 @@ def git_repo_copy(  # type: ignore
 # #############################################################################
 
 
-def _get_submodule_paths() -> List[str]:
+def _get_submodule_paths() -> list[str]:
     """
     Get list of submodule paths from .gitmodules file.
 
@@ -1213,7 +1215,7 @@ def gh_watch(ctx, *, interval=60):  # type: ignore
 
     def _run() -> None:
         # Clear screen before displaying updated workflow status.
-        subprocess.run("clear; invoke gh_workflow_list", shell=True)
+        subprocess.run("clear; invoke gh_workflow_list", shell=True, check=False)
 
     hdaemon.run_periodic_daemon_mode(
         _run, interval, window_name_str="*GH_WATCH*"
@@ -1244,7 +1246,7 @@ def _fix_file_perms(file_path: str) -> bool:
         cmd = f"chmod ug+w '{file_path}'"
         hsystem.system(cmd, abort_on_error=False)
         return True
-    except Exception as e:
+    except OSError as e:
         _LOG.warning("Failed to fix permissions for %s: %s", file_path, e)
         return False
 
@@ -1371,7 +1373,7 @@ def git_file_version(  # type: ignore
     else:
         name = base_name
         ext = ""
-    version_files: List[str] = []
+    version_files: list[str] = []
     for i, commit_hash in enumerate(commit_hashes):
         # Get timestamp for this commit.
         cmd = f"git show -s --format=%cI {commit_hash}"

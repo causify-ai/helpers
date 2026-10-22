@@ -310,7 +310,7 @@ TODO(gp): Move somewhere else
 ```bash
 # Clone the code
 > GIT_SSH_COMMAND="ssh -i ~/.ssh/id_rsa.gpsaggese.github" git clone
---recursive git@github.com:causify-ai/lemonade.git lemonade1
+--recursive git@github.com:<org>/lemonade.git lemonade1
 
 # Init amp sub-module
 > cd amp

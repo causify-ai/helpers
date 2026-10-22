@@ -1,15 +1,10 @@
 import os
-from typing import Dict, List, Optional, Sequence
-
+from collections.abc import Sequence
+from typing import Optional
 
 import dev_scripts_helpers.documentation.preprocess_notes as dshdprno
-import helpers.hdbg as hdbg
-import helpers.hgit as hgit
-import helpers.hio as hio
-import helpers.hprint as hprint
-import helpers.hsystem as hsystem
 import helpers.hunit_test as hunitest
-
+from helpers import hdbg, hgit, hio, hprint, hsystem
 
 # #############################################################################
 # Test_colorize_backticks
@@ -297,7 +292,9 @@ class Test_colorize_backticks_typst(hunitest.TestCase):
         # Prepare inputs.
         txt_in = "Use the `_private_func` naming."
         # Prepare outputs.
-        expected = r"Use the `#text(fill: blue)[\_private\_func]`{=typst} naming."
+        expected = (
+            r"Use the `#text(fill: blue)[\_private\_func]`{=typst} naming."
+        )
         # Run test.
         self.helper(txt_in, expected)
 
@@ -1170,7 +1167,7 @@ class Test_expand_includes(hunitest.TestCase):
     """
 
     def _create_temp_files(
-        self, files_to_create: Dict[str, str], temp_dir: str
+        self, files_to_create: dict[str, str], temp_dir: str
     ) -> None:
         """
         Create temporary files in a directory.
@@ -1205,7 +1202,7 @@ class Test_expand_includes(hunitest.TestCase):
         lines: Sequence[str],
         expected: Sequence[str],
         *,
-        files_to_create: Optional[Dict[str, str]] = None,
+        files_to_create: Optional[dict[str, str]] = None,
     ) -> None:
         """
         Test helper for _expand_includes.
@@ -1674,12 +1671,12 @@ class Test_transform_lines_slides(hunitest.TestCase):
 
     def helper(
         self,
-        lines: List[str],
+        lines: list[str],
         type_: str,
         is_qa: bool,
-        expected: List[str],
+        expected: list[str],
         *,
-        actions: Optional[List[str]] = None,
+        actions: Optional[list[str]] = None,
     ) -> None:
         """
         Helper method to test _transform_lines function.
@@ -1771,7 +1768,7 @@ class Test_preprocess_lines_toc(hunitest.TestCase):
 
     def helper(
         self,
-        lines: List[str],
+        lines: list[str],
         type_: str,
         toc_type: str,
         is_qa: bool,
@@ -1856,10 +1853,10 @@ class Test_transform_lines_qa(hunitest.TestCase):
 
     def helper(
         self,
-        lines: List[str],
+        lines: list[str],
         type_: str,
         is_qa: bool,
-        expected: List[str],
+        expected: list[str],
     ) -> None:
         """
         Helper method to test _transform_lines function for QA.
@@ -1964,12 +1961,12 @@ class Test_transform_lines_actions(hunitest.TestCase):
 
     def helper(
         self,
-        lines: List[str],
+        lines: list[str],
         type_: str,
         is_qa: bool,
-        expected: List[str],
+        expected: list[str],
         *,
-        actions: Optional[List[str]] = None,
+        actions: Optional[list[str]] = None,
     ) -> None:
         """
         Helper method to test _transform_lines function with actions.
@@ -2076,7 +2073,7 @@ class Test_validate_slide_names(hunitest.TestCase):
     Test the `_validate_slide_names()` function.
     """
 
-    def helper_valid(self, lines: List[str]) -> None:
+    def helper_valid(self, lines: list[str]) -> None:
         """
         Helper method to test valid slide names.
 
@@ -2085,7 +2082,7 @@ class Test_validate_slide_names(hunitest.TestCase):
         # Run test.
         dshdprno._validate_slide_names(lines)
 
-    def helper_invalid(self, lines: List[str], expected_line_num: int) -> None:
+    def helper_invalid(self, lines: list[str], expected_line_num: int) -> None:
         """
         Helper method to test invalid slide names.
 
@@ -2163,7 +2160,7 @@ class Test_validate_slide_names(hunitest.TestCase):
         Test empty input.
         """
         # Prepare inputs.
-        lines: List[str] = []
+        lines: list[str] = []
         # Run test.
         self.helper_valid(lines)
 
@@ -2191,7 +2188,7 @@ class Test_assert_no_existing_counters(hunitest.TestCase):
     Test the `_assert_no_existing_counters()` function.
     """
 
-    def helper_valid(self, lines: List[str]) -> None:
+    def helper_valid(self, lines: list[str]) -> None:
         """
         Helper method to test valid slides without counters.
 
@@ -2200,7 +2197,7 @@ class Test_assert_no_existing_counters(hunitest.TestCase):
         # Run test.
         dshdprno._assert_no_existing_counters(lines)
 
-    def helper_invalid(self, lines: List[str]) -> None:
+    def helper_invalid(self, lines: list[str]) -> None:
         """
         Helper method to test slides with existing counters.
 
@@ -2245,7 +2242,7 @@ class Test_add_duplicate_slide_counters(hunitest.TestCase):
     Test the `_add_duplicate_slide_counters()` function.
     """
 
-    def helper(self, lines: List[str], expected: List[str]) -> None:
+    def helper(self, lines: list[str], expected: list[str]) -> None:
         """
         Helper method to test counter addition.
 
@@ -2349,7 +2346,7 @@ class Test_add_duplicate_slide_counters(hunitest.TestCase):
         Test empty input.
         """
         # Prepare inputs.
-        lines: List[str] = []
+        lines: list[str] = []
         # Prepare outputs.
         expected = lines
         # Run test.
@@ -2366,7 +2363,7 @@ class Test_validate_unique_slide_names(hunitest.TestCase):
     Test the `_validate_unique_slide_names()` function.
     """
 
-    def helper_valid(self, lines: List[str]) -> None:
+    def helper_valid(self, lines: list[str]) -> None:
         """
         Helper method to test valid unique names.
 
@@ -2375,7 +2372,7 @@ class Test_validate_unique_slide_names(hunitest.TestCase):
         # Run test.
         dshdprno._validate_unique_slide_names(lines)
 
-    def helper_invalid(self, lines: List[str]) -> None:
+    def helper_invalid(self, lines: list[str]) -> None:
         """
         Helper method to test invalid duplicate names.
 
@@ -2415,6 +2412,557 @@ class Test_validate_unique_slide_names(hunitest.TestCase):
         Test empty input.
         """
         # Prepare inputs.
-        lines: List = []
+        lines: list = []
         # Run test.
         self.helper_valid(lines)
+
+
+# #############################################################################
+# Test__get_logo_path
+# #############################################################################
+
+
+class Test__get_logo_path(hunitest.TestCase):
+    """
+    Test the `_get_logo_path()` function.
+    """
+
+    def helper(self, metadata: dict[str, str], expected: str) -> None:
+        """
+        Test helper for `_get_logo_path()`.
+
+        :param metadata: slide metadata
+        :param expected: expected logo path
+        """
+        # Run test.
+        actual = dshdprno._get_logo_path(metadata)
+        # Check outputs.
+        self.assert_equal(actual, expected)
+
+    def test1(self) -> None:
+        """
+        Test the default logo of `UMD_slides`.
+        """
+        # Prepare inputs.
+        metadata = {
+            "type": "UMD_slides",
+            "course_title": "MSML610: Advanced Machine Learning",
+        }
+        # Prepare outputs.
+        expected = "msml610/lectures_source/figures/UMD_Logo.png"
+        # Run test.
+        self.helper(metadata, expected)
+
+    def test2(self) -> None:
+        """
+        Test that a DATA605 course uses its own copy of the UMD logo.
+        """
+        # Prepare inputs.
+        metadata = {
+            "type": "UMD_slides",
+            "course_title": "DATA605: Big Data Systems",
+        }
+        # Prepare outputs.
+        expected = "data605/lectures_source/images/UMD_Logo.png"
+        # Run test.
+        self.helper(metadata, expected)
+
+    def test3(self) -> None:
+        """
+        Test the default logo of `ADIA_slides`.
+        """
+        # Prepare inputs.
+        metadata = {
+            "type": "ADIA_slides",
+            "course_title": "Causal Analysis for Finance",
+        }
+        # Prepare outputs.
+        expected = "assets/images/ADIA_Logo.svg"
+        # Run test.
+        self.helper(metadata, expected)
+
+    def test4(self) -> None:
+        """
+        Test that an explicit `// logo=` directive wins over the type default.
+        """
+        # Prepare inputs.
+        metadata = {
+            "type": "ADIA_slides",
+            "course_title": "Causal Analysis for Finance",
+            "logo": "assets/images/Other_Logo.svg",
+        }
+        # Prepare outputs.
+        expected = "assets/images/Other_Logo.svg"
+        # Run test.
+        self.helper(metadata, expected)
+
+
+# #############################################################################
+# Test__get_people
+# #############################################################################
+
+
+class Test__get_people(hunitest.TestCase):
+    """
+    Test the `_get_people()` function.
+    """
+
+    def helper(
+        self, metadata: dict[str, str], expected_label: str, expected: str
+    ) -> None:
+        """
+        Test helper for `_get_people()`.
+
+        :param metadata: slide metadata
+        :param expected_label: expected label of the people line
+        :param expected: expected string of people
+        """
+        # Run test.
+        actual_label, actual = dshdprno._get_people(metadata)
+        # Check outputs.
+        self.assert_equal(actual_label, expected_label)
+        self.assert_equal(actual, expected)
+
+    def test1(self) -> None:
+        """
+        Test that `UMD_slides` keeps its default instructor.
+        """
+        # Prepare inputs.
+        metadata = {"type": "UMD_slides"}
+        # Prepare outputs.
+        expected_label = "Instructor"
+        expected = "Dr. GP Saggese - gsaggese@umd.edu"
+        # Run test.
+        self.helper(metadata, expected_label, expected)
+
+    def test2(self) -> None:
+        """
+        Test that `ADIA_slides` has no people by default.
+        """
+        # Prepare inputs.
+        metadata = {"type": "ADIA_slides"}
+        # Prepare outputs.
+        expected_label = "Instructor"
+        expected = ""
+        # Run test.
+        self.helper(metadata, expected_label, expected)
+
+    def test3(self) -> None:
+        """
+        Test that an `// Authors=` directive wins over the default.
+        """
+        # Prepare inputs.
+        metadata = {
+            "type": "UMD_slides",
+            "Authors": "GP, Rui, Emanuele (FA)",
+        }
+        # Prepare outputs.
+        expected_label = "Authors"
+        expected = "GP, Rui, Emanuele (FA)"
+        # Run test.
+        self.helper(metadata, expected_label, expected)
+
+    def test4(self) -> None:
+        """
+        Test that the lowercase `// authors=` spelling is accepted.
+        """
+        # Prepare inputs.
+        metadata = {"type": "ADIA_slides", "authors": "GP, Rui"}
+        # Prepare outputs.
+        expected_label = "Authors"
+        expected = "GP, Rui"
+        # Run test.
+        self.helper(metadata, expected_label, expected)
+
+
+# #############################################################################
+# Test__escape_typst
+# #############################################################################
+
+
+class Test__escape_typst(hunitest.TestCase):
+    """
+    Test the `_escape_typst()` function.
+    """
+
+    def helper(self, txt: str, expected: str) -> None:
+        """
+        Test helper for `_escape_typst()`.
+
+        :param txt: plain text to escape
+        :param expected: expected Typst markup
+        """
+        # Run test.
+        actual = dshdprno._escape_typst(txt)
+        # Check outputs.
+        self.assert_equal(actual, expected)
+
+    def test1(self) -> None:
+        """
+        Test text with no special characters is unchanged.
+        """
+        # Prepare inputs.
+        txt = "GP Saggese, Alice Rossi (ADIA)"
+        # Prepare outputs.
+        expected = txt
+        # Run test.
+        self.helper(txt, expected)
+
+    def test2(self) -> None:
+        """
+        Test text with characters that are Typst syntax.
+        """
+        # Prepare inputs.
+        txt = "A_B #1 $x$ a/b [c] *d*"
+        # Prepare outputs.
+        expected = r"A\_B \#1 \$x\$ a\/b \[c\] \*d\*"
+        # Run test.
+        self.helper(txt, expected)
+
+
+# #############################################################################
+# Test__format_people_typst
+# #############################################################################
+
+
+class Test__format_people_typst(hunitest.TestCase):
+    """
+    Test the `_format_people_typst()` function.
+    """
+
+    def helper(self, people: str, expected: str) -> None:
+        """
+        Test helper for `_format_people_typst()`.
+
+        :param people: string of people
+        :param expected: expected Typst markup
+        """
+        # Run test.
+        actual = dshdprno._format_people_typst(people)
+        # Check outputs.
+        self.assert_equal(actual, expected)
+
+    def test1(self) -> None:
+        """
+        Test a list of names with no email.
+        """
+        # Prepare inputs.
+        people = "GP Saggese, Alice Rossi"
+        # Prepare outputs.
+        expected = people
+        # Run test.
+        self.helper(people, expected)
+
+    def test2(self) -> None:
+        """
+        Test the email of the UMD default becomes a link.
+        """
+        # Prepare inputs.
+        people = "Dr. GP Saggese - gsaggese@umd.edu"
+        # Prepare outputs.
+        expected = (
+            "Dr. GP Saggese - "
+            r'#link("mailto:gsaggese@umd.edu")[_gsaggese\@umd.edu_]'
+        )
+        # Run test.
+        self.helper(people, expected)
+
+    def test3(self) -> None:
+        """
+        Test two emails, with the sentence period left out of the link.
+        """
+        # Prepare inputs.
+        people = "A (a@b.com), B_C (b_c@x.org)."
+        # Prepare outputs.
+        expected = (
+            r'A (#link("mailto:a@b.com")[_a\@b.com_]), '
+            r'B\_C (#link("mailto:b_c@x.org")[_b\_c\@x.org_]).'
+        )
+        # Run test.
+        self.helper(people, expected)
+
+
+# #############################################################################
+# Test__generate_title_slide
+# #############################################################################
+
+
+class Test__generate_title_slide(hunitest.TestCase):
+    """
+    Test the `_generate_title_slide()` function.
+    """
+
+    def helper(
+        self, metadata: dict[str, str], output_format: str, expected: str
+    ) -> None:
+        """
+        Test helper for `_generate_title_slide()`.
+
+        :param metadata: slide metadata
+        :param output_format: 'latex' or 'typst'
+        :param expected: expected title slide
+        """
+        # Run test.
+        actual = dshdprno._generate_title_slide(metadata, output_format)
+        actual = "\n".join(actual)
+        # Check outputs.
+        self.assert_equal(actual, expected, dedent=True)
+
+    def test1(self) -> None:
+        """
+        Test `ADIA_slides` with an `Authors` string in Typst.
+        """
+        # Prepare inputs.
+        metadata = {
+            "type": "ADIA_slides",
+            "course_title": "Causal Analysis for Finance",
+            "lesson_title": "The Theory Store",
+            "Authors": "GP Saggese, Alice Rossi (alice@adia.ae)",
+        }
+        output_format = "typst"
+        # Prepare outputs.
+        expected = r"""
+        ```{=typst}
+        ====
+
+        #slide[
+          #grid(
+            columns: (20%, 80%),
+            gutter: 0.5cm,
+            align(top + left)[#image("assets/images/ADIA_Logo.svg", width: 3.5cm)],
+            align(top + left)[
+              #v(0.2cm)
+              #text(size: 28pt)[Causal Analysis for Finance]
+            ]
+          )
+
+          #v(1.5cm)
+          #align(center)[#text(size: 32pt, weight: "bold", fill: rgb("#0066CC"))[The Theory Store]]
+
+          #v(2.5cm)
+          #text(size: 24pt)[Authors: GP Saggese, Alice Rossi (#link("mailto:alice@adia.ae")[_alice\@adia.ae_])]
+        ]
+        ```
+        """
+        # Run test.
+        self.helper(metadata, output_format, expected)
+
+    def test2(self) -> None:
+        """
+        Test `ADIA_slides` with no people omits the line in Typst.
+        """
+        # Prepare inputs.
+        metadata = {
+            "type": "ADIA_slides",
+            "course_title": "Causal Analysis for Finance",
+            "lesson_title": "The Theory Store",
+        }
+        output_format = "typst"
+        # Prepare outputs.
+        expected = r"""
+        ```{=typst}
+        ====
+
+        #slide[
+          #grid(
+            columns: (20%, 80%),
+            gutter: 0.5cm,
+            align(top + left)[#image("assets/images/ADIA_Logo.svg", width: 3.5cm)],
+            align(top + left)[
+              #v(0.2cm)
+              #text(size: 28pt)[Causal Analysis for Finance]
+            ]
+          )
+
+          #v(1.5cm)
+          #align(center)[#text(size: 32pt, weight: "bold", fill: rgb("#0066CC"))[The Theory Store]]
+        ]
+        ```
+        """
+        # Run test.
+        self.helper(metadata, output_format, expected)
+
+    def test3(self) -> None:
+        """
+        Test the logo, authors, and version directives in Typst.
+        """
+        # Prepare inputs.
+        metadata = {
+            "type": "ADIA_slides",
+            "course_title": "C",
+            "lesson_title": "L",
+            "Authors": "A_B",
+            "logo": "assets/images/Other_Logo.svg",
+            "version": "v1",
+        }
+        output_format = "typst"
+        # Prepare outputs.
+        expected = r"""
+        ```{=typst}
+        ====
+
+        #slide[
+          #grid(
+            columns: (20%, 80%),
+            gutter: 0.5cm,
+            align(top + left)[#image("assets/images/Other_Logo.svg", width: 3.5cm)],
+            align(top + left)[
+              #v(0.2cm)
+              #text(size: 28pt)[C]
+            ]
+          )
+
+          #v(1.5cm)
+          #align(center)[#text(size: 32pt, weight: "bold", fill: rgb("#0066CC"))[L]]
+
+          #v(2.5cm)
+          #text(size: 24pt)[Authors: A\_B]
+          #v(0.3cm)
+          #text(size: 14pt, fill: rgb("#666666"))[Version: v1]
+        ]
+        ```
+        """
+        # Run test.
+        self.helper(metadata, output_format, expected)
+
+    def test4(self) -> None:
+        """
+        Test `ADIA_slides` with an `Authors` string in LaTeX.
+        """
+        # Prepare inputs.
+        metadata = {
+            "type": "ADIA_slides",
+            "course_title": "Causal Analysis for Finance",
+            "lesson_title": "The Theory Store",
+            "Authors": "GP Saggese, Alice Rossi",
+        }
+        output_format = "latex"
+        # Prepare outputs.
+        expected = r"""
+        ::: columns
+        :::: {.column width=20%}
+        ![](assets/images/ADIA_Logo.svg)
+        ::::
+        :::: {.column width=80%}
+
+        Causal Analysis for Finance
+        ::::
+        :::
+
+        \vspace{2cm}
+
+        **$$\text{\blue{The Theory Store}}$$**
+
+        \vspace{3cm}
+
+        **Authors**: GP Saggese, Alice Rossi
+        """
+        # Run test.
+        self.helper(metadata, output_format, expected)
+
+    def test5(self) -> None:
+        """
+        Test an unknown slide type is rejected instead of dropping the title.
+        """
+        # Prepare inputs.
+        metadata = {
+            "type": "ADIA_slide",
+            "course_title": "C",
+            "lesson_title": "L",
+        }
+        output_format = "typst"
+        # Run test and check outputs.
+        with self.assertRaises(AssertionError):
+            dshdprno._generate_title_slide(metadata, output_format)
+
+
+# #############################################################################
+# Test_extract_slide_metadata
+# #############################################################################
+
+
+class Test_extract_slide_metadata(hunitest.TestCase):
+    """
+    Test the `extract_slide_metadata()` function.
+    """
+
+    def helper(
+        self,
+        lines: list[str],
+        expected_metadata: dict[str, str],
+        expected_lines: list[str],
+    ) -> None:
+        """
+        Test helper for `extract_slide_metadata()`.
+
+        :param lines: input lines
+        :param expected_metadata: expected metadata
+        :param expected_lines: expected lines after the metadata
+        """
+        # Run test.
+        actual_metadata, actual_lines = dshdprno.extract_slide_metadata(lines)
+        # Check outputs.
+        self.assert_equal(str(actual_metadata), str(expected_metadata))
+        self.assert_equal(str(actual_lines), str(expected_lines))
+
+    def test1(self) -> None:
+        """
+        Test directives followed by the slides.
+        """
+        # Prepare inputs.
+        lines = [
+            "// type=ADIA_slides",
+            "// Authors=GP, Rui, Emanuele (FA)",
+            "",
+            "* Roadmap",
+        ]
+        # Prepare outputs.
+        expected_metadata = {
+            "type": "ADIA_slides",
+            "Authors": "GP, Rui, Emanuele (FA)",
+        }
+        expected_lines = ["", "* Roadmap"]
+        # Run test.
+        self.helper(lines, expected_metadata, expected_lines)
+
+    def test2(self) -> None:
+        """
+        Test an empty value does not end the block of directives.
+        """
+        # Prepare inputs.
+        lines = [
+            "// type=ADIA_slides",
+            "// course_title=",
+            "// slides_engine=typst",
+            "* Roadmap",
+        ]
+        # Prepare outputs.
+        expected_metadata = {
+            "type": "ADIA_slides",
+            "course_title": "",
+            "slides_engine": "typst",
+        }
+        expected_lines = ["* Roadmap"]
+        # Run test.
+        self.helper(lines, expected_metadata, expected_lines)
+
+    def test3(self) -> None:
+        """
+        Test a comment that is not a directive ends the block.
+        """
+        # Prepare inputs.
+        lines = [
+            "// type=ADIA_slides",
+            "// TODO(gp): Add the other authors",
+            "// slides_engine=typst",
+            "* Roadmap",
+        ]
+        # Prepare outputs.
+        expected_metadata = {"type": "ADIA_slides"}
+        expected_lines = [
+            "// TODO(gp): Add the other authors",
+            "// slides_engine=typst",
+            "* Roadmap",
+        ]
+        # Run test.
+        self.helper(lines, expected_metadata, expected_lines)

@@ -19,16 +19,13 @@ with Dockerized execution for dependency isolation.
 
 - `__init__.py`
   - Package initialization file
-- `dockerized_invite_gh_contributors.py`
-  - Dockerized script to batch invite GitHub collaborators from Google Sheets
 - `dockerized_sync_gh_issue_labels.py`
   - Dockerized script to synchronize GitHub issue labels via pygithub
 - `dockerized_sync_gh_repo_settings.py`
   - Dockerized script to synchronize repository settings and branch protection
 - `invite_gh_contributors.py`
-  - Wrapper script to run Dockerized collaborator invitations
-- `invite_github_collaborator.py`
-  - Direct API for inviting individual GitHub collaborators
+  - Invite GitHub collaborators from a Google Sheet, a CSV, or users passed with
+    `--add_gh_user`, skipping users already invited, with `--dry_run`
 - `set_secrets_and_variables.py`
   - Batch upload GitHub secrets and variables from JSON file
 - `sync_gh_issue_labels.py`
