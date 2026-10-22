@@ -153,7 +153,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
     title = args.title or (
         f"Call graph: {os.path.basename(os.path.realpath(args.input))}"
     )
-    page = dsccgre.render_html(cg, title=title, focus=focus, radius=args.radius)
+    page = dsccgre.render_html(cg, title, focus=focus, radius=args.radius)
     if args.dry_run:
         _LOG.warning(
             "[DRY_RUN] Would write %d bytes to '%s'", len(page), args.output

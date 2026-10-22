@@ -21,7 +21,7 @@ import copy
 import dataclasses
 import logging
 import os
-from typing import Any
+from typing import Any, Union
 
 import jedi
 import networkx as nx
@@ -32,8 +32,8 @@ from helpers import hdbg, hprint
 _LOG = logging.getLogger(__name__)
 
 # AST nodes that define a symbol.
-_FuncNode = ast.FunctionDef | ast.AsyncFunctionDef
-_DefNode = ast.FunctionDef | ast.AsyncFunctionDef | ast.ClassDef
+_FuncNode = Union[ast.FunctionDef, ast.AsyncFunctionDef]
+_DefNode = Union[ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef]
 
 # #############################################################################
 # Data model
@@ -131,6 +131,7 @@ def get_project_root(root_dir: str) -> str:
     :param root_dir: directory of code to analyze
     :return: absolute path of the project root
     """
+    _LOG.debug(hprint.to_str("root_dir"))
     root_dir = os.path.realpath(root_dir)
     curr_dir = root_dir
     project_root = root_dir
@@ -143,6 +144,7 @@ def get_project_root(root_dir: str) -> str:
         if parent_dir == curr_dir:
             break
         curr_dir = parent_dir
+    _LOG.debug("return=%s", project_root)
     return project_root
 
 
@@ -158,7 +160,9 @@ def find_python_files(
     :param exclude_tests: skip `test/` dirs and `test_*.py` files
     :return: sorted absolute paths
     """
+    _LOG.debug(hprint.to_str("root_dir exclude_tests"))
     hdbg.dassert_dir_exists(root_dir)
+    # Dirs that never hold the code of the project.
     skip_dirs = {"__pycache__", "node_modules", "site-packages", "build", "dist"}
     files = []
     for dir_path, dir_names, file_names in os.walk(root_dir):
@@ -179,6 +183,7 @@ def find_python_files(
                 continue
             files.append(os.path.realpath(os.path.join(dir_path, file_name)))
     files = sorted(files)
+    _LOG.debug("return=%d files", len(files))
     return files
 
 
@@ -188,13 +193,19 @@ def _get_module_id(project_root: str, file_path: str) -> str:
 
     E.g., `<root>/helpers/hdbg.py` -> `helpers.hdbg`, `<root>/pkg/__init__.py` ->
     `pkg`.
+
+    :param project_root: directory used to name the modules
+    :param file_path: path of the Python file
+    :return: dotted module name
     """
+    _LOG.debug(hprint.to_str("project_root file_path"))
     rel_path = os.path.relpath(file_path, project_root)
     base, _ = os.path.splitext(rel_path)
     parts = base.split(os.sep)
     if parts[-1] == "__init__" and len(parts) > 1:
         parts = parts[:-1]
     module_id = ".".join(parts)
+    _LOG.debug("return=%s", module_id)
     return module_id
 
 
@@ -208,6 +219,10 @@ def _byte_to_char_col(line_txt: str, byte_col: int) -> int:
     Convert an `ast` column (UTF-8 byte offset) into a character column.
 
     `jedi` expects character columns, so the two differ on non-ASCII lines.
+
+    :param line_txt: source line containing the column
+    :param byte_col: UTF-8 byte offset of the column
+    :return: character offset of the same column
     """
     char_col = len(line_txt.encode("utf-8")[:byte_col].decode("utf-8", "ignore"))
     return char_col
@@ -221,6 +236,7 @@ def _get_name_position(node: ast.AST) -> tuple[int, int] | None:
     - `a.b.foo(...)` -> position of the last attribute `foo`
     - Anything else (e.g., `f()()`, `x[0]()`) has no name to resolve
 
+    :param node: expression naming a callee or a type
     :return: (1-based line, byte column) or `None`
     """
     pos = None
@@ -241,6 +257,9 @@ def _get_annotation_positions(annotation: ast.AST) -> list[tuple[int, int]]:
     Get the positions of all the type names inside an annotation.
 
     E.g., `Dict[str, Foo]` -> positions of `Dict`, `str`, `Foo`.
+
+    :param annotation: type annotation expression
+    :return: list of (1-based line, byte column)
     """
     positions = []
     for node in ast.walk(annotation):
@@ -253,10 +272,22 @@ def _get_annotation_positions(annotation: ast.AST) -> list[tuple[int, int]]:
 
 
 def _unparse(node: ast.AST | None) -> str:
+    """
+    Convert an AST node back into source text.
+
+    :param node: AST node, or `None` for a missing node
+    :return: source text, `""` for `None`
+    """
     return "" if node is None else ast.unparse(node)
 
 
 def _get_decorators(node: _DefNode) -> list[str]:
+    """
+    Get the decorators of a definition as written in the source.
+
+    :param node: function or class definition
+    :return: one source text per decorator, e.g., `['staticmethod']`
+    """
     decorators = [_unparse(d) for d in node.decorator_list]
     return decorators
 
@@ -264,6 +295,9 @@ def _get_decorators(node: _DefNode) -> list[str]:
 def _get_visibility(name: str) -> str:
     """
     Get the UML visibility of a name from the Python naming convention.
+
+    :param name: short name of a symbol
+    :return: `+` public, `#` protected (`_x`), `-` private (`__x`)
     """
     is_dunder = name.startswith("__") and name.endswith("__")
     if name.startswith("__") and not is_dunder:
@@ -275,12 +309,16 @@ def _get_visibility(name: str) -> str:
     return visibility
 
 
-def _get_signature(node: _FuncNode, *, is_method: bool) -> str:
+def _get_signature(node: _FuncNode, is_method: bool) -> str:
     """
     Format the signature of a function, dropping `self` / `cls` for methods.
 
     E.g., `def f(self, a: int, *, b: str = "x") -> str` ->
     `(a: int, *, b: str = 'x') -> str`.
+
+    :param node: function definition
+    :param is_method: whether the function is defined inside a class
+    :return: arguments and return type
     """
     args = copy.copy(node.args)
     decorators = _get_decorators(node)
@@ -303,6 +341,9 @@ def _get_signature(node: _FuncNode, *, is_method: bool) -> str:
 def _get_doc(node: ast.Module | _DefNode) -> str:
     """
     Get the docstring, capped to keep the output small.
+
+    :param node: module, function, or class definition
+    :return: docstring, `""` if missing
     """
     doc = ast.get_docstring(node) or ""
     max_chars = 2000
@@ -318,6 +359,9 @@ def _iter_defs(body: list[ast.stmt]) -> list[_DefNode]:
     Look inside `if` / `try` / `with` / `for` / `while` blocks (e.g., `if
     TYPE_CHECKING:`) but never inside a definition, since nested functions are
     not symbols.
+
+    :param body: statements of a module or of a class
+    :return: definitions in source order
     """
     defs: list[_DefNode] = []
     for stmt in body:
@@ -340,6 +384,9 @@ def _collect_call_positions(node: ast.AST) -> list[tuple[int, int]]:
     Get the callee positions of all the calls inside a function body.
 
     Nested functions and lambdas are attributed to the enclosing function.
+
+    :param node: function definition
+    :return: list of (1-based line, byte column)
     """
     positions = []
     for child in ast.walk(node):
@@ -365,6 +412,13 @@ def _add_refs(
 ) -> None:
     """
     Record positions to resolve, converting byte columns to character columns.
+
+    :param refs: references collected so far, extended in place
+    :param path: absolute path of the file containing the positions
+    :param lines: source lines of the file
+    :param src: id of the symbol that owns the references
+    :param kind: one of `call`, `inherit`, `compose`
+    :param positions: list of (1-based line, byte column)
     """
     for line, byte_col in positions:
         col = _byte_to_char_col(lines[line - 1], byte_col)
@@ -374,6 +428,9 @@ def _add_refs(
 def _get_self_attr_name(target: ast.AST) -> str:
     """
     Get `x` from the target `self.x`, or `""` if the target is not a `self` attr.
+
+    :param target: assignment target
+    :return: attribute name, `""` if the target is not `self.<name>`
     """
     name = ""
     if (
@@ -398,10 +455,23 @@ def _collect_class_attrs(
     Attributes come from class-level assignments and from `self.x = ...` in
     `__init__()` / `__post_init__()`. A type that is the annotation or the
     constructor call on the right-hand side becomes a `compose` reference.
+
+    :param class_node: class definition
+    :param class_id: id of the class symbol
+    :param path: absolute path of the file defining the class
+    :param lines: source lines of the file
+    :param refs: references collected so far, extended in place
+    :return: attributes as `name` or `name: type`
     """
     attrs: dict[str, str] = {}
 
     def _add(name: str, annotation: ast.AST | None) -> None:
+        """
+        Record an attribute, keeping the first type seen for it.
+
+        :param name: attribute name
+        :param annotation: type annotation, `None` if the attribute has none
+        """
         if name not in attrs or (annotation is not None and not attrs[name]):
             attrs[name] = _unparse(annotation)
 
@@ -457,17 +527,28 @@ def _collect_def(
 ) -> None:
     """
     Add the symbol for a function or class definition, and recurse into classes.
+
+    :param node: function or class definition
+    :param parent: symbol of the enclosing module or class
+    :param path: absolute path of the file containing the definition
+    :param rel_path: path of the file relative to the project root
+    :param lines: source lines of the file
+    :param symbols: symbols collected so far, extended in place
+    :param refs: references collected so far, extended in place
     """
     sym_id = f"{parent.id}.{node.name}"
+    _LOG.debug("Collecting the definition '%s' in '%s'", sym_id, rel_path)
     # Classes have bases and a bare name, functions have a signature.
     if isinstance(node, ast.ClassDef):
         kind = "class"
         signature = ""
         bases = [_unparse(b) for b in node.bases]
     else:
-        kind = "method" if parent.kind == "class" else "function"
-        signature = _get_signature(node, is_method=parent.kind == "class")
+        is_method = parent.kind == "class"
+        kind = "method" if is_method else "function"
+        signature = _get_signature(node, is_method)
         bases = []
+    # Build the symbol.
     symbol = Symbol(
         id=sym_id,
         kind=kind,
@@ -507,7 +588,13 @@ def _collect_module(
 ) -> None:
     """
     Parse a file and add its symbols and unresolved references.
+
+    :param path: absolute path of the Python file
+    :param project_root: directory used to name the modules
+    :param symbols: symbols collected so far, extended in place
+    :param refs: references collected so far, extended in place
     """
+    _LOG.debug(hprint.to_str("path project_root"))
     with open(path, "r", encoding="utf-8") as f:
         source = f.read()
     tree = ast.parse(source, filename=path)
@@ -516,6 +603,7 @@ def _collect_module(
     lines = source.split("\n")
     rel_path = os.path.relpath(path, project_root)
     module_id = _get_module_id(project_root, path)
+    # Build the symbol of the module.
     module = Symbol(
         id=module_id,
         kind="module",
@@ -527,6 +615,7 @@ def _collect_module(
         doc=_get_doc(tree),
     )
     symbols[module_id] = module
+    # Collect the definitions of the module.
     for node in _iter_defs(tree.body):
         _collect_def(node, module, path, rel_path, lines, symbols, refs)
 
@@ -550,9 +639,12 @@ def _resolve_refs(
     builtins) are counted as `external`, the ones `jedi` cannot infer as
     `unresolved`.
 
+    :param project_root: directory used to resolve absolute imports
+    :param symbols: symbols collected by pass 1
+    :param refs: references collected by pass 1
     :return: edges (one per distinct (src, dst, kind)) and the counters
     """
-    _LOG.debug(hprint.to_str("project_root"))
+    _LOG.debug(hprint.to_str("project_root len(symbols) len(refs)"))
     # Map the definition site of each symbol to its id.
     def_index: dict[tuple[str, int], str] = {}
     for sym in symbols.values():
@@ -572,6 +664,7 @@ def _resolve_refs(
         with open(path, "r", encoding="utf-8") as f:
             script = jedi.Script(code=f.read(), path=path, project=project)
         for ref in path_refs:
+            # Jump to the definition of the name at the reference position.
             names = script.goto(
                 ref.line,
                 ref.col,
@@ -590,6 +683,7 @@ def _resolve_refs(
                 stats["external" if names else "unresolved"] += 1
                 continue
             stats["resolved"] += 1
+            # Add one edge per target, merging the call sites of equal edges.
             for dst in targets:
                 kind = ref.kind
                 dst_kind = symbols[dst].kind
@@ -604,7 +698,9 @@ def _resolve_refs(
                 )
                 if ref.line not in edge.lines:
                     edge.lines.append(ref.line)
-    return list(edges.values()), stats
+    edge_list = list(edges.values())
+    _LOG.debug("return=%d edges, stats=%s", len(edge_list), stats)
+    return edge_list, stats
 
 
 # #############################################################################
@@ -632,16 +728,16 @@ def extract_call_graph(
     project_root = os.path.realpath(project_root)
     hdbg.dassert(
         root_dir == project_root or root_dir.startswith(project_root + os.sep),
-        "The dir to analyze must be inside the project root",
+        "The dir to analyze '%s' must be inside the project root '%s'",
         root_dir,
         project_root,
     )
     # Pass 1: definitions and positions to resolve.
     files = find_python_files(root_dir, exclude_tests=exclude_tests)
-    hdbg.dassert_lt(0, len(files), "No Python files found in", root_dir)
+    hdbg.dassert_lt(0, len(files), "No Python files found in '%s'", root_dir)
     symbols: dict[str, Symbol] = {}
     refs: list[_Ref] = []
-    for path in files:
+    for path in tqdm.tqdm(files, desc="Collecting symbols"):
         _collect_module(path, project_root, symbols, refs)
     _LOG.info(
         "Found %d files, %d symbols, %d references",
@@ -651,6 +747,7 @@ def extract_call_graph(
     )
     # Pass 2: resolve references with `jedi`.
     edges, stats = _resolve_refs(project_root, symbols, refs)
+    # Summarize the extraction in the counters.
     stats["files"] = len(files)
     for kind in ("module", "class", "function", "method"):
         stats["num_" + kind] = sum(1 for s in symbols.values() if s.kind == kind)
@@ -673,9 +770,12 @@ def build_nx_graph(cg: CallGraph) -> nx.MultiDiGraph:
     :return: multigraph, since two symbols can be related in more than one way
         (e.g., a class inherits from and composes another)
     """
+    _LOG.debug(hprint.to_str("len(cg.symbols) len(cg.edges)"))
     graph = nx.MultiDiGraph()
+    # One node per symbol.
     for sym in cg.symbols.values():
         graph.add_node(sym.id, kind=sym.kind)
+    # One edge per relation, keyed by its kind.
     for edge in cg.edges:
         graph.add_edge(edge.src, edge.dst, key=edge.kind, kind=edge.kind)
     return graph
@@ -685,22 +785,30 @@ def find_symbol_id(cg: CallGraph, query: str) -> str:
     """
     Resolve a user-provided name into the id of a symbol.
 
+    :param cg: extracted call graph
     :param query: full id (e.g., `helpers.hdbg.dassert`) or any unique dotted
         suffix (e.g., `hdbg.dassert`, `dassert`)
     :return: symbol id
     """
+    _LOG.debug(hprint.to_str("query"))
     if query in cg.symbols:
-        return query
-    matches = [s for s in cg.symbols if s == query or s.endswith("." + query)]
-    hdbg.dassert_lt(0, len(matches), "No symbol matches", query)
-    hdbg.dassert_eq(
-        len(matches),
-        1,
-        "Ambiguous symbol '%s', candidates: %s",
-        query,
-        matches[:10],
-    )
-    return matches[0]
+        symbol_id = query
+    else:
+        # Match any symbol whose id ends with the query on a dot boundary.
+        matches = [
+            s for s in cg.symbols if s == query or s.endswith("." + query)
+        ]
+        hdbg.dassert_lt(0, len(matches), "No symbol matches '%s'", query)
+        hdbg.dassert_eq(
+            len(matches),
+            1,
+            "Ambiguous symbol '%s', candidates: %s",
+            query,
+            matches[:10],
+        )
+        symbol_id = matches[0]
+    _LOG.debug("return=%s", symbol_id)
+    return symbol_id
 
 
 def prune_call_graph(cg: CallGraph, focus: str, radius: int) -> CallGraph:
@@ -719,30 +827,31 @@ def prune_call_graph(cg: CallGraph, focus: str, radius: int) -> CallGraph:
     _LOG.debug(hprint.to_str("focus radius"))
     hdbg.dassert_lte(0, radius, "Radius must be non-negative")
     if radius == 0:
-        return cg
-    focus_id = find_symbol_id(cg, focus)
-    graph = build_nx_graph(cg)
-    seeds = [focus_id]
-    if cg.symbols[focus_id].kind == "class":
-        seeds += [s.id for s in cg.symbols.values() if s.parent == focus_id]
-    # Union of the balls around each seed.
-    keep: set[str] = set()
-    for seed in seeds:
-        ball = nx.ego_graph(graph, seed, radius=radius, undirected=True)
-        keep |= set(ball.nodes)
-    # Add the ancestors, since a method is shown inside its class.
-    for sym_id in list(keep):
-        parent = cg.symbols[sym_id].parent
-        while parent:
-            keep.add(parent)
-            parent = cg.symbols[parent].parent
-    pruned = CallGraph(
-        root_dir=cg.root_dir,
-        project_root=cg.project_root,
-        symbols={k: v for k, v in cg.symbols.items() if k in keep},
-        edges=[e for e in cg.edges if e.src in keep and e.dst in keep],
-        stats=dict(cg.stats),
-    )
+        pruned = cg
+    else:
+        focus_id = find_symbol_id(cg, focus)
+        graph = build_nx_graph(cg)
+        seeds = [focus_id]
+        if cg.symbols[focus_id].kind == "class":
+            seeds += [s.id for s in cg.symbols.values() if s.parent == focus_id]
+        # Union of the balls around each seed.
+        keep: set[str] = set()
+        for seed in seeds:
+            ball = nx.ego_graph(graph, seed, radius=radius, undirected=True)
+            keep |= set(ball.nodes)
+        # Add the ancestors, since a method is shown inside its class.
+        for sym_id in list(keep):
+            parent = cg.symbols[sym_id].parent
+            while parent:
+                keep.add(parent)
+                parent = cg.symbols[parent].parent
+        pruned = CallGraph(
+            root_dir=cg.root_dir,
+            project_root=cg.project_root,
+            symbols={k: v for k, v in cg.symbols.items() if k in keep},
+            edges=[e for e in cg.edges if e.src in keep and e.dst in keep],
+            stats=dict(cg.stats),
+        )
     return pruned
 
 
@@ -750,8 +859,10 @@ def call_graph_to_dict(cg: CallGraph) -> dict[str, Any]:
     """
     Convert a call graph into a JSON-serializable dict.
 
+    :param cg: extracted call graph
     :return: dict with `root_dir`, `stats`, `symbols` (list), `edges` (list)
     """
+    _LOG.debug(hprint.to_str("len(cg.symbols) len(cg.edges)"))
     data = {
         "root_dir": cg.root_dir,
         "stats": cg.stats,

@@ -154,7 +154,7 @@ DIR --ast--> symbols + references --jedi--> edges --networkx--> prune
   - `call_graph_to_dict(cg) -> Dict[str, Any]`
     - JSON-serializable form shared by the page and a future server
 - `call_graph/render.py`
-  - `render_html(cg, *, title, focus, radius) -> str`
+  - `render_html(cg, title, *, focus, radius) -> str`
     - Assembles the page from the template, the CSS, the JavaScript, and the data
 - `call_graph/assets/`
   - `call_graph_viewer.html.j2`, `call_graph_viewer.css`: the page

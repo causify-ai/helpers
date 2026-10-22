@@ -22,6 +22,12 @@ def _symbol(
 ) -> dict[str, Any]:
     """
     Build a symbol in the format produced by `extract.call_graph_to_dict()`.
+
+    :param sym_id: qualified name, e.g., `m.A.a1`
+    :param kind: one of `module`, `class`, `function`, `method`
+    :param parent: id of the enclosing module or class
+    :param kwargs: fields overriding the defaults
+    :return: symbol as a dict
     """
     symbol = {
         "id": sym_id,
@@ -52,6 +58,8 @@ def _create_graph() -> dict[str, Any]:
     m.A.a2 --call--> m.B.b1
     m.B --inherit--> m.A
     ```
+
+    :return: graph as a dict with `symbols` and `edges`
     """
     symbols = [
         _symbol("m", "module", ""),
@@ -69,6 +77,11 @@ def _create_graph() -> dict[str, Any]:
         {"src": "m.B", "dst": "m.A", "kind": "inherit", "lines": [12]},
     ]
     return {"symbols": symbols, "edges": edges}
+
+
+# #############################################################################
+# Test_call_graph_viewer_core_js
+# #############################################################################
 
 
 class Test_call_graph_viewer_core_js(hunitest.TestCase):
@@ -98,6 +111,9 @@ class Test_call_graph_viewer_core_js(hunitest.TestCase):
         """
         Test one connection around a function, following callers and callees.
         """
+        # Prepare inputs.
+        command = ["hood", "m.f", "1", "both"]
+        # Prepare outputs.
         expected = """
         {
           "m.A.a1": 1,
@@ -105,13 +121,17 @@ class Test_call_graph_viewer_core_js(hunitest.TestCase):
           "m.f": 0
         }
         """
-        self.helper(["hood", "m.f", "1", "both"], expected)
+        # Run test.
+        self.helper(command, expected)
 
     def test2(self) -> None:
         """
         Test two connections following only the callees: the inheritance edge
         of the reached class is followed.
         """
+        # Prepare inputs.
+        command = ["hood", "m.f", "2", "callees"]
+        # Prepare outputs.
         expected = """
         {
           "m.A": 2,
@@ -120,12 +140,16 @@ class Test_call_graph_viewer_core_js(hunitest.TestCase):
           "m.f": 0
         }
         """
-        self.helper(["hood", "m.f", "2", "callees"], expected)
+        # Run test.
+        self.helper(command, expected)
 
     def test3(self) -> None:
         """
         Test that radius 0 shows every symbol, the unreachable ones too.
         """
+        # Prepare inputs.
+        command = ["hood", "m.f", "0", "callers"]
+        # Prepare outputs.
         expected = """
         {
           "m.A": "inf",
@@ -136,13 +160,17 @@ class Test_call_graph_viewer_core_js(hunitest.TestCase):
           "m.f": 0
         }
         """
-        self.helper(["hood", "m.f", "0", "callers"], expected)
+        # Run test.
+        self.helper(command, expected)
 
     def test4(self) -> None:
         """
         Test that the seeds of a class include its methods, and that methods
         collapse into their class in the projection.
         """
+        # Prepare inputs.
+        command = ["project", "m.A", "1", "both"]
+        # Prepare outputs.
         expected = """
         {
           "nodes": [
@@ -158,12 +186,16 @@ class Test_call_graph_viewer_core_js(hunitest.TestCase):
           ]
         }
         """
-        self.helper(["project", "m.A", "1", "both"], expected)
+        # Run test.
+        self.helper(command, expected)
 
     def test5(self) -> None:
         """
         Test the UML box of a class: attributes, methods, and highlights.
         """
+        # Prepare inputs.
+        command = ["box", "m.A", "m.A.a1", "m.A.a2"]
+        # Prepare outputs.
         expected = """
         {
           "size": "143x83",
@@ -176,27 +208,36 @@ class Test_call_graph_viewer_core_js(hunitest.TestCase):
           ]
         }
         """
-        self.helper(["box", "m.A", "m.A.a1", "m.A.a2"], expected)
+        # Run test.
+        self.helper(command, expected)
 
     def test6(self) -> None:
         """
         Test the mapping of a vertical offset in a box to the row under it.
         """
-        # The header is 24px, the attribute compartment 22px, and the methods start
-        # after 4px of border and padding: y=70 is in the second method row.
+        # Prepare inputs.
+        command = ["rowat", "m.A", "70"]
+        # Prepare outputs.
+        # The header is 24px, the attribute compartment 22px, and the methods
+        # start after 4px of border and padding: y=70 is in the second method
+        # row.
         expected = """
         {
           "part": "method",
           "index": 1
         }
         """
-        self.helper(["rowat", "m.A", "70"], expected)
+        # Run test.
+        self.helper(command, expected)
 
     def test7(self) -> None:
         """
         Test that the navigation state survives a round trip through the URL
         hash and that invalid values fall back to the defaults.
         """
+        # Prepare inputs.
+        command = ["state", "'#node=pkg.mod.func&n=3&dir=callers&n=x'"]
+        # Prepare outputs.
         expected = """
         {
           "state": {
@@ -207,6 +248,5 @@ class Test_call_graph_viewer_core_js(hunitest.TestCase):
           "hash": "node=pkg.mod.func&n=3&dir=callers"
         }
         """
-        self.helper(
-            ["state", "'#node=pkg.mod.func&n=3&dir=callers&n=x'"], expected
-        )
+        # Run test.
+        self.helper(command, expected)

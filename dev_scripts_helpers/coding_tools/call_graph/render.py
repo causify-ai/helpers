@@ -37,9 +37,12 @@ def _get_assets_dir() -> str:
 
     Locate the template with `hgit.find_file_in_git_tree()` instead of deriving
     the path from `__file__`, so the assets can be moved or symlinked.
+
+    :return: path of the dir containing `call_graph_viewer.html.j2`
     """
     template_path = hgit.find_file_in_git_tree("call_graph_viewer.html.j2")
     assets_dir = os.path.dirname(template_path)
+    _LOG.debug("return=%s", assets_dir)
     return assets_dir
 
 
@@ -49,7 +52,11 @@ def _read_vendor_js(assets_dir: str) -> str:
 
     `cytoscape-fcose` needs `cose-base`, which needs `layout-base`, and all of
     them find each other through browser globals.
+
+    :param assets_dir: dir containing the `vendor/` dir (see `_get_assets_dir()`)
+    :return: JavaScript text of all the libraries
     """
+    _LOG.debug(hprint.to_str("assets_dir"))
     vendor_files = [
         "cytoscape-3.34.4.min.js",
         "layout-base-2.0.1.js",
@@ -64,7 +71,9 @@ def _read_vendor_js(assets_dir: str) -> str:
         hdbg.dassert_file_exists(path)
         txt = hio.from_file(path)
         # A literal closing tag would end the inline script early.
-        hdbg.dassert_not_in("</script", txt, "Vendor file breaks inlining", path)
+        hdbg.dassert_not_in(
+            "</script", txt, "Vendor file '%s' breaks inlining", path
+        )
         parts.append(txt)
     # A leading `;` protects against files that omit the final semicolon.
     vendor_js = "\n;\n".join(parts)
@@ -77,12 +86,13 @@ def _read_vendor_js(assets_dir: str) -> str:
 
 
 def _to_script_json(obj: Any) -> str:
-    """
+    r"""
     Serialize an object so it is safe inside a `<script>` element.
 
     - `ensure_ascii` avoids the U+2028 / U+2029 line terminators
-    - Escaping every `<` as `\\u003c` stops the HTML parser from seeing `</script>`
-      or `<!--`, and it is still valid JSON (`\\/` is, but `\\!` is not)
+    - Escaping every `<` as `\u003c` stops the HTML parser from seeing
+      `</script>` or `<!--`, and it is still valid JSON (`\/` is, but
+      `\!` is not)
 
     :param obj: JSON-serializable object
     :return: JSON text
@@ -96,9 +106,11 @@ def _highlight_files(cg: dsccgex.CallGraph) -> dict[str, list[str]]:
     """
     Highlight the source of every file that defines a symbol.
 
+    :param cg: extracted call graph
     :return: map from the file path (relative to the project root) to one HTML
         string per source line, so the viewer can scroll to and mark line ranges
     """
+    _LOG.debug(hprint.to_str("len(cg.symbols)"))
     lexer = pygments.lexers.PythonLexer()
     # `nowrap` yields the bare token spans, without a `<pre>` wrapper.
     formatter = pygments.formatters.HtmlFormatter(nowrap=True)
@@ -129,8 +141,8 @@ def _highlight_files(cg: dsccgex.CallGraph) -> dict[str, list[str]]:
 
 def render_html(
     cg: dsccgex.CallGraph,
-    *,
     title: str,
+    *,
     focus: str = "",
     radius: int = 1,
 ) -> str:
