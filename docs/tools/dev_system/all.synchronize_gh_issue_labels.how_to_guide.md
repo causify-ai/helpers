@@ -116,14 +116,14 @@
 ```bash
 > ./dev_scripts_helpers/github/sync_gh_issue_labels.py \
     -i ./dev_scripts_helpers/github/labels/gh_issues_labels.yml \
-    --owner causify-ai \
+    --owner <org> \
     --repo helpers \
     --token_env_var GITHUB_TOKEN \
     --backup \
     --dry_run
 12:26:27 - INFO  hdbg.py init_logger:1013                               Saving log to file '/home/peeyush/src/helpers1/dev_scripts_helpers/github/sync_gh_issue_labels.py.log'
-12:26:27 - INFO  hdbg.py init_logger:1018                               > cmd='./dev_scripts_helpers/github/sync_gh_issue_labels.py -i ./dev_scripts_helpers/github/labels/gh_issues_labels.yml --owner causify-ai --repo helpers --token_env_var GITHUB_TOKEN --backup --dry_run'
-12:26:28 - INFO  sync_gh_issue_labels.py _main:205                      Labels backed up to /home/peeyush/src/helpers1/tmp.labels.causify-ai.helpers.yaml
+12:26:27 - INFO  hdbg.py init_logger:1018                               > cmd='./dev_scripts_helpers/github/sync_gh_issue_labels.py -i ./dev_scripts_helpers/github/labels/gh_issues_labels.yml --owner <org> --repo helpers --token_env_var GITHUB_TOKEN --backup --dry_run'
+12:26:28 - INFO  sync_gh_issue_labels.py _main:205                      Labels backed up to /home/peeyush/src/helpers1/tmp.labels.<org>.helpers.yaml
 Are you sure you want to synchronize labels? [y/n] y
 12:26:32 - INFO  sync_gh_issue_labels.py _main:263                      Label 'P0' not changed
 12:26:32 - INFO  sync_gh_issue_labels.py _main:263                      Label 'P1' not changed
@@ -152,7 +152,7 @@ TODO(\*): Update this section once the invoke target is implemented
 ```bash
 > i sync_gh_issue_labels \
     -i $FILENAME \
-    --owner causify-ai \
+    --owner <org> \
     --repo sports_analytics \
     --token_env_var GITHUB_TOKEN  \
     --backup

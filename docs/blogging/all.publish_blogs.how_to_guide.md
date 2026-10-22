@@ -1,6 +1,6 @@
 <!-- toc -->
 
-- [How to Publish Causify Blogs](#how-to-publish-causify-blogs)
+- [How to Publish Blogs](#how-to-publish-blogs)
   * [Overview](#overview)
   * [How to Publish a Blog](#how-to-publish-a-blog)
   * [How to Preview Locally](#how-to-preview-locally)
@@ -26,14 +26,14 @@
 
 <!-- tocstop -->
 
-# How to Publish Causify Blogs
+# How to Publish Blogs
 
 ## Overview
 
-The Causify blog is hosted at
-[https://blog.causify.ai/](https://blog.causify.ai/) and is built using MkDocs
-Material with the blog plugin. All blog content is managed through the csfy
-repository, and changes are automatically deployed via GitHub Actions.
+The blog is hosted at
+`https://<blog_domain>/` and is built using MkDocs
+Material with the blog plugin. All blog content is managed through the
+`<site_repo>` repository, and changes are automatically deployed via GitHub Actions.
 
 The blog uses a **preprocessing step** that:
 
@@ -48,20 +48,20 @@ The blog uses a **preprocessing step** that:
 Publishing a blog post is straightforward:
 
 1. **Create your blog post** as a Markdown file following the conventions below
-2. **Add the file** to `//csfy/blog/docs/posts/` directory
+2. **Add the file** to `//<site_repo>/blog/docs/posts/` directory
 3. **Commit and merge** your changes to the `master` branch
 
 That's it! The
-[publish_blog.yml](https://github.com/causify-ai/csfy/blob/master/.github/workflows/publish_blog.yml)
+publish_blog.yml (`https://github.com/<org>/<site_repo>/blob/master/.github/workflows/publish_blog.yml`)
 GitHub Action will automatically:
 
 - Detect changes in the `blog/**` directory
 - Run preprocessing to validate frontmatter and render diagrams
 - Build the MkDocs site
-- Deploy it to S3 at `s3://causify-blog`
-- Your blog will be live at [https://blog.causify.ai/](https://blog.causify.ai/)
+- Deploy it to S3 at `s3://<blog_bucket>`
+- Your blog will be live at `https://<blog_domain>/`
 
-**Note:** The GitHub Action publishes ANY changes made in the `//csfy/blog/`
+**Note:** The GitHub Action publishes ANY changes made in the `//<site_repo>/blog/`
 directory, including:
 
 - New blog posts
@@ -92,7 +92,7 @@ This environment already has all the necessary dependencies (`mkdocs`,
 1. **Navigate to the repository root:**
 
 ```bash
-   cd ~/src/csfy1
+   cd ~/src/<site_repo>1
 ```
 
 2. **Run the preprocessing script:**
@@ -216,7 +216,7 @@ author_id:
 ```yaml
 gpsaggese:
   name: GP Saggese
-  description: CEO & Co-founder at Causify
+  description: Founder
   avatar: https://github.com/gpsaggese.png
 ```
 
@@ -326,7 +326,7 @@ The `<!-- more -->` separator is crucial for blog post previews:
 All blog images and assets should be stored in:
 
 ```text
-//csfy/blog/docs/assets/
+//<site_repo>/blog/docs/assets/
 ```
 
 **Directory structure:**
@@ -404,7 +404,7 @@ To add new categories, edit the `categories_allowed` list in `blog/mkdocs.yml`.
 ### Automatic Deployment
 
 The blog uses a GitHub Action
-([publish_blog.yml](https://github.com/causify-ai/csfy/blob/master/.github/workflows/publish_blog.yml))
+(publish_blog.yml (`https://github.com/<org>/<site_repo>/blob/master/.github/workflows/publish_blog.yml`))
 that:
 
 **Triggers on:**
@@ -422,7 +422,7 @@ that:
 6. **Runs preprocessing** to validate frontmatter and render diagrams
 7. Builds the static site (`mkdocs build` in `./blog` directory)
 8. Configures AWS credentials via OIDC
-9. Syncs the built site to S3: `s3://causify-blog` with `--delete` flag
+9. Syncs the built site to S3: `s3://<blog_bucket>` with `--delete` flag
 
 **Deployment time:**
 
@@ -489,7 +489,7 @@ python helpers_root/docs/mkdocs/preprocess_mkdocs.py \
 **Example blog posts:**
 
 - Browse all published blogs:
-  [https://github.com/causify-ai/csfy/tree/master/blog/docs/posts](https://github.com/causify-ai/csfy/tree/master/blog/docs/posts)
+  `https://github.com/<org>/<site_repo>/tree/master/blog/docs/posts`
 - Pick any `.md` file to see real examples of:
   - Frontmatter structure
   - Content organization

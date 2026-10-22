@@ -23,6 +23,16 @@ Uses invoke tasks for issue and branch creation:
 - `invoke git_branch_create --branch-name` to create the same branch, by
   name, in every submodule
 
+Pass `--gh_project <project>` to also add the issue to a GitHub project, given
+- its title looked up among the projects owned by the repo's owner
+    - E.g., `Optimal_strategy_for_racket_sports`
+- its URL
+    - E.g., `https://github.com/users/gpsaggese/projects/4`)
+
+By default the issue is not added to any project. The project is resolved
+before anything is created, so a wrong project aborts the script without
+leaving an orphan issue.
+
 Pass `--suffix <suffix>` (e.g., `--suffix 1`) to name the branch
 `<Base>_<suffix>` (e.g., `AmpTask1234_..._1`), for splitting one issue into a
 stack of sequential branches/PRs.
@@ -39,12 +49,13 @@ import dev_scripts_helpers.git.git_create_issue_and_branch as dsggiab
 """
 
 import argparse
+import json
 import logging
 import os
 import re
 import shlex
 import tempfile
-from typing import List, Optional
+from typing import List, Optional, Tuple
 
 import helpers.hdbg as hdbg
 import helpers.hgit as hgit
@@ -160,6 +171,118 @@ def _get_issue_body(body_text: str, body_file: str) -> str:
         _LOG.info("Loaded issue body from file '%s'", body_file)
         return body
     return body_text
+
+
+def _resolve_gh_project(
+    gh_project: str, repo_full_name_with_host: str
+) -> Tuple[str, int]:
+    """
+    Resolve a GitHub project reference into its owner and number.
+
+    The project is either a URL (e.g.,
+    `https://github.com/users/gpsaggese/projects/4`) or a title (e.g.,
+    `Optimal_strategy_for_racket_sports`). A title is looked up among the
+    projects owned by the owner of the repo.
+
+    :param gh_project: project URL or title
+    :param repo_full_name_with_host: repo of the issue, used to find the owner
+        of a project given by title (e.g., "github.com/gpsaggese/umd_classes")
+    :return: login of the project owner and project number
+        ```
+
+        ('gpsaggese', 4)
+
+        ```
+    """
+    _LOG.debug(hprint.to_str("gh_project repo_full_name_with_host"))
+    # Match a project URL: host, `users` or `orgs`, owner login, project
+    # number, and an optional trailing path (e.g., `/views/1`).
+    _PROJECT_URL_RE = re.compile(
+        r"""
+        ^https?://[^/]+/          # scheme and host
+        (?:users|orgs)/           # personal or organization project
+        (?P<owner>[^/]+)/         # owner login
+        projects/(?P<number>\d+)  # project number
+        (?:/.*)?$                 # optional trailing path
+        """,
+        re.VERBOSE,
+    )
+    match = _PROJECT_URL_RE.match(gh_project)
+    if match:
+        owner = match.group("owner")
+        number = int(match.group("number"))
+    else:
+        # Look up the title among the projects of the repo's owner.
+        owner = repo_full_name_with_host.split("/")[1]
+        cmd = (
+            f"gh project list --owner {shlex.quote(owner)} --limit 200 "
+            "--format json"
+        )
+        _, output = hsystem.system_to_string(cmd)
+        projects = json.loads(output)["projects"]
+        matching_projects = [
+            project for project in projects if project["title"] == gh_project
+        ]
+        hdbg.dassert_eq(
+            len(matching_projects),
+            1,
+            "Expected exactly one project titled '%s' owned by '%s'; "
+            "available projects: %s. Pass the project URL to use another "
+            "owner",
+            gh_project,
+            owner,
+            ", ".join(f"'{project['title']}'" for project in projects),
+        )
+        number = int(matching_projects[0]["number"])
+    _LOG.info(
+        "Project '%s' resolved to owner='%s' number='%s'",
+        gh_project,
+        owner,
+        number,
+    )
+    _LOG.debug("return=%s", (owner, number))
+    return owner, number
+
+
+def _add_issue_to_project(
+    issue_id: int,
+    repo_full_name_with_host: str,
+    project_owner: str,
+    project_number: int,
+) -> None:
+    """
+    Add a GitHub issue to a GitHub project.
+
+    Adding an issue that is already in the project is a no-op on the GitHub
+    side, so it is safe to re-run.
+
+    :param issue_id: GitHub issue number, in the outer repo's tracker
+    :param repo_full_name_with_host: repo of the issue (e.g.,
+        "github.com/gpsaggese/umd_classes")
+    :param project_owner: login of the project owner
+    :param project_number: project number, as in the project URL
+    """
+    _LOG.debug(
+        hprint.to_str(
+            "issue_id repo_full_name_with_host project_owner project_number"
+        )
+    )
+    # `gh project item-add` takes the issue by URL, not by number.
+    issue_url = f"https://{repo_full_name_with_host}/issues/{issue_id}"
+    cmd = [
+        f"gh project item-add {project_number}",
+        f"--owner {shlex.quote(project_owner)}",
+        f"--url {shlex.quote(issue_url)}",
+    ]
+    cmd = " ".join(cmd)
+    _LOG.info(
+        "Adding issue #%s to project '%s' of '%s' via: %s",
+        issue_id,
+        project_number,
+        project_owner,
+        cmd,
+    )
+    hsystem.system(cmd, log_level=logging.INFO)
 
 
 def _commit_issue_files(branch_name: str, original_branch: str) -> None:
@@ -530,6 +653,17 @@ def _parse() -> argparse.ArgumentParser:
         default="@me",
         help="GitHub user to assign the issue to",
     )
+    parser.add_argument(
+        "--gh_project",
+        type=str,
+        default="",
+        help=(
+            "GitHub project to add the issue to, given by title (e.g., "
+            "'Optimal_strategy_for_racket_sports') or by URL (e.g., "
+            "'https://github.com/users/gpsaggese/projects/4'). Empty means "
+            "do not add the issue to any project"
+        ),
+    )
     # After-branch-creation behavior: mutually exclusive since a worktree
     # already checks out the new branch separately from the outer repo.
     after_branch_group = parser.add_mutually_exclusive_group()
@@ -618,18 +752,32 @@ def _main_workflow(
     gh_issue_body = _get_issue_body(args.gh_issue_body, args.gh_issue_body_file)
     _LOG.debug(
         "gh_issue_id=%s gh_issue_title=%s gh_issue_body=%s gh_issue_body_file=%s "
-        "gh_assignee=%s create_worktree=%s create_pr=%s suffix=%s "
-        "repo_targets=%s",
+        "gh_assignee=%s gh_project=%s create_worktree=%s create_pr=%s "
+        "suffix=%s repo_targets=%s",
         args.gh_issue_id,
         args.gh_issue_title,
         gh_issue_body,
         args.gh_issue_body_file,
         args.gh_assignee,
+        args.gh_project,
         args.create_worktree,
         args.create_pr,
         args.suffix,
         repo_targets,
     )
+    # Resolve the project before creating anything, so that a wrong project
+    # (or a missing `project` scope of `gh`) aborts without leaving an orphan
+    # issue behind.
+    project_owner = ""
+    project_number = 0
+    repo_full_name_with_host = ""
+    if args.gh_project:
+        repo_full_name_with_host, _ = hltltagh._get_repo_full_name_from_cmd(
+            "current"
+        )
+        project_owner, project_number = _resolve_gh_project(
+            args.gh_project, repo_full_name_with_host
+        )
     # Determine issue ID.
     if args.gh_issue_id:
         # Skip GitHub issue creation if ID is provided.
@@ -667,6 +815,11 @@ def _main_workflow(
         )
         issue_id = int(match.group(1))
         _LOG.info("Created issue #%s", issue_id)
+    # Add the issue (new or existing) to the project, if requested.
+    if args.gh_project:
+        _add_issue_to_project(
+            issue_id, repo_full_name_with_host, project_owner, project_number
+        )
     # Create branch and PR via invoke, in the outer repo.
     branch_name = _create_branch_and_pr(
         issue_id,

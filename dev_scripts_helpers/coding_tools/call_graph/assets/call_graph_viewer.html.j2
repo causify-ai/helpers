@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{ title }}</title>
+<style>
+{{ css }}
+</style>
+<style>
+{{ pygments_css }}
+</style>
+</head>
+<body>
+<header id="toolbar">
+  <button id="btn-back" title="Back in the click history (Alt+Left)">&#9664;</button>
+  <button id="btn-fwd" title="Forward in the click history (Alt+Right)">&#9654;</button>
+  <input id="search" list="symbols" placeholder="Search a function, class, or module" autocomplete="off" spellcheck="false">
+  <datalist id="symbols"></datalist>
+  <label title="Number of connections around the selected symbol. 0 shows everything">
+    Neighbors
+    <input id="radius" type="number" min="0" max="99" step="1" value="1">
+  </label>
+  <label title="Which connections to follow">
+    <select id="direction">
+      <option value="both">callers + callees</option>
+      <option value="callers">callers only</option>
+      <option value="callees">callees only</option>
+    </select>
+  </label>
+  <label>
+    <select id="layout">
+      <option value="fcose">Force layout</option>
+      <option value="tree">Tree layout</option>
+    </select>
+  </label>
+  <label title="Draw a box around the symbols of each module">
+    <input id="group" type="checkbox" checked> Modules
+  </label>
+  <button id="btn-fit" title="Fit the graph in the view">Fit</button>
+  <span id="status"></span>
+</header>
+<main id="main">
+  <section id="graph-pane">
+    <div id="cy"></div>
+    <div id="legend">
+      <span><i class="lg lg-uses"></i> uses</span>
+      <span><i class="lg lg-inherit"></i> inherits</span>
+      <span><i class="lg lg-compose"></i> composes</span>
+    </div>
+  </section>
+  <section id="code-pane">
+    <div id="code-head">
+      <div id="code-title">Click a function or a class</div>
+      <div id="code-file"></div>
+      <div id="related"></div>
+    </div>
+    <div id="code"></div>
+  </section>
+</main>
+<div id="tip" role="tooltip"></div>
+<script id="cg-data" type="application/json">{{ data_json }}</script>
+<script id="cg-files" type="application/json">{{ files_json }}</script>
+<script>
+{{ vendor_js }}
+</script>
+<script>
+{{ core_js }}
+</script>
+<script>
+{{ app_js }}
+</script>
+</body>
+</html>

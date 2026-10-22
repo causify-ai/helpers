@@ -63,6 +63,7 @@ with active review tracking and executable documentation validation.
   because you are not familiar with it and not because you think the
   documentation is poorly done or not organized
 
+- Use AI agents to find docs by asking "what are the documents about XYZ?"
 - Look for files that contain words related to what you are looking for
   - E.g., `ffind XYZ`
 - Grep in the documentation looking for words related to what you are looking
@@ -115,8 +116,8 @@ with active review tracking and executable documentation validation.
   - Guides for general-purpose development and infrastructure tools, grouped by
     topic. Holds the guide on evaluating external tools.
   - `docs/tools/ai/`
-    - AI-assisted work with Claude Code: skills and rules hub, `auto_task`, AI
-      review flows, and code review tools.
+    - AI-assisted work with Claude Code: skills and rules hub, creating a PR with
+      Claude Code, `auto_task`, AI review flows, and code review tools.
   - `docs/tools/codebase/`
     - Codebase hygiene: clean-up scripts, import checks, and how to organize
       imports and packages.

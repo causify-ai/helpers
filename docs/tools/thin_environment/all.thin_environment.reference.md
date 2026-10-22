@@ -92,6 +92,10 @@ Each repo relies on several concept:
   ```bash
   > dev_scripts_helpers/thin_client/build.py
   ```
+- Build thin environment with `uv` instead of `pip`
+  ```bash
+  > dev_scripts_helpers/thin_client/build.py --installer uv
+  ```
 - Source setenv
   ```bash
   > source dev_scripts_helpers/thin_client/setenv.sh

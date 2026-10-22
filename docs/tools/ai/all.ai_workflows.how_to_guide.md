@@ -484,6 +484,8 @@
 ## Related Docs
 
 - Use these docs for details on the tools and conventions mentioned above
+  - `docs/tools/ai/all.create_pr_with_claude_code.how_to_guide.md`: Do a task
+    with Claude Code, from picking the task to a PR
   - `docs/tools/ai/all.auto_task.how_to_guide.md`: Delegate a task list to agents,
     from GitHub issue to merged PR
   - `docs/tools/ai/all.ai_review.how_to_guide.md`: Review flows with LLMs

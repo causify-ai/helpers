@@ -295,19 +295,20 @@ def git_clean(ctx, fix_perms_=False, dry_run=False):  # type: ignore
 
 
 @task
-def git_add_all_untracked(ctx, exclude_tmp=False, dry_run=False):  # type: ignore
+def git_add_all_untracked(ctx, add_all=False, dry_run=False):  # type: ignore
     """
-    Add all untracked files to Git.
+    Add all untracked files to Git, except scratch files.
 
-    :param exclude_tmp: skip scratch files, i.e., `*.log` and `tmp.*` files
-        in any directory (e.g., `tmp.precommit_output.txt`), which the
-        pre-commit hook refuses to commit
+    Scratch files are `*.log` and `tmp.*` files in any directory (e.g.,
+    `tmp.precommit_output.txt`), which the pre-commit hook refuses to commit.
+
+    :param add_all: add also the scratch files
     :param dry_run: if True, log the command without executing it
     """
-    hltltaut.report_task(txt=hprint.to_str("dry_run"))
+    hltltaut.report_task(txt=hprint.to_str("add_all dry_run"))
     # cmd = "git add $(git ls-files -o --exclude-standard)"
     cmd = "git ls-files -o --exclude-standard -z"
-    if exclude_tmp:
+    if not add_all:
         cmd += " | grep -zvE '(^|/)(tmp\\.[^/]*|[^/]*\\.log)$'"
     cmd += " | xargs -0 git add"
     hltltaut.run(ctx, cmd, dry_run=dry_run)
@@ -831,6 +832,9 @@ def git_branch_copy(  # type: ignore
     """
     Create a new branch with the same content of the current branch.
 
+    The untracked files are staged with `git_add_all_untracked()`, so they are
+    copied too, except for the scratch files (i.e., `tmp.*` and `*.log`).
+
     :param new_branch_name: name for the new branch
     :param skip_git_merge_master: skip merging master into current branch
     :param use_patch: apply patching instead of merging
@@ -875,7 +879,13 @@ def git_branch_copy(  # type: ignore
         check_branch_name = False
     if check_branch_name:
         dsggibrc._dassert_valid_branch_name(new_branch_name)
-    # Remove untracked files to ensure clean state when copying branch.
+    # Stage the untracked files (except `tmp.*` and `*.log` scratch files), so
+    # that they are carried over to the new branch and not removed by the clean
+    # below.
+    cmd = "invoke git_add_all_untracked"
+    hltltaut.run(ctx, cmd, dry_run=dry_run)
+    # Remove the remaining untracked files (i.e., the scratch files) to ensure
+    # clean state when copying branch.
     cmd = "git clean -fd"
     hltltaut.run(ctx, cmd, dry_run=dry_run)
     # Sync with master first to ensure new branch includes latest changes (if requested).
@@ -992,7 +1002,9 @@ def git_branch_diff(  # type: ignore
     Filtering and location options:
     :param subdir: subdir to consider for diffing, instead of `.`
     :param include_submodules: run recursively on all submodules
-    :param diff_type: files to diff using git `--diff-filter` options
+    :param diff_type: files to diff using git `--diff-filter` options, e.g.,
+        'A' (added), 'M' (modified), 'D' (deleted), 'R' (renamed). Use a
+        lowercase letter to skip that type, e.g., 'd' skips deleted files
     :param file_types: a comma-separated list of extensions to check, e.g.,
         'csv,py'. An empty string means keep all the extensions
     :param skip_file_types: a comma-separated list of extensions to skip, e.g.,

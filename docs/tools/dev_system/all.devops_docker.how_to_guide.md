@@ -128,16 +128,16 @@
   ```bash
   # After changing the container, create a new version of the container.
   > docker commit d2916dd5f122 \
-      623860924167.dkr.ecr.eu-north-1.amazonaws.com/cmamp:dev_ccxtpr
+      <aws_account_id>.dkr.ecr.<region>.amazonaws.com/cmamp:dev_ccxtpr
 
   # Push the updated container to the repo.
-  > docker push 623860924167.dkr.ecr.eu-north-1.amazonaws.com/cmamp:dev_ccxtpro
+  > docker push <aws_account_id>.dkr.ecr.<region>.amazonaws.com/cmamp:dev_ccxtpro
 
   # Now you can pull the container on different machines.
-  > docker pull 623860924167.dkr.ecr.eu-north-1.amazonaws.com/cmamp:dev_ccxtpro
+  > docker pull <aws_account_id>.dkr.ecr.<region>.amazonaws.com/cmamp:dev_ccxtpro
 
   # To use `docker_bash` you might need to retag it to match what the system expects
-  > docker tag 623860924167.dkr.ecr.eu-north-1.amazonaws.com/cmamp:dev_ccxtpro
+  > docker tag <aws_account_id>.dkr.ecr.<region>.amazonaws.com/cmamp:dev_ccxtpro
   ```
 
 # Release a Docker Image
@@ -469,8 +469,8 @@
   registries, the subsequent step involves pushing the `dev` image to GHCR
   registry. However, this action currently requires manual execution due to
   restricted access
-  - Access to the `causify-ai` packages is limited. To gain access, kindly reach
-    out to GP, Samarth or Vlad
+  - Access to the `<org>` packages is limited. To gain access, kindly reach
+    out to the organization administrators
   - To proceed, perform a Docker login using your GitHub username and PAT
     (Personal Access Token):
     ```bash
@@ -478,11 +478,11 @@
     ```
   - Tag the `dev` image to the GHCR namespace:
     ```bash
-    > docker tag 623860924167.dkr.ecr.eu-north-1.amazonaws.com/cmamp:dev ghcr.io/causify-ai/cmamp:dev
+    > docker tag <aws_account_id>.dkr.ecr.<region>.amazonaws.com/cmamp:dev ghcr.io/<org>/cmamp:dev
     ```
   - Push the tagged image to the GHCR registry:
     ```bash
-    > docker push ghcr.io/causify-ai/cmamp:dev
+    > docker push ghcr.io/<org>/cmamp:dev
     ```
 
 ## Release a multi-architecture dev image
@@ -687,11 +687,11 @@ Check-list:
     ```
   - Tag the `dev` image to the GHCR namespace:
     ```bash
-    > docker tag 623860924167.dkr.ecr.eu-north-1.amazonaws.com/cmamp:dev ghcr.io/causify-ai/cmamp:dev
+    > docker tag <aws_account_id>.dkr.ecr.<region>.amazonaws.com/cmamp:dev ghcr.io/<org>/cmamp:dev
     ```
   - Push the tagged image to the GHCR registry:
     ```bash
-    > docker push ghcr.io/causify-ai/cmamp:dev
+    > docker push ghcr.io/<org>/cmamp:dev
     ```
 
 - Send a message on the `all@` chat telling people that a new version of the

@@ -12,6 +12,16 @@
 //  - Chap 7: Logical agents
 ```
 
+### ADIA Slides With a List of Authors
+
+```markdown
+// type=ADIA_slides
+// course_title=Causal Analysis for Finance
+// lesson_title=The Theory Store: From Finance Papers to Testable Hypotheses
+// Authors=GP, Rui, Emanuele (FA)
+// slides_engine=typst
+```
+
 ## Roadmap and Summary Slides
 
 Every lesson opens with a standalone `* Roadmap` slide (right after the

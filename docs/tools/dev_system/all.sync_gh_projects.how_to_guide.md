@@ -12,7 +12,7 @@
     + [1. To preview what changes would be made:](#1-to-preview-what-changes-would-be-made)
     + [2. To apply changes:](#2-to-apply-changes)
   * [Example Scenario](#example-scenario)
-    + [Source Project `[TEMPLATE] Causify Project`](#source-project-template-causify-project)
+    + [Source Project `[TEMPLATE] Project`](#source-project-template-project)
     + [Destination Project `Buildmeister`](#destination-project-buildmeister)
     + [What the Script Will Do:](#what-the-script-will-do)
     + [Example output from script](#example-output-from-script)
@@ -104,8 +104,8 @@ project configuration without manually replicating fields.
 
 ```bash
 sync_gh_projects.py \
-  --owner causify-ai \
-  --src-template "[TEMPLATE] Causify Project" \
+  --owner <org> \
+  --src-template "[TEMPLATE] Project" \
   --dst-project "Buildmeister" \
   --dry-run --verbose
 ```
@@ -121,8 +121,8 @@ This will output:
 
 ```bash
 sync_gh_projects.py \
-  --owner causify-ai \
-  --src-template "[TEMPLATE] Causify Project" \
+  --owner <org> \
+  --src-template "[TEMPLATE] Project" \
   --dst-project "Buildmeister"
 ```
 
@@ -135,7 +135,7 @@ This will:
 
 ## Example Scenario
 
-### Source Project `[TEMPLATE] Causify Project`
+### Source Project `[TEMPLATE] Project`
 
 `Fields`:
 
@@ -163,7 +163,7 @@ This will:
 
 ### Example output from script
 
-- The source project is `[TEMPLATE] Causify Project` and dst project is
+- The source project is `[TEMPLATE] Project` and dst project is
   `Test_Shaunak`
   - The dst project does not contain `All issues` view which is a req according
     to the template
@@ -173,8 +173,8 @@ This will:
 
 - The output is displayed below:
   ```text
-  15:11:14 - INFO  sync_gh_projects.py main:304                           Syncing '[TEMPLATE] Causify Project' ➔ 'Test_Shaunak'
-  15:11:14 - INFO  sync_gh_projects.py _get_structure:180                 Project #92 ([TEMPLATE] Causify Project) structure:
+  15:11:14 - INFO  sync_gh_projects.py main:304                           Syncing '[TEMPLATE] Project' ➔ 'Test_Shaunak'
+  15:11:14 - INFO  sync_gh_projects.py _get_structure:180                 Project #92 ([TEMPLATE] Project) structure:
   15:11:14 - INFO  sync_gh_projects.py _get_structure:181                 Fields: ['Title', 'Assignees', 'Status', 'Labels', 'Linked pull requests', 'Milestone', 'Repository', 'Reviewers', 'Parent issue', 'Sub-issues progress', 'Estimate', 'Sprint']
   15:11:14 - INFO  sync_gh_projects.py _get_structure:182                 Views: ['All issues', 'Current sprint', 'Next sprint', 'Backlog', 'Team capacity ']
   15:11:14 - WARN  sync_gh_projects.py _get_structure:183                 This script cannot detect per-view visibility, filters, grouping or ordering, since GitHubs GraphQL API does not expose them.
