@@ -62,8 +62,8 @@
 - **3-month trial**
   - Before an intern can turn into a permanent team member, they go through a
     3-month trial period
-  - At this stage, they work full-time and have all the markings of a Causify
-    team member
+  - At this stage, they work full-time and have all the markings of a team
+    member
   - They go through
     [full on-boarding](/docs/onboarding/all.onboarding_checklist.reference.md),
     receiving company e-mail, server access, access to private repos, etc.
@@ -168,8 +168,8 @@
   - We use this Asana task to communicate about the intern
 
 - HiringMeister/GP: send invitations to GitHub repos with `write` permissions:
-  - [`helpers`](https://github.com/causify-ai/helpers/settings/access)
-  - [`tutorials`](https://github.com/causify-ai/tutorials/settings/access)
+  - `helpers` (`https://github.com/<org>/helpers/settings/access`)
+  - `tutorials` (`https://github.com/<org>/tutorials/settings/access`)
 
 - HiringMeister: create a GitHub issue for onboarding the intern
   - Follow the instructions in

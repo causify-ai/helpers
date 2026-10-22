@@ -128,6 +128,16 @@
     // lesson_title=<Lesson X.Y: Title>
     // slides_engine=typst
     ```
+  - `type` selects the logo of the title slide: `UMD_slides` or `ADIA_slides`
+  - Add optional directives right before `slides_engine`, as `// <key>=<value>`
+    - `Authors`: free-form string of people shown on the title slide as
+      `Authors: <string>`, e.g., `// Authors=GP, Rui, Emanuele (FA)`
+      - Default: the line `Instructor: Dr. GP Saggese` for `UMD_slides`, no
+        line for `ADIA_slides`
+    - `logo`: logo path relative to the repo root, overriding the one of `type`
+    - `version`: version string shown on the title slide
+  - Put a `// TODO(gp): ...` comment after the whole block, since a comment that
+    is not `// <key>=<value>` ends the block
 - Do not list references in the header, e.g., no `// References:` comment
   block: put them in the `* References` slide (see "References Slide" below)
 

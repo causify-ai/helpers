@@ -6,6 +6,7 @@
 - [Run Linter](#run-linter)
 - [Compare Your Code to Example Code](#compare-your-code-to-example-code)
 - [Edit Code/Text Written by AI](#edit-codetext-written-by-ai)
+- [Test in Layers](#test-in-layers)
 - [Save Reviewer Time](#save-reviewer-time)
   * [Make Sure Checks Are Green](#make-sure-checks-are-green)
   * [Review Your Own PR](#review-your-own-pr)
@@ -99,6 +100,25 @@ some helpful tips and resources to guide you through your first review.
 - Take whatever is produced by AI as the first draft: go over it, revise it,
   make sure it's readable and relevant, adjust it to fit our specific
   conventions
+
+## Test in Layers
+
+- Run everything inside the project's Docker container
+- Go from the fastest check to the most thorough one:
+  - **Unit tests**: small automatic checks of each function you changed
+  - **End-to-end check**: use the feature as a user would, e.g., run the
+    notebook or the script, and check what it shows
+  - **Full test suite**: run all the tests of the project
+    - Write down the pass and fail counts before and after your change
+  - **Linters**: see [Run Linter](#run-linter)
+  - **Notebook top to bottom**: restart the kernel and run all the cells
+    - Make sure the paired `.ipynb` and `.py` files match
+  - **Fresh copy**: clone your branch in a new dir and run the tests there
+    - This catches the files that you forgot to commit
+  - **Stress and mutation checks**, for important work
+    - Stress: run many random inputs
+    - Mutation: plant small bugs on purpose and confirm the tests catch them
+- Why: each layer catches mistakes that the other layers miss
 
 ## Save Reviewer Time
 
@@ -298,7 +318,8 @@ requirements
 - [ ] The starting post of the PR briefly describes the content of the PR on a
       high level
 - [ ] The issue related to the PR is mentioned in the starting post of the PR
-- [ ] The PR is not linked to any issues under the `Development` section
+- [ ] The starting post of the PR says `Closes #<issue>` if the PR completes the
+      issue, and `Related to #<issue>` otherwise
 - [ ] At least one reviewer is assigned under `Reviewers`
 - [ ] The PR author is listed under `Assignees`
 - [ ] All the checks performed by GitHub Actions pass

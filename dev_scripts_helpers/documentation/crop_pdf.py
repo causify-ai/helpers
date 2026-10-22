@@ -11,9 +11,9 @@
 Crop the pages of a PDF file, removing white margins or fixed-size borders.
 
 The cropping is done by `pdfCropMargins`, run as a module of the interpreter
-that runs this script. The script is self-standing: it does not import anything
-from this repo, and `uv` creates an isolated environment with the dependency
-declared above on the first run (no `pip install` and no Docker needed).
+that runs this script. `uv` creates an isolated environment with the dependency
+declared above on the first run (no `pip install` and no Docker needed). The
+`helpers` package must be importable, as for the other scripts of the repo.
 
 Two cropping modes are supported:
 - Auto (default): find the bounding box of the non-white pixels of each page,
@@ -66,43 +66,12 @@ import argparse
 import logging
 import os
 import shlex
-import subprocess
 import sys
-from typing import List
+
+import helpers.hselect_input_output as hseinout
+from helpers import hdbg, hparser, hsystem
 
 _LOG = logging.getLogger(__name__)
-
-# #############################################################################
-# Low-level helpers
-# #############################################################################
-
-
-def _dassert(cond: bool, msg: str, *args: object) -> None:
-    """
-    Raise `ValueError` with a printf-style message if `cond` is false.
-
-    This replaces `hdbg.dassert()` to keep the script free of repo imports.
-
-    :param cond: condition that must hold
-    :param msg: printf-style message explaining why the condition matters
-    :param args: values to format into `msg`
-    """
-    if not cond:
-        raise ValueError(msg % args)
-
-
-def _init_logger(log_level: str) -> None:
-    """
-    Initialize the root logger.
-
-    :param log_level: name of a `logging` level (e.g., `INFO`, `DEBUG`)
-    """
-    logging.basicConfig(
-        level=getattr(logging, log_level),
-        format="%(asctime)s %(levelname)-5s %(message)s",
-        datefmt="%H:%M:%S",
-    )
-
 
 # #############################################################################
 # Crop PDF
@@ -114,12 +83,12 @@ def _build_crop_cmd(
     output_path: str,
     *,
     pages: str,
-    margins: List[float],
+    margins: list[float],
     padding: float,
     uniform: bool,
     dpi: int,
     threshold: int,
-) -> List[str]:
+) -> list[str]:
     """
     Build the `pdfCropMargins` command that crops a PDF.
 
@@ -182,7 +151,7 @@ def _crop_pdf(
     output_path: str,
     *,
     pages: str,
-    margins: List[float],
+    margins: list[float],
     padding: float,
     uniform: bool,
     dpi: int,
@@ -237,9 +206,10 @@ def _crop_pdf(
         )
     else:
         _LOG.info("Cropping '%s' with: %s", input_path, shlex.join(cmd))
-        # Let a failure raise: `check=True` raises `CalledProcessError` and
-        # `tmp_path` is left for inspection.
-        subprocess.run(cmd, check=True)
+        # Let a failure raise: `hsystem.system()` aborts and `tmp_path` is left
+        # for inspection. Show the output, since `pdfCropMargins` reports the
+        # pages it cannot crop as warnings.
+        hsystem.system(shlex.join(cmd), suppress_output=False)
         os.replace(tmp_path, output_path)
         _LOG.info("Cropped PDF written to '%s'", output_path)
 
@@ -252,19 +222,12 @@ def _crop_pdf(
 def _parse() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         description=__doc__,
-        formatter_class=argparse.RawDescriptionHelpFormatter,
+        formatter_class=hparser.CustomHelpFormatter,
     )
-    parser.add_argument(
-        "-i", "--input", action="store", required=True, help="Input PDF file"
-    )
-    parser.add_argument(
-        "-o",
-        "--output",
-        action="store",
-        default="",
-        help="Output PDF file; the same as `--input` to crop in place. "
-        "Default: `<input>.cropped.pdf` next to the input",
-    )
+    # `--input` is the PDF to crop and `--output` is the cropped PDF, which is
+    # `<input>.cropped.pdf` next to the input when not specified, and the same
+    # as `--input` to crop in place.
+    hseinout.add_input_output_args(parser, in_required=True, out_required=False)
     parser.add_argument(
         "--pages",
         action="store",
@@ -315,36 +278,31 @@ def _parse() -> argparse.ArgumentParser:
         action="store_true",
         help="Show what would be done without actually doing it",
     )
-    parser.add_argument(
-        "-v",
-        dest="log_level",
-        action="store",
-        default="INFO",
-        choices=["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"],
-        help="Set the logging level",
-    )
+    hparser.add_verbosity_arg(parser)
     return parser
 
 
 def _main(parser: argparse.ArgumentParser) -> None:
     args = parser.parse_args()
-    _init_logger(args.log_level)
+    hdbg.init_logger(verbosity=args.log_level, use_exec_path=True)
     # Validate the options.
-    _dassert(
-        os.path.isfile(args.input), "Input file '%s' does not exist", args.input
+    hdbg.dassert(
+        not args.input_files and not args.from_file,
+        "Only a single PDF is supported: use `--input`",
     )
+    hdbg.dassert_file_exists(args.input, "Input PDF to crop must exist")
     if args.margins:
-        _dassert(
+        hdbg.dassert(
             all(margin >= 0 for margin in args.margins),
             "Margins must be non-negative: %s",
             args.margins,
         )
-        _dassert(
+        hdbg.dassert(
             args.padding == 0.0 and not args.uniform,
             "`--padding` and `--uniform` only apply to auto mode, "
             "not to `--margins`",
         )
-    _dassert(args.padding >= 0, "Padding must be non-negative: %s", args.padding)
+    hdbg.dassert_lte(0, args.padding, "Padding must be non-negative")
     output_path = args.output
     if not output_path:
         stem, _ = os.path.splitext(args.input)

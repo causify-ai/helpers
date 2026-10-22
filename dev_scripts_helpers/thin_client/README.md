@@ -60,12 +60,18 @@ This directory has no subdirectories.
 - Installs required dependencies for thin environment setup
 - Configures Python packages and system requirements
 - Prepares development environment for thin client workflows
+- Builds the virtual environment with `pip` (default) or with `uv`
 
 ### Examples
 
-- Build thin environment:
+- Build thin environment with `pip`:
   ```bash
   > build.py
+  ```
+
+- Build thin environment with `uv` (needs `uv` installed, e.g., via `brew`):
+  ```bash
+  > build.py --installer uv
   ```
 
 ## `setenv.sh`

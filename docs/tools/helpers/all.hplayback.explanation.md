@@ -218,8 +218,8 @@ def _gh_run_and_get_json(cmd: str) -> list:
 def record_fixture() -> None:
     # Wrap the calls whose I/O you want captured.
     with hplayba.recording(_gh_run_and_get_json):
-        list_open_prs("causify-ai/helpers")
-        list_workflows("causify-ai/helpers")
+        list_open_prs("<org>/helpers")
+        list_workflows("<org>/helpers")
     # On exit the fixture file is written.
 ```
 
@@ -233,7 +233,7 @@ import helpers.hplayback as hplayba
 
 mock = hplayba.MockDict(_FIXTURE_FILE)
 with mock.patch("helpers.lib_tasks.lib_tasks_gh._gh_run_and_get_json"):
-    prs = list_open_prs("causify-ai/helpers")
+    prs = list_open_prs("<org>/helpers")
     # `list_open_prs()` calls `_gh_run_and_get_json()` internally; the
     # patched mock returns the recorded result.
 ```
@@ -248,7 +248,7 @@ import helpers.hplayback as hplayba
 
 mock_seq = hplayba.MockSequence(_FIXTURE_FILE)
 with mock_seq.patch("helpers.lib_tasks.lib_tasks_gh._gh_run_and_get_json"):
-    run_paginated_workflow("causify-ai/helpers")
+    run_paginated_workflow("<org>/helpers")
     # Each internal `_gh_run_and_get_json()` call is asserted to match
     # the recorded args at its position. An unexpected call raises.
 ```
@@ -281,7 +281,7 @@ class TestListOpenPrs(hunitest.TestCase):
         with self._mock.patch(
             "helpers.lib_tasks.lib_tasks_gh._gh_run_and_get_json"
         ):
-            prs = list_open_prs("causify-ai/helpers")
+            prs = list_open_prs("<org>/helpers")
         # Check outputs.
         # Assert on properties of the helper's post-processing, not on
         # the literal recorded values - so cosmetic drift in `gh`'s

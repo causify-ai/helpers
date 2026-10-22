@@ -23,17 +23,17 @@ import argparse
 import logging
 import os
 import re
-from typing import Dict, List, Match, Optional, Tuple, cast
+from re import Match
+from typing import cast
 
 from tqdm import tqdm
 
-import helpers.hdbg as hdbg
-import helpers.hio as hio
 import helpers.hmarkdown as hmarkdo
 import helpers.hmarkdown_toc as hmartoc
-import helpers.hparser as hparser
 import helpers.hselect_action as hselacti
-import helpers.hprint as hprint
+
+# TODO(ai_gp): Use import
+from helpers import hdbg, hio, hparser, hprint
 
 _LOG = logging.getLogger(__name__)
 
@@ -42,7 +42,8 @@ _LOG = logging.getLogger(__name__)
 # #############################################################################
 
 
-_DEFAULT_ACTIONS: List[str] = ["process_links", "colorize_bullets"]
+# TODO(ai_gp): Use List and old type approach.
+_DEFAULT_ACTIONS: list[str] = ["process_links", "colorize_bullets"]
 _VALID_ACTIONS = [
     "process_links",
     "colorize_bullets",
@@ -50,6 +51,25 @@ _VALID_ACTIONS = [
     "add_duplicate_counters",
     "validate_unique_slide_names",
 ]
+
+# Title-slide settings for each value of the `// type=` metadata directive.
+# - `logo`: logo path, relative to the repo root since pandoc runs in a
+#   container that mounts the repo
+# - `people_label` and `people`: label and string of people shown on the title
+#   slide when the file has no `// Authors=` directive; an empty `people`
+#   means that the line is omitted
+_SLIDE_TYPES: dict[str, dict[str, str]] = {
+    "UMD_slides": {
+        "logo": "msml610/lectures_source/figures/UMD_Logo.png",
+        "people_label": "Instructor",
+        "people": "Dr. GP Saggese - gsaggese@umd.edu",
+    },
+    "ADIA_slides": {
+        "logo": "assets/images/ADIA_Logo.svg",
+        "people_label": "Instructor",
+        "people": "",
+    },
+}
 
 # #############################################################################
 # Helper functions
@@ -188,7 +208,7 @@ def _process_enumerated_list(in_line: str) -> str:
     return line
 
 
-def _process_question_to_markdown(line: str) -> Tuple[bool, str]:
+def _process_question_to_markdown(line: str) -> tuple[bool, str]:
     """
     Transform `* foo bar` into `- **foo bar**`.
 
@@ -215,7 +235,7 @@ def _process_question_to_markdown(line: str) -> Tuple[bool, str]:
 
 def _process_question_to_slides(
     line: str, *, level: int = 4
-) -> Tuple[bool, str]:
+) -> tuple[bool, str]:
     """
     Transform `* foo bar` into `#### foo bar`.
 
@@ -235,7 +255,7 @@ def _process_question_to_slides(
     return do_continue, line
 
 
-def _is_section_boundary(line: str) -> Tuple[bool, str]:
+def _is_section_boundary(line: str) -> tuple[bool, str]:
     """
     Check if a line starts an include-able section.
 
@@ -256,7 +276,7 @@ def _is_section_boundary(line: str) -> Tuple[bool, str]:
     return False, ""
 
 
-def _extract_section(lines: List[str], title: str) -> Optional[List[str]]:
+def _extract_section(lines: list[str], title: str) -> list[str] | None:
     r"""
     Extract the body content under a section marker with the given title.
 
@@ -304,21 +324,25 @@ def _extract_section(lines: List[str], title: str) -> Optional[List[str]]:
 # `dev_scripts_helpers/documentation/lib_notes_to_pdf.py::resolve_slides_engine()`,
 # so it is part of this module's public interface.
 def extract_slide_metadata(
-    lines: List[str],
-) -> Tuple[Dict[str, str], List[str]]:
+    lines: list[str],
+) -> tuple[dict[str, str], list[str]]:
     r"""
     Extract metadata directives from the top of the file.
 
-    Scans for consecutive lines matching `^// (\\w+)=(.+)$` at the start of the
+    Scans for consecutive lines matching `^// (\\w+)=(.*)$` at the start of the
     file. Stops at the first non-matching line. Returns a tuple of the metadata
     dict and the remaining lines (without the metadata directives).
+
+    An empty value (e.g., `// course_title=`) is a valid directive, e.g., to
+    leave the course title of the title slide blank. If it were not, it would
+    end the block and hide the directives that follow, like `slides_engine`.
 
     :param lines: list of input lines
     :return: (metadata_dict, remaining_lines)
     """
-    metadata: Dict[str, str] = {}
+    metadata: dict[str, str] = {}
     i = 0
-    pattern = re.compile(r"^//\s*(\w+)=(.+)$")
+    pattern = re.compile(r"^//\s*(\w+)=(.*)$")
     for i, line in enumerate(lines):
         m = pattern.match(line)
         if m:
@@ -331,24 +355,121 @@ def extract_slide_metadata(
     return metadata, lines[i:]
 
 
+def _get_logo_path(metadata: dict[str, str]) -> str:
+    """
+    Get the logo to show on the title slide.
+
+    An explicit `// logo=` directive wins over the default of the slide type.
+
+    :param metadata: dict with keys 'type', 'course_title' and optionally
+        'logo'
+    :return: logo path relative to the repo root
+    """
+    _LOG.debug(hprint.to_str("metadata"))
+    slide_type = metadata.get("type", "UMD_slides")
+    hdbg.dassert_in(slide_type, _SLIDE_TYPES, "Unknown `// type=` directive")
+    if "logo" in metadata:
+        logo_path = metadata["logo"]
+    else:
+        logo_path = _SLIDE_TYPES[slide_type]["logo"]
+        # data605 has its own copy of the UMD logo.
+        course_title = metadata.get("course_title", "")
+        if slide_type == "UMD_slides" and "data605" in course_title.lower():
+            logo_path = "data605/lectures_source/images/UMD_Logo.png"
+    _LOG.debug("return=%s", logo_path)
+    return logo_path
+
+
+def _get_people(metadata: dict[str, str]) -> tuple[str, str]:
+    """
+    Get the label and the free-form string of people for the title slide.
+
+    An explicit `// Authors=` directive (or `// authors=`) wins over the default
+    of the slide type and is shown with the label "Authors".
+
+    :param metadata: dict with key 'type' and optionally 'Authors'
+    :return: label and string of people, e.g., ("Authors", "GP, Rui, Emanuele
+        (FA)"); the string is empty if the title slide has no such line
+    """
+    _LOG.debug(hprint.to_str("metadata"))
+    slide_type = metadata.get("type", "UMD_slides")
+    hdbg.dassert_in(slide_type, _SLIDE_TYPES, "Unknown `// type=` directive")
+    # Metadata keys are case sensitive, so accept both spellings of the key.
+    authors_keys = [key for key in ("Authors", "authors") if key in metadata]
+    if authors_keys:
+        label = "Authors"
+        people = metadata[authors_keys[0]]
+    else:
+        label = _SLIDE_TYPES[slide_type]["people_label"]
+        people = _SLIDE_TYPES[slide_type]["people"]
+    _LOG.debug("return=%s", hprint.to_str("label people"))
+    return label, people
+
+
+def _escape_typst(txt: str) -> str:
+    r"""
+    Escape the characters that Typst markup treats as syntax.
+
+    E.g., "A_B #1" -> "A\_B \#1"
+
+    :param txt: plain text to show in Typst markup
+    :return: text that Typst renders literally
+    """
+    # Escape backslash, `#`, `$`, `*`, `_`, `@`, backtick, `<`, `>`, `[`, `]`,
+    # `~`, and `/` (since `//` starts a comment that would swallow the `]`
+    # closing the text).
+    txt = re.sub(r"([\\#$*_@`<>\[\]~/])", r"\\\1", txt)
+    return txt
+
+
+def _format_people_typst(people: str) -> str:
+    r"""
+    Format a free-form string of people as Typst markup.
+
+    The text is shown literally and each email address becomes a `mailto:`
+    link, e.g.,
+    "GP Saggese, gp@x.com" -> 'GP Saggese, #link("mailto:gp@x.com")[_gp\@x.com_]'
+
+    :param people: string of people, possibly with email addresses
+    :return: Typst markup
+    """
+    _LOG.debug(hprint.to_str("people"))
+    # Match an email address: a local part, `@`, and a dotted domain. A trailing
+    # period of a sentence is not part of the match.
+    email_regex = re.compile(r"[\w.+-]+@[\w-]+(?:\.[\w-]+)+")
+    parts = []
+    pos = 0
+    for match in email_regex.finditer(people):
+        # Text before the email.
+        parts.append(_escape_typst(people[pos : match.start()]))
+        # The email as a link.
+        email = match.group(0)
+        parts.append(f'#link("mailto:{email}")[_{_escape_typst(email)}_]')
+        pos = match.end()
+    # Text after the last email.
+    parts.append(_escape_typst(people[pos:]))
+    txt = "".join(parts)
+    _LOG.debug("return=%s", txt)
+    return txt
+
+
 # TODO(ai_gp2): Move this to the umd_repo.
-def _generate_title_slide_latex(metadata: Dict[str, str]) -> List[str]:
+def _generate_title_slide_latex(metadata: dict[str, str]) -> list[str]:
     r"""
     Generate LaTeX title slide from metadata.
 
     Creates a pandoc Div-based title slide using `\vspace`, `\begingroup`,
     and `\blue{}` commands matching existing hand-crafted format.
 
-    :param metadata: dict with keys 'course_title', 'lesson_title', 'version'
+    :param metadata: dict with keys 'type', 'course_title', 'lesson_title',
+        'version' and optionally 'logo', 'Authors'
     :return: list of lines forming the title slide
     """
     course_title = metadata.get("course_title", "")
     lesson_title = metadata.get("lesson_title", "")
     version = metadata.get("version", "")
-    # Determine logo path based on course title.
-    logo_path = "msml610/lectures_source/figures/UMD_Logo.png"
-    if "data605" in course_title.lower() or "DATA605" in course_title:
-        logo_path = "data605/lectures_source/images/UMD_Logo.png"
+    logo_path = _get_logo_path(metadata)
+    people_label, people = _get_people(metadata)
     lines = [
         "::: columns",
         ":::: {.column width=20%}",
@@ -366,9 +487,12 @@ def _generate_title_slide_latex(metadata: Dict[str, str]) -> List[str]:
         "",
         r"\vspace{3cm}",
         "",
-        "**Instructor**: Dr. GP Saggese - gsaggese@umd.edu",
-        "",
     ]
+    if people:
+        lines += [
+            f"**{people_label}**: {people}",
+            "",
+        ]
     if version:
         lines += [
             f"**Version**: {version}",
@@ -378,56 +502,62 @@ def _generate_title_slide_latex(metadata: Dict[str, str]) -> List[str]:
 
 
 # TODO(ai_gp2): Move this to the umd_repo.
-def _generate_title_slide_typst(metadata: Dict[str, str]) -> List[str]:
+def _generate_title_slide_typst(metadata: dict[str, str]) -> list[str]:
     """
     Generate Typst title slide from metadata.
 
     Creates a Typst grid-based title slide with text formatting and colors.
 
-    :param metadata: dict with keys 'course_title', 'lesson_title', 'version'
+    :param metadata: dict with keys 'type', 'course_title', 'lesson_title',
+        'version' and optionally 'logo', 'Authors'
     :return: list of lines forming the title slide
     """
     course_title = metadata.get("course_title", "")
     lesson_title = metadata.get("lesson_title", "")
     version = metadata.get("version", "")
-    # Determine logo path based on course title.
-    logo_path = "msml610/lectures_source/figures/UMD_Logo.png"
-    if "data605" in course_title.lower() or "DATA605" in course_title:
-        logo_path = "data605/lectures_source/images/UMD_Logo.png"
+    logo_path = _get_logo_path(metadata)
+    people_label, people = _get_people(metadata)
+    # Note: the leading blank lines and the 10-space indentation of
+    # `people_line` and `version_line` below are important: they are
+    # spliced into `txt`'s last two `{}` below, and the single
+    # `hprint.dedent(txt)` call at the end of this function relies on this
+    # indentation matching the sibling Typst lines (e.g. `#v(1.5cm)`) to
+    # compute the common indentation to strip. Dedenting them on their own
+    # here would zero out their indentation and corrupt that later
+    # computation.
+    if people:
+        people_typst = _format_people_typst(people)
+        label_typst = _escape_typst(people_label)
+        people_line = rf"""
+
+          #v(2.5cm)
+          #text(size: 24pt)[{label_typst}: {people_typst}]"""
+    else:
+        people_line = ""
     if version:
-        # Note: the leading blank line and the 10-space indentation below are
-        # important: `version_line` is spliced into `txt`'s last `{}` below,
-        # and the single `hprint.dedent(txt)` call at the end of this function
-        # relies on this indentation matching the sibling Typst lines (e.g.
-        # `#v(1.5cm)`) to compute the common indentation to strip. Dedenting
-        # `version_line` on its own here would zero out its indentation and
-        # corrupt that later computation.
         version_line = rf"""
           #v(0.3cm)
           #text(size: 14pt, fill: rgb("#666666"))[Version: {version}]"""
     else:
         version_line = ""
-    txt = r"""
+    txt = rf"""
         ====
 
         #slide[
           #grid(
             columns: (20%, 80%),
             gutter: 0.5cm,
-            align(top + left)[#image("{}", width: 3.5cm)],
+            align(top + left)[#image("{logo_path}", width: 3.5cm)],
             align(top + left)[
               #v(0.2cm)
-              #text(size: 28pt)[{}]
+              #text(size: 28pt)[{course_title}]
             ]
           )
 
           #v(1.5cm)
-          #align(center)[#text(size: 32pt, weight: "bold", fill: rgb("#0066CC"))[{}]]
-
-          #v(2.5cm)
-          #text(size: 24pt)[Instructor: Dr. GP Saggese - #link("mailto:gsaggese@umd.edu")[_gsaggese\@umd.edu_]]{}
+          #align(center)[#text(size: 32pt, weight: "bold", fill: rgb("#0066CC"))[{lesson_title}]]{people_line}{version_line}
         ]
-    """.format(logo_path, course_title, lesson_title, version_line)
+    """
     txt = hprint.dedent(txt)
     lines = [
         "```{=typst}",
@@ -439,12 +569,13 @@ def _generate_title_slide_typst(metadata: Dict[str, str]) -> List[str]:
 
 
 def _generate_title_slide(
-    metadata: Dict[str, str], output_format: str
-) -> List[str]:
+    metadata: dict[str, str], output_format: str
+) -> list[str]:
     """
     Dispatch to format-specific title slide generator.
 
-    :param metadata: dict with keys 'course_title', 'lesson_title'
+    :param metadata: slide metadata, i.e., the `// <key>=<value>` directives
+        (see `_get_logo_path()` and `_get_people()` for the optional ones)
     :param output_format: 'latex' or 'typst'
     :return: list of lines forming the title slide
     """
@@ -463,7 +594,7 @@ def _generate_title_slide(
 # #############################################################################
 
 
-def _expand_includes(lines: List[str]) -> List[str]:
+def _expand_includes(lines: list[str]) -> list[str]:
     r"""
     Expand `// include:<FILE> "<TITLE>"` directives by inlining file sections.
 
@@ -481,7 +612,7 @@ def _expand_includes(lines: List[str]) -> List[str]:
     :return: list of lines with includes expanded
     """
     hdbg.dassert_isinstance(lines, list)
-    out: List[str] = []
+    out: list[str] = []
     # Pattern: // include:<FILE> "<TITLE>"
     include_pattern = r'^\s*//\s*include:\s*(\S+)\s+"([^"]+)"\s*$'
     for i, line in enumerate(lines):
@@ -525,14 +656,14 @@ def _expand_includes(lines: List[str]) -> List[str]:
                 file_path,
                 title,
             )
-            out.extend(cast(List[str], section_lines))
+            out.extend(cast(list[str], section_lines))
         else:
             out.append(line)
     hdbg.dassert_isinstance(out, list)
     return out
 
 
-def _validate_slide_names(lines: List[str]) -> None:
+def _validate_slide_names(lines: list[str]) -> None:
     """
     Validate that all slides (lines starting with '*') have non-whitespace titles.
 
@@ -548,7 +679,7 @@ def _validate_slide_names(lines: List[str]) -> None:
         )
 
 
-def _assert_no_existing_counters(lines: List[str]) -> None:
+def _assert_no_existing_counters(lines: list[str]) -> None:
     """
     Assert that no slides already have counter-like format.
 
@@ -567,7 +698,7 @@ def _assert_no_existing_counters(lines: List[str]) -> None:
         )
 
 
-def _add_duplicate_slide_counters(lines: List[str]) -> List[str]:
+def _add_duplicate_slide_counters(lines: list[str]) -> list[str]:
     """
     Add counters (x/y) to slides with duplicate names.
 
@@ -579,13 +710,13 @@ def _add_duplicate_slide_counters(lines: List[str]) -> List[str]:
     """
     header_list, _ = hmarkdo.extract_slides_from_markdown(lines)
     # Count occurrences of each slide name.
-    name_counts: Dict[str, int] = {}
+    name_counts: dict[str, int] = {}
     for header_info in header_list:
         name = header_info.description
         name_counts[name] = name_counts.get(name, 0) + 1
     # Build a mapping from line number to new title.
-    line_updates: Dict[int, str] = {}
-    name_indices: Dict[str, int] = {}
+    line_updates: dict[int, str] = {}
+    name_indices: dict[str, int] = {}
     for header_info in header_list:
         name = header_info.description
         count = name_counts[name]
@@ -595,7 +726,7 @@ def _add_duplicate_slide_counters(lines: List[str]) -> List[str]:
             new_name = f"{name} ({name_indices[name]}/{count})"
             line_updates[header_info.line_number] = new_name
     # Apply updates to the lines.
-    out: List[str] = []
+    out: list[str] = []
     for i, line in enumerate(lines, start=1):
         if i in line_updates:
             # Replace the slide title with the new title (with counter).
@@ -605,14 +736,14 @@ def _add_duplicate_slide_counters(lines: List[str]) -> List[str]:
     return out
 
 
-def _validate_unique_slide_names(lines: List[str]) -> None:
+def _validate_unique_slide_names(lines: list[str]) -> None:
     """
     Validate that all slides have unique titles.
 
     :param lines: list of lines to validate
     """
     header_list, _ = hmarkdo.extract_slides_from_markdown(lines)
-    seen_names: Dict[str, int] = {}
+    seen_names: dict[str, int] = {}
     for header_info in header_list:
         name = header_info.description
         hdbg.dassert_not_in(
@@ -629,13 +760,13 @@ def _validate_unique_slide_names(lines: List[str]) -> None:
 # TODO(gp): Use hmarkdown.process_lines().
 # TODO(gp): Add a way to control the list of transformations.
 def _transform_lines(
-    lines: List[str],
+    lines: list[str],
     type_: str,
     is_qa: bool,
     output_format: str,
     *,
-    actions: List[str] = _VALID_ACTIONS,
-) -> List[str]:
+    actions: list[str] = _VALID_ACTIONS,
+) -> list[str]:
     """
     Process the notes to convert them into a format suitable for pandoc.
 
@@ -656,21 +787,20 @@ def _transform_lines(
     # `hselacti.mark_action()` returns `Optional[List[str]]`, so track the
     # remaining actions in a separately typed variable instead of narrowing
     # the `actions` parameter's non-`Optional` type.
-    remaining_actions: Optional[List[str]] = actions
-    out: List[str] = []
+    remaining_actions: list[str] | None = actions
+    out: list[str] = []
     # a) Prepend some directive for pandoc, if they are missing.
-    if output_format == "latex":
-        if lines[0] != "---":
-            txt = r"""
-            ---
-            fontsize: 10pt
-            ---
-            \let\emph\textit
-            \let\uline\underline
-            \let\ul\underline
-            """
-            txt = hprint.dedent(txt)
-            out.append(txt)
+    if output_format == "latex" and lines[0] != "---":
+        txt = r"""
+        ---
+        fontsize: 10pt
+        ---
+        \let\emph\textit
+        \let\uline\underline
+        \let\ul\underline
+        """
+        txt = hprint.dedent(txt)
+        out.append(txt)
     # b) Process text.
     # TODO(gp): We should use the approach of replacing chunks of text
     # that doesn't have to be transformed with placeholders.
@@ -820,11 +950,11 @@ def _transform_lines(
         # Colorize bullets in the slides.
 
         def _colorize_bullets(
-            slide_text: List[str],
+            slide_text: list[str],
             *,
             slide_title: str = "",
             slide_line_number: int = 0,
-        ) -> List[str]:
+        ) -> list[str]:
             """
             Color bullet points in the slide.
 
@@ -893,7 +1023,7 @@ def _transform_lines(
     return out_tmp
 
 
-def _remove_headers(lines: List[str], max_level: int) -> List[str]:
+def _remove_headers(lines: list[str], max_level: int) -> list[str]:
     """
     Remove all markdown headers from the lines that are smaller than level 3.
 
@@ -903,7 +1033,7 @@ def _remove_headers(lines: List[str], max_level: int) -> List[str]:
     """
     _LOG.debug("\n%s", hprint.frame("Remove headers smaller than level 3"))
     hdbg.dassert_isinstance(lines, list)
-    out: List[str] = []
+    out: list[str] = []
     for line in lines:
         is_header_line, level, _ = hmarkdo.is_header(line)
         # Exclude header lines with level 1 or 2 (i.e., smaller than level 3).
@@ -914,14 +1044,14 @@ def _remove_headers(lines: List[str], max_level: int) -> List[str]:
 
 
 def _preprocess_lines(
-    lines: List[str],
+    lines: list[str],
     type_: str,
     toc_type: str,
     is_qa: bool,
     output_format: str,
     *,
-    actions: List[str] = _VALID_ACTIONS,
-) -> List[str]:
+    actions: list[str] = _VALID_ACTIONS,
+) -> list[str]:
     """
     Preprocess the lines of the notes.
 
@@ -939,7 +1069,7 @@ def _preprocess_lines(
     # `hselacti.mark_action()` returns `Optional[List[str]]`, so track the
     # remaining actions in a separately typed variable instead of narrowing
     # the `actions` parameter's non-`Optional` type.
-    remaining_actions: Optional[List[str]] = actions
+    remaining_actions: list[str] | None = actions
     # Apply transformations.
     out = _transform_lines(lines, type_, is_qa, output_format, actions=actions)
     # Add TOC, if needed.
@@ -1073,7 +1203,11 @@ def _main(parser: argparse.ArgumentParser) -> None:
     lines = _expand_includes(lines)
     # Extract and expand metadata directives into title slide.
     metadata, lines = extract_slide_metadata(lines)
-    if metadata.get("type") == "UMD_slides":
+    slide_type = metadata.get("type", "")
+    if slide_type:
+        # A typo in the type (e.g., `ADIA_slide`) must not silently drop the
+        # title slide.
+        hdbg.dassert_in(slide_type, _SLIDE_TYPES, "Unknown `// type=` directive")
         title_lines = _generate_title_slide(metadata, args.output_format)
         lines = title_lines + lines
     out = _preprocess_lines(

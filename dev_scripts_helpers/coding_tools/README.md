@@ -9,6 +9,10 @@ Development utilities for code analysis, profiling, synchronization, and refacto
 
 ## Description of Files
 
+- `call_graph_viewer.py`
+  - Builds the call graph of a directory of Python code and writes one HTML page
+    with a zoomable graph (UML classes), hover interfaces, a code view, and click
+    history (see `call_graph_viewer.README.md`)
 - `clean_up_text_files.sh`
   - Ensures text files end with exactly one newline for linter compliance
 - `code_stats.sh`
@@ -26,8 +30,6 @@ Development utilities for code analysis, profiling, synchronization, and refacto
   - Identifies unused golden test files and mismatched test method definitions
 - `grsync.py`
   - Syncs directories between local and remote machines using rsync with git-aware exclusions
-- `invite_github_collaborator.py`
-  - Sends GitHub repository collaboration invitations via API with status checking
 - `manage_cache.py`
   - Manages hcache_simple global cache with clear, list, and test operations
 - `measure_import_times.py`
@@ -530,31 +532,6 @@ themselves and any untagged content.
 - Show detailed breakdown by file type:
   ```bash
   > code_stats.sh --detailed
-  ```
-
-## `invite_github_collaborator.py`
-
-### What It Does
-
-- Checks GitHub user status and validity
-- Sends repository collaboration invitations via GitHub API
-- Handles API authentication and error responses
-
-### Examples
-
-- Invite single user to repository:
-  ```bash
-  > invite_github_collaborator.py --user github_username
-  ```
-
-- Invite multiple users from file:
-  ```bash
-  > invite_github_collaborator.py --users_file collaborators.txt
-  ```
-
-- Check user status before inviting:
-  ```bash
-  > invite_github_collaborator.py --user github_username --check_only
   ```
 
 ## `remove_jupyter_metadata.sh`

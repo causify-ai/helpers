@@ -45,7 +45,7 @@ Applies default coverage settings across all repos to ensure consistency in
 reporting and behavior. If needed, individual repos can include their own
 `.codecov.yml` at the root to override specific global settings.
 
-- [Global YAML](https://app.codecov.io/account/gh/causify-ai/yaml/.): Configures
+- Global YAML (`https://app.codecov.io/account/gh/<org>/yaml/.`): Configures
   coverage collection of Codecov
 
 ## Coverage Configuration
@@ -98,7 +98,7 @@ Coverage tests are automated via GitHub Actions -
 ## Codecov Configuration
 
 - Coverage flags and project-level checks are configured at Global yml -
-  [https://app.codecov.io/account/gh/causify-ai/yaml/.](https://app.codecov.io/account/gh/causify-ai/yaml/.)
+  `https://app.codecov.io/account/gh/<org>/yaml/.`
 - If required, you can add distinct repository configurations to the
   `.codecov.yml` file at the root of your repository. - You can change the
   threshold of coverage drops for a specific repo - You can add/ change patch
@@ -195,7 +195,7 @@ Coverage tests are automated via GitHub Actions -
 Coverage results for the helpers repository are accessible via Codecov.
 
 - Codecov UI link for helpers -
-  [https://app.codecov.io/gh/causify-ai/helpers](https://app.codecov.io/gh/causify-ai/helpers)
+  `https://app.codecov.io/gh/<org>/helpers`
 - Master Build Dashboard Notebook:
   [http://172.30.2.44/build/buildmeister_dashboard/Master_buildmeister_dashboard.latest.html#Code-coverage-HTML-page](http://172.30.2.44/build/buildmeister_dashboard/Master_buildmeister_dashboard.latest.html#Code-coverage-HTML-page)
 

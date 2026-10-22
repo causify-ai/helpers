@@ -39,7 +39,7 @@
 ## Notification System
 
 - `Kaizen GitHub actions app` notifies the team about breaks via Slack channel
-  [#build-notifications](https://causify.slack.com/archives/C07QS9P4N78)
+  `#build-notifications`
 - A notification contains:
   - Failing tests type: fast/slow/super-slow
   - Repo
@@ -61,7 +61,7 @@ Example:
     the only ones with write access
 
 - Post on the
-  [#build-notifications](https://causify.slack.com/archives/C07QS9P4N78) Slack
+  `#build-notifications` Slack
   channel what tests broke, e.g.,
   `FAILED knowledge_graph/vendors/test/test_utils.py::TestClean::test_clean`
   - If unsure about the cause of failure (there is a chance that a failure is
@@ -81,7 +81,7 @@ Example:
     - Example: `Build fail - Cmamp fast_tests (1442077107)`
   - Paste the URL of the failing run
     - Example:
-      [https://github.com/causify-ai/cmamp/actions/runs/12738914526](https://github.com/causify-ai/cmamp/actions/runs/12738914526)
+      `https://github.com/<org>/cmamp/actions/runs/12738914526`
   - Provide as much information as possible to give an understanding of the
     problem
   - List all the tests with FAILED status in a GitHub run, e.g.,
@@ -109,7 +109,7 @@ Example:
   - Keep issues grouped according to the codebase organization
 
 - Post the issue reference on Slack channel
-  [#build-notifications](https://causify.slack.com/archives/C07QS9P4N78)
+  `#build-notifications`
   - You can quickly discuss there who will take care of the broken tests, assign
     that person
   - Otherwise, assign it to the person who can reroute
