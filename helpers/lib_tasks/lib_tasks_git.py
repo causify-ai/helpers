@@ -15,14 +15,13 @@ from typing import Any, Optional
 import tqdm
 from invoke.tasks import task
 
+# We want to minimize the dependencies from non-standard Python packages since
+# this code needs to run with minimal dependencies and without Docker.
 import dev_scripts_helpers.git.git_branch_create as dsggibrc
 import helpers.hselect_input_output as hseinout
 import helpers.hunit_test_utils as hunteuti
 import helpers.lib_tasks.lib_tasks_gh as hltltagh
 import helpers.lib_tasks.lib_tasks_utils as hltltaut
-
-# We want to minimize the dependencies from non-standard Python packages since
-# this code needs to run with minimal dependencies and without Docker.
 from helpers import hdaemon, hdbg, hgit, hprint, hsystem
 
 _LOG = logging.getLogger(__name__)
@@ -1216,7 +1215,7 @@ def gh_watch(ctx, *, interval=60):  # type: ignore
 
     def _run() -> None:
         # Clear screen before displaying updated workflow status.
-        subprocess.run("clear; invoke gh_workflow_list", shell=True)
+        subprocess.run("clear; invoke gh_workflow_list", shell=True, check=False)
 
     hdaemon.run_periodic_daemon_mode(
         _run, interval, window_name_str="*GH_WATCH*"
@@ -1247,7 +1246,7 @@ def _fix_file_perms(file_path: str) -> bool:
         cmd = f"chmod ug+w '{file_path}'"
         hsystem.system(cmd, abort_on_error=False)
         return True
-    except Exception as e:
+    except OSError as e:
         _LOG.warning("Failed to fix permissions for %s: %s", file_path, e)
         return False
 

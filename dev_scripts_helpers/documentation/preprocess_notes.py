@@ -24,15 +24,13 @@ import logging
 import os
 import re
 from re import Match
-from typing import cast
+from typing import Optional, cast
 
 from tqdm import tqdm
 
 import helpers.hmarkdown as hmarkdo
 import helpers.hmarkdown_toc as hmartoc
 import helpers.hselect_action as hselacti
-
-# TODO(ai_gp): Use import
 from helpers import hdbg, hio, hparser, hprint
 
 _LOG = logging.getLogger(__name__)
@@ -42,7 +40,6 @@ _LOG = logging.getLogger(__name__)
 # #############################################################################
 
 
-# TODO(ai_gp): Use List and old type approach.
 _DEFAULT_ACTIONS: list[str] = ["process_links", "colorize_bullets"]
 _VALID_ACTIONS = [
     "process_links",
@@ -276,7 +273,7 @@ def _is_section_boundary(line: str) -> tuple[bool, str]:
     return False, ""
 
 
-def _extract_section(lines: list[str], title: str) -> list[str] | None:
+def _extract_section(lines: list[str], title: str) -> Optional[list[str]]:
     r"""
     Extract the body content under a section marker with the given title.
 
@@ -787,7 +784,7 @@ def _transform_lines(
     # `hselacti.mark_action()` returns `Optional[List[str]]`, so track the
     # remaining actions in a separately typed variable instead of narrowing
     # the `actions` parameter's non-`Optional` type.
-    remaining_actions: list[str] | None = actions
+    remaining_actions: Optional[list[str]] = actions
     out: list[str] = []
     # a) Prepend some directive for pandoc, if they are missing.
     if output_format == "latex" and lines[0] != "---":
@@ -1069,7 +1066,7 @@ def _preprocess_lines(
     # `hselacti.mark_action()` returns `Optional[List[str]]`, so track the
     # remaining actions in a separately typed variable instead of narrowing
     # the `actions` parameter's non-`Optional` type.
-    remaining_actions: list[str] | None = actions
+    remaining_actions: Optional[list[str]] = actions
     # Apply transformations.
     out = _transform_lines(lines, type_, is_qa, output_format, actions=actions)
     # Add TOC, if needed.
