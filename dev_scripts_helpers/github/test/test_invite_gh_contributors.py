@@ -60,9 +60,7 @@ class Test_extract_usernames_from_csv(hunitest.TestCase):
     Verify that GitHub usernames are correctly extracted from a CSV file.
     """
 
-    def _create_file(
-        self, dir_path: str, file_name: str, content: str
-    ) -> str:
+    def _create_file(self, dir_path: str, file_name: str, content: str) -> str:
         """
         Create a file with content in a directory and return its path.
 
@@ -130,9 +128,9 @@ class Test__get_github_token(hunitest.TestCase):
             mock.patch(
                 f"{MODULE_PATH}.hsystem.system_to_string", return_value=(1, "")
             ),
+            self.assertRaises(AssertionError),
         ):
-            with self.assertRaises(AssertionError):
-                dshgigco._get_github_token()
+            dshgigco._get_github_token()
 
 
 # #############################################################################

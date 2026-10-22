@@ -67,7 +67,9 @@ import logging
 import os
 import shlex
 import sys
-from typing import List
+
+import helpers.hselect_input_output as hseinout
+from helpers import hdbg, hparser, hsystem
 
 import helpers.hdbg as hdbg
 import helpers.hparser as hparser
@@ -86,12 +88,12 @@ def _build_crop_cmd(
     output_path: str,
     *,
     pages: str,
-    margins: List[float],
+    margins: list[float],
     padding: float,
     uniform: bool,
     dpi: int,
     threshold: int,
-) -> List[str]:
+) -> list[str]:
     """
     Build the `pdfCropMargins` command that crops a PDF.
 
@@ -154,7 +156,7 @@ def _crop_pdf(
     output_path: str,
     *,
     pages: str,
-    margins: List[float],
+    margins: list[float],
     padding: float,
     uniform: bool,
     dpi: int,

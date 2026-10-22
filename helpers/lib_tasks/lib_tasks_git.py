@@ -10,24 +10,19 @@ import os
 import shlex
 import stat
 import subprocess
-from typing import Any, Dict, List, Optional
+from typing import Any, Optional
 
 import tqdm
 from invoke.tasks import task
 
-import dev_scripts_helpers.git.git_branch_create as dsggibrc
-import helpers.hdaemon as hdaemon
-import helpers.hdbg as hdbg
-import helpers.hsystem as hsystem
-
 # We want to minimize the dependencies from non-standard Python packages since
 # this code needs to run with minimal dependencies and without Docker.
-import helpers.hgit as hgit
+import dev_scripts_helpers.git.git_branch_create as dsggibrc
 import helpers.hselect_input_output as hseinout
-import helpers.hprint as hprint
 import helpers.hunit_test_utils as hunteuti
 import helpers.lib_tasks.lib_tasks_gh as hltltagh
 import helpers.lib_tasks.lib_tasks_utils as hltltaut
+from helpers import hdaemon, hdbg, hgit, hprint, hsystem
 
 _LOG = logging.getLogger(__name__)
 
@@ -37,14 +32,14 @@ _LOG = logging.getLogger(__name__)
 _SYMLINK_WRITE_BITS = stat.S_IWUSR | stat.S_IWGRP | stat.S_IWOTH
 
 
-def _collect_symlinks(dir: str) -> List[str]:
+def _collect_symlinks(dir: str) -> list[str]:
     """
     Collect symlink paths under a given directory.
 
     :param dir: directory to walk
     :return: symlink paths under `dir`
     """
-    out: List[str] = []
+    out: list[str] = []
     for dirpath, dirnames, filenames in os.walk(dir, topdown=True):
         # Skips `.git` directories. Does not follow symlinked directories.
         if ".git" in dirnames:
@@ -355,16 +350,13 @@ def git_patch_create(  # type: ignore
 @task
 def git_files(  # type: ignore
     ctx,
-    #
     files="",
     from_file="",
     modified=False,
     branch=False,
     last_commit=False,
     all_files=False,
-    #
     branch_point=False,
-    #
     file_types="",
     skip_file_types="",
     pbcopy=False,
@@ -642,18 +634,16 @@ def git_branch_delete_merged(ctx, confirm_delete=True, dry_run=False):  # type: 
         "master",
         "Must be on master branch to safely delete merged branches",
     )
-    #
     cmd = "git fetch --all --prune"
     hltltaut.run(ctx, cmd, dry_run=dry_run)
     # Delete local and remote branches that are already merged into master.
     _delete_branches("local", confirm_delete, dry_run=dry_run)
     _delete_branches("remote", confirm_delete, dry_run=dry_run)
-    #
     cmd = "git fetch --all --prune"
     hltltaut.run(ctx, cmd, dry_run=dry_run)
 
 
-def _get_open_pr_info(branch_name: str) -> Optional[Dict[str, Any]]:
+def _get_open_pr_info(branch_name: str) -> Optional[dict[str, Any]]:
     """
     Return info about the open PR whose head is `branch_name`.
 
@@ -669,7 +659,7 @@ def _get_open_pr_info(branch_name: str) -> Optional[Dict[str, Any]]:
     if rc != 0:
         # No PR (open or otherwise) is associated with this branch.
         return None
-    pr_info: Dict[str, Any] = json.loads(txt)
+    pr_info: dict[str, Any] = json.loads(txt)
     if pr_info["state"] != "OPEN":
         # A merged or already-closed PR is not something to carry forward.
         return None
@@ -1084,7 +1074,7 @@ def git_repo_copy(  # type: ignore
 # #############################################################################
 
 
-def _get_submodule_paths() -> List[str]:
+def _get_submodule_paths() -> list[str]:
     """
     Get list of submodule paths from .gitmodules file.
 
@@ -1225,7 +1215,7 @@ def gh_watch(ctx, *, interval=60):  # type: ignore
 
     def _run() -> None:
         # Clear screen before displaying updated workflow status.
-        subprocess.run("clear; invoke gh_workflow_list", shell=True)
+        subprocess.run("clear; invoke gh_workflow_list", shell=True, check=False)
 
     hdaemon.run_periodic_daemon_mode(
         _run, interval, window_name_str="*GH_WATCH*"
@@ -1256,7 +1246,7 @@ def _fix_file_perms(file_path: str) -> bool:
         cmd = f"chmod ug+w '{file_path}'"
         hsystem.system(cmd, abort_on_error=False)
         return True
-    except Exception as e:
+    except OSError as e:
         _LOG.warning("Failed to fix permissions for %s: %s", file_path, e)
         return False
 
@@ -1383,7 +1373,7 @@ def git_file_version(  # type: ignore
     else:
         name = base_name
         ext = ""
-    version_files: List[str] = []
+    version_files: list[str] = []
     for i, commit_hash in enumerate(commit_hashes):
         # Get timestamp for this commit.
         cmd = f"git show -s --format=%cI {commit_hash}"

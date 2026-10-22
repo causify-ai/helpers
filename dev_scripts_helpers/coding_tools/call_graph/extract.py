@@ -21,7 +21,7 @@ import copy
 import dataclasses
 import logging
 import os
-from typing import Any, Union
+from typing import Any, Optional, Tuple, Union
 
 import jedi
 import networkx as nx
@@ -228,7 +228,7 @@ def _byte_to_char_col(line_txt: str, byte_col: int) -> int:
     return char_col
 
 
-def _get_name_position(node: ast.AST) -> tuple[int, int] | None:
+def _get_name_position(node: ast.AST) -> Optional[Tuple[int, int]]:
     """
     Get the position of the name that identifies a callee or a type.
 
@@ -271,7 +271,7 @@ def _get_annotation_positions(annotation: ast.AST) -> list[tuple[int, int]]:
     return positions
 
 
-def _unparse(node: ast.AST | None) -> str:
+def _unparse(node: Optional[ast.AST]) -> str:
     """
     Convert an AST node back into source text.
 
@@ -338,7 +338,7 @@ def _get_signature(node: _FuncNode, is_method: bool) -> str:
     return signature
 
 
-def _get_doc(node: ast.Module | _DefNode) -> str:
+def _get_doc(node: Union[ast.Module, _DefNode]) -> str:
     """
     Get the docstring, capped to keep the output small.
 
@@ -465,7 +465,7 @@ def _collect_class_attrs(
     """
     attrs: dict[str, str] = {}
 
-    def _add(name: str, annotation: ast.AST | None) -> None:
+    def _add(name: str, annotation: Optional[ast.AST]) -> None:
         """
         Record an attribute, keeping the first type seen for it.
 

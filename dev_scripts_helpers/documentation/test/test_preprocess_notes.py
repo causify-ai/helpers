@@ -1,5 +1,6 @@
 import os
 from collections.abc import Sequence
+from typing import Dict, List, Optional
 
 import dev_scripts_helpers.documentation.preprocess_notes as dshdprno
 import helpers.hunit_test as hunitest
@@ -1201,7 +1202,7 @@ class Test_expand_includes(hunitest.TestCase):
         lines: Sequence[str],
         expected: Sequence[str],
         *,
-        files_to_create: dict[str, str] | None = None,
+        files_to_create: Optional[Dict[str, str]] = None,
     ) -> None:
         """
         Test helper for _expand_includes.
@@ -1675,7 +1676,7 @@ class Test_transform_lines_slides(hunitest.TestCase):
         is_qa: bool,
         expected: list[str],
         *,
-        actions: list[str] | None = None,
+        actions: Optional[List[str]] = None,
     ) -> None:
         """
         Helper method to test _transform_lines function.
@@ -1965,7 +1966,7 @@ class Test_transform_lines_actions(hunitest.TestCase):
         is_qa: bool,
         expected: list[str],
         *,
-        actions: list[str] | None = None,
+        actions: Optional[List[str]] = None,
     ) -> None:
         """
         Helper method to test _transform_lines function with actions.

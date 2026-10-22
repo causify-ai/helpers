@@ -23,12 +23,8 @@ import subprocess
 
 import thin_client_utils as tcu
 
-import helpers.hdbg as hdbg
-import helpers.hparser as hparser
-import helpers.hprint as hprint
-import helpers.hserver as hserver
-import helpers.hsystem as hsystem
 import helpers.repo_config_utils as hrecouti
+from helpers import hdbg, hparser, hprint, hserver, hsystem
 
 _LOG = logging.getLogger(__name__)
 
@@ -84,7 +80,6 @@ def _main(parser: argparse.ArgumentParser) -> None:
     print(f"##> {SCRIPT_PATH}")
     args = parser.parse_args()
     hdbg.init_logger(verbosity=args.log_level, use_exec_path=True)
-    #
     _, python_version = hsystem.system_to_string("python3 --version")
     _LOG.info("# python=%s", python_version)
     try:
@@ -146,7 +141,6 @@ def _main(parser: argparse.ArgumentParser) -> None:
         _system("brew update")
         _, brew_ver = hsystem.system_to_string("brew --version")
         _LOG.info("# brew version=%s", brew_ver)
-        #
         _system("brew install gh")
         _, gh_ver = hsystem.system_to_string("gh --version")
         _LOG.info("# gh version=%s", gh_ver)

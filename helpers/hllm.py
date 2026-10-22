@@ -8,17 +8,15 @@ import functools
 import logging
 import os
 import re
-from typing import Any, Dict, List, Optional, Tuple, TypeVar, Union
+from typing import Any, Optional, TypeVar, Union
 
 import openai
 import tqdm
 from pydantic import BaseModel
 
 import helpers.hcache_simple as hcacsimp
-import helpers.hdbg as hdbg
 import helpers.hllm_cost as hllmcost
-import helpers.hprint as hprint
-import helpers.htimer as htimer
+from helpers import hdbg, hprint, htimer
 
 _LOG = logging.getLogger(__name__)
 
@@ -58,7 +56,7 @@ def get_update_llm_cache() -> bool:
 # #############################################################################
 
 
-def _get_llm_provider_and_model(model: str) -> Tuple[str, str]:
+def _get_llm_provider_and_model(model: str) -> tuple[str, str]:
     """
     Get the provider and model names from a model string.
 
@@ -116,7 +114,7 @@ def response_to_txt(response: Any) -> str:
                 f"Unknown dict structure in response: {response.keys()}"
             )
     else:
-        raise ValueError(f"Unknown response type: {type(response)}")
+        raise TypeError(f"Unknown response type: {type(response)}")
     hdbg.dassert_isinstance(ret, str)
     return ret
 
@@ -125,8 +123,8 @@ def build_chat_completion_messages(
     system_prompt: str,
     user_prompt: str,
     *,
-    images_as_base64: Optional[Tuple[str, ...]] = None,
-) -> List[Dict[str, Any]]:
+    images_as_base64: Optional[tuple[str, ...]] = None,
+) -> list[dict[str, Any]]:
     """
     Construct the standard messages payload for the Chat Completions API.
 
@@ -159,8 +157,8 @@ def build_chat_completion_messages(
 def build_responses_input(
     user_prompt: str,
     *,
-    images_as_base64: Optional[Tuple[str, ...]] = None,
-) -> List[Dict[str, Any]]:
+    images_as_base64: Optional[tuple[str, ...]] = None,
+) -> list[dict[str, Any]]:
     """
     Construct the user input payload for the Responses API.
 
@@ -205,11 +203,11 @@ def _call_api_sync(
     temperature: float,
     model: str,
     *,
-    images_as_base64: Optional[Tuple[str, ...]] = None,
+    images_as_base64: Optional[tuple[str, ...]] = None,
     cost_tracker: Optional[hllmcost.LLMCostTracker] = None,
     use_responses_api: bool = False,
     **create_kwargs,
-) -> Dict[Any, Any]:
+) -> dict[Any, Any]:
     """
     Make a non-streaming API call.
 
@@ -272,7 +270,7 @@ def _call_structured_api_sync(
     temperature: float,
     response_format: type[T],
     *,
-    images_as_base64: Optional[Tuple[str, ...]] = None,
+    images_as_base64: Optional[tuple[str, ...]] = None,
     cost_tracker: Optional[hllmcost.LLMCostTracker] = None,
     print_cost: bool = False,
     **create_kwargs,
@@ -357,7 +355,7 @@ class LLMClient:
             raise ValueError(f"Unknown provider: {self.provider_name}")
         return model
 
-    def get_default_model(self) -> Tuple[str, str]:
+    def get_default_model(self) -> tuple[str, str]:
         """
         Get the default provider and model for the client.
 
@@ -390,11 +388,11 @@ class LLMClient:
         system_prompt: str,
         temperature: float,
         *,
-        images_as_base64: Optional[Tuple[str, ...]] = None,
+        images_as_base64: Optional[tuple[str, ...]] = None,
         cost_tracker: Optional[hllmcost.LLMCostTracker] = None,
         use_responses_api: bool = False,
         **create_kwargs,
-    ) -> Dict[Any, Any]:
+    ) -> dict[Any, Any]:
         """
         Call the LLM API.
 
@@ -439,12 +437,12 @@ def get_completion(
     print_cost: bool = False,
     cache_mode: str = "DISABLE_CACHE",
     temperature: float = 0.1,
-    images_as_base64: Optional[Tuple[str, ...]] = None,
+    images_as_base64: Optional[tuple[str, ...]] = None,
     cost_tracker: Optional["hllmcost.LLMCostTracker"] = None,
     use_responses_api: bool = False,
     return_raw: bool = False,
     **create_kwargs,
-) -> Union[str, Dict[Any, Any]]:
+) -> Union[str, dict[Any, Any]]:
     """
     Generate a completion using OpenAI's API.
 
@@ -575,7 +573,7 @@ def get_structured_completion(
     model: str = "",
     cache_mode: str = "DISABLE_CACHE",
     temperature: float = 0.1,
-    images_as_base64: Optional[Tuple[str, ...]] = None,
+    images_as_base64: Optional[tuple[str, ...]] = None,
     cost_tracker: Optional[hllmcost.LLMCostTracker] = None,
     print_cost: bool = False,
     **create_kwargs,
@@ -671,7 +669,7 @@ def apply_prompt_to_dataframe(
             _LOG.error(
                 f"Error processing column {input} in chunk {start}-{end}: {e}"
             )
-            raise e
+            raise
         # processed_response = response.split("\n")
         processed_response = [
             ln.rstrip() for ln in response.splitlines() if ln.strip()
