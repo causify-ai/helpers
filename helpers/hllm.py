@@ -114,7 +114,7 @@ def response_to_txt(response: Any) -> str:
                 f"Unknown dict structure in response: {response.keys()}"
             )
     else:
-        raise ValueError(f"Unknown response type: {type(response)}")
+        raise TypeError(f"Unknown response type: {type(response)}")
     hdbg.dassert_isinstance(ret, str)
     return ret
 
@@ -669,7 +669,7 @@ def apply_prompt_to_dataframe(
             _LOG.error(
                 f"Error processing column {input} in chunk {start}-{end}: {e}"
             )
-            raise e
+            raise
         # processed_response = response.split("\n")
         processed_response = [
             ln.rstrip() for ln in response.splitlines() if ln.strip()

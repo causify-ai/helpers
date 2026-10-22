@@ -81,6 +81,7 @@ def _run_command(
                     stderr=subprocess.STDOUT,
                     text=True,
                     timeout=3600,
+                    check=False,
                 )
         else:
             result = subprocess.run(
@@ -89,9 +90,10 @@ def _run_command(
                 capture_output=False,
                 text=True,
                 timeout=3600,
+                check=False,
             )
         return result.returncode
-    except Exception as e:
+    except (subprocess.SubprocessError, OSError) as e:
         _LOG.error("Error running command: %s", str(e))
         return -1
 
