@@ -352,6 +352,52 @@
 - Add a one-line pointer to the decision in the history row of the log
 - Link the decision in the description of the PR that implements it
 
+## How to Document Research
+
+- **Goal**: a reader sees what was run, what result came out, and what to do next,
+  without asking
+- Keep a Google Doc for the research of each project
+  - The Google Doc holds the visual evidence (e.g., screenshots of the results)
+  - `progress.md` holds the implementation, findings and the decisions made to
+    implement the mechanisms, see [Keep a Progress Log](#keep-a-progress-log)
+
+- The goal is to make the research reproducible by:
+  - Adding unit tests for notebooks (like fast tests as smoke tests, small run and
+    slow / superslow tests to freeze important research results)
+  - Adding unit tests for the code with the same approach
+  - Use a `config` (e.g., a Python dict) controlling all the parameters of an
+    experiment so that the config becomes the signature of the experiment
+    - Given the `config` one should be able to reproduce exactly the set up
+
+- Write one entry for every day of work with:
+  - Screenshots of the results from the notebooks
+  - Pointers to the relevant sections and files
+    - E.g., the notebook, the section header, the script
+  - Comments on what each experiment means
+  - What was learned
+  - What is next
+
+- Use this skeleton for each daily entry:
+  ```text
+  Date: <date>
+
+  Screenshots:
+  - <Screenshot of a result from a notebook>
+    - Where: <notebook / section / file>
+    - What it does: <what the code or the plot does>
+
+  Learned:
+  - <What was learned from the results>
+
+  Next:
+  - <The next step>
+  ```
+- Save the Google Doc in the shared
+  [research dir](https://drive.google.com/drive/folders/1XQ5zrk80eScbcynOsc1loDppzAjGNy2x)
+  - Create a subdir named exactly like the GH issue of the project
+  - Put the Google Doc and its supporting files in that subdir
+- Link the Google Doc from the GH issue, the PR, and `progress.md`
+
 ## Keep Docs in Sync
 
 - Change a module -> update its design doc (or the README of its component)
