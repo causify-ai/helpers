@@ -1,0 +1,20 @@
+- Title: <TITLE>
+- PR link: <PR_URL>
+- How to check it out: `<CHECKOUT_CMD>`
+- Author: <AUTHOR_NAME>
+- Issue: #<ISSUE_NUM>
+- Issue link: <ISSUE_URL>
+- Short description:
+  - <Point 1>
+  - <Point 2>
+  - <Point 3>
+  - <Point 4>
+  - <Point 5>
+- Assessment of quality:
+  - <Scope and clarity>
+  - <Correctness, tests, and docs>
+  - <Conformity to repo rules>
+- Status: <DRAFT_OR_READY>, <MERGEABLE>. CI `<CHECK_NAME>` <CI_RESULT>
+- Reference material: `<PATH>`
+- Base: `<BASE_BRANCH>`
+- Size: <NUM_FILES> files, +<ADDITIONS> / -<DELETIONS>
