@@ -14,6 +14,8 @@
   - <Scope and clarity>
   - <Correctness, tests, and docs>
   - <Conformity to repo rules>
+- Review complexity: <SCORE>/5, <REASON>
+- Quality score: <SCORE>/5, <REASON>
 - Status: <DRAFT_OR_READY>, <MERGEABLE>. CI `<CHECK_NAME>` <CI_RESULT>
 - Reference material: `<PATH>`
 - Base: `<BASE_BRANCH>`

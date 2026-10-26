@@ -1,23 +1,33 @@
 ---
-description: Describe a PR from its link in a fixed format to speed up the review
+description: Describe one or more PRs in a fixed format, score complexity and quality, and suggest a review order
 model: sonnet
 ---
 
 # Goal
 
-- Given a link to a GitHub PR, write a short description in a fixed format with the
-  facts a reviewer needs before reading the diff
+- Given a link to a GitHub PR, or a list of links, write a short description of each
+  PR in a fixed format with the facts a reviewer needs before reading the diff
+- Score each PR for review complexity and for quality
+- Given a list, suggest the order in which to review the PRs
 
 # Workflow
 
 ## Get the Input
 
-- Take the PR link from the arguments, e.g.,
+- Take the PR links from the arguments, e.g.,
   `https://github.com/<OWNER>/<REPO>/pull/<PR_NUM>`
+  - The arguments are one PR or a list of PRs
+  - Separate the items by spaces, commas, or newlines
+  - Keep the order given and drop duplicates
 - If only `<PR_NUM>` or `#<PR_NUM>` is given, use the repo of the current Git client:
   ```bash
   > gh repo view --json nameWithOwner -q .nameWithOwner
   ```
+- A list can mix repos: each full link carries its own `<OWNER>/<REPO>`
+- Apply all the steps below to every PR in the list
+  - Process each PR on its own, do not mix data between PRs
+  - If a PR cannot be fetched, write `unknown` for its fields, report the error, and
+    continue with the next PR
 
 ## Fetch the PR Metadata
 
@@ -118,9 +128,93 @@ model: sonnet
   - Docs-only change with one purpose, but `spec.PR_S4.md` is 390 lines: long to review
   ```
 
+## Score the Review Complexity
+
+- Write `<SCORE>/5, <REASON>`, with a whole number from 1 to 5
+  - 1 is simple to review, 5 is difficult to review
+- The score measures the effort to review the PR, not the quality of the PR
+  - A big PR of high quality can still score 5
+- Start from the size, then adjust by at most 1 point for the nature of the change
+  - Do not count generated files, lock files, and golden test outcomes in the size
+- Use this scale:
+  - **1**: under ~50 changed lines, or a typo, rename, or docs-only fix
+    - No logic to verify
+  - **2**: under ~200 changed lines in one area
+    - Simple logic, no new concepts
+  - **3**: ~200 to ~600 changed lines, or a few modules
+    - Moderate logic, the reviewer needs some context
+  - **4**: ~600 to ~1500 changed lines, or changes across many modules
+    - Tricky logic, or domain knowledge is needed to review it
+  - **5**: over ~1500 changed lines, or risky core logic
+    - E.g., concurrency, data migration, security, public API changes
+    - Hard to verify without running the code
+- Raise the score by 1 point when:
+  - The PR mixes several purposes
+  - The PR is stacked, and the reviewer must read the parent PR first
+- Lower the score by 1 point when most of the lines are repetitive, e.g., a mechanical
+  rename across many files
+- The reason cites the evidence
+  - **Good**
+    ```
+    - Review complexity: 4/5, 1200 changed lines across 9 modules, new retry logic in `hllm.py`
+    ```
+
+## Score the Quality
+
+- Write `<SCORE>/5, <REASON>`, with a whole number from 1 to 5
+  - 1 is low quality, 5 is high quality
+- Derive the score from the 3 bullets of `Assessment of quality` and from `Status`
+  - Do not add new findings in the score
+- Use this scale:
+  - **5**: one purpose, code has tests, docs match the code, CI passed, no rule
+    violations
+  - **4**: minor issues only, e.g., a few style nits, a small gap in docs
+  - **3**: some real issues, e.g., tests cover only part of the change, several rule
+    violations, CI fails for a reason not related to the PR
+  - **2**: significant issues, e.g., CI fails because of the PR, logic changes with no
+    tests, mixed purposes, the body claims what the diff does not show
+  - **1**: not fit to merge, e.g., broken code, conflicts, unrelated changes, no
+    description
+- A draft PR with open work scores at most 3
+- The reason cites the main strength and the main problem, with evidence
+  - **Good**
+    ```
+    - Quality score: 3/5, one purpose and clear title, but no tests for new `_parse_range()` in `hdates.py`
+    ```
+
+## Suggest the Review Order
+
+- Do this step only when the list has 2 or more PRs
+- Build the order from dependencies first, then from logical order
+- **Dependencies**: review the parent before the child
+  - PR A depends on PR B when the base branch of A is the head branch of B
+  - PR A depends on PR B when the body of A says `depends on`, `after`, `blocked by`,
+    or `stacked on` followed by B
+  - PR A depends on PR B when A changes a file that B adds
+  - If the parent is not in the list, add `(parent #<PARENT_NUM> not in the list)` to
+    the reason, and place no constraint
+  - If the dependencies form a cycle, break it by PR number and say so in the reason
+- **Logical order**: among PRs with no dependency between them, review in this order:
+  - Specs, design docs, and plans before the code that implements them
+  - Shared infra, refactors, and library code before the code that calls them
+  - Core features before the features built on top of them
+  - Tests and docs-only follow-ups last
+- **Tie-break**: put the PR with the lower review complexity first
+  - Put a draft PR, a PR with conflicts, or a PR with a failing CI last, because the
+    author must fix it first
+- The reason on each line says why the PR sits there
+  - **Bad** (no reason): `2. #744 Add sink`
+  - **Good**: `2. #744 Add sink: stacked on #742, adds the interface used by #747`
+
 ## Write the Output
 
-- Follow the template `.claude/templates/github_PR_review.template.md`
+- For one PR:
+  - Follow the template `.claude/templates/github_PR_review.template.md`
+- For a list of PRs:
+  - Follow the template `.claude/templates/github_PR_review_order.template.md`
+  - Put `# Suggested Review Order` first, with one line per PR in review order
+  - Then write one `# PR #<PR_NUM>: <TITLE>` section per PR, in review order
+  - Fill each section as in the single-PR template
 - Print the result in the terminal
 - Save it to `report-github.describe_pr_for_review.md`
 - If a field cannot be fetched, write `unknown` and do not guess
@@ -143,8 +237,8 @@ model: sonnet
 
 - Output for `https://github.com/gpsaggese/gpsaggese.github.io/pull/742`:
   ```
-  - PR link: https://github.com/gpsaggese/gpsaggese.github.io/pull/742
   - Title: UmdTask640_Noesis_PR_S4_spec
+  - PR link: https://github.com/gpsaggese/gpsaggese.github.io/pull/742
   - How to check it out: `git fetch origin UmdTask640_Noesis_PR_S4_spec && git checkout UmdTask640_Noesis_PR_S4_spec`
   - Author: Javin Ahuja
   - Issue: #640
@@ -159,16 +253,44 @@ model: sonnet
     - Docs-only with one purpose, but 390 of 396 added lines sit in `spec.PR_S4.md`
     - No code, so no tests needed: the 82-test claim depends on stacked PR #749
     - Adds links in `README.md`, `design.checker.md`, `plan.md`, so the spec is found
+  - Review complexity: 3/5, 390-line spec to read, no code, but it needs context from stacked PR #749
+  - Quality score: 3/5, one clear purpose and good links, but CI `pytest_log` fails and the tests are in #749
   - Status: ready, mergeable. CI `pytest_log` failed
   - Reference material: `research/Noesis/docs/spec.PR_S4.md`
   - Base: `master`
   - Size: 4 files, +396 / -2
   ```
 
+- Output for the list `742 744 747`, where #744 and #747 are stacked on #742:
+  ```
+  # Suggested Review Order
+
+  1. #742 UmdTask640_Noesis_PR_S4_spec: spec that #744 and #747 implement
+  2. #744 UmdTask640_Noesis_PR_S4_sink: stacked on #742, adds the interface used by #747
+  3. #747 UmdTask640_Noesis_PR_S4_worker: stacked on #744, uses the interface from #744
+
+  # PR #742: UmdTask640_Noesis_PR_S4_spec
+
+  - Title: UmdTask640_Noesis_PR_S4_spec
+  ...
+
+  # PR #744: UmdTask640_Noesis_PR_S4_sink
+
+  - Title: UmdTask640_Noesis_PR_S4_sink
+  ...
+  ```
+
 # Verification
 
-- [ ] Output has all 12 fields of the template, in the same order
+- [ ] Output has all 14 fields of the template, in the same order, for every PR
 - [ ] `Short description` has exactly 5 bullets and `Assessment of quality` exactly 3
+- [ ] `Review complexity` and `Quality score` are whole numbers from 1 to 5, each with
+      a reason that cites evidence
+- [ ] `Quality score` is consistent with the 3 bullets of `Assessment of quality`
+- [ ] Every PR in the input list has a section in the output, in review order
+- [ ] For 2 or more PRs, `Suggested Review Order` lists every PR once, and every
+      parent PR comes before its children
+- [ ] Each line of `Suggested Review Order` gives a reason
 - [ ] `Issue link` is the `url` returned by `gh issue view`
 - [ ] `Size` matches `changedFiles`, `additions`, and `deletions` from the metadata
 - [ ] `Status` CI result matches `gh pr checks <PR_URL>`
