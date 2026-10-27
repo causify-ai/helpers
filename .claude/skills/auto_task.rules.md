@@ -11,6 +11,9 @@
 - It states the problem and the goal before proposing a solution
 - It breaks the solution into one `PR<NUM>` section per PR when the issue spans more
   than one PR
+- When the plan comes from a project `docs/plan.md`, label each PR with its plan
+  id (e.g., `PR_M10`) instead of a running number, per
+  `.claude/skills/project.rules.md` section "Name the PRs"
 
 ## Ask for Clarification Before Executing an Unclear Plan
 
@@ -43,7 +46,7 @@
 
 - Mark each task's status in the task list file as work proceeds
   - `[ ]` not started
-  - `[-]` in progress (e.g., dispatched, or a run in progress)
+  - `[.]` in progress (e.g., dispatched, or a run in progress)
   - `[x]` done
 
 ## The User Owns Commit and Merge Decisions

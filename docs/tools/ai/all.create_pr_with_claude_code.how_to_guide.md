@@ -114,11 +114,18 @@
   otherwise `Related to #<issue>`
   - See
     [Filing Process](../../work_organization/all.use_github.how_to_guide.md#filing-process)
-- Fill in the
-  [PR description template](../../planning/all.plan_work.how_to_guide.md#pr-description-template)
+- Fill in the PR description template
+  `.claude/templates/github_PR_description.template.md`
+  - `/github.find_name_for_pr` writes a draft in `pr_description.md`
+  - See
+    [PR Description Template](../../planning/all.plan_work.how_to_guide.md#pr-description-template)
 - Put yourself in the "Assignees" field, add the reviewers, and add the label
   - See
     [Filing a New PR](../../work_organization/all.use_github.how_to_guide.md#filing-a-new-pr)
+- Get the PR ready to merge with `/github.get_pr_ready_to_merge`
+  - It runs the linters, the local tests, and the GitHub checks, and fixes what fails
+  - Run `/github.get_pr_to_pass_local_tests` or `/github.get_pr_to_pass_ci_tests`
+    to fix only the local tests or only the CI checks
 - GitHub runs automatic checks on each PR
   - If one fails, find out whether your change caused it and say so in the PR
   - See
