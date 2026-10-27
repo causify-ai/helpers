@@ -1,6 +1,9 @@
 - Title: <TITLE>
 - PR link: <PR_URL>
-- How to check it out: `<CHECKOUT_CMD>`
+- How to check it out:
+  ```bash
+  > <CHECKOUT_CMD>
+  ```
 - Author: <AUTHOR_NAME>
 - Issue: #<ISSUE_NUM>
 - Issue link: <ISSUE_URL>

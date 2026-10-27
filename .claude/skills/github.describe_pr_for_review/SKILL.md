@@ -62,9 +62,15 @@ model: sonnet
 - **Title**: `title` from the metadata
 - **How to check it out**:
   - If `headRepository.nameWithOwner` equals `<OWNER>/<REPO>`:
-    `git fetch origin <HEAD_BRANCH> && git checkout <HEAD_BRANCH>`
-  - Otherwise (fork): `gh pr checkout <PR_NUM> --repo <OWNER>/<REPO>`
-  - Print the command, never run it
+    ```bash
+    > git fetch origin <HEAD_BRANCH>
+    > git checkout <HEAD_BRANCH>
+    ```
+  - Otherwise (fork):
+    ```bash
+    > gh pr checkout <PR_NUM> --repo <OWNER>/<REPO>
+    ```
+  - Print the commands in a fenced block, never run them
 - **Author**: `author.name`, falling back to `author.login`
   - Do not prefix with `@`
 - **Size**: `<changedFiles> files, +<additions> / -<deletions>`
@@ -216,8 +222,25 @@ model: sonnet
   - Then write one `# PR #<PR_NUM>: <TITLE>` section per PR, in review order
   - Fill each section as in the single-PR template
 - Print the result in the terminal
-- Save it to `report-github.describe_pr_for_review.md`
+- Save it to `pr_review_plan.md`
 - If a field cannot be fetched, write `unknown` and do not guess
+- Format the printed text and the saved file following
+  `.claude/skills/markdown.rules.md`
+  - Write every field as a bullet and every sub-point as a nested bullet
+  - Wrap each prose line to ~85 characters
+    - Indent a continuation line to align with the text after its bullet marker
+    - Do not break a URL, an inline code span, or a fenced code block
+  - Put each shell command in a fenced `bash` block, one command per line, with a
+    `> ` prefix
+- **Bad** (one long line)
+  ```
+  - Review complexity: 3/5, 390-line spec to read, no code, but it needs context from stacked PR #749
+  ```
+- **Good** (wrapped, continuation aligned with the text)
+  ```
+  - Review complexity: 3/5, 390-line spec to read, no code, but it needs context
+    from stacked PR #749
+  ```
 
 # Conventions
 
@@ -236,38 +259,50 @@ model: sonnet
 # Examples
 
 - Output for `https://github.com/gpsaggese/gpsaggese.github.io/pull/742`:
-  ```
+  ````
   - Title: UmdTask640_Noesis_PR_S4_spec
   - PR link: https://github.com/gpsaggese/gpsaggese.github.io/pull/742
-  - How to check it out: `git fetch origin UmdTask640_Noesis_PR_S4_spec && git checkout UmdTask640_Noesis_PR_S4_spec`
+  - How to check it out:
+    ```bash
+    > git fetch origin UmdTask640_Noesis_PR_S4_spec
+    > git checkout UmdTask640_Noesis_PR_S4_spec
+    ```
   - Author: Javin Ahuja
   - Issue: #640
   - Issue link: https://github.com/gpsaggese/gpsaggese.github.io/issues/640
   - Short description:
-    - Adds spec `spec.PR_S4.md` for contract-window monitoring and market reporting
+    - Adds spec `spec.PR_S4.md` for contract-window monitoring and market
+      reporting
     - Defines window readiness: collection targets reached or deadline reached
-    - Defines atomic finalization, so only one worker persists and publishes a verdict
+    - Defines atomic finalization, so only one worker persists and publishes a
+      verdict
     - Defines the `VerdictSink` interface, mocked until `PR_M3`
     - Splits the work into three follow-up PRs: #744, #747, #749
   - Assessment of quality:
-    - Docs-only with one purpose, but 390 of 396 added lines sit in `spec.PR_S4.md`
+    - Docs-only with one purpose, but 390 of 396 added lines sit in
+      `spec.PR_S4.md`
     - No code, so no tests needed: the 82-test claim depends on stacked PR #749
-    - Adds links in `README.md`, `design.checker.md`, `plan.md`, so the spec is found
-  - Review complexity: 3/5, 390-line spec to read, no code, but it needs context from stacked PR #749
-  - Quality score: 3/5, one clear purpose and good links, but CI `pytest_log` fails and the tests are in #749
+    - Adds links in `README.md`, `design.checker.md`, `plan.md`, so the spec is
+      found
+  - Review complexity: 3/5, 390-line spec to read, no code, but it needs context
+    from stacked PR #749
+  - Quality score: 3/5, one clear purpose and good links, but CI `pytest_log`
+    fails and the tests are in #749
   - Status: ready, mergeable. CI `pytest_log` failed
   - Reference material: `research/Noesis/docs/spec.PR_S4.md`
   - Base: `master`
   - Size: 4 files, +396 / -2
-  ```
+  ````
 
 - Output for the list `742 744 747`, where #744 and #747 are stacked on #742:
   ```
   # Suggested Review Order
 
   1. #742 UmdTask640_Noesis_PR_S4_spec: spec that #744 and #747 implement
-  2. #744 UmdTask640_Noesis_PR_S4_sink: stacked on #742, adds the interface used by #747
-  3. #747 UmdTask640_Noesis_PR_S4_worker: stacked on #744, uses the interface from #744
+  2. #744 UmdTask640_Noesis_PR_S4_sink: stacked on #742, adds the interface used
+     by #747
+  3. #747 UmdTask640_Noesis_PR_S4_worker: stacked on #744, uses the interface
+     from #744
 
   # PR #742: UmdTask640_Noesis_PR_S4_spec
 
@@ -291,6 +326,9 @@ model: sonnet
 - [ ] For 2 or more PRs, `Suggested Review Order` lists every PR once, and every
       parent PR comes before its children
 - [ ] Each line of `Suggested Review Order` gives a reason
+- [ ] Prose lines in `pr_review_plan.md` are at most ~85 characters, with continuation
+      lines aligned to the bullet text
+- [ ] Every field is a bullet, and the checkout commands sit in a fenced `bash` block
 - [ ] `Issue link` is the `url` returned by `gh issue view`
 - [ ] `Size` matches `changedFiles`, `additions`, and `deletions` from the metadata
 - [ ] `Status` CI result matches `gh pr checks <PR_URL>`
