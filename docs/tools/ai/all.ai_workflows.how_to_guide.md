@@ -17,7 +17,8 @@
   > find .claude/skills -name "*.md" | sed 's|.claude/skills/||; s|\..*||' | sort | uniq
   ```
 - Current topics include:
-  - `architecture`: Architecture and design documentation
+  - `architecture`: Architecture and design documentation, including project design
+    docs
   - `auto_task`: Automated task definitions and workflows
   - `bash`: Bash scripting and shell commands
   - `blog`: Blog post creation and formatting
@@ -26,6 +27,7 @@
   - `latex`: LaTeX document processing
   - `markdown`: Markdown formatting and structure
   - `notebook`: Jupyter notebook conventions
+  - `project`: Docs that plan and track a project (PRD, design, plan, progress log)
   - `pytest`: Testing framework and patterns
   - `readme`: README file creation and updates
   - `slides`: Presentation slide creation
@@ -484,6 +486,8 @@
 ## Related Docs
 
 - Use these docs for details on the tools and conventions mentioned above
+  - `docs/planning/all.plan_work.how_to_guide.md`: The sequence of skills from an
+    idea to a merged PR, and how to plan and log a project
   - `docs/tools/ai/all.create_pr_with_claude_code.how_to_guide.md`: Do a task
     with Claude Code, from picking the task to a PR
   - `docs/tools/ai/all.auto_task.how_to_guide.md`: Delegate a task list to agents,

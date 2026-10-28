@@ -275,6 +275,9 @@ some helpful tips and resources to guide you through your first review.
 
 - It's better to push frequently and ask for feedback early to avoid large
   refactoring
+- Cap a PR at 400 lines of non-test code
+  - If a PR needs more, split it
+  - See `/github.split_branch_in_PRs` and `.claude/templates/github_PR_plan.template.md`
 
 ## Talk Through Code and Not Github
 

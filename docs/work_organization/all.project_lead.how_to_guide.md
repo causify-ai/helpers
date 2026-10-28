@@ -20,7 +20,7 @@
   - Works with the plan, the board, the meetings, and the people
 - A tech lead earns the role by technical excellence
   - See "Tech leads" in
-    [`all.organize_your_work.how_to_guide.md`](all.organize_your_work.how_to_guide.md#tech-leads)
+    [`all.organize_your_work.how_to_guide.md`](/docs/work_organization/all.organize_your_work.how_to_guide.md#tech-leads)
 - One person can be both, but the jobs are different
   - A project lead does not have to be the best coder on the team
   - A project lead has to make sure that the best technical ideas get done
@@ -30,10 +30,10 @@
 ### Keep the Plan and the Board Current
 
 - Own the plan of the project
-  - See [`all.plan_work.how_to_guide.md`](../planning/all.plan_work.how_to_guide.md)
+  - See [`all.plan_work.how_to_guide.md`](/docs/planning/all.plan_work.how_to_guide.md)
 - Keep every task as a GitHub issue on the project board
   - Each issue has an owner, a status, and an ETA
-  - See [`all.use_github.how_to_guide.md`](all.use_github.how_to_guide.md)
+  - See [`all.use_github.how_to_guide.md`](/docs/work_organization/all.use_github.how_to_guide.md)
 - File issues only for the immediate work, i.e., the next version of the plan
   - The plan often changes after the first iteration
   - In each issue, point to the section of the plan instead of copying it
@@ -41,12 +41,12 @@
   - Priority changes are announced to the team, not applied silently
 - Create the milestones in GitHub and Asana
   - See "How to set up a new project" in
-    [`all.github_projects_process.reference.md`](all.github_projects_process.reference.md#how-to-set-up-a-new-project)
-  - See [`all.asana_process.how_to_guide.md`](all.asana_process.how_to_guide.md)
+    [`all.github_projects_process.reference.md`](/docs/work_organization/all.github_projects_process.reference.md#how-to-set-up-a-new-project)
+  - See [`all.asana_process.how_to_guide.md`](/docs/work_organization/all.asana_process.how_to_guide.md)
     for how we use Asana to track projects
 - Name the PRs of the master plan by component
   - E.g., `PR_S11`, see "Rules for the Plan" in
-    [`all.plan_work.how_to_guide.md`](../planning/all.plan_work.how_to_guide.md#rules-for-the-plan)
+    [`all.plan_work.how_to_guide.md`](/docs/planning/all.plan_work.how_to_guide.md#rules-for-the-plan)
 - Update the plan and the progress log after every merged PR
 
 ### Assign the Work
@@ -54,7 +54,7 @@
 - Make sure each person has 2 issues at the same time
   - One issue is blocked or in review while the other one is in progress
   - See "Ping Team Leaders when you are out of tasks" in
-    [`all.team_collaboration.how_to_guide.md`](all.team_collaboration.how_to_guide.md#ping-team-leaders-when-you-are-out-of-tasks)
+    [`all.team_collaboration.how_to_guide.md`](/docs/work_organization/all.team_collaboration.how_to_guide.md#ping-team-leaders-when-you-are-out-of-tasks)
 - Assign a new issue before a person runs out of work
   - Watch the board for people with all PRs in review
 - Assign the issues as soon as they are filed
@@ -65,7 +65,7 @@
   - Post a realistic ETA
   - Post a short plan of 3-4 bullet points to show that the goal is understood
   - See "Updating an Issue" in
-    [`all.use_github.how_to_guide.md`](all.use_github.how_to_guide.md#updating-an-issue)
+    [`all.use_github.how_to_guide.md`](/docs/work_organization/all.use_github.how_to_guide.md#updating-an-issue)
 - Discuss what, by when, and how in the issue and in the project channel
   - Move to execution only when everyone agrees
 - Match the task to the person:
@@ -107,7 +107,7 @@
   - Technical sync-up (one or two times per week)
   - Weekly blocker meeting
   - See "Sync-ups" in
-    [`all.team_collaboration.how_to_guide.md`](all.team_collaboration.how_to_guide.md#sync-ups)
+    [`all.team_collaboration.how_to_guide.md`](/docs/work_organization/all.team_collaboration.how_to_guide.md#sync-ups)
 - Update the agenda in the Gdoc one day before the meeting
   - Broadcast it by email or with a tag in the Gdoc
 - Fill the agenda with 2-3 issues
@@ -123,7 +123,7 @@
 - For each topic, end with a decision, an owner, and a date
 - Make sure that the team picks a facilitator for the blocker meeting
   - See "Meeting facilitators" in
-    [`all.organize_your_work.how_to_guide.md`](all.organize_your_work.how_to_guide.md#meeting-facilitators)
+    [`all.organize_your_work.how_to_guide.md`](/docs/work_organization/all.organize_your_work.how_to_guide.md#meeting-facilitators)
 
 ### Close the Loop After the Meetings
 
@@ -133,7 +133,7 @@
 - At the next meeting, start by reviewing the open action items
 - Read the morning TODO emails of the team
   - See "Morning TODO email" in
-    [`all.team_collaboration.how_to_guide.md`](all.team_collaboration.how_to_guide.md#morning-todo-email)
+    [`all.team_collaboration.how_to_guide.md`](/docs/work_organization/all.team_collaboration.how_to_guide.md#morning-todo-email)
   - Check that the issues, the hours, and the blockers match the plan
 
 ## Be GP's Right Hand
@@ -210,19 +210,17 @@
 
 ## Resources
 
-- Plan, PR loop, and progress log:
-  [`all.plan_work.how_to_guide.md`](../planning/all.plan_work.how_to_guide.md)
-- Idea, project, and task:
-  [`all.issue_workflow.explanation.md`](all.issue_workflow.explanation.md)
-- Issues, PRs, labels, and review:
-  [`all.use_github.how_to_guide.md`](all.use_github.how_to_guide.md)
+- Idea, project, and task, plan, PR loop, and progress log:
+  [`all.plan_work.how_to_guide.md`](/docs/planning/all.plan_work.how_to_guide.md)
+- Projects, issues, PRs, labels, and review:
+  [`all.use_github.how_to_guide.md`](/docs/work_organization/all.use_github.how_to_guide.md)
 - Board, statuses, sprints, and carryover:
-  [`all.github_projects_process.reference.md`](all.github_projects_process.reference.md)
+  [`all.github_projects_process.reference.md`](/docs/work_organization/all.github_projects_process.reference.md)
 - Sync-ups, morning TODO email, and communication:
-  [`all.team_collaboration.how_to_guide.md`](all.team_collaboration.how_to_guide.md)
+  [`all.team_collaboration.how_to_guide.md`](/docs/work_organization/all.team_collaboration.how_to_guide.md)
 - Roles (tech lead, issue owner, reviewer) and blockers:
-  [`all.organize_your_work.how_to_guide.md`](all.organize_your_work.how_to_guide.md)
+  [`all.organize_your_work.how_to_guide.md`](/docs/work_organization/all.organize_your_work.how_to_guide.md)
 - Weekly blocker meeting:
-  [`all.scrum.explanation.md`](all.scrum.explanation.md#weekly-blocker-meeting)
+  [`all.scrum.explanation.md`](/docs/work_organization/all.scrum.explanation.md#weekly-blocker-meeting)
 - Feedback to contributors:
-  [`all.contributor_feedback.how_to_guide.md`](all.contributor_feedback.how_to_guide.md)
+  [`all.contributor_feedback.how_to_guide.md`](/docs/work_organization/all.contributor_feedback.how_to_guide.md)

@@ -42,13 +42,29 @@
   - It may take multiple Sprints to complete all the Issues in an Project
   - Most Projects are created around software components or user workflows
     (which may cross software components)
+- Unlike an idea, a Project has:
+  - Clear goals
+  - Defined scope
+  - Tangible outcomes
+  - Time constraints
+- Team leaders are responsible for converting ideas into Projects
+  - The outcome is a GH Project with clear objectives, start/end dates,
+    assignees, and filed Issues
+  - See
+    [Create an End-to-End Plan](/docs/planning/all.plan_work.how_to_guide.md#create-an-end-to-end-plan)
+    for the analysis to perform
+- Do not create a new board for each milestone or feature
 - For more information on GH Projects, see
   [all.github_projects_process.reference.md](/docs/work_organization/all.github_projects_process.reference.md)
 
 ### Issue
 
 - Each Issue is a piece of work to be done
+  - A task is a specific, actionable item, usually small in scope and focused on
+    a single activity within a Project
 - Issues are combined into Projects by topic
+  - Every Issue should belong to a GH Project
+- An Issue has one accountable owner and a testable result
 - An Issue has certain characteristics, i.e. labels
 - An Issue has a progress status, (e.g., `Todo`, `In progress`, `Done`)
 - PRs are linked to work needed to complete an Issue
@@ -56,9 +72,9 @@
   be resolved
 - An issue may be labeled as "Epic" if it has associated sub-issues.
   - However, this is not a standard in our workflow.
-- See also
-  [all.issue_workflow.explanation.md](/docs/work_organization/all.issue_workflow.explanation.md)
-  for the description of the concept of Issues as opposed to Ideas/Projects.
+- See
+  [Planning Hierarchy](/docs/planning/all.plan_work.how_to_guide.md#planning-hierarchy)
+  for how Issues relate to Ideas and Projects
 
 ### GH Actions
 
@@ -197,11 +213,9 @@ stateDiagram
 - Describe the task so that it is actionable
   - Problem and why it matters
   - Scope and explicit exclusions
-  - Acceptance criteria
-  - Dependencies
-  - See
-    [all.issue_workflow.explanation.md](/docs/work_organization/all.issue_workflow.explanation.md#task-issue)
-    for the anatomy of a task
+  - Acceptance criteria: the evidence that shows the task is complete
+  - Dependencies, owner, and effort estimate
+  - Relevant design notes, PRs, and findings
 - If it is a "serious" problem (bug) put as much information about the Issue as
   possible, e.g.,:
   - What you are trying to achieve
@@ -258,7 +272,7 @@ stateDiagram
   - Post a comment on the Issue with:
     - A realistic ETA
       - See "Morning TODO email" in
-        [`all.team_collaboration.how_to_guide.md`](all.team_collaboration.how_to_guide.md#morning-todo-email)
+        [`all.team_collaboration.how_to_guide.md`](/docs/work_organization/all.team_collaboration.how_to_guide.md#morning-todo-email)
         for how to estimate and update an ETA
     - A short plan of 3-4 bullet points
       - The plan shows that you understood the goal
@@ -292,6 +306,9 @@ stateDiagram
 - A task is closed when PR has been reviewed and merged into `master`
   - For research or coordination work without a PR, attach the result and get
     the agreed review before closing
+    - E.g., "Run the model benchmark" is complete when the selected
+      configuration, the results, the costs, and the question set are
+      documented and reviewed
 - When, in your opinion, there is no more work to be done on your side on an
   Issue, change its status to `Done` but do not close it
   - Integrators / team leaders will close it after review

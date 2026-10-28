@@ -1,11 +1,12 @@
 import os
-from unittest import mock
+import unittest.mock as mock
+from typing import List, Tuple
 
 import pandas as pd
 import pytest
 
+import helpers.hio as hio
 import helpers.hunit_test as hunitest
-from helpers import hio
 
 MODULE_PATH = "dev_scripts_helpers.github.invite_gh_contributors"
 
@@ -44,7 +45,7 @@ class Test_extract_usernames_from_gsheet(hunitest.TestCase):
             )
             extract = mod.extract_usernames_from_gsheet
             actual = extract("dummy_url")
-        expected: list[str] = ["alice", "bob"]
+        expected: List[str] = ["alice", "bob"]
         self.assertEqual(actual, expected)
 
 
@@ -82,8 +83,8 @@ class Test_extract_usernames_from_csv(hunitest.TestCase):
             "GitHub user\nalice\nbob\n\n",
         )
         # Run.
-        actual: list[str] = dshgigco.extract_usernames_from_csv(str(csv_path))
-        expected: list[str] = ["alice", "bob"]
+        actual: List[str] = dshgigco.extract_usernames_from_csv(str(csv_path))
+        expected: List[str] = ["alice", "bob"]
         # Check.
         self.assertEqual(actual, expected)
 
@@ -181,12 +182,12 @@ class Test_send_invitations(hunitest.TestCase):
 
     def _run(
         self,
-        usernames: list[str],
+        usernames: List[str],
         *,
         skip_invited: bool,
         dry_run: bool,
         permission: str = "write",
-    ) -> tuple[mock.Mock, mock.Mock]:
+    ) -> Tuple[mock.Mock, mock.Mock]:
         """
         Run `send_invitations()` with a mocked GitHub repo.
 
@@ -352,7 +353,7 @@ class Test__main(hunitest.TestCase):
     Test that the users passed with `--add_gh_user` are invited.
     """
 
-    def _run_main(self, argv: list[str]) -> mock.Mock:
+    def _run_main(self, argv: List[str]) -> mock.Mock:
         """
         Run `_main()` with a mocked `sys.argv` and a mocked GitHub client.
 

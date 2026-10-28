@@ -37,7 +37,10 @@ import sys
 import time
 from typing import Optional
 
-from helpers import hdbg, hgit, hparser, hprint
+import helpers.hdbg as hdbg
+import helpers.hgit as hgit
+import helpers.hparser as hparser
+import helpers.hprint as hprint
 
 _LOG = logging.getLogger(__name__)
 

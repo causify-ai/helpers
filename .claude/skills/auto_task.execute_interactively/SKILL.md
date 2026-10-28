@@ -102,7 +102,7 @@ model: haiku
 
 - [ ] One GH issue and one branch/PR were created for `<FILE>` before the task loop
       started, named per `.claude/skills/auto_task.rules.md`
-- [ ] Every task's status in `<FILE>` reflects its actual progress (`[ ]`, `[-]`, or
+- [ ] Every task's status in `<FILE>` reflects its actual progress (`[ ]`, `[.]`, or
       `[x]`)
 - [ ] The tests touched by each task pass locally and in CI before that task is
       marked done
