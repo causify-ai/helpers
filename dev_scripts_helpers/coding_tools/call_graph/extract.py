@@ -21,7 +21,7 @@ import copy
 import dataclasses
 import logging
 import os
-from typing import Any, Optional, Union
+from typing import Any, Optional, Tuple, Union
 
 import jedi
 import networkx as nx
@@ -228,7 +228,7 @@ def _byte_to_char_col(line_txt: str, byte_col: int) -> int:
     return char_col
 
 
-def _get_name_position(node: ast.AST) -> Optional[tuple[int, int]]:
+def _get_name_position(node: ast.AST) -> Optional[Tuple[int, int]]:
     """
     Get the position of the name that identifies a callee or a type.
 

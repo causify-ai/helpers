@@ -24,7 +24,7 @@ import logging
 import os
 import re
 from re import Match
-from typing import Optional, cast
+from typing import List, Optional, cast
 
 from tqdm import tqdm
 
@@ -273,7 +273,7 @@ def _is_section_boundary(line: str) -> tuple[bool, str]:
     return False, ""
 
 
-def _extract_section(lines: list[str], title: str) -> Optional[list[str]]:
+def _extract_section(lines: List[str], title: str) -> Optional[List[str]]:
     r"""
     Extract the body content under a section marker with the given title.
 
@@ -784,7 +784,7 @@ def _transform_lines(
     # `hselacti.mark_action()` returns `Optional[List[str]]`, so track the
     # remaining actions in a separately typed variable instead of narrowing
     # the `actions` parameter's non-`Optional` type.
-    remaining_actions: Optional[list[str]] = actions
+    remaining_actions: Optional[List[str]] = actions
     out: list[str] = []
     # a) Prepend some directive for pandoc, if they are missing.
     if output_format == "latex" and lines[0] != "---":
@@ -1066,7 +1066,7 @@ def _preprocess_lines(
     # `hselacti.mark_action()` returns `Optional[List[str]]`, so track the
     # remaining actions in a separately typed variable instead of narrowing
     # the `actions` parameter's non-`Optional` type.
-    remaining_actions: Optional[list[str]] = actions
+    remaining_actions: Optional[List[str]] = actions
     # Apply transformations.
     out = _transform_lines(lines, type_, is_qa, output_format, actions=actions)
     # Add TOC, if needed.

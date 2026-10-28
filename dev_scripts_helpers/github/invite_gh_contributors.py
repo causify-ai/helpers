@@ -68,13 +68,15 @@ import csv
 import datetime
 import logging
 import os
-from typing import Optional
+from typing import List, Optional, Set, Tuple
 
 import github
 import ratelimit
 
+import helpers.hdbg as hdbg
 import helpers.hgoogle_drive_api as hgodrapi
-from helpers import hdbg, hparser, hsystem
+import helpers.hparser as hparser
+import helpers.hsystem as hsystem
 
 _LOG = logging.getLogger(__name__)
 
@@ -83,7 +85,7 @@ _INVITES_PER_WINDOW = 50
 _WINDOW_SECONDS = int(datetime.timedelta(hours=24).total_seconds())
 
 
-def extract_usernames_from_gsheet(gsheet_url: str) -> list[str]:
+def extract_usernames_from_gsheet(gsheet_url: str) -> List[str]:
     """
     Extract usernames from a Google Sheet URL.
 
@@ -102,14 +104,14 @@ def extract_usernames_from_gsheet(gsheet_url: str) -> list[str]:
     return usernames
 
 
-def extract_usernames_from_csv(csv_path: str) -> list[str]:
+def extract_usernames_from_csv(csv_path: str) -> List[str]:
     """
     Extract GitHub usernames from a CSV file containing a *GitHub user* column.
 
     :param csv_path: path to csv
     :return: github usernames
     """
-    usernames: list[str] = []
+    usernames: List[str] = []
     with open(csv_path, newline="", encoding="utf-8") as csv_file:
         reader = csv.DictReader(csv_file)
         hdbg.dassert_in(
@@ -138,7 +140,7 @@ def _invite(repo, username: str, *, permission: str = "write") -> None:
     _LOG.info("Invitation sent to %s", username)
 
 
-def _get_invited_usernames(repo) -> tuple[set[str], set[str]]:
+def _get_invited_usernames(repo) -> Tuple[Set[str], Set[str]]:
     """
     Get the users already invited to a repo.
 
@@ -156,8 +158,8 @@ def _get_invited_usernames(repo) -> tuple[set[str], set[str]]:
 
 
 def _split_usernames(
-    usernames: list[str], collaborators: set[str], pending: set[str]
-) -> tuple[list[str], list[str], list[str]]:
+    usernames: List[str], collaborators: Set[str], pending: Set[str]
+) -> Tuple[List[str], List[str], List[str]]:
     """
     Split the passed users into already invited and still to invite.
 
@@ -170,9 +172,9 @@ def _split_usernames(
     :return: users that are collaborators, users with a pending invitation,
         users to invite
     """
-    already_collaborators: list[str] = []
-    already_pending: list[str] = []
-    to_invite: list[str] = []
+    already_collaborators: List[str] = []
+    already_pending: List[str] = []
+    to_invite: List[str] = []
     for username in dict.fromkeys(usernames):
         if username.lower() in collaborators:
             already_collaborators.append(username)
@@ -184,7 +186,7 @@ def _split_usernames(
 
 
 def send_invitations(
-    usernames: list[str],
+    usernames: List[str],
     gh_access_token: Optional[str],
     repo_name: str,
     org_name: str,

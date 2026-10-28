@@ -168,7 +168,7 @@
     status to the other departments and Team leaders
   - E.g., on Asana we can do high level planning and track work that is not
     ready yet to be filed as GH Issues, similar to what we do with Google Docs
-  - See [`all.asana_process.how_to_guide.md`](all.asana_process.how_to_guide.md)
+  - See [`all.asana_process.how_to_guide.md`](/docs/work_organization/all.asana_process.how_to_guide.md)
     for how we use Asana to track projects
 
 - Create the milestones of the project

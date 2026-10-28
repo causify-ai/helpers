@@ -65,6 +65,24 @@ Based on the files that you need to operate, read and follow the corresponding r
 - For splitting a branch into a sequence of PRs you MUST follow the template
   `.claude/templates/github_PR_plan.template.md`
 
+## Project Docs
+
+- For the docs of a project (`docs/prd.md`, `docs/design.*.md`, `docs/plan.md`,
+  `docs/progress.md`, `docs/decisions.md`, `docs/how_we_work.md`, `docs/README.md`)
+  you MUST follow:
+  - The rules `.claude/skills/project.rules.md`
+  - For a PRD: the template `.claude/templates/project_prd.template.md`
+  - For a design doc: the template `.claude/templates/project_design.template.md`
+  - For the plan: the template `.claude/templates/project_plan.template.md`
+  - For the progress log: the template `.claude/templates/project_progress.template.md`
+  - For the decisions log: the template `.claude/templates/project_decisions.template.md`
+  - For the meta-doc: the template `.claude/templates/project_how_we_work.template.md`
+
+## GitHub PR Description
+
+- For writing the description of a PR you MUST follow the template
+  `.claude/templates/github_PR_description.template.md`
+
 ## Cfile
 
 - For generating a vim quickfix `cfile` you MUST follow

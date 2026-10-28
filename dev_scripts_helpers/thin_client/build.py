@@ -23,8 +23,12 @@ import subprocess
 
 import thin_client_utils as tcu
 
+import helpers.hdbg as hdbg
+import helpers.hparser as hparser
+import helpers.hprint as hprint
+import helpers.hserver as hserver
+import helpers.hsystem as hsystem
 import helpers.repo_config_utils as hrecouti
-from helpers import hdbg, hparser, hprint, hserver, hsystem
 
 _LOG = logging.getLogger(__name__)
 

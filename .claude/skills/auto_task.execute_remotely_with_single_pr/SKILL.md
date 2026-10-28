@@ -82,7 +82,7 @@ model: haiku
 
 - Follow `.claude/skills/auto_task.rules.md` section "Confirm the Task List Before
   Executing" for the task list format and the problem/solution check
-- Keep `<FILE>` updated per that file's section "Track Task Status": `[-]` means
+- Keep `<FILE>` updated per that file's section "Track Task Status": `[.]` means
   dispatched with the remote run not finished, `[x]` means the PR is ready for human
   review
 
@@ -165,5 +165,5 @@ model: haiku
 - [ ] Every dispatch comment contains an explicit `@claude` mention
 - [ ] No task's code was implemented locally in this session
 - [ ] Every task's status in `<FILE>` reflects its actual remote progress (`[ ]`,
-      `[-]`, or `[x]`)
+      `[.]`, or `[x]`)
 - [ ] The final report lists every task with its issue, PR link, and run status

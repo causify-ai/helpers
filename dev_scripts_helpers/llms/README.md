@@ -1,6 +1,8 @@
 # LLM Tools
 
-CLI tools for applying LLM transformations to code and text files. Supports code review, refactoring, text transformation, and TODO injection with Dockerized execution for dependency isolation.
+CLI tools for applying LLM transformations to code and text files. Supports code
+review, refactoring, text transformation, and TODO injection with Dockerized
+execution for dependency isolation.
 
 ## Structure of the Dir
 

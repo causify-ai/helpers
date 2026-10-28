@@ -7,7 +7,9 @@ import dev_scripts_helpers.git.test.test_git_create_issue_and_branch as dsggtgia
 """
 
 import json
-from typing import Any, Optional
+from typing import Any, List, Optional
+
+# TODO(ai_gp): use import unittest
 from unittest import mock
 
 import dev_scripts_helpers.git.git_create_issue_and_branch as dshggciab
@@ -534,7 +536,7 @@ class Test_create_worktree(hunitest.TestCase):
     """
 
     def _helper(
-        self, submodule_paths: Optional[list[str]], expected: str
+        self, submodule_paths: Optional[List[str]], expected: str
     ) -> None:
         """
         Run `_create_worktree()` and check the captured system calls and the

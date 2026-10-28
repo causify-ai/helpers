@@ -27,8 +27,11 @@ model: opus
 ## Understand the Request
 
 - Read related code in the codebase and existing code in the target directory
-- If the user references a roadmap/plan file (e.g., `plan.<TOPIC>.md`), read it to
+- If the user references a roadmap/plan file (e.g., `plan.<TOPIC>.md`, or a project
+  `docs/plan.md` as defined in `.claude/skills/project.rules.md`), read it to
   extract the exact scope of the requested PR/feature
+  - Use the plan ids (e.g., `PR_M10`) for the `PR<NUM>` bullets and the spec files,
+    per `.claude/skills/project.rules.md` section "Name the PRs"
 - If an architecture doc already exists for the target directory, read it to
   understand the current design
 - If the problem or the desired solution is not perfectly clear, follow

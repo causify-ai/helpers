@@ -55,10 +55,15 @@ import os
 import re
 import shlex
 import tempfile
-from typing import Optional
+from typing import List, Optional, Tuple
 
+import helpers.hdbg as hdbg
+import helpers.hgit as hgit
+import helpers.hio as hio
+import helpers.hparser as hparser
+import helpers.hprint as hprint
+import helpers.hsystem as hsystem
 import helpers.lib_tasks.lib_tasks_gh as hltltagh
-from helpers import hdbg, hgit, hio, hparser, hprint, hsystem
 
 _LOG = logging.getLogger(__name__)
 
@@ -68,7 +73,7 @@ _LOG = logging.getLogger(__name__)
 
 
 # TODO(gp): This is general enough that it could go in hgit.py
-def _get_repo_targets(submodules: bool) -> list[str]:
+def _get_repo_targets(submodules: bool) -> List[str]:
     """
     Return the repo directories to operate on symmetrically.
 
@@ -90,7 +95,7 @@ def _get_repo_targets(submodules: bool) -> list[str]:
 
 
 def _dassert_all_targets_clean(
-    repo_targets: list[str], *, no_abort_if_not_clean: bool = False
+    repo_targets: List[str], *, no_abort_if_not_clean: bool = False
 ) -> None:
     """
     Assert that every repo target is clean, before mutating any of them.
@@ -119,7 +124,7 @@ def _dassert_all_targets_clean(
 
 
 def _dassert_all_targets_on_master(
-    repo_targets: list[str], original_branch: str
+    repo_targets: List[str], original_branch: str
 ) -> None:
     """
     Assert that every repo target is on `master`, before creating a branch in any
@@ -170,7 +175,7 @@ def _get_issue_body(body_text: str, body_file: str) -> str:
 
 def _resolve_gh_project(
     gh_project: str, repo_full_name_with_host: str
-) -> tuple[str, int]:
+) -> Tuple[str, int]:
     """
     Resolve a GitHub project reference into its owner and number.
 
@@ -451,7 +456,7 @@ def _get_pr_url(target: str) -> str:
 
 
 def _update_issue_body_with_pr_links(
-    issue_id: int, repo_targets: list[str]
+    issue_id: int, repo_targets: List[str]
 ) -> None:
     """
     Refresh the issue's `## Companion PRs` section with every repo's PR link.
@@ -499,7 +504,7 @@ def _create_worktree(
     branch_name: str,
     issue_id: int,
     original_branch: str,
-    submodule_paths: Optional[list[str]] = None,
+    submodule_paths: Optional[List[str]] = None,
 ) -> str:
     """
     Create a git worktree for the given branch.
@@ -550,7 +555,7 @@ def _print_usage_instructions(
     worktree_path: str,
     issue_id: int,
     branch_name: str,
-    repo_targets: list[str],
+    repo_targets: List[str],
 ) -> None:
     """
     Print instructions on how to use the created worktree.
@@ -733,7 +738,7 @@ def _parse() -> argparse.ArgumentParser:
 
 
 def _main_workflow(
-    args: argparse.Namespace, original_branch: str, repo_targets: list[str]
+    args: argparse.Namespace, original_branch: str, repo_targets: List[str]
 ) -> None:
     """
     Main workflow implementation.

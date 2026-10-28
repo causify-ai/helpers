@@ -29,7 +29,7 @@
 - Do not discuss in Slack what can be discussed in GitHub or Asana
   - A Slack message cannot be referenced from other places
 - See
-  [`all.team_collaboration.how_to_guide.md`](all.team_collaboration.how_to_guide.md)
+  [`all.team_collaboration.how_to_guide.md`](/docs/work_organization/all.team_collaboration.how_to_guide.md)
   for the full communication rules
 
 ## Set Up a Project in Asana
@@ -46,7 +46,7 @@
   - The `Channel Overview` canvas of the `proj-<project-name>` Slack channel
 - Each team (e.g., Infra/Devops, DataPull) has a catch-all project for its issues
 - See "How to set up a new project" in
-  [`all.github_projects_process.reference.md`](all.github_projects_process.reference.md)
+  [`all.github_projects_process.reference.md`](/docs/work_organization/all.github_projects_process.reference.md)
   for all the steps
 
 ## Track Milestones
@@ -59,7 +59,7 @@
 - Link the milestone to the section of the master plan
   - Do not copy the plan
 - The project lead owns the milestones
-  - See [`all.project_lead.how_to_guide.md`](all.project_lead.how_to_guide.md)
+  - See [`all.project_lead.how_to_guide.md`](/docs/work_organization/all.project_lead.how_to_guide.md)
 
 ## Report Status
 
@@ -69,7 +69,7 @@
   - Then, the Asana status update
 - The GitHub status update is often the source for the Asana update
 - See "Sprint process" in
-  [`all.github_projects_process.reference.md`](all.github_projects_process.reference.md)
+  [`all.github_projects_process.reference.md`](/docs/work_organization/all.github_projects_process.reference.md)
   for the deadlines and the sections of the update
 
 ## Track Requests
@@ -82,7 +82,7 @@
   - Reply with the link to the scratch task
   - Check off each request when done
 - See "Acknowledge a request with a link" in
-  [`all.team_collaboration.how_to_guide.md`](all.team_collaboration.how_to_guide.md)
+  [`all.team_collaboration.how_to_guide.md`](/docs/work_organization/all.team_collaboration.how_to_guide.md)
 
 ## Receive Asana Notifications
 
@@ -91,42 +91,42 @@
   - New activity in your tasks
   - New task assignments
 - See "Asana" in
-  [`all.organize_email.how_to_guide.md`](../onboarding/all.organize_email.how_to_guide.md)
+  [`all.organize_email.how_to_guide.md`](/docs/onboarding/all.organize_email.how_to_guide.md)
   for how to filter these emails
 
 ## Other Uses of Asana
 
 - **Hiring**: the HiringMeister manages the Hiring project and creates one task
   per intern
-  - See [`all.hiring_process.how_to_guide.md`](../onboarding/all.hiring_process.how_to_guide.md)
+  - See [`all.hiring_process.how_to_guide.md`](/docs/onboarding/all.hiring_process.how_to_guide.md)
 - **Contributor feedback**: the scoring forms are distributed to the scorers in
   Asana
-  - See [`all.contributor_feedback.how_to_guide.md`](all.contributor_feedback.how_to_guide.md)
+  - See [`all.contributor_feedback.how_to_guide.md`](/docs/work_organization/all.contributor_feedback.how_to_guide.md)
 - **Onboarding**: Asana tasks are the channel for business and high-level
   questions of a new teammate
-  - See [`all.onboarding_checklist.reference.md`](../onboarding/all.onboarding_checklist.reference.md)
+  - See [`all.onboarding_checklist.reference.md`](/docs/onboarding/all.onboarding_checklist.reference.md)
 
 ## Analyze Asana Data
 
 - Use `helpers/asana_utils.py` to compute task completion rates and team activity
   reports from Asana
-  - See [`all.asana_utils.how_to_guide.md`](all.asana_utils.how_to_guide.md) for
+  - See [`all.asana_utils.how_to_guide.md`](/docs/work_organization/all.asana_utils.how_to_guide.md) for
     how to get an access token and run the reports
 - The tutorial `tutorials/Asana` shows the Asana REST API in notebooks
 
 ## Resources
 
 - Project setup, milestones, and sprint status updates:
-  [`all.github_projects_process.reference.md`](all.github_projects_process.reference.md)
+  [`all.github_projects_process.reference.md`](/docs/work_organization/all.github_projects_process.reference.md)
 - Where to communicate and how to acknowledge requests:
-  [`all.team_collaboration.how_to_guide.md`](all.team_collaboration.how_to_guide.md)
+  [`all.team_collaboration.how_to_guide.md`](/docs/work_organization/all.team_collaboration.how_to_guide.md)
 - Project lead responsibilities:
-  [`all.project_lead.how_to_guide.md`](all.project_lead.how_to_guide.md)
+  [`all.project_lead.how_to_guide.md`](/docs/work_organization/all.project_lead.how_to_guide.md)
 - Issues, PRs, and labels in GitHub:
-  [`all.use_github.how_to_guide.md`](all.use_github.how_to_guide.md)
+  [`all.use_github.how_to_guide.md`](/docs/work_organization/all.use_github.how_to_guide.md)
 - Asana analytics code and API access:
-  [`all.asana_utils.how_to_guide.md`](all.asana_utils.how_to_guide.md)
+  [`all.asana_utils.how_to_guide.md`](/docs/work_organization/all.asana_utils.how_to_guide.md)
 - Asana notification emails:
-  [`all.organize_email.how_to_guide.md`](../onboarding/all.organize_email.how_to_guide.md)
+  [`all.organize_email.how_to_guide.md`](/docs/onboarding/all.organize_email.how_to_guide.md)
 - Hiring project:
-  [`all.hiring_process.how_to_guide.md`](../onboarding/all.hiring_process.how_to_guide.md)
+  [`all.hiring_process.how_to_guide.md`](/docs/onboarding/all.hiring_process.how_to_guide.md)

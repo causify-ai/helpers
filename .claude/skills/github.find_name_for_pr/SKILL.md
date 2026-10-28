@@ -49,6 +49,15 @@ model: haiku
 - Do not use numbered bullets, but only nested bullets
 - Use wrapped lines under 85 chars per line
 
+## Write the Description of the PR
+
+- Write a `pr_description.md` following the template
+  `.claude/templates/github_PR_description.template.md`
+- Fill every section from the diff and from the plan or spec the PR closes
+  - Write "N/A: <reason>" for a section that does not apply
+  - Do not invent test counts or results: run the tests or ask the user
+- Follow `.claude/skills/markdown.rules.md` and `.claude/skills/text.rules.md`
+
 ### Example
 
 ```

@@ -5,10 +5,13 @@ import helpers.lib_tasks.lib_tasks_utils as hltltaut
 """
 
 import datetime
+import fcntl
 import logging
 import pprint
 import re
+import struct
 import sys
+import termios
 from typing import Any, Dict, List, Optional, Union
 
 # We want to minimize the dependencies from non-standard Python packages since
@@ -19,6 +22,45 @@ import helpers.hsystem as hsystem
 import helpers.hversion as hversio
 
 _LOG = logging.getLogger(__name__)
+
+
+# #############################################################################
+# Invoke workarounds.
+# #############################################################################
+
+
+def _patch_invoke_bytes_to_read() -> None:
+    """
+    Make `ctx.run(..., pty=True)` forward keystrokes under Python >= 3.14.
+
+    `invoke.terminals.bytes_to_read()` calls `ioctl(FIONREAD)` with a 2-byte
+    buffer, but `FIONREAD` writes a 4-byte int. Python 3.14 raises
+    `SystemError: buffer overflow` instead of silently overflowing. The error
+    kills the invoke thread that forwards stdin to the child, which has two
+    effects:
+    - the terminal goes back to cooked mode, so keystrokes are echoed by the
+      tty (e.g., Down arrow shows up as `^[OB` in `vimdiff`)
+    - the keystrokes never reach the child process
+    """
+    try:
+        import invoke.runners as irunner
+    except ImportError:
+        _LOG.debug("invoke not available: skipping `bytes_to_read` patch")
+        return
+    orig_bytes_to_read = irunner.bytes_to_read  # type: ignore
+
+    def _bytes_to_read(input_: Any) -> int:
+        try:
+            res = orig_bytes_to_read(input_)
+        except SystemError:
+            fionread = fcntl.ioctl(input_, termios.FIONREAD, b"    ")
+            res = int(struct.unpack("i", fionread)[0])
+        return res
+
+    irunner.bytes_to_read = _bytes_to_read  # type: ignore
+
+
+_patch_invoke_bytes_to_read()
 
 
 # #############################################################################
@@ -233,7 +275,7 @@ def run(
             # reliable.
             res = hsystem.system(cmd, suppress_output=False)
         else:
-            result = ctx.run(cmd, echo=False, *args, **ctx_run_kwargs)
+            result = ctx.run(cmd, *args, echo=False, **ctx_run_kwargs)
             if not ctx.config.run.dry:
                 print(hprint.color_highlight(f"> {cmd}", color="green"))
             res = result.return_code
