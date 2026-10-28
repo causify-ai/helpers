@@ -2,12 +2,11 @@ import os
 import tempfile
 from unittest import mock
 
+import dev_scripts_helpers.documentation.open_md as dshdopmd
 import helpers.hio as hio
 import helpers.hprint as hprint
 import helpers.hunit_test as hunitest
 import helpers.hunit_test_utils as hunteuti
-import dev_scripts_helpers.documentation.open_md as dshdopmd
-
 
 # #############################################################################
 # Test_convert_ssh_to_https
@@ -268,14 +267,16 @@ class Test_run_render_images(hunitest.TestCase):
                 hio.to_file(output_file, "rendered")
                 return 0
 
-            with mock.patch(
-                "helpers.hgit.find_file", return_value=render_images_script
-            ):
-                with mock.patch(
+            with (
+                mock.patch(
+                    "helpers.hgit.find_file", return_value=render_images_script
+                ),
+                mock.patch(
                     "helpers.hsystem.system", side_effect=_create_output
-                ) as mock_system:
-                    # Run test.
-                    actual = dshdopmd._run_render_images(input_file)
+                ) as mock_system,
+            ):
+                # Run test.
+                actual = dshdopmd._run_render_images(input_file)
         finally:
             os.chdir(cwd)
         # Check outputs.
@@ -313,17 +314,15 @@ class Test_open_on_github(hunitest.TestCase):
                 "https://github.com/causify-ai/helpers/blob/main/docs/readme.md"
             )
             # Run test.
-            with mock.patch(
-                "helpers.hsystem.system_to_one_line",
-                return_value=(0, "git@github.com:causify-ai/helpers.git"),
+            with (
+                mock.patch(
+                    "helpers.hsystem.system_to_one_line",
+                    return_value=(0, "git@github.com:causify-ai/helpers.git"),
+                ),
+                mock.patch("helpers.hgit.get_branch_name", return_value="main"),
+                mock.patch.object(dshdopmd, "_open_file") as mock_open_file,
             ):
-                with mock.patch(
-                    "helpers.hgit.get_branch_name", return_value="main"
-                ):
-                    with mock.patch.object(
-                        dshdopmd, "_open_file"
-                    ) as mock_open_file:
-                        dshdopmd._open_on_github(file_path)
+                dshdopmd._open_on_github(file_path)
             # Check outputs.
             mock_open_file.assert_called_once_with(expected_url)
 
@@ -363,30 +362,30 @@ class Test_render_with_pandoc(hunitest.TestCase):
         scratch_dir = self.get_scratch_space()
         input_file = os.path.join(scratch_dir, "input.md")
         hio.to_file(input_file, "# Title")
-        output_file = os.path.join(scratch_dir, "tmp.open_md.pandoc.html")
+        output_file = os.path.join(scratch_dir, "tmp.input.html")
         backend = "global"
         cwd = os.getcwd()
         os.chdir(scratch_dir)
         try:
-            with mock.patch.object(
-                dshdopmd, "_run_render_images", return_value=input_file
-            ):
-                with mock.patch(
+            with (
+                mock.patch.object(
+                    dshdopmd, "_run_render_images", return_value=input_file
+                ),
+                mock.patch(
                     "helpers.hsystem.system",
                     side_effect=self._create_output_file(output_file),
-                ) as mock_system:
-                    with mock.patch.object(
-                        dshdopmd, "_open_file"
-                    ) as mock_open_file:
-                        # Run test.
-                        dshdopmd._render_with_pandoc(input_file, backend=backend)
+                ) as mock_system,
+                mock.patch.object(dshdopmd, "_open_file") as mock_open_file,
+            ):
+                # Run test.
+                dshdopmd._render_with_pandoc(input_file, backend=backend)
         finally:
             os.chdir(cwd)
         # Check outputs.
         called_cmd = mock_system.call_args[0][0]
         self.assertIn("pandoc", called_cmd)
         self.assertIn(input_file, called_cmd)
-        mock_open_file.assert_called_once_with("tmp.open_md.pandoc.html")
+        mock_open_file.assert_called_once_with("tmp.input.html")
 
     def test2(self) -> None:
         """
@@ -397,11 +396,13 @@ class Test_render_with_pandoc(hunitest.TestCase):
         input_file = os.path.join(scratch_dir, "input.md")
         hio.to_file(input_file, "# Title")
         # Run test and check output.
-        with mock.patch.object(
-            dshdopmd, "_run_render_images", return_value=input_file
+        with (
+            mock.patch.object(
+                dshdopmd, "_run_render_images", return_value=input_file
+            ),
+            self.assertRaises(ValueError),
         ):
-            with self.assertRaises(ValueError):
-                dshdopmd._render_with_pandoc(input_file, backend="invalid")
+            dshdopmd._render_with_pandoc(input_file, backend="invalid")
 
     def test3(self) -> None:
         """
@@ -412,28 +413,63 @@ class Test_render_with_pandoc(hunitest.TestCase):
         scratch_dir = self.get_scratch_space()
         input_file = os.path.join(scratch_dir, "input.md")
         hio.to_file(input_file, "# Title")
-        output_file = os.path.join(scratch_dir, "tmp.open_md.pandoc.html")
+        output_file = os.path.join(scratch_dir, "tmp.input.html")
         backend = "dockerized"
         cwd = os.getcwd()
         os.chdir(scratch_dir)
         try:
-            with mock.patch.object(
-                dshdopmd, "_run_render_images", return_value=input_file
-            ):
-                with mock.patch.object(
+            with (
+                mock.patch.object(
+                    dshdopmd, "_run_render_images", return_value=input_file
+                ),
+                mock.patch.object(
                     dshdopmd.dshdlipa,
                     "run_dockerized_pandoc",
                     side_effect=self._create_output_file(output_file),
-                ) as mock_run_dockerized:
-                    with mock.patch.object(dshdopmd, "_open_file"):
-                        # Run test.
-                        dshdopmd._render_with_pandoc(input_file, backend=backend)
+                ) as mock_run_dockerized,
+                mock.patch.object(dshdopmd, "_open_file"),
+            ):
+                # Run test.
+                dshdopmd._render_with_pandoc(input_file, backend=backend)
         finally:
             os.chdir(cwd)
         # Check outputs.
         mock_run_dockerized.assert_called_once()
         called_cmd = mock_run_dockerized.call_args[0][0]
         self.assertIn("pandoc", called_cmd)
+
+    def test4(self) -> None:
+        """
+        Test the output file is named after the input basename, dropping only
+        the last extension.
+        """
+        # Prepare inputs.
+        scratch_dir = self.get_scratch_space()
+        input_dir = os.path.join(scratch_dir, "docs")
+        input_file = os.path.join(input_dir, "design.architecture.md")
+        hio.to_file(input_file, "# Title")
+        output_file = os.path.join(scratch_dir, "tmp.design.architecture.html")
+        backend = "global"
+        expected = "tmp.design.architecture.html"
+        cwd = os.getcwd()
+        os.chdir(scratch_dir)
+        try:
+            with (
+                mock.patch.object(
+                    dshdopmd, "_run_render_images", return_value=input_file
+                ),
+                mock.patch(
+                    "helpers.hsystem.system",
+                    side_effect=self._create_output_file(output_file),
+                ),
+                mock.patch.object(dshdopmd, "_open_file") as mock_open_file,
+            ):
+                # Run test.
+                dshdopmd._render_with_pandoc(input_file, backend=backend)
+        finally:
+            os.chdir(cwd)
+        # Check outputs.
+        mock_open_file.assert_called_once_with(expected)
 
 
 # #############################################################################
@@ -476,18 +512,18 @@ class Test_render_with_grip(hunitest.TestCase):
         cwd = os.getcwd()
         os.chdir(scratch_dir)
         try:
-            with mock.patch.object(
-                dshdopmd, "_run_render_images", return_value=input_file
-            ):
-                with mock.patch(
+            with (
+                mock.patch.object(
+                    dshdopmd, "_run_render_images", return_value=input_file
+                ),
+                mock.patch(
                     "helpers.hsystem.system",
                     side_effect=self._create_output_file(output_file),
-                ) as mock_system:
-                    with mock.patch.object(
-                        dshdopmd, "_open_file"
-                    ) as mock_open_file:
-                        # Run test.
-                        dshdopmd._render_with_grip(input_file, backend=backend)
+                ) as mock_system,
+                mock.patch.object(dshdopmd, "_open_file") as mock_open_file,
+            ):
+                # Run test.
+                dshdopmd._render_with_grip(input_file, backend=backend)
         finally:
             os.chdir(cwd)
         # Check outputs.
@@ -505,11 +541,13 @@ class Test_render_with_grip(hunitest.TestCase):
         input_file = os.path.join(scratch_dir, "input.md")
         hio.to_file(input_file, "# Title")
         # Run test and check output.
-        with mock.patch.object(
-            dshdopmd, "_run_render_images", return_value=input_file
+        with (
+            mock.patch.object(
+                dshdopmd, "_run_render_images", return_value=input_file
+            ),
+            self.assertRaises(ValueError),
         ):
-            with self.assertRaises(ValueError):
-                dshdopmd._render_with_grip(input_file, backend="invalid")
+            dshdopmd._render_with_grip(input_file, backend="invalid")
 
     def test3(self) -> None:
         """
@@ -524,16 +562,18 @@ class Test_render_with_grip(hunitest.TestCase):
         cwd = os.getcwd()
         os.chdir(scratch_dir)
         try:
-            with mock.patch.object(
-                dshdopmd, "_run_render_images", return_value=input_file
-            ):
-                with mock.patch(
+            with (
+                mock.patch.object(
+                    dshdopmd, "_run_render_images", return_value=input_file
+                ),
+                mock.patch(
                     "helpers.hsystem.system",
                     side_effect=self._create_output_file(output_file),
-                ) as mock_system:
-                    with mock.patch.object(dshdopmd, "_open_file"):
-                        # Run test.
-                        dshdopmd._render_with_grip(input_file, backend=backend)
+                ) as mock_system,
+                mock.patch.object(dshdopmd, "_open_file"),
+            ):
+                # Run test.
+                dshdopmd._render_with_grip(input_file, backend=backend)
         finally:
             os.chdir(cwd)
         # Check outputs.
@@ -561,13 +601,13 @@ class Test_render_with_grip_daemon(hunitest.TestCase):
         input_file = os.path.join(scratch_dir, "input.md")
         hio.to_file(input_file, "# Title")
         # Run test.
-        with mock.patch.object(
-            dshdopmd, "_run_render_images", return_value=input_file
+        with (
+            mock.patch.object(
+                dshdopmd, "_run_render_images", return_value=input_file
+            ),
+            hunteuti.capture_sys_calls() as sys_calls,
         ):
-            with hunteuti.capture_sys_calls() as sys_calls:
-                dshdopmd._render_with_grip_daemon(
-                    input_file, backend="dockerized"
-                )
+            dshdopmd._render_with_grip_daemon(input_file, backend="dockerized")
         # Check outputs.
         expected_str = r"""[
         {
@@ -595,11 +635,13 @@ class Test_render_with_grip_daemon(hunitest.TestCase):
         input_file = os.path.join(scratch_dir, "input.md")
         hio.to_file(input_file, "# Title")
         # Run test and check output.
-        with mock.patch.object(
-            dshdopmd, "_run_render_images", return_value=input_file
+        with (
+            mock.patch.object(
+                dshdopmd, "_run_render_images", return_value=input_file
+            ),
+            self.assertRaises(ValueError),
         ):
-            with self.assertRaises(ValueError):
-                dshdopmd._render_with_grip_daemon(input_file, backend="invalid")
+            dshdopmd._render_with_grip_daemon(input_file, backend="invalid")
 
 
 # #############################################################################

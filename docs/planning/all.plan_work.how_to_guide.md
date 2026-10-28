@@ -264,7 +264,7 @@
 
 ## Write a Project Meta-Doc
 
-- Goal: a new student or RA reads one file and knows how we work on the project
+- Goal: a new team member reads one file and knows how we work on the project
   - Test: after reading it, the newcomer can deliver work of the same quality as
     the current contributors
 - Create the file `how_we_work.md` in the `docs/` dir of the project
@@ -311,27 +311,15 @@
   [`docs/documentation_meta/all.where_to_add_material.explanation.md`](/docs/documentation_meta/all.where_to_add_material.explanation.md)
 - Documenting research:
   [`docs/planning/all.document_research.how_to_guide.md`](/docs/planning/all.document_research.how_to_guide.md)
-- Rules and templates: `.claude/skills/project.rules.md`,
-  `.claude/templates/project_*.template.md`,
-  `.claude/templates/github_PR_description.template.md`,
-  `.claude/templates/auto_task.template.md`, `.claude/templates/specs.template.md`,
-  `.claude/templates/github_PR_plan.template.md`
+- Rules and templates:
+  - `.claude/skills/project.rules.md`
+  - `.claude/templates/project_*.template.md`
+  - `.claude/templates/github_PR_description.template.md`
+  - `.claude/templates/auto_task.template.md`
+  - `.claude/templates/specs.template.md`
+  - `.claude/templates/github_PR_plan.template.md`
 
 # Workflows
-
-## Summary
-
-- Goal: one page with the commands to run, in order, from an idea to a merged PR
-  - The reasons and the rules of each step are in
-    [From Idea to Merged PR](#from-idea-to-merged-pr)
-- `<project>` is the dir of the project
-  - E.g., `research/Estimate_paper_quality`
-  - Its docs live in `<project>/docs/`
-- Rules for all the workflows:
-  - Commit between two skills, so that each skill gives a separate diff to review
-  - Run `/auto_task.criticize` before any execution skill
-  - Stop at each gate: an agent never crosses a gate alone
-  - Let a human merge: no skill merges a PR
 
 ## Define
 

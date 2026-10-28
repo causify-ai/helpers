@@ -143,8 +143,7 @@ def _convert_ssh_to_https(remote_url: str) -> str:
         # Extract host and path from: git@github.com:org/repo.git
         parts = remote_url.replace(":", "/").replace("git@", "https://")
         # Remove .git suffix if present.
-        if parts.endswith(".git"):
-            parts = parts[:-4]
+        parts = parts.removesuffix(".git")
         return parts
     # Fallback: return as-is.
     return remote_url
@@ -268,8 +267,11 @@ def _render_with_pandoc(
     hdbg.dassert_file_exists(input_file)
     # Preprocess with render_images.
     processed_file = _run_render_images(input_file)
-    # Determine output file.
-    output_file = "tmp.open_md.pandoc.html"
+    # Name the output after the input basename without extension, so that
+    # several previews can coexist, e.g., 'docs/design.architecture.md' ->
+    # 'tmp.design.architecture.html'.
+    input_basename = os.path.splitext(os.path.basename(input_file))[0]
+    output_file = f"tmp.{input_basename}.html"
     file_dir = _compute_resource_path(input_file, processed_file)
     # Add the optional style/header-include and matching syntax highlighting.
     style_opts = ""
@@ -339,7 +341,9 @@ def _render_with_pdf(
     :param skip_open: don't open the rendered output (used for `--daemon` watch
         re-runs, where the first run already opened it)
     """
-    _LOG.info("Rendering with pandoc to PDF (backend=%s): '%s'", backend, input_file)
+    _LOG.info(
+        "Rendering with pandoc to PDF (backend=%s): '%s'", backend, input_file
+    )
     # Validate input file exists.
     hdbg.dassert_file_exists(input_file)
     # Preprocess with render_images.

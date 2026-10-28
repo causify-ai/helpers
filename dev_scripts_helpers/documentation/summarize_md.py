@@ -1,7 +1,7 @@
 #!/usr/bin/env -S uv run
 
 # /// script
-# dependencies = ["llm", "tokencost", "markdown-it-py", "tqdm"]
+# dependencies = ["llm", "llm-openrouter", "tokencost", "markdown-it-py", "tqdm"]
 # ///
 
 r"""
@@ -13,7 +13,13 @@ The script:
 - for each header at a specified level (--md_level) extracts the full section
   (including all nested content)
 - uses an LLM for summarization
-- by default compresses each section to 10% of original size (--pct_words 0.1)
+- by default asks the LLM to compress each section to 10% of original size
+  (--pct_words 0.1)
+  - The size limits (--pct_words, --max_words) are constraints written in the
+    prompt of the LLM: the input and the output are never truncated
+- with --keep_bullets, asks the LLM to keep every header and bullet and to
+  shorten only the text of each bullet
+- with --caveman, asks the LLM to write terse, dropping articles and filler
 
 Results are appended to the output file incrementally.
 
@@ -27,11 +33,17 @@ The output preserves the markdown header structure with summaries or digests.
 - Summarize entire file in one shot (default: 10% compression):
 > summarize_md.py -i book.md -o out.md --md_level 0
 
-- Summarize with max words per chunk (disable default compression):
+- Summarize with at most 500 words per chunk (disable default compression):
 > summarize_md.py -i book.md -o out.md --md_level 1 --max_words 500
 
 - Summarize to 5% of original size (custom compression):
 > summarize_md.py -i book.md -o out.md --md_level 1 --pct_words 0.05
+
+- Keep the same bullets and shorten each one to 30% of the words:
+> summarize_md.py -i book.md -o out.md --md_level 1 --pct_words 0.3 --keep_bullets
+
+- Same as above, in caveman style:
+> summarize_md.py -i book.md -o out.md --md_level 1 --pct_words 0.3 --keep_bullets --caveman
 
 - Summarize level-2 sections in a range (default: 10% compression):
 > summarize_md.py -i book.md -o out.md --md_level 2 --md_start "Chapter 1" --md_end "Chapter 2"
@@ -40,7 +52,7 @@ The output preserves the markdown header structure with summaries or digests.
 > summarize_md.py -i book.md -o out.md --md_level 1 --dry_run
 
 - Use a different LLM model (default: 10% compression):
-> summarize_md.py -i book.md -o out.md --md_level 1 --model "claude-3-opus"
+> summarize_md.py -i book.md -o out.md --md_level 1 --model "openrouter/anthropic/claude-haiku-4.5"
 
 - Compute SHA1 digests instead of LLM summaries (for testing):
 > summarize_md.py -i book.md -o book.digest.md --md_level 1 --test
@@ -62,10 +74,10 @@ import helpers.hlint as hlint
 import helpers.hllm_cli as hllmcli
 import helpers.hmarkdown_headers as hmarhead
 import helpers.hmarkdown_select as hmarsele
-import helpers.hselect_input_output as hseinout
 import helpers.hparser as hparser
-import helpers.hselect_action as hselacti
 import helpers.hprint as hprint
+import helpers.hselect_action as hselacti
+import helpers.hselect_input_output as hseinout
 
 _LOG = logging.getLogger(__name__)
 
@@ -124,22 +136,65 @@ def _calculate_compression_rate(
 # #############################################################################
 
 
-def _get_system_prompt() -> str:
+_KEEP_BULLETS_PROMPT = r"""
+Structure rules, which override the rules above on how to organize the summary:
+- Keep every sub-header, bullet, and sub-bullet of the text, with the same
+  marker, nesting, and order
+- Print each sub-header as a header line with the same `#` marks, never as a
+  bullet
+- Do not add, delete, merge, split, or reorder any header or bullet
+- Copy tables and code blocks unchanged
+- Shorten only the text of each bullet
+- Drop words from every bullet, by about the ratio of the length rule, not only
+  from some bullets
+"""
+
+_CAVEMAN_PROMPT = r"""
+Style rules: write terse, like a caveman.
+- Drop articles (a, an, the), filler, hedging, pleasantries, and restatements
+- Do not write "I'd recommend", "likely", "it seems", or similar phrases
+- Fragments are OK
+- Keep technical terms, names, numbers, and code exact
+- Write one idea per sentence
+- Join a cause and its fix with `:`
+- Stop when the content is complete
+- Example
+  - Bad: "The reason your React component is re-rendering is likely because
+    you're creating a new object reference on each render cycle. I'd
+    recommend using useMemo to memoize the object."
+  - Good: "New object ref each render: React re-renders. Wrap prop in useMemo."
+"""
+
+
+def _get_system_prompt(
+    *, keep_bullets: bool = False, caveman: bool = False
+) -> str:
     """
     Build system prompt for LLM-based markdown summarization.
 
     Loads bullet point style rules and constructs a prompt that instructs the
     LLM to preserve markdown structure and chapter numbering.
 
+    :param keep_bullets: if True, ask the LLM to keep every header and bullet
+        and to shorten only the text of each bullet
+    :param caveman: if True, ask the LLM to write terse, dropping articles
+        and filler
     :return: System prompt string with formatting instructions and examples
     """
     rules_file = hgit.find_file_in_git_tree("text.rules.md")
     rules_content = hio.from_file(rules_file)
+    task = "Write a summary in bullet points"
+    if keep_bullets:
+        task = "Shorten the text, keeping its bullet points"
     system_prompt = f"""
-    Write a summary in bullet points using the following rules from the style guide:
+    {task} using the following rules from the style guide:
     {rules_content}
     """
     system_prompt = hprint.dedent(system_prompt)
+    if keep_bullets:
+        system_prompt += "\n" + hprint.dedent(_KEEP_BULLETS_PROMPT)
+    if caveman:
+        system_prompt += "\n" + hprint.dedent(_CAVEMAN_PROMPT)
     return system_prompt
 
 
@@ -227,7 +282,7 @@ def _get_target_headers(
         target_headers,
         "No headers found at level %d. Available levels: %s",
         md_level,
-        sorted(set(h[0] for h in all_headers)),
+        sorted({h[0] for h in all_headers}),
     )
     # Apply start boundary if specified: find matching header and slice from there.
     if md_start != "":
@@ -373,45 +428,69 @@ def _extract_section(
 
 
 # #############################################################################
-# Text Truncation
+# Length Constraint
 # #############################################################################
 
 
-def _truncate_text_by_words(text: str, max_words: int) -> str:
+def _get_max_words_out(text: str, *, max_words: int, pct_words: float) -> int:
     """
-    Truncate text to maximum word count.
+    Compute the max number of words allowed in the summary of a text.
 
-    :param text: Text to truncate
-    :param max_words: Maximum number of words to keep
-    :return: Truncated text (or original if smaller than max_words)
+    :param text: Text to summarize
+    :param max_words: Max words of the summary (0 = not set)
+    :param pct_words: Max words of the summary as fraction of the words of
+        `text` (e.g., 0.1 = 10%; 0.0 = not set)
+    :return: Max number of words of the summary, or 0 if no limit is set
     """
-    if max_words <= 0:
-        return text
-    words = text.split()
-    if len(words) <= max_words:
-        return text
-    truncated_words = words[:max_words]
-    return " ".join(truncated_words)
+    if max_words > 0:
+        return max_words
+    if pct_words > 0.0:
+        return max(1, int(_count_words(text) * pct_words))
+    return 0
 
 
-def _truncate_text_by_factor(text: str, pct_words: float) -> str:
+def _get_length_constraint(max_words_out: int, num_words_in: int) -> str:
     """
-    Truncate text to a percentage of original size.
+    Build the part of the LLM prompt that limits the length of the summary.
 
-    :param text: Text to truncate
-    :param pct_words: Target size as fraction (e.g., 0.1 = 10% of original)
-    :return: Truncated text
+    The text to summarize is never truncated: the LLM reads all of it and must
+    fit the summary in the limit.
+
+    :param max_words_out: Max number of words of the summary (0 = no limit)
+    :param num_words_in: Number of words of the text to summarize
+    :return: Prompt text, or empty string if no limit is set
     """
-    if pct_words <= 0:
-        return text
-    words = text.split()
-    max_words = max(1, int(len(words) * pct_words))
-    return _truncate_text_by_words(text, max_words)
+    if max_words_out <= 0:
+        return ""
+    constraint = f"""
+    Length rule:
+    - The text has {num_words_in} words
+    - The summary must have at most {max_words_out} words, which is {max_words_out / max(1, num_words_in):.0%} of the text
+    - Cover the whole text, from the first line to the last, within this limit
+    - Drop details to meet the limit, not whole parts of the text
+    """
+    constraint = "\n" + hprint.dedent(constraint)
+    return constraint
 
 
 # #############################################################################
 # Summarization and Output Preparation
 # #############################################################################
+
+
+def _remove_section_header(section_text: str) -> str:
+    """
+    Remove the header line from the text of a section.
+
+    The header is written to the output file separately. The LLM must not see
+    it, since it can merge it with the first sub-header and drop both.
+
+    :param section_text: Text of a section, starting with its header line
+    :return: Text of the section without the header line
+    """
+    lines = section_text.split("\n")[1:]
+    text = "\n".join(lines).lstrip("\n")
+    return text
 
 
 def _summarize_text(
@@ -426,33 +505,48 @@ def _summarize_text(
     """
     Compute summary via LLM or SHA1 digest.
 
-    Optionally truncates text to max_words or pct_words before summarization.
+    `max_words` and `pct_words` are constraints added to the prompt of the LLM.
+    Neither the text nor the summary is truncated.
 
     :param text: Text to summarize
     :param system_prompt: System prompt for LLM
     :param model: LLM model name
     :param test_mode: If True, compute SHA1 digest; otherwise use LLM
-    :param max_words: Maximum words to include in summary (0 = no limit)
-    :param pct_words: Compression factor (e.g., 0.1 = 10% of original; 0.0 = no limit)
+    :param max_words: Max words of the summary (0 = no limit)
+    :param pct_words: Max words of the summary as fraction of the words of
+        `text` (e.g., 0.1 = 10%; 0.0 = no limit)
     :return: Tuple of (summary_text, cost) where cost is 0 in test mode
     """
-    truncated_text = text
-    if max_words > 0:
-        truncated_text = _truncate_text_by_words(text, max_words)
-    elif pct_words > 0.0:
-        truncated_text = _truncate_text_by_factor(text, pct_words)
     if test_mode:
-        digest = _compute_sha1_digest(truncated_text)
+        digest = _compute_sha1_digest(text)
         summary, cost = f"SHA1: {digest}\n", 0.0
+    elif not text.strip():
+        # Nothing to summarize: do not call the LLM.
+        summary, cost = "", 0.0
     else:
+        # Tell the LLM the length limit in the prompt, without cutting the text.
+        max_words_out = _get_max_words_out(
+            text, max_words=max_words, pct_words=pct_words
+        )
+        system_prompt += _get_length_constraint(
+            max_words_out, _count_words(text)
+        )
         summary, cost_stats = hllmcli.apply_llm(
-            input_str=truncated_text,
+            input_str=text,
             system_prompt=system_prompt,
             model=model,
             backend="library",
         )
         cost = cost_stats.to_float()
         _LOG.debug("LLM cost: $%.6f", cost)
+        # The LLM can ignore the limit: warn but do not truncate the summary.
+        num_words_out = _count_words(summary)
+        if 0 < max_words_out < num_words_out:
+            _LOG.warning(
+                "The LLM ignored the length rule: '%d' words instead of at most '%d'",
+                num_words_out,
+                max_words_out,
+            )
     return summary, cost
 
 
@@ -541,8 +635,9 @@ def _process_headers_for_summarization(
     :param md_level: Target header level
     :param test_mode: If True, compute SHA1 digest; otherwise use LLM
     :param dry_run: If True, summarize only first section
-    :param max_words: Maximum words per summarization chunk (0 = no limit)
-    :param pct_words: Compression factor (e.g., 0.1; 0.0 = no limit)
+    :param max_words: Max words of the summary of each chunk (0 = no limit)
+    :param pct_words: Max words of the summary of each chunk as fraction of
+        the chunk words (e.g., 0.1; 0.0 = no limit)
     :return: Tuple of (total_cost, summarized_words)
     """
     with open(out_file_name, "w") as f:
@@ -588,6 +683,9 @@ def _process_headers_for_summarization(
             "Extracted section for header: %s",
             header[1],
         )
+        if md_level > 0 and not test_mode:
+            # The header is already written to the file: do not send it.
+            section_text = _remove_section_header(section_text)
         summary, cost = _summarize_text(
             section_text,
             system_prompt,
@@ -631,7 +729,7 @@ def _parse() -> argparse.ArgumentParser:
     parser.add_argument(
         "--model",
         type=str,
-        default="gpt-4o-mini",
+        default=hllmcli.DEFAULT_MODEL,
         help="LLM model to use",
     )
     limit_group = parser.add_mutually_exclusive_group()
@@ -639,13 +737,23 @@ def _parse() -> argparse.ArgumentParser:
         "--max_words",
         type=int,
         default=0,
-        help="Maximum words per summarization chunk",
+        help="Max words of the summary of each chunk (limit written in the LLM prompt)",
     )
     limit_group.add_argument(
         "--pct_words",
         type=float,
         default=0.1,
-        help="Compression factor (e.g., 0.1 = reduce to 10 percent of original)",
+        help="Target size of the summary of each chunk, as fraction of the chunk words (e.g., 0.1 = 10 percent). It is written in the LLM prompt",
+    )
+    parser.add_argument(
+        "--keep_bullets",
+        action="store_true",
+        help="Ask the LLM to keep every header and bullet, shortening only the text of each bullet",
+    )
+    parser.add_argument(
+        "--caveman",
+        action="store_true",
+        help="Ask the LLM to write terse, dropping articles, filler, and hedging",
     )
     parser.add_argument(
         "--dry_run",
@@ -692,7 +800,7 @@ def _run_summarize_action(
     print(f"Estimated read time: {read_time:.1f} minutes")
     print(f"Header level: {args.md_level}")
     if args.max_words > 0:
-        print(f"Max words per chunk: {args.max_words}")
+        print(f"Max words per summary: {args.max_words}")
     elif args.pct_words > 0.0:
         print(f"Compression factor: {args.pct_words:.1%}")
     md_start = ""
@@ -715,7 +823,9 @@ def _run_summarize_action(
         level, title, _ = header
         header_mark = "#" * level
         print(f"{header_mark} {title}")
-    system_prompt = _get_system_prompt()
+    system_prompt = _get_system_prompt(
+        keep_bullets=args.keep_bullets, caveman=args.caveman
+    )
     total_cost, summarized_words = _process_headers_for_summarization(
         target_headers,
         all_headers,
@@ -755,7 +865,6 @@ def _main(parser: argparse.ArgumentParser) -> None:
     hparser.parse_verbosity_args(args)
     in_file_name, out_file_name = hseinout.parse_input_output_args(args)
     hdbg.dassert_file_exists(in_file_name, "Input markdown file must exist")
-    #
     actions = hselacti.select_actions(args, _VALID_ACTIONS, _DEFAULT_ACTIONS)
     _LOG.info(
         "Actions selected:\n%s",

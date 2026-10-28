@@ -40,7 +40,7 @@ model: opus
 
 - Create `<DOCS_DIR>/design.architecture.md`
 - Follow the template `.claude/templates/project_design.template.md`
-- Show the context and the containers with a Mermaid C4 diagram, per
+- Show the context and the containers with a PlantUML C4 diagram, per
   `.claude/skills/C4.rules.md`
 - Map each requirement `R<N>` of the PRD to the component that satisfies it
 
@@ -76,6 +76,7 @@ model: opus
 
 - [ ] Every requirement of the PRD maps to a component
 - [ ] Every component has one responsibility and one design doc
-- [ ] The overview has a Mermaid C4 diagram
+- [ ] The overview has a PlantUML C4 diagram
+- [ ] No design doc has a Mermaid C4 diagram
 - [ ] Every non-obvious choice is in `decisions.md`
 - [ ] No design doc contains full implementation code

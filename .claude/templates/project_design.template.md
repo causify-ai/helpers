@@ -7,11 +7,14 @@
 
 ## Diagram
 
-```mermaid
-C4Component
-  Component(comp1, "<Component Name>", "<Technology>", "<Description>")
-  Component(comp2, "<Component Name>", "<Technology>", "<Description>")
-  Rel(comp1, comp2, "<Relationship>")
+```plantuml
+!pragma layout smetana
+!include <C4/C4_Component>
+LAYOUT_TOP_DOWN()
+title <Component>: Components
+Component(comp1, "<Component Name>", "<Technology>", "<Description>")
+Component(comp2, "<Component Name>", "<Technology>", "<Description>")
+Rel(comp1, comp2, "<Relationship>")
 ```
 
 ## Files and Import Graph

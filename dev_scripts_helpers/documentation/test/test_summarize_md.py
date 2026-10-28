@@ -1,13 +1,12 @@
 import os
 from typing import List, Optional, Tuple
 
+import dev_scripts_helpers.documentation.summarize_md as dshdsumd
 import helpers.hgit as hgit
 import helpers.hio as hio
 import helpers.hprint as hprint
 import helpers.hsystem as hsystem
 import helpers.hunit_test as hunitest
-
-import dev_scripts_helpers.documentation.summarize_md as dshdsumd
 
 
 def _run_summarize_md_test(
@@ -36,6 +35,191 @@ def _run_summarize_md_test(
     hsystem.system(cmd)
     actual_output = hio.from_file(output_file)
     self.assert_equal(actual_output, expected_output)
+
+
+# #############################################################################
+# Test_get_max_words_out
+# #############################################################################
+
+
+class Test_get_max_words_out(hunitest.TestCase):
+    """
+    Test _get_max_words_out function.
+    """
+
+    def helper(
+        self, text: str, max_words: int, pct_words: float, expected: int
+    ) -> None:
+        """
+        Test helper for _get_max_words_out.
+
+        :param text: Text to summarize
+        :param max_words: Max words of the summary
+        :param pct_words: Max words of the summary as fraction of the text
+        :param expected: Expected max number of words
+        """
+        actual = dshdsumd._get_max_words_out(
+            text, max_words=max_words, pct_words=pct_words
+        )
+        self.assertEqual(actual, expected)
+
+    def test1(self) -> None:
+        """
+        Test that `max_words` is used as is.
+        """
+        # Prepare inputs.
+        text = " ".join(["word"] * 100)
+        # Prepare outputs.
+        expected = 20
+        # Run test.
+        self.helper(text, 20, 0.0, expected)
+
+    def test2(self) -> None:
+        """
+        Test that `pct_words` is a fraction of the words of the text.
+        """
+        # Prepare inputs.
+        text = " ".join(["word"] * 100)
+        # Prepare outputs.
+        expected = 30
+        # Run test.
+        self.helper(text, 0, 0.3, expected)
+
+    def test3(self) -> None:
+        """
+        Test that no limit is set when both arguments are disabled.
+        """
+        # Prepare inputs.
+        text = " ".join(["word"] * 100)
+        # Prepare outputs.
+        expected = 0
+        # Run test.
+        self.helper(text, 0, 0.0, expected)
+
+    def test4(self) -> None:
+        """
+        Test that the limit is at least one word.
+        """
+        # Prepare inputs.
+        text = "one two three"
+        # Prepare outputs.
+        expected = 1
+        # Run test.
+        self.helper(text, 0, 0.1, expected)
+
+
+# #############################################################################
+# Test_remove_section_header
+# #############################################################################
+
+
+class Test_remove_section_header(hunitest.TestCase):
+    """
+    Test `_remove_section_header()` function.
+    """
+
+    def helper(self, section_text: str, expected: str) -> None:
+        """
+        Test helper for _remove_section_header.
+
+        :param section_text: Text of a section, starting with its header
+        :param expected: Expected text without the header line
+        """
+        actual = dshdsumd._remove_section_header(section_text)
+        self.assertEqual(actual, expected)
+
+    def test1(self) -> None:
+        """
+        Test that the header and the empty line after it are removed.
+        """
+        # Prepare inputs.
+        section_text = "# Title\n\n## Goal\n- Bullet"
+        # Prepare outputs.
+        expected = "## Goal\n- Bullet"
+        # Run test.
+        self.helper(section_text, expected)
+
+    def test2(self) -> None:
+        """
+        Test a section made only of its header.
+        """
+        # Prepare inputs.
+        section_text = "# Title"
+        # Prepare outputs.
+        expected = ""
+        # Run test.
+        self.helper(section_text, expected)
+
+
+# #############################################################################
+# Test_get_length_constraint
+# #############################################################################
+
+
+class Test_get_length_constraint(hunitest.TestCase):
+    """
+    Test _get_length_constraint function.
+    """
+
+    def test1(self) -> None:
+        """
+        Test that the prompt states the limit and the size of the text.
+        """
+        # Run test.
+        actual = dshdsumd._get_length_constraint(30, 100)
+        # Check outputs.
+        self.assertIn("The text has 100 words", actual)
+        self.assertIn("at most 30 words", actual)
+
+    def test2(self) -> None:
+        """
+        Test that nothing is added to the prompt when no limit is set.
+        """
+        # Run test.
+        actual = dshdsumd._get_length_constraint(0, 100)
+        # Check outputs.
+        self.assertEqual(actual, "")
+
+
+# #############################################################################
+# Test_get_system_prompt
+# #############################################################################
+
+
+class Test_get_system_prompt(hunitest.TestCase):
+    """
+    Test _get_system_prompt function.
+    """
+
+    def test1(self) -> None:
+        """
+        Test that the optional rules are off by default.
+        """
+        # Run test.
+        actual = dshdsumd._get_system_prompt()
+        # Check outputs.
+        self.assertNotIn("Structure rules", actual)
+        self.assertNotIn("write terse, like a caveman", actual)
+
+    def test2(self) -> None:
+        """
+        Test that `keep_bullets` adds the structure rules only.
+        """
+        # Run test.
+        actual = dshdsumd._get_system_prompt(keep_bullets=True)
+        # Check outputs.
+        self.assertIn("Structure rules", actual)
+        self.assertNotIn("write terse, like a caveman", actual)
+
+    def test3(self) -> None:
+        """
+        Test that `caveman` adds the style rules only.
+        """
+        # Run test.
+        actual = dshdsumd._get_system_prompt(caveman=True)
+        # Check outputs.
+        self.assertNotIn("Structure rules", actual)
+        self.assertIn("write terse, like a caveman", actual)
 
 
 # #############################################################################
