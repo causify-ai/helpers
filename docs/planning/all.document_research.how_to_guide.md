@@ -6,7 +6,7 @@
   without asking
 - Use this guide for a project that runs experiments, e.g., in notebooks
 - The implementation, the findings, and the decisions go in `progress.md`
-  - See [`docs/planning/all.plan_work.how_to_guide.md`](all.plan_work.how_to_guide.md#keep-a-progress-log)
+  - See [`docs/planning/all.plan_work.how_to_guide.md`](/docs/planning/all.plan_work.how_to_guide.md#keep-a-progress-log)
 - The visual evidence (e.g., screenshots of the results) goes in a Google Doc
 
 ## Keep a Google Doc per Project

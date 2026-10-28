@@ -2,7 +2,7 @@
 
 ## Summary
 
-- This document describes how we plan and track the work of a project:
+- This document describes how we plan and track the work of a software project:
   - Write one end-to-end plan that says what to build and in which order
   - Execute the plan one small, reviewable PR at a time
   - Keep a log of everything done, including decisions
@@ -13,10 +13,6 @@
   - Rules specific to one repo (e.g., fork flow, naming) live in the docs of that
     repo
   - This is "how we do things": other projects follow the same process
-    - A new project copies the structure of the example below and points to this
-      document, see
-      [Organize the Docs of a Project](#organize-the-docs-of-a-project) and
-      [Write a Project Meta-Doc](#write-a-project-meta-doc)
 - Example:
   - the `Noesis` project in the `umd_classes` repo
   - `research/Noesis/docs/README.md`: index of all the docs of the project
@@ -31,16 +27,50 @@
 
 - Work flows from abstract to concrete:
   ```text
-  Idea -> Project -> Task (GitHub issue) -> PR
+  Idea -> Project -> Task (GitHub issue) -> PR -> Review -> Commit
   ```
-- Idea, Project, and Task are defined in
-  [`docs/work_organization/all.issue_workflow.explanation.md`](../work_organization/all.issue_workflow.explanation.md)
+- **Idea**: the abstract and unstructured starting point of a new initiative
+  - E.g., "What if we expand our current trading universe?"
+  - E.g., "It would be nice to get historical bid/ask data"
+  - See [Capture an Idea](#capture-an-idea)
+- **Project**: an initiative with clear goals, defined scope, tangible outcomes,
+  and time constraints
+  - We track it as a GitHub Project, see
+    [`docs/work_organization/all.use_github.how_to_guide.md`](/docs/work_organization/all.use_github.how_to_guide.md#projects)
+  - Team leaders turn an idea into a project, see
+    [Create an End-to-End Plan](#create-an-end-to-end-plan)
+- **Task**: a specific, actionable item that is part of a project
+  - We track it as a GitHub Issue, see
+    [`docs/work_organization/all.use_github.how_to_guide.md`](/docs/work_organization/all.use_github.how_to_guide.md#issue)
 - This document covers what is below the idea level:
   - How to turn an idea into a plan
   - How to cut the plan into PRs
   - How to log the progress
 - One task maps to one or more PRs
   - A PR is the unit of review
+
+## Capture an Idea
+
+- Goal: keep track of the work that could be done, with low friction
+- Flow:
+  1. You have an idea and no time to think it through or execute it now
+  2. Put a note in a Google Doc (Gdoc) for your future self
+     - Use suggestion mode, so that other people can track the change
+     - Once in a while, accept all the changes
+  3. When the idea is picked, turn it into a file `research/ideas/<name>.md`
+     - See step 1 in [From Idea to Merged PR](#from-idea-to-merged-pr)
+- Why use a Gdoc:
+  - We keep track of work that could be done
+  - Planning is simpler: someone who is blocked can open the Gdoc and choose a
+    project
+  - People are notified of the change and see the text in suggestion mode
+  - A Gdoc is quick to edit and has low friction
+  - An idea is abstract and unstructured, so it is easier to edit in a Gdoc than
+    in a GitHub issue
+- Alternatives to a Gdoc:
+  - A shared planning note in the repo
+  - A clearly marked exploratory issue
+  - A link to the idea from the relevant work, so that the team can find it
 
 ## From Idea to Merged PR
 
@@ -87,13 +117,13 @@
 - Rules for the flow:
   - Commit between two skills, so that each skill gives a separate diff to review
     - See
-      [`docs/tools/ai/all.ai_workflows.how_to_guide.md`](../tools/ai/all.ai_workflows.how_to_guide.md#coding-workflows)
+      [`docs/tools/ai/all.ai_workflows.how_to_guide.md`](/docs/tools/ai/all.ai_workflows.how_to_guide.md#coding-workflows)
   - Run `/auto_task.criticize` before any execution skill
   - Choose the execution mode with
-    [`docs/tools/ai/all.auto_task.how_to_guide.md`](../tools/ai/all.auto_task.how_to_guide.md#step-3-choose-an-execution-mode)
+    [`docs/tools/ai/all.auto_task.how_to_guide.md`](/docs/tools/ai/all.auto_task.how_to_guide.md#step-3-choose-an-execution-mode)
   - Authorize the agent to commit and push only for the automated modes
     - See
-      [`docs/tools/ai/all.auto_task.how_to_guide.md`](../tools/ai/all.auto_task.how_to_guide.md#prerequisite-authorize-git-commits-and-pushes)
+      [`docs/tools/ai/all.auto_task.how_to_guide.md`](/docs/tools/ai/all.auto_task.how_to_guide.md#prerequisite-authorize-git-commits-and-pushes)
   - Let a human merge: no skill merges a PR
 - Diagram of the flow:
   ```mermaid
@@ -147,24 +177,24 @@
        still open
      - Put a non-trivial design in the GitHub issue
   3. Open a GitHub issue, see "Naming an Issue" in
-     [`docs/work_organization/all.use_github.how_to_guide.md`](../work_organization/all.use_github.how_to_guide.md#naming-an-issue)
+     [`docs/work_organization/all.use_github.how_to_guide.md`](/docs/work_organization/all.use_github.how_to_guide.md#naming-an-issue)
      - Write the issue number down: it goes in the branch name, the commits, and the
        PR
      - Point to the section of the plan or of the spec in the issue, do not copy it
        (DRY)
   4. Branch, code, test, commit, open the PR, and address the review
      - Follow
-       [`docs/tools/ai/all.create_pr_with_claude_code.how_to_guide.md`](../tools/ai/all.create_pr_with_claude_code.how_to_guide.md)
+       [`docs/tools/ai/all.create_pr_with_claude_code.how_to_guide.md`](/docs/tools/ai/all.create_pr_with_claude_code.how_to_guide.md)
   5. Merge, then update the plan and the log, see
      [Keep Docs in Sync](#keep-docs-in-sync)
 - Keep PRs reviewable
   - One component or one milestone task per PR
   - Respect the size cap in
-    [`docs/coding/all.submit_code_for_review.how_to_guide.md`](../coding/all.submit_code_for_review.how_to_guide.md#stick-to-smaller-prs)
+    [`docs/coding/all.submit_code_for_review.how_to_guide.md`](/docs/coding/all.submit_code_for_review.how_to_guide.md#stick-to-smaller-prs)
   - Use the template `.claude/templates/github_PR_plan.template.md` to split a big PR
 - Delegate a task list to an AI agent with the `auto_task` flow
   - See
-    [`docs/tools/ai/all.auto_task.how_to_guide.md`](../tools/ai/all.auto_task.how_to_guide.md)
+    [`docs/tools/ai/all.auto_task.how_to_guide.md`](/docs/tools/ai/all.auto_task.how_to_guide.md)
 
 ## Create an End-to-End Plan
 
@@ -174,10 +204,13 @@
   - E.g., `research/Noesis/docs/plan.md`
   - Draft it with `/project.create_plan`
 - Steps to create it:
-  1. Write the goal and point to the background (paper, PRD, architecture doc)
-  2. List the components and their open questions
+  1. Write the problem and the goal, and point to the background (paper, PRD,
+     architecture doc)
+  2. List the components, the candidate solutions, and their open questions
   3. Split the work into versions, where each version can be run and demoed
   4. Write the PR entries of the next version in detail
+     - Identify the dependencies between the entries
+     - Estimate the complexity of each entry
      - Later versions can stay as a few bullets until they are close
      - File GitHub issues only for the immediate work (the next version)
        - The plan often changes after the first iteration
@@ -220,7 +253,7 @@
 
 - A research project also keeps a Google Doc and a daily entry per day of work
 - See
-  [`docs/planning/all.document_research.how_to_guide.md`](all.document_research.how_to_guide.md)
+  [`docs/planning/all.document_research.how_to_guide.md`](/docs/planning/all.document_research.how_to_guide.md)
 
 ## Keep Docs in Sync
 
@@ -251,37 +284,123 @@
   PR
   - `/github.find_name_for_pr` writes a draft of it in `pr_description.md`
 - Link the PR to its issue as described in "Filing Process" in
-  [`docs/work_organization/all.use_github.how_to_guide.md`](../work_organization/all.use_github.how_to_guide.md#filing-process)
+  [`docs/work_organization/all.use_github.how_to_guide.md`](/docs/work_organization/all.use_github.how_to_guide.md#filing-process)
   or in the contribution guide of the repo
 
 ## Resources
 
-- Issue, project, and task:
-  [`docs/work_organization/all.issue_workflow.explanation.md`](../work_organization/all.issue_workflow.explanation.md)
-- Issues, PRs, labels, and review:
-  [`docs/work_organization/all.use_github.how_to_guide.md`](../work_organization/all.use_github.how_to_guide.md)
+- Projects, issues, PRs, labels, and review:
+  [`docs/work_organization/all.use_github.how_to_guide.md`](/docs/work_organization/all.use_github.how_to_guide.md)
 - Git branches and commit messages:
-  [`docs/tools/git/all.git.how_to_guide.md`](../tools/git/all.git.how_to_guide.md)
+  [`docs/tools/git/all.git.how_to_guide.md`](/docs/tools/git/all.git.how_to_guide.md)
 - Small PRs and first reviews:
-  [`docs/coding/all.submit_code_for_review.how_to_guide.md`](../coding/all.submit_code_for_review.how_to_guide.md)
+  [`docs/coding/all.submit_code_for_review.how_to_guide.md`](/docs/coding/all.submit_code_for_review.how_to_guide.md)
 - Code review:
-  [`docs/coding/all.code_review.how_to_guide.md`](../coding/all.code_review.how_to_guide.md)
+  [`docs/coding/all.code_review.how_to_guide.md`](/docs/coding/all.code_review.how_to_guide.md)
 - Doing a task with Claude Code, from task to PR:
-  [`docs/tools/ai/all.create_pr_with_claude_code.how_to_guide.md`](../tools/ai/all.create_pr_with_claude_code.how_to_guide.md)
+  [`docs/tools/ai/all.create_pr_with_claude_code.how_to_guide.md`](/docs/tools/ai/all.create_pr_with_claude_code.how_to_guide.md)
 - Delegating tasks to AI agents:
-  [`docs/tools/ai/all.auto_task.how_to_guide.md`](../tools/ai/all.auto_task.how_to_guide.md)
+  [`docs/tools/ai/all.auto_task.how_to_guide.md`](/docs/tools/ai/all.auto_task.how_to_guide.md)
 - Claude skills and rules:
-  [`docs/tools/ai/all.ai_workflows.how_to_guide.md`](../tools/ai/all.ai_workflows.how_to_guide.md)
+  [`docs/tools/ai/all.ai_workflows.how_to_guide.md`](/docs/tools/ai/all.ai_workflows.how_to_guide.md)
 - Organizing your work (roles, blockers, communication):
-  [`docs/work_organization/all.organize_your_work.how_to_guide.md`](../work_organization/all.organize_your_work.how_to_guide.md)
+  [`docs/work_organization/all.organize_your_work.how_to_guide.md`](/docs/work_organization/all.organize_your_work.how_to_guide.md)
 - Writing docs:
-  [`docs/documentation_meta/all.writing_docs.how_to_guide.md`](../documentation_meta/all.writing_docs.how_to_guide.md)
+  [`docs/documentation_meta/all.writing_docs.how_to_guide.md`](/docs/documentation_meta/all.writing_docs.how_to_guide.md)
 - Where to add new material:
-  [`docs/documentation_meta/all.where_to_add_material.explanation.md`](../documentation_meta/all.where_to_add_material.explanation.md)
+  [`docs/documentation_meta/all.where_to_add_material.explanation.md`](/docs/documentation_meta/all.where_to_add_material.explanation.md)
 - Documenting research:
-  [`docs/planning/all.document_research.how_to_guide.md`](all.document_research.how_to_guide.md)
+  [`docs/planning/all.document_research.how_to_guide.md`](/docs/planning/all.document_research.how_to_guide.md)
 - Rules and templates: `.claude/skills/project.rules.md`,
   `.claude/templates/project_*.template.md`,
   `.claude/templates/github_PR_description.template.md`,
   `.claude/templates/auto_task.template.md`, `.claude/templates/specs.template.md`,
   `.claude/templates/github_PR_plan.template.md`
+
+# Workflows
+
+## Summary
+
+- Goal: one page with the commands to run, in order, from an idea to a merged PR
+  - The reasons and the rules of each step are in
+    [From Idea to Merged PR](#from-idea-to-merged-pr)
+- `<project>` is the dir of the project
+  - E.g., `research/Estimate_paper_quality`
+  - Its docs live in `<project>/docs/`
+- Rules for all the workflows:
+  - Commit between two skills, so that each skill gives a separate diff to review
+  - Run `/auto_task.criticize` before any execution skill
+  - Stop at each gate: an agent never crosses a gate alone
+  - Let a human merge: no skill merges a PR
+
+## Define
+
+- Goal: decide what to build and how
+- Commands:
+  ```text
+  claude> /research_idea.format <project>/idea.md
+  claude> /project.write_prd <project>/idea.md
+  claude> /text.criticize <project>/docs/prd.md
+  claude> /architecture.write_design <project>/docs/prd.md
+  claude> /text.criticize <project>/docs/design.architecture.md
+  ```
+- Gates:
+  - Pick the idea
+  - Approve the scope
+  - Approve the design
+
+## Plan
+
+- Goal: decide in which order to build it
+- Commands:
+  ```text
+  claude> /project.create_plan <project>/docs/design.architecture.md
+  claude> /auto_task.criticize <project>/docs/plan.md
+  claude> /auto_task.create_plan_for_feature <project>/docs/plan.md PR_A1
+  claude> /auto_task.criticize tasks.md
+  ```
+- Gates:
+  - Teammate OK on `plan.md`
+  - Confirm the plan in `tasks.md` and the specs
+
+## Build
+
+- Goal: get one reviewed PR at a time
+- Repeat these steps, and the steps of Plan from `PR_A1`, for each version in the
+  roadmap
+- Commands:
+  ```text
+  # Choose one execution mode.
+  claude> /auto_task.execute_interactively tasks.md
+  claude> /auto_task.execute_with_stacked_prs tasks.md
+  claude> /auto_task.execute_remotely_with_single_pr tasks.md
+
+  # Write code and tests, as needed.
+  claude> /testing.write_unit_tests <file>
+
+  # Make the PR green and describe it.
+  claude> /github.get_pr_to_pass_local_tests
+  claude> /github.get_pr_to_pass_ci_tests
+  claude> /github.get_pr_ready_to_merge
+  claude> /github.find_name_for_pr
+  claude> /code-review
+
+  # Only if the PR is too big.
+  claude> /github.split_branch_in_PRs
+
+  # After review comments.
+  claude> /auto_task.restack
+  ```
+- Gates:
+  - Review each PR
+  - Explain every line of the code
+  - Review and merge: a human merges
+
+## Close
+
+- Goal: keep the docs in sync with the code
+- Commands:
+  ```text
+  claude> /project.update_progress PR_A1
+  ```
+- Gate: check the log in `plan.md`, `progress.md`, and `decisions.md`

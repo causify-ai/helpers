@@ -41,13 +41,14 @@
 ## Group the Docs in Clusters
 
 - Use these clusters, in this order:
-  - **Design**: how the code is built (`design.*.md`)
-  - **Onboarding**: what a newcomer reads first (`how_we_work.md`, `onboarding.md`,
-    `glossary.md`)
-  - **Plans**: what to build and what is done (`plan.md`, `progress.md`, other
-    plans, e.g., a marketing plan)
-  - **Specs**: what each piece must do and why (`prd.md`, `decisions.md`,
-    `spec.<PR_ID>.md`)
+  - **Onboarding**: what a newcomer reads first
+    - E.g., `how_we_work.md`, `onboarding.md`, `glossary.md`
+  - **Design**: how the code is built
+    - E.g., `design.*.md`
+  - **Plans**: what to build and what is done
+    - E.g., `plan.md`, `progress.md`, other plans, e.g., a marketing plan
+  - **Specs**: what each piece must do and why
+    - E.g., `prd.md`, `decisions.md`, `spec.<PR_ID>.md`
   - **Notes**: working notes and open TODOs
 
 ## Write an Index in docs/README.md
@@ -95,7 +96,7 @@
 - Use one table in `glossary.md` with the columns `Term` and `Meaning`
 - Define the terms used in the code and docs in plain language
 
-## Write a PRD
+## Write a PRD (Product Requirements Document)
 
 - Follow the template `.claude/templates/project_prd.template.md`
 - Number the requirements `R1`, `R2`, ...
