@@ -390,7 +390,7 @@ Paths use current file names (two files were renamed, see 0.2).
   helpers/asana_utils.py docstring / README
 - [ ] all.rollout.how_to_guide.md: the example email is a stale notebook
   announcement (http://research:8077). Use a generic example
-- [ ] all.issue_workflow.explanation.md: a TODO at the top asks to merge with
+- [x] all.issue_workflow.explanation.md: a TODO at the top asks to merge with
   use_github. Do it
 - [ ] all.project_lead / all.asana_process: best skeleton (Summary + Resources),
   use as the model; replace "Be GP's right hand" by "sponsor"
@@ -590,7 +590,7 @@ Paths use current file names (two files were renamed, see 0.2).
 - [ ] onboarding/all.development_documents.reference -> docs/README.md
 - [ ] onboarding/intern.prepare_for_development + intern.signing_up -> the intern
   onboarding checklist
-- [ ] work_organization/all.issue_workflow.explanation -> all.use_github
+- [x] work_organization/all.issue_workflow.explanation -> all.use_github
 - [ ] blogging/all.publish_blogs -> all.publish_mkdocs (frontmatter validation is
   done by the preprocess script and the blog.check_format skill)
 - [ ] build_system/all.gitleaks_workflow + all.semgrep_workflow -> one

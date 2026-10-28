@@ -178,7 +178,7 @@ class Test_response_to_txt(hunitest.TestCase):
         self.assert_equal(actual, expected)
 
     def test_unknown_type_raises(self) -> None:
-        with self.assertRaises(ValueError) as cm:
+        with self.assertRaises(TypeError) as cm:
             hllm.response_to_txt(12345)
         self.assertIn("Unknown response type", str(cm.exception))
 

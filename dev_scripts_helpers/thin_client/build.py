@@ -84,7 +84,6 @@ def _main(parser: argparse.ArgumentParser) -> None:
     print(f"##> {SCRIPT_PATH}")
     args = parser.parse_args()
     hdbg.init_logger(verbosity=args.log_level, use_exec_path=True)
-    #
     _, python_version = hsystem.system_to_string("python3 --version")
     _LOG.info("# python=%s", python_version)
     try:
@@ -146,7 +145,6 @@ def _main(parser: argparse.ArgumentParser) -> None:
         _system("brew update")
         _, brew_ver = hsystem.system_to_string("brew --version")
         _LOG.info("# brew version=%s", brew_ver)
-        #
         _system("brew install gh")
         _, gh_ver = hsystem.system_to_string("gh --version")
         _LOG.info("# gh version=%s", gh_ver)

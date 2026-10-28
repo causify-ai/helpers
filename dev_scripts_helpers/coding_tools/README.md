@@ -9,6 +9,10 @@ Development utilities for code analysis, profiling, synchronization, and refacto
 
 ## Description of Files
 
+- `call_graph_viewer.py`
+  - Builds the call graph of a directory of Python code and writes one HTML page
+    with a zoomable graph (UML classes), hover interfaces, a code view, and click
+    history (see `call_graph_viewer.README.md`)
 - `clean_up_text_files.sh`
   - Ensures text files end with exactly one newline for linter compliance
 - `code_stats.sh`

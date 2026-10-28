@@ -232,7 +232,9 @@ def send_invitations(
                 _invite(repo, username, permission=permission)
             except github.GithubException as exc:
                 _LOG.error(
-                    "Failed to invite '%s': %s", username, exc.data.get("message")
+                    "Failed to invite '%s': %s",
+                    username,
+                    exc.data.get("message"),
                 )
 
 

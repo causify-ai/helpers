@@ -27,8 +27,11 @@ model: opus
 ## Understand the Request
 
 - Read related code in the codebase and existing code in the target directory
-- If the user references a roadmap/plan file (e.g., `plan.<TOPIC>.md`), read it to
+- If the user references a roadmap/plan file (e.g., `plan.<TOPIC>.md`, or a project
+  `docs/plan.md` as defined in `.claude/skills/project.rules.md`), read it to
   extract the exact scope of the requested PR/feature
+  - Use the plan ids (e.g., `PR_M10`) for the `PR<NUM>` bullets and the spec files,
+    per `.claude/skills/project.rules.md` section "Name the PRs"
 - If an architecture doc already exists for the target directory, read it to
   understand the current design
 - If the problem or the desired solution is not perfectly clear, follow
@@ -65,7 +68,7 @@ model: opus
 - Follow the rules in `.claude/skills/markdown.rules.md` and
   `.claude/skills/text.rules.md`
 - Save the result in a file `spec.<TOPIC>.md` in the current directory
-  - E.g., to spec out `PR_P2b` from `plan.Noesis.md`, save `spec.PR_P2b.md`
+  - E.g., to spec out `PR_P2b` from `plan.md`, save `spec.PR_P2b.md`
   - Do not name it `plan.<TOPIC>.md`: that name is reserved for the roadmap
     document that lists PRs, not for a single PR's spec
 - Do not implement any code: describe the architecture only

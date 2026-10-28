@@ -18,13 +18,13 @@ from invoke.tasks import task
 import dev_scripts_helpers.git.git_branch_create as dsggibrc
 import helpers.hdaemon as hdaemon
 import helpers.hdbg as hdbg
-import helpers.hsystem as hsystem
 
 # We want to minimize the dependencies from non-standard Python packages since
 # this code needs to run with minimal dependencies and without Docker.
 import helpers.hgit as hgit
-import helpers.hselect_input_output as hseinout
 import helpers.hprint as hprint
+import helpers.hselect_input_output as hseinout
+import helpers.hsystem as hsystem
 import helpers.hunit_test_utils as hunteuti
 import helpers.lib_tasks.lib_tasks_gh as hltltagh
 import helpers.lib_tasks.lib_tasks_utils as hltltaut
@@ -355,16 +355,13 @@ def git_patch_create(  # type: ignore
 @task
 def git_files(  # type: ignore
     ctx,
-    #
     files="",
     from_file="",
     modified=False,
     branch=False,
     last_commit=False,
     all_files=False,
-    #
     branch_point=False,
-    #
     file_types="",
     skip_file_types="",
     pbcopy=False,
@@ -642,13 +639,11 @@ def git_branch_delete_merged(ctx, confirm_delete=True, dry_run=False):  # type: 
         "master",
         "Must be on master branch to safely delete merged branches",
     )
-    #
     cmd = "git fetch --all --prune"
     hltltaut.run(ctx, cmd, dry_run=dry_run)
     # Delete local and remote branches that are already merged into master.
     _delete_branches("local", confirm_delete, dry_run=dry_run)
     _delete_branches("remote", confirm_delete, dry_run=dry_run)
-    #
     cmd = "git fetch --all --prune"
     hltltaut.run(ctx, cmd, dry_run=dry_run)
 
@@ -1225,7 +1220,7 @@ def gh_watch(ctx, *, interval=60):  # type: ignore
 
     def _run() -> None:
         # Clear screen before displaying updated workflow status.
-        subprocess.run("clear; invoke gh_workflow_list", shell=True)
+        subprocess.run("clear; invoke gh_workflow_list", shell=True, check=False)
 
     hdaemon.run_periodic_daemon_mode(
         _run, interval, window_name_str="*GH_WATCH*"
@@ -1256,7 +1251,7 @@ def _fix_file_perms(file_path: str) -> bool:
         cmd = f"chmod ug+w '{file_path}'"
         hsystem.system(cmd, abort_on_error=False)
         return True
-    except Exception as e:
+    except OSError as e:
         _LOG.warning("Failed to fix permissions for %s: %s", file_path, e)
         return False
 

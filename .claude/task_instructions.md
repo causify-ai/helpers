@@ -38,7 +38,7 @@ This file clarifies how to execute a task in the current repo
 ## Execute the Plan
 
 - As you make progress on the plan, keep the plan updated by:
-  - Marking a task as in progress with `[-]`
+  - Marking a task as in progress with `[.]`
   - Checking the box when it's complete `[x]`
 - Once you are done executing the plan, add after the plan 2-3 bullet points about:
   - What was done

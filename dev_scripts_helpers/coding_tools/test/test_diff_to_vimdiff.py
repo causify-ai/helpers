@@ -1,13 +1,13 @@
 import os
+from typing import Optional
 
+import dev_scripts_helpers.coding_tools.diff_to_vimdiff as dscdtovi
 import helpers.hio as hio
 import helpers.hprint as hprint
 import helpers.hunit_test as hunitest
-import dev_scripts_helpers.coding_tools.diff_to_vimdiff as dscdtovi
 
 
 class Test_load_file_list(hunitest.TestCase):
-
     def helper(self, content: str, expected: set) -> None:
         """
         Test helper for _load_file_list.
@@ -149,11 +149,10 @@ class Test_path_matches_any(hunitest.TestCase):
 
 
 class Test_filter_diff_output(hunitest.TestCase):
-
     def helper(
         self,
         diff_content: str,
-        file_list_content: str | None,
+        file_list_content: Optional[str],
         expected: str,
     ) -> None:
         """
