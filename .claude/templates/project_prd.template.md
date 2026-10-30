@@ -10,10 +10,21 @@
 - <User>: <what they need to do>
 - <User>: <what they need to do>
 
-## Requirements
+## Requirements: <Group>
 
-- `R1`: <testable requirement>
-- `R2`: <testable requirement>
+### `R1` (<short description>)
+
+- <testable requirement>
+
+### `R2` (<short description>)
+
+- <testable requirement>
+
+## Requirements: <Group>
+
+### `R3` (<short description>)
+
+- <testable requirement>
 
 ## Non-Goals
 

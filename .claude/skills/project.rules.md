@@ -99,7 +99,14 @@
 ## Write a PRD (Product Requirements Document)
 
 - Follow the template `.claude/templates/project_prd.template.md`
-- Number the requirements `R1`, `R2`, ...
+- Write each requirement as its own H3 `` ### `R<N>` (<short description>) ``, so
+  that other docs can link it
+  - E.g., ``### `R3` (Bibliographic source)``
+  - Number the requirements `R1`, `R2`, ...
+  - Keep the short description to a few words
+  - Put the text of the requirement in one bullet under the header
+  - Group the requirements with one H2 per group, e.g., `## Requirements: Input`
+- The id is stable: never reuse it and never renumber it
 - State each requirement so that a test can check it
 - List the non-goals: what the product does not do
 - Describe what the product does, not how it is built: the design doc says how
@@ -116,6 +123,60 @@
 - Put the README of a component next to its code and point it to the design doc
 - Use `.claude/templates/architecture_doc.template.md` instead to document a Python
   file that already exists
+- Link the requirements that the component satisfies and the decisions that it
+  follows, see "Link Requirements and Decisions"
+
+## Link Requirements and Decisions
+
+- Refer to a requirement or a decision with a link to its H3 header, never with a
+  bare id
+  - **Bad**: `R3`, `D-7`
+  - **Good**:
+    ``[`R3`](/research/Estimate_academic_paper_quality/docs/prd.md#r3-bibliographic-source)``
+  - **Good**:
+    ``[D-7](/research/Estimate_academic_paper_quality/docs/decisions.md#d-7-the-pipeline-computes-the-base-name-with-a-public-helper)``
+- Build the anchor from the header text like GitHub does:
+  - Lowercase the header
+  - Drop every char that is not a letter, a digit, a space, `-`, or `_`
+  - Replace each space with `-`
+  - E.g., ``### `R3` (Bibliographic source)`` gives `#r3-bibliographic-source`
+- Write the link like any file link, see "Make File References Clickable"
+  - Inside the doc that holds the header, use the bare anchor, e.g.,
+    `#r3-bibliographic-source`
+- Link a list of ids one id at a time
+  - E.g., ``PRD [`R3`](<link>), [`R16`](<link>)``
+- Do not link an id inside a header, a fenced code block, or a diagram
+- Keep the text of the header stable: the anchor contains it
+  - When you rename a header, search the repo for its old anchor and fix every
+    link
+
+## Make File References Clickable
+
+- Write every reference to a file in a project doc as a link, not as plain code
+  - E.g., a path like `research/Estimate_academic_paper_quality/docs/design.architecture.md`
+  - E.g., a requirement reference like ``[`R3`](/docs/prd.md#r3-bibliographic-source)``:
+    link it to its header in the PRD, see "Link Requirements and Decisions"
+- Pick the link type with the switch `--link_type`, with the values:
+  - `local`: a repo-root link to the file in the working tree (default)
+    - E.g., ``[`docs/prd.md`](/docs/prd.md)``
+  - `branch`: a GitHub URL to the file on the current branch
+    - Get the URL with `to_github.py --input <path>`
+  - `master`: a GitHub URL to the file on `master`
+    - Get the URL with `to_github.py --input <path> --use_master`
+- Take the value of the switch from the request, and use `local` if the request does
+  not say
+- Keep the text of the link as the name used in the doc, so the doc still reads well
+  as plain text, and put the full repo-root path in the target
+  - E.g., ``[`estimate_paper_quality.py`](/research/Estimate_academic_paper_quality/estimate_paper_quality.py)``
+  - E.g., a module like `helpers.hllm`: ``[`helpers.hllm`](/helpers_root/helpers/hllm.py)``
+- Link a file that does not exist yet (e.g., a planned module in a design doc): the
+  link works once the file is created
+- Preview a doc with `open_md.py --input <doc> --link_type {local,branch,master}`
+  - It encodes the repo-root links in the rendered copy only, so the doc keeps the
+    portable `local` links
+  - Without it, a repo-root link opened from disk points to the root of the file
+    system and is dead
+- Do not turn paths inside fenced code blocks (e.g., shell commands) into links
 
 ## Write a Spec for a Complex PR
 
@@ -259,7 +320,12 @@
 
 - Record the choice in `decisions.md`, following the template
   `.claude/templates/project_decisions.template.md`
-- Write one `### D-<N>. <Decision title>` per decision
+- Write one `### D-<N>. <Decision title>` per decision, so that other docs can link
+  it
+  - E.g., `### D-7. The pipeline computes the base name with a public helper`
+- The id is stable: never reuse it and never renumber it
+- Link a decision from the docs that follow it, see "Link Requirements and
+  Decisions"
 - Keep the newest decision at the bottom of its section
 - Give each decision a status: `proposed`, `accepted`, or `superseded`
 - Add a one-line pointer to the decision in the history row of the log

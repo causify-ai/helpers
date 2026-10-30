@@ -301,6 +301,7 @@ The idea is to send a morning TODO email to broadcast:
   - Rarely used for any other purpose
   - Exceptions are to send non-urgent information to everybody
   - Resend an email to GP to put it on top of the inbox, since GP is very busy
+  - For important emails see "Get an email reviewed before sending it"
 - There should be little replication among these forms of documentation
   - It's not ok to file a bug and then ping on Slack unless it's urgent
 - Report a blocker on the issue as soon as it happens
@@ -342,6 +343,30 @@ The idea is to send a morning TODO email to broadcast:
 - Discuss the request in the issue and in the channel of the project
   - The goal is that all of us agree on what, by when, and how
   - Then we move to execution
+
+#### Get an email reviewed before sending it
+
+- Use this protocol for an important email, e.g., to a professor, a company, or
+  an external collaborator
+  - Do not send it before it is reviewed
+- Choose one of two paths, based on how sure you are about the draft
+- Path A: you are about 99% sure that the draft is ok
+  - Email the draft to the reviewer (e.g., GP)
+  - Start the subject with `DRAFT:`, followed by the subject of the proposed
+    email
+  - Write the proposed email in full in the body, with To, Cc, Subject, and text
+  - The reviewer only needs to reply "ack"
+    - After the ack, send the email as it is
+  - If the reviewer wants changes, apply them and send the email
+- Path B: you think that the draft needs edits or advice
+  - Put the draft in the `Email` Gdoc of the project
+    - The link is in the Resources list of `docs/how_we_work.md` of the project
+  - Ask the team to edit the draft and to add comments in the Gdoc
+    - Use suggestion mode, so that everybody can see who changed what
+  - Update the draft from the edits and the comments
+  - When the draft is ready, send it, or follow Path A to get an ack
+- Do not paste the same draft in both places, see "DRY also applies to
+  documentation"
 
 #### Avoid write-once code and research
 

@@ -167,6 +167,27 @@
   - Do it in the same PR
 - Write the onboarding doc, the glossary, and the design docs as described in
   `.claude/skills/project.rules.md` section "Project Docs"
+- Fill the technology field of a PlantUML C4 element only when the elements use
+  different technologies (e.g., different languages, different DBs)
+  - If everything is Python, leave the field empty (`""`): do not write "Python
+    CLI" or "Python module"
+  - Follow `.claude/skills/C4.rules.md` section "Fill the Technology Only for
+    Mixed Technologies"
+  - E.g., `research/Estimate_academic_paper_quality/docs/design.architecture.md`
+- Make every reference to a file in a doc clickable
+  - E.g., a path like `research/Estimate_academic_paper_quality/docs/prd.md`
+  - Pick the link type with the switch `--link_type`: `local` (default), `branch`,
+    or `master`
+  - Follow `.claude/skills/project.rules.md` section "Make File References
+    Clickable"
+- Write every requirement and every decision as an H3, so that other docs link it
+  - Requirement in `prd.md`: ``### `R3` (Bibliographic source)``
+  - Decision in `decisions.md`: `### D-7. <Decision title>`
+  - Refer to it with a link to its header, never with a bare id
+    - E.g., ``[`R3`](/research/Estimate_academic_paper_quality/docs/prd.md#r3-bibliographic-source)``
+  - The ids are stable: never reuse them and never renumber them
+  - Follow `.claude/skills/project.rules.md` section "Link Requirements and
+    Decisions"
 
 ## The Loop
 
@@ -247,7 +268,10 @@
   - E.g., `research/Noesis/docs/decisions.md`
   - The format is in `.claude/skills/project.rules.md` section "Decisions Log"
   - Copy the template `.claude/templates/project_decisions.template.md`
-- Link the decision in the description of the PR that implements it
+  - Write each decision as its own H3 `### D-<N>. <Decision title>`, so that other
+    docs can link it
+- Link the decision from the design docs that follow it and from the description of
+  the PR that implements it
 
 ## How to Document Research
 
