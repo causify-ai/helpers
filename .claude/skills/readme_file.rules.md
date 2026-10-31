@@ -1,5 +1,15 @@
 Conventions for writing a README for a single executable / script.
 
+# Scope and Naming
+
+- Use these rules for the README of one file, typically an executable
+  - For the README of a directory, follow `.claude/skills/readme_dir.rules.md`
+- Name the file `<FILE>.README.md` and put it in the same directory as `<FILE>`
+  - E.g., `dev_scripts_helpers/system_tools/mdm.README.md` documents
+    `dev_scripts_helpers/system_tools/mdm.py`
+- Follow the template `.claude/templates/readme_file.template.md`
+- To write the README, use the skill `.claude/skills/readme_file.create/SKILL.md`
+
 # Overall Structure
 
 - Single-file READMEs should follow this hierarchical organization:

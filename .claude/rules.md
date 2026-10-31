@@ -131,13 +131,16 @@ Based on the files that you need to operate, read and follow the corresponding r
 - For diagnosing and triaging failing pytest runs you MUST follow:
   - The rules `.claude/skills/pytest.rules.md`
 
-## Readme
+## Readme_dir
 
 - For a README of a directory with executables you MUST follow instructions in
-  `.claude/skills/readme.rules.md` and the template
-  `.claude/templates/readme.template.md`
-- For a README of a single executable / script you MUST follow instructions in
-  `.claude/skills/readme_file.rules.md`
+  `.claude/skills/readme_dir.rules.md` and the template
+  `.claude/templates/readme_dir.template.md`
+
+## Readme_file
+- For a README of a single executable / script (`<FILE>.README.md`) you MUST
+  follow instructions in `.claude/skills/readme_file.rules.md` and the template
+  `.claude/templates/readme_file.template.md`
 
 # Tutorials
 

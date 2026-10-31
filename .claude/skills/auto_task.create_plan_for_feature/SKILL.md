@@ -80,7 +80,7 @@ model: opus
   paraphrasing them generically
 - The entire spec should be no longer than 100 lines using 85 wrapped text
 - Update an architecture file, if one exists, following the instructions in
-  `.claude/skills/readme.write_architecture/SKILL.md`
+  `.claude/skills/readme_file.write_architecture/SKILL.md`
   - Only add what matters to understand how the pieces work together, not how
     the new component works internally
 

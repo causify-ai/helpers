@@ -629,7 +629,7 @@ Paths use current file names (two files were renamed, see 0.2).
 - [ ] coding/all.type_hints -> coding.rules.md typing section +
   coding.fix_type_hints / coding.fix_pyright
 - [ ] documentation_meta/all.architecture_diagrams.explanation ->
-  .claude/skills/C4.rules.md (currently an EMPTY file; readme.write_architecture
+  .claude/skills/C4.rules.md (currently an EMPTY file; readme_file.write_architecture
   links this doc)
 - [ ] documentation_meta/all.writing_docs -> markdown.rules.md + new
   docs.rules.md; keep a 40-line human summary

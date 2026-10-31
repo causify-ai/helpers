@@ -1,9 +1,14 @@
 # AI Workflows: Topics, Skills, and Rules
 - This document explains the conventions and tools used to organize AI-assisted
-  work via Claude Code in this repo (e.g., **topics**, **skills**, **rules**) and
-  the command-line tools that operate on them (`mdm`, `cc_lint.py`, `rig`)
+  work via Claude Code in this repo (e.g., **topics**, **skills**, **rules**,
+  **templates**) and the command-line tools that operate on them (`mdm`,
+  `cc_lint.py`, `rig`, `cc`)
 
 - See `.claude/skills/skill.rules.md` for the full authoring conventions
+- See `docs/documentation_meta/all.where_to_add_material.explanation.md` for
+  where a new fact goes: a skill, a rule file, a how-to guide, or a blog
+  - This guide owns the order of steps and the choice of skill
+  - It links to skills and rule files for the details and does not copy them
 
 ## Definitions
 
@@ -49,11 +54,12 @@
   - `paper_list`: Reading lists of papers, books, and resources
   - `project`: Docs that plan and track a project (PRD, design, plan, progress log)
   - `pytest`: Diagnosis and fixing of failing tests, locally and in CI
-  - `readme`: README file for a directory
+  - `readme_dir`: README file for a directory
   - `readme_file`: README file for a single executable
   - `references`: Format of references to books and papers
   - `research_idea`: Research idea docs and their tracking table
-  - `role`: Role descriptions for AI agents (coding, notebook, AI researcher)
+  - `role`: Role descriptions for AI agents (coding, notebook, AI researcher,
+    skill designer)
   - `rules`: Addition of rules to rule files
   - `script`: Conventions for CLI scripts
   - `skill`: Authoring, checking, and maintaining skills and rules
@@ -79,6 +85,18 @@
 - See `.claude/skills/skill.rules.md` for the required frontmatter, naming
   convention, and content structure (`Goal`, `Workflow`, `Conventions`,
   `Constraints`, `Examples`, `Verification`)
+- A **slash command** is a flat prompt file `.claude/commands/<name>.md`
+  - This repo has `instr`, `instr2`, `instr3`, and `lint`, and its Claude Code
+    setup also surfaces them as skills
+  - `/instr`, `/instr2`, and `/instr3` run the task in `./instr.md`,
+    `./instr2.md`, and `./instr3.md` following `.claude/task_instructions.md`
+    - Create the instruction files with `create_instr [<N>]`, see
+      [`dev_scripts_helpers/ai/README.md`](/dev_scripts_helpers/ai/README.md)
+  - `/lint <file>` applies the rules in `.claude/rules.md` that match the file type
+  - Prefer a skill over a slash command for new work, see "Skills vs Slash
+    Commands" in `.claude/skills/skill.rules.md`
+- A **subagent** is defined in `.claude/agents/<name>.md`, e.g.,
+  `.claude/agents/code.reviewer.md` reviews the recent `git diff`
 
 ### Rules
 - A **rule file** (`.claude/skills/<TOPIC>.rules.md`) documents the conventions
@@ -93,6 +111,14 @@
   `.md`) to the rule file and template that apply to it; when operating on a
   file, read `.claude/rules.md` first to find which rules and templates to
   follow
+- The hook `.claude/hooks/check_file_rules.sh`, registered in
+  `.claude/settings.json`, reminds Claude of the matching rules before each
+  `Write` or `Edit`
+  - It covers only the types a file path identifies: `.py`, test files, `.sh`,
+    `.ipynb`, and `.typ`
+  - It never blocks the edit
+  - Rules that depend on the purpose of a file (e.g., blog, README, slides) are
+    not covered: look them up in `.claude/rules.md`
 
 ### Templates
 - A **template** (`.claude/templates/*.template.<ext>`) is a starting-point
@@ -105,11 +131,19 @@
   - `.claude/templates/coding.template.py` for `.py` files
   - `.claude/templates/testing.template.py` for `test_*.py` files
   - `.claude/templates/notebook.template.ipynb` for `.ipynb` files
-  - `.claude/templates/readme.template.md` for `README.md` files
+  - `.claude/templates/readme_dir.template.md` for the `README.md` of a directory
+    with executables
+  - `.claude/templates/readme_file.template.md` for the `<FILE>.README.md` of a
+    single executable
 - Other templates cover specific artifacts referenced by individual skills
   rather than a whole file type, e.g. `architecture_doc.template.md`,
-  `slides.template.md`, `github_PR_plan.template.md`, `book_map.template.md`,
-  `graphviz.template.md`, `tikz.template.md`, `typst.template.typ`
+  `slides.template.md`, `github_PR_plan.template.md`,
+  `github_PR_description.template.md`, `book_map.template.md`,
+  `graphviz.template.md`, `tikz.template.md`, `typst.template.typ`,
+  `auto_task.template.md`, `specs.template.md`, `research_idea.template.md`,
+  `tutorial_specs.template.md`, and the `project_*.template.md` family for the
+  docs of a project
+- List all templates with `ls .claude/templates`
 - Placeholders inside a template use the `<VAR>` notation (e.g., `<Directory
   Name>`) per `.claude/skills/skill.rules.md`; fill them in and remove any
   optional sections that don't apply
@@ -155,7 +189,9 @@
   claude> /<topic>.<action> <file>
   ```
 - Use `cc -p "<prompt>"` to run a single prompt non-interactively
-- See `dev_scripts_helpers/ai/README.md` for all the options
+- Use `cc --test` to run the diagnostics of the Claude Code installation
+- See [`dev_scripts_helpers/ai/README.md`](/dev_scripts_helpers/ai/README.md) for
+  all the options
 
 ### Pick the Right Way
 
@@ -169,7 +205,8 @@
 - `mdm` manages skills, blog posts, research ideas, and short stories across
   repositories with one consistent interface:
   `mdm <type> <action> [name_filter]`
-- Full reference: `dev_scripts_helpers/system_tools/mdm.README.md`
+- Full reference:
+  [`dev_scripts_helpers/system_tools/mdm.README.md`](/dev_scripts_helpers/system_tools/mdm.README.md)
 - Common commands:
   ```bash
   > mdm skill list                     # List all skill names
@@ -189,8 +226,10 @@
 - Select files with `--files`, `--from_file`, `--modified`, `--branch`,
   `--last_commit`, or `--all_files`
 - Select what to apply with `--topic`, `--skill`, or `--rule`
-- `--mode` is required (no default): pick `one_shot_with_cc`, `one_shot`,
+- `--mode` defaults to `session`: pick `one_shot_with_cc`, `one_shot`,
   `session`, or `stateless`
+  - The examples below pass `--mode one_shot_with_cc` to apply all the selected
+    rules in a single Claude Code call
   ```bash
   # Apply the default rules for the file's topic (e.g., coding.rules.md)
   > cc_lint.py --files "file.py" --topic coding --mode one_shot_with_cc
@@ -207,11 +246,16 @@
   > cc_lint.py --rule "dassert" --files "file.py" --mode one_shot_with_cc
   ```
 - Use `--dry_run` to print the command without executing it
+- Use `--resume` to continue an interrupted `session` or `stateless` run, and
+  `--rule_level` to control how the rules are split into chunks
+- Use `--add_todos` to add `TODO(ai_gp)` comments instead of changing the code,
+  see "Let the Rules Write the TODOs, Then Implement Them" below
+- Full reference: [`linters2/cc_lint.README.md`](/linters2/cc_lint.README.md)
 
 ### `rig`: Ripgrep Wrapper for Finding Rules, TODOs, and Definitions
 - `rig <pattern> [<dir>] [<ext>] [--options]`, with mode flags that change the
   search target instead of the pattern:
-  - `--rule`: search Markdown headers in `.claude/skills/*.rules.md` (used by
+  - `--rule`: search Markdown headers in `.claude/skills` (used by
     `cc_lint.py --rule` to resolve a keyword to a specific rule section)
   - `--todo`: search for `TODO(ai_gp)`-style patterns
   - `--def`: search for Python `class`/`def` definitions
@@ -272,7 +316,8 @@
 - These workflows use the `coding.*` skills on Python files
 - Commit before running a skill, so that each skill produces a separate, easy to
   review diff
-  - See `docs/tools/ai/all.ai_review.how_to_guide.md`
+  - See
+    [`docs/tools/ai/all.ai_review.how_to_guide.md`](/docs/tools/ai/all.ai_review.how_to_guide.md)
 
 ### Coding Skills at a Glance
 
@@ -281,22 +326,29 @@
 | `coding.todoai_gp`               | Implement the `TODO(ai_gp)` items in a file     |
 | `coding.annotate_with_todoai`    | Add a `TODO(ai_gp)` for each rule violation     |
 | `coding.reorg_functions`         | Reorder the functions in a file                 |
+| `coding.make_function_private`   | Prefix private functions with an underscore     |
 | `coding.factor_common_code`      | Remove duplicated code, mostly in test files    |
+| `coding.fix_inline`              | Remove the functions that are too thin          |
+| `coding.fix_constants`           | Move constants to the scope where they are used |
+| `coding.fix_param_use`           | Fix how call sites pass arguments and constants |
+| `coding.use_single_return`       | Give each function a single `return`            |
 | `coding.fix_from_imports`        | Replace `from X import Y` with `import X`       |
 | `coding.fix_use_helpers`         | Replace ad-hoc code with `helpers` functions    |
 | `coding.fix_bloated_imports`     | Import big packages only where they are needed  |
 | `coding.fix_type_hints`          | Fix type hints                                  |
 | `coding.fix_dasserts`            | Fix `dassert` calls                             |
 | `coding.fix_pyright`             | Run `pyright` and fix the reported lints        |
+| `coding.fix_docstring`           | Fix the docstrings                              |
 | `coding.fix_comments`            | Fix docstrings and comments, no logic change    |
 | `coding.fix_empty_lines`         | Remove empty lines inside functions             |
 | `coding.improve_code_for_humans` | Add comments and `_LOG.debug` statements        |
 | `coding.rename`                  | Rename a file, function, or variable everywhere |
 | `coding.find_doc`                | Find and summarize the docs of code             |
 
-- The other `coding.*` skills (e.g., `fix_inline`, `make_function_private`,
-  `use_single_return`) follow the same pattern
-  - List them with `mdm skill list coding`
+- The table lists every `coding.*` skill
+  - Check for new ones with `mdm skill list coding`
+- `coding_qa.review` is a separate topic: it reviews Python files for bugs and
+  proposes fixes and test cases
 
 ### Implement TODOs in a File
 
@@ -514,22 +566,59 @@
   ```
 - Use skills when you need to review each transformation
 
+## Workflows in Other Guides
+
+- These workflows use skills of other topics and have their own guide
+  - The guide owns the order of steps: this section only points to it
+- Plan a project and take a task from idea to merged PR
+  (`architecture.write_design`, `project.write_prd`, `project.create_plan`,
+  `project.update_progress`, `research_idea.format`)
+  - [`docs/planning/all.plan_work.how_to_guide.md`](/docs/planning/all.plan_work.how_to_guide.md)
+- Do a task with Claude Code and open the PR (`github.find_name_for_pr`,
+  `github.get_pr_to_pass_local_tests`, `github.get_pr_to_pass_ci_tests`,
+  `github.get_pr_ready_to_merge`, `testing.write_unit_tests`)
+  - [`docs/tools/ai/all.create_pr_with_claude_code.how_to_guide.md`](/docs/tools/ai/all.create_pr_with_claude_code.how_to_guide.md)
+  - Without Claude Code, or to split a PR into child PRs
+    (`github.create_child_pr`):
+    [`docs/tools/git/all.manual_flow.how_to_guide.md`](/docs/tools/git/all.manual_flow.how_to_guide.md)
+- Delegate a task list to agents (`auto_task.*`)
+  - [`docs/tools/ai/all.auto_task.how_to_guide.md`](/docs/tools/ai/all.auto_task.how_to_guide.md)
+- Review code with LLMs (`llm_transform.py`, `ai_review.py`, `inject_todos.py`)
+  - [`docs/tools/ai/all.ai_review.how_to_guide.md`](/docs/tools/ai/all.ai_review.how_to_guide.md)
+- Decide where a new fact goes and add it (`docs.add_content`, `rules.add`,
+  `text.merge_files`, `text.merge_content_into`, `skill.check_refs`)
+  - [`docs/documentation_meta/all.where_to_add_material.explanation.md`](/docs/documentation_meta/all.where_to_add_material.explanation.md)
+- For any other topic (e.g., `slides`, `blog`, `paper`, `figure`), find the skills
+  with `mdm skill list <topic>` and read one with `mdm skill describe <skill>`
+
 ## Related Docs
 
 - Use these docs for details on the tools and conventions mentioned above
-  - `docs/planning/all.plan_work.how_to_guide.md`: The sequence of skills from an
-    idea to a merged PR, and how to plan and log a project
-  - `docs/tools/ai/all.create_pr_with_claude_code.how_to_guide.md`: Do a task
-    with Claude Code, from picking the task to a PR
-  - `docs/tools/ai/all.auto_task.how_to_guide.md`: Delegate a task list to agents,
-    from GitHub issue to merged PR
-  - `docs/tools/ai/all.ai_review.how_to_guide.md`: Review flows with LLMs
-    (`llm_transform.py`, `ai_review.py`, `inject_todos.py`)
-  - `linters2/cc_lint.README.md`: Full reference for `cc_lint.py`
-  - `dev_scripts_helpers/system_tools/mdm.README.md`: Full reference for `mdm`
-  - `dev_scripts_helpers/ai/README.md`: Options of the `cc` wrapper
+  - [`docs/planning/all.plan_work.how_to_guide.md`](/docs/planning/all.plan_work.how_to_guide.md):
+    The sequence of skills from an idea to a merged PR, and how to plan and log a
+    project
+  - [`docs/tools/ai/all.create_pr_with_claude_code.how_to_guide.md`](/docs/tools/ai/all.create_pr_with_claude_code.how_to_guide.md):
+    Do a task with Claude Code, from picking the task to a PR
+  - [`docs/tools/ai/all.auto_task.how_to_guide.md`](/docs/tools/ai/all.auto_task.how_to_guide.md):
+    Delegate a task list to agents, from GitHub issue to merged PR
+  - [`docs/tools/ai/all.ai_review.how_to_guide.md`](/docs/tools/ai/all.ai_review.how_to_guide.md):
+    Review flows with LLMs (`llm_transform.py`, `ai_review.py`, `inject_todos.py`)
+  - [`docs/tools/ai/all.code_review_tools.reference.md`](/docs/tools/ai/all.code_review_tools.reference.md):
+    Comparison of external code review tools (e.g., GitHub Copilot, CodeRabbit)
+  - [`docs/tools/git/all.manual_flow.how_to_guide.md`](/docs/tools/git/all.manual_flow.how_to_guide.md):
+    The PR flow with small PRs and the `github.*` skills
+  - [`docs/documentation_meta/all.where_to_add_material.explanation.md`](/docs/documentation_meta/all.where_to_add_material.explanation.md):
+    Where a fact goes: skill, rule file, how-to guide, or blog
+  - [`linters2/cc_lint.README.md`](/linters2/cc_lint.README.md): Full reference for
+    `cc_lint.py`
+  - [`dev_scripts_helpers/system_tools/mdm.README.md`](/dev_scripts_helpers/system_tools/mdm.README.md):
+    Full reference for `mdm`
+  - [`dev_scripts_helpers/ai/README.md`](/dev_scripts_helpers/ai/README.md):
+    Options of the `cc` wrapper and `create_instr`
   - `.claude/skills/skill.rules.md`: How to write a skill
   - `.claude/rules.md`: Map from file type to rules and templates
+  - `.claude/hooks/check_file_rules.sh`: Hook that reminds Claude of the rules
+    before an edit
 - `ai_review.py` is the older prompt-based flow
   - It does not use skills
   - Prefer skills run via `cc_lint.py --skill` for new workflows

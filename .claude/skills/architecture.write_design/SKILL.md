@@ -73,7 +73,7 @@ model: opus
 - Do not implement any code
   - Short snippets (a class interface, a schema, a function signature) are fine
 - Do not use this skill to document a Python file that already exists: use
-  `.claude/skills/readme.write_architecture/SKILL.md`
+  `.claude/skills/readme_file.write_architecture/SKILL.md`
 - Do not commit any change
 
 # Verification
