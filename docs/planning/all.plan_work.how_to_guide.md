@@ -386,6 +386,42 @@
   - A human reviews each PR
   - Review and merge: a human merges
 
+# Software Project Documents
+
+## Product
+
+- **Vision / One-Pager**:
+  - A short pitch: the problem, the opportunity and why the project should exist
+  - Findings from users: pain points, needs and target user profiles
+- **PRD (Product Requirements Document)**:
+  - What to build and why
+  - users, goals, success metrics, scope, non-goals and user stories.
+- **Roadmap**: Milestones and phases over time.
+
+## Design
+
+- **Technical Spec / Design Doc (RFC)**: How it will be built: architecture, components, data flow, alternatives and risks.
+- **ADRs (Architecture Decision Records)**: One short record per key decision: context, decision and consequences.
+- **API Spec**: Endpoint contracts, request and response formats, and error codes.
+- **Data Model / Schema Doc**: Entities, relationships, fields and migration notes.
+- **UX/UI Designs**: Wireframes, mockups and user flows.
+- **Security & Privacy Review**: Threat model, data handling, auth and compliance concerns.
+
+## Execution
+
+- **Implementation Plan**: Work broken into ordered, testable tasks with owners.
+- **Progress Log**: A dated record of what was done, decisions made, blockers and next steps.
+- **Test Plan**: Testing strategy, test cases and acceptance criteria.
+- **Risk & Issue Log**: Known risks and issues, their impact, mitigations and owners.
+
+## Shipping & Operations
+
+- **README**: What the project is and how to install, run and contribute.
+- **Changelog / Release Notes**: User-facing changes in each version.
+- **Deployment Guide**: Environments, configuration, CI/CD and secrets handling.
+- **Runbook**: How to operate, monitor and fix common production problems.
+- **Postmortem**: Incident summary, root cause, impact and follow-up actions.
+
 # Resources
 
 - Projects, issues, PRs, labels, and review:
