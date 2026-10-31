@@ -16,27 +16,58 @@
   ```bash
   > find .claude/skills -name "*.md" | sed 's|.claude/skills/||; s|\..*||' | sort | uniq
   ```
+
+### Current Topics
 - Current topics include:
   - `architecture`: Architecture and design documentation, including project design
     docs
   - `auto_task`: Automated task definitions and workflows
   - `bash`: Bash scripting and shell commands
   - `blog`: Blog post creation and formatting
+  - `book`: Book table of contents review
+  - `book_chapter`: Typst book chapter headings, text tags, updates from source
+  - `book_file`: Standard naming of book and paper files
+  - `book_list`: Information gathering about books
+  - `book_map`: Book map with roadmap and chapter-to-lecture mapping
+  - `bookmark`: Links mapped to research ideas and blog files
+  - `C4`: C4 diagrams (Context, Container, Component, Code) in PlantUML
   - `cfile`: vim cfile conventions
   - `coding`: Python code style and conventions
+  - `coding_qa`: Python code review for bugs, with fixes and test cases
+  - `demo`: Storyboard scripts and images for narrated explainer videos
+  - `docker`: Docker container shrinking and standard style
+  - `docs`: Adding content to docs without redundancy
+  - `figure`: Figure creation and polish (descriptions, SVG, TikZ)
+  - `git`: Git operations (move, delete, merge conflicts, update references)
+  - `github`: Pull requests (naming, description, child PRs) and CI checks
+  - `graphviz`: Graphviz diagrams (flat, architecture, and causal graph styles)
+  - `gws`: Google Workspace CLI (`gws`) usage
   - `latex`: LaTeX document processing
   - `markdown`: Markdown formatting and structure
   - `notebook`: Jupyter notebook conventions
+  - `paper`: Academic paper writing, rating, and improvement
+  - `paper_list`: Reading lists of papers, books, and resources
   - `project`: Docs that plan and track a project (PRD, design, plan, progress log)
-  - `pytest`: Testing framework and patterns
-  - `readme`: README file creation and updates
+  - `pytest`: Diagnosis and fixing of failing tests, locally and in CI
+  - `readme`: README file for a directory
+  - `readme_file`: README file for a single executable
+  - `references`: Format of references to books and papers
+  - `research_idea`: Research idea docs and their tracking table
+  - `role`: Role descriptions for AI agents (coding, notebook, AI researcher)
+  - `rules`: Addition of rules to rule files
+  - `script`: Conventions for CLI scripts
+  - `skill`: Authoring, checking, and maintaining skills and rules
   - `slides`: Presentation slide creation
   - `svg`: SVG graphics handling
+  - `system`: System analysis (e.g., disk usage)
+  - `testing`: Unit test writing and conventions
   - `text`: General text and writing conventions
   - `tikz`: TikZ diagram creation
-  - `tutorial_in_60_mins`: Tool tutorials and guides
-  - `visuals`: Visual design and graphics
-// TODO(ai_gp): Add tools_in_30_mins and other missing ones
+  - `todo`: TODO and task queue files organized by execution stage
+  - `tool_guide_in_30_mins`: Single-file quick-reference guides for a tool
+  - `tutorial_in_60_mins`: Hands-on "Learn X in 60 Minutes" tutorials
+  - `tutorial_specs`: Proposals for tutorials and the class projects using them
+  - `typst`: Typst chapter and slide conventions
 
 ### Skills
 - A **skill** is a specific, actionable task organized under a topic (e.g.,
