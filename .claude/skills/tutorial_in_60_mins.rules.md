@@ -181,7 +181,7 @@
     and move code to `*_utils.py`
   - `.claude/skills/docker.use_standard_style/SKILL.md`: align the Docker files
     to the standard style
-  - `.claude/skills/readme.create/SKILL.md`: write the `README.md` of the dir
+  - `.claude/skills/readme_dir.create/SKILL.md`: write the `README.md` of the dir
   - `.claude/skills/blog.write_tutorial_readme/SKILL.md` and
     `.claude/skills/blog.write_ml_tutorial/SKILL.md`: write the blog post
 - `helpers_root/docs/tools/ai/all.ai_workflows.how_to_guide.md`: lists the `tutorial_in_60_mins` skill

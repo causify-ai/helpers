@@ -12,11 +12,11 @@
 
 ## Master Plan
 
-- File: `plan.md`
+- File: `04-plan.md`
 
 ## Log
 
-- File: `progress.md`
+- File: `07-progress.md`
 - Format: <history table or one section per PR>
 
 ## Task Rule

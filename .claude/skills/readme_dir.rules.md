@@ -1,5 +1,13 @@
 Conventions for writing a README for a directory with executables.
 
+# Scope and Naming
+
+- Use these rules for the `README.md` of a directory
+  - For the README of a single executable / script, follow
+    `.claude/skills/readme_file.rules.md`
+- Follow the template `.claude/templates/readme_dir.template.md`
+- To write the README, use the skill `.claude/skills/readme_dir.create/SKILL.md`
+
 # Overall Structure
 
 - READMEs for a directory should follow this hierarchical organization:

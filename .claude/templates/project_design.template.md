@@ -4,8 +4,8 @@
 
 - <What the component does>
 - Where it fits: <upstream> -> <this component> -> <downstream>
-- Requirements: PRD [`R<N>`](/<project>/docs/prd.md#r<n>-<short-description>)
-- Decisions: [D-<N>](/<project>/docs/decisions.md#d-<n>-<decision-title>)
+- Requirements: PRD [`R<N>`](/<project>/docs/01-prd.md#r<n>-<short-description>)
+- Decisions: [`D<N>`](/<project>/docs/03-decisions.md#d<n>-<decision-title>)
 
 ## Diagram
 

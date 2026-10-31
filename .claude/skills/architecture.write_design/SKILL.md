@@ -5,13 +5,13 @@ model: opus
 
 # Goal
 
-- Given a PRD (Product Requirement Document), write `docs/design.architecture.md` and
-  one `docs/design.<component>.md` per component
+- Given a PRD (Product Requirement Document), write `docs/02-design.architecture.md` and
+  one `docs/02.<N>-design.<component>.md` per component
 - Design before the code exists: do not write code
 
 ## Input
 
-- `<PRD>`: the PRD file, e.g., `docs/prd.md`
+- `<PRD>`: the PRD file, e.g., `docs/01-prd.md`
 - `<DOCS_DIR>`: the `docs/` dir of the project, optional
   - If missing, use the dir of `<PRD>`
 
@@ -38,7 +38,7 @@ model: opus
 
 ## Write the Overview
 
-- Create `<DOCS_DIR>/design.architecture.md`
+- Create `<DOCS_DIR>/02-design.architecture.md`
 - Follow the template `.claude/templates/project_design.template.md`
 - Show the context and the containers with a PlantUML C4 diagram, per
   `.claude/skills/C4.rules.md`
@@ -48,11 +48,11 @@ model: opus
 
 ## Write One Doc per Component
 
-- Create `<DOCS_DIR>/design.<component>.md` for each component
+- Create `<DOCS_DIR>/02.<N>-design.<component>.md` for each component
 - Follow the rules in `.claude/skills/project.rules.md` section "Write a Design Doc"
 - Follow the template `.claude/templates/project_design.template.md`
 - Distinguish facts about existing code from decisions made in the design
-- Record each non-obvious choice in `<DOCS_DIR>/decisions.md`, following the
+- Record each non-obvious choice in `<DOCS_DIR>/03-decisions.md`, following the
   template `.claude/templates/project_decisions.template.md`
   - Create the file if it does not exist
 - Link each decision from the design docs that follow it, per
@@ -73,7 +73,7 @@ model: opus
 - Do not implement any code
   - Short snippets (a class interface, a schema, a function signature) are fine
 - Do not use this skill to document a Python file that already exists: use
-  `.claude/skills/readme.write_architecture/SKILL.md`
+  `.claude/skills/readme_file.write_architecture/SKILL.md`
 - Do not commit any change
 
 # Verification
@@ -82,6 +82,6 @@ model: opus
 - [ ] Every component has one responsibility and one design doc
 - [ ] The overview has a PlantUML C4 diagram
 - [ ] No design doc has a Mermaid C4 diagram
-- [ ] Every non-obvious choice is in `decisions.md`
+- [ ] Every non-obvious choice is in `03-decisions.md`
 - [ ] Every requirement id and decision id in a design doc is a link to its H3
 - [ ] No design doc contains full implementation code

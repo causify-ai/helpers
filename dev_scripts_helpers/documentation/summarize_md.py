@@ -5,57 +5,13 @@
 # ///
 
 r"""
-Summarize markdown text using an LLM.
+Summarize the sections of a markdown file using an LLM.
 
-The script:
-- reads a markdown file
-- prints file statistics (word count, read time, header levels)
-- for each header at a specified level (--md_level) extracts the full section
-  (including all nested content)
-- uses an LLM for summarization
-- by default asks the LLM to compress each section to 10% of original size
-  (--pct_words 0.1)
-  - The size limits (--pct_words, --max_words) are constraints written in the
-    prompt of the LLM: the input and the output are never truncated
-- with --keep_bullets, asks the LLM to keep every header and bullet and to
-  shorten only the text of each bullet
-- with --caveman, asks the LLM to write terse, dropping articles and filler
+- Split the file in sections at the header level `--md_level`
+- Ask the LLM to shrink each section to `--pct_words` of its size (default: 10%)
+- Write the summaries to the output file, keeping the header structure
 
-Results are appended to the output file incrementally.
-
-The output preserves the markdown header structure with summaries or digests.
-
-# Usage Example
-
-- Summarize all level-1 chapters (default: 10% compression):
-> summarize_md.py -i book.md -o book.summary.md --md_level 1
-
-- Summarize entire file in one shot (default: 10% compression):
-> summarize_md.py -i book.md -o out.md --md_level 0
-
-- Summarize with at most 500 words per chunk (disable default compression):
-> summarize_md.py -i book.md -o out.md --md_level 1 --max_words 500
-
-- Summarize to 5% of original size (custom compression):
-> summarize_md.py -i book.md -o out.md --md_level 1 --pct_words 0.05
-
-- Keep the same bullets and shorten each one to 30% of the words:
-> summarize_md.py -i book.md -o out.md --md_level 1 --pct_words 0.3 --keep_bullets
-
-- Same as above, in caveman style:
-> summarize_md.py -i book.md -o out.md --md_level 1 --pct_words 0.3 --keep_bullets --caveman
-
-- Summarize level-2 sections in a range (default: 10% compression):
-> summarize_md.py -i book.md -o out.md --md_level 2 --md_start "Chapter 1" --md_end "Chapter 2"
-
-- Dry run: test with the first section only (default: 10% compression):
-> summarize_md.py -i book.md -o out.md --md_level 1 --dry_run
-
-- Use a different LLM model (default: 10% compression):
-> summarize_md.py -i book.md -o out.md --md_level 1 --model "openrouter/anthropic/claude-haiku-4.5"
-
-- Compute SHA1 digests instead of LLM summaries (for testing):
-> summarize_md.py -i book.md -o book.digest.md --md_level 1 --test
+- See documentation in `dev_scripts_helpers/documentation/summarize_md.py`
 """
 
 import argparse

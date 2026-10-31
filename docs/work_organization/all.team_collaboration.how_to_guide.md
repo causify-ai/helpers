@@ -360,7 +360,7 @@ The idea is to send a morning TODO email to broadcast:
   - If the reviewer wants changes, apply them and send the email
 - Path B: you think that the draft needs edits or advice
   - Put the draft in the `Email` Gdoc of the project
-    - The link is in the Resources list of `docs/how_we_work.md` of the project
+    - The link is in the Resources list of `docs/08-how_we_work.md` of the project
   - Ask the team to edit the draft and to add comments in the Gdoc
     - Use suggestion mode, so that everybody can see who changed what
   - Update the draft from the edits and the comments

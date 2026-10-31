@@ -28,7 +28,7 @@ model: opus
 
 - Read related code in the codebase and existing code in the target directory
 - If the user references a roadmap/plan file (e.g., `plan.<TOPIC>.md`, or a project
-  `docs/plan.md` as defined in `.claude/skills/project.rules.md`), read it to
+  `docs/04-plan.md` as defined in `.claude/skills/project.rules.md`), read it to
   extract the exact scope of the requested PR/feature
   - Use the plan ids (e.g., `PR_M10`) for the `PR<NUM>` bullets and the spec files,
     per `.claude/skills/project.rules.md` section "Name the PRs"
@@ -69,6 +69,9 @@ model: opus
   `.claude/skills/text.rules.md`
 - Save the result in a file `spec.<TOPIC>.md` in the current directory
   - E.g., to spec out `PR_P2b` from `plan.md`, save `spec.PR_P2b.md`
+  - In the `docs/` dir of a project, add the slot number: save
+    `06-spec.PR_P2b.md` and read `04-plan.md`, per
+    `.claude/skills/project.rules.md` section "Name the Docs with a Slot Number"
   - Do not name it `plan.<TOPIC>.md`: that name is reserved for the roadmap
     document that lists PRs, not for a single PR's spec
 - Do not implement any code: describe the architecture only
@@ -80,13 +83,14 @@ model: opus
   paraphrasing them generically
 - The entire spec should be no longer than 100 lines using 85 wrapped text
 - Update an architecture file, if one exists, following the instructions in
-  `.claude/skills/readme.write_architecture/SKILL.md`
+  `.claude/skills/readme_file.write_architecture/SKILL.md`
   - Only add what matters to understand how the pieces work together, not how
     the new component works internally
 
 ## Write the Plan
 
-- Create (or update) the plan file (e.g. `tasks.md`) following
+- Create (or update) the plan file (e.g. `tasks.md`, or `05-tasks.md` in the `docs/`
+  dir of a project) following
   `.claude/templates/auto_task.template.md`
 - Fill in the `* Repo:` checklist per `.claude/skills/auto_task.rules.md` section
   "Multi-Repo Issues, Branches, and PRs"
