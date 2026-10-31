@@ -2043,3 +2043,61 @@ class Test_render_images_script1(hunitest.TestCase):
         ```
         """
         self._run_render_test(test_content, output_format="png")
+
+    def test7(self) -> None:
+        """
+        Test script accepts the Mermaid canvas size and config options.
+        """
+        # Prepare inputs.
+        scratch_space = self.get_scratch_space()
+        test_file = os.path.join(scratch_space, "test_input.md")
+        test_content = hprint.dedent(
+            """
+            # Test Document
+
+            ```mermaid
+            graph TD
+                A --> B
+            ```
+            """
+        )
+        hio.to_file(test_file, test_content)
+        config_file = os.path.join(scratch_space, "mermaid_config.json")
+        hio.to_file(config_file, '{"c4": {"width": 400}}')
+        cmd = " ".join(
+            [
+                self._get_exec_path(),
+                f"-i {test_file}",
+                "--action render",
+                "--canvas_width 1600",
+                "--canvas_height 900",
+                f"--mermaid_config {config_file}",
+                "--dry_run",
+            ]
+        )
+        # Run test.
+        rc = hsystem.system(cmd)
+        # Check outputs.
+        self.assertEqual(rc, 0)
+
+    def test8(self) -> None:
+        """
+        Test script fails on a negative canvas width.
+        """
+        # Prepare inputs.
+        scratch_space = self.get_scratch_space()
+        test_file = os.path.join(scratch_space, "test_input.md")
+        hio.to_file(test_file, "# Test Document\n")
+        cmd = " ".join(
+            [
+                self._get_exec_path(),
+                f"-i {test_file}",
+                "--action render",
+                "--canvas_width -1",
+                "--dry_run",
+            ]
+        )
+        # Run test.
+        rc = hsystem.system(cmd, abort_on_error=False)
+        # Check outputs.
+        self.assertNotEqual(rc, 0)

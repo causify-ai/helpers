@@ -5,8 +5,12 @@
 - We use C4 as a way to describe graphically software architecture together with
   some conventions
 - Both Mermaid and PlantUML support C4 diagrams
-- Mermaid is preferred since it can be rendered natively by GitHub
-- PlantUML can be rendered through `render_images.py` in regular markdown
+- We always draw C4 diagrams with PlantUML, never with Mermaid
+  - Mermaid places the C4 shapes on a fixed grid, so shapes with long
+    descriptions render as one long column
+  - The conventions are in `.claude/skills/C4.rules.md`
+- PlantUML is rendered through `render_images.py` in regular markdown
+  - GitHub does not render a `plantuml` fence natively
 
 ## Brief Introduction to C4
 
@@ -189,8 +193,9 @@
 
 ### Support for C4
 
-- Mermaid supports most features of C4
+- Mermaid supports most features of C4, but we do not use it for C4 diagrams
   - See https://mermaid.js.org/syntax/c4.html
+  - Draw C4 diagrams with PlantUML instead, see `.claude/skills/C4.rules.md`
 
 ### Render On-Line
 
