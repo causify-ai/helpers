@@ -129,12 +129,15 @@
     Clickable"
 
 - Write every requirement and every decision as an H3, so that other docs link it
-  - Requirement in `01-prd.md`: `### R3. (Bibliographic source)`
-  - Decision in `03-decisions.md`: `### D7. <Decision title>`
+  - Requirement in `01-prd.md`: `` ### `R3` (Bibliographic source) ``
+  - Decision in `03-decisions.md`:
+    `` ### `D7` (The pipeline computes the base name with a public helper) ``
+  - Use the same style for both: the id in code, then the title in parentheses
   - Refer to it with a link to its header, never with a bare id
     - E.g.,
-      ```
-      `[`R3`](/research/Estimate_academic_paper_quality/docs/01-prd.md#r3-bibliographic-source)
+      ```text
+      [`R3`](/research/Estimate_academic_paper_quality/docs/01-prd.md#r3-bibliographic-source)
+      [`D7`](/research/Estimate_academic_paper_quality/docs/03-decisions.md#d7-the-pipeline-computes-the-base-name-with-a-public-helper)
       ```
   - The ids are stable: never reuse them and never renumber them
   - Follow `.claude/skills/project.rules.md` section "Link Requirements and
@@ -219,8 +222,8 @@
   - E.g., `research/Noesis/docs/03-decisions.md`
   - The format is in `.claude/skills/project.rules.md` section "Decisions Log"
   - Copy the template `.claude/templates/project_decisions.template.md`
-  - Write each decision as its own H3 `### D<N>. <Decision title>`, so that other
-    docs can link it
+  - Write each decision as its own H3 `` ### `D<N>` (<Decision title>) ``, so that
+    other docs can link it
 - Link the decision from the design docs that follow it and from the description of
   the PR that implements it
 
@@ -375,6 +378,78 @@
   claude> /code-review
   ```
 
+- To check how a notebook looks in a PR, render it from the PR branch as HTML
+  without checking out the branch
+  ```bash
+  > git fetch origin <pr_branch>
+  > publish_notebook.py \
+      -i <path/to/notebook.ipynb> \
+      --branch origin/<pr_branch> \
+      --action convert
+  ```
+  - E.g.,
+    ```bash
+    > publish_notebook.py \
+        -i research/Optimal_strategy_for_racket_sports/notebooks/racket_shot_probability.ipynb \
+        --branch origin/UmdTask788_Racket_sports_Change_color_of_heatmaps \
+        --action convert
+    ```
+  - Run it from the repo root, since the notebook path is relative to the repo
+    root
+  - The script reads the file with `git show`, converts it to HTML in the current
+    dir, and opens it in the browser
+  - `uv` installs the dependencies (`nbconvert`, etc.) on the fly, so nothing
+    is needed in the host environment
+  - The HTML is a static view of the saved outputs and does not run the cells
+  - Delete the generated `*.html` file when done, since it is untracked
+
+- To run the cells of a notebook of a PR, open it in a live Jupyter Lab with
+  `open_notebook_from_branch.py`
+  ```bash
+  > open_notebook_from_branch.py \
+      -i <path/to/notebook.ipynb> \
+      --branch <pr_branch>
+  ```
+  - E.g.,
+    ```bash
+    > open_notebook_from_branch.py \
+        -i research/Optimal_strategy_for_racket_sports/notebooks/racket_shot_probability.ipynb \
+        --branch UmdTask788_Racket_sports_Change_color_of_heatmaps
+    ```
+  - The script creates (or reuses and fast-forwards) a git worktree of the
+    branch next to the repo, builds the project Docker image, starts Jupyter Lab
+    with `docker_jupyter.sh`, and opens the notebook in the browser
+  - Your current client is not touched
+  - Add `--dry_run` to see the commands first and `--no_build` to skip the
+    Docker build
+  - Stop Jupyter Lab with Ctrl+C and remove the worktree with
+    `git worktree remove <worktree_dir>`
+
+- To check how the docs of a PR look, open the Markdown files that need to be
+  visualized and whose links need to be clicked with `open_md.py`
+  ```bash
+  > open_md.py --branch
+  ```
+  - E.g., open one file
+    ```bash
+    > open_md.py \
+        --input research/Noesis/docs/04-plan.md
+    ```
+  - It renders each file to HTML with the diagrams drawn, and opens it in the
+    browser
+  - `--branch` selects the `.md` files modified with respect to the branch point
+    - Check out the PR branch first
+    - Use `--input <file>` or `--files "<file1> <file2>"` to choose the files
+  - Click the links to check that they reach the right file and section
+    - By default, a link with a repo-root path (e.g., `[prd](/docs/prd.md)`) opens
+      the local file
+    - Use `--link_type branch` to open the file on GitHub, on the current branch
+  - Use `--daemon` to re-render and reload the browser tabs on every save
+  - The script writes `tmp.*` files in the current dir
+    - Delete them when done, since they are untracked
+  - See `helpers_root/dev_scripts_helpers/documentation/open_md.README.md` for all
+    the options
+
   // Built in
   // - /code-review [low|medium|high|xhigh|max|ultra] [target] reviews the current diff, a PR number, a branch, or a path for correctness bugs. --comment posts inline PR comments. --fix applies the fixes. ultra runs a billed cloud multi-agent review.
   // - /security-review reviews the pending branch changes for security issues.
@@ -447,7 +522,7 @@
   - Content: problem, opportunity, why the project exists, findings from users
 - **`01-prd.md`**: PRD (Product Requirements Document)
   - Content: users, goals, success metrics, scope, non-goals, user stories
-  - Format: one H3 per requirement, `### R<N>. <Title>`
+  - Format: one H3 per requirement, `` ### `R<N>` (<Title>) ``
 - **`04-plan.md`**: roadmap
   - Content: versions and milestones over time
 
@@ -463,7 +538,7 @@
     wireframes, threat model
 - **`03-decisions.md`**: ADRs (Architecture Decision Records)
   - Content: context, decision, consequences
-  - Format: one H3 per decision, `### D<N>. <Decision title>`
+  - Format: one H3 per decision, `` ### `D<N>` (<Decision title>) ``
 
 ## Execution
 

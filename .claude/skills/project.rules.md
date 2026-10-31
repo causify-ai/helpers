@@ -176,12 +176,14 @@
   - **Good**:
     ``[`R3`](/research/Estimate_academic_paper_quality/docs/01-prd.md#r3-bibliographic-source)``
   - **Good**:
-    ``[D7](/research/Estimate_academic_paper_quality/docs/03-decisions.md#d7-the-pipeline-computes-the-base-name-with-a-public-helper)``
+    ``[`D7`](/research/Estimate_academic_paper_quality/docs/03-decisions.md#d7-the-pipeline-computes-the-base-name-with-a-public-helper)``
 - Build the anchor from the header text like GitHub does:
   - Lowercase the header
   - Drop every char that is not a letter, a digit, a space, `-`, or `_`
   - Replace each space with `-`
   - E.g., ``### `R3` (Bibliographic source)`` gives `#r3-bibliographic-source`
+  - E.g., ``### `D7` (The pipeline computes the base name with a public helper)``
+    gives `#d7-the-pipeline-computes-the-base-name-with-a-public-helper`
 - Write the link like any file link, see "Make File References Clickable"
   - Inside the doc that holds the header, use the bare anchor, e.g.,
     `#r3-bibliographic-source`
@@ -362,9 +364,14 @@
 
 - Record the choice in `03-decisions.md`, following the template
   `.claude/templates/project_decisions.template.md`
-- Write one `### D<N>. <Decision title>` per decision, so that other docs can link
-  it
-  - E.g., `### D7. The pipeline computes the base name with a public helper`
+- Write one
+  ```
+  ### `D<N>` (<Decision title>)
+  ```
+  per decision, so that other docs can link it
+  - Use the same style as a requirement in the PRD, see "Write a PRD (Product
+    Requirements Document)"
+  - E.g., ``### `D7` (The pipeline computes the base name with a public helper)``
 - The id is stable: never reuse it and never renumber it
 - Link a decision from the docs that follow it, see "Link Requirements and
   Decisions"
