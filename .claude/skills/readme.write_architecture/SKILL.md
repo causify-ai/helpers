@@ -53,8 +53,9 @@ model: sonnet
 - Use conventions summarized in 
   `docs/documentation_meta/all.architecture_diagrams.explanation.md`
 
-- Use Mermaid diagrams (` ```mermaid `) for all architecture diagrams
-- The C4 notation with Mermaid should follow the standard C4 layout:
+- Use PlantUML diagrams (` ```plantuml `) for all architecture diagrams, never
+  Mermaid, following `.claude/skills/C4.rules.md`
+- The C4 notation with PlantUML should follow the standard C4 layout:
   - `Person` for external users
   - `System` for external systems
   - `Container` for application containers/processes
@@ -92,5 +93,5 @@ model: sonnet
 
 - [ ] `<FILE>.README.md` exists and documents `<FILE>`'s architecture
 - [ ] The docstring in `<FILE>` references `<FILE>.README.md`
-- [ ] Diagrams use Mermaid syntax with the C4 element types
+- [ ] Diagrams use PlantUML syntax with the C4 element types
 - [ ] No architecture is invented that is not present in the code

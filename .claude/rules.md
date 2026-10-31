@@ -25,6 +25,8 @@ Based on the files that you need to operate, read and follow the corresponding r
   `.claude/skills/figure.rules.md`, specifically:
   - For Graphviz: you MUST follow the rules `.claude/skills/graphviz.rules.md` and
     the template `.claude/templates/graphviz.template.md`
+  - For a C4 diagram (Context, Container, Component, Code): you MUST follow
+    `.claude/skills/C4.rules.md`, which requires PlantUML and never Mermaid
   - For a publication-quality SVG figure: you MUST follow
     `.claude/skills/svg.rules.md`
   - For a publication-quality TikZ figure: you MUST follow
