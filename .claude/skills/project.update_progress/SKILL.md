@@ -48,7 +48,7 @@ model: sonnet
   to `<DOCS_DIR>/decisions.md`
   - Follow the template `.claude/templates/project_decisions.template.md`
 - Add a one-line pointer to the decision in the log entry
-  - Make the pointer a link to the `### D-<N>. <Decision title>` header in
+  - Make the pointer a link to the `### D<N>. <Decision title>` header in
     `decisions.md`, per `.claude/skills/project.rules.md` section "Link
     Requirements and Decisions"
 

@@ -130,11 +130,11 @@
 
 - Refer to a requirement or a decision with a link to its H3 header, never with a
   bare id
-  - **Bad**: `R3`, `D-7`
+  - **Bad**: `R3`, `D7`
   - **Good**:
     ``[`R3`](/research/Estimate_academic_paper_quality/docs/prd.md#r3-bibliographic-source)``
   - **Good**:
-    ``[D-7](/research/Estimate_academic_paper_quality/docs/decisions.md#d-7-the-pipeline-computes-the-base-name-with-a-public-helper)``
+    ``[D7](/research/Estimate_academic_paper_quality/docs/decisions.md#d7-the-pipeline-computes-the-base-name-with-a-public-helper)``
 - Build the anchor from the header text like GitHub does:
   - Lowercase the header
   - Drop every char that is not a letter, a digit, a space, `-`, or `_`
@@ -320,9 +320,9 @@
 
 - Record the choice in `decisions.md`, following the template
   `.claude/templates/project_decisions.template.md`
-- Write one `### D-<N>. <Decision title>` per decision, so that other docs can link
+- Write one `### D<N>. <Decision title>` per decision, so that other docs can link
   it
-  - E.g., `### D-7. The pipeline computes the base name with a public helper`
+  - E.g., `### D7. The pipeline computes the base name with a public helper`
 - The id is stable: never reuse it and never renumber it
 - Link a decision from the docs that follow it, see "Link Requirements and
   Decisions"

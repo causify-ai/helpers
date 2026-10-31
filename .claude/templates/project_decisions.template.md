@@ -2,7 +2,7 @@
 
 ## <Section>
 
-### D-1. <Decision title>
+### D1. <Decision title>
 
 - **Decision**: <what was chosen>
 - **Why**: <the reason, with evidence>

@@ -182,7 +182,7 @@
     Clickable"
 - Write every requirement and every decision as an H3, so that other docs link it
   - Requirement in `prd.md`: ``### `R3` (Bibliographic source)``
-  - Decision in `decisions.md`: `### D-7. <Decision title>`
+  - Decision in `decisions.md`: `### D7. <Decision title>`
   - Refer to it with a link to its header, never with a bare id
     - E.g., ``[`R3`](/research/Estimate_academic_paper_quality/docs/prd.md#r3-bibliographic-source)``
   - The ids are stable: never reuse them and never renumber them
@@ -268,7 +268,7 @@
   - E.g., `research/Noesis/docs/decisions.md`
   - The format is in `.claude/skills/project.rules.md` section "Decisions Log"
   - Copy the template `.claude/templates/project_decisions.template.md`
-  - Write each decision as its own H3 `### D-<N>. <Decision title>`, so that other
+  - Write each decision as its own H3 `### D<N>. <Decision title>`, so that other
     docs can link it
 - Link the decision from the design docs that follow it and from the description of
   the PR that implements it
