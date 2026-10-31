@@ -27,13 +27,13 @@ model: sonnet
 
 ## Update the Plan
 
-- Tick `[x]` the PR in the roadmap and in its entry in `<DOCS_DIR>/plan.md`
+- Tick `[x]` the PR in the roadmap and in its entry in `<DOCS_DIR>/04-plan.md`
 - For a partly done PR, write the status in its entry and do not tick it
 - If the scope or the order changed, edit the plan and log why in the progress log
 
 ## Update the Log
 
-- Add the entry to `<DOCS_DIR>/progress.md`, after the older ones
+- Add the entry to `<DOCS_DIR>/07-progress.md`, after the older ones
   - Use a History row, or one section per PR when a row is too short
   - Follow `.claude/skills/project.rules.md` section "Write the Log" and the template
     `.claude/templates/project_progress.template.md`
@@ -45,11 +45,11 @@ model: sonnet
 ## Record the Decisions
 
 - For each decision in the "Decisions" section of the PR description, add an entry
-  to `<DOCS_DIR>/decisions.md`
+  to `<DOCS_DIR>/03-decisions.md`
   - Follow the template `.claude/templates/project_decisions.template.md`
 - Add a one-line pointer to the decision in the log entry
   - Make the pointer a link to the `### D<N>. <Decision title>` header in
-    `decisions.md`, per `.claude/skills/project.rules.md` section "Link
+    `03-decisions.md`, per `.claude/skills/project.rules.md` section "Link
     Requirements and Decisions"
 
 ## Sync the Other Docs
@@ -58,7 +58,7 @@ model: sonnet
   to the Doc to Update"
 - Update the design doc of each module the PR changed
 - Update `<DOCS_DIR>/README.md` if a doc was added, renamed, or removed
-- Add new terms to `<DOCS_DIR>/glossary.md`, if the file exists
+- Add new terms to `<DOCS_DIR>/10-glossary.md`, if the file exists
 
 # Conventions
 
@@ -76,6 +76,6 @@ model: sonnet
 
 - [ ] Only merged PRs are ticked
 - [ ] The log entry has the PR link, the dates in UTC, and the testing evidence
-- [ ] Every decision of the PR is in `decisions.md`
+- [ ] Every decision of the PR is in `03-decisions.md`
 - [ ] `<DOCS_DIR>/README.md` lists every doc in the dir
 - [ ] No past row of the history was changed

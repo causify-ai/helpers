@@ -14,7 +14,7 @@
 - Name a file after its role, not after its project: the dir already names the
   project
   - **Bad**: `plan.noesis.md`
-  - **Good**: `plan.md`
+  - **Good**: `04-plan.md`
 - Keep all the files at the top level of `docs/`: no `plans/` or `specs/` subdirs
 - Put only raw data in a subdir, e.g., `findings/`
 
@@ -22,34 +22,72 @@
 
 - A project uses a few documents, each one answering one question:
 
-  | Document                | Question it answers                                 | Cluster    |
-  | :---------------------- | :-------------------------------------------------- | :--------- |
-  | `prd.md`                | What the product must do and must not do            | Specs      |
-  | `plan.md`               | What to build, in which order, who does it, by when | Plans      |
-  | `progress.md`           | What is done, learned, next                         | Plans      |
-  | `decisions.md`          | Why it is built this way                            | Specs      |
-  | `spec.<PR_ID>.md`       | How one complex PR is built                         | Specs      |
-  | `design.<component>.md` | How one component, or the whole code, is built      | Design     |
-  | `how_we_work.md`        | How the team works on it                            | Onboarding |
-  | `onboarding.md`         | How to set up, run, and test it                     | Onboarding |
-  | `glossary.md`           | What the terms used in the code and docs mean       | Onboarding |
+  | Slot   | Document                       | Question it answers                                 | Cluster    |
+  | :----- | :----------------------------- | :-------------------------------------------------- | :--------- |
+  | `01`   | `01-prd.md`                    | What the product must do and must not do            | Specs      |
+  | `02`   | `02-design.architecture.md`    | How the whole code is built                         | Design     |
+  | `02.N` | `02.<N>-design.<component>.md` | How one component is built                          | Design     |
+  | `03`   | `03-decisions.md`              | Why it is built this way                            | Specs      |
+  | `04`   | `04-plan.md`                   | What to build, in which order, who does it, by when | Plans      |
+  | `05`   | `05-tasks.md`                  | Which PRs the `auto_task` flow runs next            | Plans      |
+  | `06`   | `06-spec.<PR_ID>.md`           | How one complex PR is built                         | Specs      |
+  | `07`   | `07-progress.md`               | What is done, learned, next                         | Plans      |
+  | `08`   | `08-how_we_work.md`            | How the team works on it                            | Onboarding |
+  | `09`   | `09-onboarding.md`             | How to set up, run, and test it                     | Onboarding |
+  | `10`   | `10-glossary.md`               | What the terms used in the code and docs mean       | Onboarding |
 
-- Start with `plan.md`, `progress.md`, and `how_we_work.md`
+- Start with `04-plan.md`, `07-progress.md`, and `08-how_we_work.md`
   - Add the others only when needed
 - Point to another doc instead of repeating it
 
+## Name the Docs with a Slot Number
+
+- **Goal**: `ls docs/` lists the docs in the order a person reads them
+- Name a doc `<slot>-<role>.md`
+  - Use `-` between the slot and the role
+  - Use `.` inside the role, e.g., `design.architecture`
+  - Use `.` inside the slot to number a child of the slot, e.g.,
+    `02.1-design.gateway.md`
+- Use the slots of the table in "Use One Doc per Question": a slot is fixed per
+  kind of doc
+  - Every project uses the same number for the same kind of doc
+  - The slots follow the flow: PRD, design, decisions, plan, tasks, specs,
+    progress, onboarding
+- Skip the slot of a missing doc: do not shift the other docs
+  - E.g., a project with no plan has `03-decisions.md` and `07-progress.md`, and no
+    `04-plan.md`
+- Number the design docs of the components `02.1`, `02.2`, ... in the order of the
+  pipeline (the order in which the data flows through the system)
+  - Put an orchestrator or entry point first
+  - Put a shared component right after the first component that uses it
+  - Use two digits after the dot (`02.01`) when a project has more than nine
+    components
+  - When you add a component in the middle, renumber the later ones and fix the
+    links in the same PR, e.g., with `/git.move`
+- Tell apart the specs of the same slot by their PR id, e.g.,
+  `06-spec.PR_M10.md`
+- Do not number:
+  - `README.md`, the index of `docs/`
+  - `idea.md`, which sits in the root of the project, not in `docs/`
+  - Any doc that is not in the table, e.g., a marketing plan, a demo guide, a
+    notes file, or the files in `findings/`
+- Never change the slot of a kind of doc: every link to the doc breaks when its
+  number changes
+
 ## Group the Docs in Clusters
 
-- Use these clusters, in this order:
+- Use these clusters to describe the docs in `docs/README.md`:
   - **Onboarding**: what a newcomer reads first
-    - E.g., `how_we_work.md`, `onboarding.md`, `glossary.md`
+    - E.g., `08-how_we_work.md`, `09-onboarding.md`, `10-glossary.md`
   - **Design**: how the code is built
-    - E.g., `design.*.md`
+    - E.g., `02-design.architecture.md`, `02.<N>-design.<component>.md`
   - **Plans**: what to build and what is done
-    - E.g., `plan.md`, `progress.md`, other plans, e.g., a marketing plan
+    - E.g., `04-plan.md`, `07-progress.md`, other plans, e.g., a marketing plan
   - **Specs**: what each piece must do and why
-    - E.g., `prd.md`, `decisions.md`, `spec.<PR_ID>.md`
+    - E.g., `01-prd.md`, `03-decisions.md`, `06-spec.<PR_ID>.md`
   - **Notes**: working notes and open TODOs
+- The slot gives the order of the docs, not the cluster: list the docs in
+  `docs/README.md` in slot order, then the unnumbered docs
 
 ## Write an Index in docs/README.md
 
@@ -58,28 +96,31 @@
 - Structure of `docs/README.md`:
   - `# Docs`
     - What the docs cover
-    - Where to start, e.g., `onboarding.md`, then `design.architecture.md`
+    - Where to start, e.g., `09-onboarding.md`, then `02-design.architecture.md`
     - Where the component READMEs live
   - `## Structure of the Dir`
     - A table of the subdirs, e.g., `findings/`
-    - State that all the other docs sit at the top level, grouped by cluster
+    - State that all the other docs sit at the top level, and that their names start
+      with the slot number that gives the reading order
   - `## Description of Files`
     - One row per file, with a one-line description and its cluster
+    - List the numbered docs in slot order, then the unnumbered docs
 - Use this skeleton for the table of files:
   ```markdown
   ## Description of Files
 
-  | File                    | Description            | Cluster    |
-  | :---------------------- | :--------------------- | :--------- |
-  | `design.<component>.md` | <One-line description> | Design     |
-  | `onboarding.md`         | <One-line description> | Onboarding |
+  | File                           | Description            | Cluster    |
+  | :----------------------------- | :--------------------- | :--------- |
+  | `01-prd.md`                    | <One-line description> | Specs      |
+  | `02.<N>-design.<component>.md` | <One-line description> | Design     |
+  | `09-onboarding.md`             | <One-line description> | Onboarding |
   ```
 - Add a row when a doc is added and remove it when the doc is deleted, in the same PR
 - Write each doc with a title and a short goal
 
 ## Write the Onboarding Doc
 
-- Goal of `onboarding.md`: from zero to running the code and its tests, then a
+- Goal of `09-onboarding.md`: from zero to running the code and its tests, then a
   first task
 - Use numbered sections:
   - What the project is (5 minutes)
@@ -93,7 +134,7 @@
 
 ## Write the Glossary
 
-- Use one table in `glossary.md` with the columns `Term` and `Meaning`
+- Use one table in `10-glossary.md` with the columns `Term` and `Meaning`
 - Define the terms used in the code and docs in plain language
 
 ## Write a PRD (Product Requirements Document)
@@ -115,9 +156,10 @@
 
 ## Write a Design Doc
 
-- Name the doc `design.<component>.md`
-  - E.g., `design.gateway.md`, `design.checker.md`
-- Name the overview of the whole code `design.architecture.md`
+- Name the doc `02.<N>-design.<component>.md`, where `<N>` is the position of the
+  component in the pipeline, see "Name the Docs with a Slot Number"
+  - E.g., `02.1-design.gateway.md`, `02.2-design.checker.md`
+- Name the overview of the whole code `02-design.architecture.md`
 - Follow the template `.claude/templates/project_design.template.md`
 - Follow the layering and interface rules in `.claude/skills/architecture.rules.md`
 - Put the README of a component next to its code and point it to the design doc
@@ -132,9 +174,9 @@
   bare id
   - **Bad**: `R3`, `D7`
   - **Good**:
-    ``[`R3`](/research/Estimate_academic_paper_quality/docs/prd.md#r3-bibliographic-source)``
+    ``[`R3`](/research/Estimate_academic_paper_quality/docs/01-prd.md#r3-bibliographic-source)``
   - **Good**:
-    ``[D7](/research/Estimate_academic_paper_quality/docs/decisions.md#d7-the-pipeline-computes-the-base-name-with-a-public-helper)``
+    ``[D7](/research/Estimate_academic_paper_quality/docs/03-decisions.md#d7-the-pipeline-computes-the-base-name-with-a-public-helper)``
 - Build the anchor from the header text like GitHub does:
   - Lowercase the header
   - Drop every char that is not a letter, a digit, a space, `-`, or `_`
@@ -153,12 +195,12 @@
 ## Make File References Clickable
 
 - Write every reference to a file in a project doc as a link, not as plain code
-  - E.g., a path like `research/Estimate_academic_paper_quality/docs/design.architecture.md`
-  - E.g., a requirement reference like ``[`R3`](/docs/prd.md#r3-bibliographic-source)``:
+  - E.g., a path like `research/Estimate_academic_paper_quality/docs/02-design.architecture.md`
+  - E.g., a requirement reference like ``[`R3`](/docs/01-prd.md#r3-bibliographic-source)``:
     link it to its header in the PRD, see "Link Requirements and Decisions"
 - Pick the link type with the switch `--link_type`, with the values:
   - `local`: a repo-root link to the file in the working tree (default)
-    - E.g., ``[`docs/prd.md`](/docs/prd.md)``
+    - E.g., ``[`docs/01-prd.md`](/docs/01-prd.md)``
   - `branch`: a GitHub URL to the file on the current branch
     - Get the URL with `to_github.py --input <path>`
   - `master`: a GitHub URL to the file on `master`
@@ -180,12 +222,12 @@
 
 ## Write a Spec for a Complex PR
 
-- Write a spec `spec.<PR_ID>.md` for a complex PR instead of growing its plan entry
+- Write a spec `06-spec.<PR_ID>.md` for a complex PR instead of growing its plan entry
 - Follow the template `.claude/templates/specs.template.md`
 
 ## Write the Meta-Doc
 
-- Name the doc `how_we_work.md`: a new student or RA reads one file and knows how
+- Name the doc `08-how_we_work.md`: a new student or RA reads one file and knows how
   the team works on the project
   - Test: after reading it, the newcomer can deliver work of the same quality as
     the current contributors
@@ -199,7 +241,7 @@
 
 ## Keep One Plan
 
-- Use `plan.md` as both the roadmap and the execution plan
+- Use `04-plan.md` as both the roadmap and the execution plan
   - The roadmap says what to build and in which order
   - The execution part splits the PRs of the next version into smaller tasks with
     owners, dates, and acceptance criteria
@@ -243,9 +285,9 @@
 - The id is stable: never reuse it and never renumber it
 - List the PRs in roadmap order, not in id order
 - Use the plan id in the files derived from the plan
-  - **Spec**: `spec.PR_M10.md`
+  - **Spec**: `06-spec.PR_M10.md`
   - **Task list**: label the PR block `PR_M10`, not `PR1`, when the task list comes
-    from `plan.md`
+    from `04-plan.md`
 
 ## Format a PR Entry
 
@@ -272,7 +314,7 @@
 
 ## Structure the Log File
 
-- Name the file `progress.md` and keep it next to the plan
+- Name the file `07-progress.md` and keep it next to the plan
 - Follow the template `.claude/templates/project_progress.template.md`
 - Sections, in order:
   - `## Status`: one row per milestone with target date and status, linking the PR
@@ -293,7 +335,7 @@
   - Findings, including negative results
   - Decisions
   - Work that was cancelled, and why
-- Log facts, not plans: plans live in `plan.md`
+- Log facts, not plans: plans live in `04-plan.md`
 - Give each finding its evidence: what was measured, where, and the number with
   its unit
 - Record each experiment so that others can reproduce it:
@@ -318,7 +360,7 @@
 
 ## Record Every Non-Obvious Choice
 
-- Record the choice in `decisions.md`, following the template
+- Record the choice in `03-decisions.md`, following the template
   `.claude/templates/project_decisions.template.md`
 - Write one `### D<N>. <Decision title>` per decision, so that other docs can link
   it
@@ -335,14 +377,14 @@
 ## Map Each Event to the Doc to Update
 
 - Change a module: update its design doc, or the README of its component
-- Make a decision: add it to `decisions.md`
-- Finish a task: tick it in `plan.md` and add a row to the history of `progress.md`
+- Make a decision: add it to `03-decisions.md`
+- Finish a task: tick it in `04-plan.md` and add a row to the history of `07-progress.md`
 - Change the scope or the order of the work: edit the plan and log why
-- Change the way the team works: edit `how_we_work.md`
+- Change the way the team works: edit `08-how_we_work.md`
 - Add, rename, or remove a doc: update the table in `docs/README.md` and the docs
   that point to it
-- Add a term used in the code or docs: add it to `glossary.md`
-- Change the setup or the way to run the code: edit `onboarding.md`
+- Add a term used in the code or docs: add it to `10-glossary.md`
+- Change the setup or the way to run the code: edit `09-onboarding.md`
 
 # PR Description
 
@@ -350,5 +392,5 @@
 
 - Write the description of every PR following the template
   `.claude/templates/github_PR_description.template.md`
-- Link each non-obvious choice to its entry in `decisions.md`
+- Link each non-obvious choice to its entry in `03-decisions.md`
 - Link the plan or spec section that the PR closes

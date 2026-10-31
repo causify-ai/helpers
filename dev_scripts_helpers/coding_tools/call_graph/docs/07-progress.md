@@ -1,7 +1,7 @@
 # Call Graph Viewer: Progress
 
 - What is done, what we learned, what is next
-- Roadmap: `plan.md`; decisions: `decisions.md`
+- Roadmap: `04-plan.md`; decisions: `03-decisions.md`
 
 ## Status
 
@@ -56,13 +56,13 @@
 
 1. File the GitHub issues for the `v1` PRs and cut the working tree into them with
    `/github.split_branch_in_PRs`, in the order of the roadmap
-2. Review `decisions.md` D4 to D6, which are proposed
+2. Review `03-decisions.md` D4 to D6, which are proposed
 3. Start `v1.1` with `PR_E4` (cache) and `PR_R2` (smaller page)
 
 ## History
 
 | Date       | Done                                                                                                                                                       |
 | :--------- | :--------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 2026-10-21 | Libraries proposed and chosen: static HTML for `v1` and a server for `v2`, `jedi` only, vendored JavaScript (`decisions.md` D1 to D3)                    |
+| 2026-10-21 | Libraries proposed and chosen: static HTML for `v1` and a server for `v2`, `jedi` only, vendored JavaScript (`03-decisions.md` D1 to D3)                    |
 | 2026-10-21 | `v1` implemented in the working tree: extractor, renderer, viewer, command line, 27 tests, component README; measured `helpers/`; fixed the JSON escaping |
 | 2026-10-21 | Wrote the plan following `docs/planning/all.plan_work.how_to_guide.md`                                                                                      |

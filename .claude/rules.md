@@ -69,8 +69,14 @@ Based on the files that you need to operate, read and follow the corresponding r
 
 ## Project Docs
 
-- For the docs of a project (`docs/prd.md`, `docs/design.*.md`, `docs/plan.md`,
-  `docs/progress.md`, `docs/decisions.md`, `docs/how_we_work.md`, `docs/README.md`)
+- For the docs of a project
+  - `docs/01-prd.md`
+  - `docs/02*-design.*.md`
+  - `docs/03-decisions.md`
+  - `docs/04-plan.md`
+  - `docs/07-progress.md`
+  - `docs/08-how_we_work.md`
+  - `docs/README.md`
   you MUST follow:
   - The rules `.claude/skills/project.rules.md`
   - For a PRD: the template `.claude/templates/project_prd.template.md`

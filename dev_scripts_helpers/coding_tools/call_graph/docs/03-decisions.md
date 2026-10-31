@@ -3,7 +3,7 @@
 - Every non-obvious choice, why it was made, and what else was considered. Newest
   at the bottom of each section
 - Each PR adds its decisions here and links them in its description
-- Roadmap: `plan.md`
+- Roadmap: `04-plan.md`
 
 ## Delivery
 
@@ -24,7 +24,7 @@
   `jedi.Script.goto()`; `ast` finds the definitions and the positions
 - **Why**: `jedi` infers the types, so `self.foo()`, an aliased import such as
   `hdbg.dassert()`, and a call on a local variable (`d.speak()`) resolve; it is
-  in the Docker image. The cost is 47 s for 150 files (`progress.md`, finding 1)
+  in the Docker image. The cost is 47 s for 150 files (`07-progress.md`, finding 1)
 - **Alternatives**: `ast` plus an import-alias map (fast, imprecise, was the first
   proposal); `pyan3` (not in the image, little maintained)
 - **Status**: accepted by GP on 2026-10-21

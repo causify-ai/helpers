@@ -5,13 +5,13 @@ model: opus
 
 # Goal
 
-- Given the PRD and the design docs, write `docs/plan.md`: what to build, in which
+- Given the PRD and the design docs, write `docs/04-plan.md`: what to build, in which
   order, as versions and PRs
 - Do not implement code and do not create GitHub issues
 
 ## Input
 
-- `<DESIGN>`: the design overview, e.g., `docs/design.architecture.md`
+- `<DESIGN>`: the design overview, e.g., `docs/02-design.architecture.md`
 - `<DOCS_DIR>`: the `docs/` dir of the project, optional
   - If missing, use the dir of `<DESIGN>`
 
@@ -19,8 +19,8 @@ model: opus
 
 ## Read the Inputs
 
-- Read `<DESIGN>`, the other `design.*.md` files, and `<DOCS_DIR>/prd.md`
-- Read the existing `<DOCS_DIR>/plan.md`, if any, and extend it instead of replacing
+- Read `<DESIGN>`, the other `02*-design.*.md` files, and `<DOCS_DIR>/01-prd.md`
+- Read the existing `<DOCS_DIR>/04-plan.md`, if any, and extend it instead of replacing
   it
 
 ## Ask If the Design Is Unclear
@@ -48,12 +48,12 @@ model: opus
 
 ## Write the Plan File
 
-- Create `<DOCS_DIR>/plan.md`
+- Create `<DOCS_DIR>/04-plan.md`
 - Follow the rules in `.claude/skills/project.rules.md` section "Plan File"
 - Follow the template `.claude/templates/project_plan.template.md`
 - Follow `.claude/skills/markdown.rules.md` and `.claude/skills/text.rules.md`
 - Add the execution part only if the user says that several people work in parallel
-- If `<DOCS_DIR>/progress.md` does not exist, create it from the template
+- If `<DOCS_DIR>/07-progress.md` does not exist, create it from the template
   `.claude/templates/project_progress.template.md`
 
 ## Update the Index

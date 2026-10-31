@@ -81,8 +81,8 @@
   graph LR
     A["Idea"] --> B["PRD"]
     B --> C["Design"]
-    C --> D["plan.md"]
-    D --> E["tasks.md and specs"]
+    C --> D["04-plan.md"]
+    D --> E["05-tasks.md and 06-spec"]
     E --> F{"Execution mode"}
     F -->|tight loop| G["Interactive"]
     F -->|batch| H["Stacked PRs"]
@@ -100,9 +100,12 @@
 - All the docs of a project live in the `docs/` dir of the project
 - The doc set, what each doc answers, and its cluster are defined in
   `.claude/skills/project.rules.md` section _"Use One Doc per Question"_
-- Start with `plan.md`, `progress.md`, and `how_we_work.md`
+- Start with `04-plan.md`, `07-progress.md`, and `08-how_we_work.md`
   - Add the others only when needed
-- `plan.md` is both the roadmap and the execution plan
+- Prefix the name of each doc with the number of its slot, so that `ls docs/` lists
+  the docs in reading order, see
+  [Name the Docs with a Slot Number](#name-the-docs-with-a-slot-number)
+- `04-plan.md` is both the roadmap and the execution plan
   - Do not keep a separate execution-plan file: two plans drift apart
 - Write a spec for a complex PR instead of growing its entry
   - Follow the template `.claude/templates/specs.template.md`
@@ -119,19 +122,19 @@
 - Write the onboarding doc, the glossary, and the design docs as described in
   `.claude/skills/project.rules.md` section "Project Docs"
 - Create a C4 diagram of the system following `.claude/skills/C4.rules.md`
-  - E.g., `research/Estimate_academic_paper_quality/docs/design.architecture.md`
+  - E.g., `research/Estimate_academic_paper_quality/docs/02-design.architecture.md`
 - Make every reference to a file in a doc clickable
-  - E.g., a path like `research/Estimate_academic_paper_quality/docs/prd.md`
+  - E.g., a path like `research/Estimate_academic_paper_quality/docs/01-prd.md`
   - Follow `.claude/skills/project.rules.md` section "Make File References
     Clickable"
 
 - Write every requirement and every decision as an H3, so that other docs link it
-  - Requirement in `prd.md`: `### R3. (Bibliographic source)`
-  - Decision in `decisions.md`: `### D7. <Decision title>`
+  - Requirement in `01-prd.md`: `### R3. (Bibliographic source)`
+  - Decision in `03-decisions.md`: `### D7. <Decision title>`
   - Refer to it with a link to its header, never with a bare id
     - E.g.,
       ```
-      `[`R3`](/research/Estimate_academic_paper_quality/docs/prd.md#r3-bibliographic-source)
+      `[`R3`](/research/Estimate_academic_paper_quality/docs/01-prd.md#r3-bibliographic-source)
       ```
   - The ids are stable: never reuse them and never renumber them
   - Follow `.claude/skills/project.rules.md` section "Link Requirements and
@@ -169,8 +172,8 @@
 
 - **Goal**: one canonical file that says what to build and in which order, so that
   anyone (human or agent) can pick the next PR without asking
-- Create the file `plan.md` in the `docs/` dir of the project
-  - E.g., `research/Noesis/docs/plan.md`
+- Create the file `04-plan.md` in the `docs/` dir of the project
+  - E.g., `research/Noesis/docs/04-plan.md`
   - Draft it with `/project.create_plan`
 - Steps to create it:
   1. Write the problem and the goal, and point to the background (paper, PRD,
@@ -201,8 +204,8 @@
 
 - **Goal**: one file that records everything done, including decisions
   - A new person sees what happened and why without asking
-- Create the file `progress.md` next to the plan
-  - E.g., `research/Noesis/docs/progress.md`
+- Create the file `07-progress.md` next to the plan
+  - E.g., `research/Noesis/docs/07-progress.md`
   - Copy the template `.claude/templates/project_progress.template.md`
   - The structure and the rules of the log are in `.claude/skills/project.rules.md`
     section "Progress Log"
@@ -212,8 +215,8 @@
 
 ### Record Decisions
 
-- Record every non-obvious choice in `decisions.md`
-  - E.g., `research/Noesis/docs/decisions.md`
+- Record every non-obvious choice in `03-decisions.md`
+  - E.g., `research/Noesis/docs/03-decisions.md`
   - The format is in `.claude/skills/project.rules.md` section "Decisions Log"
   - Copy the template `.claude/templates/project_decisions.template.md`
   - Write each decision as its own H3 `### D<N>. <Decision title>`, so that other
@@ -239,8 +242,8 @@
 - Goal: a new team member reads one file and knows how we work on the project
 - Test: after reading it, the newcomer can deliver work of the same quality as the
   current contributors
-- Create a file `how_we_work.md` in the `docs/` dir of the project
-  - E.g., `research/Noesis/docs/how_we_work.md`
+- Create a file `08-how_we_work.md` in the `docs/` dir of the project
+  - E.g., `research/Noesis/docs/08-how_we_work.md`
   - Copy the template `.claude/templates/project_how_we_work.template.md`
   - The rules are in `.claude/skills/project.rules.md` section "Write the Meta-Doc"
 
@@ -262,12 +265,12 @@
   or in the contribution guide of the repo
 
 # Examples
-- The `Noesis` project in the `umd_classes` repo follows the 
+- The `Noesis` project in the `umd_classes` repo follows this process
   - `research/Noesis/docs/README.md`: index of all the docs of the project
-  - `research/Noesis/docs/plan.md`: end-to-end plan
-  - `research/Noesis/docs/progress.md`: log of what was done
-  - `research/Noesis/docs/decisions.md`: log of why it is built this way
-  - `research/Noesis/docs/how_we_work.md`: what `Noesis` adds to this process
+  - `research/Noesis/docs/04-plan.md`: end-to-end plan
+  - `research/Noesis/docs/07-progress.md`: log of what was done
+  - `research/Noesis/docs/03-decisions.md`: log of why it is built this way
+  - `research/Noesis/docs/08-how_we_work.md`: what `Noesis` adds to this process
 
 - The list of the projects following this approach is
   `docs/planning/project_list.md`
@@ -281,9 +284,9 @@
   ```text
   claude> /research_idea.format <project>/idea.md
   claude> /project.write_prd <project>/idea.md
-  claude> /text.criticize <project>/docs/prd.md
-  claude> /architecture.write_design <project>/docs/prd.md
-  claude> /text.criticize <project>/docs/design.architecture.md
+  claude> /text.criticize <project>/docs/01-prd.md
+  claude> /architecture.write_design <project>/docs/01-prd.md
+  claude> /text.criticize <project>/docs/02-design.architecture.md
   ```
 - **Gates**:
   - Pick the idea
@@ -295,14 +298,14 @@
 - **Goal**: decide in which order to build it
 - **Commands**:
   ```text
-  claude> /project.create_plan <project>/docs/design.architecture.md
-  claude> /auto_task.criticize <project>/docs/plan.md
-  claude> /auto_task.create_plan_for_feature <project>/docs/plan.md PR_A1
-  claude> /auto_task.criticize tasks.md
+  claude> /project.create_plan <project>/docs/02-design.architecture.md
+  claude> /auto_task.criticize <project>/docs/04-plan.md
+  claude> /auto_task.create_plan_for_feature <project>/docs/04-plan.md PR_A1
+  claude> /auto_task.criticize <project>/docs/05-tasks.md
   ```
 - **Gates**:
-  - Teammate OK on `plan.md`
-  - Confirm the plan in `tasks.md` and the specs
+  - Teammate OK on `04-plan.md`
+  - Confirm the plan in `05-tasks.md` and the specs
 
 ## Build
 
@@ -310,9 +313,9 @@
 - **Commands**:
   ```text
   # Choose one execution mode.
-  claude> /auto_task.execute_interactively tasks.md
-  claude> /auto_task.execute_with_stacked_prs tasks.md
-  claude> /auto_task.execute_remotely_with_single_pr tasks.md
+  claude> /auto_task.execute_interactively <project>/docs/05-tasks.md
+  claude> /auto_task.execute_with_stacked_prs <project>/docs/05-tasks.md
+  claude> /auto_task.execute_remotely_with_single_pr <project>/docs/05-tasks.md
   ```
 - Rules for the flow:
   - Commit between two skills, so that each skill gives a separate diff to review
@@ -363,7 +366,7 @@
   ```text
   claude> /project.update_progress PR_A1
   ```
-- **Gates**: check the log in `plan.md`, `progress.md`, and `decisions.md`
+- **Gates**: check the log in `04-plan.md`, `07-progress.md`, and `03-decisions.md`
 
 ## Review and Merge
 // TODO(ai_gp): We need a workflow to review the PR
@@ -388,39 +391,111 @@
 
 # Software Project Documents
 
+- **Goal**: map each generic document of a software project to the file that stores
+  it
+  - Paths are relative to the `docs/` dir of the project, unless stated otherwise
+  - Start with `04-plan.md`, `07-progress.md`, and `08-how_we_work.md`
+    - Add the other files only when needed
+  - Clusters and formats: `.claude/skills/project.rules.md`
+
+// TODO(ai_gp): Make a mermaid graph
+- Flow of the files:
+  ```text
+  idea.md -> 01-prd.md -> 02-design.architecture.md -> 02.<N>-design.<component>.md
+                                                                  |
+          06-spec.<PR_ID>.md <- 05-tasks.md <- 04-plan.md <-------+
+                  |
+                  +--> PR merged --> 07-progress.md, 03-decisions.md
+  ```
+
+## Name the Docs with a Slot Number
+
+- **Goal**: `ls docs/` lists the docs in the order a person reads them
+- Name a doc `<slot>-<role>.md`
+  - `-` splits the slot from the role
+  - `.` inside the role splits its parts, e.g., `design.architecture`
+  - `.` inside the slot marks a child of the slot doc, e.g., `02.1-design.gateway.md`
+- A kind of doc has the same slot in every project:
+
+  | Slot   | File                           |
+  | :----- | :----------------------------- |
+  | `01`   | `01-prd.md`                    |
+  | `02`   | `02-design.architecture.md`    |
+  | `02.N` | `02.<N>-design.<component>.md` |
+  | `03`   | `03-decisions.md`              |
+  | `04`   | `04-plan.md`                   |
+  | `05`   | `05-tasks.md`                  |
+  | `06`   | `06-spec.<PR_ID>.md`           |
+  | `07`   | `07-progress.md`               |
+  | `08`   | `08-how_we_work.md`            |
+  | `09`   | `09-onboarding.md`             |
+  | `10`   | `10-glossary.md`               |
+
+- Skip the slot of a missing doc: do not shift the other docs
+  - E.g., a project with no plan has `03-decisions.md` and `07-progress.md`
+- Number the component designs `02.1`, `02.2`, ... in pipeline order
+  - Pipeline order is the order in which the data flows through the system
+- Do not number `README.md`, `idea.md`, or a doc that is not in the table
+  - E.g., a marketing plan, a demo guide, or the files in `findings/`
+- The full rules are in `.claude/skills/project.rules.md` section "Name the Docs with
+  a Slot Number"
+
 ## Product
 
-- **Vision / One-Pager**:
-  - A short pitch: the problem, the opportunity and why the project should exist
-  - Findings from users: pain points, needs and target user profiles
-- **PRD (Product Requirements Document)**:
-  - What to build and why
-  - users, goals, success metrics, scope, non-goals and user stories.
-- **Roadmap**: Milestones and phases over time.
+- **`idea.md`**: vision / one-pager
+  - Location: `<project>/idea.md`, not in `docs/`
+  - Content: problem, opportunity, why the project exists, findings from users
+- **`01-prd.md`**: PRD (Product Requirements Document)
+  - Content: users, goals, success metrics, scope, non-goals, user stories
+  - Format: one H3 per requirement, `### R<N>. <Title>`
+- **`04-plan.md`**: roadmap
+  - Content: versions and milestones over time
 
 ## Design
 
-- **Technical Spec / Design Doc (RFC)**: How it will be built: architecture, components, data flow, alternatives and risks.
-- **ADRs (Architecture Decision Records)**: One short record per key decision: context, decision and consequences.
-- **API Spec**: Endpoint contracts, request and response formats, and error codes.
-- **Data Model / Schema Doc**: Entities, relationships, fields and migration notes.
-- **UX/UI Designs**: Wireframes, mockups and user flows.
-- **Security & Privacy Review**: Threat model, data handling, auth and compliance concerns.
+- **`02-design.architecture.md`**: technical spec / design doc (RFC) of the whole
+  system
+  - Content: architecture, components, data flow, alternatives, risks
+  - Add a C4 diagram, see `.claude/skills/C4.rules.md`
+- **`02.<N>-design.<component>.md`**: one doc per component
+  - E.g., API spec, data model / schema, UX/UI designs, security and privacy review
+  - Content depends on the component: endpoint contracts, entities and migrations,
+    wireframes, threat model
+- **`03-decisions.md`**: ADRs (Architecture Decision Records)
+  - Content: context, decision, consequences
+  - Format: one H3 per decision, `### D<N>. <Decision title>`
 
 ## Execution
 
-- **Implementation Plan**: Work broken into ordered, testable tasks with owners.
-- **Progress Log**: A dated record of what was done, decisions made, blockers and next steps.
-- **Test Plan**: Testing strategy, test cases and acceptance criteria.
-- **Risk & Issue Log**: Known risks and issues, their impact, mitigations and owners.
+- **`04-plan.md`**: implementation plan
+  - Content: ordered, testable PR entries with dependencies and complexity
+- **`05-tasks.md`**: queue of PRs for `auto_task`
+  - Written by `/auto_task.create_plan_for_feature` from `04-plan.md`
+- **`06-spec.<PR_ID>.md`**: spec of one complex PR
+  - Content: design, unit test plan, risks and limitations
+  - The test plan and the risks of a PR live here: no separate file
+- **`07-progress.md`**: progress log
+  - Content: dated record of what was done, decisions made, blockers, next steps
+- **GitHub issues**: owners, blockers, known issues
+  - See
+    [`docs/work_organization/all.use_github.how_to_guide.md`](/docs/work_organization/all.use_github.how_to_guide.md)
 
-## Shipping & Operations
+## Onboarding and Index
 
-- **README**: What the project is and how to install, run and contribute.
-- **Changelog / Release Notes**: User-facing changes in each version.
-- **Deployment Guide**: Environments, configuration, CI/CD and secrets handling.
-- **Runbook**: How to operate, monitor and fix common production problems.
-- **Postmortem**: Incident summary, root cause, impact and follow-up actions.
+- **`README.md`** (project root): what the project is, how to install, run, and
+  contribute
+- **`docs/README.md`**: index of all the docs, one row per file
+- **`08-how_we_work.md`**: how the team works on the project
+- **`09-onboarding.md`**: setup, run the tests, run the code, first task
+- **`10-glossary.md`**: meaning of the terms used in the code and docs
+
+## Shipping and Operations
+
+- **No standard file yet**: add a doc when the project needs it
+  - Changelog / release notes: user-facing changes in each version
+  - Deployment guide: environments, configuration, CI/CD, secrets handling
+  - Runbook: how to operate, monitor, and fix common production problems
+  - Postmortem: incident summary, root cause, impact, follow-up actions
 
 # Resources
 

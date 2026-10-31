@@ -191,8 +191,8 @@ DIR --ast--> symbols + references --jedi--> edges --networkx--> prune
 
 ## Plan
 
-- The roadmap is in `call_graph/docs/plan.md`, the decisions in
-  `call_graph/docs/decisions.md`, and the status in `call_graph/docs/progress.md`
+- The roadmap is in `call_graph/docs/04-plan.md`, the decisions in
+  `call_graph/docs/03-decisions.md`, and the status in `call_graph/docs/07-progress.md`
 - `v2` adds a local server (`--serve`) that serves the graph and the code on
   demand and reloads the page when a file changes
   - The browser code reads the code of a file only through `source.getFile()` in
