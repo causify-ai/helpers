@@ -59,12 +59,12 @@ Conventions for writing a README for a single executable / script.
   ```markdown
   - Basic usage with defaults:
     ```bash
-    > python process_logs.py --input app.log
+    > process_logs.py --input app.log
     ```
 
   - Filter for recent events and save to custom location:
     ```bash
-    > python process_logs.py \
+    > process_logs.py \
         --input app.log \
         --output summary.parquet \
         --days 3
@@ -72,7 +72,7 @@ Conventions for writing a README for a single executable / script.
 
   - Enable debug output and process multiple files:
     ```bash
-    > python process_logs.py \
+    > process_logs.py \
         --input logs/*.log \
         --output combined_summary.parquet \
         --days 7 \

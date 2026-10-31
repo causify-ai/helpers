@@ -1,80 +1,10 @@
 #!/usr/bin/env python
 
 """
-Render and open markdown files in different modes.
+Render markdown files and open them in the browser or in the PDF viewer.
 
-**Modes** (rendering engine):
-- github: Open file on GitHub in browser
-- pandoc: Convert markdown to HTML with pandoc
-- pdf: Convert markdown to PDF with pandoc (via a LaTeX engine)
-- grip: Export markdown to HTML with grip
-- grip_daemon: Start grip daemon for live preview
-
-**Backends** (execution environment):
-- global: Use locally installed tools
-- dockerized: Use tools in Docker container
-
-# Usage Example
-
-- Open a file on GitHub in the browser:
-> open_md.py --input xyz.md --mode github
-
-- Convert the file to HTML with pandoc using locally installed tools
-  (pandoc is the default mode, and the output is automatically styled to
-  look like GitHub's rendering: bigger font, yellowish verbatim, wider
-  layout):
-> open_md.py --input xyz.md --backend global
-
-- Same, with a custom CSS/HTML header-include instead of the bundled
-  GitHub-like style:
-> open_md.py --input xyz.md --backend global --css my_style.html
-
-- Convert the file to PDF with pandoc (requires a LaTeX install, e.g.,
-  xelatex, on the `global` backend):
-> open_md.py --input xyz.md --mode pdf
-
-- Export the file to HTML with grip using locally installed tools:
-> open_md.py --input xyz.md --mode grip --backend global
-
-- Start a grip daemon for live preview using locally installed tools:
-> open_md.py --input xyz.md --mode grip_daemon --backend global
-
-- Choose how to encode the links to files with a repo-root path, e.g.,
-  `[prd](/docs/prd.md)` (the source file is not changed, only the rendered copy):
-  - `local`: `file://` URL to the file in the working tree (default)
-  - `branch`: GitHub URL to the file on the current branch
-  - `master`: GitHub URL to the file on the `master` branch
-> open_md.py --input xyz.md --link_type branch
-
-- Add a table of contents (TOC) built by pandoc to the output, so that its links
-  match the anchors of the headings in the rendered page:
-  - A TOC of depth 2 is added by default in `pandoc` and `pdf` modes, unless the
-    file already has a TOC (a `<!-- toc -->` marker)
-  - `--toc` always adds it, `--no_toc` never adds it
-> open_md.py --input xyz.md --toc --toc_depth 3
-> open_md.py --input xyz.md --no_toc
-
-- Render several files (space-separated list in a single argument, or a file
-  with one path per line), one output per file:
-> open_md.py --files "a.md b.md c.md"
-> open_md.py --from_file files.txt
-
-- Render the Markdown files modified in the client / in the branch:
-> open_md.py --modified
-> open_md.py --branch
-
-- Watch the file(s) and re-render (pandoc, pdf, or grip mode) every time one of
-  them changes, opening the output on the first run only:
-> open_md.py --input xyz.md --daemon
-> open_md.py --from_file files.txt --daemon
-
-- In `--daemon` mode the HTML outputs (pandoc and grip) reload themselves in the
-  already open browser tab when re-rendered, instead of opening a new tab
-  - The page polls a `tmp.<name>.build.js` file written next to it, so it works
-    on `file://` URLs without a server
-  - The PDF output relies on the PDF viewer to reload the file
-  - Changes to images, to the `--css` file, or to the list of files do not
-    trigger a re-render
+For a description of this file, see:
+`helpers_root/dev_scripts_helpers/documentation/open_md.README.md`
 """
 
 import argparse

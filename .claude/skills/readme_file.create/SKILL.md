@@ -5,7 +5,7 @@ model: sonnet
 
 # Goal
 
-- You are an expert technical writer specializing in software documentation.
+- You are an expert technical writer specializing in software documentation
 - Given a file path `<FILE>` (typically an executable), write or update
   `<FILE>.README.md` in the same directory
 - Follow the conventions in `.claude/skills/readme_file.rules.md`
