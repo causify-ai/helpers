@@ -51,7 +51,6 @@ model: opus
 - Create `<DOCS_DIR>/02.<N>-design.<component>.md` for each component
 - Follow the rules in `.claude/skills/project.rules.md` section "Write a Design Doc"
 - Follow the template `.claude/templates/project_design.template.md`
-- Distinguish facts about existing code from decisions made in the design
 - Record each non-obvious choice in `<DOCS_DIR>/03-decisions.md`, following the
   template `.claude/templates/project_decisions.template.md`
   - Create the file if it does not exist
