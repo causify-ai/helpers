@@ -180,8 +180,9 @@ def _parser() -> argparse.ArgumentParser:
         help=(
             "After processing, run `pandoc` on the text before and after and "
             "fail if the content differs (e.g., lost words, tables, or code), "
-            "ignoring line wrapping, letter case, and `.`, `:`, `—`. Only for "
-            "`md` and `smd` files"
+            "ignoring line wrapping, letter case, `.`, `:`, `—`, ordered "
+            "list delimiters, and paragraph breaks. Only for `md` and `smd` "
+            "files"
         ),
     )
     dshdlipa.add_pandoc_backend_arg(parser)

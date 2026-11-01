@@ -87,6 +87,42 @@ def _add_blank_line_before_smd_comment_placeholder(
     return lines_new
 
 
+# Delimiter row of a pipe table, e.g., `| --- | :-: |`.
+_TABLE_DELIMITER_ROW_RE = re.compile(r"^\s*\|[\s:|-]*-[\s:|-]*$")
+
+
+def _add_blank_line_before_tables(lines: List[str]) -> List[str]:
+    """
+    Add a blank line before a pipe table that directly follows a text line.
+
+    `beautify` does not see a table that has no blank line before it, e.g., a
+    table right under the text of a bullet, and reflows its rows into the
+    paragraph above, destroying the table.
+
+    A table is a line starting with a pipe followed by a delimiter row
+    (e.g., `| --- | --- |`).
+
+    :param lines: The lines to be processed.
+    :return: The lines with a blank line before each such table.
+    """
+    _LOG.debug("lines=%s", lines)
+    lines_new: List[str] = []
+    for i, line in enumerate(lines):
+        is_table_start = (
+            i > 0
+            and i + 1 < len(lines)
+            and _is_md_table_line(line)
+            and bool(_TABLE_DELIMITER_ROW_RE.match(lines[i + 1]))
+            and lines[i - 1].strip() != ""
+            and not _is_md_table_line(lines[i - 1])
+        )
+        if is_table_start:
+            lines_new.append("")
+        lines_new.append(line)
+    hdbg.dassert_isinstance(lines_new, list)
+    return lines_new
+
+
 def _preprocess_txt(
     lines: List[str], extension: str
 ) -> Tuple[List[str], Dict[str, Any]]:
@@ -102,6 +138,8 @@ def _preprocess_txt(
     - For `.smd` files, add a blank line before a `//`-comment placeholder
       run that directly follows content, working around a `beautify`
       reflow bug (see `_add_blank_line_before_smd_comment_placeholder()`)
+    - For `.md` and `.smd` files, add a blank line before a pipe table that
+      directly follows text (see `_add_blank_line_before_tables()`)
     - Handle stars `*` from txt files
     - Remove various artifacts (e.g., from Google Docs)
     - Format math equations
@@ -120,6 +158,9 @@ def _preprocess_txt(
         # that's immediately followed (no blank line) by a `//`-comment
         # placeholder; see the function's docstring for why.
         lines = _add_blank_line_before_smd_comment_placeholder(lines)
+    if extension in ["md", "smd"]:
+        # Make sure `beautify` sees a table that is glued to the text above.
+        lines = _add_blank_line_before_tables(lines)
     # 1) Remove some artifacts when copying from Google Docs.
     # TODO(gp): Extract this into remove_google_docs_artifacts() since it is
     # used in other places.
@@ -355,13 +396,19 @@ def _check_links(in_file_name: str) -> None:
     hsystem.system(cmd, abort_on_error=False, suppress_output=False)
 
 
+# Line ending with an abbreviation that is followed by more text on the next
+# line when wrapped (e.g., `e.g.` and `i.e.`).
+_ABBREVIATION_END_RE = re.compile(r"(?<![A-Za-z])(?:e\.g|i\.e)\.\s*$", re.IGNORECASE)
+
+
 def _remove_trailing_periods(lines: List[str]) -> List[str]:
     """
     Remove trailing periods from all lines.
 
     Periods are removed from the end of any line that ends with one or more
     periods (e.g., "text.", "text..."). Trailing whitespace after the periods
-    is also removed.
+    is also removed. The period of a line ending with `e.g.` or `i.e.` is
+    kept, since the sentence continues on the next line.
 
     This improves consistency in markdown and text formatting where periods
     at the end of list items and standalone lines are often not needed.
@@ -372,8 +419,12 @@ def _remove_trailing_periods(lines: List[str]) -> List[str]:
     _LOG.debug("lines=%s", lines)
     lines_new: List[str] = []
     for line in lines:
-        # Remove trailing periods (one or more) from any line.
-        line = re.sub(r"\.+\s*$", "", line)
+        # Remove trailing periods (one or more) from any line, except for
+        # an abbreviation.
+        if _ABBREVIATION_END_RE.search(line):
+            line = line.rstrip()
+        else:
+            line = re.sub(r"\.+\s*$", "", line)
         lines_new.append(line)
     hdbg.dassert_isinstance(lines_new, list)
     return lines_new
@@ -509,13 +560,42 @@ def _remove_code_block_extra_indentation(lines: List[str]) -> List[str]:
     return lines_new
 
 
+# Inline code span: a run of backticks, the content, and a run of the same
+# length.
+_INLINE_CODE_RE = re.compile(r"(`+)(.+?)(?<!`)\1(?!`)")
+
+
+def _apply_outside_inline_code(line: str, func: Callable[[str], str]) -> str:
+    """
+    Apply a text transformation to a line, leaving inline code unchanged.
+
+    The inline code spans are replaced with placeholders before applying
+    `func` and restored after, so `func` still sees a non-whitespace
+    character where a span was.
+
+    :param line: line to process
+    :param func: transformation of the text of the line
+    :return: transformed line, with the inline code spans as in `line`
+    """
+    spans: List[str] = []
+
+    def _mask(m: re.Match) -> str:
+        spans.append(m.group(0))
+        return f"\x00{len(spans) - 1}\x00"
+
+    masked = _INLINE_CODE_RE.sub(_mask, line)
+    masked = func(masked)
+    line_new = re.sub(r"\x00(\d+)\x00", lambda m: spans[int(m.group(1))], masked)
+    return line_new
+
+
 def _replace_em_dash_with_colon(lines: List[str]) -> List[str]:
     """
     Replace em dash followed by a space with a colon.
 
     When a non-whitespace character is followed by ` — ` (em dash surrounded
     by spaces), the em dash is replaced with `: ` (colon space e.g., for list
-    items).
+    items). Inline code is left unchanged.
 
     Example: `- foo — bar` -> `- foo: bar`
 
@@ -526,7 +606,9 @@ def _replace_em_dash_with_colon(lines: List[str]) -> List[str]:
     lines_new: List[str] = []
     for line in lines:
         # Replace em dash with colon when preceded by a non-whitespace char.
-        line = re.sub(r"(\S)\s*—\s+", r"\1: ", line)
+        line = _apply_outside_inline_code(
+            line, lambda txt: re.sub(r"(\S)\s*—\s+", r"\1: ", txt)
+        )
         lines_new.append(line)
     hdbg.dassert_isinstance(lines_new, list)
     return lines_new
@@ -599,6 +681,16 @@ def _is_md_fence_line(line: str) -> bool:
     if re.match(r"^\s*```", line):
         return True
     return bool(re.match(r"^\s*<<<PROTECTED_BLOCK_\d+>>>\s*$", line))
+
+
+def _is_md_table_line(line: str) -> bool:
+    """
+    Check if a line is a row of a markdown pipe table.
+
+    :param line: The line to check.
+    :return: True if the line starts with a pipe, after the indentation.
+    """
+    return bool(re.match(r"^\s*\|", line))
 
 
 def _format_header_spacing(
@@ -844,6 +936,7 @@ def _rebuild_blank_lines(
       glued to their parent, with no blank line), if `add_bullet_blank_lines`
     - one blank line around fenced blocks, if `add_fence_blank_lines`
       (otherwise no blank line around them)
+    - one blank line around pipe tables
     - one blank line around blocks of comment placeholders, so two distinct
       comment blocks never get merged into one
     - exactly one blank line before and after every header (and, for `.smd`
@@ -883,6 +976,11 @@ def _rebuild_blank_lines(
     # blank line yet.
     lines_new = _format_block_spacing(
         lines_new, is_fence_line, add_blank_lines=add_fence_blank_lines
+    )
+    # Keep exactly one blank line around a pipe table, since otherwise it is
+    # not parsed as a table (e.g., by `pandoc`) and is reflowed as text.
+    lines_new = _format_block_spacing(
+        lines_new, _is_md_table_line, add_blank_lines=True
     )
     # Normalize the blank lines around blocks of comment placeholders the
     # same way: exactly one blank line wherever such a block borders
@@ -982,7 +1080,7 @@ def _md_format(lines: List[str]) -> List[str]:
     Rebuild blank-line spacing from scratch, i.e., strip every blank line
     and then re-derive exactly the ones needed: exactly one blank line before
     and after every header (`#`, `##`, ...), and one blank line around blocks
-    of comment placeholders. Unlike `.smd` files:
+    of comment placeholders, and around pipe tables. Unlike `.smd` files:
     - no blank lines are added between level-1 bullets: bullets stay glued
       together
     - no blank lines are left around fenced code blocks (` ``` `): a fence
@@ -1471,8 +1569,19 @@ _CHECK_IGNORED_CHARS_RE = re.compile(r"[.:\u2014]")
 # Pandoc AST nodes whose content must be preserved exactly.
 _CHECK_EXACT_NODES = ["Code", "CodeBlock", "Math", "RawInline", "RawBlock"]
 
-# Pandoc AST nodes that only encode whitespace, which wrapping changes.
-_CHECK_WHITESPACE_NODES = ["Space", "SoftBreak", "LineBreak"]
+# Pandoc AST nodes that only encode style that the actions change on purpose:
+# - Whitespace, which wrapping changes
+# - The delimiter of an ordered list (e.g., `1)` -> `1.`), which `prettier`
+#   normalizes
+_CHECK_IGNORED_NODES = [
+    "Space",
+    "SoftBreak",
+    "LineBreak",
+    "DefaultDelim",
+    "Period",
+    "OneParen",
+    "TwoParens",
+]
 
 # Max number of lines of the difference to report.
 _CHECK_MAX_DIFF_LINES = 60
@@ -1516,7 +1625,8 @@ def _pandoc_ast_to_tokens(node: Any) -> List[str]:
     The tokens ignore what the actions change on purpose:
     - Line wrapping and spacing
     - Letter case and the characters in `_CHECK_IGNORED_CHARS_RE`
-    - Tight vs loose lists (`Plain` vs `Para`)
+    - The boundaries of paragraphs, and so tight vs loose lists
+    - The delimiter of an ordered list (e.g., `1)` vs `1.`)
 
     The tokens preserve:
     - The block and inline structure (e.g., headers, lists, tables, emphasis)
@@ -1545,7 +1655,7 @@ def _pandoc_ast_to_tokens(node: Any) -> List[str]:
             text = content.replace("\u00a0", " ")
             text = _CHECK_IGNORED_CHARS_RE.sub("", text).casefold()
             tokens.extend(text.split())
-        elif node_type in _CHECK_WHITESPACE_NODES:
+        elif node_type in _CHECK_IGNORED_NODES:
             pass
         elif node_type in _CHECK_EXACT_NODES:
             tokens.append(f"<{node_type}> {json.dumps(content, sort_keys=True)}")
@@ -1553,9 +1663,12 @@ def _pandoc_ast_to_tokens(node: Any) -> List[str]:
             _, inlines, target = content
             tokens.append(f"<{node_type}> {json.dumps(target)}")
             tokens.extend(_pandoc_ast_to_tokens(inlines))
+        elif node_type in ["Para", "Plain"]:
+            # Ignore the boundaries of paragraphs, since `_md_format()`
+            # removes the blank lines between them on purpose, and tight vs
+            # loose lists (`Plain` vs `Para`).
+            tokens.extend(_pandoc_ast_to_tokens(content))
         else:
-            if node_type == "Plain":
-                node_type = "Para"
             tokens.append(f"<{node_type}>")
             tokens.extend(_pandoc_ast_to_tokens(content))
             tokens.append(f"</{node_type}>")
@@ -1583,6 +1696,17 @@ def _check_pandoc_equivalence(
     :return: unified diff between the tokens of the two texts, empty if they
         are equivalent
     """
+    # The processing adds a blank line before a table that directly follows
+    # text, which turns it into a table for `pandoc`, so do the same here.
+    # Hide the protected content (e.g., fenced blocks) while doing it, as the
+    # processing does.
+    lines_before, protected_map = htexprot.extract_protected_content(
+        lines_before, "md"
+    )
+    lines_before = _add_blank_line_before_tables(lines_before)
+    lines_before = htexprot.restore_protected_content(
+        lines_before, protected_map
+    )
     tokens_before = _pandoc_ast_to_tokens(
         _markdown_to_pandoc_ast(lines_before, pandoc_backend)
     )

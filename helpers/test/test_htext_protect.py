@@ -1,5 +1,7 @@
 import logging
 
+import pytest
+
 import helpers.hprint as hprint
 import helpers.htext_protect as htexprot
 import helpers.hunit_test as hunitest
@@ -509,6 +511,51 @@ class Test__extract_protected_content(hunitest.TestCase):
         self.helper(txt, file_type, expected, expected_map_size)
 
 
+    def test18(self) -> None:
+        """
+        Test that the content of an unclosed math block is not lost.
+        """
+        # Prepare inputs.
+        txt = """
+        Text.
+        $$
+        E = mc^2
+        more text
+        """
+        file_type = "md"
+        # Prepare outputs.
+        expected = """
+        Text.
+        $$
+        <<<PROTECTED_MATH_001>>>
+        """
+        expected_map_size = 1
+        # Run test.
+        self.helper(txt, file_type, expected, expected_map_size)
+
+
+    def test19(self) -> None:
+        """
+        Test that the content of an unclosed HTML comment is not lost.
+        """
+        # Prepare inputs.
+        txt = """
+        Text.
+        <!-- start of comment
+        still comment
+        """
+        file_type = "md"
+        # Prepare outputs.
+        expected = """
+        Text.
+        <<<PROTECTED_COMMENT_001>>>
+        """
+        expected_map_size = 1
+        # Run test.
+        self.helper(txt, file_type, expected, expected_map_size)
+
+
+
 # #############################################################################
 # Test__restore_protected_content
 # #############################################################################
@@ -985,3 +1032,35 @@ class Test_extract_restore_roundtrip(hunitest.TestCase):
         file_type = "md"
         # Run test.
         self.helper(txt, file_type)
+
+
+    def test9(self) -> None:
+        """
+        Test roundtrip with an unclosed math block.
+        """
+        # Prepare inputs.
+        txt = """
+        Text.
+        $$
+        E = mc^2
+        more text
+        """
+        file_type = "md"
+        # Run test.
+        self.helper(txt, file_type)
+
+
+    def test10(self) -> None:
+        """
+        Test roundtrip with an unclosed HTML comment.
+        """
+        # Prepare inputs.
+        txt = """
+        Text.
+        <!-- start of comment
+        still comment
+        """
+        file_type = "md"
+        # Run test.
+        self.helper(txt, file_type)
+

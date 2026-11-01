@@ -416,6 +416,9 @@ class Test_prettier_on_str(hunitest.TestCase):
             "--tab-width",
             "2",
         ]
+        # Save the intermediate `prettier` files in the scratch space, instead of
+        # the current dir.
+        tmp_dir = self.get_scratch_space()
         # Prepare outputs.
         expected = """
         # Title
@@ -433,6 +436,7 @@ class Test_prettier_on_str(hunitest.TestCase):
             mode="system",
             force_rebuild=False,
             use_sudo=False,
+            tmp_dir=tmp_dir,
         )
         # Check outputs.
         self.assert_equal(actual, expected)

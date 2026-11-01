@@ -380,8 +380,21 @@ def extract_protected_content(
             lines_new.append(" " * fenced_block_indent + placeholder)
     if in_math_block:
         _LOG.warning("Unclosed math block detected")
+        # Protect the content like for a closed block, otherwise it is
+        # silently lost.
+        if math_block_lines:
+            placeholder = f"<<<PROTECTED_MATH_{counter:03d}>>>"
+            protected_map[placeholder] = "\n".join(math_block_lines)
+            counter += 1
+            lines_new.append(" " * math_block_indent + placeholder)
     if in_html_comment:
         _LOG.warning("Unclosed HTML comment detected")
+        # Protect the content like for a closed comment, otherwise it is
+        # silently lost.
+        placeholder = f"<<<PROTECTED_COMMENT_{counter:03d}>>>"
+        protected_map[placeholder] = "\n".join(html_comment_lines)
+        counter += 1
+        lines_new.append(placeholder)
     _LOG.debug("Extracted %d protected content blocks", len(protected_map))
     return lines_new, protected_map
 

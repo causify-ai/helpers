@@ -93,10 +93,12 @@
 
 - **remove_trailing_periods**: Strip trailing periods from lines
   - Useful for markdown lists and headers
-  - Removes all periods at line end
+  - Removes all periods at line end, except after `e.g.` and `i.e.`, since the
+    sentence continues on the next line
 
 - **replace_em_dash_with_colon**: Convert em dash to colon in list definitions
   - Pattern: `text — description` becomes `text: description`
+  - Leaves inline code unchanged
   - Common in reference lists
 
 ### Formatting Removal
@@ -143,6 +145,7 @@
 - **md_format**: Rebuild the blank-line spacing of `.md` files (`md` only)
   - Ensures exactly one blank line before and after every header
   - Ensures one blank line around blocks of comment placeholders
+  - Ensures one blank line around pipe tables, so they are parsed as tables
   - Adds no blank line between level-1 bullets (unlike `smd_format`)
   - Leaves no blank line around a ` ``` ` fence, so a fence nested in a bullet
     stays glued to it, e.g., `- **Good**` followed directly by ` ``` `
@@ -228,9 +231,10 @@
   - The file is already written when the check fails: use `--revert` to
     restore the backup
   - Ignores what the actions change on purpose: line wrapping, letter case,
-    `.`, `:`, `—`, bullet marker, and tight vs loose lists
-  - Because `.` is ignored, it does not catch a lost period (e.g., `e.g.`
-    becoming `e.g`)
+    `.`, `:`, `—`, bullet marker, the delimiter of an ordered list (`1)` vs
+    `1.`), paragraph boundaries (the `md` blank-line rule merges them), and
+    the blank line added before a table that directly follows text
+  - Because `.` is ignored, it does not catch a lost period
   - Compares code, math, raw blocks, and link targets exactly
   - Only for `md` and `smd` files, other types are skipped with a warning
 - `--pandoc_backend <backend>`: How to run `pandoc` for `--check`
@@ -263,7 +267,8 @@
     as the opening one, so a 4-backtick block can show a 3-backtick fence
   - The length of a fence with more than 3 backticks is restored after formatting,
     since `prettier` shortens it to 3
-  - An unclosed block extends to the end of the file and is kept, not dropped
+  - An unclosed code block, math block, or HTML comment extends to the end of
+    the file and is kept, not dropped
 - Comments and math blocks are protected from markdown removal
 - YAML front matter (markdown files) is extracted and reattached
 - Preserves literal content that should not be modified by formatters

@@ -134,8 +134,17 @@ Example:
 
 ### `Update_Helpers_Submodule` Fails
 
-- When this happens, the first thing to do is attempt to update the `helpers`
-  pointer manually
+- The workflow `update_helpers_submodule.yml` runs every day, runs the
+  regressions with the latest `helpers`, and moves the `helpers_root` pointer
+  forward only if they pass
+  - See `docs/tools/dev_system/all.update_helpers_submodule.how_to_guide.md` for
+    how it works and for the troubleshooting steps
+
+- When it fails, the first thing to do is check if the regressions fail with the
+  new `helpers` code
+  - If they fail, fix the cause: the pointer cannot move until they pass
+  - If they pass, or the failure is not related to the code, attempt to update
+    the `helpers` pointer manually
 
 - Instructions:
   ```bash
@@ -148,6 +157,7 @@ Example:
   > cd ..
   > git add helpers_root
   > git commit -m "Update helpers pointer"
+  > git push
   ```
 
 ## Daily Reporting and Handover Process
