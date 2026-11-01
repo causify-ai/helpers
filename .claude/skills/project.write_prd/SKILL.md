@@ -57,7 +57,8 @@ model: opus
 
 # Verification
 
-- [ ] Every requirement is numbered and a test can check it
+- [ ] Every requirement is an H3 `` ### `R<N>` (<short description>) `` and a test can
+      check it
 - [ ] The non-goals are listed
 - [ ] Every open question is numbered
 - [ ] The PRD does not contain design or code

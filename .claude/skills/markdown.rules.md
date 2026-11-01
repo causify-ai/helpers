@@ -302,9 +302,9 @@ text
   - Graphviz
   - Mermaid
   - TikZ-style charts
-- For software architecture diagrams, use Mermaid with C4 style
+- For software architecture diagrams, use PlantUML with C4 style, never Mermaid
   - C4 model: Context, Container, Component, Code
-  - Mermaid supports C4 natively via `c4context`, `c4container`, `c4component` diagrams
+  - Follow `.claude/skills/C4.rules.md`
 - Add annotation arrows and layered explanations
 
 ## Links

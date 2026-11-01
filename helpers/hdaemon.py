@@ -3,8 +3,9 @@ Utilities for daemon-mode operations, i.e., scripts that keep re-running instead
 of exiting after one pass.
 
 - There are two flows:
-  1. Reactive daemon (`_daemon_watch()` / `run_reactive_daemon_mode()`):
-     - Watch a file
+  1. Reactive daemon (`_daemon_watch()` / `run_reactive_daemon_mode()` /
+     `run_reactive_daemon_mode_multi()`):
+     - Watch a file (or several files, one watcher thread per file)
      - Re-run (debounced) only when it changes
      - E.g., rebuilding a PDF from a `.tex` file that's being edited
   2. Periodic daemon (`run_periodic_daemon_mode()`):
@@ -23,8 +24,9 @@ import logging
 import os
 import shlex
 import tempfile
+import threading
 import time
-from typing import Callable, Optional
+from typing import Callable, List, Optional
 
 import helpers.hdbg as hdbg
 import helpers.hsystem as hsystem
@@ -206,7 +208,8 @@ def _daemon_watch(
     def _run_cmd(cmd_to_run: str) -> None:
         try:
             hsystem.system(cmd_to_run, abort_on_error=abort_on_error)
-        except Exception as e:
+        except RuntimeError as e:
+            # `hsystem.system()` raises `RuntimeError` when the command fails.
             _LOG.error("Daemon: command failed: %s", e)
 
     # Run immediately on first launch.
@@ -365,3 +368,61 @@ def run_reactive_daemon_mode(
             debounce_sec=debounce_sec,
             rewrites_file_in_place=rewrites_file_in_place,
         )
+
+
+def run_reactive_daemon_mode_multi(
+    input_files: List[str],
+    cmd_func: Callable[[str], str],
+    window_name_str: str,
+    *,
+    watch_cmd_suffix: str = "",
+    debounce_sec: int = 2,
+    wait_in_sec: int = 1,
+    rewrites_file_in_place: bool = False,
+) -> None:
+    """
+    Run daemon mode on several files: watch each file for changes and
+    regenerate only the changed one with debouncing.
+
+    Start one `_daemon_watch()` thread per file, so the debounce and conflict
+    marker logic is the same as for `run_reactive_daemon_mode()`. A thread is
+    enough since the watchers mostly sleep and the work is done by external
+    processes. Blocks until the user interrupts.
+
+    :param input_files: files to watch for changes
+    :param cmd_func: build the command to run for a file, e.g., `lambda file_:
+        f"script.py --input {file_}"`
+    :param window_name_str: tmux window name to use while daemon is running
+    :param watch_cmd_suffix: suffix to append to the command for watch runs
+    :param debounce_sec: debounce duration in seconds
+    :param wait_in_sec: poll interval in seconds
+    :param rewrites_file_in_place: whether the command itself rewrites its
+        input file on every successful run, see `_daemon_watch()`
+    """
+    hdbg.dassert_lt(0, len(input_files), "No files to watch")
+    hdbg.dassert_no_duplicates(input_files)
+    _LOG.info("Daemon mode: watching %d file(s) for changes", len(input_files))
+    threads = []
+    for input_file in input_files:
+        thread = threading.Thread(
+            target=_daemon_watch,
+            args=(input_file, cmd_func(input_file)),
+            kwargs={
+                "wait_in_sec": wait_in_sec,
+                "debounce_sec": debounce_sec,
+                "watch_cmd_suffix": watch_cmd_suffix,
+                "rewrites_file_in_place": rewrites_file_in_place,
+            },
+            # Daemon threads die with the process, so Ctrl-C in the main
+            # thread stops all the watchers.
+            daemon=True,
+            name=f"daemon_watch:{input_file}",
+        )
+        threads.append(thread)
+    with htmux.window_name(window_name_str):
+        for thread in threads:
+            thread.start()
+        # Block until interrupted. If a watcher dies (e.g., its file was
+        # removed) keep the others running until all of them are gone.
+        while any(thread.is_alive() for thread in threads):
+            time.sleep(wait_in_sec)

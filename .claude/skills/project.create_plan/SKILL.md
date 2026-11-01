@@ -78,6 +78,7 @@ model: opus
 - [ ] Every version is a deliverable that a person can run or demo
 - [ ] Every PR has a stable id and a checkbox
 - [ ] Every requirement of the PRD is covered by at least one PR
+- [ ] Every requirement id in the plan is a link to its H3 in the PRD
 - [ ] No PR appears before a PR it depends on
 - [ ] Every open question is numbered
 - [ ] The next version has detailed PR entries

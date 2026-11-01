@@ -43,6 +43,14 @@ See `dev_scripts_helpers/documentation/render_images.README.md`.
 
 - Render images in PNG format (default):
 > render_images.py -i ABC.md --action render --output_format png
+
+- Set the size of the Mermaid canvas in pixels. A larger width makes a C4
+  diagram wider and shorter (shapes wrap at the canvas width):
+> render_images.py -i ABC.md --action render --canvas_width 1600 --canvas_height 900
+
+- Set the size of the shapes of Mermaid C4 diagrams with a Mermaid config file,
+  e.g., `{"c4": {"width": 400, "height": 120}}`:
+> render_images.py -i ABC.md --action render --mermaid_config mermaid_c4.json
 """
 
 import argparse
@@ -57,12 +65,12 @@ from tqdm import tqdm
 import helpers.hcache_simple as hcacsimp
 import helpers.hdaemon as hdaemon
 import helpers.hdbg as hdbg
-import helpers.hio as hio
 import helpers.hdocker as hdocker
-import helpers.hselect_input_output as hseinout
+import helpers.hio as hio
 import helpers.hparser as hparser
-import helpers.hselect_action as hselacti
 import helpers.hprint as hprint
+import helpers.hselect_action as hselacti
+import helpers.hselect_input_output as hseinout
 import helpers.hsystem as hsystem
 
 _LOG = logging.getLogger(__name__)
@@ -222,6 +230,9 @@ def _render_image_code(
     dry_run: bool = False,
     dpi: int = 300,
     output_format: str = "",
+    canvas_width: int = 0,
+    canvas_height: int = 0,
+    mermaid_config_txt: str = "",
 ) -> List[str]:
     """
     Render the image code into one or more image files.
@@ -242,6 +253,16 @@ def _render_image_code(
         Graphviz, SVG, TikZ, and LaTeX image types.
     :param output_format: force output format (png or svg), overriding
         `dst_ext`. If "", `dst_ext` is used as the output format.
+    :param canvas_width: Mermaid only. Width of the browser page and of the
+        screen in pixels. If 0, `mmdc` uses its default (800). A larger width
+        makes C4 diagrams wider and shorter, since they wrap shapes into a new
+        row at the screen width
+    :param canvas_height: Mermaid only. Height of the browser page and of the
+        screen in pixels. If 0, `mmdc` uses its default (600)
+    :param mermaid_config_txt: Mermaid only. Content of a Mermaid JSON config
+        file, e.g., `{"c4": {"width": 400}}` to set the size of C4 shapes. If
+        "", no config is used. It is the content (not the path) so that it is part of
+        the cache key
     :return: list of paths to the rendered images (usually 1 image, but 3 for
         "image" type)
     """
@@ -301,7 +322,7 @@ def _render_image_code(
             \end{document}
             """
         )
-        image_code_txt = "\n".join([start_tag, image_code_txt, end_tag])
+        image_code_txt = f"{start_tag}\n{image_code_txt}\n{end_tag}"
     elif image_code_type == "latex":
         # Expected input: LaTeX content only (what goes inside \begin{document})
         # E.g.,
@@ -328,7 +349,7 @@ def _render_image_code(
             \end{document}
             """
         )
-        image_code_txt = "\n".join([start_tag, image_code_txt, end_tag])
+        image_code_txt = f"{start_tag}\n{image_code_txt}\n{end_tag}"
     elif image_code_type == "raw_latex":
         # Expected input: Complete LaTeX document with full structure
         # This wrapper does NOT modify the input: it is used as-is.
@@ -411,6 +432,15 @@ def _render_image_code(
             import dev_scripts_helpers.dockerize.lib_mermaid as dshdlime
 
             cmd_opts = []
+            # Save the Mermaid config next to the image code file, since the
+            # Docker runner needs a file under the mounted directory.
+            config_file_path = ""
+            if mermaid_config_txt:
+                config_file_path = (
+                    os.path.splitext(in_code_file_path)[0]
+                    + ".mermaid_config.json"
+                )
+                hio.to_file(config_file_path, mermaid_config_txt)
             dshdlime.run_dockerized_mermaid(
                 in_code_file_path,
                 cmd_opts,
@@ -418,7 +448,12 @@ def _render_image_code(
                 force_rebuild=force_rebuild,
                 use_sudo=use_sudo,
                 mermaid_dpi=dpi,
+                width=canvas_width,
+                height=canvas_height,
+                config_file_path=config_file_path,
             )
+            if config_file_path:
+                os.remove(config_file_path)
         elif image_code_type in ("tikz", "latex", "raw_latex"):
             cmd_opts: List[str] = [f"-density {dpi}", "-quality 95"]
             import dev_scripts_helpers.dockerize.lib_png as dshdlipn
@@ -786,6 +821,9 @@ def _render_images(
     dry_run: bool = False,
     dpi: int = 300,
     output_format: str = "png",
+    canvas_width: int = 0,
+    canvas_height: int = 0,
+    mermaid_config_txt: str = "",
 ) -> List[str]:
     r"""
     Insert rendered images instead of image code blocks.
@@ -835,6 +873,9 @@ def _render_images(
     :param dpi: DPI for rendered images (default: 300). Affects Mermaid,
         Graphviz, SVG, TikZ, and LaTeX image types.
     :param output_format: force output format (png or svg).
+    :param canvas_width: Mermaid only, see `_render_image_code()`
+    :param canvas_height: Mermaid only, see `_render_image_code()`
+    :param mermaid_config_txt: Mermaid only, see `_render_image_code()`
     :return: updated lines of the file
     """
     _LOG.debug(hprint.func_signature_to_str("in_lines"))
@@ -842,7 +883,7 @@ def _render_images(
     extension = os.path.splitext(out_file)[1]
     # Remove all the previously rendered image code blocks from the file.
     in_lines = _remove_image_code(in_lines, extension)
-    comment_prefix, comment_postfix = _get_comment_prefix_postfix(extension)
+    comment_prefix, _ = _get_comment_prefix_postfix(extension)
     # Store the output of the code
     out_lines: List[str] = []
     # Store the image code found in the file.
@@ -990,6 +1031,9 @@ def _render_images(
                     dry_run=dry_run,
                     dpi=dpi,
                     output_format=output_format,
+                    canvas_width=canvas_width,
+                    canvas_height=canvas_height,
+                    mermaid_config_txt=mermaid_config_txt,
                 )
                 # Verify the images actually exist on disk.
                 # `_render_image_code` is wrapped by `@hcacsimp.simple_cache`,
@@ -1218,6 +1262,29 @@ def _parse() -> argparse.ArgumentParser:
         "Graphviz, SVG, TikZ, and LaTeX image types. A higher DPI "
         "produces higher resolution output.",
     )
+    parser.add_argument(
+        "--canvas_width",
+        type=int,
+        default=0,
+        help="Mermaid only: width of the canvas in pixels (default: 0 = mmdc "
+        "default, 800). A larger width makes C4 diagrams wider and shorter, "
+        "since they wrap shapes into a new row at this width.",
+    )
+    parser.add_argument(
+        "--canvas_height",
+        type=int,
+        default=0,
+        help="Mermaid only: height of the canvas in pixels (default: 0 = mmdc "
+        "default, 600).",
+    )
+    parser.add_argument(
+        "--mermaid_config",
+        type=str,
+        default="",
+        help="Mermaid only: path to a Mermaid JSON config file passed to "
+        '`mmdc -c`, e.g., a file containing \'{"c4": {"width": 400}}\' '
+        "to set the size of C4 shapes.",
+    )
     hdocker.add_dockerized_script_arg(parser)
     hparser.add_verbosity_arg(parser)
     return parser
@@ -1234,6 +1301,9 @@ def _process_single_file(
     dry_run: bool,
     dpi: int = 300,
     output_format: str = "png",
+    canvas_width: int = 0,
+    canvas_height: int = 0,
+    mermaid_config_txt: str = "",
 ) -> None:
     """
     Process a single file for image rendering.
@@ -1248,6 +1318,9 @@ def _process_single_file(
     :param dpi: DPI for rendered images (default: 300). Affects Mermaid,
         Graphviz, SVG, TikZ, and LaTeX image types.
     :param output_format: force output format (png or svg).
+    :param canvas_width: Mermaid only, see `_render_image_code()`
+    :param canvas_height: Mermaid only, see `_render_image_code()`
+    :param mermaid_config_txt: Mermaid only, see `_render_image_code()`
     """
     _LOG.info(hprint.func_signature_to_str())
     in_file_ext = os.path.splitext(in_file)[1]
@@ -1280,6 +1353,9 @@ def _process_single_file(
         dry_run=dry_run,
         dpi=dpi,
         output_format=output_format,
+        canvas_width=canvas_width,
+        canvas_height=canvas_height,
+        mermaid_config_txt=mermaid_config_txt,
     )
     # Remove empty consecutive lines.
     out_lines = hprint.remove_empty_lines(
@@ -1394,6 +1470,13 @@ def _main(parser: argparse.ArgumentParser) -> None:
         # Get the selected actions.
         actions = hselacti.select_actions(args, _VALID_ACTIONS, _DEFAULT_ACTIONS)
         _LOG.info("Selected actions: %s", actions)
+        # Read the Mermaid config, if any.
+        mermaid_config_txt = ""
+        if args.mermaid_config:
+            hdbg.dassert_file_exists(args.mermaid_config)
+            mermaid_config_txt = hio.from_file(args.mermaid_config)
+        for name in ("canvas_width", "canvas_height"):
+            hdbg.dassert_lte(0, getattr(args, name), "--%s must be >= 0", name)
         for in_file in iterator:
             # For multi-file mode, compute dst_dir per file if using default.
             if len(in_files) > 1:
@@ -1417,6 +1500,9 @@ def _main(parser: argparse.ArgumentParser) -> None:
                 dry_run=args.dry_run,
                 dpi=args.dpi,
                 output_format=args.output_format,
+                canvas_width=args.canvas_width,
+                canvas_height=args.canvas_height,
+                mermaid_config_txt=mermaid_config_txt,
             )
     if len(in_files) > 1:
         _LOG.info("%s Files saved in place", len(in_files))

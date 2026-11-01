@@ -84,6 +84,21 @@
 - See "Acknowledge a request with a link" in
   [`all.team_collaboration.how_to_guide.md`](/docs/work_organization/all.team_collaboration.how_to_guide.md)
 
+## Track Leads
+
+- Use one Asana task to track each lead
+- Post all the emails of the lead thread in the task
+  - Post one email per comment
+  - Post the emails in chronological order, oldest first, when possible
+  - Include the sender, the date, and the text of each email
+- The goal is to track what was said, what was answered, and what is still open
+  - Anyone can read the task and understand the status of the lead without
+    opening the mailbox
+- Keep the task up to date
+  - Post each new email when it arrives
+  - Post your own replies too
+  - Do not summarize or merge several emails in one comment
+
 ## Receive Asana Notifications
 
 - Asana sends emails from `no-reply@asana.com` about:

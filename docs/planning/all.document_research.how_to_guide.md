@@ -6,10 +6,22 @@
   without asking
 - Use this guide for a project that runs experiments, e.g., in notebooks
 - The implementation, the findings, and the decisions go in `progress.md`
-  - See [`docs/planning/all.plan_work.how_to_guide.md`](/docs/planning/all.plan_work.how_to_guide.md#keep-a-progress-log)
+  - See
+    [`docs/planning/all.plan_work.how_to_guide.md`](/docs/planning/all.plan_work.how_to_guide.md#keep-a-progress-log)
 - The visual evidence (e.g., screenshots of the results) goes in a Google Doc
+- Keep the log and the paper updated
+  - See [Keep the Log and the Paper Updated](#keep-the-log-and-the-paper-updated)
 
-## Keep a Google Doc per Project
+## Keep the Log and the Paper Updated
+
+- Keep the log and the paper updated
+  - They are how we keep track of the results of the research
+- Split the content by level of detail:
+  - The notebooks hold all the details
+  - The log (`progress.md`) holds all the experiments
+  - The paper holds the interesting experiments
+
+## Keep a Google Doc Per Project
 
 - Keep one Google Doc for the research of each project
   - The Google Doc holds the visual evidence
@@ -34,7 +46,7 @@
   - The `config` becomes the signature of the experiment
   - Given the `config`, one can reproduce exactly the set up
 
-## Write One Entry per Day of Work
+## Write One Entry Per Day of Work
 
 - Write one entry for every day of work with:
   - Screenshots of the results from the notebooks
@@ -44,6 +56,7 @@
   - What was learned
   - What is next
 - Use this skeleton for each daily entry:
+
   ```text
   Date: <date>
 

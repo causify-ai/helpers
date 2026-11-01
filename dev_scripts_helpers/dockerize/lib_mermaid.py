@@ -9,12 +9,15 @@ Import as:
 import dev_scripts_helpers.dockerize.lib_mermaid as dshdlime
 """
 
+import json
 import logging
+import os
 from typing import List, Optional
 
 import helpers.hdbg as hdbg
 import helpers.hdocker as hdocker
 import helpers.hgit as hgit
+import helpers.hio as hio
 import helpers.hprint as hprint
 
 _LOG = logging.getLogger(__name__)
@@ -34,6 +37,9 @@ _MERMAID_CLI_NPM_VERSION = "11.12.0"
 # Default Chromium headless DPI is 96. This constant is used to compute the
 # `--scale` flag passed to mmdc as `scale = dpi / 96`.
 MERMAID_DPI = 300
+
+# Default height of the `mmdc` browser page in pixels (see `mmdc -H`).
+_MMDC_DEFAULT_HEIGHT = 600
 
 _MERMAID_CONTAINER_PREFIX = "tmp.mermaid"
 
@@ -87,6 +93,30 @@ def _find_puppeteer_config() -> str:
     return config_path
 
 
+def _write_puppeteer_config_with_screen_size(
+    src_file_path: str, dst_file_path: str, width: int, height: int
+) -> None:
+    """
+    Copy a puppeteer config adding the Chromium flag to set the screen size.
+
+    C4 diagrams wrap their shapes into a new row when they reach
+    `screen.availWidth`, which is not changed by `mmdc -w` or `--window-size`.
+    Only `--screen-info` changes it.
+
+    :param src_file_path: path to the puppeteer config to copy
+    :param dst_file_path: path to the puppeteer config to write
+    :param width: screen width in pixels
+    :param height: screen height in pixels, 0 to use the `mmdc` default
+    """
+    if height <= 0:
+        height = _MMDC_DEFAULT_HEIGHT
+    config = json.loads(hio.from_file(src_file_path))
+    config["args"] = config.get("args", []) + [
+        f"--screen-info={{{width}x{height}}}"
+    ]
+    hio.to_file(dst_file_path, json.dumps(config, indent=2))
+
+
 def get_mermaid_container_image_name() -> str:
     """
     Get the name of the mermaid container image.
@@ -132,6 +162,9 @@ def run_dockerized_mermaid(
     force_rebuild: bool = False,
     use_sudo: bool = False,
     mermaid_dpi: Optional[int] = None,
+    width: int = 0,
+    height: int = 0,
+    config_file_path: str = "",
 ) -> None:
     """
     Run `mermaid` in a Docker container, building the container from scratch and
@@ -146,6 +179,19 @@ def run_dockerized_mermaid(
     :param mermaid_dpi: DPI for the rendered image. If None, defaults to
         `MERMAID_DPI` (300). The DPI is converted to an mmdc `--scale` flag
         as `scale = dpi / 96`, since Chromium's default headless DPI is 96.
+    :param width: width of the browser page and of the screen in pixels,
+        passed as `mmdc -w` and Chromium `--screen-info`. If 0, `mmdc` uses
+        its default (800). The page width sizes diagrams that stretch to it
+        (e.g., flowcharts). The screen width is the width at which C4 diagrams
+        wrap shapes into a new row: a larger value gives a wider and shorter
+        C4 diagram
+    :param height: height of the browser page and of the screen in pixels,
+        passed as `mmdc -H` and Chromium `--screen-info`. If 0, `mmdc` uses
+        its default (600)
+    :param config_file_path: path to a Mermaid JSON config file, passed as
+        `mmdc -c`. If "", no config is used. It sets the size of the C4
+        shapes through its `c4` section (e.g., `{"c4": {"width": 400,
+        "height": 120}}`)
     """
     _LOG.debug(hprint.func_signature_to_str())
     if mermaid_dpi is None:
@@ -154,6 +200,8 @@ def run_dockerized_mermaid(
     container_image = build_mermaid_container_image(
         force_rebuild=force_rebuild, use_sudo=use_sudo
     )
+    # Keep the host path, since `in_file_path` is converted to a Docker path.
+    in_file_path_orig = in_file_path
     # Convert files to Docker paths.
     (
         is_caller_host,
@@ -182,6 +230,14 @@ def run_dockerized_mermaid(
     )
     # Find puppeteerConfig.json dynamically
     puppeteer_config_file = _find_puppeteer_config()
+    # Add the screen size to the puppeteer config, if requested.
+    tmp_puppeteer_config_file = ""
+    if width > 0:
+        tmp_puppeteer_config_file = in_file_path_orig + ".puppeteer_config.json"
+        _write_puppeteer_config_with_screen_size(
+            puppeteer_config_file, tmp_puppeteer_config_file, width, height
+        )
+        puppeteer_config_file = tmp_puppeteer_config_file
     puppeteer_config_path = hdocker.convert_caller_to_callee_docker_path(
         puppeteer_config_file,
         caller_mount_path,
@@ -191,14 +247,32 @@ def run_dockerized_mermaid(
         is_caller_host=is_caller_host,
         use_sibling_container_for_callee=use_sibling_container_for_callee,
     )
+    # Convert the optional Mermaid config file to a Docker path.
+    config_file_path_opt = ""
+    if config_file_path:
+        config_file_path_opt = hdocker.convert_caller_to_callee_docker_path(
+            config_file_path,
+            caller_mount_path,
+            callee_mount_path,
+            check_if_exists=True,
+            is_input=True,
+            is_caller_host=is_caller_host,
+            use_sibling_container_for_callee=use_sibling_container_for_callee,
+        )
     # Compute the mmdc scale factor from the target DPI.
     # Chromium's default headless DPI is 96, so `--scale` is dpi / 96.
     scale = mermaid_dpi / 96
     mermaid_cmd = (
         f"mmdc --puppeteerConfigFile {puppeteer_config_path}"
         + f" --scale {scale}"
-        + f" -i {in_file_path} -o {out_file_path}"
     )
+    if width > 0:
+        mermaid_cmd += f" -w {width}"
+    if height > 0:
+        mermaid_cmd += f" -H {height}"
+    if config_file_path_opt:
+        mermaid_cmd += f" -c {config_file_path_opt}"
+    mermaid_cmd += f" -i {in_file_path} -o {out_file_path}"
     hdocker.build_and_run_docker_cmd(
         use_sudo,
         callee_mount_path,
@@ -210,3 +284,5 @@ def run_dockerized_mermaid(
         override_entrypoint=True,
         wrap_in_bash=True,
     )
+    if tmp_puppeteer_config_file:
+        os.remove(tmp_puppeteer_config_file)

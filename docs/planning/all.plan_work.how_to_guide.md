@@ -167,6 +167,27 @@
   - Do it in the same PR
 - Write the onboarding doc, the glossary, and the design docs as described in
   `.claude/skills/project.rules.md` section "Project Docs"
+- Fill the technology field of a PlantUML C4 element only when the elements use
+  different technologies (e.g., different languages, different DBs)
+  - If everything is Python, leave the field empty (`""`): do not write "Python
+    CLI" or "Python module"
+  - Follow `.claude/skills/C4.rules.md` section "Fill the Technology Only for
+    Mixed Technologies"
+  - E.g., `research/Estimate_academic_paper_quality/docs/design.architecture.md`
+- Make every reference to a file in a doc clickable
+  - E.g., a path like `research/Estimate_academic_paper_quality/docs/prd.md`
+  - Pick the link type with the switch `--link_type`: `local` (default), `branch`,
+    or `master`
+  - Follow `.claude/skills/project.rules.md` section "Make File References
+    Clickable"
+- Write every requirement and every decision as an H3, so that other docs link it
+  - Requirement in `prd.md`: ``### `R3` (Bibliographic source)``
+  - Decision in `decisions.md`: `### D-7. <Decision title>`
+  - Refer to it with a link to its header, never with a bare id
+    - E.g., ``[`R3`](/research/Estimate_academic_paper_quality/docs/prd.md#r3-bibliographic-source)``
+  - The ids are stable: never reuse them and never renumber them
+  - Follow `.claude/skills/project.rules.md` section "Link Requirements and
+    Decisions"
 
 ## The Loop
 
@@ -247,7 +268,10 @@
   - E.g., `research/Noesis/docs/decisions.md`
   - The format is in `.claude/skills/project.rules.md` section "Decisions Log"
   - Copy the template `.claude/templates/project_decisions.template.md`
-- Link the decision in the description of the PR that implements it
+  - Write each decision as its own H3 `### D-<N>. <Decision title>`, so that other
+    docs can link it
+- Link the decision from the design docs that follow it and from the description of
+  the PR that implements it
 
 ## How to Document Research
 
@@ -264,7 +288,7 @@
 
 ## Write a Project Meta-Doc
 
-- Goal: a new student or RA reads one file and knows how we work on the project
+- Goal: a new team member reads one file and knows how we work on the project
   - Test: after reading it, the newcomer can deliver work of the same quality as
     the current contributors
 - Create the file `how_we_work.md` in the `docs/` dir of the project
@@ -311,27 +335,15 @@
   [`docs/documentation_meta/all.where_to_add_material.explanation.md`](/docs/documentation_meta/all.where_to_add_material.explanation.md)
 - Documenting research:
   [`docs/planning/all.document_research.how_to_guide.md`](/docs/planning/all.document_research.how_to_guide.md)
-- Rules and templates: `.claude/skills/project.rules.md`,
-  `.claude/templates/project_*.template.md`,
-  `.claude/templates/github_PR_description.template.md`,
-  `.claude/templates/auto_task.template.md`, `.claude/templates/specs.template.md`,
-  `.claude/templates/github_PR_plan.template.md`
+- Rules and templates:
+  - `.claude/skills/project.rules.md`
+  - `.claude/templates/project_*.template.md`
+  - `.claude/templates/github_PR_description.template.md`
+  - `.claude/templates/auto_task.template.md`
+  - `.claude/templates/specs.template.md`
+  - `.claude/templates/github_PR_plan.template.md`
 
 # Workflows
-
-## Summary
-
-- Goal: one page with the commands to run, in order, from an idea to a merged PR
-  - The reasons and the rules of each step are in
-    [From Idea to Merged PR](#from-idea-to-merged-pr)
-- `<project>` is the dir of the project
-  - E.g., `research/Estimate_paper_quality`
-  - Its docs live in `<project>/docs/`
-- Rules for all the workflows:
-  - Commit between two skills, so that each skill gives a separate diff to review
-  - Run `/auto_task.criticize` before any execution skill
-  - Stop at each gate: an agent never crosses a gate alone
-  - Let a human merge: no skill merges a PR
 
 ## Define
 

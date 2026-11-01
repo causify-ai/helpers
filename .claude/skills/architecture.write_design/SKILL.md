@@ -40,9 +40,11 @@ model: opus
 
 - Create `<DOCS_DIR>/design.architecture.md`
 - Follow the template `.claude/templates/project_design.template.md`
-- Show the context and the containers with a Mermaid C4 diagram, per
+- Show the context and the containers with a PlantUML C4 diagram, per
   `.claude/skills/C4.rules.md`
 - Map each requirement `R<N>` of the PRD to the component that satisfies it
+  - Link each `R<N>` to its H3 in the PRD, per `.claude/skills/project.rules.md`
+    section "Link Requirements and Decisions"
 
 ## Write One Doc per Component
 
@@ -53,6 +55,8 @@ model: opus
 - Record each non-obvious choice in `<DOCS_DIR>/decisions.md`, following the
   template `.claude/templates/project_decisions.template.md`
   - Create the file if it does not exist
+- Link each decision from the design docs that follow it, per
+  `.claude/skills/project.rules.md` section "Link Requirements and Decisions"
 
 ## Update the Index
 
@@ -76,6 +80,8 @@ model: opus
 
 - [ ] Every requirement of the PRD maps to a component
 - [ ] Every component has one responsibility and one design doc
-- [ ] The overview has a Mermaid C4 diagram
+- [ ] The overview has a PlantUML C4 diagram
+- [ ] No design doc has a Mermaid C4 diagram
 - [ ] Every non-obvious choice is in `decisions.md`
+- [ ] Every requirement id and decision id in a design doc is a link to its H3
 - [ ] No design doc contains full implementation code

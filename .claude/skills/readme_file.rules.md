@@ -16,6 +16,7 @@ Conventions for writing a README for a single executable / script.
   for text formatting
 - Keep descriptions concise and action-oriented
 - Use architecture diagrams sparingly (ASCII or mermaid) only when data flow is complex
+  - Draw a C4 diagram with PlantUML, never with Mermaid, per `.claude/skills/C4.rules.md`
 - Limit descriptions to specified word counts
 - For scripts: emphasize entry point, main algorithm, and transformation pipeline
 

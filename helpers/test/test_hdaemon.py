@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 """
 Unit tests for hdaemon.py.
 
@@ -15,7 +14,6 @@ from typing import Callable, Dict, Iterator, Tuple
 import helpers.hdaemon as hdaemon
 import helpers.hio as hio
 import helpers.hunit_test as hunitest
-
 
 # #############################################################################
 # _StopDaemonLoop
@@ -282,17 +280,17 @@ class Test__daemon_watch(hunitest.TestCase):
         hash_v0 = hashlib.md5(b"v0").hexdigest()[:8]
         hash_v1 = hashlib.md5(b"v1").hexdigest()[:8]
         # Run test.
-        with self.assertLogs("helpers.hdaemon", level="DEBUG") as cm:
-            with self.assertRaises(_StopDaemonLoop):
-                with self._mock_daemon_dependencies(
-                    fake_system, fake_sleep, fake_time
-                ):
-                    hdaemon._daemon_watch(
-                        test_file,
-                        watch_cmd,
-                        wait_in_sec=wait_in_sec,
-                        debounce_sec=debounce_sec,
-                    )
+        with (
+            self.assertLogs("helpers.hdaemon", level="DEBUG") as cm,
+            self.assertRaises(_StopDaemonLoop),
+            self._mock_daemon_dependencies(fake_system, fake_sleep, fake_time),
+        ):
+            hdaemon._daemon_watch(
+                test_file,
+                watch_cmd,
+                wait_in_sec=wait_in_sec,
+                debounce_sec=debounce_sec,
+            )
         # Check outputs.
         log_text = "\n".join(cm.output)
         # Expected: log contains hash change, debounce, regeneration, and
@@ -344,17 +342,17 @@ class Test__daemon_watch(hunitest.TestCase):
         # Prepare outputs.
         hash_mid_run = hashlib.md5(b"v2-mid-run").hexdigest()[:8]
         # Run test.
-        with self.assertLogs("helpers.hdaemon", level="DEBUG") as cm:
-            with self.assertRaises(_StopDaemonLoop):
-                with self._mock_daemon_dependencies(
-                    fake_system, fake_sleep, fake_time
-                ):
-                    hdaemon._daemon_watch(
-                        test_file,
-                        watch_cmd,
-                        wait_in_sec=wait_in_sec,
-                        debounce_sec=debounce_sec,
-                    )
+        with (
+            self.assertLogs("helpers.hdaemon", level="DEBUG") as cm,
+            self.assertRaises(_StopDaemonLoop),
+            self._mock_daemon_dependencies(fake_system, fake_sleep, fake_time),
+        ):
+            hdaemon._daemon_watch(
+                test_file,
+                watch_cmd,
+                wait_in_sec=wait_in_sec,
+                debounce_sec=debounce_sec,
+            )
         # Check outputs.
         log_text = "\n".join(cm.output)
         # Expected: log shows conflict detection and hash of edited version.
@@ -391,17 +389,17 @@ class Test__daemon_watch(hunitest.TestCase):
             fake_clock, test_file, stop_threshold
         )
         # Run test.
-        with self.assertRaises(_StopDaemonLoop):
-            with self._mock_daemon_dependencies(
-                fake_system, fake_sleep, fake_time
-            ):
-                hdaemon._daemon_watch(
-                    test_file,
-                    watch_cmd,
-                    wait_in_sec=wait_in_sec,
-                    debounce_sec=debounce_sec,
-                    watch_cmd_suffix=watch_cmd_suffix,
-                )
+        with (
+            self.assertRaises(_StopDaemonLoop),
+            self._mock_daemon_dependencies(fake_system, fake_sleep, fake_time),
+        ):
+            hdaemon._daemon_watch(
+                test_file,
+                watch_cmd,
+                wait_in_sec=wait_in_sec,
+                debounce_sec=debounce_sec,
+                watch_cmd_suffix=watch_cmd_suffix,
+            )
         # Check outputs.
         self.assertEqual(
             system_cmds, ["my_cmd", "my_cmd --skip_action=open_pdf"]
@@ -442,17 +440,17 @@ class Test__daemon_watch(hunitest.TestCase):
         # Prepare outputs.
         hash_during_run = hashlib.md5(b"v2-during-run").hexdigest()[:8]
         # Run test.
-        with self.assertLogs("helpers.hdaemon", level="DEBUG") as cm:
-            with self.assertRaises(_StopDaemonLoop):
-                with self._mock_daemon_dependencies(
-                    fake_system, fake_sleep, fake_time
-                ):
-                    hdaemon._daemon_watch(
-                        test_file,
-                        watch_cmd,
-                        wait_in_sec=wait_in_sec,
-                        debounce_sec=debounce_sec,
-                    )
+        with (
+            self.assertLogs("helpers.hdaemon", level="DEBUG") as cm,
+            self.assertRaises(_StopDaemonLoop),
+            self._mock_daemon_dependencies(fake_system, fake_sleep, fake_time),
+        ):
+            hdaemon._daemon_watch(
+                test_file,
+                watch_cmd,
+                wait_in_sec=wait_in_sec,
+                debounce_sec=debounce_sec,
+            )
         # Check outputs.
         log_text = "\n".join(cm.output)
         # Expected: log shows file not rewritten in place, hash of mid-run edit,
@@ -491,18 +489,18 @@ class Test__daemon_watch(hunitest.TestCase):
             fake_clock, test_file, stop_threshold
         )
         # Run test.
-        with self.assertLogs("helpers.hdaemon", level="DEBUG") as cm:
-            with self.assertRaises(_StopDaemonLoop):
-                with self._mock_daemon_dependencies(
-                    fake_system, fake_sleep, fake_time
-                ):
-                    hdaemon._daemon_watch(
-                        test_file,
-                        "my_cmd",
-                        wait_in_sec=0,
-                        debounce_sec=2,
-                        rewrites_file_in_place=True,
-                    )
+        with (
+            self.assertLogs("helpers.hdaemon", level="DEBUG") as cm,
+            self.assertRaises(_StopDaemonLoop),
+            self._mock_daemon_dependencies(fake_system, fake_sleep, fake_time),
+        ):
+            hdaemon._daemon_watch(
+                test_file,
+                "my_cmd",
+                wait_in_sec=0,
+                debounce_sec=2,
+                rewrites_file_in_place=True,
+            )
         # Check outputs.
         log_text = "\n".join(cm.output)
         # Expected: log shows only trusted self-rewrite, no conflict or edit
@@ -513,3 +511,59 @@ class Test__daemon_watch(hunitest.TestCase):
         # rewritten in place; self-rewrite is trusted.
         expected_call_count = 2
         self.assertEqual(call_count["n"], expected_call_count)
+
+
+# #############################################################################
+# Test_run_reactive_daemon_mode_multi
+# #############################################################################
+
+
+class Test_run_reactive_daemon_mode_multi(hunitest.TestCase):
+    """
+    Test `hdaemon.run_reactive_daemon_mode_multi()`.
+    """
+
+    def test1(self) -> None:
+        """
+        Test one watcher is started per file, each with its own command.
+        """
+        # Prepare inputs.
+        scratch_dir = self.get_scratch_space()
+        files = []
+        for name in ("a.md", "b.md", "c.md"):
+            file_ = os.path.join(scratch_dir, name)
+            hio.to_file(file_, "v0")
+            files.append(file_)
+        window_name = "my_window"
+        watch_cmd_suffix = " --skip_open"
+        debounce_sec = 3
+        wait_in_sec = 0
+
+        def cmd_func(file_: str) -> str:
+            return f"my_cmd --input {file_}"
+
+        # Run test. The mocked watcher returns immediately, so all the threads
+        # end and the call returns.
+        with umock.patch.object(hdaemon, "_daemon_watch") as mock_watch:
+            hdaemon.run_reactive_daemon_mode_multi(
+                files,
+                cmd_func,
+                window_name,
+                watch_cmd_suffix=watch_cmd_suffix,
+                debounce_sec=debounce_sec,
+                wait_in_sec=wait_in_sec,
+            )
+        # Check outputs.
+        actual = sorted(
+            (call.args[0], call.args[1]) for call in mock_watch.call_args_list
+        )
+        expected = sorted((file_, cmd_func(file_)) for file_ in files)
+        self.assertEqual(actual, expected)
+        expected_kwargs = {
+            "wait_in_sec": wait_in_sec,
+            "debounce_sec": debounce_sec,
+            "watch_cmd_suffix": watch_cmd_suffix,
+            "rewrites_file_in_place": False,
+        }
+        for call in mock_watch.call_args_list:
+            self.assertEqual(call.kwargs, expected_kwargs)
