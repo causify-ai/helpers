@@ -1,9 +1,11 @@
-#!/usr/bin/env python
-
 import logging
+
+import pytest
 
 import helpers.hprint as hprint
 import helpers.hunit_test as hunitest
+
+pytest.importorskip("bs4")
 import dev_scripts_helpers.download.download_utils as dshddut
 
 _LOG = logging.getLogger(__name__)

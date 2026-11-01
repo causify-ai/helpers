@@ -5,9 +5,11 @@ from typing import Any, List, Optional, Union
 
 import pytest
 
-import helpers.hjoblib as hjoblib
 import helpers.hprint as hprint
 import helpers.hunit_test as hunitest
+
+pytest.importorskip("joblib")
+import helpers.hjoblib as hjoblib
 
 _LOG = logging.getLogger(__name__)
 
@@ -17,7 +19,6 @@ _LOG = logging.getLogger(__name__)
 def workload_function(
     val1: int,
     val2: str,
-    #
     **kwargs: Any,
 ) -> str:
     """
@@ -84,7 +85,6 @@ def _helper_success(
     incremental = True
     num_attempts = 1
     log_file = os.path.join(self_.get_scratch_space(), "log.txt")
-    #
     res = hjoblib.parallel_execute(
         workload,
         dry_run,
@@ -144,7 +144,6 @@ val1=4, val2=8, incremental=True, num_attempts=1, kwargs={'hello4': 'world8', 'g
     def _run_test(self, num_threads: Union[str, int], backend: str) -> None:
         workload = get_workload1(randomize=True)
         abort_on_error = True
-        #
         expected_return = self.EXPECTED_RETURN
         _helper_success(
             self,
@@ -212,7 +211,6 @@ def _helper_fail(
     incremental = True
     num_attempts = 1
     log_file = os.path.join(self_.get_scratch_space(), "log.txt")
-    #
     with self_.assertRaises(ValueError) as cm:
         res = hjoblib.parallel_execute(
             workload,
@@ -289,7 +287,6 @@ class Test_parallel_execute2(hunitest.TestCase):
         should_succeed: bool,
     ) -> None:
         workload = get_workload2()
-        #
         expected_return = self.EXPECTED_STRING
         if should_succeed:
             _helper_success(
@@ -314,7 +311,6 @@ class Test_parallel_execute2(hunitest.TestCase):
         num_threads = "serial"
         abort_on_error = True
         backend = ""
-        #
         should_succeed = False
         self._run_test(abort_on_error, num_threads, backend, should_succeed)
 
@@ -322,7 +318,6 @@ class Test_parallel_execute2(hunitest.TestCase):
         num_threads = "serial"
         abort_on_error = False
         backend = ""
-        #
         should_succeed = True
         self._run_test(abort_on_error, num_threads, backend, should_succeed)
 
@@ -332,7 +327,6 @@ class Test_parallel_execute2(hunitest.TestCase):
         num_threads = 2
         abort_on_error = True
         backend = "loky"
-        #
         should_succeed = False
         self._run_test(abort_on_error, num_threads, backend, should_succeed)
 
@@ -342,7 +336,6 @@ class Test_parallel_execute2(hunitest.TestCase):
         num_threads = 2
         abort_on_error = False
         backend = "loky"
-        #
         should_succeed = True
         self._run_test(abort_on_error, num_threads, backend, should_succeed)
 
@@ -350,7 +343,6 @@ class Test_parallel_execute2(hunitest.TestCase):
         num_threads = 2
         abort_on_error = True
         backend = "asyncio_threading"
-        #
         should_succeed = False
         self._run_test(abort_on_error, num_threads, backend, should_succeed)
 
@@ -358,7 +350,6 @@ class Test_parallel_execute2(hunitest.TestCase):
         num_threads = 2
         abort_on_error = False
         backend = "asyncio_threading"
-        #
         should_succeed = True
         self._run_test(abort_on_error, num_threads, backend, should_succeed)
 
@@ -446,7 +437,6 @@ val1=4, val2=8, incremental=True, num_attempts=1, kwargs={'hello4': 'world8', 'g
         num_threads = "serial"
         abort_on_error = True
         backend = ""
-        #
         should_succeed = False
         self._run_test(abort_on_error, num_threads, backend, should_succeed)
 
@@ -460,7 +450,6 @@ val1=4, val2=8, incremental=True, num_attempts=1, kwargs={'hello4': 'world8', 'g
         num_threads = "serial"
         abort_on_error = False
         backend = ""
-        #
         should_succeed = True
         self._run_test(abort_on_error, num_threads, backend, should_succeed)
 
@@ -468,7 +457,6 @@ val1=4, val2=8, incremental=True, num_attempts=1, kwargs={'hello4': 'world8', 'g
         num_threads = "1"
         abort_on_error = True
         backend = "loky"
-        #
         should_succeed = False
         self._run_test(abort_on_error, num_threads, backend, should_succeed)
 
@@ -478,7 +466,6 @@ val1=4, val2=8, incremental=True, num_attempts=1, kwargs={'hello4': 'world8', 'g
         num_threads = "3"
         abort_on_error = True
         backend = "loky"
-        #
         should_succeed = False
         self._run_test(abort_on_error, num_threads, backend, should_succeed)
 
@@ -486,7 +473,6 @@ val1=4, val2=8, incremental=True, num_attempts=1, kwargs={'hello4': 'world8', 'g
         num_threads = "1"
         abort_on_error = False
         backend = "loky"
-        #
         should_succeed = True
         self._run_test(abort_on_error, num_threads, backend, should_succeed)
 
@@ -495,7 +481,6 @@ val1=4, val2=8, incremental=True, num_attempts=1, kwargs={'hello4': 'world8', 'g
         num_threads = "3"
         abort_on_error = False
         backend = "loky"
-        #
         should_succeed = True
         self._run_test(abort_on_error, num_threads, backend, should_succeed)
 
@@ -503,7 +488,6 @@ val1=4, val2=8, incremental=True, num_attempts=1, kwargs={'hello4': 'world8', 'g
         num_threads = "1"
         abort_on_error = True
         backend = "asyncio_threading"
-        #
         should_succeed = False
         self._run_test(abort_on_error, num_threads, backend, should_succeed)
 
@@ -511,7 +495,6 @@ val1=4, val2=8, incremental=True, num_attempts=1, kwargs={'hello4': 'world8', 'g
         num_threads = "3"
         abort_on_error = True
         backend = "asyncio_threading"
-        #
         should_succeed = False
         self._run_test(abort_on_error, num_threads, backend, should_succeed)
 
@@ -519,7 +502,6 @@ val1=4, val2=8, incremental=True, num_attempts=1, kwargs={'hello4': 'world8', 'g
         num_threads = "1"
         abort_on_error = False
         backend = "asyncio_threading"
-        #
         should_succeed = True
         self._run_test(abort_on_error, num_threads, backend, should_succeed)
 
@@ -527,7 +509,6 @@ val1=4, val2=8, incremental=True, num_attempts=1, kwargs={'hello4': 'world8', 'g
         num_threads = "3"
         abort_on_error = False
         backend = "asyncio_threading"
-        #
         should_succeed = True
         self._run_test(abort_on_error, num_threads, backend, should_succeed)
 
@@ -566,4 +547,4 @@ class Test_joblib_example1(hunitest.TestCase):
         res = joblib.Parallel(n_jobs=num_threads, backend=backend, verbose=200)(
             joblib.delayed(Test_joblib_example1.func)(val) for val in vals
         )
-        print(f"res={str(res)}")
+        print(f"res={res!s}")

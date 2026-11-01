@@ -1,14 +1,16 @@
-#!/usr/bin/env python3
-
 import logging
 import os
 from unittest import mock
+
+import pytest
 
 import helpers.hgit as hgit
 import helpers.hio as hio
 import helpers.hprint as hprint
 import helpers.hsystem as hsystem
 import helpers.hunit_test as hunitest
+
+pytest.importorskip("bs4")
 import dev_scripts_helpers.download.download_html_to_md as dshddhtmd
 
 _LOG = logging.getLogger(__name__)

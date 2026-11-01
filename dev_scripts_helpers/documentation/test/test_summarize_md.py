@@ -1,12 +1,16 @@
 import os
 from typing import List, Optional, Tuple
 
-import dev_scripts_helpers.documentation.summarize_md as dshdsumd
+import pytest
+
 import helpers.hgit as hgit
 import helpers.hio as hio
 import helpers.hprint as hprint
 import helpers.hsystem as hsystem
 import helpers.hunit_test as hunitest
+
+pytest.importorskip("markdown_it")
+import dev_scripts_helpers.documentation.summarize_md as dshdsumd
 
 
 def _run_summarize_md_test(
