@@ -377,6 +377,12 @@
 
 - Report the status of GitHub workflows with filtering and optional daemon mode for
   continuous monitoring
+- The verdict of a workflow comes from its latest completed run
+  - A newer run still in progress is marked in the table
+  - The task exits with code 1 if the latest completed run of any workflow has
+    `conclusion == "failure"`, so a script can gate on it
+  - The conclusions `cancelled`, `skipped` and `startup_failure` are shown but do
+    not count as a failure
 - Check current branch workflows
 
   ```bash
@@ -395,7 +401,7 @@
   > invoke gh_workflow_list --filter-by-branch all
   ```
 
-- Filter by completed status
+- Keep only the workflows whose latest completed run has this status or conclusion
 
   ```bash
   > invoke gh_workflow_list --filter-by-completed failure
@@ -412,6 +418,8 @@
   ```bash
   > invoke gh_workflow_list --daemon --interval 30
   ```
+
+- `invoke gh_watch` is an alias of `invoke gh_workflow_list --daemon`
 
 #### `gh_workflow_run`
 

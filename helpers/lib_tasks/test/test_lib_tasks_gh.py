@@ -1,8 +1,12 @@
 import contextlib
+import datetime
+import io
+import json
 import logging
 import unittest.mock as umock
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Tuple
 
+import invoke.exceptions as invexc
 import pandas as pd
 import pytest
 
@@ -10,11 +14,12 @@ import helpers.hdaemon as hdaemon
 import helpers.hgit as hgit
 import helpers.hio as hio
 import helpers.hplayback as hplayba
+import helpers.hprint as hprint
 import helpers.hserver as hserver
 import helpers.hsystem as hsystem
-import helpers.htable as htable
 import helpers.hunit_test as hunitest
 import helpers.lib_tasks.lib_tasks_gh as hltltagh
+import helpers.lib_tasks.lib_tasks_utils as hltltaut
 import helpers.lib_tasks.test.test_lib_tasks as httestlib
 
 _LOG = logging.getLogger(__name__)
@@ -61,7 +66,6 @@ class Test_get_gh_issue_title(hunitest.TestCase):
         """
         cmd = "invoke gh_login"
         hsystem.system(cmd)
-        #
         issue_id = 1
         repo = "current"
         _ = hltltagh._get_gh_issue_title(issue_id, repo)
@@ -543,118 +547,404 @@ class Test_gh_login(hunitest.TestCase):
         self.assert_equal(str(actual), str(expected))
 
 
-# Columns of the table returned by `_get_workflow_table()`.
-_WORKFLOW_TABLE_COLS = [
-    "completed",
-    "status",
-    "workflow",
-    "branch",
-    "event",
-    "id",
-    "elapsed",
-    "age",
-]
-
-
 # #############################################################################
-# Test__get_workflow_table
+# GH runs fixtures
 # #############################################################################
 
 
-# TODO(ai_gp): Factor out common code
-
-
-class Test__get_workflow_table(hunitest.TestCase):
+def _build_runs(
+    runs: List[Tuple[str, str, str, str, int]],
+) -> List[Dict[str, Any]]:
     """
-    Test `_get_workflow_table()`.
+    Build the run objects `gh run list --json` returns.
+
+    :param runs: runs ordered newest-first, each as
+        `(workflow, status, conclusion, branch, run_id)`
+    :return: run objects, all created at 22:00 and updated at 22:10 UTC
+    """
+    created_at = "2026-07-28T22:00:00Z"
+    updated_at = "2026-07-28T22:10:00Z"
+    gh_runs = [
+        {
+            "name": workflow,
+            "status": status,
+            "conclusion": conclusion,
+            "databaseId": run_id,
+            "headBranch": branch,
+            "createdAt": created_at,
+            "updatedAt": updated_at,
+        }
+        for workflow, status, conclusion, branch, run_id in runs
+    ]
+    return gh_runs
+
+
+def _build_runs_json(runs: List[Tuple[str, str, str, str, int]]) -> str:
+    """
+    Build the text printed by `gh run list --json` for the given runs.
+
+    :param runs: see `_build_runs()`
+    :return: JSON text with the list of runs
+    """
+    txt = json.dumps(_build_runs(runs))
+    return txt
+
+
+def _remove_colors(txt: str) -> str:
+    """
+    Remove the ANSI color codes from a printed report.
+
+    :param txt: printed report
+    :return: `txt` without ANSI color codes
+    """
+    txt = hprint.remove_non_printable_chars(txt)
+    return txt
+
+
+# #############################################################################
+# Test_format_days_ago
+# #############################################################################
+
+
+class Test_format_days_ago(hunitest.TestCase):
+    """
+    Test `format_days_ago()`.
     """
 
     def test1(self) -> None:
         """
-        Test that `gh run list` tab-separated output is parsed and the
-        redundant `name` column is dropped.
+        Test that a run from 3 days and 1 hour ago is 3 days old.
         """
         # Prepare inputs.
-        txt = "\n".join(
-            [
-                "completed\tsuccess\tTitle1\tFast tests\tmaster\tpush\t1\t1m\t2m",
-                "in_progress\t\tTitle2\tSlow tests\tmaster\tpush\t2\t2m\t3m",
-            ]
-        )
+        now = datetime.datetime.now(datetime.UTC)
+        dt = now - datetime.timedelta(days=3, hours=1)
+        # Prepare outputs.
+        expected = "3 days ago"
+        # Run test.
+        actual = hltltagh.format_days_ago(dt)
+        # Check outputs.
+        self.assert_equal(actual, expected)
+
+
+# #############################################################################
+# Test_get_latest_runs_per_workflow
+# #############################################################################
+
+
+class Test_get_latest_runs_per_workflow(hunitest.TestCase):
+    """
+    Test `get_latest_runs_per_workflow()`.
+    """
+
+    def helper(
+        self,
+        gh_output: str,
+        branch: str,
+        expected_latest_runs: str,
+        expected_in_progress: str,
+    ) -> None:
+        """
+        Run the function on a fixed `gh run list --json` output.
+
+        :param gh_output: text printed by `gh`
+        :param branch: branch to report
+        :param expected_latest_runs: expected `workflow -> (run id, conclusion)`
+        :param expected_in_progress: expected sorted workflows in progress
+        """
         # Run test.
         with umock.patch.object(
-            hsystem, "system_to_string", return_value=(0, txt)
+            hsystem, "system_to_string", return_value=(0, gh_output)
         ):
-            table = hltltagh._get_workflow_table()
+            latest_runs, in_progress = hltltagh.get_latest_runs_per_workflow(
+                branch
+            )
         # Check outputs.
-        actual = {
-            "completed": table.get_column("completed"),
-            "status": table.get_column("status"),
-            "workflow": table.get_column("workflow"),
-            "id": table.get_column("id"),
+        actual_latest_runs = {
+            workflow: (run["databaseId"], run["conclusion"])
+            for workflow, run in latest_runs.items()
         }
-        expected = {
-            "completed": ["completed", "in_progress"],
-            "status": ["success", ""],
-            "workflow": ["Fast tests", "Slow tests"],
-            "id": ["1", "2"],
-        }
-        self.assert_equal(str(actual), str(expected))
-        # The `name` column was dropped.
-        with self.assertRaises(AssertionError):
-            table.get_column("name")
+        self.assert_equal(str(actual_latest_runs), expected_latest_runs)
+        self.assert_equal(str(sorted(in_progress)), expected_in_progress)
+
+    def test1(self) -> None:
+        """
+        Test that only the runs of the requested branch are used.
+        """
+        # Prepare inputs.
+        runs = [
+            ("Fast tests", "completed", "success", "feature", 4),
+            ("Fast tests", "completed", "failure", "master", 3),
+            ("Slow tests", "completed", "failure", "feature", 2),
+            ("Slow tests", "completed", "success", "master", 1),
+        ]
+        gh_output = _build_runs_json(runs)
+        branch = "master"
+        # Prepare outputs.
+        expected_latest_runs = (
+            "{'Fast tests': (3, 'failure'), 'Slow tests': (1, 'success')}"
+        )
+        expected_in_progress = "[]"
+        # Run test.
+        self.helper(
+            gh_output, branch, expected_latest_runs, expected_in_progress
+        )
 
     def test2(self) -> None:
         """
-        Test that the branch and the limit are passed to `gh run list`.
+        Test that the latest completed run of each workflow wins, also when
+        the workflows have a different number of runs.
         """
         # Prepare inputs.
-        txt = "completed\tsuccess\tTitle1\tFast tests\tbranch1\tpush\t1\t1m\t2m"
-        # Run test.
-        with umock.patch.object(
-            hsystem, "system_to_string", return_value=(0, txt)
-        ) as mock_system:
-            hltltagh._get_workflow_table(
-                "github.com/causify-ai/helpers", branch_name="branch1"
-            )
-        # Check outputs.
-        actual = mock_system.call_args.args[0]
-        expected = (
-            "export NO_COLOR=1; gh run list --limit 100"
-            " --repo github.com/causify-ai/helpers --branch branch1"
+        runs = [
+            ("Fast tests", "completed", "failure", "master", 5),
+            ("Slow tests", "completed", "success", "master", 4),
+            ("Fast tests", "completed", "success", "master", 3),
+            ("Fast tests", "completed", "failure", "master", 2),
+        ]
+        gh_output = _build_runs_json(runs)
+        branch = "master"
+        # Prepare outputs.
+        expected_latest_runs = (
+            "{'Fast tests': (5, 'failure'), 'Slow tests': (4, 'success')}"
         )
-        self.assert_equal(actual, expected)
+        expected_in_progress = "[]"
+        # Run test.
+        self.helper(
+            gh_output, branch, expected_latest_runs, expected_in_progress
+        )
 
     def test3(self) -> None:
         """
-        Test that no branch is passed to `gh run list` when it is not
-        specified.
+        Test that, when the newest run is in progress, the older completed run
+        gives the verdict and the workflow is marked as in progress.
         """
         # Prepare inputs.
-        txt = "completed\tsuccess\tTitle1\tFast tests\tmaster\tpush\t1\t1m\t2m"
+        runs = [
+            ("Fast tests", "in_progress", "", "master", 3),
+            ("Fast tests", "completed", "success", "master", 2),
+            ("Fast tests", "completed", "failure", "master", 1),
+        ]
+        gh_output = _build_runs_json(runs)
+        branch = "master"
+        # Prepare outputs.
+        expected_latest_runs = "{'Fast tests': (2, 'success')}"
+        expected_in_progress = "['Fast tests']"
         # Run test.
-        with umock.patch.object(
-            hsystem, "system_to_string", return_value=(0, txt)
-        ) as mock_system:
-            hltltagh._get_workflow_table()
-        # Check outputs.
-        actual = mock_system.call_args.args[0]
-        expected = "export NO_COLOR=1; gh run list --limit 100"
-        self.assert_equal(actual, expected)
+        self.helper(
+            gh_output, branch, expected_latest_runs, expected_in_progress
+        )
 
     def test4(self) -> None:
         """
-        Test that an empty `gh run list` output gives an empty table.
+        Test that an empty `gh` output gives an empty result.
         """
         # Prepare inputs.
-        branch_name = "branch1"
+        gh_output = ""
+        branch = "master"
+        # Prepare outputs.
+        expected_latest_runs = "{}"
+        expected_in_progress = "[]"
+        # Run test.
+        self.helper(
+            gh_output, branch, expected_latest_runs, expected_in_progress
+        )
+
+    def test5(self) -> None:
+        """
+        Test that a workflow with only runs in progress has no verdict but is
+        marked as in progress.
+        """
+        # Prepare inputs.
+        runs = [
+            ("Slow tests", "queued", "", "master", 2),
+            ("Slow tests", "in_progress", "", "master", 1),
+        ]
+        gh_output = _build_runs_json(runs)
+        branch = "master"
+        # Prepare outputs.
+        expected_latest_runs = "{}"
+        expected_in_progress = "['Slow tests']"
+        # Run test.
+        self.helper(
+            gh_output, branch, expected_latest_runs, expected_in_progress
+        )
+
+    def test6(self) -> None:
+        """
+        Test that a cancelled run is the verdict of a workflow, since it is
+        the latest completed run.
+        """
+        # Prepare inputs.
+        runs = [
+            ("Fast tests", "completed", "cancelled", "master", 2),
+            ("Fast tests", "completed", "success", "master", 1),
+        ]
+        gh_output = _build_runs_json(runs)
+        branch = "master"
+        # Prepare outputs.
+        expected_latest_runs = "{'Fast tests': (2, 'cancelled')}"
+        expected_in_progress = "[]"
+        # Run test.
+        self.helper(
+            gh_output, branch, expected_latest_runs, expected_in_progress
+        )
+
+    def test7(self) -> None:
+        """
+        Test that the `gh` command asks for JSON, does not filter by branch
+        and targets the passed repo and limit.
+        """
+        # Prepare inputs.
+        branch = "master"
+        repo_full_name_with_host = "github.com/causify-ai/helpers"
+        limit = 50
+        # Prepare outputs.
+        expected = (
+            "gh run list --limit 50"
+            " --json=name,status,conclusion,databaseId,updatedAt,createdAt,headBranch"
+            " --repo github.com/causify-ai/helpers"
+        )
         # Run test.
         with umock.patch.object(
             hsystem, "system_to_string", return_value=(0, "")
-        ):
-            table = hltltagh._get_workflow_table(branch_name=branch_name)
+        ) as mock_system:
+            hltltagh.get_latest_runs_per_workflow(
+                branch,
+                repo_full_name_with_host=repo_full_name_with_host,
+                limit=limit,
+            )
         # Check outputs.
-        self.assertEqual(table.size(), (0, 8))
+        actual = mock_system.call_args.args[0]
+        self.assert_equal(actual, expected)
+
+
+# #############################################################################
+# Test_get_failed_workflows
+# #############################################################################
+
+
+class Test_get_failed_workflows(hunitest.TestCase):
+    """
+    Test `get_failed_workflows()`.
+    """
+
+    def helper(
+        self, runs: List[Tuple[str, str, str, str, int]], expected: str
+    ) -> None:
+        """
+        Run the function on the latest runs built from `runs`.
+
+        :param runs: see `_build_runs()`
+        :param expected: expected sorted names of the failed workflows
+        """
+        # Run test.
+        latest_runs = hltltagh.group_runs_by_workflow(_build_runs(runs))
+        actual = hltltagh.get_failed_workflows(latest_runs)
+        # Check outputs.
+        self.assert_equal(str(actual), expected)
+
+    def test1(self) -> None:
+        """
+        Test that a `failure` conclusion is reported as a failure.
+        """
+        # Prepare inputs.
+        runs = [
+            ("Slow tests", "completed", "failure", "master", 2),
+            ("Fast tests", "completed", "success", "master", 1),
+        ]
+        # Prepare outputs.
+        expected = "['Slow tests']"
+        # Run test.
+        self.helper(runs, expected)
+
+    def test2(self) -> None:
+        """
+        Test that `cancelled`, `skipped` and `startup_failure` are not
+        reported as a failure.
+        """
+        # Prepare inputs.
+        runs = [
+            ("Fast tests", "completed", "cancelled", "master", 3),
+            ("Slow tests", "completed", "skipped", "master", 2),
+            ("Superslow tests", "completed", "startup_failure", "master", 1),
+        ]
+        # Prepare outputs.
+        expected = "[]"
+        # Run test.
+        self.helper(runs, expected)
+
+
+# #############################################################################
+# Test_build_table_rows
+# #############################################################################
+
+
+class Test_build_table_rows(hunitest.TestCase):
+    """
+    Test `build_table_rows()` formatted with `format_table()`.
+    """
+
+    def test1(self) -> None:
+        """
+        Test the marker of a workflow with a newer run in progress and the log
+        of a failed workflow.
+        """
+        # Prepare inputs.
+        runs = [
+            ("Fast tests", "completed", "success", "master", 2),
+            ("Slow tests", "completed", "failure", "master", 1),
+        ]
+        latest_runs = hltltagh.group_runs_by_workflow(_build_runs(runs))
+        in_progress = {"Fast tests"}
+        log_files = {"Slow tests": "tmp.failure.slow_tests.master.txt"}
+        # Prepare outputs.
+        expected = """
+        | Workflow   | Status                          | Time  | Duration | Date       | Log                               |
+        |------------|---------------------------------|-------|----------|------------|-----------------------------------|
+        | Fast tests | success (newer run in progress) | 22:10 | 10m      | N days ago | -                                 |
+        | Slow tests | failure                         | 22:10 | 10m      | N days ago | tmp.failure.slow_tests.master.txt |
+        """
+        # Run test.
+        with umock.patch.object(
+            hltltagh, "format_days_ago", return_value="N days ago"
+        ):
+            rows = hltltagh.build_table_rows(latest_runs, in_progress, log_files)
+        actual = hltltagh.format_table(rows)
+        # Check outputs.
+        actual = _remove_colors(actual)
+        self.assert_equal(actual, expected, dedent=True)
+
+
+# #############################################################################
+# Test_format_table
+# #############################################################################
+
+
+class Test_format_table(hunitest.TestCase):
+    """
+    Test `format_table()`.
+    """
+
+    def test1(self) -> None:
+        """
+        Test that `max_col_width` truncates the cells that are too wide.
+        """
+        # Prepare inputs.
+        rows = [
+            ["Workflow", "Log"],
+            ["Fast tests", "tmp.failure.fast_tests.txt"],
+        ]
+        max_col_width = 8
+        # Prepare outputs.
+        expected = """
+        | Workfl | Log    |
+        |--------|--------|
+        | Fast t | tmp.fa |
+        """
+        # Run test.
+        actual = hltltagh.format_table(rows, max_col_width=max_col_width)
+        # Check outputs.
+        self.assert_equal(actual, expected, dedent=True)
 
 
 # #############################################################################
@@ -667,55 +957,351 @@ class Test_gh_workflow_list(hunitest.TestCase):
     Test `gh_workflow_list()`.
     """
 
-    def test1(self) -> None:
+    def helper(
+        self,
+        gh_output: str,
+        filter_by_branch: str,
+        expected_stdout: str,
+        expected_cmds: str,
+        expected_exit_code: int,
+        *,
+        filter_by_completed: str = "all",
+        git_branch: str = "HelpersTask1_Feature",
+    ) -> None:
         """
-        Test that `filter_by_branch="all"` prints the table and returns
-        before the per-workflow status loop.
+        Run the task on a fixed `gh run list --json` output.
+
+        :param gh_output: text printed by `gh`
+        :param filter_by_branch: branch to report, see `gh_workflow_list()`
+        :param expected_stdout: expected printed report
+        :param expected_cmds: expected shell commands run to download a failed log
+            and to reproduce the failed tests
+        :param expected_exit_code: 0 if the task returns, otherwise the code of
+            the `invoke` exit it raises
+        :param filter_by_completed: see `gh_workflow_list()`
+        :param git_branch: name of the current Git branch
         """
         # Prepare inputs.
         ctx = httestlib._build_mock_context_returning_ok()
-        table = htable.Table.from_text(
-            [
-                "completed",
-                "status",
-                "workflow",
-                "branch",
-                "event",
-                "id",
-                "elapsed",
-                "age",
-            ],
-            "completed\tsuccess\tFast tests\tmaster\tpush\t1\t1m\t2m",
-            delimiter="\t",
-        )
-        filter_by_branch = "all"
+        repo_full_name_with_host = "github.com/causify-ai/helpers"
+        stdout = io.StringIO()
+
+        def _call() -> None:
+            hltltagh.gh_workflow_list(
+                ctx,
+                filter_by_branch=filter_by_branch,
+                filter_by_completed=filter_by_completed,
+            )
+
         # Run test.
         with (
+            umock.patch.object(hltltaut, "report_task"),
             umock.patch.object(hltltagh, "gh_login"),
             umock.patch.object(
-                hltltagh, "_get_workflow_table", return_value=table
+                hltltagh,
+                "_get_repo_full_name_from_cmd",
+                return_value=(repo_full_name_with_host, "helpers"),
             ),
-            umock.patch.object(hltltagh, "_print_table") as mock_print,
+            umock.patch.object(
+                hltltagh, "format_days_ago", return_value="N days ago"
+            ),
+            umock.patch.object(hgit, "get_branch_name", return_value=git_branch),
+            umock.patch.object(
+                hgit, "find_helpers_root", return_value="/helpers_root"
+            ),
+            umock.patch.object(
+                hsystem, "system_to_string", return_value=(0, gh_output)
+            ),
+            umock.patch.object(hsystem, "system") as mock_system,
+            contextlib.redirect_stdout(stdout),
         ):
-            hltltagh.gh_workflow_list(ctx, filter_by_branch=filter_by_branch)
+            if expected_exit_code == 0:
+                _call()
+            else:
+                with self.assertRaises(invexc.Exit) as cm:
+                    _call()
+                self.assertEqual(cm.exception.code, expected_exit_code)
         # Check outputs.
-        mock_print.assert_called_once_with(table)
+        actual_cmds = [call.args[0] for call in mock_system.call_args_list]
+        self.assert_equal("\n".join(actual_cmds), expected_cmds, dedent=True)
+        actual_stdout = _remove_colors(stdout.getvalue())
+        self.assert_equal(actual_stdout, expected_stdout, dedent=True)
+
+    def test1(self) -> None:
+        """
+        Test that `filter_by_branch="all"` lists the runs of every branch with
+        no verdict, so a failure does not give a non-zero exit.
+        """
+        # Prepare inputs.
+        runs = [
+            ("Fast tests", "completed", "failure", "feature", 2),
+            ("Fast tests", "completed", "success", "master", 1),
+        ]
+        gh_output = _build_runs_json(runs)
+        filter_by_branch = "all"
+        # Prepare outputs.
+        expected_stdout = """
+        | Workflow   | Branch  | Status  | Time  | Duration | Date       |
+        |------------|---------|---------|-------|----------|------------|
+        | Fast tests | feature | failure | 22:10 | 10m      | N days ago |
+        | Fast tests | master  | success | 22:10 | 10m      | N days ago |
+        """
+        expected_cmds = ""
+        expected_exit_code = 0
+        # Run test and check outputs.
+        self.helper(
+            gh_output,
+            filter_by_branch,
+            expected_stdout,
+            expected_cmds,
+            expected_exit_code,
+        )
 
     def test2(self) -> None:
         """
-        Test that `daemon=True` schedules the periodic report instead of
-        running it once, and the scheduled callback clears the screen and
-        re-invokes the report with `daemon=False`.
+        Test that a workflow whose latest completed run succeeded is reported
+        as ok with a zero exit code.
+        """
+        # Prepare inputs.
+        runs = [
+            ("Fast tests", "completed", "success", "master", 1),
+        ]
+        gh_output = _build_runs_json(runs)
+        filter_by_branch = "master"
+        # Prepare outputs.
+        expected_stdout = """
+        | Workflow   | Status  | Time  | Duration | Date       | Log |
+        |------------|---------|-------|----------|------------|-----|
+        | Fast tests | success | 22:10 | 10m      | N days ago | -   |
+        Workflow 'Fast tests' for 'master' is ok
+        """
+        expected_cmds = ""
+        expected_exit_code = 0
+        # Run test and check outputs.
+        self.helper(
+            gh_output,
+            filter_by_branch,
+            expected_stdout,
+            expected_cmds,
+            expected_exit_code,
+        )
+
+    def test3(self) -> None:
+        """
+        Test that a failed workflow downloads its log, reproduces the failed
+        tests and makes the task exit with code 1.
+        """
+        # Prepare inputs.
+        runs = [
+            ("Fast tests", "completed", "failure", "master", 7),
+        ]
+        gh_output = _build_runs_json(runs)
+        filter_by_branch = "master"
+        # Prepare outputs.
+        expected_stdout = """
+        | Workflow   | Status  | Time  | Duration | Date       | Log                               |
+        |------------|---------|-------|----------|------------|-----------------------------------|
+        | Fast tests | failure | 22:10 | 10m      | N days ago | tmp.failure.fast_tests.master.txt |
+        # Log is in 'tmp.failure.fast_tests.master.txt'
+        """
+        expected_cmds = """
+        gh run view 7 --log-failed >tmp.failure.fast_tests.master.txt
+        /helpers_root/dev_scripts_helpers/system_tools/remove_escape_chars.py -i tmp.failure.fast_tests.master.txt
+        invoke pytest_repro --file-name tmp.failure.fast_tests.master.txt --script-name ./tmp.pytest_repro.fast_tests.sh
+        """
+        expected_exit_code = 1
+        # Run test and check outputs.
+        self.helper(
+            gh_output,
+            filter_by_branch,
+            expected_stdout,
+            expected_cmds,
+            expected_exit_code,
+        )
+
+    def test4(self) -> None:
+        """
+        Test that `filter_by_branch="master"` on a feature branch keeps
+        `master` in the messages and in the log file name (bug: the Git branch
+        used to overwrite the filtered branch).
+        """
+        # Prepare inputs.
+        runs = [
+            ("Fast tests", "completed", "success", "HelpersTask1_Feature", 8),
+            ("Fast tests", "completed", "failure", "master", 7),
+        ]
+        gh_output = _build_runs_json(runs)
+        filter_by_branch = "master"
+        git_branch = "HelpersTask1_Feature"
+        # Prepare outputs.
+        expected_stdout = """
+        | Workflow   | Status  | Time  | Duration | Date       | Log                               |
+        |------------|---------|-------|----------|------------|-----------------------------------|
+        | Fast tests | failure | 22:10 | 10m      | N days ago | tmp.failure.fast_tests.master.txt |
+        # Log is in 'tmp.failure.fast_tests.master.txt'
+        """
+        expected_cmds = """
+        gh run view 7 --log-failed >tmp.failure.fast_tests.master.txt
+        /helpers_root/dev_scripts_helpers/system_tools/remove_escape_chars.py -i tmp.failure.fast_tests.master.txt
+        invoke pytest_repro --file-name tmp.failure.fast_tests.master.txt --script-name ./tmp.pytest_repro.fast_tests.sh
+        """
+        expected_exit_code = 1
+        # Run test and check outputs.
+        self.helper(
+            gh_output,
+            filter_by_branch,
+            expected_stdout,
+            expected_cmds,
+            expected_exit_code,
+            git_branch=git_branch,
+        )
+
+    def test5(self) -> None:
+        """
+        Test that `filter_by_branch="current_branch"` reports the runs of the
+        current Git branch.
+        """
+        # Prepare inputs.
+        runs = [
+            ("Fast tests", "completed", "failure", "master", 8),
+            ("Fast tests", "completed", "success", "HelpersTask1_Feature", 7),
+        ]
+        gh_output = _build_runs_json(runs)
+        filter_by_branch = "current_branch"
+        git_branch = "HelpersTask1_Feature"
+        # Prepare outputs.
+        expected_stdout = """
+        | Workflow   | Status  | Time  | Duration | Date       | Log |
+        |------------|---------|-------|----------|------------|-----|
+        | Fast tests | success | 22:10 | 10m      | N days ago | -   |
+        Workflow 'Fast tests' for 'HelpersTask1_Feature' is ok
+        """
+        expected_cmds = ""
+        expected_exit_code = 0
+        # Run test and check outputs.
+        self.helper(
+            gh_output,
+            filter_by_branch,
+            expected_stdout,
+            expected_cmds,
+            expected_exit_code,
+            git_branch=git_branch,
+        )
+
+    def test6(self) -> None:
+        """
+        Test that `cancelled` and `startup_failure` runs are shown but do not
+        make the task exit with a non-zero code.
+        """
+        # Prepare inputs.
+        runs = [
+            ("Fast tests", "completed", "cancelled", "master", 2),
+            ("Slow tests", "completed", "startup_failure", "master", 1),
+        ]
+        gh_output = _build_runs_json(runs)
+        filter_by_branch = "master"
+        # Prepare outputs.
+        expected_stdout = """
+        | Workflow   | Status          | Time  | Duration | Date       | Log |
+        |------------|-----------------|-------|----------|------------|-----|
+        | Fast tests | cancelled       | 22:10 | 10m      | N days ago | -   |
+        | Slow tests | startup_failure | 22:10 | 10m      | N days ago | -   |
+        """
+        expected_cmds = ""
+        expected_exit_code = 0
+        # Run test and check outputs.
+        self.helper(
+            gh_output,
+            filter_by_branch,
+            expected_stdout,
+            expected_cmds,
+            expected_exit_code,
+        )
+
+    def test7(self) -> None:
+        """
+        Test that `filter_by_completed` keeps only the workflows with that
+        conclusion.
+        """
+        # Prepare inputs.
+        runs = [
+            ("Fast tests", "completed", "success", "master", 2),
+            ("Slow tests", "completed", "failure", "master", 1),
+        ]
+        gh_output = _build_runs_json(runs)
+        filter_by_branch = "master"
+        filter_by_completed = "failure"
+        # Prepare outputs.
+        expected_stdout = """
+        | Workflow   | Status  | Time  | Duration | Date       | Log                               |
+        |------------|---------|-------|----------|------------|-----------------------------------|
+        | Slow tests | failure | 22:10 | 10m      | N days ago | tmp.failure.slow_tests.master.txt |
+        # Log is in 'tmp.failure.slow_tests.master.txt'
+        """
+        expected_cmds = """
+        gh run view 1 --log-failed >tmp.failure.slow_tests.master.txt
+        /helpers_root/dev_scripts_helpers/system_tools/remove_escape_chars.py -i tmp.failure.slow_tests.master.txt
+        invoke pytest_repro --file-name tmp.failure.slow_tests.master.txt --script-name ./tmp.pytest_repro.slow_tests.sh
+        """
+        expected_exit_code = 1
+        # Run test and check outputs.
+        self.helper(
+            gh_output,
+            filter_by_branch,
+            expected_stdout,
+            expected_cmds,
+            expected_exit_code,
+            filter_by_completed=filter_by_completed,
+        )
+
+    def test8(self) -> None:
+        """
+        Test that a warning is issued and nothing is printed when no run
+        matches the filters.
+        """
+        # Prepare inputs.
+        gh_output = ""
+        filter_by_branch = "master"
+        # Prepare outputs.
+        # Log message format: "LEVEL:logger.name:message".
+        expected_log = (
+            "WARNING:helpers.lib_tasks.lib_tasks_gh:No workflow runs found for "
+            "filter_by_branch=master filter_by_completed=all"
+        )
+        # Run test.
+        with self.assertLogs(hltltagh._LOG, level="WARNING") as cm:
+            self.helper(gh_output, filter_by_branch, "", "", 0)
+        # Check outputs.
+        self.assert_equal("\n".join(cm.output), expected_log)
+
+    def test9(self) -> None:
+        """
+        Test that `daemon=True` schedules the periodic report, and that the
+        scheduled callback clears the screen and does not exit when a
+        workflow failed.
         """
         # Prepare inputs.
         ctx = httestlib._build_mock_context_returning_ok()
+        runs = [
+            ("Fast tests", "completed", "failure", "master", 7),
+        ]
+        gh_output = _build_runs_json(runs)
+        filter_by_branch = "master"
         interval = 30
         daemon = True
         # Run test.
-        with umock.patch.object(
-            hdaemon, "run_periodic_daemon_mode"
-        ) as mock_daemon:
-            hltltagh.gh_workflow_list(ctx, daemon=daemon, interval=interval)
+        with (
+            umock.patch.object(hltltaut, "report_task"),
+            umock.patch.object(
+                hdaemon, "run_periodic_daemon_mode"
+            ) as mock_daemon,
+        ):
+            hltltagh.gh_workflow_list(
+                ctx,
+                filter_by_branch=filter_by_branch,
+                daemon=daemon,
+                interval=interval,
+            )
         # Check outputs.
         mock_daemon.assert_called_once()
         run_fn, actual_interval = mock_daemon.call_args.args
@@ -723,121 +1309,50 @@ class Test_gh_workflow_list(hunitest.TestCase):
         self.assertEqual(
             mock_daemon.call_args.kwargs["window_name_str"], "*GH_WATCH*"
         )
-        # Exercise the scheduled callback.
+        # Exercise the scheduled callback with a failed workflow: it must
+        # return, so that the daemon keeps running.
         with (
             umock.patch("subprocess.run") as mock_subprocess,
-            umock.patch.object(hltltagh, "gh_workflow_list") as mock_recurse,
+            umock.patch.object(hltltagh, "gh_login"),
+            umock.patch.object(
+                hltltagh,
+                "_get_repo_full_name_from_cmd",
+                return_value=("github.com/causify-ai/helpers", "helpers"),
+            ),
+            umock.patch.object(
+                hsystem, "system_to_string", return_value=(0, gh_output)
+            ),
+            umock.patch.object(hsystem, "system"),
+            umock.patch.object(hgit, "find_helpers_root", return_value="/"),
+            contextlib.redirect_stdout(io.StringIO()),
         ):
             run_fn()
-        mock_subprocess.assert_called_once_with("clear", shell=True)
-        mock_recurse.assert_called_once()
+        mock_subprocess.assert_called_once_with("clear", shell=True, check=False)
 
-    def test3(self) -> None:
+
+# #############################################################################
+# Test_gh_watch
+# #############################################################################
+
+
+class Test_gh_watch(hunitest.TestCase):
+    """
+    Test `gh_watch()`.
+    """
+
+    def test1(self) -> None:
         """
-        Test that a non-default `repo_short_name` is resolved and passed
-        to `_get_workflow_table()`.
+        Test that `gh_watch()` runs `gh_workflow_list()` in daemon mode with
+        the passed interval.
         """
         # Prepare inputs.
         ctx = httestlib._build_mock_context_returning_ok()
-        table = htable.Table.from_text(
-            [
-                "completed",
-                "status",
-                "workflow",
-                "branch",
-                "event",
-                "id",
-                "elapsed",
-                "age",
-            ],
-            "completed\tsuccess\tFast tests\tmaster\tpush\t1\t1m\t2m",
-            delimiter="\t",
-        )
-        filter_by_branch = "all"
-        repo_short_name = "amp"
+        interval = 30
         # Run test.
-        with (
-            umock.patch.object(hltltagh, "gh_login"),
-            umock.patch.object(
-                hltltagh,
-                "_get_repo_full_name_from_cmd",
-                return_value=("github.com/causify-ai/amp", repo_short_name),
-            ) as mock_get_repo,
-            umock.patch.object(
-                hltltagh, "_get_workflow_table", return_value=table
-            ) as mock_get_table,
-            umock.patch.object(hltltagh, "_print_table"),
-        ):
-            hltltagh.gh_workflow_list(
-                ctx,
-                filter_by_branch=filter_by_branch,
-                repo_short_name=repo_short_name,
-            )
+        with umock.patch.object(hltltagh, "gh_workflow_list") as mock_list:
+            hltltagh.gh_watch(ctx, interval=interval)
         # Check outputs.
-        mock_get_repo.assert_called_once_with(repo_short_name)
-        mock_get_table.assert_called_once_with(
-            "github.com/causify-ai/amp", branch_name=None
-        )
-
-    def test4(self) -> None:
-        """
-        Test that the branch filter is pushed down to `_get_workflow_table()`.
-        """
-        # Prepare inputs.
-        ctx = httestlib._build_mock_context_returning_ok()
-        table = htable.Table([], _WORKFLOW_TABLE_COLS)
-        filter_by_branch = "master"
-        # Run test.
-        with (
-            umock.patch.object(hltltagh, "gh_login"),
-            umock.patch.object(
-                hltltagh,
-                "_get_repo_full_name_from_cmd",
-                return_value=("github.com/causify-ai/helpers", "helpers"),
-            ),
-            umock.patch.object(
-                hltltagh, "_get_workflow_table", return_value=table
-            ) as mock_get_table,
-        ):
-            hltltagh.gh_workflow_list(ctx, filter_by_branch=filter_by_branch)
-        # Check outputs.
-        mock_get_table.assert_called_once_with(
-            "github.com/causify-ai/helpers", branch_name=filter_by_branch
-        )
-
-    def test5(self) -> None:
-        """
-        Test that a warning is issued and nothing is printed when no run
-        matches the filters.
-        """
-        # Prepare inputs.
-        ctx = httestlib._build_mock_context_returning_ok()
-        table = htable.Table([], _WORKFLOW_TABLE_COLS)
-        filter_by_branch = "all"
-        # Prepare outputs.
-        # Log message format: "LEVEL:logger.name:message".
-        expected_log = (
-            "WARNING:helpers.lib_tasks.lib_tasks_gh:No workflow runs found for "
-            "filter_by_branch=all filter_by_completed=all"
-        )
-        # Run test.
-        with (
-            umock.patch.object(hltltagh, "gh_login"),
-            umock.patch.object(
-                hltltagh,
-                "_get_repo_full_name_from_cmd",
-                return_value=("github.com/causify-ai/helpers", "helpers"),
-            ),
-            umock.patch.object(
-                hltltagh, "_get_workflow_table", return_value=table
-            ),
-            umock.patch.object(hltltagh, "_print_table") as mock_print,
-            self.assertLogs(hltltagh._LOG, level="WARNING") as cm,
-        ):
-            hltltagh.gh_workflow_list(ctx, filter_by_branch=filter_by_branch)
-        # Check outputs.
-        mock_print.assert_not_called()
-        self.assert_equal("\n".join(cm.output), expected_log)
+        mock_list.assert_called_once_with(ctx, daemon=True, interval=interval)
 
 
 # #############################################################################
@@ -860,10 +1375,14 @@ class Test_gh_workflow_run(hunitest.TestCase):
         workflows = "all"
         # Prepare outputs.
         expected = [
-            "gh workflow run fast_tests.yml --ref master"
-            " --repo github.com/causify-ai/helpers",
-            "gh workflow run slow_tests.yml --ref master"
-            " --repo github.com/causify-ai/helpers",
+            (
+                "gh workflow run fast_tests.yml --ref master"
+                " --repo github.com/causify-ai/helpers"
+            ),
+            (
+                "gh workflow run slow_tests.yml --ref master"
+                " --repo github.com/causify-ai/helpers"
+            ),
         ]
         # Run test.
         with (
@@ -889,8 +1408,10 @@ class Test_gh_workflow_run(hunitest.TestCase):
         workflows = "custom_workflow"
         # Prepare outputs.
         expected = [
-            "gh workflow run custom_workflow.yml --ref feature_x"
-            " --repo github.com/causify-ai/helpers"
+            (
+                "gh workflow run custom_workflow.yml --ref feature_x"
+                " --repo github.com/causify-ai/helpers"
+            )
         ]
         # Run test.
         with (
@@ -935,8 +1456,10 @@ class Test_gh_workflow_run(hunitest.TestCase):
         mock_get_repo.assert_called_once_with("amp")
         actual = [call.args[0] for call in ctx.run.mock_calls]
         expected = [
-            "gh workflow run fast_tests.yml --ref master"
-            " --repo github.com/causify-ai/amp"
+            (
+                "gh workflow run fast_tests.yml --ref master"
+                " --repo github.com/causify-ai/amp"
+            )
         ]
         self.assert_equal(str(actual), str(expected))
 
@@ -1039,9 +1562,11 @@ class Test_gh_create_pr(hunitest.TestCase):
         # Check outputs.
         actual = [call.args[0] for call in ctx.run.mock_calls]
         expected = [
-            "gh pr create --repo github.com/causify-ai/helpers --draft "
-            "--title HelpersTask123_Fix_bug "
-            "--body-file tmp.gh_create_pr.body.txt"
+            (
+                "gh pr create --repo github.com/causify-ai/helpers --draft "
+                "--title HelpersTask123_Fix_bug "
+                "--body-file tmp.gh_create_pr.body.txt"
+            )
         ]
         self.assert_equal(str(actual), str(expected))
 
