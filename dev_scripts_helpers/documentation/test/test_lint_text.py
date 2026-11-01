@@ -1467,7 +1467,6 @@ class Test_remove_trailing_periods(hunitest.TestCase):
         # Run test.
         self.helper(txt, expected)
 
-
     def test17(self) -> None:
         """
         Test that the period of an abbreviation at the end of a wrapped line
@@ -1487,7 +1486,6 @@ class Test_remove_trailing_periods(hunitest.TestCase):
         """
         # Run test.
         self.helper(txt, expected)
-
 
 
 # #############################################################################
@@ -2946,7 +2944,6 @@ class Test_replace_em_dash_with_colon(hunitest.TestCase):
         # Run test.
         self.helper(txt, expected)
 
-
     def test7(self) -> None:
         """
         Test that an em dash inside inline code is kept, while the one in the
@@ -2964,7 +2961,6 @@ class Test_replace_em_dash_with_colon(hunitest.TestCase):
         """
         # Run test.
         self.helper(txt, expected)
-
 
 
 # #############################################################################
@@ -3809,7 +3805,6 @@ class Test_md_format(hunitest.TestCase):
         # Check outputs.
         self.assertEqual(once, twice)
 
-
     def test11(self) -> None:
         """
         Test that the blank lines around a pipe table are kept, otherwise the
@@ -3830,7 +3825,6 @@ class Test_md_format(hunitest.TestCase):
         # Run test.
         self.helper(txt, expected)
 
-
     def test12(self) -> None:
         """
         Test that the blank lines around a pipe table nested in a bullet are
@@ -3850,7 +3844,6 @@ class Test_md_format(hunitest.TestCase):
         expected = txt
         # Run test.
         self.helper(txt, expected)
-
 
 
 # #############################################################################
@@ -4522,7 +4515,6 @@ class Test_check_pandoc_equivalence(hunitest.TestCase):
         # Run test.
         self.helper(before, after, expected)
 
-
     def test6(self) -> None:
         """
         Test that the style of the delimiter of an ordered list is ignored.
@@ -4540,7 +4532,6 @@ class Test_check_pandoc_equivalence(hunitest.TestCase):
         expected = ""
         # Run test.
         self.helper(before, after, expected)
-
 
     def test7(self) -> None:
         """
@@ -4608,7 +4599,6 @@ class Test_check_pandoc_equivalence(hunitest.TestCase):
         expected = ""
         # Run test.
         self.helper(before, after, expected)
-
 
 
 # #############################################################################

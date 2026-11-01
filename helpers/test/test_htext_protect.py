@@ -1,7 +1,5 @@
 import logging
 
-import pytest
-
 import helpers.hprint as hprint
 import helpers.htext_protect as htexprot
 import helpers.hunit_test as hunitest
@@ -510,7 +508,6 @@ class Test__extract_protected_content(hunitest.TestCase):
         # Run test.
         self.helper(txt, file_type, expected, expected_map_size)
 
-
     def test18(self) -> None:
         """
         Test that the content of an unclosed math block is not lost.
@@ -533,7 +530,6 @@ class Test__extract_protected_content(hunitest.TestCase):
         # Run test.
         self.helper(txt, file_type, expected, expected_map_size)
 
-
     def test19(self) -> None:
         """
         Test that the content of an unclosed HTML comment is not lost.
@@ -553,7 +549,6 @@ class Test__extract_protected_content(hunitest.TestCase):
         expected_map_size = 1
         # Run test.
         self.helper(txt, file_type, expected, expected_map_size)
-
 
 
 # #############################################################################
@@ -1033,7 +1028,6 @@ class Test_extract_restore_roundtrip(hunitest.TestCase):
         # Run test.
         self.helper(txt, file_type)
 
-
     def test9(self) -> None:
         """
         Test roundtrip with an unclosed math block.
@@ -1049,7 +1043,6 @@ class Test_extract_restore_roundtrip(hunitest.TestCase):
         # Run test.
         self.helper(txt, file_type)
 
-
     def test10(self) -> None:
         """
         Test roundtrip with an unclosed HTML comment.
@@ -1063,4 +1056,3 @@ class Test_extract_restore_roundtrip(hunitest.TestCase):
         file_type = "md"
         # Run test.
         self.helper(txt, file_type)
-

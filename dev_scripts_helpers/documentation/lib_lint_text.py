@@ -398,7 +398,9 @@ def _check_links(in_file_name: str) -> None:
 
 # Line ending with an abbreviation that is followed by more text on the next
 # line when wrapped (e.g., `e.g.` and `i.e.`).
-_ABBREVIATION_END_RE = re.compile(r"(?<![A-Za-z])(?:e\.g|i\.e)\.\s*$", re.IGNORECASE)
+_ABBREVIATION_END_RE = re.compile(
+    r"(?<![A-Za-z])(?:e\.g|i\.e)\.\s*$", re.IGNORECASE
+)
 
 
 def _remove_trailing_periods(lines: List[str]) -> List[str]:

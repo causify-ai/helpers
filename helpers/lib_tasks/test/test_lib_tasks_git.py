@@ -665,9 +665,8 @@ class Test_git_roll_submodule_forward(hunitest.TestCase):
         ctx = httestlib._build_mock_context_returning_ok()
         scratch_dir = self.get_scratch_space()
         # Run test and check output.
-        with hsystem.cd(scratch_dir):
-            with self.assertRaises(AssertionError):
-                hltltagi.git_roll_submodule_forward(ctx, "missing_submodule")
+        with hsystem.cd(scratch_dir), self.assertRaises(AssertionError):
+            hltltagi.git_roll_submodule_forward(ctx, "missing_submodule")
         self.assertEqual(_get_ctx_run_calls(ctx), "")
 
 
