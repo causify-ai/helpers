@@ -2,14 +2,12 @@ Rules for writing structured text using bullet lists
 
 # Goals and Philosophy
 
-- Make the text is easy to consume for both humans and AI, i.e., it's
-  well-organized, structured, without fluff, and AI slop
-
+- Make the text is easy to consume for both humans and AI, i.e., it's well-organized,
+  structured, without fluff, and AI slop
 - Focus on:
   - Clarity
   - Brevity
   - Visual structure
-
 - Think of notes as a hybrid between a textbook and a student's notebook
 
 # Writing Style
@@ -28,10 +26,10 @@ Rules for writing structured text using bullet lists
 - Drop editorializing adjectives and adverbs that add no technical content
   - E.g., `just`, `simply`, `soft`, `blurted-out`, `surprisingly`
 - Drop trailing qualifier clauses that restate or hedge
-  - E.g., `as a side effect`, `at least on this evaluation`, `(recall the
-    spectrum from earlier)`
-- **Bad**: `greedy decoding often takes the blurted-out final answer, as a side
-  effect`
+  - E.g., `as a side effect`, `at least on this evaluation`,
+    `(recall the spectrum from earlier)`
+- **Bad**:
+  `greedy decoding often takes the blurted-out final answer, as a side effect`
 - **Good**: `greedy decoding often takes the final answer`
 
 ## Structured Over Prose
@@ -39,7 +37,6 @@ Rules for writing structured text using bullet lists
 - Prefer structured notes over narrative prose
 - Use a first-person, self-directed voice:
   - **Good**: "Key thing to remember: entropy increases"
-
 - Convert abstract principles into short, direct statements:
   - **Bad**:
     ```
@@ -66,15 +63,15 @@ Rules for writing structured text using bullet lists
 - Use only basic text and ASCII
   - **Bad**: A → B
   - **Good**: A -> B
-- Do not use the em-dash `—` for asides; rephrase with a colon, parentheses, or
-  a new sub-bullet
-  - **Bad**: `generation is sequential — each token needs a forward pass`
+- Do not use the em-dash `—` for asides; rephrase with a colon, parentheses, or a new
+  sub-bullet
+  - **Bad**: `generation is sequential: each token needs a forward pass`
   - **Good**: `generation is sequential: each token needs a forward pass`
 
 ## Use `:` Instead of `-`
 
-- When writing bullet points with an explanation, use `:` and not `-` to separate
-  the first part from the comment
+- When writing bullet points with an explanation, use `:` and not `-` to separate the
+  first part from the comment
   - **Bad**
     ```
     `SKILL.md` - Main skill instruction file
@@ -115,7 +112,6 @@ Rules for writing structured text using bullet lists
     - Always follow these guidelines:
       - `.claude/skills/notebook.rules.md`: General notebook conventions
     ```
-
 - Example: Well-Structured Bullets
   ```markdown
   - What it does:
@@ -132,7 +128,8 @@ Rules for writing structured text using bullet lists
   - Hierarchy of concepts
   - Components and lists
   - Elaboration (definitions, examples, implications)
-- Keep nesting logical: general rule first, then example, then mathematical formulation
+- Keep nesting logical: general rule first, then example, then mathematical
+  formulation
 - Example hierarchy:
   ```
   - Technology
@@ -170,7 +167,6 @@ Rules for writing structured text using bullet lists
 - Organize bullet points into cohesive chunks using multiple levels
 - **Bad**: Flat list with no hierarchy (hard to follow logical relationships)
 - **Good**: Structured with sub-bullets that clarify relationships and dependencies
-
 - Example:
   - **Bad** (unclear grouping):
     ```
@@ -191,11 +187,10 @@ Rules for writing structured text using bullet lists
 
 - Structure all text as nested bullet lists by default, not narrative prose,
   regardless of content type (documentation, notes, explanations, and so on)
-- Whenever a bullet bundles more than one idea, attribute, capability, or step,
-  split it into a parent bullet that introduces the group and one child bullet
-  per item
-  - This applies no matter how the ideas are packed together: chained with
-    `;`, commas, or "and", or simply written as one long clause
+- Whenever a bullet bundles more than one idea, attribute, capability, or step, split
+  it into a parent bullet that introduces the group and one child bullet per item
+  - This applies no matter how the ideas are packed together: chained with `;`,
+    commas, or "and", or simply written as one long clause
   - **Bad**:
     ```markdown
     - The agent runs a test (Act), observes a failure (Perceive), reasons about
@@ -228,7 +223,6 @@ Rules for writing structured text using bullet lists
       - `//tutorials`
       - `//umd_classes`
     ```
-
 - Example
   - **Bad**
     ```markdown
@@ -243,9 +237,8 @@ Rules for writing structured text using bullet lists
       - Friends with chaotic lives
       - Seemingly stable men who suddenly fall apart
     ```
-
-- Example: a component description packs several responsibilities into one
-  bullet with commas and "and"
+- Example: a component description packs several responsibilities into one bullet
+  with commas and "and"
   - **Bad**
     ```markdown
     - Build a lightweight LLM API gateway (modeled on OpenRouter) that proxies
@@ -286,57 +279,57 @@ Rules for writing structured text using bullet lists
 
 ## Example 1: Chains
 
-  ```markdown
-  - In case of $T \to M \to Y$:
-    - $M$ is "mediator" since it mediates the relationship between $T$ and $Y$
-    - Causation flows only in the direction of the arrows
-    - Association flows both ways
+```markdown
+- In case of $T \to M \to Y$:
+  - $M$ is "mediator" since it mediates the relationship between $T$ and $Y$
+  - Causation flows only in the direction of the arrows
+  - Association flows both ways
 
-  - E.g., $Study \to SolveProblems \to JobPromotion$
-    - Job promotion is causally dependent on studying
-    - The association goes both ways
-      - The more you study, the more likely to get a promotion
-      - The greater the chances of promotion, the greater your chance of having
-        studied (otherwise it would be difficult to get a promotion)
-    - So $Study$ and $JobPromotion$ are
-      - Dependent or
-      - Not independent $Study \cancel \perp JobPromotion$
+- E.g., $Study \to SolveProblems \to JobPromotion$
+  - Job promotion is causally dependent on studying
+  - The association goes both ways
+    - The more you study, the more likely to get a promotion
+    - The greater the chances of promotion, the greater your chance of having
+      studied (otherwise it would be difficult to get a promotion)
+  - So $Study$ and $JobPromotion$ are
+    - Dependent or
+    - Not independent $Study \cancel \perp JobPromotion$
 
-  - If you hold the intermediary variable fixed (i.e., conditioning on $M$, looking
-    for only people with the same skills at problem solving), the dependency is
-    blocked
-    - $T$ and $Y$ are independent given $M$, i.e., $(T \perp Y) | M$
-    - $\EE[Y | T, M] = \EE[Y | M]$ and also the inverse $\EE[T | Y, M] = \EE[T | M]$
-  ```
+- If you hold the intermediary variable fixed (i.e., conditioning on $M$, looking
+  for only people with the same skills at problem solving), the dependency is
+  blocked
+  - $T$ and $Y$ are independent given $M$, i.e., $(T \perp Y) | M$
+  - $\EE[Y | T, M] = \EE[Y | M]$ and also the inverse $\EE[T | Y, M] = \EE[T | M]$
+```
 
 ## Example 2: Core Values
 
-  ```markdown
-  - Are a timeless set of guiding principles
-  - Define the culture, who fits and who doesn't
-  - Define what makes the Company different and unique
+```markdown
+- Are a timeless set of guiding principles
+- Define the culture, who fits and who doesn't
+- Define what makes the Company different and unique
 
-  ## Culture > strategy
+## Culture > strategy
 
-  - In a Company, culture wins in the long term
-  - A Company
-    - Needs to know who it is
-    - Is defined by the Core Values
+- In a Company, culture wins in the long term
+- A Company
+  - Needs to know who it is
+  - Is defined by the Core Values
 
-  ## Uses of Core Values
+## Uses of Core Values
 
-  - Hire
-  - Fire
-  - Review everyone
+- Hire
+- Fire
+- Review everyone
 
-  ## Core values: EOS Worldwide example
+## Core values: EOS Worldwide example
 
-  - Be humble but confident
-  - Grow or die
-  - Help first
-  - Do what you say
-    - E.g., if you commit to a date, you hit it
-    - You fully deliver and finish what you start: no half-assed things
-    - If you can't do it, don't commit
-  - Do the right thing
-  ```
+- Be humble but confident
+- Grow or die
+- Help first
+- Do what you say
+  - E.g., if you commit to a date, you hit it
+  - You fully deliver and finish what you start: no half-assed things
+  - If you can't do it, don't commit
+- Do the right thing
+```

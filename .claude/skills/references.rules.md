@@ -2,26 +2,24 @@ This file contains rules and convention on how to format references to books or
 papers
 
 # Format for General Text
-- When using references in a `txt` or `md` file, the format for any reference is like:
+
+- When using references in a `txt` or `md` file, the format for any reference is
+  like:
   ```
   <Year>, <Last name of first author> [et al.], "<Title>" (<Link>)
   ```
-
 - Authors are always represented as:
   ```
   <Last name of first author> [et al]
   ```
   using `et al` if there are more than one author
-
 - E.g.,
   ```
   2008, Angrist et al., "Mostly Harmless Econometrics" (https://economics.mit.edu/files/11869)
   2009, Pearl, "Causality: Models, Reasoning, and Inference" (https://bayes.cs.ucla.edu/BOOK-2K)
   ```
-
 - For the link prefer links to Arxiv or to publicly available resources
   - Make sure the links exist, otherwise add a ` ???` after the link
-
 - Keep the references in reverse chronological order (from recent to old), e.g.,
   ```
   # Foundational Causal Inference
@@ -42,9 +40,10 @@ papers
   ```
 
 # Format to Use in File Names
+
 - Convert the name of a file (book or paper) into a standard format without
-  characters that are unfriendly for Linux (e.g., spaces, . , / \) converting
-  them into underscore
+  characters that are unfriendly for Linux (e.g., spaces, . , / \) converting them
+  into underscore
 - Separate Year, Author and Title with a `.`
   ```
   <Year>.<Last_name_of_first_author>_[et_al].<Title>
@@ -52,7 +51,6 @@ papers
   - If there are more than one author use `et al`
 - Remove the link if present
 - Keep the extension
-
 - E.g.,
   - **Bad**
     ```
@@ -64,6 +62,7 @@ papers
     ```
 
 # When Searching for References
+
 - Use academic and technical references such as:
   - **Papers**: journal articles and conference papers
     - Search Google Scholar, arXiv, IEEE Xplore, ACM Digital Library, Springer, or

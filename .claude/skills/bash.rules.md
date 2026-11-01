@@ -1,6 +1,6 @@
 ## Add Description at the Beginning of a Script
 
-- Add a short description of what a script using a single short paragraph.
+- Add a short description of what a script using a single short paragraph
   - E.g.,
     ```
     #!/bin/bash
@@ -26,4 +26,5 @@
 - If nothing is returned do not write anything
 
 ## Add Comments
+
 - Make sure that each block of the script is commented

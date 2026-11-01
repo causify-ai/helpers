@@ -1,8 +1,7 @@
 These are rules to have a TikZ figure polished to look publication-quality (suitable
 for a paper, thesis, or technical presentation), and to fit the fenced-code-block
-contract that `render_images.py` uses to render TikZ inside `.smd` lecture slides
-For copy-paste skeletons and worked examples, see
-`.claude/templates/tikz.template.md`
+contract that `render_images.py` uses to render TikZ inside `.smd` lecture slides For
+copy-paste skeletons and worked examples, see `.claude/templates/tikz.template.md`
 
 # Fence Types (Pipeline Contract)
 
@@ -44,10 +43,10 @@ For copy-paste skeletons and worked examples, see
 # Libraries
 
 - ` ```tikz ` blocks get only `\usetikzlibrary{positioning}` for free
-- For anything else: `arrows.meta` (scalable arrowheads), `calc`,
-  `shapes.geometric`, `fit`, `backgrounds`: switch to ` ```raw_latex ` and declare
-  `\usetikzlibrary{...}` explicitly; a ` ```tikz ` block cannot add libraries since
-  its content lands _inside_ an already-open `\begin{tikzpicture}`
+- For anything else: `arrows.meta` (scalable arrowheads), `calc`, `shapes.geometric`,
+  `fit`, `backgrounds`: switch to ` ```raw_latex ` and declare `\usetikzlibrary{...}`
+  explicitly; a ` ```tikz ` block cannot add libraries since its content lands
+  _inside_ an already-open `\begin{tikzpicture}`
 - Use `arrows.meta` for clean scalable arrowheads (e.g. `-{Latex[length=2.5mm]}`)
   only in ` ```raw_latex `; inside ` ```tikz ` stick to plain TikZ arrow syntax
   (`->`, `<->`)
@@ -82,13 +81,12 @@ For copy-paste skeletons and worked examples, see
   `\scriptsize` for axis ticks/captions
 - Avoid italic math-mode labels for plain text; use `\textbf{}`/`\textrm{}` or
   `\node[align=left, text width=Ncm]` for wrapped multi-line text
-- Sentence case for every label (see `.claude/skills/figure.rules.md`
-  "Typography"): never ALL CAPS or Title Case
-- Subscript/superscript (e.g. H<SUB>2</SUB>O): use native LaTeX math mode
-  (`$H_2O$`, `$x^2$`) directly, never the `<SUB>`/`<SUP>` HTML tags used in
-  GraphViz/Mermaid — TikZ renders through LaTeX and does not interpret HTML,
-  it would show up as literal text (see `.claude/skills/figure.rules.md`
-  "Subscript and Superscript")
+- Sentence case for every label (see `.claude/skills/figure.rules.md` "Typography"):
+  never ALL CAPS or Title Case
+- Subscript/superscript (e.g. H<SUB>2</SUB>O): use native LaTeX math mode (`$H_2O$`,
+  `$x^2$`) directly, never the `<SUB>`/`<SUP>` HTML tags used in GraphViz/Mermaid —
+  TikZ renders through LaTeX and does not interpret HTML, it would show up as literal
+  text (see `.claude/skills/figure.rules.md` "Subscript and Superscript")
 
 # Layout
 
@@ -129,22 +127,22 @@ For copy-paste skeletons and worked examples, see
 - No filled background rectangle/`\pagecolor`: `standalone` is transparent by
   default, let the figure blend into the surrounding page (see
   `.claude/skills/figure.rules.md` "Geometry and Restraint")
-- Standardize line weights: `line width=0.4pt` default, `line width=0.8pt` for
-  the one or two emphasized/"so what" elements, no more than 2-3 distinct
-  weights in one figure
-- Standardize shape style: consistent corner rounding (e.g. `rounded
-  corners=2pt` default, `4pt` for an emphasized node) and consistent
-  arrowheads across all edges
+- Standardize line weights: `line width=0.4pt` default, `line width=0.8pt` for the
+  one or two emphasized/"so what" elements, no more than 2-3 distinct weights in one
+  figure
+- Standardize shape style: consistent corner rounding (e.g. `rounded corners=2pt`
+  default, `4pt` for an emphasized node) and consistent arrowheads across all edges
 
 # Output
 
 - Inside a `.smd` slide: return the fenced block only (` ```tikz `, or
   ` ```raw_latex ` with the full document), matching the "Fence Types" contract
-  above, without comments; add the caption as `\footnotesize _<one sentence:
-  what the figure shows, plus what the colors mean>_` in the slide markdown
-  below the rendered image, since the fence itself carries no comments (see
-  `.claude/skills/figure.rules.md` "Captions and Labels")
+  above, without comments; add the caption as
+  `\footnotesize _<one sentence: what the figure shows, plus what the colors mean>_`
+  in the slide markdown below the rendered image, since the fence itself carries no
+  comments (see `.claude/skills/figure.rules.md` "Captions and Labels")
 - For a standalone `.tex` figure (e.g. via `tikz.make_professional`): return the full
-  compilable TikZ code in a single code block without comments; wrap it in a
-  `figure` environment with `\caption{<one sentence: what it shows, plus what
-  the colors mean>}` and `\label{fig:<short-kebab-slug>}`
+  compilable TikZ code in a single code block without comments; wrap it in a `figure`
+  environment with
+  `\caption{<one sentence: what it shows, plus what the colors mean>}` and
+  `\label{fig:<short-kebab-slug>}`

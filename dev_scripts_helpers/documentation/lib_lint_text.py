@@ -9,14 +9,18 @@ import dev_scripts_helpers.documentation.lib_lint_text as dshdllite
 """
 
 import argparse
+import difflib
+import json
 import logging
 import os
 import re
 import shutil
+import tempfile
 from typing import Any, Callable, Dict, List, Optional, Tuple
 
+import dev_scripts_helpers.dockerize.lib_pandoc as dshdlipa
+import dev_scripts_helpers.dockerize.lib_prettier as dshdlipr
 import helpers.hdbg as hdbg
-import helpers.hselect_input_output as hseinout
 import helpers.hgit as hgit
 import helpers.hio as hio
 import helpers.hlatex as hlatex
@@ -24,9 +28,9 @@ import helpers.hmarkdown as hmarkdo
 import helpers.hmarkdown_formatting as hmarform
 import helpers.hmarkdown_toc as hmartoc
 import helpers.hprint as hprint
+import helpers.hselect_input_output as hseinout
 import helpers.hsystem as hsystem
 import helpers.htext_protect as htexprot
-import dev_scripts_helpers.dockerize.lib_prettier as dshdlipr
 
 _LOG = logging.getLogger(__name__)
 
@@ -272,12 +276,14 @@ def _add_blank_lines_between_headers(lines: List[str]) -> List[str]:
     while i < len(lines):
         line = lines[i]
         lines_new.append(line)
-        # Check if current line is a header.
-        if re.match(r"^(#+)\s+(.*)$", line):
-            # Check if next line is also a header.
-            if i + 1 < len(lines) and re.match(r"^(#+)\s+(.*)$", lines[i + 1]):
-                # Add a blank line between the two consecutive headers.
-                lines_new.append("")
+        # Check if current line and next line are both headers.
+        if (
+            re.match(r"^(#+)\s+(.*)$", line)
+            and i + 1 < len(lines)
+            and re.match(r"^(#+)\s+(.*)$", lines[i + 1])
+        ):
+            # Add a blank line between the two consecutive headers.
+            lines_new.append("")
         i += 1
     hdbg.dassert_isinstance(lines_new, list)
     return lines_new
@@ -671,7 +677,10 @@ def _format_header_spacing(
 
 
 def _format_block_spacing(
-    lines: List[str], is_block_line: Callable[[str], bool]
+    lines: List[str],
+    is_block_line: Callable[[str], bool],
+    *,
+    add_blank_lines: bool,
 ) -> List[str]:
     """
     Normalize blank lines around a run of "block" lines matched by
@@ -683,13 +692,19 @@ def _format_block_spacing(
       comment-placeholder lines in the same block) are kept adjacent, with
       no blank line between them.
     - Everywhere a block line borders a chunk of content that doesn't match
-      `is_block_line`, exactly one blank line is enforced.
+      `is_block_line`:
+      - exactly one blank line is enforced, if `add_blank_lines`
+      - no blank line is left, if not `add_blank_lines`
 
     :param lines: The lines to be processed.
     :param is_block_line: predicate marking the "block" lines that should
-        stay glued to each other and get exactly one blank line at their
-        boundary with everything else (e.g., `:::` markers for `.smd`,
+        stay glued to each other and get their blank lines normalized at
+        their boundary with everything else (e.g., `:::` markers for `.smd`,
         code-fence delimiters/placeholders for `.md`, comment placeholders).
+    :param add_blank_lines: if True, enforce exactly one blank line at the
+        boundary of a block; if False, remove every blank line at the
+        boundary (e.g., so a ` ``` ` fence nested in a bullet stays glued to
+        it in a `.md` file).
     :return: The lines with normalized spacing around the matched blocks.
     """
     _LOG.debug("lines=%s", lines)
@@ -714,10 +729,11 @@ def _format_block_spacing(
         i += 1
     # 2) Re-insert exactly one blank line wherever a block line borders a
     # chunk of content that isn't one (but not between two consecutive block
-    # lines).
+    # lines), unless the caller asked to leave the blocks glued to their
+    # neighbors.
     lines_new: List[str] = []
     for idx, line in enumerate(no_blank_near_block):
-        if idx > 0:
+        if add_blank_lines and idx > 0:
             prev_line = no_blank_near_block[idx - 1]
             if is_block_line(prev_line) != is_block_line(line):
                 lines_new.append("")
@@ -818,6 +834,7 @@ def _rebuild_blank_lines(
     is_fence_line: Callable[[str], bool],
     is_header_or_title_line: Callable[[str], bool],
     add_bullet_blank_lines: bool = True,
+    add_fence_blank_lines: bool = True,
 ) -> List[str]:
     """
     Rebuild blank-line spacing from scratch.
@@ -825,7 +842,8 @@ def _rebuild_blank_lines(
     Strip every blank line and then re-derive exactly the ones needed:
     - one blank line between blocks of level-1 bullets (nested bullets stay
       glued to their parent, with no blank line), if `add_bullet_blank_lines`
-    - one blank line around fenced blocks
+    - one blank line around fenced blocks, if `add_fence_blank_lines`
+      (otherwise no blank line around them)
     - one blank line around blocks of comment placeholders, so two distinct
       comment blocks never get merged into one
     - exactly one blank line before and after every header (and, for `.smd`
@@ -842,6 +860,10 @@ def _rebuild_blank_lines(
     :param add_bullet_blank_lines: if True, add a blank line between blocks
         of level-1 bullets (used for `.smd` slides); `.md` files pass False
         since bullets there should stay glued together with no blank lines.
+    :param add_fence_blank_lines: if True, add a blank line around fenced
+        blocks (used for `.smd` `:::` fences); `.md` files pass False since a
+        ` ``` ` fence there should stay glued to the text around it, e.g.,
+        when nested in a bullet.
     :return: The lines with rebuilt blank-line spacing.
     """
     _LOG.debug("lines=%s", lines)
@@ -859,14 +881,18 @@ def _rebuild_blank_lines(
     # blanks bordering a fence line, so it can't undo the bullet spacing just
     # added, and it fixes spacing where a fence sits next to a bullet with no
     # blank line yet.
-    lines_new = _format_block_spacing(lines_new, is_fence_line)
+    lines_new = _format_block_spacing(
+        lines_new, is_fence_line, add_blank_lines=add_fence_blank_lines
+    )
     # Normalize the blank lines around blocks of comment placeholders the
     # same way: exactly one blank line wherever such a block borders
     # anything else, while a run of placeholder lines (and the sentinel
     # protecting the blank line between two originally-separate blocks)
     # stays glued together.
     lines_new = _format_block_spacing(
-        lines_new, _is_comment_placeholder_or_sentinel_line
+        lines_new,
+        _is_comment_placeholder_or_sentinel_line,
+        add_blank_lines=True,
     )
     # Ensure exactly one blank line before and after every header (and slide
     # title). Runs last: like `_format_block_spacing()`, it drops and
@@ -954,10 +980,14 @@ def _md_format(lines: List[str]) -> List[str]:
     Apply the blank-line rebuild used for `.md` files.
 
     Rebuild blank-line spacing from scratch, i.e., strip every blank line
-    and then re-derive exactly the ones needed: one blank line around
-    fenced code blocks (` ``` `), and exactly one blank line before and
-    after every header (`#`, `##`, ...). Unlike `.smd` files, no blank
-    lines are added between level-1 bullets: bullets stay glued together.
+    and then re-derive exactly the ones needed: exactly one blank line before
+    and after every header (`#`, `##`, ...), and one blank line around blocks
+    of comment placeholders. Unlike `.smd` files:
+    - no blank lines are added between level-1 bullets: bullets stay glued
+      together
+    - no blank lines are left around fenced code blocks (` ``` `): a fence
+      stays glued to the text around it (e.g., when nested in a bullet),
+      except next to a header, where the header rule applies
 
     Unlike `_smd_format()`, this doesn't touch anything else (no `@tag@`
     colon removal, no post-colon capitalization): those are `.smd`-only
@@ -972,6 +1002,7 @@ def _md_format(lines: List[str]) -> List[str]:
         is_fence_line=_is_md_fence_line,
         is_header_or_title_line=_is_md_header_line,
         add_bullet_blank_lines=False,
+        add_fence_blank_lines=False,
     )
     hdbg.dassert_isinstance(lines_new, list)
     return lines_new
@@ -987,9 +1018,7 @@ def _typstyle_format(txt: str, *, width: int) -> str:
         not on `PATH`
     """
     if shutil.which("typstyle") is None:
-        _LOG.warning(
-            "'typstyle' not found on PATH, skipping Typst formatting"
-        )
+        _LOG.warning("'typstyle' not found on PATH, skipping Typst formatting")
         return txt
     tmp_file_name = "tmp.lint_text.typstyle.typ"
     hio.to_file(tmp_file_name, txt)
@@ -1132,9 +1161,9 @@ VALID_ACTIONS = {
     #   before/after every header and slide-title marker (`* <title>`)
     "smd_format": ["smd"],
     # Apply the blank-line rebuild for `.md` files (markdown only).
-    # - Rebuild blank-line spacing: one blank line around fenced code blocks
-    #   (```) and exactly one blank line before/after every header; no blank
-    #   lines are added between level-1 bullets
+    # - Rebuild blank-line spacing: exactly one blank line before/after every
+    #   header; no blank lines are added between level-1 bullets, and none are
+    #   left around fenced code blocks (```)
     "md_format": ["md"],
     # Format Typst source with the external `typstyle` formatter (typ only).
     # - Delegates formatting entirely to `typstyle`, since Typst syntax has
@@ -1332,14 +1361,12 @@ def _perform_actions(
         lines = _replace_em_dash_with_colon(lines)
     # Apply smd-specific formatting (tag colons, capitalization, fence spacing).
     action = "smd_format"
-    if _to_execute_action(action, actions):
-        if is_smd_file:
-            lines = _smd_format(lines)
+    if _to_execute_action(action, actions) and is_smd_file:
+        lines = _smd_format(lines)
     # Apply the same blank-line rebuild as `smd_format`, but for `.md` files.
     action = "md_format"
-    if _to_execute_action(action, actions):
-        if is_md_file:
-            lines = _md_format(lines)
+    if _to_execute_action(action, actions) and is_md_file:
+        lines = _md_format(lines)
     # Remove markdown formatting.
     action = "remove_markdown_formatting"
     if _to_execute_action(action, actions):
@@ -1363,9 +1390,8 @@ def _perform_actions(
         lines = hmarkdo.capitalize_header(lines)
     # Refresh table of content.
     action = "refresh_toc"
-    if _to_execute_action(action, actions):
-        if is_md_file:
-            lines = hmartoc.refresh_toc(lines, **kwargs)
+    if _to_execute_action(action, actions) and is_md_file:
+        lines = hmartoc.refresh_toc(lines, **kwargs)
     # Check links.
     action = "check_links"
     if _to_execute_action(action, actions):
@@ -1431,12 +1457,200 @@ def _revert_from_backup(file_path: str) -> None:
     _LOG.info("File reverted successfully")
 
 
+# #############################################################################
+# Check that the processing preserved the content.
+# #############################################################################
+
+# File types that `pandoc` can parse as markdown, and so that `--check` supports.
+_CHECK_EXTENSIONS = ["md", "smd"]
+
+# Characters that the actions edit on purpose (e.g., trailing periods, `—` ->
+# `:`), so the check ignores them.
+_CHECK_IGNORED_CHARS_RE = re.compile(r"[.:\u2014]")
+
+# Pandoc AST nodes whose content must be preserved exactly.
+_CHECK_EXACT_NODES = ["Code", "CodeBlock", "Math", "RawInline", "RawBlock"]
+
+# Pandoc AST nodes that only encode whitespace, which wrapping changes.
+_CHECK_WHITESPACE_NODES = ["Space", "SoftBreak", "LineBreak"]
+
+# Max number of lines of the difference to report.
+_CHECK_MAX_DIFF_LINES = 60
+
+
+def _markdown_to_pandoc_ast(lines: List[str], pandoc_backend: str) -> Any:
+    """
+    Convert markdown text to a pandoc AST.
+
+    The conversion avoids two sources of spurious differences:
+    - Auto identifiers are disabled, since they derive from the header text
+    - The column width is huge, so the widths of pipe tables do not depend on
+      the number of dashes in the separator line
+
+    :param lines: markdown text to convert
+    :param pandoc_backend: how to run `pandoc` (e.g., `auto`, `host`)
+    :return: pandoc AST, as parsed JSON
+    """
+    _LOG.debug(hprint.to_str("pandoc_backend"))
+    # Create the dir under the current dir, so that the dockerized backend can
+    # mount it.
+    with tempfile.TemporaryDirectory(
+        dir=".", prefix="tmp.lint_text.check."
+    ) as tmp_dir:
+        in_file = os.path.join(tmp_dir, "in.md")
+        out_file = os.path.join(tmp_dir, "out.json")
+        hio.to_file(in_file, "\n".join(lines))
+        cmd = (
+            f"pandoc {in_file} -f markdown-auto_identifiers --columns=100000"
+            f" -t json -o {out_file}"
+        )
+        dshdlipa.run_pandoc(cmd, "pandoc_only", pandoc_backend)
+        ast = json.loads(hio.from_file(out_file))
+    return ast
+
+
+def _pandoc_ast_to_tokens(node: Any) -> List[str]:
+    """
+    Flatten a pandoc AST into tokens that are stable across reformatting.
+
+    The tokens ignore what the actions change on purpose:
+    - Line wrapping and spacing
+    - Letter case and the characters in `_CHECK_IGNORED_CHARS_RE`
+    - Tight vs loose lists (`Plain` vs `Para`)
+
+    The tokens preserve:
+    - The block and inline structure (e.g., headers, lists, tables, emphasis)
+    - The words
+    - Code, math, raw blocks, and link targets, exactly
+
+    :param node: pandoc AST, or one of its nodes
+    :return: tokens, one per word or structural element
+    """
+    tokens: List[str] = []
+    if isinstance(node, list):
+        for child in node:
+            tokens.extend(_pandoc_ast_to_tokens(child))
+    elif isinstance(node, dict):
+        node_type = node.get("t")
+        content = node.get("c")
+        if node_type is None:
+            # A mapping without a node type (e.g., the document or its
+            # metadata).
+            for key in sorted(node):
+                tokens.append(f"<{key}>")
+                tokens.extend(_pandoc_ast_to_tokens(node[key]))
+        elif node_type == "Str":
+            # Pandoc uses a non-breaking space after abbreviations (e.g.,
+            # `e.g.`).
+            text = content.replace("\u00a0", " ")
+            text = _CHECK_IGNORED_CHARS_RE.sub("", text).casefold()
+            tokens.extend(text.split())
+        elif node_type in _CHECK_WHITESPACE_NODES:
+            pass
+        elif node_type in _CHECK_EXACT_NODES:
+            tokens.append(f"<{node_type}> {json.dumps(content, sort_keys=True)}")
+        elif node_type in ["Link", "Image"]:
+            _, inlines, target = content
+            tokens.append(f"<{node_type}> {json.dumps(target)}")
+            tokens.extend(_pandoc_ast_to_tokens(inlines))
+        else:
+            if node_type == "Plain":
+                node_type = "Para"
+            tokens.append(f"<{node_type}>")
+            tokens.extend(_pandoc_ast_to_tokens(content))
+            tokens.append(f"</{node_type}>")
+    elif node not in ["", None]:
+        # A scalar (e.g., the level of a header, the class of a div).
+        tokens.append(str(node))
+    return tokens
+
+
+def _check_pandoc_equivalence(
+    lines_before: List[str], lines_after: List[str], *, pandoc_backend: str
+) -> List[str]:
+    """
+    Check that two markdown texts have the same content according to `pandoc`.
+
+    Both texts are parsed by `pandoc` and compared after removing the
+    differences that the actions introduce on purpose (see
+    `_pandoc_ast_to_tokens()`). This catches content that the processing lost
+    or broke, e.g., a table that is not a table anymore, a changed code block,
+    or a missing word.
+
+    :param lines_before: text before the processing
+    :param lines_after: text after the processing
+    :param pandoc_backend: how to run `pandoc` (e.g., `auto`, `host`)
+    :return: unified diff between the tokens of the two texts, empty if they
+        are equivalent
+    """
+    tokens_before = _pandoc_ast_to_tokens(
+        _markdown_to_pandoc_ast(lines_before, pandoc_backend)
+    )
+    tokens_after = _pandoc_ast_to_tokens(
+        _markdown_to_pandoc_ast(lines_after, pandoc_backend)
+    )
+    diff = list(
+        difflib.unified_diff(
+            tokens_before,
+            tokens_after,
+            fromfile="before",
+            tofile="after",
+            lineterm="",
+        )
+    )
+    return diff
+
+
+def _check_content_preserved(
+    in_file_name: str,
+    lines_before: List[str],
+    lines_after: List[str],
+    args: argparse.Namespace,
+) -> bool:
+    """
+    Run `_check_pandoc_equivalence()` and report the result.
+
+    :param in_file_name: input file name, used to infer the file type
+    :param lines_before: text before the processing
+    :param lines_after: text after the processing
+    :param args: parsed arguments
+    :return: whether the processing preserved the content, `True` if the file
+        type is not supported
+    """
+    _LOG.debug(hprint.to_str("in_file_name"))
+    extension = args.type or os.path.splitext(in_file_name)[1].lstrip(".")
+    if extension not in _CHECK_EXTENSIONS:
+        _LOG.warning(
+            "Skipping --check for '%s': supported file types are %s",
+            in_file_name,
+            _CHECK_EXTENSIONS,
+        )
+        return True
+    diff = _check_pandoc_equivalence(
+        lines_before, lines_after, pandoc_backend=args.pandoc_backend
+    )
+    is_ok = len(diff) == 0
+    if is_ok:
+        _LOG.info("Check passed for '%s'", in_file_name)
+    else:
+        diff_str = "\n".join(diff[:_CHECK_MAX_DIFF_LINES])
+        if len(diff) > _CHECK_MAX_DIFF_LINES:
+            diff_str += f"\n... ({len(diff) - _CHECK_MAX_DIFF_LINES} more lines)"
+        _LOG.error(
+            "Check failed for '%s': the processing changed the content, "
+            "use `--revert` to restore the backup\n%s",
+            in_file_name,
+            diff_str,
+        )
+    return is_ok
+
+
 def _process_single_file(
     in_file_name: str,
     out_file_name: str,
     args: argparse.Namespace,
     actions: Optional[List[str]],
-) -> None:
+) -> bool:
     """
     Process a single file.
 
@@ -1444,6 +1658,8 @@ def _process_single_file(
     :param out_file_name: Output file name.
     :param args: Parsed arguments.
     :param actions: List of actions to perform.
+    :return: False if `--check` found that the processing changed the content,
+        True otherwise.
     """
     # If the input is stdin, then user needs to specify the type.
     if in_file_name == "-":
@@ -1476,3 +1692,8 @@ def _process_single_file(
     )
     # Write output.
     hseinout.to_file(out_lines, out_file_name)
+    # Check that the processing preserved the content.
+    is_ok = True
+    if args.check:
+        is_ok = _check_content_preserved(in_file_name, lines, out_lines, args)
+    return is_ok

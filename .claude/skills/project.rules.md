@@ -48,11 +48,11 @@
   - Use `.` inside the role, e.g., `design.architecture`
   - Use `.` inside the slot to number a child of the slot, e.g.,
     `02.1-design.gateway.md`
-- Use the slots of the table in "Use One Doc per Question": a slot is fixed per
-  kind of doc
+- Use the slots of the table in "Use One Doc per Question": a slot is fixed per kind
+  of doc
   - Every project uses the same number for the same kind of doc
-  - The slots follow the flow: PRD, design, decisions, plan, tasks, specs,
-    progress, onboarding
+  - The slots follow the flow: PRD, design, decisions, plan, tasks, specs, progress,
+    onboarding
 - Skip the slot of a missing doc: do not shift the other docs
   - E.g., a project with no plan has `03-decisions.md` and `07-progress.md`, and no
     `04-plan.md`
@@ -62,15 +62,14 @@
   - Put a shared component right after the first component that uses it
   - Use two digits after the dot (`02.01`) when a project has more than nine
     components
-  - When you add a component in the middle, renumber the later ones and fix the
-    links in the same PR, e.g., with `/git.move`
-- Tell apart the specs of the same slot by their PR id, e.g.,
-  `06-spec.PR_M10.md`
+  - When you add a component in the middle, renumber the later ones and fix the links
+    in the same PR, e.g., with `/git.move`
+- Tell apart the specs of the same slot by their PR id, e.g., `06-spec.PR_M10.md`
 - Do not number:
   - `README.md`, the index of `docs/`
   - `idea.md`, which sits in the root of the project, not in `docs/`
-  - Any doc that is not in the table, e.g., a marketing plan, a demo guide, a
-    notes file, or the files in `findings/`
+  - Any doc that is not in the table, e.g., a marketing plan, a demo guide, a notes
+    file, or the files in `findings/`
 - Never change the slot of a kind of doc: every link to the doc breaks when its
   number changes
 
@@ -140,10 +139,10 @@
 ## Write a PRD (Product Requirements Document)
 
 - Follow the template `.claude/templates/project_prd.template.md`
-- Write each requirement as its own H3 `` ### `R<N>` (<short description>) ``, so
-  that other docs can link it
+- Write each requirement as its own H3 ``### `R<N>` (<short description>)``, so that
+  other docs can link it
   - E.g., ``### `R3` (Bibliographic source)``
-  - Number the requirements `R1`, `R2`, ...
+  - Number the requirements `R1`, `R2`,
   - Keep the short description to a few words
   - Put the text of the requirement in one bullet under the header
   - Group the requirements with one H2 per group, e.g., `## Requirements: Input`
@@ -191,15 +190,16 @@
   - E.g., ``PRD [`R3`](<link>), [`R16`](<link>)``
 - Do not link an id inside a header, a fenced code block, or a diagram
 - Keep the text of the header stable: the anchor contains it
-  - When you rename a header, search the repo for its old anchor and fix every
-    link
+  - When you rename a header, search the repo for its old anchor and fix every link
 
 ## Make File References Clickable
 
 - Write every reference to a file in a project doc as a link, not as plain code
-  - E.g., a path like `research/Estimate_academic_paper_quality/docs/02-design.architecture.md`
-  - E.g., a requirement reference like ``[`R3`](/docs/01-prd.md#r3-bibliographic-source)``:
-    link it to its header in the PRD, see "Link Requirements and Decisions"
+  - E.g., a path like
+    `research/Estimate_academic_paper_quality/docs/02-design.architecture.md`
+  - E.g., a requirement reference like
+    ``[`R3`](/docs/01-prd.md#r3-bibliographic-source)``: link it to its header in the
+    PRD, see "Link Requirements and Decisions"
 - Pick the link type with the switch `--link_type`, with the values:
   - `local`: a repo-root link to the file in the working tree (default)
     - E.g., ``[`docs/01-prd.md`](/docs/01-prd.md)``
@@ -211,8 +211,10 @@
   not say
 - Keep the text of the link as the name used in the doc, so the doc still reads well
   as plain text, and put the full repo-root path in the target
-  - E.g., ``[`estimate_paper_quality.py`](/research/Estimate_academic_paper_quality/estimate_paper_quality.py)``
-  - E.g., a module like `helpers.hllm`: ``[`helpers.hllm`](/helpers_root/helpers/hllm.py)``
+  - E.g.,
+    ``[`estimate_paper_quality.py`](/research/Estimate_academic_paper_quality/estimate_paper_quality.py)``
+  - E.g., a module like `helpers.hllm`:
+    ``[`helpers.hllm`](/helpers_root/helpers/hllm.py)``
 - Link a file that does not exist yet (e.g., a planned module in a design doc): the
   link works once the file is created
 - Preview a doc with `open_md.py --input <doc> --link_type {local,branch,master}`
@@ -224,15 +226,16 @@
 
 ## Write a Spec for a Complex PR
 
-- Write a spec `06-spec.<PR_ID>.md` for a complex PR instead of growing its plan entry
+- Write a spec `06-spec.<PR_ID>.md` for a complex PR instead of growing its plan
+  entry
 - Follow the template `.claude/templates/specs.template.md`
 
 ## Write the Meta-Doc
 
 - Name the doc `08-how_we_work.md`: a new student or RA reads one file and knows how
   the team works on the project
-  - Test: after reading it, the newcomer can deliver work of the same quality as
-    the current contributors
+  - Test: after reading it, the newcomer can deliver work of the same quality as the
+    current contributors
 - Keep it short: point to the existing docs instead of repeating them
   - Add only what is specific to the project
   - Point to an example PR or issue that follows the process well
@@ -260,20 +263,19 @@
     decisions log, and what a checked and an unchecked PR mean
   - `## Roadmap`: one bullet per version with its deliverable, and under it a
     checkbox list of the PR ids it needs
-  - `# Component Specs`: one `## <Component>` section per component, with
-    `### Goal` and `### Open Questions`
+  - `# Component Specs`: one `## <Component>` section per component, with `### Goal`
+    and `### Open Questions`
   - `# PRs`: one `## <version>: <Title>` section per version in roadmap order, then
     one `## Unscheduled: <Component>` section per component
   - `## Conventions`: pointers to the coding and testing rules, not a copy
   - `# <Version> Execution Plan`: optional, see "Keep One Plan"
-- State in the roadmap that releases are cumulative: a version also needs the PRs
-  of the versions before it
+- State in the roadmap that releases are cumulative: a version also needs the PRs of
+  the versions before it
 - Number the open questions and tag with `-> Project` those that need their own
   project
 - Write the PR entries of the next version in detail
   - Later versions can stay as a few bullets until they are close
-  - File GitHub issues only for the next version: issues for later versions go
-    stale
+  - File GitHub issues only for the next version: issues for later versions go stale
 - In the execution plan, give:
   - Milestones with dates, owners, and exit tests
   - One task table per milestone: task id, owner, acceptance criteria, and the plan
@@ -300,8 +302,8 @@
   - **Changes**: concrete and testable, one bullet per change
   - **Unit tests**: the behavior to check, not only "add tests"
   - **Result**: the capability that exists after the PR
-  - **Owner and due date**, **Acceptance**: write them only when several people
-    work in parallel, and only for the PRs of the next version
+  - **Owner and due date**, **Acceptance**: write them only when several people work
+    in parallel, and only for the PRs of the next version
 
 ## Keep the Plan Correct
 
@@ -323,8 +325,8 @@
     that closed it
   - `## Built`: one bullet per component that exists, pointing to its design doc
     instead of describing it
-  - `## Findings`: numbered facts learned, each with the measured number, linking
-    the raw data (e.g., a `findings/` dir)
+  - `## Findings`: numbered facts learned, each with the measured number, linking the
+    raw data (e.g., a `findings/` dir)
   - `## Next`: the next tasks in order, taken from the plan
   - `## History`: one row per date, with what was done and the PRs merged
 
@@ -338,8 +340,8 @@
   - Decisions
   - Work that was cancelled, and why
 - Log facts, not plans: plans live in `04-plan.md`
-- Give each finding its evidence: what was measured, where, and the number with
-  its unit
+- Give each finding its evidence: what was measured, where, and the number with its
+  unit
 - Record each experiment so that others can reproduce it:
   - The configuration and the commands
   - The model or provider identity, when relevant
@@ -350,7 +352,7 @@
 - Do not commit secrets, private data, or large raw artifacts without an agreed
   storage approach
 
-## Write One Entry per PR
+## Write One Entry Per PR
 
 - When a History row is too short for a PR, replace the table with one section per
   merged PR, following the template `.claude/templates/project_progress.template.md`
@@ -373,8 +375,7 @@
     Requirements Document)"
   - E.g., ``### `D7` (The pipeline computes the base name with a public helper)``
 - The id is stable: never reuse it and never renumber it
-- Link a decision from the docs that follow it, see "Link Requirements and
-  Decisions"
+- Link a decision from the docs that follow it, see "Link Requirements and Decisions"
 - Keep the newest decision at the bottom of its section
 - Give each decision a status: `proposed`, `accepted`, or `superseded`
 - Add a one-line pointer to the decision in the history row of the log
@@ -385,7 +386,8 @@
 
 - Change a module: update its design doc, or the README of its component
 - Make a decision: add it to `03-decisions.md`
-- Finish a task: tick it in `04-plan.md` and add a row to the history of `07-progress.md`
+- Finish a task: tick it in `04-plan.md` and add a row to the history of
+  `07-progress.md`
 - Change the scope or the order of the work: edit the plan and log why
 - Change the way the team works: edit `08-how_we_work.md`
 - Add, rename, or remove a doc: update the table in `docs/README.md` and the docs

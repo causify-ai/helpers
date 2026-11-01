@@ -3,18 +3,18 @@
 # Overview and Topics
 
 ## Skill Topics
-- All skills should refer to a specific "topic"
 
+- All skills should refer to a specific "topic"
 - You can find the topics running a command like
   ```
   > find .claude/skills -name "*.md" | sed 's|.claude/skills/||; s|\..*||' | sort | uniq
   ```
-
 - Example of topics are `bash`, `blog`, `coding`, `testing`
 
 # SKILL.md File Format
 
 ## Frontmatter
+
 - Every SKILL.md file must start with YAML frontmatter:
   ```yaml
   ---
@@ -22,7 +22,6 @@
   model: haiku
   ---
   ```
-
 - **Required fields**: Both `description` and `model` are required:
   - **Bad**: missing `model`
     ```yaml
@@ -37,53 +36,49 @@
     model: haiku
     ---
     ```
-
 - **Guidelines for description**:
-  - Use imperative verb: "Format Python code", "Write unit tests", "Create
-    slides"
+  - Use imperative verb: "Format Python code", "Write unit tests", "Create slides"
   - Keep it under 80 characters
   - Be specific about what transformation or task the skill performs
   - Example:
     `description: Format Python code according to project coding conventions and style rules`
 
 ## Naming Conventions
+
 - Directory naming: `<TOPIC>.<ACTION>`
   - E.g.,
     - `coding.format`: Format code for the coding topic
     - `testing.format`: Format tests for the testing topic
     - `notebook.format`: Format interactive cells in notebooks
     - `demo.create_script`: Create a demo script
-
 - Topics should be singular and lowercase
 
 ## Directory Structure
-- Skills are organized in directories:
-  `.claude/skills/<TOPIC>.<ACTION>/SKILL.md`
+
+- Skills are organized in directories: `.claude/skills/<TOPIC>.<ACTION>/SKILL.md`
   - **Good**
     - `.claude/skills/coding.format/SKILL.md`
     - `.claude/skills/testing.format/SKILL.md`
     - `.claude/skills/notebook.format/SKILL.md`
-
 - Each skill directory may contain:
   - `SKILL.md`: Main skill instruction file
   - Supporting directories or files (e.g., templates, examples)
 
 ## Generated File Naming
 
-- A skill's workflow often creates a file that refers back to the skill itself
-  (e.g., a plan, an output, a report); name it
+- A skill's workflow often creates a file that refers back to the skill itself (e.g.,
+  a plan, an output, a report); name it
   ```
   <TYPE>-<TOPIC>.<ACTION>.<EXT>
   ```
-  - `<TYPE>` says what the file is: `plan`, `output`, `report`, `spec`, etc.
-  - `<TOPIC>.<ACTION>` is the skill's own name, copied unchanged from its
-    directory name
+  - `<TYPE>` says what the file is: `plan`, `output`, `report`, `spec`, etc
+  - `<TOPIC>.<ACTION>` is the skill's own name, copied unchanged from its directory
+    name
   - `<EXT>` is the file extension (`md`, `txt`, etc.)
-
 - Separate `<TYPE>` from `<TOPIC>.<ACTION>` with `-`, never `.` or `_`
-  - `.` already separates `<TOPIC>` from `<ACTION>`, and `_` already appears
-    inside multi-word actions (e.g., `get_pr_to_pass_ci_tests`), so reusing either
-    character as the outer separator makes the file name ambiguous to parse
+  - `.` already separates `<TOPIC>` from `<ACTION>`, and `_` already appears inside
+    multi-word actions (e.g., `get_pr_to_pass_ci_tests`), so reusing either character
+    as the outer separator makes the file name ambiguous to parse
   - `-` never appears inside a topic or action name, so it stays unambiguous
   - **Bad** (`_` collides with the underscores inside `get_pr_to_pass_ci_tests`)
     ```
@@ -97,13 +92,13 @@
     ```
     plan-github.get_pr_to_pass_ci_tests.md
     ```
-
 - This naming makes the file's purpose (`<TYPE>`) and its owning skill
   (`<TOPIC>.<ACTION>`) both recoverable by inspection, e.g.,
   `plan-slides.reorganize.md` is unambiguously the plan produced by
   `.claude/skills/slides.reorganize/SKILL.md`
 
 ## Skill Rule File
+
 - For the passed skill file `<SKILL_FILE>` in the format
   ```
   .claude/skills/<TOPIC>.<ACTION>/SKILL.md
@@ -116,6 +111,7 @@
     corresponding rule file is `.claude/skills/coding.rules.md`
 
 ## Content Structure
+
 - Skills should be organized with clear sections:
   1. **Frontmatter**: YAML description
   2. **Goal**: 1-2 sentences describing what the skill does
@@ -123,18 +119,18 @@
   4. **Conventions**: Point to rule files
   5. **Constraints**: Constraints to satisfy
   6. **Examples**: Pointers to potential examples
-  7. **Verification**: How to make sure the work was done properly (required when possible)
-
+  7. **Verification**: How to make sure the work was done properly (required when
+     possible)
 - Use headers from `## ` down (skip `#` for section titles)
 - Keep sections focused and actionable
 
 ## Workflow Steps
+
 - Write workflow steps as bullet points without numbering (no "Step 1:", "Step 2:",
   etc.)
 - Numbering is difficult to maintain as content evolves; unnumbered bullets remain
   valid when reordered
 - Use clear action verbs and logical sequencing through structure and description
-
 - **Bad** (do not use numbering):
   ```
   # Workflow
@@ -157,6 +153,7 @@
   ```
 
 ## Verification Steps
+
 - Include a `# Verification` section whenever possible to help confirm the skill
   output is well-formed
 - Verification sections should list concrete checks or tests to validate:
@@ -177,12 +174,14 @@
 # Writing Conventions
 
 ## Writing Rules
+
 - Use imperative language ("Do X")
 - Avoid vague words (properly, nicely, appropriately, etc.)
 - Prefer measurable criteria
 - Keep formatting consistent across skills
 
 ## Add Examples
+
 - Skills should contain positive and negative examples
 - Use realistic, concrete cases
 - Use "Good" and "Bad" patterns to illustrate conventions
@@ -192,11 +191,11 @@
     ```language
     code here
     ```
-  - **Good** (explain why)
+          - **Good** (explain why)
     ```language
     code here
     ```
-
+        
   ````
 
 ## File References
@@ -222,7 +221,6 @@
     ```
     The variable `<FILES>` ...
     ```
-
 - Provide reasoning for each example to help users understand the principle
 
 ## Language and Tone
@@ -232,7 +230,6 @@
     - "Formatting Python code...", "You should create..."
   - **Good**:
     - "Format Python code according to...", "Create a test class that..."
-
 - Assume the reader is executing the skill or following the instructions
 - Be prescriptive rather than descriptive
 
@@ -250,9 +247,8 @@
   ```
   - Format Python code according to the rules in `.claude/skills/coding.rules.md`
   ```
-
-- If no rules file exists for a topic, create one before adding multiple skills
-  in that topic
+- If no rules file exists for a topic, create one before adding multiple skills in
+  that topic
 
 ## Template Files
 
@@ -268,8 +264,8 @@
 
 ## Referencing Template Files
 
-- Every rule or skill that has a copyable structure must link the template
-  with a single canonical phrase:
+- Every rule or skill that has a copyable structure must link the template with a
+  single canonical phrase:
   ```
   - Follow the template `.claude/templates/<TOPIC>.template.<EXT>`
   ```
@@ -290,21 +286,18 @@
   ```bash
   > find .claude -name "coding.template.py" -o -name "*_template.*"
   ```
-
 - All references in the skills should be to existing files
 - If there is a non-existing reference try to find it
 
 ### Header References
 
-- When a skill references a specific header in another file, the header must
-  exist
+- When a skill references a specific header in another file, the header must exist
 - E.g., if a skill says:
   ```
   - Write comments using the style from `.claude/skills/coding.rules.md`
     `# Comments`
   ```
-  then the file `.claude/skills/coding.rules.md` must contain the header
-  `# Comments`
+  then the file `.claude/skills/coding.rules.md` must contain the header `# Comments`
   - Verify that exists with:
     ```bash
     > grep -q '^# Comments$' .claude/skills/coding.rules.md
@@ -318,7 +311,6 @@
   - Conventions and standards for a topic
   - Principles that apply across multiple related tasks
   - Decision criteria for formatting or style
-
 - Create/update `<SKILL_FILE>` `<TOPIC>.<ACTION>/SKILL.md` when documenting:
   - A specific transformation or task
   - Step-by-step instructions for a particular action
@@ -334,47 +326,43 @@
       `model`
     - Cannot bundle extra files, scripts, or references
   - Skill: `.claude/skills/<TOPIC>.<ACTION>/SKILL.md`
-    - Invoked by explicit `/<TOPIC>.<ACTION>` or auto-triggered when the task
-      matches its `description`
+    - Invoked by explicit `/<TOPIC>.<ACTION>` or auto-triggered when the task matches
+      its `description`
     - Can bundle extra files, scripts, or references in the same directory
     - Can run in a subagent or background and return a structured result
-
-- Project-specific exception: `.claude/commands/instr.md`, `instr2.md`,
-  `instr3.md`, and `lint.md` are flat slash-command files that this repo's
-  Claude Code setup also surfaces as invocable skills
-  - This is custom behavior for this repo, not standard Claude Code harness
-    behavior
-  - Flat `.rules.md` files under `.claude/skills/` (e.g. `coding.rules.md`) are
-    not surfaced as invocable; they stay reference-only, per
-    `## Referencing Rules Files` above
-  - Flat files directly at `.claude/` root (e.g. `rules.md`,
-    `task_instructions.md`) are also not surfaced as invocable
-
+- Project-specific exception: `.claude/commands/instr.md`, `instr2.md`, `instr3.md`,
+  and `lint.md` are flat slash-command files that this repo's Claude Code setup also
+  surfaces as invocable skills
+  - This is custom behavior for this repo, not standard Claude Code harness behavior
+  - Flat `.rules.md` files under `.claude/skills/` (e.g. `coding.rules.md`) are not
+    surfaced as invocable; they stay reference-only, per `## Referencing Rules Files`
+    above
+  - Flat files directly at `.claude/` root (e.g. `rules.md`, `task_instructions.md`)
+    are also not surfaced as invocable
 - To register a new lightweight, task-specific prompt:
   - Prefer the standard `.claude/skills/<TOPIC>.<ACTION>/SKILL.md` convention
-  - Only use a flat file under `.claude/commands/` to match the `instr`/`lint`
-    family
+  - Only use a flat file under `.claude/commands/` to match the `instr`/`lint` family
 
 ## Rules vs Templates
 
-- `<RULE_FILE>` holds why/when: principles, decision criteria, do/don't
-  guidance, short inline examples
-- `<TEMPLATE_FILE>` holds what to copy: a skeleton or worked example with
-  `<VAR>` placeholders, minimal comments
-- A template file must not contain decision criteria or prose explaining why
-  one choice beats another; move that content to the rules file and link to
-  it from the template
-  - **Bad** (template file explains a choice): a `.template.md` section
-    titled "Color Strategy" with paragraphs on when to use which palette and
-    why
-  - **Good**: the rules file has "## Color Strategy" with the reasoning; the
-    template file just uses the chosen colors in its skeleton
-- If a rules file needs to show the resulting structure at length, add or
-  point to a template instead of inlining a full skeleton in the rules file
+- `<RULE_FILE>` holds why/when: principles, decision criteria, do/don't guidance,
+  short inline examples
+- `<TEMPLATE_FILE>` holds what to copy: a skeleton or worked example with `<VAR>`
+  placeholders, minimal comments
+- A template file must not contain decision criteria or prose explaining why one
+  choice beats another; move that content to the rules file and link to it from the
+  template
+  - **Bad** (template file explains a choice): a `.template.md` section titled "Color
+    Strategy" with paragraphs on when to use which palette and why
+  - **Good**: the rules file has "## Color Strategy" with the reasoning; the template
+    file just uses the chosen colors in its skeleton
+- If a rules file needs to show the resulting structure at length, add or point to a
+  template instead of inlining a full skeleton in the rules file
 
 ## Keep Rules Organized in the Rule File
-- In the `<RULE_FILE>` `<TOPIC>.rules.md` keep group related rules (with header
-  of level 2 ##) into logical sections (with header of level 1 #)
+
+- In the `<RULE_FILE>` `<TOPIC>.rules.md` keep group related rules (with header of
+  level 2 ##) into logical sections (with header of level 1 #)
   ```
   # <Group 1>
 
@@ -386,10 +374,10 @@
 
   # <Group 2>
   ```
-
 - Rules in the same group with header of level 1 should be cohesive
 
 ## Formatting Style
+
 - Make sure it follows the conventions in
   - `.claude/skills/markdown.rules.md`
   - `.claude/skills/text.rules.md`

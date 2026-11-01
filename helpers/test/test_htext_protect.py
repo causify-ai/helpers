@@ -419,6 +419,95 @@ class Test__extract_protected_content(hunitest.TestCase):
         # Run test.
         self.helper(txt, file_type, expected, expected_map_size)
 
+    def test15(self) -> None:
+        """
+        Test that a shorter fence inside a longer fenced block is content.
+
+        Regression test: a line with 3 backticks and an info string used to
+        close a 4-backtick block, so the text after the block was lost.
+        """
+        # Prepare inputs.
+        txt = """
+        # Size
+
+        - Set the width, e.g.,
+          ````
+          ```plantuml[width=80%]
+          ````
+
+        # Verification
+
+        - One
+        """
+        file_type = "md"
+        # Prepare outputs: the block and its fence length are protected.
+        expected = """
+        # Size
+
+        - Set the width, e.g.,
+          ````
+          <<<PROTECTED_BLOCK_001>>>
+          ````
+
+        # Verification
+
+        - One
+        """
+        expected_map_size = 2
+        # Run test.
+        self.helper(txt, file_type, expected, expected_map_size)
+
+    def test16(self) -> None:
+        """
+        Test a balanced fenced block shown inside a longer fenced block.
+        """
+        # Prepare inputs.
+        txt = """
+        - Label the fence, e.g.,
+          ````markdown
+          ```python
+          x = 1
+          ```
+          ````
+        - Next
+        """
+        file_type = "md"
+        # Prepare outputs.
+        expected = """
+        - Label the fence, e.g.,
+          ````markdown
+          <<<PROTECTED_BLOCK_001>>>
+          ````
+        - Next
+        """
+        expected_map_size = 2
+        # Run test.
+        self.helper(txt, file_type, expected, expected_map_size)
+
+    def test17(self) -> None:
+        """
+        Test that the content of an unclosed fenced block is not lost.
+
+        Regression test: the lines of an unclosed block used to be dropped.
+        """
+        # Prepare inputs.
+        txt = """
+        Text.
+        ```python
+        code
+        more text
+        """
+        file_type = "md"
+        # Prepare outputs.
+        expected = """
+        Text.
+        ```python
+        <<<PROTECTED_BLOCK_001>>>
+        """
+        expected_map_size = 1
+        # Run test.
+        self.helper(txt, file_type, expected, expected_map_size)
+
 
 # #############################################################################
 # Test__restore_protected_content
@@ -595,7 +684,9 @@ class Test__restore_protected_content(hunitest.TestCase):
         %<<<PROTECTED_COMMENT_001>>>
         Text after.
         """
-        protected_map = {"<<<PROTECTED_COMMENT_001>>>": "% This is a LaTeX comment"}
+        protected_map = {
+            "<<<PROTECTED_COMMENT_001>>>": "% This is a LaTeX comment"
+        }
         # Prepare outputs.
         expected = """
         Text before.
@@ -618,7 +709,9 @@ class Test__restore_protected_content(hunitest.TestCase):
         % <<<PROTECTED_COMMENT_001>>>
         Text after.
         """
-        protected_map = {"<<<PROTECTED_COMMENT_001>>>": "% This is a LaTeX comment"}
+        protected_map = {
+            "<<<PROTECTED_COMMENT_001>>>": "% This is a LaTeX comment"
+        }
         # Prepare outputs.
         expected = """
         Text before.
@@ -653,6 +746,68 @@ class Test__restore_protected_content(hunitest.TestCase):
         """
         # Run test.
         self.helper(txt, protected_map, expected)
+
+    def test9(self) -> None:
+        """
+        Test that the length of a fence shortened by a formatter is restored.
+        """
+        # Prepare inputs.
+        txt = """
+        Text before.
+        ```markdown
+        <<<PROTECTED_BLOCK_001>>>
+        ```
+        Text after.
+        """
+        protected_map = {
+            "<<<PROTECTED_BLOCK_001>>>": "```python\nx = 1\n```",
+            "<<<PROTECTED_FENCE_LENGTH_001>>>": "4",
+        }
+        # Prepare outputs.
+        expected = """
+        Text before.
+        ````markdown
+        ```python
+        x = 1
+        ```
+        ````
+        Text after.
+        """
+        # Run test.
+        self.helper(txt, protected_map, expected)
+
+    def test10(self) -> None:
+        """
+        Test that the fence length is restored when a formatter joined the
+        delimiters and the placeholder into a single line.
+        """
+        # Prepare inputs.
+        lines = [
+            "Text before.",
+            "```markdown\n<<<PROTECTED_BLOCK_001>>>\n```",
+            "Text after.",
+        ]
+        protected_map = {
+            "<<<PROTECTED_BLOCK_001>>>": "```python\nx = 1\n```",
+            "<<<PROTECTED_FENCE_LENGTH_001>>>": "4",
+        }
+        # Run test.
+        actual_lines = htexprot.restore_protected_content(lines, protected_map)
+        # Check outputs.
+        actual = "\n".join(actual_lines)
+        expected = hprint.dedent(
+            """
+            Text before.
+            ````markdown
+            ```python
+            x = 1
+            ```
+            ````
+            Text after.
+            """,
+            remove_lead_trail_empty_lines_=True,
+        )
+        self.assert_equal(actual, expected)
 
 
 # #############################################################################
@@ -790,6 +945,42 @@ class Test_extract_restore_roundtrip(hunitest.TestCase):
              ```bash
              > other_command
              ```
+        """
+        file_type = "md"
+        # Run test.
+        self.helper(txt, file_type)
+
+    def test7(self) -> None:
+        """
+        Test roundtrip with a fenced block shown inside a longer fenced block.
+        """
+        # Prepare inputs.
+        txt = """
+        # Size
+
+        - Set the width, e.g.,
+          ````
+          ```plantuml[width=80%]
+          ````
+
+        # Verification
+
+        - One
+        """
+        file_type = "md"
+        # Run test.
+        self.helper(txt, file_type)
+
+    def test8(self) -> None:
+        """
+        Test roundtrip with an unclosed fenced block.
+        """
+        # Prepare inputs.
+        txt = """
+        Text.
+        ```python
+        code
+        more text
         """
         file_type = "md"
         # Run test.

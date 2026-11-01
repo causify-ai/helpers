@@ -138,6 +138,18 @@
     starting with at least 3 `:`, e.g., `::: columns`) and the surrounding
     chunk of code, while keeping consecutive fence lines adjacent
 
+### Markdown Actions
+
+- **md_format**: Rebuild the blank-line spacing of `.md` files (`md` only)
+  - Ensures exactly one blank line before and after every header
+  - Ensures one blank line around blocks of comment placeholders
+  - Adds no blank line between level-1 bullets (unlike `smd_format`)
+  - Leaves no blank line around a ` ``` ` fence, so a fence nested in a bullet
+    stays glued to it, e.g., `- **Good**` followed directly by ` ``` `
+    - Exception: next to a header, where the header rule applies
+  - Runs after `handle_empty_lines`, consistent with its removal of blank lines
+    before a code block
+
 ### Typst Actions
 
 - **typstyle_format**: Format Typst source with the external `typstyle` tool
@@ -205,6 +217,26 @@
   - Requires input file
   - Looks for backup created before processing
 
+### Content Check
+
+- `--check`: After processing, run `pandoc` on the text before and after, and
+  fail if the content differs
+  - Catches content lost or broken by the processing, e.g., a missing word, a
+    table that is not a table anymore, a changed code block or link target
+  - Reports the difference between the two `pandoc` ASTs and keeps checking the
+    remaining files, then exits with an error if any file failed
+  - The file is already written when the check fails: use `--revert` to
+    restore the backup
+  - Ignores what the actions change on purpose: line wrapping, letter case,
+    `.`, `:`, `—`, bullet marker, and tight vs loose lists
+  - Because `.` is ignored, it does not catch a lost period (e.g., `e.g.`
+    becoming `e.g`)
+  - Compares code, math, raw blocks, and link targets exactly
+  - Only for `md` and `smd` files, other types are skipped with a warning
+- `--pandoc_backend <backend>`: How to run `pandoc` for `--check`
+  - Options: `auto` (host binary if available, otherwise Docker), `dockerized`,
+    `host`
+
 ### Other Options
 
 - `-v, --verbosity <level>`: Set logging verbosity
@@ -222,10 +254,16 @@
 - Advanced transformations (markdown removal, link checking)
 - Content restoration (re-insert protected blocks)
 - Output writing
+- Content check with `pandoc` (`--check`)
 
 ### Content Protection
 
 - Code blocks (triple backticks) are extracted before formatting and restored after
+  - As in CommonMark, a block ends at a bare fence with at least as many backticks
+    as the opening one, so a 4-backtick block can show a 3-backtick fence
+  - The length of a fence with more than 3 backticks is restored after formatting,
+    since `prettier` shortens it to 3
+  - An unclosed block extends to the end of the file and is kept, not dropped
 - Comments and math blocks are protected from markdown removal
 - YAML front matter (markdown files) is extracted and reattached
 - Preserves literal content that should not be modified by formatters
@@ -300,6 +338,12 @@
 
 ```bash
 > ./lint_text.py -i document.md --backend mdformat --mode library
+```
+
+### Format and Check That No Content Is Lost
+
+```bash
+> ./lint_text.py -i documentation.md --check
 ```
 
 ### Revert Previous Formatting

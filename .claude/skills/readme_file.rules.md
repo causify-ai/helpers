@@ -1,4 +1,4 @@
-Conventions for writing a README for a single executable / script.
+Conventions for writing a README for a single executable / script
 
 # Scope and Naming
 
@@ -13,8 +13,7 @@ Conventions for writing a README for a single executable / script.
 # Overall Structure
 
 - Single-file READMEs should follow this hierarchical organization:
-  - **Summary**: One paragraph describing the file's purpose and main
-    responsibility
+  - **Summary**: One paragraph describing the file's purpose and main responsibility
   - **Examples**: 3-5 realistic usage patterns (simple → complex)
   - **Configuration & Inputs**: Parameters, environment variables, file formats
   - **Output & Side Effects**: What the script produces and any state changes
@@ -22,11 +21,13 @@ Conventions for writing a README for a single executable / script.
 
 # Writing Conventions
 
-- Follow `.claude/skills/markdown.rules.md` and `.claude/skills/text.rules.md`
-  for text formatting
+- Follow `.claude/skills/markdown.rules.md` and `.claude/skills/text.rules.md` for
+  text formatting
 - Keep descriptions concise and action-oriented
-- Use architecture diagrams sparingly (ASCII or mermaid) only when data flow is complex
-  - Draw a C4 diagram with PlantUML, never with Mermaid, per `.claude/skills/C4.rules.md`
+- Use architecture diagrams sparingly (ASCII or mermaid) only when data flow is
+  complex
+  - Draw a C4 diagram with PlantUML, never with Mermaid, per
+    `.claude/skills/C4.rules.md`
 - Limit descriptions to specified word counts
 - For scripts: emphasize entry point, main algorithm, and transformation pipeline
 

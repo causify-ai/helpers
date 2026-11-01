@@ -3,8 +3,8 @@ to organize sections, write one entry per paper, and score each paper
 
 # Overview
 
-- A paper list is a reading list of papers, books, datasets, and web resources
-  for a book or a course
+- A paper list is a reading list of papers, books, datasets, and web resources for a
+  book or a course
 - Each entry has a title line, a link, a score, and optionally a short summary
 - Follow `.claude/skills/markdown.rules.md` and `.claude/skills/text.rules.md` for
   text formatting
@@ -85,16 +85,16 @@ to organize sections, write one entry per paper, and score each paper
 - State what the paper does, its method or main idea, and its key result (with
   numbers when available)
 - Take the content from the abstract or the paper, never from memory
-- Mention the venue in a final sentence only when it adds information
-  (e.g., "Published at ICLR 2024")
+- Mention the venue in a final sentence only when it adds information (e.g.,
+  "Published at ICLR 2024")
 - Use `:` instead of a dash to separate clauses
 - Wrap prose at 85 characters
 
 ## Layout
 
 - Indent the field bullets and the summary bullets by 2 spaces under the title line
-- Keep the entries of a section one after the other, without blank lines, when
-  they have no summary bullets
+- Keep the entries of a section one after the other, without blank lines, when they
+  have no summary bullets
 - Separate entries that have summary bullets with one blank line
 
 # Score
@@ -102,8 +102,8 @@ to organize sections, write one entry per paper, and score each paper
 ## Meaning
 
 - `**Score**: x/5` where `x` is an integer from 1 (low) to 5 (high)
-- The score estimates the authority and impact of the paper: how much a reader
-  should trust it and how widely the field uses it
+- The score estimates the authority and impact of the paper: how much a reader should
+  trust it and how widely the field uses it
 - The score is not a measure of how well the paper fits the book. Topic fit is
   decided by the section the paper is in
 
@@ -139,8 +139,8 @@ to organize sections, write one entry per paper, and score each paper
   of the publisher or maintainer
 - Use whole numbers only: no `3.5/5`
 - If the signals disagree, score on the strongest signals and do not average
-- Re-score an entry when its signals change a lot (e.g., a recent paper gains
-  many citations)
+- Re-score an entry when its signals change a lot (e.g., a recent paper gains many
+  citations)
 
 # Verification
 

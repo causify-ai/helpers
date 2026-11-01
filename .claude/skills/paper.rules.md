@@ -5,8 +5,8 @@
 ## Meaning
 
 - The paper rating is an integer from 1 (low) to 5 (best)
-- It estimates the authority and impact of a paper from three signals that are
-  quick to check: page length, author affiliation, and citations
+- It estimates the authority and impact of a paper from three signals that are quick
+  to check: page length, author affiliation, and citations
 - It is a mechanical proxy, not the `**Score**` of a paper list entry, which is a
   judgment call (see `# Score` in `.claude/skills/paper_list.rules.md`)
 - Follow the template `.claude/templates/paper_rating.template.md`
@@ -64,12 +64,12 @@
 - The rating is the mean of the three scores, rounded half up to a whole number
   - Use whole numbers only: no `3.5/5`
   - Weigh the three signals equally
-- If a signal cannot be found, write `unknown`, leave it out of the mean, and say
-  so in the notes
-  - Do not take affiliations or citation counts from memory: read them from the
-    paper or from the lookup source
+- If a signal cannot be found, write `unknown`, leave it out of the mean, and say so
+  in the notes
+  - Do not take affiliations or citation counts from memory: read them from the paper
+    or from the lookup source
 - Record the source and the date of the citation count, since it changes over time
 - Example (illustrative values)
-  - **Good**: 12 pages (3), a top 20 university (5), and 40 citations after 3
-    years (2) give a mean of 3.33 and a rating of `3/5`
+  - **Good**: 12 pages (3), a top 20 university (5), and 40 citations after 3 years
+    (2) give a mean of 3.33 and a rating of `3/5`
   - **Bad**: report the unrounded mean of the same scores as `3.33/5`

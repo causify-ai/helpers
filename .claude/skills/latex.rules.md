@@ -3,6 +3,7 @@
 # Symbols and Notation
 
 ## Symbol Conventions
+
 - Include LaTeX formulas in `$$ $$` instead of `\[` and `\]`
 - `$\Pr(...)$` for probability, instead of `P(...)`
 - `$\EE[...]$` for expectation (mean), instead of `\mathbb{E}` or `E`
@@ -16,6 +17,7 @@
 - Do not use `\left[`, `\left(`, `\right]`, `\right)` unless necessary
 
 ## Quantifier Spacing
+
 - Add space `\ ` after quantifier variable binding in `\forall` and `\exists`
   - **Bad** (no space, harder to read)
     ```
@@ -29,6 +31,7 @@
 # Formula Formatting
 
 ## Multi-line Layout
+
 - Format the LaTeX code on multiple lines to be easy to read
   - **Bad**
     ```
@@ -51,8 +54,8 @@
 
 ## Conversion Guidelines
 
-- Convert mathematical formulas to LaTeX without changing their meaning
-  and formatting so that they are easily readable
+- Convert mathematical formulas to LaTeX without changing their meaning and
+  formatting so that they are easily readable
   - **Bad**
     ```
     P(M | D) ∝ P(D | M) P(M)
@@ -63,7 +66,6 @@
     P(M \mid D) \propto P(D \mid M)\, P(M)
     $$
     ```
-
   - **Bad**
     ```
     a* = argmax_a E_{M~P(M|D)}[Goal | do(a), M]

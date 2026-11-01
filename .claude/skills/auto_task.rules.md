@@ -36,8 +36,8 @@
 
 ## Confirm the Task List Before Executing
 
-- A task list is an ordered set of tasks, each with a goal and its changes
-  following the format in `.claude/templates/auto_task.template.md`
+- A task list is an ordered set of tasks, each with a goal and its changes following
+  the format in `.claude/templates/auto_task.template.md`
 - Check that each task states a problem and a solution before starting on it
 - If a task's spec is unclear or incomplete, follow "Ask for Clarification Before
   Executing an Unclear Plan" above instead of guessing
@@ -85,14 +85,12 @@
   outermost repo's tracker: a submodule has its own, disjoint issue numbering and is
   never where the issue lives
 - The task description explicitly clarifies this through
-
   ```
   * Repo: <Which repos are affected>
   ```
-
-  - Determine which repo a changed file belongs to before filling this in: a
-    `<FILE>` path under `helpers_root/` is the `helpers` repo, everything
-    else is `umd_classes`
+  - Determine which repo a changed file belongs to before filling this in: a `<FILE>`
+    path under `helpers_root/` is the `helpers` repo, everything else is
+    `umd_classes`
 - The branch and the PR opened in every affected repo share one name, derived once
   from that single issue (see "Name Branches and PRs After the Issue" above), not a
   separate name per repo
@@ -100,24 +98,21 @@
   repo only by default
   - Pass `--submodules` to also create the same branch/PR, by name, in every
     submodule, so the issue, the branches, and the PRs all stay aligned
-- When a PR ends up existing in more than one repo,
-  `git_create_issue_and_branch.py` appends a `## Companion PRs` section to the
-  issue body listing every repo's PR link, so the one issue stays the source of
-  truth for the whole task, instead of opening a second issue per repo
-  - This runs automatically at the end of a `--submodules` call that also
-    creates the PRs
-  - If a PR is opened later instead (e.g., a draft PR opened after the first
-    commit, per
-    `.claude/skills/auto_task.execute_interactively/SKILL.md`), refresh the
+- When a PR ends up existing in more than one repo, `git_create_issue_and_branch.py`
+  appends a `## Companion PRs` section to the issue body listing every repo's PR
+  link, so the one issue stays the source of truth for the whole task, instead of
+  opening a second issue per repo
+  - This runs automatically at the end of a `--submodules` call that also creates the
+    PRs
+  - If a PR is opened later instead (e.g., a draft PR opened after the first commit,
+    per `.claude/skills/auto_task.execute_interactively/SKILL.md`), refresh the
     section on its own:
-
     ```bash
     > git_create_issue_and_branch.py --gh_issue_id <NUM> --submodules \
         --update_pr_links
     ```
-
-  - Never hand-edit the `## Companion PRs` section: it is regenerated, not
-    appended to, so a hand edit is overwritten on the next refresh
+  - Never hand-edit the `## Companion PRs` section: it is regenerated, not appended
+    to, so a hand edit is overwritten on the next refresh
 
 ## Review Specs Before Executing
 

@@ -35,7 +35,6 @@
   - The first bullet states the scope of the notebook
   - The second bullet, "The pedagogical arc", lists the steps of the notebook
   - Example:
-
     ```markdown
     # Entailment, Implication, and Inference: the Rain and Wet Ground World
 
@@ -48,16 +47,13 @@
       - The same definition applied to a non-Boolean world
       - Implication vs entailment vs inference, three views of one example
     ```
-
-- Do not add an `## Imports` (or `## Setup`) header: the setup code cells
-  follow the title cell directly
-
+- Do not add an `## Imports` (or `## Setup`) header: the setup code cells follow the
+  title cell directly
 - Second cell (code): install packages on-the-fly, only if needed
   - Omit the cell if the Docker image already has all the packages needed
   - Pin the version and print it
-  - In the notebook the command is `!pip install ...`, in the paired `.py`
-    file it is `# !pip install ...` (Jupytext comments it out)
-
+  - In the notebook the command is `!pip install ...`, in the paired `.py` file it is
+    `# !pip install ...` (Jupytext comments it out)
     ```python
     !pip install -q sympy==1.14.0
 
@@ -65,13 +61,12 @@
 
     print("sympy version: ", sympy.__version__)
     ```
-
 - Third cell (code): autoreload and third-party imports
   - If there is no pip cell, this is the second cell
-  - Put every third-party import that the notebook body uses in this cell
-    (e.g., `numpy`, `pandas`)
-  - Sort the imports alphabetically, with `import x` lines before
-    `from x import y` lines
+  - Put every third-party import that the notebook body uses in this cell (e.g.,
+    `numpy`, `pandas`)
+  - Sort the imports alphabetically, with `import x` lines before `from x import y`
+    lines
   - Do not import `display` here: the last setup cell imports it
     ```python
     %load_ext autoreload
@@ -82,21 +77,17 @@
     import matplotlib.pyplot as plt
     import seaborn as sns
     ```
-
   - Do not set the plotting style (e.g., `sns.set_style("whitegrid")`,
-    `plt.rcParams["figure.figsize"]`) since `hnotebook.config_notebook()`
-    already does it
-
+    `plt.rcParams["figure.figsize"]`) since `hnotebook.config_notebook()` already
+    does it
 - Last setup cell (code): helpers imports, paired utils, and logger init
-  - Import `helpers.hintrospection as hintros` only if the notebook body uses
-    it
-  - Always import the paired `*_utils.py` module as `utils`, never with a
-    custom alias
-  - If the notebook needs another local module, import it after `utils` with
-    its own short alias
+  - Import `helpers.hintrospection as hintros` only if the notebook body uses it
+  - Always import the paired `*_utils.py` module as `utils`, never with a custom
+    alias
+  - If the notebook needs another local module, import it after `utils` with its own
+    short alias
   - Use `hnotebook.config_notebook()`, not `htutorial.config_notebook()` or
     `logging.basicConfig()`
-
     ```python
     import helpers.hnotebook as hnotebook
 
@@ -113,13 +104,11 @@
     except ImportError:
         display = print  # type: ignore
     ```
-
-  - Always add the `display` fallback at the end of this cell, even if the
-    notebook body does not call `display()` yet, so that the paired `.py`
-    file also runs as a script when IPython is not installed
+  - Always add the `display` fallback at the end of this cell, even if the notebook
+    body does not call `display()` yet, so that the paired `.py` file also runs as a
+    script when IPython is not installed
   - The paired `*_utils.py` file defines `init_loggers()`, which forwards to
     `hnotebook.init_loggers()`:
-
     ```python
     import helpers.hnotebook as hnotebo
 
@@ -175,12 +164,10 @@
   - Move complexity and infrastructure code to utils
   - Import and use utils functions to keep cells focused on concepts
   - Example pattern:
-
     ```python
     # Display PDF, empirical mean, and compare with theoretical statistics.
     utils.sample_bernoulli3()
     ```
-
 - **Rationale**: Utilities are testable, reusable, and decoupled from notebook
   structure
 
@@ -218,7 +205,6 @@
 ### Example
 
 - **Bad** (visualization code embedded in notebook):
-
   ```python
   # Notebook cell with complex visualization mixed with API calls.
     results = library.process_data(data)
@@ -227,9 +213,7 @@
     axes[0, 1].plot(results['trend'])
     # ... more plotting code ...
   ```
-
 - **Good** (library calls in notebook, visualization in utils):
-
   ```python
   # In notebook: show library calls clearly.
     results = library.process_data(data)
@@ -256,7 +240,6 @@
 - In `*_utils.py`, organize functions in the same order as notebook cells:
   - Group all functions for Cell 1.1, then Cell 1.2, etc
   - Use section dividers to separate each cell's code:
-
     ```python
     # #############################################################################
     # Cell 1.1: Visual Bin: Population of Marbles
@@ -272,7 +255,6 @@
     def cell1_2_plot_distribution_with_stats(...):
         ...
     ```
-
   - `cell1_1_*()` functions first
   - `cell1_2_*()` functions next
   - Continue in ascending order by Part and Cell ID
@@ -297,16 +279,13 @@
 - **Why**: Each cell answers one question; easier to run independently; clearer
   narrative flow
 - **Bad** (one large cell):
-
   ```python
   print(X_df.describe())
   print("\n=== Correlations ===")
   display(X_df.corrwith(y))
   display(X_df.corr())
   ```
-
 - **Good** (three focused cells):
-
   ```python
   # Cell 1: Statistics
   print("=== Feature Statistics ===")
@@ -329,7 +308,6 @@
   cell has only one example
 - Example1
   - **Bad** (this cell has 3 examples and should be split in 3 cells, as below)
-
     ```python
     # Test with fair coin.
     fair_coin = [0.5, 0.5]
@@ -343,38 +321,30 @@
     certain = [1.0, 0.0]
     print(f"Certain outcome entropy: {utils.calculate_entropy(certain):.4f} bits")
     ```
-
   - **Good**: each cell has one example
     - First cell
-
       ```python
       # Test with fair coin.
       # Two equally likely outcomes -> maximum uncertainty, $H = 1$ bit
       fair_coin = [0.5, 0.5]
       print(f"Fair coin entropy: {utils.calculate_entropy(fair_coin):.4f} bits")
       ```
-
     - Second cell
-
       ```python
       # Test with biased coin.
       # If heads occurs 90% of the time -> less uncertainty, $H < 1$ bit
       biased_coin = [0.9, 0.1]
       print(f"Biased coin (90-10) entropy: {utils.calculate_entropy(biased_coin):.4f} bits")
       ```
-
     - Third cell
-
       ```python
       # Test with certain outcome.
       # Certain results have no entropy, $H = 0$ bit.
       certain = [1.0, 0.0]
       print(f"Certain outcome entropy: {utils.calculate_entropy(certain):.4f} bits")
       ```
-
 - Example2
   - **Bad**
-
     ```python
     # Use the weather-activity example.
     print("Example: Weather and Activity Correlation")
@@ -386,9 +356,7 @@
     print(f"\nMutual Information I(Weather; Activity) = {mi:.4f} bits")
     print(f"This means knowing the weather reduces uncertainty about activity by {mi:.4f} bits")
     ```
-
   - **Good**: two different cells
-
     ```python
     # Use the weather-activity example.
     print("Example: Weather and Activity Correlation")
@@ -409,7 +377,6 @@
 - Document the expected result with a trailing `# Outcome: ...` comment so each cell
   is self-contained
 - **Bad** (one cell mixes 2 outcomes):
-
   ```python
   # List every book in the catalog.
   response = httpx.get(f"{BASE_URL}/books")
@@ -423,9 +390,7 @@
   # Outcome: just "Designing Data-Intensive Applications", the only seed book
   # marked out of stock.
   ```
-
 - **Good** (3 cells, one outcome each):
-
   ```python
   # List every book in the catalog.
   response = httpx.get(f"{BASE_URL}/books")
@@ -444,7 +409,6 @@
 ## Code Cell Structure
 
 - Use this standard structure in every code cell:
-
   ```python
   # Comment explaining the goal.
   operation
@@ -452,7 +416,6 @@
   print(result)
   # Comment on the outcome.
   ```
-
 - Keep cells short and focused
 - End with a visible result (via `print()`, `display()`, or a plot)
 
@@ -465,16 +428,13 @@
 
 - Use pandas dataframes for tables and do not create tables using `print`
   - **Bad**
-
     ```
     print(f"{'Property':<25} {'sachs_discrete':<20} {'galton_stature':<20}")
     print("-" * 65)
     for key in sachs_tags:
         print(f"{key:<25} {str(sachs_tags[key]):<20} {str(galton_tags[key]):<20}")
     ```
-
   - **Good**
-
     ```
     # Build a comparison DataFrame from the tags dictionaries.
     tags_df = pd.DataFrame(
@@ -491,20 +451,15 @@
 
 - When using `print()` to inspect a variable, always include the variable name as a
   label alongside its value
-
   ```python
   print("type(env)=", type(env))
   print("env=", env)
   ```
-
   - **Bad**: bare output with no context
-
     ```python
     print(env)
     ```
-
   - **Good**: self-documenting print with variable name
-
     ```python
     print("env=", env)
     ```
@@ -522,7 +477,6 @@
   - Focus on high-level intent, not obvious operations
   - End each comment with a period
 - Example:
-
   ```python
   # Create an agent configured with tools and system behavior instructions.
   contract_agent = langchain.agents.create_agent(
@@ -572,7 +526,6 @@
   - Example: `Cell 1.1`, `Cell 1.2`, `Cell 2.1`, `Cell 2.2`
 - Example
   - **Good** structure:
-
     ```markdown
     # Part 1: Data Exploration and Loading
 
@@ -600,7 +553,6 @@
   1. `## Library Overview` at the very beginning, right after setup cells but before
      the first code cell:
      - Use the structure:
-
        ```markdown
        ## Library Overview
 
@@ -610,7 +562,6 @@
        - **Key classes**:
          - ...
        ```
-
   2. `## Summary: The Mental Model` as the final markdown cell:
      - Recap the 2-4 essential takeaways the reader should remember
      - Each bullet must be a complete, standalone statement
@@ -627,7 +578,6 @@
   - How it affects computation
   - Practical guidance (e.g., "background sets of 100-1000 samples are sufficient")
 - **Example**:
-
   ```python
   # Background data: statistics used to estimate conditional expectations.
   #
@@ -639,7 +589,6 @@
   # Smaller background (100-1000 samples) usually sufficient
   print("Background data shapes expectations and baseline.")
   ```
-
 - **Rationale**: Clarifies prerequisites and design decisions before readers
   encounter them in code
 
@@ -656,8 +605,8 @@
 
 ## Wrap Markdown Cells at 85 Characters
 
-- Every markdown cell (Goal, Description, Guided usage, Implementation, and any
-  other prose or bullet) wraps at 85 characters maximum, per
+- Every markdown cell (Goal, Description, Guided usage, Implementation, and any other
+  prose or bullet) wraps at 85 characters maximum, per
   `.claude/skills/markdown.rules.md` `## Text Wrapping and Structure`
 - In the paired `.py` file, this is the full comment line, the leading `# ` (or
   `#   - `) prefix included, not just the text after it
@@ -668,15 +617,12 @@
 
 - Organize markdown text with nested bullets for clarity:
   - **Bad**: Single paragraph with multiple ideas
-
     ```text
     Examine what happens when we repeatedly sample N points. Each trial
     produces an empirical mean nu. This cell shows the distribution of nu and
     compares it with predictions from the Law of Large Numbers.
     ```
-
   - **Good**: Nested structure with related ideas grouped
-
     ```
     - Examine what happens when we repeatedly sample N points many times
     - Each trial produces an empirical mean nu
@@ -692,22 +638,18 @@
   observations, or key takeaways), use bullet-point format with each point on its own
   line instead of a single inline paragraph:
   - **Bad**: inline paragraph style
-
     ```python
     # **Mental model**: a `Space` is a typed contract. It knows the shape,
     # dtype, and bounds of valid data. It can sample random valid values and
     # check membership.
     ```
-
   - **Good**: bullet-point style with each point on its own indented line
-
     ```python
     # - **Mental model**:
     #   - A `Space` is a typed contract
     #   - It knows the shape, dtype, and bounds of valid data
     #   - It can sample random valid values and check membership
     ```
-
 - **Rationale**: Bullet-point comments are easier to scan quickly, work better with
   diff tools (each point is a separate change), and align with the nested bullet
   style used throughout notebook markdown cells
@@ -728,15 +670,12 @@
   "and"), split it into a parent bullet plus one nested bullet per clause, per
   `.claude/skills/text.rules.md` `## Lists Over Prose`
 - **Bad** (one bullet crams two clauses together):
-
   ```markdown
   - "The model satisfies the sentence" reads backwards at first, the
     model (the world) is what varies across rows, the sentence's truth
     is read off each fixed row
   ```
-
 - **Good** (parent bullet plus nested sub-bullets):
-
   ```markdown
   - "The model satisfies the sentence" reads backwards at first
     - The model (the world) is what varies across rows
@@ -750,8 +689,8 @@
   - `**Goal**`: what the cell teaches, with no mention of individual panels or
     controls
   - `**Description**`: split into two nested lists:
-    - `- Inputs`: one `` `name`: description `` bullet per interactive control,
-      name plus what it changes
+    - `- Inputs`: one `` `name`: description `` bullet per interactive control, name
+      plus what it changes
     - `- Panels`: one `` `Panel`: description `` bullet per panel or subplot the
       widget renders, plus the `` `Comments`: `` bullet
   - `**Guided usage**`: one bullet per action on a control, with the observation it
@@ -766,7 +705,6 @@
 - Wrap each bullet to 85 characters maximum, following
   `.claude/skills/markdown.rules.md` `## Text Wrapping and Structure`
 - **Bad** (Goal and panel bullets crammed into one list):
-
   ```markdown
   **Goal**
   - Define $KB \models \alpha$ as $M(KB) \subseteq M(\alpha)$, and verify
@@ -778,10 +716,8 @@
   - `Comments`: which `KB` sentences are toggled on, the query $\alpha$,
     and the entailment verdict
   ```
-
 - **Good** (Goal, Description, Guided usage, and Implementation as separate tight
   lists):
-
   ```markdown
   **Goal**
   - Define $KB \models \alpha$ as $M(KB) \subseteq M(\alpha)$, and verify
@@ -810,9 +746,7 @@
     `KB` and $\alpha$ in each one with `truth_values()`
   - Shades $M(KB)$ and outlines $M(\alpha)$ on the same table
   ```
-
 - **Good** (Guided usage as actions plus observations, not general facts):
-
   ```markdown
   **Guided usage**
   - Toggle `Rain => WetGround` off, leaving only `Rain` in `KB`
@@ -826,15 +760,12 @@
 - When a sentence ends with a comma-separated list of items, break it into a lead-in
   sentence followed by one bullet per item instead of keeping the list inline
 - **Bad** (list buried inline in prose):
-
   ```
   A runnable walkthrough of the core `FastAPI` building blocks path operations,
   request validation, dependency injection, error handling, and the automatic
   interactive docs
   ```
-
 - **Good** (lead-in sentence plus bullets):
-
   ```
   A runnable walkthrough of the core `FastAPI` building blocks:
   - Path operations
@@ -869,13 +800,10 @@
 
 - Do not use emdashes, but replace them with `:`
   - **Bad**
-
     ```
     ## Primitive 1: `list_datasets()` — The Catalog
     ```
-
   - **Good**
-
     ```
     ## Primitive 1: `list_datasets()`: The Catalog
     ```
@@ -919,7 +847,6 @@
 ## Comment Box Titles
 
 - When using helper function `add_fitted_text_box()`, add a bold title:
-
   ```python
   ax.set_title("Comments", fontsize=14, fontweight="bold", pad=20)
   ```
@@ -927,7 +854,6 @@
 ## Configurable Figure Sizes
 
 - All plotting functions must accept optional `figsize` parameter:
-
   ```python
   def plot_something(
       *,
@@ -937,7 +863,6 @@
           figsize = plt.rcParams["figure.figsize"]
       fig, ax = plt.subplots(figsize=figsize)
   ```
-
 - Never hard-code figure dimensions, but let callers customize size
 
 ## Use Plot_causal_dag() for Causal DAGs
@@ -959,7 +884,6 @@
   - **Description**: What it does / represents
   - **Type/Comments**: Array shape, return type, or behavioral notes
 - **Example**:
-
   ```markdown
   | Object | Description | Comments |
   |--------|-------------|----------|
@@ -967,7 +891,6 @@
   | `.explain_instance(x)` | Single-instance explanation | Returns Explanation object |
   | `Explanation.values` | Per-feature contributions | shape (n_samples, n_features) |
   ```
-
 - **Rationale**: Tables compress related concepts into scannable format; easier than
   prose or bullet lists for API reference
 
@@ -976,7 +899,6 @@
 - When displaying public methods/attributes of a library object, use
   `hintrospection.print_obj_info()`:
   - **Bad** (manual introspection with `inspect` module):
-
     ```python
     import inspect
     for name in dir(explainer):
@@ -987,27 +909,20 @@
                 doc = inspect.getdoc(attr)
                 print(f"{name}: {sig}")
     ```
-
   - **Bad** (bare `dir()` with no context):
-
     ```python
     dir(library_module)
     ```
-
   - **Bad** (manually printing method names):
-
     ```python
     methods = [m for m in dir(library_module) if not m.startswith("_") and callable(getattr(library_module, m))]
     print(methods)
     ```
-
   - **Good** (standardized helper):
-
     ```python
     import helpers.hintrospection as hintros
     hintros.print_obj_info(explainer)
     ```
-
 - **Rationale**: Standardized output, consistent formatting, reduces boilerplate,
   renders cleanly in notebooks
 
@@ -1015,7 +930,6 @@
 
 - When introducing a class in a notebook, pair its GitHub source link with its public
   interface listing via a single call:
-
   ```python
   import helpers.hintrospection as hintros
 
@@ -1030,7 +944,6 @@
   markdown. Each stage can be more than one cell:
   1. **Pre-visualization markdown**: what the cell teaches, then what its controls
      and panels are
-
      ```markdown
      ## Cell 1: Visualizing Population Distribution
 
@@ -1038,38 +951,30 @@
      - Visualize the true population distribution
      - Understand sampling from a finite population
      ```
-
      followed by its own `**Description**` cell (see
      `## Visualization Cell Triplet Details`)
   2. **Code cell**: the visualization / widget itself (optionally with ipywidgets)
-
      ```python
      # Display the population as a bin of colored marbles.
      utils.visualize_population_distribution()
      ```
-
      - Documents the plots and their diagrams in the `**Description**` cell, e.g.,
-
        ```
        `Population bin`: Shows the full population as colored marbles
        `Sample bin`: Shows a random sample drawn from the population
        ```
-
   3. **Post-visualization markdown**: guided usage, then implementation, followed by
      the function-info code cell
-     - **Guided usage**: what to do on the controls, and what to observe as a
-       result, not general facts about the topic
-
+     - **Guided usage**: what to do on the controls, and what to observe as a result,
+       not general facts about the topic
        ```markdown
        **Guided usage**
        - Drag `sample_size` from 10 up to 500
          - Observe the sample distribution converge toward the population
            distribution shown on the left
        ```
-
      - **Implementation**: how the function gets there, so the reader looks at it
        only after seeing what it does (see `## Visualization Cell Triplet Details`)
-
 - For all the markdown cells use bullet points with nested bullets for clarity and
   conciseness, following the rules in
   - `.claude/skills/slides.rules.md`: rules for formatting slides
@@ -1085,7 +990,6 @@
 ### Markdown Cell (Before the Visualization)
 
 - Title and Goal format:
-
   ```markdown
   ## Cell <PART>.<ID>: <Short Description>
 
@@ -1093,12 +997,10 @@
   - Build intuition for <CONCEPT>
   - <Learning objective 2>
   ```
-
 - Right after `**Goal**`, in its own markdown cell, describe every input and every
   panel in one `**Description**` markdown cell, split into `- Inputs` and `- Panels`,
   with a blank line between the two nested lists (see
   `## Keep Goal, Description, Guided Usage, and Implementation Tight`):
-
   ```markdown
   **Description**
   - Inputs
@@ -1111,7 +1013,6 @@
     - `Sample bin`: Shows a random sample drawn from the population
     - `Comments`: Current parameter values and state observations
   ```
-
 - Item names in `Inputs` and `Panels` are plain backtick, not bold plus backtick
 - Each widget has its description close to it (in the widget's `description`
   parameter or as a label above the widget), ensuring it is entirely readable
@@ -1121,7 +1022,6 @@
 - The visualization code, optionally with ipywidgets for interactivity
 - The "Comments" panel (subplot or text box) should contain **only variable state and
   observations associated to the current state**, not general "key idea" commentary:
-
   ```python
   comment_text = (
       f"Parameters:\n"
@@ -1133,7 +1033,6 @@
       f"  std: {std_sample:.4f}"
   )
   ```
-
   Remove comments like "key insight" or "observation" from the Comments panel; keep
   only the information about the current parameter state
 
@@ -1143,7 +1042,6 @@
   one bullet per action on a control, with the observation it produces nested
   underneath it. This replaces a "key observations" list of general facts with
   something more precise and actionable:
-
   ```markdown
   **Guided usage**
   - Raise `gamma` from 0.5 toward 0.99, leaving everything else fixed
@@ -1153,18 +1051,15 @@
     - Observe only cells next to a terminal move at first; the interior
       refines only in later sweeps
   ```
-
 - Right after `**Guided usage**`, in its own markdown cell, add an
   `**Implementation**` section naming the function and walking through how it gets
   there, one bullet per algorithmic step (see
   `## Keep Goal, Description, Guided Usage, and Implementation Tight`):
-
   ```markdown
   **Implementation** `visualize_population_distribution(figsize=None)`
   - Draws `n_population` marbles, colored by `mu`, the true red fraction
   - Draws a random sample of `sample_size` marbles from the same population
   ```
-
 - The code cell right after `**Implementation**` calls `hintros.print_obj_info()` on
   the function, instead of printing its docstring and linking to its source
   separately (see `## Use Introspection Code for Public APIs`)
@@ -1189,15 +1084,12 @@
        `htutori.add_fitted_text_box(ax4, text_content, ...)`
      - Ends with: `plt.tight_layout()` then `plt.show()`
   4. Attach observers to all widgets
-
      ```python
      slider.observe(update_plot, names="value")
      ```
-
   5. Call initial update: `update_plot()`
   6. Display via `ipywidgets.VBox()`, without a redundant `Label` (see
      `## Remove Redundant Labels Before Control Boxes`):
-
      ```python
      display(ipywidgets.VBox([
          slider1_box,
@@ -1223,7 +1115,6 @@
   `ipywidgets.Label` before the VBox/HBox of controls is redundant and wastes
   vertical space
 - **Bad**: Wrapping controls in a `Label` then a VBox of controls
-
   ```python
   display(ipywidgets.VBox([
       ipywidgets.Label("Parameters:"),
@@ -1231,39 +1122,31 @@
       slider2_box,
   ]))
   ```
-
   - Each control already shows its own name/description inline
   - The `Label` adds no new information
 - **Good**: Display controls directly, relying on their embedded descriptions
-
   ```python
   display(ipywidgets.VBox([
       slider1_box,
       slider2_box,
   ]))
   ```
-
 - **Bad**: Label in the 2-row Output Widget Pattern
-
   ```python
   display(VBox([
       HBox([Label("Controls:"), controls_box]),
       output,
   ]))
   ```
-
 - **Good**: No redundant label
-
   ```python
   display(VBox([
       HBox([controls_box]),
       output,
   ]))
   ```
-
 - The same principle applies to the interactive idiom:
   - **Bad** (from the Interactive Idiom section):
-
     ```python
     display(ipywidgets.VBox([
         ipywidgets.Label("Description:"),
@@ -1272,9 +1155,7 @@
         output
     ]))
     ```
-
   - **Good**:
-
     ```python
     display(ipywidgets.VBox([
         slider1_box,
@@ -1288,7 +1169,6 @@
 - When creating an interactive cell with ipywidget controls, HTML info panels, and
   matplotlib plots, use the Output widget pattern that separates controls from
   rendering into a clean 2-row layout:
-
   ```python
   # 1. Build ipywidget controls + HTML info in the top row.
   controls = VBox([dropdowns, sliders])
@@ -1317,7 +1197,6 @@
   top_row = HBox([controls, info])
   display(VBox([top_row, output]))
   ```
-
 - **Do not** mix widgets and matplotlib figures in separate `display()` calls
   arranged manually. Having a single `Output()` widget that holds all matplotlib
   rendering guarantees:
@@ -1347,7 +1226,6 @@
 - Each returns `(slider, HBox)` where the `HBox` includes the slider, +/- buttons,
   and text display
 - A linear scale widget looks like
-
   ```python
   slider, box = htutori.build_widget_control(
       name="alpha",
@@ -1359,9 +1237,7 @@
       is_float=True,
   )
   ```
-
 - Use a logarithmic Scale for parameters spanning orders of magnitude
-
   ```python
   # Create N widget with logarithmic slider and +/- buttons.
   # Uses exponents 2-10 for base 2: gives values 4, 8, 16, 32, 64, 128, 256, 512, 1024
@@ -1375,7 +1251,6 @@
       base=2,
   )
   ```
-
 - Use short, unadorned variable names in widgets:
   - Use: `mu`, `N`, `epsilon`, `seed`, `alpha`, `beta`
   - Avoid: `mean_value`, `num_samples`, `noise_std_dev`, `shape_param`
@@ -1388,7 +1263,6 @@
   - Return the widget container (not bare prints or displays)
   - Accept all widget parameters explicitly (don't rely on global state)
 - Example:
-
   ```python
   def gaussian_interactive(mu_range=(0, 1), sigma_range=(0.1, 1)):
       """
@@ -1446,7 +1320,6 @@ def complex_entropy_interactive():
 ## Remove Development Environment Cells
 
 - Remove cells for JupyterLab extensions or environment setup:
-
   ```python
   !sudo /bin/bash -c "(source /venv/bin/activate; pip install --quiet jupyterlab-vim)"
   !jupyter labextension enable
@@ -1461,7 +1334,6 @@ def complex_entropy_interactive():
 - A notebook that needs a package beyond that shared base (e.g., `sympy`, `networkx`,
   `z3-solver`) installs it itself, pinned, in its own cell right after the
   autoreload/logging cell and before importing the package:
-
   ```python
   # %%
   # !pip install -q sympy==1.14.0
@@ -1469,7 +1341,6 @@ def complex_entropy_interactive():
   import sympy
   print("sympy version: ", sympy.__version__)
   ```
-
   - The `# !pip install ...` line is jupytext's magic-escaping convention: it stays a
     comment in the paired `.py` file (so the script still runs standalone), but is a
     live `!pip install` cell once synced to the `.ipynb`
@@ -1500,11 +1371,9 @@ def complex_entropy_interactive():
 ## Testing Notebook
 
 - You run a command like:
-
   ```
   > docker_cmd.sh "python /git_root/tutorials/<PACKAGE>/<paired python file>.py
   ```
-
   to run a notebook top to bottom and make sure it works
 - A `# !pip install ...` cell (see
   `## Install Extra Packages Per Notebook, Not in Requirements.txt` above) is only a
@@ -1513,11 +1382,9 @@ def complex_entropy_interactive():
   - Chain a transient `pip install` for exactly the packages/versions the notebook's
     own cell lists, in the same `docker_cmd.sh` call, instead of adding them to
     `requirements.txt` or rebuilding the image:
-
     ```
     > docker_cmd.sh "pip install -q sympy==1.14.0 && \
         python /git_root/tutorials/<PACKAGE>/<paired python file>.py"
     ```
-
   - This only affects the throwaway container for this test run; nothing persists, so
     `requirements.txt` and the Docker image stay untouched

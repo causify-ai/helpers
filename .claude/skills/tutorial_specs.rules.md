@@ -1,7 +1,6 @@
 Conventions for the tutorial proposal documents under
-`class_project/project_descriptions/*/*.md`: their file naming, section
-structure, and the `README.md` tracking table
-
+`class_project/project_descriptions/*/*.md`: their file naming, section structure,
+and the `README.md` tracking table
 - A proposal specifies a "Learn X in 60 Minutes" tutorial for one tool `X` and the
   class projects that use it
 - The tutorial itself must follow `.claude/skills/tutorial_in_60_mins.rules.md`
@@ -30,11 +29,11 @@ structure, and the `README.md` tracking table
 ## Sections
 
 - A proposal has these sections, in this order:
-  1. `# Description`: what the tool is, with a `## Technologies Used` subsection
-     for the tool name and its key features
+  1. `# Description`: what the tool is, with a `## Technologies Used` subsection for
+     the tool name and its key features
   2. `# Tutorial`: the spec of the tutorial of the current class session
-  3. `# Project`: the projects, with one `## Project <N>: <Title>` subsection for
-     `N` in 1, 2, 3
+  3. `# Project`: the projects, with one `## Project <N>: <Title>` subsection for `N`
+     in 1, 2, 3
      - `Project 1` is the main project and has a `### Milestones` subsection
 - Do not use `---` lines to separate blocks, separate them with a blank line
 - Do not invent new sections; reuse the ones in the template
@@ -47,8 +46,7 @@ structure, and the `README.md` tracking table
   - What problem does it solve?
   - Why is it worth a 60-minute tutorial?
 - Under `## Technologies Used`, write the tool name and 3-5 bullets of key features
-  - The features are the checklist that the `<project>.API.ipynb` notebook must
-    cover
+  - The features are the checklist that the `<project>.API.ipynb` notebook must cover
 
 ## Session Scope
 
@@ -62,10 +60,10 @@ structure, and the `README.md` tracking table
 
 ## Tutorial Section
 
-- The `# Tutorial` section is the spec of the "Learn X in 60 Minutes"
-  tutorial for the current session
-- Always state that the tutorial follows the usual "Learn X in 60 mins" approach,
-  and link `.claude/skills/tutorial_in_60_mins.rules.md`
+- The `# Tutorial` section is the spec of the "Learn X in 60 Minutes" tutorial for
+  the current session
+- Always state that the tutorial follows the usual "Learn X in 60 mins" approach, and
+  link `.claude/skills/tutorial_in_60_mins.rules.md`
 - Point to the documentation to implement the tutorial, and do not copy it:
   - `.claude/skills/tutorial_in_60_mins.rules.md`: structure, deliverables, and
     validation checklist
@@ -75,9 +73,9 @@ structure, and the `README.md` tracking table
 - Check the previous tutorials and projects before writing the spec:
   - Look in `tutorials/` for a dir of the tool or of a related tool, and read its
     `README.md`
-  - Look in `class_project/project_descriptions/README.md` and in the `Result`
-    dirs `class_project/{msml610,data605}/<Session>/projects/` for earlier work
-    on the tool
+  - Look in `class_project/project_descriptions/README.md` and in the `Result` dirs
+    `class_project/{msml610,data605}/<Session>/projects/` for earlier work on the
+    tool
   - Add the pointers to the dirs and to their `README.md` in the `# Tutorial`
     section, so the students start from the existing work
   - The full list of existing work is in the section
@@ -104,22 +102,21 @@ structure, and the `README.md` tracking table
 - The `### Milestones` subsection lists, in order, the steps that deliver the
   tutorial and the project of the session
 - Every milestone must be related to the project that contains it:
-  - Name the project tasks that the milestone advances, using the task names of
-    the project
-  - Name the result that the milestone produces, e.g., a deliverable file, a
-    table, or a plot
-- Do not write generic milestones that fit any tool, e.g., "Read the
-  documentation"
+  - Name the project tasks that the milestone advances, using the task names of the
+    project
+  - Name the result that the milestone produces, e.g., a deliverable file, a table,
+    or a plot
+- Do not write generic milestones that fit any tool, e.g., "Read the documentation"
 - Shape the milestones with the time split of
-  `.claude/skills/tutorial_in_60_mins.rules.md`: setup, introduction, API
-  notebook, example notebook
-  - The API notebook milestone covers the features of the tool that the project
-    tasks use
+  `.claude/skills/tutorial_in_60_mins.rules.md`: setup, introduction, API notebook,
+  example notebook
+  - The API notebook milestone covers the features of the tool that the project tasks
+    use
   - The example notebook milestone implements the project tasks end to end
-- Write the project first and the milestones after, so the milestones follow from
-  the project and not the reverse
-- Use `TODO(ai_gp): Add milestones related to the project` while the project is
-  not defined
+- Write the project first and the milestones after, so the milestones follow from the
+  project and not the reverse
+- Use `TODO(ai_gp): Add milestones related to the project` while the project is not
+  defined
 - Do not add milestones to `Project 2` and `Project 3`, only to `Project 1`
 
 ## Projects
@@ -132,10 +129,10 @@ structure, and the `README.md` tracking table
   - Give it a `### Milestones` subsection
   - It should reuse the code in `<Tool>_utils.py`, so the example notebook
     orchestrates the code and does not duplicate it
-- `Project 2` and `Project 3` are alternatives that are specified less and have
-  no milestones
-- Any project can have a difficulty, but write it only in the `**Difficulty**`
-  bullet and never in the title
+- `Project 2` and `Project 3` are alternatives that are specified less and have no
+  milestones
+- Any project can have a difficulty, but write it only in the `**Difficulty**` bullet
+  and never in the title
 - Write each field as a top-level bullet, e.g., `- **Project Objective**: ...`, and
   nest the tasks under `- **Tasks**:`
 - Use the fields in this order:
@@ -168,8 +165,7 @@ structure, and the `README.md` tracking table
   5. Visualization and interpretation
 - Format each task as `**<Verb Phrase>**: <one sentence>`
 - Make each task produce an observable output, e.g., a table or a plot
-- Name the features of the tool, so the project exercises the tool and not generic
-  ML
+- Name the features of the tool, so the project exercises the tool and not generic ML
 
 ## Bonus Ideas
 
@@ -201,8 +197,8 @@ structure, and the `README.md` tracking table
 
 ## Template Usage
 
-- Follow the template `.claude/templates/tutorial_specs.template.md` for the
-  section structure of a proposal
+- Follow the template `.claude/templates/tutorial_specs.template.md` for the section
+  structure of a proposal
 - Do not invent new top-level sections
 
 # README Tracking Table
@@ -225,8 +221,8 @@ structure, and the `README.md` tracking table
 - `Result`: the directory in `class_project/msml610/<Session>/projects/`
 - `Session`: the class session taken from the `Result` directory, e.g., `Fall2026`
 - Use `<br>` to put several values in one cell, one per result
-- Use an empty `Status` and `—` in the other columns for a proposal that nobody
-  has taken yet
+- Use an empty `Status` and `—` in the other columns for a proposal that nobody has
+  taken yet
 
 ## Adding a Proposal
 
@@ -236,17 +232,17 @@ structure, and the `README.md` tracking table
 # Tutorial Ecosystem
 
 - The conventions, skills, workflow, templates, and examples of a tutorial are
-  documented once in `.claude/skills/tutorial_in_60_mins.rules.md`, so point to
-  them and do not copy them here
+  documented once in `.claude/skills/tutorial_in_60_mins.rules.md`, so point to them
+  and do not copy them here
   - `Available Skills`: the skills that create, format, and sync a tutorial
-  - `Existing Tutorials and Projects`: the workflow docs, templates, tutorials,
-    blog posts, and class projects already built
+  - `Existing Tutorials and Projects`: the workflow docs, templates, tutorials, blog
+    posts, and class projects already built
 - `.claude/skills/tool_guide_in_30_mins.rules.md`: single-markdown quick-reference
   guide for a tool (not a tutorial directory)
 
 # Examples
 
-- `class_project/project_descriptions/MSML610/Ax_Project_Description.md`: a
-  proposal with the three project options in the standard fields
+- `class_project/project_descriptions/MSML610/Ax_Project_Description.md`: a proposal
+  with the three project options in the standard fields
 - `class_project/project_descriptions/MSML610/CrewAI_Project_Description.md`: a
   proposal with a `Tutorial` section that has full specs

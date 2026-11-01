@@ -1,4 +1,4 @@
-Conventions for writing a README for a directory with executables.
+Conventions for writing a README for a directory with executables
 
 # Scope and Naming
 
@@ -13,8 +13,8 @@ Conventions for writing a README for a directory with executables.
 - READMEs for a directory should follow this hierarchical organization:
   - **Summary**: One paragraph describing the directory's purpose
   - **Structure of the Dir**: List subdirectories with <20-word descriptions
-  - **Description of Files**: Alphabetical list of all files with 1-line
-    descriptions in a table
+  - **Description of Files**: Alphabetical list of all files with 1-line descriptions
+    in a table
   - **Description of Executables**: Detailed docs for each script/tool in a table
   - **Description of Workflows** (optional): How executables combine for complex
     features
@@ -22,19 +22,21 @@ Conventions for writing a README for a directory with executables.
 
 # Writing Conventions
 
-- Follow `.claude/skills/markdown.rules.md` and `.claude/skills/text.rules.md`
-  for text formatting
+- Follow `.claude/skills/markdown.rules.md` and `.claude/skills/text.rules.md` for
+  text formatting
 - Keep descriptions concise and action-oriented
 - Limit descriptions to specified word counts
 
 # Section Details
 
 ## Summary Section
-- Single paragraph describing the directory's purpose in terms of 2-3 short
-  bullet points
+
+- Single paragraph describing the directory's purpose in terms of 2-3 short bullet
+  points
 - Answer: _"What does this directory do?"_
 
 ## Structure of the Dir Section
+
 - Bullet list of subdirectories (if any) in a markdown table
 - Format: `<dirname>/` followed by description (<20 words)
 - Example:
@@ -46,6 +48,7 @@ Conventions for writing a README for a directory with executables.
   ```
 
 ## Description of Files Section
+
 - List all Python and Markdown files in directory formatted in a markdown table
 - Alphabetical order for consistency
 - `Description` is a <20 words description
@@ -63,7 +66,7 @@ Conventions for writing a README for a directory with executables.
 
 ## Description of Executables Section (if Applicable)
 
-Find all executable files and create one `##` header per tool.
+Find all executable files and create one `##` header per tool
 
 ### Tables for Command References
 
@@ -83,12 +86,10 @@ Find all executable files and create one `##` header per tool.
 ### For Each Executable
 
 - Find all executable files and create one `##` header per tool
-
 - **What It Does**: 1-3 bullets describing tool's purpose
   - Mention important inputs, outputs, and side effects
   - Use bullet points for clarity
   - Keep each bullet to one sentence
-
 - **Examples**: 3-5 realistic usage patterns ordered simple → complex
   - Start with short description
   - Follow with fenced bash code block (see format rules below)
@@ -145,6 +146,7 @@ Find all executable files and create one `##` header per tool.
 - TODO(gp): Finish this
 
 # Examples
+
 - `dev_scripts_helpers/documentation/README.md`
 - `dev_scripts_helpers/llms/README.md`
 - `dev_scripts_helpers/ai/README.md`
