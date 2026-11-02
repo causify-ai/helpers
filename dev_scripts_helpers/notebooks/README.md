@@ -35,6 +35,8 @@ testing workflows.
   - Restore Python files from paired notebooks
 - `notebook.sync.sh`
   - Synchronize paired notebooks and Python files
+- `open_notebook_from_branch.py`
+  - Open a notebook of a git branch in a live Jupyter Lab, using a git worktree
 - `process_jupytext.py`
   - Automate jupytext workflows (pair, sync, test, diff)
 - `process_all_jupytext.sh`
@@ -143,6 +145,41 @@ testing workflows.
 
     ```bash
     > ./ipynb_format.py --style google my_notebook.ipynb
+    ```
+
+### `open_notebook_from_branch.py`
+
+- **What It Does**:
+  - Fetches a branch and creates (or reuses and fast-forwards) a git worktree
+    for it, leaving the current client untouched
+  - Finds the project dir with `docker_jupyter.sh` above the notebook
+  - Builds the project image with `docker_build.sh`
+  - Starts Jupyter Lab with `docker_jupyter.sh` and opens the notebook in the
+    browser when Jupyter Lab is ready
+  - Falls back to the local `origin/<branch>` when the remote branch is gone
+    (e.g., deleted after the merge)
+
+- **Examples**:
+
+  - Open a notebook from a branch:
+
+    ```bash
+    > ./open_notebook_from_branch.py \
+        -i research/Optimal_strategy_for_racket_sports/notebooks/racket_shot_probability.ipynb \
+        --branch UmdTask788_Racket_sports_Change_color_of_heatmaps
+    ```
+
+  - Show the commands without running them:
+
+    ```bash
+    > ./open_notebook_from_branch.py -i <notebook> --branch <branch> --dry_run
+    ```
+
+  - Skip the Docker build and use another port, stopping the running container:
+
+    ```bash
+    > ./open_notebook_from_branch.py -i <notebook> --branch <branch> \
+        --no_build --port 8889 --kill_existing_jupyter
     ```
 
 ### `process_jupytext.py`

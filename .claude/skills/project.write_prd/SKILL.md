@@ -5,7 +5,7 @@ model: opus
 
 # Goal
 
-- Given an idea, write `docs/prd.md`: what the product must do and must not do
+- Given an idea, write `docs/01-prd.md`: what the product must do and must not do
 - Do not design the solution and do not write code
 
 ## Input
@@ -33,7 +33,7 @@ model: opus
 
 ## Write the PRD
 
-- Create `<DOCS_DIR>/prd.md`
+- Create `<DOCS_DIR>/01-prd.md`
 - Follow the rules in `.claude/skills/project.rules.md` section "Write a PRD"
 - Follow the template `.claude/templates/project_prd.template.md`
 - Follow `.claude/skills/markdown.rules.md` and `.claude/skills/text.rules.md`
@@ -41,7 +41,7 @@ model: opus
 
 ## Update the Index
 
-- If `<DOCS_DIR>/README.md` exists, add a row for `prd.md`, per
+- If `<DOCS_DIR>/README.md` exists, add a row for `01-prd.md`, per
   `.claude/skills/project.rules.md` section "Write an Index in docs/README.md"
 
 # Conventions
@@ -62,4 +62,4 @@ model: opus
 - [ ] The non-goals are listed
 - [ ] Every open question is numbered
 - [ ] The PRD does not contain design or code
-- [ ] The row for `prd.md` is in `<DOCS_DIR>/README.md`, if the file exists
+- [ ] The row for `01-prd.md` is in `<DOCS_DIR>/README.md`, if the file exists

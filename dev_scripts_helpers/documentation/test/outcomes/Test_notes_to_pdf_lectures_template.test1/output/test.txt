@@ -308,7 +308,7 @@ Normal
 ==== Two columns (template)
 <two-columns-template>
 #grid(
-  columns: (55%, 40%),
+  columns: (60%, 40%),
   gutter: 0.5em,
   [
 

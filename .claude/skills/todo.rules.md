@@ -20,9 +20,9 @@
   ```
 
 ## Topic
-  
+
 - Each "topic" groups several tasks and uses H2 markdown headers
-  - Some topics are general engineering 
+  - Some topics are general engineering
     ```
     ## Unit tests
     ...
@@ -42,13 +42,11 @@
     ## invoke gh_watch
     ...
     ```
-
 - Make sure that the same topics are present in all H1 levels
   - If there is a task `### ...` in one stage, it should be under the correct H2
     header
-
-- Since the same topic name repeats under multiple H1 stages, each H2 header
-  (except in `# ALL TOPICS`) must be suffixed with its stage in parenthesis,
+- Since the same topic name repeats under multiple H1 stages, each H2 header (except
+  in `# ALL TOPICS`) must be suffixed with its stage in parenthesis,
   `## <Topic> (<Stage>)`, e.g.,
   ```
   ## umd_msml610 (IN PROGRESS)
@@ -57,9 +55,8 @@
   ...
   ## umd_msml610 (ICEBOX)
   ```
-  - The `# ALL TOPICS` list keeps the bare topic name (no stage suffix), since
-    it is the canonical list of topics matched by `todo.reorg` and
-    `todo.move_done`
+  - The `# ALL TOPICS` list keeps the bare topic name (no stage suffix), since it is
+    the canonical list of topics matched by `todo.reorg` and `todo.move_done`
 
 ## Task
 
@@ -71,6 +68,7 @@
   ```
 
 ## DONE.md
+
 - The `DONE.md` contains all the tasks that were completed
 - It uses the same organization of H2 markdowns as in `# ALL TOPICS` in
   `ai_task_queue.md`

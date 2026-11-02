@@ -9,14 +9,12 @@ import logging
 import os
 import shlex
 import stat
-import subprocess
 from typing import Any, Dict, List, Optional
 
 import tqdm
 from invoke.tasks import task
 
 import dev_scripts_helpers.git.git_branch_create as dsggibrc
-import helpers.hdaemon as hdaemon
 import helpers.hdbg as hdbg
 
 # We want to minimize the dependencies from non-standard Python packages since
@@ -459,29 +457,57 @@ def git_files(  # type: ignore
 
 
 @task
-def git_roll_amp_forward(ctx):  # type: ignore
+def git_roll_submodule_forward(  # type: ignore
+    ctx,
+    name,
+    branch="master",
+    run_regressions=False,
+    dry_run=False,
+):
     """
-    Update amp submodule pointer to the latest master commit.
+    Move a submodule pointer to the latest commit of a branch of the submodule.
 
-    Checks out master in amp, pulls latest changes, updates the parent repo's
-    submodule pointer, and commits the change.
+    Checks out the branch in the submodule, fast-forwards it to the remote,
+    optionally runs the regressions, and then commits and pushes the new
+    pointer in the parent repo.
+
+    E.g.,
+    ```
+    > invoke git_roll_submodule_forward --name helpers_root
+    > invoke git_roll_submodule_forward --name amp --branch master
+    > invoke git_roll_submodule_forward --name helpers_root --run-regressions
+    ```
+
+    :param name: path of the submodule in the parent repo (e.g.,
+        `helpers_root`, `amp`)
+    :param branch: branch of the submodule to roll forward to
+    :param run_regressions: run `invoke run_fast_tests` after updating the
+        submodule and before committing. If the regressions fail, the pointer
+        is not committed
+    :param dry_run: if True, log the commands without executing them
     """
-    hltltaut.report_task()
-    AMP_DIR = "amp"
-    if os.path.exists(AMP_DIR):
-        # Update amp submodule to point to the latest master.
-        cmds = [
-            f"cd {AMP_DIR} && git checkout master",
-            f"cd {AMP_DIR} && git pull",
-            # Stage the submodule pointer change in the parent repository.
-            f"git add {AMP_DIR}",
-            f"git commit -m 'Roll {AMP_DIR} pointer forward'",
+    hltltaut.report_task(
+        txt=hprint.to_str("name branch run_regressions dry_run")
+    )
+    hdbg.dassert_dir_exists(name)
+    cmds = [
+        # Update the submodule to the latest commit of the branch.
+        f"git -C {name} checkout {branch}",
+        f"git -C {name} pull --ff-only origin {branch}",
+    ]
+    if run_regressions:
+        # Check that the new submodule code does not break the parent repo.
+        cmds.append("invoke run_fast_tests")
+    cmds.extend(
+        [
+            # Stage the submodule pointer change in the parent repo.
+            f"git add {name}",
+            f"git commit -m 'Roll {name} pointer forward'",
             "git push",
         ]
-        for cmd in cmds:
-            hltltaut.run(ctx, cmd)
-    else:
-        _LOG.warning("%s does not exist, aborting", AMP_DIR)
+    )
+    for cmd in cmds:
+        hltltaut.run(ctx, cmd, dry_run=dry_run)
 
 
 # TODO(gp): Add git_co(ctx)
@@ -1202,29 +1228,6 @@ def git_backup(
     if dry_run:
         cmd += " --dry_run"
     hltltaut.run(ctx, cmd)
-
-
-# TODO(ai_gp): Merge this inside the other flow `invoke gh_workflow_list --daemon`
-@task
-def gh_watch(ctx, *, interval=60):  # type: ignore
-    """
-    Watch GitHub workflow status with periodic updates.
-
-    Runs `invoke gh_workflow_list` every N seconds. If running in tmux,
-    temporarily renames the window to "*GH_WATCH*" for visibility and restores it
-    on exit.
-
-    :param interval: Update interval in seconds
-    """
-    hltltaut.report_task()
-
-    def _run() -> None:
-        # Clear screen before displaying updated workflow status.
-        subprocess.run("clear; invoke gh_workflow_list", shell=True, check=False)
-
-    hdaemon.run_periodic_daemon_mode(
-        _run, interval, window_name_str="*GH_WATCH*"
-    )
 
 
 # #############################################################################

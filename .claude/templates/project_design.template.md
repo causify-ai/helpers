@@ -4,8 +4,8 @@
 
 - <What the component does>
 - Where it fits: <upstream> -> <this component> -> <downstream>
-- Requirements: PRD [`R<N>`](/<project>/docs/prd.md#r<n>-<short-description>)
-- Decisions: [D-<N>](/<project>/docs/decisions.md#d-<n>-<decision-title>)
+- Requirements: PRD [`R<N>`](/<project>/docs/01-prd.md#r<n>-<short-description>)
+- Decisions: [`D<N>`](/<project>/docs/03-decisions.md#d<n>-<decision-title>)
 
 ## Diagram
 
@@ -19,10 +19,17 @@ Component(comp2, "<Component Name>", "<Technology>", "<Description>")
 Rel(comp1, comp2, "<Relationship>")
 ```
 
-## Files and Import Graph
+## Files
 
 - `<file>`: <what lives here>
+
+## Import Graph
+
 - `<file>` imports `<file>`
+
+## External Code
+
+- `<path>`: <what the design reuses from it>
 
 ## One Request End to End
 

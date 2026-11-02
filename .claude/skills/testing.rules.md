@@ -3,31 +3,36 @@
 # Testing Philosophy
 
 ## Test One Thing
+
 - A test class tests only one function or class
 - A test method tests only one case
 - Keeps failures easy to diagnose: one thing broken means one test fails
 
 ## Keep Tests Self-Contained
+
 - Each test must be independent and never assume execution order
 - Specify input data explicitly inside the test; do not rely on shared state
 
 ## Test From the Outside-In
+
 - Start with testing public-facing behavior before testing internal helpers
-- Interface-level tests survive refactors, while implementation-level tests do
-  not
+- Interface-level tests survive refactors, while implementation-level tests do not
 
 ## Keep Testing Code in Sync with Tested Code
+
 - When renaming a tested class or file, rename the test class and test file
 
 # Test Coverage
 
 ## What to Test
+
 - For each function, generate tests for:
   - Happy path (normal, expected input)
   - Edge cases (boundary conditions)
     - E.g., empty input, zero, single item, large input
 
-## What not to Test
+## What Not to Test
+
 - Do not test heavily error conditions (e.g., invalid input and assertion)
 
 # Naming Conventions
@@ -41,15 +46,15 @@
 
 ## Naming Conventions for a Class
 
-- For testing a class `<ClassName>` use `Test<ClassName>` (no underscore since
-  the class name starts with capital case), e.g.,
+- For testing a class `<ClassName>` use `Test<ClassName>` (no underscore since the
+  class name starts with capital case), e.g.,
   - `Config` -> `class TestConfig(hunitest.TestCase):`
   - `ConfigBuilder` -> `class TestConfigBuilder(hunitest.TestCase):`
 
 ## Test Method Names
 
-- For test method names always number the method tests, as `test1`, `test2`
-  since the explanation of what they do is in the docstring
+- For test method names always number the method tests, as `test1`, `test2` since the
+  explanation of what they do is in the docstring
   - **Bad**
     - `test_preserve_yaml_frontmatter`
     - `test_page_separator_removal_with_frontmatter`
@@ -60,37 +65,39 @@
 # Test File Organization
 
 ## File Structure
+
 - For a source file `<module_name>.py`, the corresponding test file is
   `test/test_<module_name>.py`
 
 ## Directory Structure
+
 - Golden files: `test/outcomes/<TestClass.test_method>/output/test.txt`
 - Ephemeral scratch: `test/scratch/<TestClass.test_method>/`
   - It is automatically deleted by `hunitest.TestCase.tearDown()`
   - Do not delete it explicitly in test code
 
 ## Directory Helpers
+
 - All path helpers are methods on `hunitest.TestCase`
-- Paths are scoped to the running class and method automatically
+- Paths are scoped to the running class and method automatically | Method | Returns |
+  | ---------------------- |
+  ---------------------------------------------------------------- | |
+  `get_input_dir()` | Local path for static fixtures checked into git | |
+  `get_output_dir()` | Local path for golden files (managed by `check_string`) | |
+  `get_scratch_space()` | Local ephemeral dir, auto-deleted after the test by
+  `tearDown()` | | `get_s3_scratch_dir()` | S3 path for large temporary data, unique
+  per user/server/test | | `get_s3_input_dir()` | S3 path for fixtures too large to
+  commit to git |
 
-  | Method                 | Returns                                                          |
-  | ---------------------- | ---------------------------------------------------------------- |
-  | `get_input_dir()`      | Local path for static fixtures checked into git                  |
-  | `get_output_dir()`     | Local path for golden files (managed by `check_string`)          |
-  | `get_scratch_space()`  | Local ephemeral dir, auto-deleted after the test by `tearDown()` |
-  | `get_s3_scratch_dir()` | S3 path for large temporary data, unique per user/server/test    |
-  | `get_s3_input_dir()`   | S3 path for fixtures too large to commit to git                  |
+## Use Input and Scratch Space From `hunittest`
 
-## Use Input and Scratch Space from `hunittest`
-
-- When the inputs are too big (e.g., more than 2000 characters) use a file in
-  the input directory:
+- When the inputs are too big (e.g., more than 2000 characters) use a file in the
+  input directory:
   ```python
   # Prepare inputs.
   input_file = os.path.join(self.get_input_dir(), "test_data.json")
   data = hio.from_json(input_file)
   ```
-
 - When the unit test needs some intermediate file, use the scratch space:
   ```python
   # Prepare inputs.
@@ -101,12 +108,11 @@
 
 ## Do Not Use /tmp in Tests
 
-- Always use `self.get_scratch_space()` instead of hardcoding `/tmp` paths for
-  test files
+- Always use `self.get_scratch_space()` instead of hardcoding `/tmp` paths for test
+  files
 - Reason: `/tmp` is not managed by the test framework and won't be automatically
   cleaned up; this leaves stray test files on the system and makes tests less
   portable across environments
-
 - **Bad** (hardcoding `/tmp`)
   ```python
   # Prepare inputs.
@@ -114,7 +120,6 @@
   test_file = os.path.join(cwd, "data.txt")
   hio.to_file(test_file, "content")
   ```
-
 - **Good** (using `self.get_scratch_space()`)
   ```python
   # Prepare inputs.
@@ -124,11 +129,13 @@
   ```
 
 ## Use Text Files, Not Pickle
+
 - Use human readable files (e.g., CSV, JSOn, plain input files) over pickle
   - Pickle is not stable across library versions and not human-readable
 - Document how generated test data was produced
 
 ## Keep Test Data Small
+
 - Use the smallest dataset that exercises the case
 
 # Writing Test Code
@@ -136,7 +143,6 @@
 ## Unit Test Code Structure
 
 - Always derive testing classes from `hunitest.TestCase`
-
 - Follow the template `.claude/templates/testing.template.py`
 - Use this exact structure for a unit test
   ```python
@@ -172,12 +178,11 @@
 
 ## Test Class Documentation
 
-- Test class docstrings should document **only what is being tested**, not how or
-  why the tests work
+- Test class docstrings should document **only what is being tested**, not how or why
+  the tests work
 - Reference the function or class being tested by name and module path
 - Each test method's docstring should explain what specific case or behavior is
   tested
-
 - **Bad** (describes how tests are organized or why testing is needed)
   ```python
   class Test_extract_statistics(hunitest.TestCase):
@@ -191,7 +196,6 @@
           Ensure the function handles various input formats correctly.
           """
   ```
-
 - **Good** (focuses on what is being tested)
   ```python
   class Test_extract_statistics(hunitest.TestCase):
@@ -258,9 +262,8 @@
 
 ## Respect Positional Function Parameters
 
-- Do not redundantly pass required positional parameters as keywords, but
-	prefer positional invocation for required parameters
-
+- Do not redundantly pass required positional parameters as keywords, but prefer
+  positional invocation for required parameters
 - Example
   - Given a called function that looks like:
     ```python
@@ -306,8 +309,7 @@
     Content for file2
     """
     ```
-  - **Good**: String is indented to the variable and then
-    `hprint.dedent(content)`
+  - **Good**: String is indented to the variable and then `hprint.dedent(content)`
     ```python
     def hello(self) -> None:
         content = """
@@ -318,7 +320,6 @@
         """
         content = hprint.dedent(content)
     ```
-
 - Alternative: dedent at comparison time instead of at assignment, with
   `self.assert_equal(actual, expected, dedent=True)`
   - **Good**: Using dedent in assertion (convenient for comparisons)
@@ -333,18 +334,17 @@
     self.assert_equal(actual, expected, dedent=True)
     ```
 
-### Move Dedent and Checking into the Helper Method
+### Move Dedent and Checking Into the Helper Method
 
-- When a test class uses a helper method (see `## Use Helper Methods When You
-  Have Repetitive Tests`), call `hprint.dedent()` and `self.assert_equal()`
-  (or other checking) inside the helper, not in each test method
-- Reason: avoids repeating the `hprint.dedent()` and assertion calls at every
-  call site and keeps test methods focused on providing raw input and
-  expected data
-- Test methods should only prepare inputs, prepare expected outputs, and call
-  the helper; the helper does dedenting, running the function under test, and
-  checking the result
-
+- When a test class uses a helper method (see
+  `## Use Helper Methods When You Have Repetitive Tests`), call `hprint.dedent()` and
+  `self.assert_equal()` (or other checking) inside the helper, not in each test
+  method
+- Reason: avoids repeating the `hprint.dedent()` and assertion calls at every call
+  site and keeps test methods focused on providing raw input and expected data
+- Test methods should only prepare inputs, prepare expected outputs, and call the
+  helper; the helper does dedenting, running the function under test, and checking
+  the result
 - **Bad**: `hprint.dedent()` called in every test method
   ```python
   class TestFunctionName(hunitest.TestCase):
@@ -394,8 +394,8 @@
 
 ### Avoid Replicated Assignment
 
-- If a variable `var` and `expected` need to always be the same (e.g., to show
-  that a variable doesn't change), instead of replicating the assignment, assign
+- If a variable `var` and `expected` need to always be the same (e.g., to show that a
+  variable doesn't change), instead of replicating the assignment, assign
   `expected = var`:
   - **Bad**: Duplicated text
     ```python
@@ -435,8 +435,8 @@
 
 ### Use Triple-Quote Assignment with `hprint.dedent` for Multi-line Strings
 
-- Always use assignment with `"""` and `hprint.dedent()`, never use escaped `\n`
-  in string literals
+- Always use assignment with `"""` and `hprint.dedent()`, never use escaped `\n` in
+  string literals
   - **Bad**: Escaped newlines (hard to read)
     ```python
     text = "# Chapter 1\n\n## Section 1.1\nContent 1.1\n## Section 1.2\nContent 1.2"
@@ -452,7 +452,6 @@
   - `# Prepare outputs.`: Expected output
   - `# Run test.`: Test execution
   - `# Check outputs.`: Result verification
-
   ```python
   def test_something(self) -> None:
       """
@@ -467,7 +466,6 @@
       # Check outputs.
       <verify results>
   ```
-
   - **Good**: (test structure is clear)
     ```python
     def test1(self) -> None:
@@ -485,16 +483,13 @@
         self.assertEqual(actual_dir, expected_dir)
         self.assertEqual(actual_lesson, expected_lesson)
     ```
-
-- You must preserve test structure comments that organize test logic into
-  sections to provide consistent structure for unit tests and improve readability
-
+- You must preserve test structure comments that organize test logic into sections to
+  provide consistent structure for unit tests and improve readability
 - Sections can be optional, if they don't apply
   - E.g., if the checking is done by an helper function, the section becomes:
     ```
     # Run test and check outputs.
     ```
-
   - **Good**: (test structure is clear)
     ```python
     def test1(self) -> None:
@@ -556,20 +551,22 @@
             self.helper(input1, expected)
     ```
 
-## Factor Test Code via Helper Methods, Not Setup
+## Factor Test Code Via Helper Methods, Not Setup
 
 - When multiple test methods need the same helper logic
-  - create a helper method within the test class
-  - have each test method call the helper directly
-  - do not factor shared code into `setUp()`, `setUpClass()`, or fixture setup
+  - Create a helper method within the test class
+  - Have each test method call the helper directly
+  - Do not factor shared code into `setUp()`, `setUpClass()`, or fixture setup
     functions
-
 - Reason:
-  - Setup methods are for initializing test state (creating temp dirs, mocking dependencies), not for code shared across test logic
-  - Having each test explicitly call helpers makes the test flow clear and self-documenting
-  - If a helper is not called, the test still runs and you see the actual failure, not a hidden setup issue
-  - Setup-based patterns hide dependencies and make tests harder to understand and debug
-
+  - Setup methods are for initializing test state (creating temp dirs, mocking
+    dependencies), not for code shared across test logic
+  - Having each test explicitly call helpers makes the test flow clear and
+    self-documenting
+  - If a helper is not called, the test still runs and you see the actual failure,
+    not a hidden setup issue
+  - Setup-based patterns hide dependencies and make tests harder to understand and
+    debug
 - **Bad** (shared test logic in setUp)
   ```python
   class TestFunctionName(hunitest.TestCase):
@@ -594,7 +591,6 @@
           actual = function_under_test(self.input)
           self.assert_equal(actual, self.expected)
   ```
-
 - **Good** (each test calls helper with explicit inputs)
   ```python
   class TestFunctionName(hunitest.TestCase):
@@ -635,11 +631,10 @@
 
 - Place helper methods at the top of the test class, immediately after the class
   docstring and before any test methods
-- Name helper methods as `helper`, `helper1`, `helper2`, etc. (with numeric
-  suffix if multiple helpers are needed)
-- This makes helper code visible first and clearly separates helper logic from
-  test cases
-
+- Name helper methods as `helper`, `helper1`, `helper2`, etc. (with numeric suffix if
+  multiple helpers are needed)
+- This makes helper code visible first and clearly separates helper logic from test
+  cases
 - **Bad** (test methods mixed with helpers)
   ```python
   class TestFunctionName(hunitest.TestCase):
@@ -663,7 +658,6 @@
           """
           self._run_test(input2, expected2)
   ```
-
 - **Good** (helpers placed first)
   ```python
   class TestFunctionName(hunitest.TestCase):
@@ -706,12 +700,10 @@
 - Do not create derived test classes to share testing utilities
 - Instead, create helper methods within the test class that perform the shared
   operations
-
 - Reason:
   - Base test classes complicate the inheritance hierarchy, make test discovery
     harder, and obscure the test structure
   - Helper methods are simpler, more explicit, and easier to understand
-
 - **Bad** (using base test class to share utilities)
   ```python
   class Test_mdm_py_base(hunitest.TestCase):
@@ -739,7 +731,6 @@
           result = self._run_mdm("research", "list")
           # ... assertions ...
   ```
-
 - **Good** (create helper method in the test class)
   ```python
   def _run_mdm(
@@ -767,15 +758,15 @@
 
 ## Setup and Teardown
 
-- Use `set_up_test()` and `tear_down_test()` via `@pytest.fixture(autouse=True)`
-  for per-method setup
+- Use `set_up_test()` and `tear_down_test()` via `@pytest.fixture(autouse=True)` for
+  per-method setup
   - Never override `setUp()` / `tearDown()` directly
 - For inherited test classes that both need setup, add a numeric suffix:
   - Parent: `set_up_test()`, `tear_down_test()`
   - Child: `set_up_test2()`, `tear_down_test2()`, which must call parent hooks
-  - Next level: `set_up_test3()`, etc.
-- Use `setUpClass` and `tearDownClass` only for expensive one-time class-scoped
-  setup (DB connection, shared file) and decorate with `@classmethod`
+  - Next level: `set_up_test3()`, etc
+- Use `setUpClass` and `tearDownClass` only for expensive one-time class-scoped setup
+  (DB connection, shared file) and decorate with `@classmethod`
 - Use this idiom when multiple test methods need the same setup/teardown code:
   ```python
   class TestClassName(hunitest.TestCase):
@@ -817,12 +808,11 @@
 
 ## Compare Whole Output with `assert_equal`, Not Piecewise
 
-- Do not use assertion to check each part of the output, and do not use
-  multiple `assertIn()` calls to check individual pieces of a string output;
-  instead convert the output into a human-readable representation (e.g., with
-  `pprint.pformat`) and compare it as a whole to a string representing the
-  expected value with `assert_equal()`
-
+- Do not use assertion to check each part of the output, and do not use multiple
+  `assertIn()` calls to check individual pieces of a string output; instead convert
+  the output into a human-readable representation (e.g., with `pprint.pformat`) and
+  compare it as a whole to a string representing the expected value with
+  `assert_equal()`
   - **Bad** (check each component of the actual output to its expected value)
     ```python
     actual = ...
@@ -927,32 +917,27 @@
   # Check outputs.
   self.assertEqual(actual, expected)
   ```
-
 - Always Use `self.assert_equal()` when the arguments are strings
-
 - Compare data structures `XYZ` (e.g., lists, dicts) as strings with
   `self.assert_equal()`
   ```python
   # Check outputs.
   self.assert_equal(str(actual), str(expected))
   ```
-
 - Compare with fuzzy matching `self.assert_equal(..., fuzzy_match=True)` which
   ignores whitespace differences when needed:
   ```python
   # Check outputs.
   self.assert_equal(actual, expected, fuzzy_match=True)
   ```
-
-- Compare with text purification `self.assert_equal(..., purify_text=True)` to
-  remove implementation details (e.g., memory addresses, paths, usernames,
-  timestamps, and other machine/environment-specific details that would cause
-  test failures when run on different systems)
+- Compare with text purification `self.assert_equal(..., purify_text=True)` to remove
+  implementation details (e.g., memory addresses, paths, usernames, timestamps, and
+  other machine/environment-specific details that would cause test failures when run
+  on different systems)
   ```python
   # Check outputs.
   self.assert_equal(actual, expected, purify_text=True)
   ```
-
 - Compare strings with `self.assert_equal()`
   ```python
   # Check outputs.
@@ -990,7 +975,6 @@
       actual = str(cm.exception)
       self.assert_equal(actual, expected, fuzzy_match=True)
   ```
-
 - Simplified version when exact message doesn't matter:
   ```python
   def test2(self) -> None:
@@ -1003,7 +987,6 @@
       with self.assertRaises(AssertionError):
           function_under_test(invalid_input)
   ```
-
 - Check for partial message:
   ```python
   def test3(self) -> None:
@@ -1029,40 +1012,42 @@
 # End-to-end Unit Tests for Executables
 
 ## Test Name
+
 - For testing an executable like `<process_file.py>` use a test class called
   `Test_process_file_py`
 
 ## Test Behavior, Not Implementation
-- Prefer validating externally observable behavior over internal implementation details
+
+- Prefer validating externally observable behavior over internal implementation
+  details
 - E.g., Verify:
-	- generated files
-	- stdout/stderr
-	- exit codes
-	- constructed commands
-	- side effects on disk
+  - Generated files
+  - Stdout/stderr
+  - Exit codes
+  - Constructed commands
+  - Side effects on disk
 
 ## Create Files in the Scratch Space
-- Always create test files under `self.get_scratch_space()` rather than mocking
-  file access
 
+- Always create test files under `self.get_scratch_space()` rather than mocking file
+  access
 - The goal is to exercise as much real code as possible, so do not mock:
-	- filesystem operations
-	- argument parsing
-	- orchestration logic
-
-- This keeps tests closer to real execution and validates more of the system end
-  to end
+  - Filesystem operations
+  - Argument parsing
+  - Orchestration logic
+- This keeps tests closer to real execution and validates more of the system end to
+  end
 - Use realistic:
-	- Directory layouts
-	- File names
-	- File contents
-	- Command-line arguments
+  - Directory layouts
+  - File names
+  - File contents
+  - Command-line arguments
 
 ## Call Main Directly for Simple Executables (with Mock)
-- When testing a simple end-to-end executable that doesn't require special
-  packages installed through uv, use the idiom of mocking `sys.argv` with
-  `mock.patch()` and then calling the `main()` function directly
 
+- When testing a simple end-to-end executable that doesn't require special packages
+  installed through uv, use the idiom of mocking `sys.argv` with `mock.patch()` and
+  then calling the `main()` function directly
 - **Good** (when executable is simple and can be called directly)
   ```python
   # Prepare inputs.
@@ -1083,15 +1068,12 @@
 
 - For an executable with a `uv` script header (`#!/usr/bin/env -S uv run` and a
   `# /// script` block declaring `dependencies`), add
-  `pytest.importorskip("<package>")` in the test file before importing the
-  module under test
-- Call `pytest.importorskip()` for each declared dependency that is not
-  installed in the default test environment (e.g., `graphviz`, `openai`,
-  `tabulate`)
+  `pytest.importorskip("<package>")` in the test file before importing the module
+  under test
+- Call `pytest.importorskip()` for each declared dependency that is not installed in
+  the default test environment (e.g., `graphviz`, `openai`, `tabulate`)
 - This skips the test cleanly when the dependency is missing (e.g., outside a
-  `uv`-managed environment or in tutorials), instead of failing with an
-  `ImportError`
-
+  `uv`-managed environment or in tutorials), instead of failing with an `ImportError`
 - **Good** (skip before importing the module under test)
   ```python
   import pytest
@@ -1101,28 +1083,26 @@
 
   import import_check.detect_import_cycles as icdeimcy
   ```
-- **Bad** (import the module unconditionally, failing with `ImportError` when
-  the dependency is missing)
+- **Bad** (import the module unconditionally, failing with `ImportError` when the
+  dependency is missing)
   ```python
   import import_check.detect_import_cycles as icdeimcy
   ```
 
-## Also Add an End-to-end Test that Runs `uv run` Scripts via Subprocess
+## Also Add an End-to-end Test That Runs `uv run` Scripts Via Subprocess
 
-- `pytest.importorskip()` only skips the unit tests that import the module
-  directly. For a `uv` script, add a separate end-to-end test that invokes
-  the script itself through `uv run <script_path> ...` (e.g., via
-  `hsystem.system()` / `hsystem.system_to_string()`), so `uv` installs the
-  declared dependencies on the fly instead of requiring them in the test
-  environment
-- Put this test in its own file (e.g., `test_<script>_uv_run.py`), separate
-  from the file with the direct-import unit tests, so it is not skipped by
-  that file's `pytest.importorskip()`
+- `pytest.importorskip()` only skips the unit tests that import the module directly
+  For a `uv` script, add a separate end-to-end test that invokes the script itself
+  through `uv run <script_path> ...` (e.g., via `hsystem.system()` /
+  `hsystem.system_to_string()`), so `uv` installs the declared dependencies on the
+  fly instead of requiring them in the test environment
+- Put this test in its own file (e.g., `test_<script>_uv_run.py`), separate from the
+  file with the direct-import unit tests, so it is not skipped by that file's
+  `pytest.importorskip()`
 - Use `hgit.find_file_in_git_tree()` to locate the script, per
   `## Locate Script Paths Dynamically` below
-- A simple `--help` invocation is enough to exercise the `uv`-managed
-  imports without needing real inputs
-
+- A simple `--help` invocation is enough to exercise the `uv`-managed imports without
+  needing real inputs
 - **Good**
   ```python
   import shutil
@@ -1142,13 +1122,12 @@
           self.assertEqual(rc, 0)
   ```
 
-## Use Helper Methods to Run Executables with Mocked argv
+## Use Helper Methods to Run Executables with Mocked Argv
 
 - When testing executables that call `_main()` with `_parse()`, create a
   `_run_main()` helper method to encapsulate the mocking setup and parser
   initialization
 - This reduces repetition across test methods and centralizes the setup logic
-
 - **Pattern**:
   ```python
   class Test_clean_markdown_py(hunitest.TestCase):
@@ -1178,24 +1157,22 @@
           # Check outputs.
           # ... assertions on file system state or captured output ...
   ```
-
 - Benefits:
   - Avoids repeating `_parse()` and `mock.patch()` setup in every test
   - Centralizes the idiom for consistency across test classes
   - Makes test methods more readable and focused on test logic
 
 ## Locate Script Paths Dynamically
+
 - Do not hardwire paths to executable scripts in tests, instead, use
   `hgit.find_file_in_git_tree()` to locate the script path dynamically
-- This ensures tests work regardless of where the code is run from and handles
-  cases where scripts are relocated
-
+- This ensures tests work regardless of where the code is run from and handles cases
+  where scripts are relocated
 - **Bad** (hardcoded path)
   ```python
   executable = "dev_scripts_helpers/system_tools/mdm"
   result = hsystem.system(f"{executable} --help")
   ```
-
 - **Good** (dynamic path lookup)
   ```python
   executable = hgit.find_file_in_git_tree("mdm")
@@ -1204,30 +1181,32 @@
 
 ## Build Command Lines for Tests
 
-- Follow the command line building conventions in
-  `.claude/skills/coding.rules.md` under `## How to Build Command Lines`
+- Follow the command line building conventions in `.claude/skills/coding.rules.md`
+  under `## How to Build Command Lines`
 
 # Mocking
 
 ## Mock Only External Dependencies
-- Mock only 3rd-party providers, cloud infra (AWS/S3), databases, and external
-  APIs, never internal helpers
+
+- Mock only 3rd-party providers, cloud infra (AWS/S3), databases, and external APIs,
+  never internal helpers
 - Mock the external library, not our internal wrapper on top of it
 
 ## Mock at the Call Site
+
 - Patch where the symbol is looked up, not where it is defined:
   `@umock.patch.object(calling_module.dep, "method")`
 
 ## Class-Level Patches
-- Declare `umock.patch.object(...)` as a class attribute; `start()` / `stop()`
-  in `set_up_test()` / `tear_down_test()` so the same patch is reused per test
+
+- Declare `umock.patch.object(...)` as a class attribute; `start()` / `stop()` in
+  `set_up_test()` / `tear_down_test()` so the same patch is reused per test
 
 ## Use Context Manager Syntax for Multiple Mocks
-- For multiple mocks in a test, use `with (...)` syntax to combine context
-  managers on a single line instead of nested `with` statements or stacked
-  decorators
-- This keeps test code flat, readable, and avoids decorator ordering issues
 
+- For multiple mocks in a test, use `with (...)` syntax to combine context managers
+  on a single line instead of nested `with` statements or stacked decorators
+- This keeps test code flat, readable, and avoids decorator ordering issues
 - **Bad** (nested with statements)
   ```python
   with mock.patch("module.function1", return_value="val1"):
@@ -1235,7 +1214,6 @@
           with mock.patch("module.function3", return_value="val3"):
               function_under_test()
   ```
-
 - **Bad** (stacked decorators: hard to follow reverse order)
   ```python
   @mock.patch("module.function3", return_value="val3")
@@ -1244,7 +1222,6 @@
   def test_main(self, *mocks):
       function_under_test()
   ```
-
 - **Good** (combined context managers)
   ```python
   with (
@@ -1255,20 +1232,21 @@
       function_under_test()
   ```
 
-## Mock AWS / S3 via `S3Mock_TestCase`
+## Mock AWS / S3 Via `S3Mock_TestCase`
+
 - Inherit from `hmoto.S3Mock_TestCase` for in-process S3 mocking via `moto`
 - `moto` must be imported before `boto3`; `hmoto.py` enforces this
 - Each test gets a fresh bucket named `self.bucket_name`
 
 ## Use the SysCall Mocking Infrastructure
+
 - For testing executables use end-to-end tests that:
-  1. Use `capture_system_calls()` from `./helpers/hunit_test_utils.py` to mock
-     and record calls to `subprocess.run()`, `hsystem.system()`, and
+  1. Use `capture_system_calls()` from `./helpers/hunit_test_utils.py` to mock and
+     record calls to `subprocess.run()`, `hsystem.system()`, and
      `hsystem.system_to_string()`
   2. Verify that the exact commands were called with the correct arguments using
      `assert_invocations()`
   3. Validate that your CLI tool constructs and executes the right commands
-
 - Example
   ```python
   def test1(self) -> None:
@@ -1292,21 +1270,19 @@
 ## Mock LLM APIs
 
 - When testing code that calls LLM APIs (e.g., OpenAI, Claude), use
-  `hllmcli.mock_apply_llm()` to mock the API calls and pass `--backend mock`
-  via the command line to disable real API calls
+  `hllmcli.mock_apply_llm()` to mock the API calls and pass `--backend mock` via the
+  command line to disable real API calls
 - This avoids:
   - Real API costs and rate limits during testing
   - Dependency on network connectivity or API keys
   - Non-deterministic responses from live models
-
-- This enables running end-to-end tests that exercise the full code path
-  (argument parsing, orchestration, file I/O) without needing a real LLM
-  backend
+- This enables running end-to-end tests that exercise the full code path (argument
+  parsing, orchestration, file I/O) without needing a real LLM backend
 
 ### Via `hllmcli.mock_apply_llm`
 
-- **In end-to-end test code**: use `hllmcli.mock_apply_llm()` as a context
-  manager to mock `apply_llm()` calls:
+- **In end-to-end test code**: use `hllmcli.mock_apply_llm()` as a context manager to
+  mock `apply_llm()` calls:
   # Example in a test:
   ```
   def test_my_function(self):
@@ -1322,19 +1298,20 @@
 
 ### Via `--backend mock`
 
-- **From the command line**: pass `--backend mock` as a CLI argument to skip
-  real LLM API calls:
+- **From the command line**: pass `--backend mock` as a CLI argument to skip real LLM
+  API calls:
   ```bash
   > script.py --backend mock
   ```
 
 # Verification
+
 - [ ] No use of `self.check_string`
   - Follow `## Never Use self.check_string()`
 - [ ] No `self.assertIn` but check the entire output value with an assert_equal
   - Follow `## Compare Whole Output with assert_equal, Not Piecewise`
 - [ ] No function is called with hardwired parameters, but they are assigned to a
-  variable and then used
+      variable and then used
   - Follow `## Assign Variables and Then Call Functions`
 - [ ] No repeated code, use at least one `def helper()` per class
   - Follow `## Use Helper Methods When You Have Repetitive Tests`

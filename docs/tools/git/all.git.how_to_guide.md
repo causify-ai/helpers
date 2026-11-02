@@ -673,7 +673,13 @@
 
 ### Roll forward pointers to the `amp` submodule:
 
-- Run the script:
+- Run the `invoke` task, which works for any submodule (e.g., `helpers_root`):
+  ```bash
+  > invoke git_roll_submodule_forward --name amp
+  ```
+  - See `docs/tools/dev_system/all.update_helpers_submodule.how_to_guide.md` for
+    the options
+- Or run the script:
   ```
   > dev_scripts_helpers/git/git_submodules_roll_fwd.sh
   ```

@@ -1,4 +1,9 @@
-#!/usr/bin/env python
+#!/usr/bin/env -S uv run
+
+# /// script
+# dependencies = ["nbconvert", "pandas", "pytz", "requests"]
+# ///
+
 r"""
 This script performs several actions on a Jupyter notebook, such as:
 
@@ -129,7 +134,6 @@ def _export_notebook_to_dir(ipynb_file_name: str, tag: str, dst_dir: str) -> str
     """
     # Convert to HTML in the same location.
     html_src_path = _export_notebook_to_html(ipynb_file_name, tag)
-    #
     html_file_name = os.path.basename(html_src_path)
     html_dst_path = os.path.join(dst_dir, html_file_name)
     # Normalize paths so that they are comparable. E.g., `./file_name.py`
@@ -195,10 +199,11 @@ def _post_to_webserver(local_src_path: str, remote_dst_path: str) -> None:
     _NOTEBOOK_KEEPER_ENTRY_POINT = f"{_NOTEBOOK_KEEPER_SRV}/save-file"
     # File copying.
     payload: dict = {"dst_path": remote_dst_path}
-    files: List[Tuple[str, BinaryIO]] = [("file", open(local_src_path, "rb"))]
-    response = requests.request(
-        "POST", _NOTEBOOK_KEEPER_ENTRY_POINT, data=payload, files=files
-    )
+    with open(local_src_path, "rb") as src_file:
+        files: List[Tuple[str, BinaryIO]] = [("file", src_file)]
+        response = requests.request(
+            "POST", _NOTEBOOK_KEEPER_ENTRY_POINT, data=payload, files=files
+        )
     _LOG.debug("Response: %s", response.text.encode("utf8"))
 
 
@@ -282,7 +287,6 @@ def _main(parser: argparse.ArgumentParser) -> None:
             _LOG.info("Copied remote url to '%s'", local_file_name)
         else:
             local_file_name = src_file_name
-        #
         hopen.open_file(local_file_name)
         sys.exit(0)
     # Compute the path of the src file.
@@ -333,7 +337,6 @@ def _main(parser: argparse.ArgumentParser) -> None:
             > publish_notebook.py -i {s3_file_name} --action open --aws_profile {aws_profile}
             """
             print(hprint.dedent(cmd))
-            #
             if target_dir.startswith(html_bucket_path):
                 dir_to_url = (
                     hrecouti.get_repo_config().get_html_dir_to_url_mapping()

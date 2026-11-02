@@ -1,4 +1,4 @@
-This file contains conventions for software architecture and code organization.
+This file contains conventions for software architecture and code organization
 
 # Architectural Principles
 
@@ -8,18 +8,14 @@ This file contains conventions for software architecture and code organization.
   dependencies
 - Each layer should have a clear responsibility and well-defined interface
 - Layers communicate downward; inner layers should not know about outer layers
-
 - Typical layer organization:
   - **Presentation/Script Layer**: CLI arguments, user-facing scripts, argument
     parsing
   - **Orchestration Layer**: High-level workflow, action selection, processing
     pipeline
   - **Business Logic Layer**: Core algorithms, data transformations, computation
-  - **Infrastructure Layer**: File I/O, system calls, database access, external
-    APIs
-  - **Utilities/Helpers Layer**: Generic utilities, data structures, helper
-    functions
-
+  - **Infrastructure Layer**: File I/O, system calls, database access, external APIs
+  - **Utilities/Helpers Layer**: Generic utilities, data structures, helper functions
 - **Bad**: Mixing layers creates tight coupling and makes testing difficult
   ```python
   def process_data(input_file: str) -> None:
@@ -30,7 +26,6 @@ This file contains conventions for software architecture and code organization.
       # Script logic mixed with computation
       print(result)
   ```
-
 - **Good**: Clear separation with defined interfaces between layers
   ```python
   def _read_input(input_file: str) -> Any:
@@ -55,7 +50,7 @@ This file contains conventions for software architecture and code organization.
       return result
   ```
 
-## Separate Infrastructure from Business Logic
+## Separate Infrastructure From Business Logic
 
 - Infrastructure concerns (I/O, system calls, external services) must be isolated
   from core computation
@@ -63,7 +58,6 @@ This file contains conventions for software architecture and code organization.
   - Testing business logic without I/O
   - Swapping implementations (e.g., different file formats)
   - Reusing core logic in different contexts
-
 - **Bad**: Business logic depends on file system
   ```python
   def analyze_dataset(dataset_path: str) -> Any:
@@ -73,7 +67,6 @@ This file contains conventions for software architecture and code organization.
       df = pd.read_csv(dataset_path)
       return df.describe()
   ```
-
 - **Good**: Business logic accepts data, I/O in separate layer
   ```python
   def analyze_dataset(df: pd.DataFrame) -> Any:
@@ -95,7 +88,6 @@ This file contains conventions for software architecture and code organization.
 - Keep interfaces between layers simple and focused
 - Pass only the data needed, not entire objects or contexts
 - Avoid bidirectional dependencies or callback chains
-
 - **Bad**: Large, tightly coupled interface
   ```python
   def process(context: Any) -> None:
@@ -104,7 +96,6 @@ This file contains conventions for software architecture and code organization.
       context.log(f"Processed {context.count} items")
       context.state = "done"
   ```
-
 - **Good**: Small, focused interface
   ```python
   def process(data: Any) -> Any:
@@ -124,7 +115,6 @@ This file contains conventions for software architecture and code organization.
 - When processing involves multiple sequential stages, organize as a pipeline
 - Each stage transforms data and passes to the next stage
 - Use `helpers/hselect_action.py` to implement selectable pipeline stages
-
 - Pipeline benefits:
   - Clear flow of data through stages
   - Easy to enable/disable stages
@@ -138,7 +128,6 @@ This file contains conventions for software architecture and code organization.
   - Accept input data and return transformed output
   - Be idempotent where possible (repeating the stage is safe)
   - Not depend on other stages (except receiving their output)
-
 - **Bad**: Implicit dependencies between stages
   ```python
   def download() -> None:
@@ -153,7 +142,6 @@ This file contains conventions for software architecture and code organization.
       global data
       save_to_storage(data)  # Depends on `process()` being called first.
   ```
-
 - **Good**: Explicit data flow through stages
   ```python
   def download() -> Any:
@@ -180,7 +168,7 @@ This file contains conventions for software architecture and code organization.
   upload(data)
   ```
 
-## Use Action Selection with hselect_action
+## Use Action Selection with Hselect_action
 
 - Use `hselect_action` module to allow users to select which pipeline stages to
   execute
@@ -189,7 +177,6 @@ This file contains conventions for software architecture and code organization.
   - Skipping a default stage (e.g., `--skip_action cleanup`)
   - Running only specific stages (e.g., `--clear_actions --action process`)
   - Running every valid stage (e.g., `--all_actions`)
-
 - See `helpers/hselect_action.py` for complete usage patterns and examples
 - E.g., pipeline with action selection pattern is executed
   ```python
@@ -208,7 +195,6 @@ This file contains conventions for software architecture and code organization.
   - Keep action functions focused and single-responsibility
   - Use `hselect_action` for stage orchestration
   - Document valid actions and their order
-
 - **Bad**: Monolithic script function
   ```python
   def run() -> None:
@@ -217,7 +203,6 @@ This file contains conventions for software architecture and code organization.
       upload()
       cleanup()
   ```
-
 - **Good**: Modular stages with action selection
   ```python
   def _download() -> Any:
@@ -252,7 +237,6 @@ This file contains conventions for software architecture and code organization.
 - Function interfaces should be immediately understandable
 - Parameters should be self-documenting through names and types
 - Avoid parameter lists longer than 3-4 items
-
 - **Bad**: Complex signature with many parameters
   ```python
   def transform(
@@ -266,7 +250,6 @@ This file contains conventions for software architecture and code organization.
   ) -> Any:
       ...
   ```
-
 - **Good**: Simple signature with semantic grouping
   ```python
   def transform(data: Any, config: TransformConfig) -> Any:
@@ -285,10 +268,9 @@ This file contains conventions for software architecture and code organization.
 
 ## Use Configuration Objects for Complex Options
 
-- When a function has many related optional parameters, use a configuration
-  object instead
+- When a function has many related optional parameters, use a configuration object
+  instead
 - Configuration objects make intent clearer and interfaces more stable
-
 - **Bad**: Many optional parameters scattered across signature
   ```python
   def run_analysis(
@@ -304,7 +286,6 @@ This file contains conventions for software architecture and code organization.
   ) -> Any:
       ...
   ```
-
 - **Good**: Configuration object groups related settings
   ```python
   @dataclass
@@ -329,13 +310,11 @@ This file contains conventions for software architecture and code organization.
 - Functions should return a single value (or None) when possible
 - If multiple values are needed, use a data class or named tuple
 - Avoid returning tuples, especially with implicit ordering
-
 - **Bad**: Implicit tuple with unclear ordering
   ```python
   def analyze(data: Any) -> Tuple[float, float, int, float]:
       return mean, std, count, median  # What's the order?
   ```
-
 - **Good**: Return data class with explicit fields
   ```python
   @dataclass
@@ -365,7 +344,6 @@ This file contains conventions for software architecture and code organization.
 - Functions should not modify their inputs
 - Return new data instead of modifying in-place
 - This prevents subtle bugs from shared mutable state
-
 - **Bad**: Modifying input in-place
   ```python
   def normalize(df: pd.DataFrame) -> pd.DataFrame:
@@ -375,7 +353,6 @@ This file contains conventions for software architecture and code organization.
       df["value"] = (df["value"] - df["value"].mean()) / df["value"].std()
       return df
   ```
-
 - **Good**: Return normalized copy
   ```python
   def normalize(df: pd.DataFrame) -> pd.DataFrame:
@@ -394,14 +371,12 @@ This file contains conventions for software architecture and code organization.
 - Make data dependencies explicit in function signatures
 - Use type hints to clarify what data flows through the pipeline
 - Document expected data formats in docstrings or examples
-
 - **Bad**: Implicit data dependencies
   ```python
   def process() -> Any:
       # Where does data come from? How is it structured?
       ...
   ```
-
 - **Good**: Explicit data flow
   ```python
   def process(data: pd.DataFrame) -> pd.DataFrame:
@@ -419,7 +394,6 @@ This file contains conventions for software architecture and code organization.
 - Never use global variables to pass data between functions
 - Pass data through function arguments instead
 - Global state makes code hard to test and reason about
-
 - **Bad**: Using global variable for pipeline state
   ```python
   _pipeline_data: Optional[Any] = None
@@ -432,7 +406,6 @@ This file contains conventions for software architecture and code organization.
       global _pipeline_data
       _pipeline_data = transform(_pipeline_data)
   ```
-
 - **Good**: Explicit data flow through function return values
   ```python
   def stage1() -> Any:
@@ -456,7 +429,6 @@ This file contains conventions for software architecture and code organization.
 
 - Use dataclasses or named tuples to group related data
 - This makes interfaces clearer and data ownership explicit
-
 - **Bad**: Passing related values separately
   ```python
   def analyze(
@@ -467,7 +439,6 @@ This file contains conventions for software architecture and code organization.
       # What's the relationship between these?
       ...
   ```
-
 - **Good**: Group related data in a class
   ```python
   @dataclass
@@ -493,7 +464,6 @@ This file contains conventions for software architecture and code organization.
 - Validate inputs at the outermost layer (script/CLI arguments)
 - Inner layers should assume validated input
 - Only validate once at the boundary where data enters the system
-
 - **Bad**: Validating at every layer
   ```python
   def download(url: str) -> Any:
@@ -506,7 +476,6 @@ This file contains conventions for software architecture and code organization.
           raise ValueError("URL required")
       ...
   ```
-
 - **Good**: Validate only at entry point
   ```python
   def _main(args: argparse.Namespace) -> None:
@@ -532,7 +501,6 @@ This file contains conventions for software architecture and code organization.
 - Check configuration validity immediately in the script layer
 - Use assertions for internal invariants that should never fail
 - Use exceptions for user-facing errors in the outermost layer
-
 - **Bad**: Silent failures or late error detection
   ```python
   def process(config: Any) -> None:
@@ -540,7 +508,6 @@ This file contains conventions for software architecture and code organization.
           # Deep in the code, hard to debug.
           raise ValueError("Format required when output_dir is set")
   ```
-
 - **Good**: Check constraints at entry point
   ```python
   def _main(args: argparse.Namespace) -> None:
@@ -559,7 +526,6 @@ This file contains conventions for software architecture and code organization.
 - Name action/stage functions following the pattern: `_<action_name>()`
 - Name configuration arguments after what they control
 - Use past tense for actions that have completed
-
 - **Good naming**:
   - `_download()`, `_process()`, `_upload()`
   - `--input_file`, `--output_dir`, `--format`
@@ -570,7 +536,6 @@ This file contains conventions for software architecture and code organization.
 - Group related functions together in the same module
 - Keep modules focused on a single responsibility
 - Use the `h<module>` naming convention from the helpers library
-
 - **Bad**: Unrelated functions in one module
   ```python
   # hutils.py
@@ -581,7 +546,6 @@ This file contains conventions for software architecture and code organization.
   def generate_report() -> Any:
       ...
   ```
-
 - **Good**: Separate modules by responsibility
   ```python
   # hdownload.py - data fetching
@@ -604,7 +568,6 @@ This file contains conventions for software architecture and code organization.
 - Pure functions with no side effects are easiest to test
 - Inject dependencies rather than hardcoding them
 - Keep business logic separate from infrastructure
-
 - **Bad**: Hard to test due to side effects and infrastructure coupling
   ```python
   def process(input_file):
@@ -614,7 +577,6 @@ This file contains conventions for software architecture and code organization.
       with open("output.json", "w") as f:
           json.dump(result, f)
   ```
-
 - **Good**: Easy to test, infrastructure separate
   ```python
   def process(data: Any) -> Any:
@@ -637,7 +599,6 @@ This file contains conventions for software architecture and code organization.
 - Unit tests for business logic (no I/O)
 - Integration tests for infrastructure layer
 - Use mocking for external dependencies
-
 - **Good test structure**:
   ```python
   # Test pure business logic
@@ -660,7 +621,6 @@ This file contains conventions for software architecture and code organization.
 - Configuration defines WHAT should happen, not HOW
 - Keep logic out of configuration
 - Use configuration objects instead of configuration files when possible
-
 - **Bad**: Configuration with embedded logic
   ```python
   config = {
@@ -668,7 +628,6 @@ This file contains conventions for software architecture and code organization.
       "model": f"SGDRegressor(alpha={learning_rate})",
   }
   ```
-
 - **Good**: Configuration declares intent, code implements
   ```python
   @dataclass
@@ -689,5 +648,4 @@ This file contains conventions for software architecture and code organization.
   4. Business logic functions
   5. Orchestration functions (main)
   6. Script entry point
-
 - See the `coding.rules.md` for detailed script conventions

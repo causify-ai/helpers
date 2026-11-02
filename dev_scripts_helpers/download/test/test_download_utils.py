@@ -1,9 +1,12 @@
-#!/usr/bin/env python
-
 import logging
+from typing import List
+
+import pytest
 
 import helpers.hprint as hprint
 import helpers.hunit_test as hunitest
+
+pytest.importorskip("bs4")
 import dev_scripts_helpers.download.download_utils as dshddut
 
 _LOG = logging.getLogger(__name__)
@@ -499,3 +502,126 @@ class Test_normalize_summary_type(hunitest.TestCase):
         # Run test.
         with self.assertRaises(AssertionError):
             dshddut.normalize_summary_type("up_to_l9")
+
+
+# #############################################################################
+# Test_format_base_filename
+# #############################################################################
+
+
+class Test_format_base_filename(hunitest.TestCase):
+    """
+    Test `download_utils.format_base_filename()`.
+    """
+
+    def helper(
+        self, year: str, authors: List[str], title: str, expected: str
+    ) -> None:
+        """
+        Test helper for `format_base_filename()`.
+
+        :param year: publication year
+        :param authors: author names
+        :param title: paper title
+        :param expected: expected base file name
+        """
+        # Run test.
+        actual = dshddut.format_base_filename(year, authors, title)
+        # Check outputs.
+        self.assert_equal(actual, expected)
+
+    def test1(self) -> None:
+        """
+        Test a suffix after a comma is not taken as the family name.
+        """
+        # Prepare inputs.
+        year = "2018"
+        authors = ["Alma Cohen", "Robert J. Jackson, Jr.", "Joshua R. Mitts"]
+        title = "The 8-K Trading Gap"
+        # Prepare outputs.
+        expected = "2018.Cohen_et_al.The_8_K_Trading_Gap"
+        # Run test.
+        self.helper(year, authors, title, expected)
+
+    def test2(self) -> None:
+        """
+        Test a suffix of the first author is skipped.
+        """
+        # Prepare inputs.
+        year = "2018"
+        authors = ["Robert J. Jackson, Jr."]
+        title = "The 8-K Trading Gap"
+        # Prepare outputs.
+        expected = "2018.Jackson.The_8_K_Trading_Gap"
+        # Run test.
+        self.helper(year, authors, title, expected)
+
+    def test3(self) -> None:
+        """
+        Test the `Last, First` form takes the part before the comma.
+        """
+        # Prepare inputs.
+        year = "2020"
+        authors = ["Cohen, Lauren", "Malloy, Christopher"]
+        title = "Lazy Prices"
+        # Prepare outputs.
+        expected = "2020.Cohen_et_al.Lazy_Prices"
+        # Run test.
+        self.helper(year, authors, title, expected)
+
+    def test4(self) -> None:
+        """
+        Test a single author gets no `_et_al`.
+        """
+        # Prepare inputs.
+        year = "2009"
+        authors = ["Judea Pearl"]
+        title = "Causality"
+        # Prepare outputs.
+        expected = "2009.Pearl.Causality"
+        # Run test.
+        self.helper(year, authors, title, expected)
+
+    def test5(self) -> None:
+        """
+        Test punctuation and accents in the title and the author.
+        """
+        # Prepare inputs.
+        year = "2016"
+        authors = ["Marco Ribeiro", "Sameer Singh"]
+        title = (
+            "Why Should I Trust You?: Explaining the Predictions, Don't Panic."
+        )
+        # Prepare outputs.
+        expected = (
+            "2016.Ribeiro_et_al."
+            "Why_Should_I_Trust_You_Explaining_the_Predictions_Don_t_Panic"
+        )
+        # Run test.
+        self.helper(year, authors, title, expected)
+
+    def test6(self) -> None:
+        """
+        Test accents are removed from the family name.
+        """
+        # Prepare inputs.
+        year = "2021"
+        authors = ["Bernhard Sch\u00f6lkopf"]
+        title = "Causal Representation Learning"
+        # Prepare outputs.
+        expected = "2021.Scholkopf.Causal_Representation_Learning"
+        # Run test.
+        self.helper(year, authors, title, expected)
+
+    def test7(self) -> None:
+        """
+        Test missing year, authors, and title.
+        """
+        # Prepare inputs.
+        year = ""
+        authors: List[str] = []
+        title = ""
+        # Prepare outputs.
+        expected = "UnknownYear.None.UnknownTitle"
+        # Run test.
+        self.helper(year, authors, title, expected)

@@ -5,7 +5,6 @@
 ## Follow the `_parse()` / `_main(parser)` Structure
 
 - Every script defines exactly these two functions, plus an entry guard
-
   ```python
   def _parse() -> argparse.ArgumentParser:
       parser = argparse.ArgumentParser(
@@ -25,7 +24,6 @@
   if __name__ == "__main__":
       _main(_parse())
   ```
-
 - Follow the template `dev_scripts_helpers/coding_tools/script_template.py`
 
 ## Split a Script Into an Executable + `lib_<name>.py` (Only When Asked)
@@ -46,14 +44,12 @@
 - Docstring: a `# Usage Example` section, plus an `Import as:` line naming the lib
   module
 - Exactly one import, and one line at the bottom
-
   ```python
   import dev_scripts_helpers.system_tools.lib_<name> as lib_<name>
 
   if __name__ == "__main__":
       exit(lib_<name>.main(description=__doc__))
   ```
-
 - No logic lives in this file
 
 ### The Library (`lib_<name>.py`)
@@ -90,7 +86,6 @@
 - `_main(parser)` is the only place that calls `parser.parse_args()`, exactly once
 - **Bad**: `_parse()` parses args itself, so `_main()` gets a `Namespace` and calling
   `.parse_args()` on it crashes
-
   ```python
   def _parse() -> argparse.Namespace:
       parser = argparse.ArgumentParser(...)
@@ -100,9 +95,7 @@
   def _main(parser: argparse.Namespace) -> None:
       args = parser.parse_args()  # AttributeError: Namespace has no parse_args
   ```
-
 - **Good**: `_parse()` returns the parser, `_main()` parses once
-
   ```python
   def _parse() -> argparse.ArgumentParser:
       parser = argparse.ArgumentParser(...)
@@ -119,7 +112,6 @@
   set `formatter_class=hparser.CustomHelpFormatter`
 - This keeps the `--help` output and the module docstring in sync
 - **Bad**
-
   ```python
   """
   Script to process data files.
@@ -130,9 +122,7 @@
       parser = argparse.ArgumentParser(description="Script to process data files.")
       return parser
   ```
-
 - **Good**
-
   ```python
   """
   Script to process data files.
@@ -158,15 +148,12 @@
 - Refer to the script by its simple filename: no full path, no leading `./`, no
   `python` prefix, since scripts are executable and `PATH`-resolved
 - **Bad**
-
   ```python
   """
   Usage: python ./convert_epub_to_md.py input.epub output.md
   """
   ```
-
 - **Good**
-
   ```python
   """
   # Usage Example
@@ -185,7 +172,6 @@
   as `./script.py` without a `python` prefix
 - If the script needs external (non-stdlib, non-`helpers`) packages, use the `uv run`
   shebang with inline dependencies instead:
-
   ```python
   #!/usr/bin/env -S uv run
 
@@ -206,7 +192,6 @@
   - A one-sided boolean (`--foo` with no `--no_foo`)
   - A same-named flag with different/incompatible semantics
 - Import the module under its standard alias and call the helper in `_parse()`
-
   ```python
   import helpers.hselect_input_output as hseinout
   import helpers.hparser as hparser
@@ -217,16 +202,12 @@
       hparser.add_verbosity_arg(parser)
       return parser
   ```
-
 - **Bad**: hand-rolled input/output flags
-
   ```python
   parser.add_argument("--in_file", type=str, required=True)
   parser.add_argument("--out_file", type=str, default="")
   ```
-
 - **Good**: canonical helper, standard `-i/--input` / `-o/--output` surface
-
   ```python
   hseinout.add_input_output_args(parser, in_required=True, out_required=False)
   ```
@@ -237,7 +218,6 @@
   `hdbg.init_logger(verbosity=args.log_level, use_exec_path=True)` as the first line
   of `_main()`
 - **Bad**: missing `use_exec_path`, or call is conditional
-
   ```python
   hdbg.init_logger(args.log_level)
   ```
@@ -245,9 +225,7 @@
   if args.log:
       hdbg.init_logger(verbosity=args.log_level)
   ```
-
 - **Good**
-
   ```python
   hdbg.init_logger(verbosity=args.log_level, use_exec_path=True)
   ```
@@ -271,14 +249,11 @@
   `f"-v={log_level}"`, which argparse parses as the literal value `"=DEBUG"` and
   rejects
 - **Bad**: `-v DEBUG` on the outer script never reaches `notes_to_pdf.py`
-
   ```python
   cmd = f"notes_to_pdf.py --input {input_file} --output {output_file}"
   hsystem.system(cmd)
   ```
-
 - **Good**
-
   ```python
   cmd = (
       f"notes_to_pdf.py --input {input_file} --output {output_file} "
@@ -286,7 +261,6 @@
   )
   hsystem.system(cmd)
   ```
-
 - Applies to any script-to-script call in the repo (e.g., `gen_slides.py` ->
   `notes_to_pdf.py`, `render_book_chapter.py` -> `run_typst.py`,
   `for_loop_lessons.py` -> `gen_slides.py`/`render_book_chapter.py`); it does not
@@ -298,13 +272,10 @@
 - A flag that carries a path or string value must use `action="store"` (the default),
   never `action="store_true"`, even if it also sets a default
 - **Bad**: `--dst_dir` can never be set to a custom directory from the CLI
-
   ```python
   parser.add_argument("--dst_dir", action="store_true", default="./out")
   ```
-
 - **Good**
-
   ```python
   parser.add_argument("--dst_dir", action="store", default="./out")
   ```
@@ -317,7 +288,6 @@
 ### File Selection
 
 - Use `helpers.hselect_input_output.add_file_selection_args()`
-
   ```verbatim
   -i, --input FILE      Select a single file
   -f, --files FILES     Select specific files (space-separated list in a single argument)
@@ -331,7 +301,6 @@
 ### Input/Output
 
 - Use `helpers.hselect_input_output.add_input_output_args()`
-
   ```verbatim
   -i, --input INPUT     Input file or `-` for stdin
   -o, --output OUTPUT   Output file or `-` for stdout
@@ -349,7 +318,6 @@
 ### Destination Directory
 
 - Use `helpers.hselect_input_output.add_dst_dir_arg()`
-
   ```verbatim
   --dst_dir DST_DIR     Directory storing the results
   --overwrite           Delete existing destination directory if it already exists
@@ -358,7 +326,6 @@
 ### Limit Range
 
 - Use `helpers.hselect_input_output.add_limit_range_arg()`
-
   ```verbatim
   --limit LIMIT         Limit processing to item range X:Y (integers >= 1, inclusive)
   ```
@@ -366,7 +333,6 @@
 ### Multi-file Selection
 
 - Use `helpers.hselect_input_output.add_multi_file_args()`
-
   ```verbatim
   --files FILES         Comma-separated list of files to process (e.g.,
                         'file1.txt,file2.txt,file3.txt')
@@ -378,7 +344,6 @@
 ### File Type Filtering
 
 - Use `helpers.hselect_input_output.add_file_type_filter_args()`
-
   ```verbatim
   --file_types FILE_TYPES
                         Comma-separated list of file extensions to process.
@@ -394,7 +359,6 @@
 ### Boolean On/off
 
 - Use `helpers.hparser.add_bool_arg()`
-
   ```verbatim
   --run_diff_script
   --no_run_diff_script
@@ -403,7 +367,6 @@
 ### Verbosity
 
 - Use `helpers.hparser.add_verbosity_arg()`
-
   ```verbatim
   -v {TRACE,DEBUG,INFO,WARNING,ERROR,CRITICAL}
                         Set the logging level
@@ -414,7 +377,6 @@
 ### JSON Output Metadata
 
 - Use `helpers.hparser.add_json_output_metadata_args()`
-
   ```verbatim
   --json_output_metadata JSON_OUTPUT_METADATA
                         File storing the output metadata of this script in JSON
@@ -424,7 +386,6 @@
 ### Action Selection
 
 - Use `helpers.hselect_action.add_action_arg()`
-
   ```verbatim
   --action ACTION       Add an action to the list of actions to execute
   --skip_action SKIP_ACTION
@@ -445,7 +406,6 @@
 ### Markdown Select
 
 - Use `helpers.hmarkdown_select.add_select_arg()`
-
   ```verbatim
   --select SELECT       Select text range as START:END
                         Examples:
@@ -464,7 +424,6 @@
 ### Rule
 
 - Use `helpers.hmarkdown_select.add_rule_cli_arg()`
-
   ```verbatim
   --rule RULE           Rule specification used as system prompt. Formats:
                         - 'path/to/rules.md': whole file
@@ -476,7 +435,6 @@
 ### Cache Control
 
 - Use `helpers.hcache_simple.add_cache_control_arg()`
-
   ```verbatim
   --cache_mode {REFRESH_CACHE,DISABLE_CACHE,HIT_CACHE_OR_ABORT}
                         Override cache behavior for all cache functions. REFRESH_CACHE
@@ -488,7 +446,6 @@
 ### Daemon
 
 - Use `helpers.hdaemon.add_daemon_arg()`
-
   ```verbatim
   --daemon              Watch input file for changes and regenerate on change
   ```
@@ -496,18 +453,15 @@
 ### Open
 
 - Use `helpers.hdocker.add_open_arg()`
-
   ```verbatim
   --open                Open the output file on macOS
   ```
-
 - Pair with `helpers.hdocker.open_file_on_macos()` to act on the flag; do not
   duplicate either function locally
 
 ### Dockerized Script
 
 - Use `helpers.hdocker.add_dockerized_script_arg()`
-
   ```verbatim
   --dockerized_force_rebuild
                         Force to rebuild the Docker container
@@ -518,7 +472,6 @@
 ### Parallel Processing
 
 - Use `helpers.hjoblib.add_parallel_processing_arg()`
-
   ```verbatim
   --dry_run             Print the workload and exit without running it
   --no_incremental      Skip workload already performed
@@ -542,7 +495,6 @@
 ### LLM Prompt
 
 - Use `helpers.hllm_cli.add_llm_prompt_arg()`
-
   ```verbatim
   --debug               Print before/after the transform
   -p, --prompt PROMPT   Prompt to apply
@@ -552,7 +504,6 @@
 ### LLM
 
 - Use `helpers.hllm_cli.add_llm_args()`
-
   ```verbatim
   -i, --input INPUT     Path to the input file containing text to process, or '-' for stdin
   --input_text INPUT_TEXT
@@ -577,7 +528,6 @@
 ### S3
 
 - Use `helpers.hs3.add_s3_args()`
-
   ```verbatim
   --aws_profile AWS_PROFILE
                         The AWS profile to use for `.aws/credentials` or for env vars
@@ -588,7 +538,6 @@
 ### Config Override
 
 - Use `config_root.config.config_utils.add_config_override_args()`
-
   ```verbatim
   --set_config_value SET_CONFIG_VALUE
                         See `apply_config()` for detailed description.
@@ -597,7 +546,6 @@
 ### Pandoc Backend
 
 - Use `dev_scripts_helpers.dockerize.lib_pandoc.add_pandoc_backend_arg()`
-
   ```verbatim
   --pandoc_backend {auto,dockerized,host}
                         How to run `pandoc`: `auto` uses the host binary and falls back to
@@ -610,14 +558,13 @@
 ## Add `--dry_run` Whenever a Script Has Side Effects
 
 - Give every script a `--dry_run` option whenever possible, i.e., whenever it
-  performs a side effect: writes or deletes files, runs a subprocess, issues
-  git/gh commands, or calls a network API
-- Skip it only for a script that is purely read-only (e.g., prints a report,
-  computes and returns a value, queries state without mutating anything)
-- **Bad**: a script that runs `git push` with no way to preview the command
-  first
-- **Good**: a script that runs `git push` gates it behind `--dry_run` (see the
-  Guard the Side Effect section below for how)
+  performs a side effect: writes or deletes files, runs a subprocess, issues git/gh
+  commands, or calls a network API
+- Skip it only for a script that is purely read-only (e.g., prints a report, computes
+  and returns a value, queries state without mutating anything)
+- **Bad**: a script that runs `git push` with no way to preview the command first
+- **Good**: a script that runs `git push` gates it behind `--dry_run` (see the Guard
+  the Side Effect section below for how)
 
 ## Add `--dry_run` as a Standard Flag
 
@@ -625,7 +572,6 @@
   the Parallel Processing catalog entry above), `--dry_run` comes for free; do not
   redeclare it
 - Otherwise declare it by hand as a plain boolean flag
-
   ```python
   parser.add_argument(
       "--dry_run",
@@ -633,7 +579,6 @@
       help="Show what would be done without actually doing it",
   )
   ```
-
 - Thread `dry_run` through function signatures as a keyword-only `bool` parameter,
   not a global; the only place that reads `args.dry_run` is `_main()`
 
@@ -646,7 +591,6 @@
 - Mirror the real branch's log message in the dry-run branch, just prefixed with the
   `[DRY_RUN]` tag and phrased as "Would ..."
 - **Good** (`dev_scripts_helpers/thin_client/create_all_helpers_links.py`)
-
   ```python
   if dry_run:
       _LOG.warning("[DRY_RUN] Would create '%s' to vimdiff %d file(s)", target_path, num_files)
@@ -654,12 +598,10 @@
       _LOG.info("Creating '%s' to vimdiff %d file(s)", target_path, num_files)
       _create_link(...)
   ```
-
 - For a top-level command wrapper that runs a single blocking operation
   (`helpers.hsystem.system()`, `helpers.hjoblib.parallel_execute()`), an early return
   right after the log line is fine, since there's no separate "real" branch left to
   fall through to
-
   ```python
   if dry_run:
       _LOG.warning("As per user request, not executing command:\n%s", cmd)
@@ -671,13 +613,10 @@
 - Dry-run notices use `_LOG.warning` so they stand out from the surrounding
   INFO-level narration regardless of `-v`
 - **Bad**
-
   ```python
   _LOG.info("[DRY_RUN] Would remove '%s'", path)
   ```
-
 - **Good**
-
   ```python
   _LOG.warning("[DRY_RUN] Would remove '%s'", path)
   ```
@@ -691,14 +630,11 @@
   `%s`/`%d` lazy-formatting arguments the real branch's message would use (see the
   logging conventions in `coding.rules.md`)
 - **Bad**
-
   ```python
   _LOG.info("[DRY-RUN] Would create field: '%s'", name)
   _LOG.warning("DRY RUN: Would save to %s", output_file)
   ```
-
 - **Good**
-
   ```python
   _LOG.warning("[DRY_RUN] Would create '%s' to vimdiff %d file(s)", target_path, num_files)
   _LOG.warning("[DRY_RUN] Would save merged summary to '%s'", output_file)
@@ -709,7 +645,6 @@
 - A unit test for `dry_run=True` asserts the absence of the side effect (e.g.,
   `hdbg.dassert_path_not_exists(...)`), not just that the call didn't raise
 - **Good** (`helpers/test/test_hsystem.py`)
-
   ```python
   def test_dry_run(self) -> None:
       temp_file_name = ...
@@ -749,13 +684,10 @@
 - The `default=` parameter already documents the default; do not restate it in
   `help=`
 - **Bad**
-
   ```python
   parser.add_argument("--browser", default="safari", help="Browser to use (default: safari)")
   ```
-
 - **Good**
-
   ```python
   parser.add_argument("--browser", default="safari", help="Browser to use")
   ```
@@ -765,7 +697,6 @@
 - When two options are mutually exclusive, enforce it with
   `parser.add_mutually_exclusive_group()` instead of validating by hand in `_main()`
 - **Bad**
-
   ```python
   parser.add_argument("--input_file", default="")
   parser.add_argument("--input_text", default="")
@@ -774,9 +705,7 @@
       if args.input_file and args.input_text:
           raise ValueError("Cannot specify both")
   ```
-
 - **Good**
-
   ```python
   group = parser.add_mutually_exclusive_group(required=True)
   group.add_argument("--input_file", default="")
@@ -791,7 +720,6 @@
   scripts that invoke this one, `invoke` tasks (`helpers/lib_tasks/lib_tasks_*.py`),
   and markdown docs (READMEs, this file) that mention the old flag name
 - Grep for the old flag name repo-wide before considering the change complete
-
   ```bash
   > grep -rn -- "--old_flag_name" --include="*.py" --include="*.md"
   ```

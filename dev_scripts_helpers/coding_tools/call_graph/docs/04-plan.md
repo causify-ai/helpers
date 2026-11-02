@@ -24,8 +24,8 @@
 ## Plan Hierarchy
 
 - This file is the canonical roadmap of the project and defines the PRs
-- `progress.md` records what is done and what was learned
-- `decisions.md` records the decisions and the alternatives considered
+- `07-progress.md` records what is done and what was learned
+- `03-decisions.md` records the decisions and the alternatives considered
 - A checked PR is merged. An unchecked PR is not started, implemented but not
   merged, or partly done; the `Status` line in its entry below says which
 - There is no execution plan: one person works on the project. Add one when
@@ -215,11 +215,11 @@
 ### `PR_D1`: [ ] Project Docs
 
 - Background: the project has a component README and no plan
-- Add `call_graph/docs/` with `README.md` (the index), `plan.md`, `progress.md`,
-  and `decisions.md`
-- `how_we_work.md` is added when a second person joins
+- Add `call_graph/docs/` with `README.md` (the index), `04-plan.md`, `07-progress.md`,
+  and `03-decisions.md`
+- `08-how_we_work.md` is added when a second person joins
 - Result: a newcomer finds the plan, the log, and the decisions without asking
-- Status: implemented; `how_we_work.md` is not written, it needs the GitHub
+- Status: implemented; `08-how_we_work.md` is not written, it needs the GitHub
   project, the Slack channel, and the Drive links of the team
 
 ### `PR_E1`: [ ] Data Model and File Discovery

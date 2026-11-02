@@ -15,14 +15,26 @@ output-format = "concise"
 
 [tool.ruff.lint]
 # Ignore specific lint rules
-# E731: Do not assign a `lambda` expression, use a `def`
-# UP007: Use `X | Y` for type annotations (repo style uses `typing.Union`)
-# UP045: Use `X | None` for type annotations (repo style uses `typing.Optional`)
-# UP006: Use `dict` instead of `Dict` (repo style uses `typing.Dict/List`)
-# UP035: Import from `typing` is deprecated (repo style uses `typing`)
-# PLR0402: Use `from X import Y` (repo style is `import X.Y as Y`)
-# RUF100: Unused `noqa` (keep `# noqa: E402` after `pytest.importorskip`)
-ignore = ["E731", "UP007", "UP045", "UP006", "UP035", "PLR0402", "RUF100"]
+ignore = [
+  # E731: Do not assign a `lambda` expression, use a `def`
+  "E731",
+  # FLY002: Consider f-string instead of string join (repo style uses `join`)
+  "FLY002",
+  # PLR0402: Use `from X import Y` (repo style is `import X.Y as Y`)
+  "PLR0402",
+  # RUF100: Unused `noqa` (keep `# noqa: E402` after `pytest.importorskip`)
+  "RUF100",
+  # UP006: Use `dict` instead of `Dict` (repo style uses `typing.Dict/List`)
+  "UP006",
+  # UP007: Use `X | Y` for type annotations (repo style uses `typing.Union`)
+  "UP007",
+  # UP031: Use format specifiers instead of percent format (repo style uses `%`)
+  "UP031",
+  # UP035: Import from `typing` is deprecated (repo style uses `typing`)
+  "UP035",
+  # UP045: Use `X | None` for type annotations (repo style uses `typing.Optional`)
+  "UP045",
+]
 
 [tool.ruff.lint.per-file-ignores]
 # Tutorial notebooks paired with jupytext have code cells before imports.

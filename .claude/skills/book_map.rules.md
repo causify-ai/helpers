@@ -1,8 +1,9 @@
-- Conventions for maintaining a book map (`book_map.md`) that tracks a book's
-  title, audience, roadmap, and chapter-by-chapter table of contents mapped to
-  existing course lecture materials
+- Conventions for maintaining a book map (`book_map.md`) that tracks a book's title,
+  audience, roadmap, and chapter-by-chapter table of contents mapped to existing
+  course lecture materials
 
 # Concepts
+
 - `book_map.md`: the map of a book / course
   - E.g.,
     - `/Users/saggese/src/umd_classes2/book_springer/book_map.md`
@@ -10,37 +11,37 @@
 - `chap_toc`: contains a description of a book chapter
   - It corresponds to the `### Topics` in a map
 - `skeleton_slides`: describes the high level flow of slides
-  - Contain only H1, H2, * and optionally `// From <file>:<line number> 'reference'`
+  - Contain only H1, H2, \* and optionally `// From <file>:<line number> 'reference'`
   - Use H2 only for a group of at least 5 slides (see
     `.claude/skills/slides.rules.md`, "Section Structure")
 - `lesson_slides`: complete slides on a topic
   - E.g., data605, msml610, book_springer
-  - The slides can be on a topic (e.g., from data605, msml610) or merged slides
-    from existing lesson slides (e.g., book_springer)
-  - Merged slides cite their lecture/paper sources with `// From: ...`
-    comments right under the slide title; see `.claude/skills/slides.rules.md`
-    ("Source Attribution") for the exact syntax
+  - The slides can be on a topic (e.g., from data605, msml610) or merged slides from
+    existing lesson slides (e.g., book_springer)
+  - Merged slides cite their lecture/paper sources with `// From: ...` comments right
+    under the slide title; see `.claude/skills/slides.rules.md` ("Source
+    Attribution") for the exact syntax
 - `slide_tutorials`: notebooks associated with `lesson_slides`
-- `book_chap`: a tex / typst file storing the text of the book corresponding to
-  the `lesson_slides`
+- `book_chap`: a tex / typst file storing the text of the book corresponding to the
+  `lesson_slides`
 
 ## Invariants
+
 - We need to maintain in sync the following data:
   - `map`
   - `chap_toc`
   - `lesson_slides`
   - `slide_tutorials`
-  - `book_chap`
-  since they are representation at different levels of abstraction of the same
-  content (i.e., a book / course)
+  - `book_chap` since they are representation at different levels of abstraction of
+    the same content (i.e., a book / course)
 
 # Overall Structure
 
 - A book map follows this top-level section order:
-  - **Summary**: Title, Target Audience, Approach of the Book, Short TOC, All
-    Lesson Materials
-  - **Roadmap**: tracking tables for slide/criticize/tutorial/book progress,
-    plus tutorial inventories and a TODOs list
+  - **Summary**: Title, Target Audience, Approach of the Book, Short TOC, All Lesson
+    Materials
+  - **Roadmap**: tracking tables for slide/criticize/tutorial/book progress, plus
+    tutorial inventories and a TODOs list
   - **Detailed TOC**: one `# Part <N>: <Part Title>` heading per part, one
     `## <NN>: <Chapter Title>` heading per chapter, each following the Chapter
     Template below
@@ -48,14 +49,15 @@
 
 # Writing Conventions
 
-- Follow `.claude/skills/markdown.rules.md` and `.claude/skills/text.rules.md`
-  for text formatting
+- Follow `.claude/skills/markdown.rules.md` and `.claude/skills/text.rules.md` for
+  text formatting
 - Follow `.claude/skills/typst.rules.md` when writing book chapters in typst
 - Keep coverage percentages grounded in the actual lecture files, not guessed
-- Chapter numbers in `## <NN>: <Chapter Title>` are zero-padded two digits and
-  match the numbering in `## Short TOC`
+- Chapter numbers in `## <NN>: <Chapter Title>` are zero-padded two digits and match
+  the numbering in `## Short TOC`
 
 ## Bold and Italic in Chapter Text
+
 - Reserve bold for a term's first, defining occurrence in a chapter's body text
 - Use italic to emphasize a concept without introducing a formal definition
 - Do not bold text in Roadmap or Summary chapters: they read as flowing narrative,
@@ -66,37 +68,42 @@
 # Section Details
 
 ## Title
+
 - 1-2 bullets giving alternative titles/framings for the same book
 
 ## Target Audience
+
 - 2-3 bullets: who the reader is, and what background/prerequisites are assumed
 
 ## Approach of the Book
-- Bullets describing what the book focuses on (minimal math, intuition, toy
-  examples, making theory operational via packages, notebooks) and what
-  resources it points readers to for going one level deeper (classes, books,
-  papers)
+
+- Bullets describing what the book focuses on (minimal math, intuition, toy examples,
+  making theory operational via packages, notebooks) and what resources it points
+  readers to for going one level deeper (classes, books, papers)
 
 ## Short TOC
+
 - Nested bullets: level-1 is the part name, level-2 is `<NN>, <Chapter Title>`
 - Lists every part and chapter in book order; kept in sync with the `# Part` and
   `## <NN>:` headings in Detailed TOC
 
 ## All Lesson Materials
+
 - Inventory of source directories/globs each chapter's `### Lesson Materials` can
   draw from
   ```markdown
   - `course/all_tocs.md`
   - `course/resources.md`
   - `course/lectures_source/*.txt`
+  ```
 
 ## Roadmap
 
-- Tracking tables use `|`-delimited Markdown tables with a bold
-  `**Part Title**` row (all other columns empty) separating parts
-- Typical columns: chapter/slide name, source slide file, and one column per
-  pipeline stage (e.g., `Slides %`, `Criticize`, `Tutorial`, `Book`), each cell
-  a completion percentage or `yes`/blank
+- Tracking tables use `|`-delimited Markdown tables with a bold `**Part Title**` row
+  (all other columns empty) separating parts
+- Typical columns: chapter/slide name, source slide file, and one column per pipeline
+  stage (e.g., `Slides %`, `Criticize`, `Tutorial`, `Book`), each cell a completion
+  percentage or `yes`/blank
 - Tutorial inventories are a `>` blockquote with the `find` command used to list
   them, followed by a fenced (no language) block with the resulting file paths:
   ```markdown
@@ -105,11 +112,10 @@
   ```
 - `## TODOs` is a flat bullet list of outstanding cross-chapter work
 
-  ```
 ## Chapter Template
 
-- Each chapter (`## <NN>: <Chapter Title>`) uses this fixed set of `###`
-  subsections, in this order:
+- Each chapter (`## <NN>: <Chapter Title>`) uses this fixed set of `###` subsections,
+  in this order:
   - `Goals`
   - `Topics`
   - `TODO` (optional)
@@ -118,11 +124,13 @@
   - `Notes` (optional)
 
 ## Goals
+
 - 3 bullets, each under 100 characters, stating what the chapter achieves
 
 ## Topics
-- Nested bullets: level-1 bullets are subchapter titles, level-2 bullets are a
-  short list of topics under that subchapter
+
+- Nested bullets: level-1 bullets are subchapter titles, level-2 bullets are a short
+  list of topics under that subchapter
 - Template:
   ```markdown
   ### Topics
@@ -135,19 +143,22 @@
 - Keep the section under 20-25 lines and 175-200 words
 
 ## TODO
+
 - Optional; open items for the chapter as a checkbox list (`- [ ] ...`)
 
 ## Slides
+
 - Pointer(s) to the `<BOOK>/lectures_source/*.smd` file(s) holding the chapter's
   slide deck
 - Each deck should be about 30-35 slides
 
 ## Lesson Materials
-- There should be no pointer to `<BOOK>/lectures_source/*.smd` since this is
-  the material from other directories that is used to create the slides in
+
+- There should be no pointer to `<BOOK>/lectures_source/*.smd` since this is the
+  material from other directories that is used to create the slides in
   `<BOOK>/lectures_source/*.smd`
-- For each chapter, read its `### Topics` and the candidate lecture ToCs listed
-  in `## All Lesson Materials`, then list which lectures cover which topics
+- For each chapter, read its `### Topics` and the candidate lecture ToCs listed in
+  `## All Lesson Materials`, then list which lectures cover which topics
 - Order lectures by descending coverage percentage
 - Reference the actual lecture files (not just their titles) to verify coverage
 - Close with a `_Not covered_` bullet naming the topics no lecture addresses
@@ -175,7 +186,9 @@
   ```
 
 ## Notes
+
 - Optional freeform bullets for open questions or caveats about the chapter
 
 # Examples
+
 - `book_springer/book_map.md`

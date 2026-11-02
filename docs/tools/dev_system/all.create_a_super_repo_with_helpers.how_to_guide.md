@@ -25,6 +25,7 @@
   * [Configure Regressions Via Github Actions](#configure-regressions-via-github-actions)
     + [Set Repository Secrets/Variables](#set-repository-secretsvariables)
     + [Create Github Actions Workflow Files](#create-github-actions-workflow-files)
+    + [Configure the Update of the `Helpers` Pointer](#configure-the-update-of-the-helpers-pointer)
     + [Configure Gitleaks Scan](#configure-gitleaks-scan)
   * [Configure Github Repo](#configure-github-repo)
 
@@ -410,6 +411,19 @@
      - Find and replace mentions of `helpers` with the name of super repo for
        consistency
      - Replace `invoke run_fast_tests` with your desired action
+
+### Configure the Update of the `Helpers` Pointer
+
+- A super-repo stores only a pointer to a commit of `helpers_root`
+- Set up the workflow that moves the pointer forward every day, after running the
+  regressions
+  - Copy `.github/workflows/update_helpers_submodule.yml` from an existing
+    super-repo (e.g., `//csfy`, `//umd_classes`)
+  - Copy it as is, since GitHub Actions does not resolve symbolic links in
+    `.github/workflows`
+  - Replace the regressions step with the ones of your repo
+- See `docs/tools/dev_system/all.update_helpers_submodule.how_to_guide.md` for the
+  details
 
 ### Configure Gitleaks Scan
 

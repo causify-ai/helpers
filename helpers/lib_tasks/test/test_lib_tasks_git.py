@@ -556,6 +556,121 @@ class Test_git_files(hunitest.TestCase):
 
 
 # #############################################################################
+# Test_git_roll_submodule_forward
+# #############################################################################
+
+
+class Test_git_roll_submodule_forward(hunitest.TestCase):
+    """
+    Test `git_roll_submodule_forward()`.
+    """
+
+    def test1(self) -> None:
+        """
+        Test that the pointer is rolled forward on `master` by default.
+        """
+        # Prepare inputs.
+        ctx = httestlib._build_mock_context_returning_ok()
+        scratch_dir = self.get_scratch_space()
+        submodule_dir = os.path.join(scratch_dir, "helpers_root")
+        hio.create_dir(submodule_dir, incremental=True)
+        # Prepare outputs.
+        expected = """
+        call('git -C helpers_root checkout master', echo=False)
+        call('git -C helpers_root pull --ff-only origin master', echo=False)
+        call('git add helpers_root', echo=False)
+        call("git commit -m 'Roll helpers_root pointer forward'", echo=False)
+        call('git push', echo=False)
+        """
+        # Run test.
+        with hsystem.cd(scratch_dir):
+            hltltagi.git_roll_submodule_forward(ctx, "helpers_root")
+        # Check outputs.
+        actual = _get_ctx_run_calls(ctx)
+        self.assert_equal(actual, expected, fuzzy_match=True, dedent=True)
+
+    def test2(self) -> None:
+        """
+        Test that `name` and `branch` are used in all the commands.
+        """
+        # Prepare inputs.
+        ctx = httestlib._build_mock_context_returning_ok()
+        scratch_dir = self.get_scratch_space()
+        hio.create_dir(os.path.join(scratch_dir, "amp"), incremental=True)
+        # Prepare outputs.
+        expected = """
+        call('git -C amp checkout develop', echo=False)
+        call('git -C amp pull --ff-only origin develop', echo=False)
+        call('git add amp', echo=False)
+        call("git commit -m 'Roll amp pointer forward'", echo=False)
+        call('git push', echo=False)
+        """
+        # Run test.
+        with hsystem.cd(scratch_dir):
+            hltltagi.git_roll_submodule_forward(ctx, "amp", branch="develop")
+        # Check outputs.
+        actual = _get_ctx_run_calls(ctx)
+        self.assert_equal(actual, expected, fuzzy_match=True, dedent=True)
+
+    def test3(self) -> None:
+        """
+        Test that `run_regressions=True` runs the regressions before the commit.
+        """
+        # Prepare inputs.
+        ctx = httestlib._build_mock_context_returning_ok()
+        scratch_dir = self.get_scratch_space()
+        submodule_dir = os.path.join(scratch_dir, "helpers_root")
+        hio.create_dir(submodule_dir, incremental=True)
+        # Prepare outputs.
+        expected = """
+        call('git -C helpers_root checkout master', echo=False)
+        call('git -C helpers_root pull --ff-only origin master', echo=False)
+        call('invoke run_fast_tests', echo=False)
+        call('git add helpers_root', echo=False)
+        call("git commit -m 'Roll helpers_root pointer forward'", echo=False)
+        call('git push', echo=False)
+        """
+        # Run test.
+        with hsystem.cd(scratch_dir):
+            hltltagi.git_roll_submodule_forward(
+                ctx, "helpers_root", run_regressions=True
+            )
+        # Check outputs.
+        actual = _get_ctx_run_calls(ctx)
+        self.assert_equal(actual, expected, fuzzy_match=True, dedent=True)
+
+    def test4(self) -> None:
+        """
+        Test that `dry_run=True` skips all the commands.
+        """
+        # Prepare inputs.
+        ctx = httestlib._build_mock_context_returning_ok()
+        scratch_dir = self.get_scratch_space()
+        submodule_dir = os.path.join(scratch_dir, "helpers_root")
+        hio.create_dir(submodule_dir, incremental=True)
+        # Run test.
+        with hsystem.cd(scratch_dir):
+            hltltagi.git_roll_submodule_forward(
+                ctx, "helpers_root", run_regressions=True, dry_run=True
+            )
+        # Check outputs.
+        actual = _get_ctx_run_calls(ctx)
+        self.assertEqual(actual, "")
+
+    def test5(self) -> None:
+        """
+        Test that a submodule dir that does not exist raises.
+        """
+        # Prepare inputs.
+        ctx = httestlib._build_mock_context_returning_ok()
+        scratch_dir = self.get_scratch_space()
+        # Run test and check output.
+        with hsystem.cd(scratch_dir), self.assertRaises(AssertionError):
+            hltltagi.git_roll_submodule_forward(ctx, "missing_submodule")
+        self.assertEqual(_get_ctx_run_calls(ctx), "")
+
+
+# #############################################################################
 # Test_git_branch_files
 # #############################################################################
 

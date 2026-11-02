@@ -8,8 +8,8 @@
 ## Plan Hierarchy
 
 - This file: what to build and in which order
-- `progress.md`: what is done and learned
-- `decisions.md`: why it is built this way
+- `07-progress.md`: what is done and learned
+- `03-decisions.md`: why it is built this way
 - `- [ ]` is an unmerged PR and `- [x]` is a merged PR
 
 ## Roadmap

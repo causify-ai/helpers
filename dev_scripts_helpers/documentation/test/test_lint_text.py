@@ -1,3 +1,4 @@
+import argparse
 import logging
 import os
 import shutil
@@ -5,8 +6,9 @@ from typing import Callable, List, Optional
 
 import pytest
 
-import dev_scripts_helpers.documentation.lib_lint_text as dshdllite
+import dev_scripts_helpers.dockerize.lib_pandoc as dshdlipa
 import dev_scripts_helpers.dockerize.lib_prettier as dshdlipr
+import dev_scripts_helpers.documentation.lib_lint_text as dshdllite
 import helpers.hdbg as hdbg
 import helpers.hgit as hgit
 import helpers.hio as hio
@@ -15,7 +17,6 @@ import helpers.hprint as hprint
 import helpers.hserver as hserver
 import helpers.hsystem as hsystem
 import helpers.hunit_test as hunitest
-
 
 _LOG = logging.getLogger(__name__)
 
@@ -1466,6 +1467,26 @@ class Test_remove_trailing_periods(hunitest.TestCase):
         # Run test.
         self.helper(txt, expected)
 
+    def test17(self) -> None:
+        """
+        Test that the period of an abbreviation at the end of a wrapped line
+        is kept, since the sentence continues on the next line.
+        """
+        # Prepare inputs.
+        txt = """
+        - Use a fence, e.g.
+          a code block, i.e.
+          for code.
+        """
+        # Prepare outputs.
+        expected = """
+        - Use a fence, e.g.
+          a code block, i.e.
+          for code
+        """
+        # Run test.
+        self.helper(txt, expected)
+
 
 # #############################################################################
 # Test_remove_markdown_formatting
@@ -2088,9 +2109,13 @@ class Test_lint_text2(hunitest.TestCase):
         # Prepare inputs.
         txt_str = hprint.dedent(txt, remove_lead_trail_empty_lines_=True)
         lines = txt_str.split("\n")
-        file_name = os.path.join(self.get_scratch_space(), file_name)
-        # Run function.
-        actual = dshdllite._perform_actions(lines, file_name)
+        scratch_dir = self.get_scratch_space()
+        file_name = os.path.join(scratch_dir, file_name)
+        # Run function: save the intermediate `prettier` files in the scratch
+        # space, instead of the current dir.
+        actual = dshdllite._perform_actions(
+            lines, file_name, tmp_dir=scratch_dir
+        )
         # Check.
         actual = "\n".join(actual)
         if expected:
@@ -2224,7 +2249,6 @@ class Test_lint_text2(hunitest.TestCase):
 
         - Good
         - Hello
-
         ```test
         - hello
             - world
@@ -2406,6 +2430,9 @@ class Test_prettier_on_str(hunitest.TestCase):
         """
         # Prepare inputs.
         txt = _get_text_problematic_for_prettier1()
+        # Save the intermediate `prettier` files in the scratch space, instead of
+        # the current dir.
+        tmp_dir = self.get_scratch_space()
         # Prepare outputs.
         expected = r"""
         - Python formatting
@@ -2421,7 +2448,7 @@ class Test_prettier_on_str(hunitest.TestCase):
         """
         expected = hprint.dedent(expected, remove_lead_trail_empty_lines_=True)
         # Run test.
-        actual = dshdlipr.prettier_on_str(txt, file_type="txt")
+        actual = dshdlipr.prettier_on_str(txt, file_type="txt", tmp_dir=tmp_dir)
         # Check outputs.
         self.assert_equal(actual, expected)
 
@@ -2466,6 +2493,9 @@ class Test_lint_text_py1(hunitest.TestCase):
             out_dir = self.get_scratch_space()
             out_file = os.path.join(out_dir, f"output.{type_}")
             cmd.append(f"--output {out_file}")
+            # Save the intermediate `prettier` files in the scratch space,
+            # instead of the current dir.
+            cmd.append(f"--tmp_dir {out_dir}")
             cmd.append(cmd_opts)
             cmd = " ".join(cmd)
             hsystem.system(cmd)
@@ -2477,6 +2507,9 @@ class Test_lint_text_py1(hunitest.TestCase):
             # Read input file.
             txt = hio.from_file(in_file)
             lines = txt.split("\n")
+            # Save the intermediate `prettier` files in the scratch space,
+            # instead of the current dir.
+            tmp_dir = self.get_scratch_space()
             # Process the content directly.
             out_lines = dshdllite._perform_actions(
                 lines,
@@ -2485,6 +2518,7 @@ class Test_lint_text_py1(hunitest.TestCase):
                 width=80,
                 use_dockerized_prettier=True,
                 use_dockerized_markdown_toc=True,
+                tmp_dir=tmp_dir,
             )
             # Return the processed text.
             output_txt = "\n".join(out_lines)
@@ -2673,6 +2707,9 @@ class Test_lint_text_py_idempotency(hunitest.TestCase):
         # Read input file.
         txt = hio.from_file(in_file)
         lines = txt.split("\n")
+        # Save the intermediate `prettier` files in the scratch space, instead of
+        # the current dir.
+        tmp_dir = self.get_scratch_space()
         # Process the content directly with default actions (no link checking).
         out_lines = dshdllite._perform_actions(
             lines,
@@ -2681,6 +2718,7 @@ class Test_lint_text_py_idempotency(hunitest.TestCase):
             width=80,
             use_dockerized_prettier=True,
             use_dockerized_markdown_toc=True,
+            tmp_dir=tmp_dir,
         )
         # Return the processed text.
         output_txt = "\n".join(out_lines)
@@ -2719,6 +2757,7 @@ class Test_lint_text_py_idempotency(hunitest.TestCase):
             output_txt_1 = self.run_lint_text(in_file, type_)
             # Format the output again using the same formatter.
             lines = output_txt_1.split("\n")
+            tmp_dir = self.get_scratch_space()
             output_lines = dshdllite._perform_actions(
                 lines,
                 in_file,
@@ -2726,6 +2765,7 @@ class Test_lint_text_py_idempotency(hunitest.TestCase):
                 width=80,
                 use_dockerized_prettier=True,
                 use_dockerized_markdown_toc=True,
+                tmp_dir=tmp_dir,
             )
             output_txt_2 = "\n".join(output_lines)
             # Check that both runs produce identical output (idempotency).
@@ -2900,6 +2940,24 @@ class Test_replace_em_dash_with_colon(hunitest.TestCase):
         # Prepare outputs.
         expected = """
         - foo —
+        """
+        # Run test.
+        self.helper(txt, expected)
+
+    def test7(self) -> None:
+        """
+        Test that an em dash inside inline code is kept, while the one in the
+        text is replaced.
+        """
+        # Prepare inputs.
+        txt = """
+        - **Bad**: `generation is sequential — each token needs a forward pass`
+        - foo — bar
+        """
+        # Prepare outputs.
+        expected = """
+        - **Bad**: `generation is sequential — each token needs a forward pass`
+        - foo: bar
         """
         # Run test.
         self.helper(txt, expected)
@@ -3486,6 +3544,64 @@ class Test_smd_format(hunitest.TestCase):
         # Check outputs.
         self.assertEqual(once, twice)
 
+    def test26(self) -> None:
+        """
+        Test that several blank lines before and after a pipe table are
+        collapsed to exactly one, so `pandoc` parses it as a table.
+        """
+        # Prepare inputs.
+        txt = """
+        Intro:
+
+
+
+        | a | b |
+        | - | - |
+        | 1 | 2 |
+
+
+
+        After
+        """
+        # Prepare outputs.
+        expected = """
+        Intro:
+
+        | a | b |
+        | - | - |
+        | 1 | 2 |
+
+        After
+        """
+        # Run test.
+        self.helper(txt, expected)
+
+    def test27(self) -> None:
+        """
+        Test that exactly one blank line is added between a paragraph and a
+        pipe table that directly follows it.
+        """
+        # Prepare inputs.
+        txt = """
+        Intro:
+        | a | b |
+        | - | - |
+        | 1 | 2 |
+        After
+        """
+        # Prepare outputs.
+        expected = """
+        Intro:
+
+        | a | b |
+        | - | - |
+        | 1 | 2 |
+
+        After
+        """
+        # Run test.
+        self.helper(txt, expected)
+
 
 # #############################################################################
 # Test_md_format
@@ -3581,6 +3697,507 @@ class Test_md_format(hunitest.TestCase):
         """
         # Run test.
         self.helper(txt, expected)
+
+    def test5(self) -> None:
+        """
+        Test that blank lines around a ` ``` ` fence nested in a bullet are
+        removed, so the fence stays glued to its bullet.
+        """
+        # Prepare inputs.
+        txt = """
+        - **Good**
+
+          ```
+          <<<PROTECTED_BLOCK_001>>>
+          ```
+
+        - **Good**
+
+          ```
+          <<<PROTECTED_BLOCK_002>>>
+          ```
+        """
+        # Prepare outputs.
+        expected = """
+        - **Good**
+          ```
+          <<<PROTECTED_BLOCK_001>>>
+          ```
+        - **Good**
+          ```
+          <<<PROTECTED_BLOCK_002>>>
+          ```
+        """
+        # Run test.
+        self.helper(txt, expected)
+
+    def test6(self) -> None:
+        """
+        Test that no blank line is added around a ` ``` ` fence nested in a
+        bullet when the input has none.
+        """
+        # Prepare inputs.
+        txt = """
+        - **Good**
+          ```
+          <<<PROTECTED_BLOCK_001>>>
+          ```
+        - **Good**
+          ```
+          <<<PROTECTED_BLOCK_002>>>
+          ```
+        """
+        # Prepare outputs: no changes needed.
+        expected = txt
+        # Run test.
+        self.helper(txt, expected)
+
+    def test7(self) -> None:
+        """
+        Test that blank lines between a text line and a top-level ` ``` `
+        fence are removed on both sides of the fence.
+        """
+        # Prepare inputs.
+        txt = """
+        Some text
+
+        ```
+        <<<PROTECTED_BLOCK_001>>>
+        ```
+
+        More text
+        """
+        # Prepare outputs.
+        expected = """
+        Some text
+        ```
+        <<<PROTECTED_BLOCK_001>>>
+        ```
+        More text
+        """
+        # Run test.
+        self.helper(txt, expected)
+
+    def test8(self) -> None:
+        """
+        Test that the header rule still wins next to a ` ``` ` fence: exactly
+        one blank line is kept between a header and a fence, on either side.
+        """
+        # Prepare inputs.
+        txt = """
+        # Header
+        ```
+        <<<PROTECTED_BLOCK_001>>>
+        ```
+        ## Header 2
+        Some text
+        """
+        # Prepare outputs.
+        expected = """
+        # Header
+
+        ```
+        <<<PROTECTED_BLOCK_001>>>
+        ```
+
+        ## Header 2
+
+        Some text
+        """
+        # Run test.
+        self.helper(txt, expected)
+
+    def test9(self) -> None:
+        """
+        Test that a blank line is still added around a comment-placeholder
+        block when it borders a ` ``` ` fence.
+        """
+        # Prepare inputs.
+        txt = """
+        ```
+        <<<PROTECTED_BLOCK_001>>>
+        ```
+        <<<PROTECTED_COMMENT_001>>>
+        Some text
+        """
+        # Prepare outputs.
+        expected = """
+        ```
+        <<<PROTECTED_BLOCK_001>>>
+        ```
+
+        <<<PROTECTED_COMMENT_001>>>
+
+        Some text
+        """
+        # Run test.
+        self.helper(txt, expected)
+
+    def test10(self) -> None:
+        """
+        Test that `_md_format` is idempotent with a fence nested in bullets:
+        running it a second time on its own output produces no further
+        changes.
+        """
+        # Prepare inputs.
+        txt = """
+        # Header
+        - **Good**
+
+          ```
+          <<<PROTECTED_BLOCK_001>>>
+          ```
+
+        - **Good**
+          ```
+          <<<PROTECTED_BLOCK_002>>>
+          ```
+        Some text
+        """
+        lines = hprint.dedent(
+            txt.split("\n"), remove_lead_trail_empty_lines_=True
+        )
+        # Run test.
+        once = dshdllite._md_format(lines)
+        twice = dshdllite._md_format(once)
+        # Check outputs.
+        self.assertEqual(once, twice)
+
+    def test11(self) -> None:
+        """
+        Test that the blank lines around a pipe table are kept, otherwise the
+        table is not parsed as a table by `pandoc`.
+        """
+        # Prepare inputs.
+        txt = """
+        Intro:
+
+        | a | b |
+        | - | - |
+        | 1 | 2 |
+
+        After
+        """
+        # Prepare outputs.
+        expected = txt
+        # Run test.
+        self.helper(txt, expected)
+
+    def test12(self) -> None:
+        """
+        Test that the blank lines around a pipe table nested in a bullet are
+        kept.
+        """
+        # Prepare inputs.
+        txt = """
+        - Item text
+
+          | a |
+          | - |
+          | 1 |
+
+        - Next
+        """
+        # Prepare outputs.
+        expected = txt
+        # Run test.
+        self.helper(txt, expected)
+
+    def test13(self) -> None:
+        """
+        Test that several blank lines before and after a pipe table nested in
+        a bullet are collapsed to exactly one.
+        """
+        # Prepare inputs.
+        txt = """
+        - Item text
+
+
+
+          | a |
+          | - |
+          | 1 |
+
+
+
+        - Next
+        """
+        # Prepare outputs.
+        expected = """
+        - Item text
+
+          | a |
+          | - |
+          | 1 |
+
+        - Next
+        """
+        # Run test.
+        self.helper(txt, expected)
+
+
+# #############################################################################
+# Test_perform_actions_nested_fence
+# #############################################################################
+
+
+class Test_perform_actions_nested_fence(hunitest.TestCase):
+    """
+    Test that `_perform_actions` keeps a fenced block shown inside a longer
+    fenced block, and the text that follows it.
+    """
+
+    def helper(self, txt: str, expected: str) -> None:
+        """
+        Run the default actions on `txt` and compare the result to `expected`.
+
+        :param txt: input markdown text
+        :param expected: expected markdown text
+        """
+        # Prepare inputs.
+        lines = hprint.dedent(txt, remove_lead_trail_empty_lines_=True).split(
+            "\n"
+        )
+        # Save the intermediate `prettier` files in the scratch space, instead of
+        # the current dir.
+        tmp_dir = self.get_scratch_space()
+        # Run test.
+        actual_lines = dshdllite._perform_actions(
+            lines,
+            "file.md",
+            actions=dshdllite.DEFAULT_ACTIONS,
+            width=80,
+            use_dockerized_prettier=True,
+            use_dockerized_markdown_toc=True,
+            tmp_dir=tmp_dir,
+        )
+        # Check outputs.
+        actual = "\n".join(actual_lines)
+        expected = hprint.dedent(expected, remove_lead_trail_empty_lines_=True)
+        self.assert_equal(actual, expected)
+
+    @pytest.mark.skipif(
+        hserver.is_inside_docker(),
+        reason="Nested container issues",
+    )
+    def test1(self) -> None:
+        """
+        Test that the text after a 4-backtick block showing a lone 3-backtick
+        fence is not lost.
+
+        Regression test: the section `# Verification` used to be dropped.
+        """
+        # Prepare inputs.
+        txt = """
+        # Size
+
+        - Set the width, e.g.,
+          ````
+          ```plantuml[width=80%]
+          ````
+
+        # Verification
+
+        - [ ] one
+        - [ ] two
+        """
+        # Prepare outputs: the 4-backtick delimiters are kept.
+        expected = txt
+        # Run test.
+        self.helper(txt, expected)
+
+    @pytest.mark.skipif(
+        hserver.is_inside_docker(),
+        reason="Nested container issues",
+    )
+    def test2(self) -> None:
+        """
+        Test that a balanced 3-backtick block inside a 4-backtick block keeps
+        the 4-backtick delimiters.
+
+        Regression test: `prettier` used to shorten the delimiters to 3
+        backticks, which closed the block at the first inner fence.
+        """
+        # Prepare inputs.
+        txt = """
+        # Rules
+
+        - Label the fence, e.g.,
+          ````markdown
+          ```python
+          x = 1
+          ```
+          ````
+
+        # Next
+
+        - Item one
+        """
+        # Prepare outputs.
+        expected = txt
+        # Run test.
+        self.helper(txt, expected)
+
+
+# #############################################################################
+# Test_add_blank_line_before_tables
+# #############################################################################
+
+
+class Test_add_blank_line_before_tables(hunitest.TestCase):
+    """
+    Test the _add_blank_line_before_tables function.
+    """
+
+    def helper(self, txt: str, expected: str) -> None:
+        """
+        Test helper for _add_blank_line_before_tables.
+
+        :param txt: Input text to process
+        :param expected: Expected output after adding the blank lines
+        """
+        _helper_process_lines(
+            self, txt, expected, dshdllite._add_blank_line_before_tables
+        )
+
+    def test1(self) -> None:
+        """
+        Test adding a blank line between the text of a bullet and its table.
+        """
+        # Prepare inputs.
+        txt = """
+        - Item text
+          | a | b |
+          | - | - |
+          | 1 | 2 |
+        """
+        # Prepare outputs.
+        expected = """
+        - Item text
+
+          | a | b |
+          | - | - |
+          | 1 | 2 |
+        """
+        # Run test.
+        self.helper(txt, expected)
+
+    def test2(self) -> None:
+        """
+        Test adding a blank line between a paragraph and a top-level table.
+        """
+        # Prepare inputs.
+        txt = """
+        Intro:
+        |a|b|
+        |:-|-:|
+        |1|2|
+        """
+        # Prepare outputs.
+        expected = """
+        Intro:
+
+        |a|b|
+        |:-|-:|
+        |1|2|
+        """
+        # Run test.
+        self.helper(txt, expected)
+
+    def test3(self) -> None:
+        """
+        Test that a table that already follows a blank line is unchanged.
+        """
+        # Prepare inputs.
+        txt = """
+        Intro:
+
+        | a | b |
+        | - | - |
+        | 1 | 2 |
+        """
+        # Prepare outputs.
+        expected = txt
+        # Run test.
+        self.helper(txt, expected)
+
+    def test4(self) -> None:
+        """
+        Test that a line starting with a pipe, without a delimiter row, is not
+        treated as a table.
+        """
+        # Prepare inputs.
+        txt = """
+        Run the command
+        | grep foo
+        and check the output
+        """
+        # Prepare outputs.
+        expected = txt
+        # Run test.
+        self.helper(txt, expected)
+
+
+# #############################################################################
+# Test_perform_actions_table
+# #############################################################################
+
+
+class Test_perform_actions_table(hunitest.TestCase):
+    """
+    Test that `_perform_actions` keeps a pipe table that directly follows the
+    text of a bullet.
+    """
+
+    @pytest.mark.skipif(
+        hserver.is_inside_docker(),
+        reason="Nested container issues",
+    )
+    def test1(self) -> None:
+        """
+        Test that the table is formatted as a table, instead of being reflowed
+        into the text of the bullet.
+
+        Regression test: `prettier` does not see a table without a blank line
+        before it, and turned the rows into a wrapped paragraph.
+        """
+        # Prepare inputs.
+        txt = """
+        - Paths are scoped to the running class and method automatically
+          | Method | Returns |
+          | ------ | ------- |
+          | `get_input_dir()` | Local path for fixtures |
+          | `get_output_dir()` | Local path for golden files |
+        """
+        lines = hprint.dedent(txt, remove_lead_trail_empty_lines_=True).split(
+            "\n"
+        )
+        # Save the intermediate `prettier` files in the scratch space, instead of
+        # the current dir.
+        tmp_dir = self.get_scratch_space()
+        # Prepare outputs.
+        expected = """
+        - Paths are scoped to the running class and method automatically
+
+          | Method             | Returns                     |
+          | ------------------ | --------------------------- |
+          | `get_input_dir()`  | Local path for fixtures     |
+          | `get_output_dir()` | Local path for golden files |
+        """
+        expected = hprint.dedent(expected, remove_lead_trail_empty_lines_=True)
+        # Run test.
+        actual_lines = dshdllite._perform_actions(
+            lines,
+            "file.md",
+            actions=dshdllite.DEFAULT_ACTIONS,
+            width=80,
+            use_dockerized_prettier=True,
+            use_dockerized_markdown_toc=True,
+            tmp_dir=tmp_dir,
+        )
+        # Check outputs.
+        actual = "\n".join(actual_lines)
+        self.assert_equal(actual, expected)
 
 
 # #############################################################################
@@ -3774,3 +4391,328 @@ class Test__typstyle_format(hunitest.TestCase):
         # Check outputs.
         expected = "= Heading\n"
         self.assertEqual(actual, expected)
+
+
+# #############################################################################
+# Test_check_pandoc_equivalence
+# #############################################################################
+
+
+@pytest.mark.skipif(
+    not dshdlipa.is_pandoc_on_path(), reason="pandoc is not installed"
+)
+class Test_check_pandoc_equivalence(hunitest.TestCase):
+    """
+    Test that `_check_pandoc_equivalence` flags only changes of the content.
+    """
+
+    def helper(self, before: str, after: str, expected: str) -> None:
+        """
+        Compare the content of two markdown texts and check the difference.
+
+        :param before: text before the processing
+        :param after: text after the processing
+        :param expected: expected difference, empty if the texts are equivalent
+        """
+        # Prepare inputs.
+        lines_before = hprint.dedent(
+            before, remove_lead_trail_empty_lines_=True
+        ).split("\n")
+        lines_after = hprint.dedent(
+            after, remove_lead_trail_empty_lines_=True
+        ).split("\n")
+        # Run test.
+        actual = dshdllite._check_pandoc_equivalence(
+            lines_before, lines_after, pandoc_backend="host"
+        )
+        # Check outputs.
+        actual = "\n".join(actual)
+        expected = hprint.dedent(expected, remove_lead_trail_empty_lines_=True)
+        self.assert_equal(actual, expected)
+
+    def test1(self) -> None:
+        """
+        Test that the edits done on purpose by the actions are ignored.
+        """
+        # Prepare inputs.
+        before = """
+        # Title
+
+        * the cache avoids slow queries.
+        * Use `x` -- see [docs](http://a.b/c)
+
+        ```python
+        x = 1
+        ```
+        """
+        after = """
+        # Title
+
+        - The cache avoids
+          slow queries
+        - use `x` -- see [docs](http://a.b/c).
+
+        ```python
+        x = 1
+        ```
+        """
+        # Prepare outputs.
+        expected = ""
+        # Run test.
+        self.helper(before, after, expected)
+
+    def test2(self) -> None:
+        """
+        Test that a lost word is flagged.
+        """
+        # Prepare inputs.
+        before = """
+        # Title
+
+        - Use the cache to avoid slow queries
+        """
+        after = """
+        # Title
+
+        - Use the cache to avoid queries
+        """
+        # Prepare outputs.
+        expected = """
+        --- before
+        +++ after
+        @@ -9,7 +9,6 @@
+         cache
+         to
+         avoid
+        -slow
+         queries
+         </BulletList>
+         <meta>
+        """
+        # Run test.
+        self.helper(before, after, expected)
+
+    def test3(self) -> None:
+        """
+        Test that a link target changed is flagged.
+        """
+        # Prepare inputs.
+        before = "See [docs](http://a.b/c)."
+        after = "See [docs](http://a.b/d)."
+        # Prepare outputs.
+        expected = """
+        --- before
+        +++ after
+        @@ -1,6 +1,6 @@
+         <blocks>
+         see
+        -<Link> ["http://a.b/c", ""]
+        +<Link> ["http://a.b/d", ""]
+         docs
+         <meta>
+         <pandoc-api-version>
+        """
+        # Run test.
+        self.helper(before, after, expected)
+
+    def test4(self) -> None:
+        """
+        Test that a change inside a code block, even a blank line, is flagged.
+        """
+        # Prepare inputs.
+        before = """
+        - Block:
+          ```python
+          x = 1
+          ```
+        """
+        after = """
+        - Block:
+          ```python
+
+          x = 1
+          ```
+        """
+        # Prepare outputs.
+        expected = r"""
+        --- before
+        +++ after
+        @@ -1,7 +1,7 @@
+         <blocks>
+         <BulletList>
+         block
+        -<CodeBlock> [["", ["python"], []], "x = 1"]
+        +<CodeBlock> [["", ["python"], []], "\nx = 1"]
+         </BulletList>
+         <meta>
+         <pandoc-api-version>
+        """
+        # Run test.
+        self.helper(before, after, expected)
+
+    def test5(self) -> None:
+        """
+        Test that a table that stops being a table is flagged.
+        """
+        # Prepare inputs.
+        before = """
+        Intro:
+
+        | a |
+        |---|
+        | 1 |
+        """
+        after = """
+        Intro:
+        | a |
+        |---|
+        | 1 |
+        """
+        # Prepare outputs.
+        expected = """
+        --- before
+        +++ after
+        @@ -1,22 +1,12 @@
+         <blocks>
+         intro
+        -<Table>
+        -<AlignDefault>
+        -</AlignDefault>
+        -<ColWidthDefault>
+        -</ColWidthDefault>
+        -<AlignDefault>
+        -</AlignDefault>
+        +|
+        +a
+        +|
+        +||
+        +|
+         1
+        -1
+        -a
+        -0
+        -<AlignDefault>
+        -</AlignDefault>
+        -1
+        -1
+        -1
+        -</Table>
+        +|
+         <meta>
+         <pandoc-api-version>
+         1
+        """
+        # Run test.
+        self.helper(before, after, expected)
+
+    def test6(self) -> None:
+        """
+        Test that the style of the delimiter of an ordered list is ignored.
+        """
+        # Prepare inputs.
+        before = """
+        1) First item
+        2) Second item
+        """
+        after = """
+        1. First item
+        2. Second item
+        """
+        # Prepare outputs.
+        expected = ""
+        # Run test.
+        self.helper(before, after, expected)
+
+    def test7(self) -> None:
+        """
+        Test that paragraph boundaries are ignored, since `_md_format` removes
+        the blank lines between paragraphs.
+        """
+        # Prepare inputs.
+        before = """
+        First paragraph
+
+        Second paragraph
+        """
+        after = """
+        First paragraph
+        Second paragraph
+        """
+        # Prepare outputs.
+        expected = ""
+        # Run test.
+        self.helper(before, after, expected)
+
+    def test8(self) -> None:
+        """
+        Test that a blank line added before a table that directly follows text
+        is ignored, since `lint_text.py` adds it on purpose.
+        """
+        # Prepare inputs.
+        before = """
+        - Item text
+          | a | b |
+          | - | - |
+          | 1 | 2 |
+        """
+        after = """
+        - Item text
+
+          | a | b |
+          | - | - |
+          | 1 | 2 |
+        """
+        # Prepare outputs.
+        expected = ""
+        # Run test.
+        self.helper(before, after, expected)
+
+    def test9(self) -> None:
+        """
+        Test that a table inside a fenced block is not normalized, so the same
+        text before and after is always equivalent.
+
+        Regression test: a blank line was added inside the fence of the text
+        before the processing, so the code block looked changed.
+        """
+        # Prepare inputs.
+        before = """
+        - Example:
+          ```markdown
+          Intro
+          | a | b |
+          | - | - |
+          ```
+        """
+        after = before
+        # Prepare outputs.
+        expected = ""
+        # Run test.
+        self.helper(before, after, expected)
+
+
+# #############################################################################
+# Test_check_content_preserved
+# #############################################################################
+
+
+class Test_check_content_preserved(hunitest.TestCase):
+    """
+    Test the `_check_content_preserved` function.
+    """
+
+    def test1(self) -> None:
+        """
+        Test that a file type that `pandoc` can't parse as markdown is skipped.
+        """
+        # Prepare inputs.
+        in_file_name = "notes.txt"
+        lines_before = ["* a"]
+        lines_after = ["- completely different"]
+        args = argparse.Namespace(type="", pandoc_backend="host")
+        # Run test.
+        actual = dshdllite._check_content_preserved(
+            in_file_name, lines_before, lines_after, args
+        )
+        # Check outputs.
+        self.assertTrue(actual)

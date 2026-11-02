@@ -5,9 +5,10 @@ import random
 from typing import Any, List, Optional, Tuple
 
 import pandas as pd
-import pyarrow
-import pyarrow.parquet as parquet
 import pytest
+
+pyarrow = pytest.importorskip("pyarrow")
+import pyarrow.parquet as parquet
 
 import helpers.hdbg as hdbg
 import helpers.hmoto as hmoto
@@ -36,7 +37,7 @@ def _get_df(date: datetime.date, seed: int = 42) -> pd.DataFrame:
     2000-01-03     0     A    85    86
     ```
     """
-    instruments = "A B C D E".split()
+    instruments = ["A", "B", "C", "D", "E"]
     date = pd.Timestamp(date, tz="America/New_York")
     start_date = date.replace(hour=9, minute=30)
     end_date = date.replace(hour=16, minute=0)
@@ -400,7 +401,6 @@ class TestPartitionedParquet1(hunitest.TestCase):
         # Compare.
         if columns_to_read is not None:
             df = df[columns_to_read]
-        #
         hdbg.dassert_set_eq(df.columns, df2.columns)
         df2 = df2[df.columns]
         df_as_str = _compare_dfs(self, df, df2)
@@ -545,7 +545,6 @@ class TestPartitionedParquet1(hunitest.TestCase):
         - Make sure that reading it back we get the original data.
         """
         df = _get_df_example1()
-        #
         partition_cols = ["idx"]
         # Write the first chunk.
         df_chunk1 = df[df["idx"].isin([0, 1])]
@@ -989,7 +988,6 @@ class TestToPartitionedDataset(hunitest.TestCase):
         self.assert_equal(
             dir_signature, expected, purify_text=True, fuzzy_match=True
         )
-        #
         include_file_content = True
         dir_signature = hunitest.get_dir_signature(
             test_dir, include_file_content, remove_dir_name=remove_dir_name

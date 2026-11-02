@@ -1,15 +1,18 @@
 import io
 from typing import Any, Dict, Optional, Tuple
 
+import pytest
+
+pytest.importorskip("matplotlib")
+pytest.importorskip("networkx")
+pytest.importorskip("PIL")
+pytest.importorskip("graphviz")
 import matplotlib.pyplot as plt
 import networkx as nx
-import pytest
 from PIL import Image
 
-pytest.importorskip("graphviz")
 import helpers.hgraphviz as hgraphv
 import helpers.hunit_test as hunitest
-
 
 # #############################################################################
 # Test_graph_to_graphviz_dot
@@ -45,7 +48,12 @@ class Test_graph_to_graphviz_dot(hunitest.TestCase):
         """
         # Run test.
         actual = hgraphv._graph_to_graphviz_dot(
-            G, title, node_colors=node_colors, edge_colors=edge_colors, size=size, dpi=dpi
+            G,
+            title,
+            node_colors=node_colors,
+            edge_colors=edge_colors,
+            size=size,
+            dpi=dpi,
         )
         # Check outputs.
         self.assert_equal(actual, expected, dedent=True, fuzzy_match=True)
@@ -1026,9 +1034,7 @@ class Test_graphviz_image_properties(hunitest.TestCase):
             figsize = hgraphv.DAG_FIGURE_SIZE
         fig, ax = plt.subplots(figsize=figsize, dpi=dpi)
         # Render the graph
-        hgraphv.plot_dag_with_graphviz(
-            G, title, ax=ax, figsize=figsize, dpi=dpi
-        )
+        hgraphv.plot_dag_with_graphviz(G, title, ax=ax, figsize=figsize, dpi=dpi)
         # Save to bytes buffer
         buf = io.BytesIO()
         fig.savefig(buf, format="png", dpi=dpi)

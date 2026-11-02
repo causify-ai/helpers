@@ -1,10 +1,19 @@
-Conventions for writing a README for a single executable / script.
+Conventions for writing a README for a single executable / script
+
+# Scope and Naming
+
+- Use these rules for the README of one file, typically an executable
+  - For the README of a directory, follow `.claude/skills/readme_dir.rules.md`
+- Name the file `<FILE>.README.md` and put it in the same directory as `<FILE>`
+  - E.g., `dev_scripts_helpers/system_tools/mdm.README.md` documents
+    `dev_scripts_helpers/system_tools/mdm.py`
+- Follow the template `.claude/templates/readme_file.template.md`
+- To write the README, use the skill `.claude/skills/readme_file.create/SKILL.md`
 
 # Overall Structure
 
 - Single-file READMEs should follow this hierarchical organization:
-  - **Summary**: One paragraph describing the file's purpose and main
-    responsibility
+  - **Summary**: One paragraph describing the file's purpose and main responsibility
   - **Examples**: 3-5 realistic usage patterns (simple → complex)
   - **Configuration & Inputs**: Parameters, environment variables, file formats
   - **Output & Side Effects**: What the script produces and any state changes
@@ -12,11 +21,13 @@ Conventions for writing a README for a single executable / script.
 
 # Writing Conventions
 
-- Follow `.claude/skills/markdown.rules.md` and `.claude/skills/text.rules.md`
-  for text formatting
+- Follow `.claude/skills/markdown.rules.md` and `.claude/skills/text.rules.md` for
+  text formatting
 - Keep descriptions concise and action-oriented
-- Use architecture diagrams sparingly (ASCII or mermaid) only when data flow is complex
-  - Draw a C4 diagram with PlantUML, never with Mermaid, per `.claude/skills/C4.rules.md`
+- Use architecture diagrams sparingly (ASCII or mermaid) only when data flow is
+  complex
+  - Draw a C4 diagram with PlantUML, never with Mermaid, per
+    `.claude/skills/C4.rules.md`
 - Limit descriptions to specified word counts
 - For scripts: emphasize entry point, main algorithm, and transformation pipeline
 
@@ -49,12 +60,12 @@ Conventions for writing a README for a single executable / script.
   ```markdown
   - Basic usage with defaults:
     ```bash
-    > python process_logs.py --input app.log
+    > process_logs.py --input app.log
     ```
 
   - Filter for recent events and save to custom location:
     ```bash
-    > python process_logs.py \
+    > process_logs.py \
         --input app.log \
         --output summary.parquet \
         --days 3
@@ -62,7 +73,7 @@ Conventions for writing a README for a single executable / script.
 
   - Enable debug output and process multiple files:
     ```bash
-    > python process_logs.py \
+    > process_logs.py \
         --input logs/*.log \
         --output combined_summary.parquet \
         --days 7 \

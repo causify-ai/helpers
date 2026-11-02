@@ -289,7 +289,7 @@ model: sonnet
   - Quality score: 3/5, one clear purpose and good links, but CI `pytest_log`
     fails and the tests are in #749
   - Status: ready, mergeable. CI `pytest_log` failed
-  - Reference material: `research/Noesis/docs/spec.PR_S4.md`
+  - Reference material: `research/Noesis/docs/06-spec.PR_S4.md`
   - Base: `master`
   - Size: 4 files, +396 / -2
   ````

@@ -5,16 +5,17 @@ import unittest.mock as umock
 from typing import Any, Dict, Generator, List
 
 import boto3
-import moto
 import pytest
 
 import helpers.hgit as hgit
+import helpers.hserver as hserver
 import helpers.hunit_test as hunitest
 import helpers.hunit_test_utils as hunteuti
-import helpers.hserver as hserver
 import helpers.lib_tasks.lib_tasks_docker as hltltado
 import helpers.lib_tasks.lib_tasks_docker_release as hltltdore
 import helpers.lib_tasks.test.test_lib_tasks as httestlib
+
+moto = pytest.importorskip("moto")
 
 _LOG = logging.getLogger(__name__)
 

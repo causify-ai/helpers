@@ -37,7 +37,7 @@ next step
 
 ## Step 2)
 - Update the file README.md in the same directory of the script following the
-  instructions in `.claude/skills/readme.create.md`
+  instructions in `.claude/skills/readme_dir.create/SKILL.md`
 
 ## Step 3)
 - Generate unit tests for the code following the instructions in
@@ -142,7 +142,7 @@ Given the passed code
   - Explain the goal of the script
   - Report some examples of how to use the script
   - Update the file README.md in the same directory of the script following the
-    instructions in `.claude/skills/readme.create.md`
+    instructions in `.claude/skills/readme_dir.create/SKILL.md`
 
 # Write Short Tutorial
 

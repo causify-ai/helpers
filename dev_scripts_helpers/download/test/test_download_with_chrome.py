@@ -1,13 +1,15 @@
-#!/usr/bin/env python
-
 import logging
 import os
 import socket
 from typing import Any, List
 from unittest import mock
 
+import pytest
+
 import helpers.hunit_test as hunitest
 import helpers.hunit_test_utils as hunteuti
+
+pytest.importorskip("bs4")
 import dev_scripts_helpers.download.download_with_chrome as dshddwich
 
 _LOG = logging.getLogger(__name__)

@@ -32,8 +32,8 @@ naming, template, and the `README.md` tracking table
 - Do not add an `Assignee` field to an idea file: assignees are tracked only in the
   README table
 - Write references as `Author(s), _Title_. (Year)`
-- Do not leave template placeholder text (e.g., `[Example 1]`, `Do this and that`) in a
-  finished section: fill it from the idea's own content or remove the bullet
+- Do not leave template placeholder text (e.g., `[Example 1]`, `Do this and that`) in
+  a finished section: fill it from the idea's own content or remove the bullet
 - Do not invent new top-level sections; reuse the template's sections (`Core Idea`,
   `Formalization`, `Key Examples`, `Questions`, `Research Topics`, `Next steps`,
   `Implementation plan`, `References`)

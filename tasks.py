@@ -51,10 +51,8 @@ from helpers.lib_tasks import (  # isort: skip # noqa: F401  # pylint: disable=u
     docker_tag_local_image_as_dev,  # TODO(gp): -> docker_release_...
     docker_tag_push_multi_arch_prod_image,
     docker_update_prod_task_definition,
-    #
     bash_print_path,
     bash_print_tree,
-    #
     find,
     find_check_string_output,
     find_dependency,
@@ -92,7 +90,7 @@ from helpers.lib_tasks import (  # isort: skip # noqa: F401  # pylint: disable=u
     git_pull,
     git_repo_copy,
     git_reset_symlink_perms,
-    git_roll_amp_forward,
+    git_roll_submodule_forward,
     git_set_symlink_perms,
     integrate_create_branch,
     integrate_diff_dirs,

@@ -21,7 +21,7 @@
 ## Decisions
 
 - <Each non-obvious choice: decision, why, alternatives considered>
-- <Add it to `decisions.md` and link it here>
+- <Add it to `03-decisions.md` and link it here>
 - Use bullet points
 - Do not use more than 50 words
 

@@ -5,14 +5,14 @@ import pprint
 import unittest.mock as umock
 from typing import Any, Dict, List, Tuple
 
+import pytest
+
 import helpers.hio as hio
 import helpers.hmarkdown_headers as hmarhead
 import helpers.hparser as hparser
 import helpers.hprint as hprint
 import helpers.hunit_test as hunitest
 import helpers.hunit_test_utils as hunteuti
-
-import pytest
 
 pytest.importorskip("claude_agent_sdk")
 
@@ -64,7 +64,7 @@ class Test_infer_topic_from_filename(hunitest.TestCase):
         # Prepare inputs.
         filename = "README.md"
         # Prepare outputs.
-        expected = "readme"
+        expected = "readme_dir"
         # Run test.
         self.helper(filename, expected)
 
@@ -195,7 +195,7 @@ class Test_infer_topic_from_filename(hunitest.TestCase):
         # Prepare inputs.
         filename = "subdir/README.md"
         # Prepare outputs.
-        expected = "readme"
+        expected = "readme_dir"
         # Run test.
         self.helper(filename, expected)
 
@@ -218,6 +218,17 @@ class Test_infer_topic_from_filename(hunitest.TestCase):
         filename = "lectures_source/Lesson01.1-Intro.smd"
         # Prepare outputs.
         expected = "slides"
+        # Run test.
+        self.helper(filename, expected)
+
+    def test17(self) -> None:
+        """
+        Test detection of the README of a single executable.
+        """
+        # Prepare inputs.
+        filename = "dev_scripts_helpers/system_tools/mdm.README.md"
+        # Prepare outputs.
+        expected = "readme_file"
         # Run test.
         self.helper(filename, expected)
 
@@ -325,17 +336,17 @@ class Test_get_rules_for_topic(hunitest.TestCase):
 
     def test5(self) -> None:
         """
-        Test that readme topic has run_lint flag set.
+        Test that readme_dir topic has run_lint flag set.
         """
         # Prepare inputs.
-        topic = "readme"
+        topic = "readme_dir"
         # Prepare outputs.
         expected = """
         {'role': '.claude/skills/role.ai_researcher.md',
-         'rules': ['.claude/skills/readme.rules.md'],
+         'rules': ['.claude/skills/readme_dir.rules.md'],
          'run_jupytext': False,
          'run_lint': True,
-         'templates': []}
+         'templates': ['.claude/templates/readme_dir.template.md']}
         """
         # Run test.
         topic_info = self.helper(topic, expected)
@@ -401,7 +412,8 @@ class Test_get_rules_for_topic(hunitest.TestCase):
             "latex",
             "markdown",
             "notebook",
-            "readme",
+            "readme_dir",
+            "readme_file",
             "skill",
             "slides",
             "testing",
@@ -413,6 +425,25 @@ class Test_get_rules_for_topic(hunitest.TestCase):
         for topic in topics:
             topic_info = lcclint._get_rules_for_topic(topic)
             self.assertIsNotNone(topic_info)
+
+    def test10(self) -> None:
+        """
+        Test that readme_file topic has rules, template, and run_lint set.
+        """
+        # Prepare inputs.
+        topic = "readme_file"
+        # Prepare outputs.
+        expected = """
+        {'role': '.claude/skills/role.ai_researcher.md',
+         'rules': ['.claude/skills/readme_file.rules.md'],
+         'run_jupytext': False,
+         'run_lint': True,
+         'templates': ['.claude/templates/readme_file.template.md']}
+        """
+        # Run test.
+        topic_info = self.helper(topic, expected)
+        # Check outputs.
+        self.assertTrue(topic_info["run_lint"])
 
 
 # #############################################################################
@@ -1380,7 +1411,6 @@ def _expected_message(
 {section_content}
 ```"""
     msg.append(hprint.indent(fence_block, num_spaces=2))
-    #
     if add_todos:
         footer = """
         - Reply with exactly one line:
@@ -1396,7 +1426,6 @@ def _expected_message(
         """
     footer = hprint.dedent(footer)
     msg.append(footer)
-    #
     msg_as_str = "\n".join(msg)
     return msg_as_str
 

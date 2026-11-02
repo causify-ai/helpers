@@ -3,16 +3,15 @@
 ## Boilerplate and Imports
 
 - Every `.typ` chapter starts with the same boilerplate, in this order
-  - the AIMA style import
-  - the citation import
+  - The AIMA style import
+  - The citation import
   - `#set document(...)` metadata,
   - `#show: aima-style`
-  - a single `#chapter(...)` call
+  - A single `#chapter(...)` call
 - Follow the template `.claude/templates/typst.template.typ`
 - Import both shared modules with a root-absolute path (resolved against
   `typst compile --root`), never a relative `../../` path: a relative path breaks as
   soon as the `.typ` file moves to a different directory depth:
-
   ```typst
   #import "/helpers_root/dev_scripts_helpers/typst/aima_style.typ": (
     aima-style, algorithm, chapter, glossary, styled-table, wrap-content,
@@ -21,7 +20,6 @@
     cite, references,
   )
   ```
-
 - Only import the names actually used, but expect `wrap-content` and `styled-table`
   in almost every chapter (see "Visuals" below)
 - `#set document(title: ..., author: ...)` uses the chapter/lesson title and the
@@ -41,19 +39,18 @@
 
 ## Structural Hierarchy
 
-- A `.typ` chapter's heading tree must contain every heading and slide title from
-  its source `.smd`, in the same order and at the same relative nesting
+- A `.typ` chapter's heading tree must contain every heading and slide title from its
+  source `.smd`, in the same order and at the same relative nesting
   - An `.smd` `#`/`##`/`###`(+) heading maps to a `.typ` `=`/`==`/`===`(+) heading,
     one level of `=` per level of `.smd` nesting
-- The `.typ` file is allowed a *more* complex hierarchy than the `.smd`
+- The `.typ` file is allowed a _more_ complex hierarchy than the `.smd`
   - Extra `===`/deeper subsections that group several flat `.smd` slides under a
     label the source never spelled out
   - The `.typ` outline is always a superset of the `.smd` outline, never a subset:
     every `.smd` heading/slide still needs a matching `.typ` heading somewhere in the
     tree, but the `.typ` tree may add levels the `.smd` never had
-- Compare the two outlines with `extract_toc_from_txt.py` before/after any
-  structural edit rather than guessing:
-
+- Compare the two outlines with `extract_toc_from_txt.py` before/after any structural
+  edit rather than guessing:
   ```bash
   > extract_toc_from_txt.py -i msml610/lectures_source/Lesson01.2*smd
   - What Is Intelligence? What is AI?
@@ -73,57 +70,49 @@
   - Summary
   - References
   ```
-
 - The `.typ` side nests `ML, AI, and Intelligence` and its six `===` subsections
   under a heading the flat `.smd` slide list never grouped that way, and adds
   `Roadmap`/`Summary`/`References` (see below). Both of the `.smd`'s own headings
-  (`What Is Intelligence? What is AI?`, `What Is Machine Learning?`) still appear
-  at the matching top level
+  (`What Is Intelligence? What is AI?`, `What Is Machine Learning?`) still appear at
+  the matching top level
 - A heading is always real Typst heading syntax, `=`/`==`/`===`(+): never
-  `#strong[Title]` sitting alone on its own line standing in for a heading.
-  `#strong[...]` renders bold text, not a heading: it is invisible to the
-  outline, to cross-references, and to `extract_toc_from_txt.py`, so it hides the
-  document's real structure from every tool that reads it
+  `#strong[Title]` sitting alone on its own line standing in for a heading
+  `#strong[...]` renders bold text, not a heading: it is invisible to the outline, to
+  cross-references, and to `extract_toc_from_txt.py`, so it hides the document's real
+  structure from every tool that reads it
   - **Bad** (fake heading, doesn't show up in the outline):
-
     ```typst
     #strong[ML, AI, and Intelligence]
 
     Machine Learning is a subset of Artificial Intelligence (AI). ...
     ```
-
   - **Good**:
-
     ```typst
     == ML, AI, and Intelligence
 
     Machine Learning is a subset of Artificial Intelligence (AI). ...
     ```
-
   This bans only a standalone `#strong[...]` line playing the role of a heading;
   `#strong[...]`/`#emph[...]` remain correct for inline emphasis inside prose (see
   "Highlighting and Emphasis" below)
 
 ## Mandatory Sections
 
-- Every chapter has exactly three mandatory level-1 (`=`) sections, in this
-  order:
-  - `= Roadmap` right after `#chapter(...)`, before the first content
-  section
+- Every chapter has exactly three mandatory level-1 (`=`) sections, in this order:
+  - `= Roadmap` right after `#chapter(...)`, before the first content section
   - `= Summary`
   - `= References` at the end
-  - All three are required regardless of what the `.smd` source has. Per the
-    slides convention (`.claude/skills/slides.rules.md` `## Roadmap Slide` /
-    `## Summary Slide`), every `.smd` now carries its own standalone
-    `* Roadmap` (first slide, before the first `#` topic) and `* Summary`
-    (last content slide, right before `* References`): convert those directly
-    into `= Roadmap` / `= Summary`, the same as any other slide. For an older
-    lesson written before that convention existed, normalize whatever it calls
-    its opening/closing slide (`Overview`, `Outline`, `Agenda`, `Key
-    Takeaways`, `Conclusion`, `Wrap-up`, ...) to `Roadmap` / `Summary`, and
-    write the section from scratch only if the lesson has no such slide at
-    all. Keep the `// Slide: <original title>` comment above the heading
-    either way, for traceability back to the source
+  - All three are required regardless of what the `.smd` source has. Per the slides
+    convention (`.claude/skills/slides.rules.md` `## Roadmap Slide` /
+    `## Summary Slide`), every `.smd` now carries its own standalone `* Roadmap`
+    (first slide, before the first `#` topic) and `* Summary` (last content slide,
+    right before `* References`): convert those directly into `= Roadmap` /
+    `= Summary`, the same as any other slide. For an older lesson written before that
+    convention existed, normalize whatever it calls its opening/closing slide
+    (`Overview`, `Outline`, `Agenda`, `Key Takeaways`, `Conclusion`, `Wrap-up`, ...)
+    to `Roadmap` / `Summary`, and write the section from scratch only if the lesson
+    has no such slide at all. Keep the `// Slide: <original title>` comment above the
+    heading either way, for traceability back to the source
 
 # Text Formatting
 
@@ -139,14 +128,13 @@
 - Decide `#strong` vs `#emph` by the role the phrase plays in the sentence, not by
   mechanically mapping the source's markdown (`**bold**` does not automatically mean
   `#strong`)
-- Always use the function form (`#strong[...]`, `#emph[...]`) over the native shorthand
-  (`*...*`, `_..._`)
+- Always use the function form (`#strong[...]`, `#emph[...]`) over the native
+  shorthand (`*...*`, `_..._`)
 - Never leave Markdown-only syntax that has no meaning in Typst body text:
   `**double-star bold**`, `~~strikethrough~~`, or a lone `*`/`_` used the Markdown
   way: Typst renders these as literal punctuation, not emphasis
 - A plain quoted phrase (`"..."`) stays a plain quoted string: never prefix it with
   `#`: `#"text"` is a Typst string _expression_ and drops the visible quote marks
-
 - Cross-check against the source `.smd` when deciding `#strong` vs `#emph`, but apply
   the role-based test above rather than copying its markdown verbatim:
   - A term that anchors its own paragraph and is being named for the first time (the
@@ -205,15 +193,15 @@
 - Keep plain `=` for everything else in the same formula: a later step that
   simplifies or substitutes into an already-defined quantity, a computed numeric
   result, an asserted property, or an algorithm's update/recurrence rule
-- Example: `$ "MSE" eq.delta 1/N sum_(i=1)^N (h(x_i) - f(x_i))^2 $` defines MSE, while
-  `$ "RMSE" eq.delta sqrt("MSE") = sqrt(1/N sum_(i=1)^N (h(x_i) - f(x_i))^2) $` uses
-  `eq.delta` only for the RMSE definition and keeps `=` for substituting MSE's
+- Example: `$ "MSE" eq.delta 1/N sum_(i=1)^N (h(x_i) - f(x_i))^2 $` defines MSE,
+  while `$ "RMSE" eq.delta sqrt("MSE") = sqrt(1/N sum_(i=1)^N (h(x_i) - f(x_i))^2) $`
+  uses `eq.delta` only for the RMSE definition and keeps `=` for substituting MSE's
   already-defined formula
 
 ## Mathematical Symbols in Text
 
-- Never use Unicode symbols directly in body text: use Typst math expressions
-  (within `$...$` delimiters) or Typst command names for all mathematical symbols
+- Never use Unicode symbols directly in body text: use Typst math expressions (within
+  `$...$` delimiters) or Typst command names for all mathematical symbols
 - This includes Greek letters (α, β, γ, ...), special operators, and mathematical
   constants: always use their Typst equivalents
 - When a symbol appears inline with regular prose, wrap it in `$...$`:
@@ -271,17 +259,17 @@
   - Pair it with the paragraph(s) discussing it, so the text flows beside it
 - A denser rendered diagram: a `graphviz`/`mermaid`/`tikz`/... figure with many
   labeled nodes, boxes, or arrows (a flowchart with several steps, a mind map, a
-  multi-entity knowledge graph, an architecture diagram, a timeline, etc.) must
-  NOT be squeezed into a `#wrap-content` side column: at the width that column
-  allows, its node labels become too small to read
+  multi-entity knowledge graph, an architecture diagram, a timeline, etc.) must NOT
+  be squeezed into a `#wrap-content` side column: at the width that column allows,
+  its node labels become too small to read
   - Give it a bare `#figure(...)` instead (no wrapping, `width: 70%` or more; see
     "Sizing" below), even though this means it no longer sits directly beside one
     paragraph
 - The dividing line is legibility, not "photo vs diagram": if every label in the
-  diagram stays comfortably readable at the chosen `wrap-content` width, wrapping
-  it is fine. If any label would shrink past comfortable reading size, the diagram
-  needs a full-width bare figure instead. When in doubt, compile and look at the
-  rendered page rather than guessing from the source
+  diagram stays comfortably readable at the chosen `wrap-content` width, wrapping it
+  is fine. If any label would shrink past comfortable reading size, the diagram needs
+  a full-width bare figure instead. When in doubt, compile and look at the rendered
+  page rather than guessing from the source
 - A table is paired with its paragraph via
   `#grid(columns: (1fr, <width>), column-gutter: 1em, align: (left, top))[prose][table]`
   instead of `#wrap-content`: a table is a rectangular block, not something text
@@ -293,7 +281,6 @@
   `// Keep this table full-width: N columns`)
 - **Bad** (a multi-node flowchart squeezed into a `wrap-content` side column: its
   labels will be illegible at this width):
-
   ```typst
   #wrap-content(
     [
@@ -308,10 +295,8 @@
     @fig:agentloop shows how an agent perceives, decides, and acts.
   ]
   ```
-
 - **Good** (the same dense diagram, full width; a single-subject photo still uses
   `wrap-content`):
-
   ```typst
   #figure(
     image("figures/agent_loop_diagram.png", width: 100%),
@@ -341,10 +326,8 @@
     machines can think, as @fig:alanturing's subject first posed it.
   ]
   ```
-
 - **Good** (a simple two-node diagram, not a photo, still fits `wrap-content`: only
   one edge and one label, so it reads fine at 50%):
-
   ```typst
   #wrap-content(
     [
@@ -366,7 +349,6 @@
     assignments that ground our reasoning.
   ]
   ```
-
 - The prose paired with a `wrap-content` image must be long enough to run the full
   height of the image column. A single short sentence next to a tall portrait leaves
   a blank gap under the text while the image runs on alone beside it. Write two or
@@ -387,21 +369,16 @@
   are capitalized elsewhere (a figure title, a heading, a source label): lowercase
   them into the sentence unless they're proper nouns or acronyms
   - **Bad** (multi-line, bold, restates every node label):
-
     ```typst
     caption: [Diagram relating #strong[Reunification], #strong[Contributing
       fields] and #strong[Reunified subfields]],
     ```
-
   - **Bad** (Title Case instead of sentence case):
-
     ```typst
     caption: [Diagram Relating Learning Paradigms, Label Availability and
       Interactive/Sequential],
     ```
-
   - **Good**:
-
     ```typst
     caption: [Fields that converged into the reunified AI research agenda.],
     ```
@@ -409,33 +386,26 @@
     caption: [Diagram relating learning paradigms, label availability and
       interactive/sequential],
     ```
-
 - `placement:` takes a bare keyword (`auto`, `none`, `top`, `bottom`), never a string
   — `placement: "auto"` is a type error
-- Every caption already renders small: `aima_style.typ`'s `show figure.caption`
-  rule (applied by `#show: aima-style`) sets caption text to 9pt against an
-  11pt body, chapter-wide. Never add per-caption sizing
-  (`#text(size: ...)[...]`) to get a small caption — that duplicates the
-  global rule and risks a different size than the rest of the book
+- Every caption already renders small: `aima_style.typ`'s `show figure.caption` rule
+  (applied by `#show: aima-style`) sets caption text to 9pt against an 11pt body,
+  chapter-wide. Never add per-caption sizing (`#text(size: ...)[...]`) to get a small
+  caption: that duplicates the global rule and risks a different size than the rest
+  of the book
 - The `.smd` source marks a caption as the image's markdown alt text:
-  `![Caption text](path/to/image.png)`. When converting to Typst, carry that
-  alt text over verbatim as the caption: `caption: [Caption text]`. The 9pt
-  size comes from the global rule above, not from anything in the caption
-  call itself
+  `![Caption text](path/to/image.png)`. When converting to Typst, carry that alt text
+  over verbatim as the caption: `caption: [Caption text]`. The 9pt size comes from
+  the global rule above, not from anything in the caption call itself
   - **Bad** (drops the alt text instead of carrying it over as the caption):
-
     ```typst
     image("figures/L02.4.Gradient_descent_contour.png", width: 100%),
     ```
-
   - **Bad** (hand-sizes one caption instead of relying on the shared rule):
-
     ```typst
     caption: [#text(size: 9pt)[Descent path on a 3D error surface]],
     ```
-
   - **Good**:
-
     ```typst
     caption: [Descent path on a 3D error surface.],
     ```
@@ -457,15 +427,15 @@
   paired `rendered_images:begin` / `rendered_images:end` comment block right above
   it. Anything else placed between those markers does not survive a rerun
 - When a not-yet-rendered diagram belongs in a `#wrap-content(...)` pairing (per
-  "Every Visual Pairs With Its Text" above), nest the whole placeholder — the raw
+  "Every Visual Pairs With Its Text" above), nest the whole placeholder: the raw
   fence, its `label=`/`caption=` metadata, and all four
   `rendered_images:begin`/`rendered_images:end`/`render_images:begin`/
-  `render_images:end` markers — inside `#wrap-content(...)`'s first `[ ... ]`
-  argument (the image slot). Keep the `#wrap-content(...)` call itself, its
+  `render_images:end` markers: inside `#wrap-content(...)`'s first `[ ... ]` argument
+  (the image slot). Keep the `#wrap-content(...)` call itself, its
   `align:`/`column-gutter:`/`columns:` arguments, and the prose in its trailing
   `)[ ... ]` argument OUTSIDE the markers, never between them
-- Putting the markers around the whole `#wrap-content(...)` call instead — so the
-  paired prose sits inside `render_images:begin`/`render_images:end` too — means the
+- Putting the markers around the whole `#wrap-content(...)` call instead: so the
+  paired prose sits inside `render_images:begin`/`render_images:end` too: means the
   next rerun silently deletes that prose and collapses the two-column layout to a
   bare `#figure(...)`: the regenerated block is always just the figure, never the
   wrapper and prose around it
@@ -476,7 +446,6 @@
   (`<fig:x caption=...>`) and an "unclosed label" compile error
 - **Bad** (markers wrap the whole `#wrap-content` call; the prose is destroyed the
   next time `render_images.py` runs):
-
   ```typst
   // rendered_images:begin
   // ```graphviz
@@ -503,10 +472,8 @@
   ]
   // render_images:end
   ```
-
 - **Good** (markers nested inside the image slot only; the `#wrap-content(...)` call
   and its prose survive every rerun):
-
   ```typst
   #wrap-content(
     [
@@ -546,23 +513,20 @@
     photo's caption would be; the 30% floor is for a plain portrait/icon with no
     internal text of its own
   - A bare `#figure(...)`, for a dense multi-element diagram or a wide table (see
-    "Every Visual Pairs With Its Text" above): `width:` must be **70%** or more:
-    the whole reason it isn't in `wrap-content` is that its detail needs more room
-    than that column allows
+    "Every Visual Pairs With Its Text" above): `width:` must be **70%** or more: the
+    whole reason it isn't in `wrap-content` is that its detail needs more room than
+    that column allows
 - Pick the exact width within that floor to roughly match the figure's aspect ratio
-  (e.g. `30%` for a portrait, `40-50%` for a simple labeled diagram, `80–100%` for
-  a wide or dense diagram or timeline)
+  (e.g. `30%` for a portrait, `40-50%` for a simple labeled diagram, `80–100%` for a
+  wide or dense diagram or timeline)
 - If no width at or above the applicable floor keeps a `wrap-content` figure's own
   content (not just its label) legible, it does not belong in `wrap-content` at all —
   give it a bare full-width figure instead
 - **Bad** (Typst compiles this fine, but the figure is unreadable):
-
   ```typst
   columns: (1fr, 20%),
   ```
-
 - **Good**:
-
   ```typst
   columns: (1fr, 30%),
   ```
@@ -585,7 +549,6 @@
   and become illegible (e.g. "En-roll-ment", "NeurIPS1,000" running together): give
   it a full-width figure instead
   - **Bad** (5-column table crammed into a narrow column):
-
     ```typst
     #grid(columns: (1fr, 45%), ...)[prose][
       #figure(styled-table(
@@ -594,9 +557,7 @@
       ), ...)
     ]
     ```
-
   - **Good** (same table, full width):
-
     ```typst
     #figure(
       styled-table(
@@ -619,13 +580,10 @@
   `umd_references.typ` module instead (already covered by the boilerplate import
   above)
 - Cite inline with `#cite("<bib-key>")`, never `[@<bib-key>]`:
-
   ```typst
   The Turing test #cite("turing1950computing") remains influential.
   ```
-
 - End the references section with:
-
   ```typst
   #references("/msml610/lectures_source/refs.bib")
   ```

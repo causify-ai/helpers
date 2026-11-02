@@ -8,7 +8,7 @@
 
 ## Built
 
-- <Component>: see `design.<component>.md`
+- <Component>: see `02.<N>-design.<component>.md`
 
 ## Findings
 
