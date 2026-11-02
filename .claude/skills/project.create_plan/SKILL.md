@@ -52,6 +52,7 @@ model: opus
 - Follow the rules in `.claude/skills/project.rules.md` section "Plan File"
 - Follow the template `.claude/templates/project_plan.template.md`
 - Follow `.claude/skills/markdown.rules.md` and `.claude/skills/text.rules.md`
+  when writing text
 - Add the execution part only if the user says that several people work in parallel
 - If `<DOCS_DIR>/07-progress.md` does not exist, create it from the template
   `.claude/templates/project_progress.template.md`

@@ -12,16 +12,17 @@ import dev_scripts_helpers.download.download_utils as dshddut
 import logging
 import os
 import re
-from typing import Optional
+from typing import List, Optional
 
 import bs4
 import requests
 
+import helpers.hcache_simple as hcacsimp
 import helpers.hdbg as hdbg
 import helpers.hgit as hgit
 import helpers.hio as hio
 import helpers.hprint as hprint
-import helpers.hcache_simple as hcacsimp
+import helpers.hstring as hstring
 import helpers.hsystem as hsystem
 
 _LOG = logging.getLogger(__name__)
@@ -94,6 +95,86 @@ def sanitize_title_for_filename(title: str) -> str:
     sanitized = sanitized.strip("_")
     _LOG.debug(hprint.to_str("sanitized"))
     return sanitized
+
+
+# Suffixes of a person name that are not part of the family name.
+_NAME_SUFFIXES = ["jr", "sr", "ii", "iii", "iv"]
+
+
+def _is_name_suffix(token: str) -> bool:
+    """
+    Check if a token is a name suffix, e.g., `Jr.` or `III`.
+
+    :param token: token of a person name
+    :return: True if the token is a suffix and not part of the family name
+    """
+    return token.strip().rstrip(".").lower() in _NAME_SUFFIXES
+
+
+def _get_family_name(author: str) -> str:
+    """
+    Extract the family name from an author name.
+
+    The name can be in the form `First Last` or `Last, First`. A suffix like
+    `Jr.` is dropped, also when it follows a comma.
+    - `Marcos Lopez de Prado` -> `Prado`
+    - `Jackson, Robert J.` -> `Jackson`
+    - `Robert J. Jackson, Jr.` -> `Jackson`
+
+    :param author: author name
+    :return: family name, `Unknown` if the name is empty
+    """
+    parts = [part.strip() for part in author.split(",")]
+    # Drop a suffix that follows a comma, as in `Robert J. Jackson, Jr.`.
+    if len(parts) > 1 and _is_name_suffix(parts[1]):
+        parts = parts[:1]
+    if len(parts) > 1:
+        # The form is `Last, First`: the family name is before the comma.
+        family_name = parts[0]
+    else:
+        # The form is `First Last`: the family name is the last token that is
+        # not a suffix.
+        tokens = parts[0].split()
+        while len(tokens) > 1 and _is_name_suffix(tokens[-1]):
+            tokens.pop()
+        family_name = tokens[-1] if tokens else "Unknown"
+    return family_name
+
+
+def format_base_filename(
+    year: Optional[str], authors: List[str], title: Optional[str]
+) -> str:
+    """
+    Format the base file name (no extension) of a paper.
+
+    The format is `<Year>.<Last_name_of_first_author>[_et_al].<Title>`, per
+    `.claude/skills/references.rules.md`. Every char that is not a letter, a
+    digit, or `_` becomes `_`, and runs of `_` collapse into one.
+    - `2016.Ribeiro_et_al.Why_Should_I_Trust_You_Explaining_the_Predictions`
+
+    :param year: publication year, `UnknownYear` if empty
+    :param authors: author names, in the form `First Last` or `Last, First`
+    :param title: paper title, `UnknownTitle` if empty
+    :return: base file name, without extension
+    """
+    _LOG.debug(hprint.to_str("year authors title"))
+    # Year.
+    year_part = sanitize_title_for_filename(year or "") or "UnknownYear"
+    # First author: the family name, with `_et_al` if there are more authors.
+    if authors:
+        family_name = _get_family_name(authors[0])
+        author_part = sanitize_title_for_filename(hstring.to_ascii(family_name))
+        author_part = author_part or "Unknown"
+        if len(authors) > 1:
+            author_part = f"{author_part}_et_al"
+    else:
+        author_part = "None"
+    # Title.
+    title_part = sanitize_title_for_filename(hstring.to_ascii(title or ""))
+    title_part = title_part or "UnknownTitle"
+    base_filename = ".".join([year_part, author_part, title_part])
+    _LOG.debug("return=%s", base_filename)
+    return base_filename
 
 
 # Phrases (lowercase) found in the visible text of the pages that bot-protection
@@ -190,8 +271,10 @@ MAX_SUMMARY_LEVEL = 3
 
 # What a header of each level stands for in the article, from level 1 down.
 _SECTION_LEVEL_DESCRIPTIONS = [
-    "each main section of the article (e.g., abstract, introduction, methods, "
-    "results, conclusions)",
+    (
+        "each main section of the article (e.g., abstract, introduction, "
+        "methods, results, conclusions)"
+    ),
     "each subsection of a main section",
     "each sub-subsection of a subsection",
 ]
