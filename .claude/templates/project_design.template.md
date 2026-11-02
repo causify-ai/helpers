@@ -19,10 +19,17 @@ Component(comp2, "<Component Name>", "<Technology>", "<Description>")
 Rel(comp1, comp2, "<Relationship>")
 ```
 
-## Files and Import Graph
+## Files
 
 - `<file>`: <what lives here>
+
+## Import Graph
+
 - `<file>` imports `<file>`
+
+## External Code
+
+- `<path>`: <what the design reuses from it>
 
 ## One Request End to End
 

@@ -112,6 +112,7 @@ import feedparser
 import pymupdf
 import requests
 
+import dev_scripts_helpers.download.download_utils as dshddut
 import helpers.hdbg as hdbg
 import helpers.hgit as hgit
 import helpers.hio as hio
@@ -119,9 +120,7 @@ import helpers.hparser as hparser
 import helpers.hprint as hprint
 import helpers.hretry as hretry
 import helpers.hselect_action as hselacti
-import helpers.hstring as hstring
 import helpers.hsystem as hsystem
-import dev_scripts_helpers.download.download_utils as dshddut
 
 _LOG = logging.getLogger(__name__)
 
@@ -424,63 +423,6 @@ def _extract_pdf_metadata_pymupdf(pdf_path: str) -> Dict[str, Any]:
 
 
 # #############################################################################
-# Filename formatting
-# #############################################################################
-
-
-def _format_base_filename(
-    year: Optional[str], authors: List[str], title: Optional[str]
-) -> str:
-    """
-    Format the base filename (no extension) according to spec, with
-    bash-safe formatting (spaces -> underscores).
-
-    Format: <year>.<First_author_last_name>.[et_al.].<Title>
-
-    :param year: publication year
-    :param authors: list of author names
-    :param title: paper title
-    :return: formatted base filename (without extension)
-    """
-    _LOG.debug(hprint.to_str("year authors title"))
-    parts = []
-    # Add year.
-    if year:
-        parts.append(year)
-    else:
-        parts.append("UnknownYear")
-    # Add author(s).
-    if authors:
-        first_author = authors[0]
-        # Extract last name (assume "First Last" format).
-        last_name_parts = first_author.strip().split()
-        last_name = last_name_parts[-1] if last_name_parts else "Unknown"
-        last_name = hstring.to_ascii(last_name)
-        if len(authors) > 1:
-            author_part = f"{last_name}_et_al"
-        else:
-            author_part = last_name
-    else:
-        author_part = "None"
-    parts.append(author_part)
-    # Add title.
-    if title:
-        title = title.strip()
-        title = hstring.to_ascii(title)
-        title_part = title
-    else:
-        title_part = "UnknownTitle"
-    parts.append(title_part)
-    # Join parts with dot.
-    base_filename = ".".join(parts)
-    # Remove invalid characters and replace spaces with underscores.
-    base_filename = re.sub(r'[<>:"/\\|?*]', "", base_filename)
-    base_filename = re.sub(r"\s+", "_", base_filename)
-    _LOG.debug(hprint.to_str("base_filename"))
-    return base_filename
-
-
-# #############################################################################
 # Metadata / base path resolution
 # #############################################################################
 
@@ -586,7 +528,7 @@ def _get_output_base_path(
         authors = metadata.get("authors", [])
         if not isinstance(authors, list):
             authors = [authors] if authors else []
-        base_filename = _format_base_filename(
+        base_filename = dshddut.format_base_filename(
             metadata.get("year"), authors, metadata.get("title")
         )
     base_path = os.path.join(output_dir, base_filename)

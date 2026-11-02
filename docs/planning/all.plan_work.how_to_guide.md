@@ -123,6 +123,10 @@
   `.claude/skills/project.rules.md` section "Project Docs"
 - Create a C4 diagram of the system following `.claude/skills/C4.rules.md`
   - E.g., `research/Estimate_academic_paper_quality/docs/02-design.architecture.md`
+  - Put a short refresher of the C4 levels before the first diagram: Context,
+    Container, Component, and Code, each with a one-line definition
+  - Write it once, in `02-design.architecture.md`, and say which levels the doc
+    draws
 - Make every reference to a file in a doc clickable
   - E.g., a path like `research/Estimate_academic_paper_quality/docs/01-prd.md`
   - Follow `.claude/skills/project.rules.md` section "Make File References
@@ -532,6 +536,8 @@
   system
   - Content: architecture, components, data flow, alternatives, risks
   - Add a C4 diagram, see `.claude/skills/C4.rules.md`
+  - Open the diagram section with a short refresher of the C4 levels (Context,
+    Container, Component, Code)
 - **`02.<N>-design.<component>.md`**: one doc per component
   - E.g., API spec, data model / schema, UX/UI designs, security and privacy review
   - Content depends on the component: endpoint contracts, entities and migrations,

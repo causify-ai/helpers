@@ -3544,6 +3544,64 @@ class Test_smd_format(hunitest.TestCase):
         # Check outputs.
         self.assertEqual(once, twice)
 
+    def test26(self) -> None:
+        """
+        Test that several blank lines before and after a pipe table are
+        collapsed to exactly one, so `pandoc` parses it as a table.
+        """
+        # Prepare inputs.
+        txt = """
+        Intro:
+
+
+
+        | a | b |
+        | - | - |
+        | 1 | 2 |
+
+
+
+        After
+        """
+        # Prepare outputs.
+        expected = """
+        Intro:
+
+        | a | b |
+        | - | - |
+        | 1 | 2 |
+
+        After
+        """
+        # Run test.
+        self.helper(txt, expected)
+
+    def test27(self) -> None:
+        """
+        Test that exactly one blank line is added between a paragraph and a
+        pipe table that directly follows it.
+        """
+        # Prepare inputs.
+        txt = """
+        Intro:
+        | a | b |
+        | - | - |
+        | 1 | 2 |
+        After
+        """
+        # Prepare outputs.
+        expected = """
+        Intro:
+
+        | a | b |
+        | - | - |
+        | 1 | 2 |
+
+        After
+        """
+        # Run test.
+        self.helper(txt, expected)
+
 
 # #############################################################################
 # Test_md_format
@@ -3842,6 +3900,38 @@ class Test_md_format(hunitest.TestCase):
         """
         # Prepare outputs.
         expected = txt
+        # Run test.
+        self.helper(txt, expected)
+
+    def test13(self) -> None:
+        """
+        Test that several blank lines before and after a pipe table nested in
+        a bullet are collapsed to exactly one.
+        """
+        # Prepare inputs.
+        txt = """
+        - Item text
+
+
+
+          | a |
+          | - |
+          | 1 |
+
+
+
+        - Next
+        """
+        # Prepare outputs.
+        expected = """
+        - Item text
+
+          | a |
+          | - |
+          | 1 |
+
+        - Next
+        """
         # Run test.
         self.helper(txt, expected)
 
