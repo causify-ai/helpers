@@ -121,6 +121,9 @@
   - Do it in the same PR
 - Write the onboarding doc, the glossary, and the design docs as described in
   `.claude/skills/project.rules.md` section "Project Docs"
+- Write a README for each executable and for each dir, so that a newcomer knows how
+  to run the code
+  - See [Document the Executables](#document-the-executables)
 - Create a C4 diagram of the system following `.claude/skills/C4.rules.md`
   - E.g., `research/Estimate_academic_paper_quality/docs/02-design.architecture.md`
   - Put a short refresher of the C4 levels before the first diagram: Context,
@@ -363,6 +366,43 @@
   - The interaction of the new code are properly tested (e.g., integration tests,
     end-to-end tests)
   - All the specs are tested
+
+## Document the Executables
+
+- **Goal**: give a newcomer an entry point on how to run the code
+  - A README per executable says what it does and how to call it
+  - A README per dir says what is in the dir and points to the executables
+- **Commands**:
+  ```text
+  # Write or update the README of one executable.
+  claude> /readme_file.create <executable>
+  claude> /readme_file.create research/Estimate_academic_paper_quality/estimate_paper_quality.py
+
+  # Write or update the README of a dir.
+  claude> /readme_dir.create <dir>
+  claude> /readme_dir.create research/Estimate_academic_paper_quality
+  ```
+- What the skills write:
+  - `/readme_file.create` writes `<executable>.README.md` next to the executable
+    - E.g., `research/Estimate_academic_paper_quality/estimate_paper_quality.py.README.md`
+    - It has usage examples, a table of the arguments, the outputs, and the
+      software architecture
+    - It adds a pointer to the README in the docstring of the executable
+  - `/readme_dir.create` writes `README.md` in the dir
+    - E.g., `research/Estimate_academic_paper_quality/README.md`
+    - It has the structure of the dir and a short description of each file,
+      executable, and workflow
+- Rules for the flow:
+  - Run `/readme_file.create` for each executable first, then `/readme_dir.create`
+    for the dir
+  - Rerun the skills in the PR that changes the arguments of an executable or adds,
+    renames, or removes a file in the dir
+  - The conventions are in `.claude/skills/readme_file.rules.md` and
+    `.claude/skills/readme_dir.rules.md`
+
+- **Gates**:
+  - Every argument of the executable is in its README
+  - The examples in the README run as written
 
 ## Update Docs and Close GH Issue
 
